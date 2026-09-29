@@ -28,6 +28,11 @@ NOT_A_ZONE = (
     "The contract asks for an IANA name, such as America/Los_Angeles."
 )
 
+NOT_YET = (
+    "confirmations: an answer here is dated after today in the time zone of the case. "
+    "Date each answer on or before the day it was given."
+)
+
 TYPE_WORDS = {
     "string": "text",
     "integer": "a whole number",
