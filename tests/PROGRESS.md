@@ -1599,3 +1599,44 @@ Planted through a scratch plugin under TMPDIR, then removed; each failed as list
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-54d4e6df70 (attempt 1): point 63, tests first
+
+### What I tried and what ran
+
+- Probed the current engine with finding 4's case (STEM_CASE of test_f1_fix6.py, answered
+  no in full): the plain pack gives no_open_items, reasons [], three reports; the packs
+  without stem.validation_interval_months and without stem.extension_months give
+  no_open_items, reasons [], no report. Finding 4 reproduced.
+- New tests/unit/engine/test_f1_fix7.py (point 63): a check of the case and the three
+  packs; the plain pack control (three reports, 24 // 6 = 4, the fourth 2028-03-13 after the
+  card's end, no step back); for each left-out rule: not quiet, carries
+  rule_not_in_force_on_event_day, still no report, and the first output (before answers)
+  already steps back; a pack without both; a property over clocks 2026-03-13 to 2030-12-31
+  and the three leave-outs.
+- New tests/holdout/test_holdout_fix7.py: a doctoral case (STEM card 2025-07-01 to
+  2027-06-30, working in the file); plain pack control; each rule left out; each rule's
+  only row starting 2027-07-02, the day after the fourth report's day, so no row is in
+  force on any day the engine could read it on; a property over drawn STEM cards from
+  2002-06-01 to 2035-12-31 and clocks up to 400 days past the card.
+- tests/unit/engine/test_f1_fix6.py: test_point_59_a_pack_without_the_interval_lists_no_validation_report
+  now also asserts the verdict is not no_open_items.
+- On the current engine: 14 fail (8 in fix7, 5 in the holdout, the strengthened fix6 test);
+  the four controls and checks pass. The first run of the holdout future-row tests had the
+  row start 2027-07-01; the engine listed four reports from a row not in force today. I moved
+  the start to 2027-07-02 so the claim holds on whichever day the rule is read.
+- Done command as written, no pipe: exit 0 ("All checks passed!", "60 files already formatted").
+
+### What change to the code would make each new test fail
+
+Planted through a scratch plugin under TMPDIR wrapping f1.compute_f1, then removed:
+- A reference that drops the reports and adds the step back (talk_to_dso when quiet) when a
+  STEM case meets a pack with no row of either rule in force today: every new test and the
+  strengthened fix6 test pass (exit 0).
+- A fault that always adds the step back: both plain pack controls fail.
+- The engine as it stands (no step back when whole_shown finds no row): every point 63 test
+  fails, on the reason or on the quiet state.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
