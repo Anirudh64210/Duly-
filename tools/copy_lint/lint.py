@@ -7,6 +7,7 @@ The list only grows or shrinks by founder decision.
 """
 
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -142,9 +143,37 @@ def _allowed(root: Path) -> set[tuple[str, str]]:
     return out
 
 
+def _candidates(root: Path) -> list[Path]:
+    """What could be committed: tracked files and untracked files git does not ignore.
+
+    Output the build or the tests write, such as a coverage report, is ignored by git and
+    so never read here; a second run of the gates finds what the first did. Outside a git
+    repository every file is a candidate, and SKIP_DIRS does the same work.
+    """
+    listed = subprocess.run(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    inside = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if (
+        listed.returncode
+        or Path(inside.stdout.strip() or "/nonexistent").resolve() != root.resolve()
+    ):
+        return list(root.rglob("*"))
+    return [root / name for name in listed.stdout.decode().split("\0") if name]
+
+
 def _files(root: Path) -> list[Path]:
     found: list[Path] = []
-    for path in root.rglob("*"):
+    for path in _candidates(root):
         if not path.is_file() or path.name in SKIP_FILES:
             continue
         rel = path.relative_to(root)
