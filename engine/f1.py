@@ -43,6 +43,12 @@ NEW_PLAN = "stem.new_plan_due_days"
 EVALUATION_DUE = "stem.evaluation_due_days"
 REPORT_INTERRUPTION = "opt.report_interruption"
 STEM_REPORTING = "stem.reporting_required"
+POST_COMPLETION = "opt.post_completion_definition"
+
+# SPEC-resolutions point 27: a card with no post-completion part.
+NOT_AFTER_PROGRAM_END = "opt.ead_end.not_after_program_end"
+# SPEC-resolutions point 28: a rule measured from an event had no row in force that day.
+NOT_IN_FORCE = "rule_not_in_force_on_event_day"
 
 # SPEC-context, section 4: what Duly asks the person to confirm.
 HELD_OPT = "held_post_completion_opt"
@@ -257,6 +263,8 @@ class _Working:
         self.ahead: list[dict[str, Any]] = []
         # The STEM report items: a date of one that has passed is asked about (point 21).
         self.reports: list[str] = []
+        # Whether a rule measured from an event had no operative row on that day (point 28).
+        self.not_in_force = False
 
     def name_missing(self, name: str) -> None:
         if name not in self.missing and name not in self.silent:
@@ -361,13 +369,15 @@ class _Working:
         needs: tuple[str, ...] = (),
         settings: tuple[str, ...] = (),
         reading: bool = False,
+        on: date | None = None,
     ) -> None:
         """One computed item. needs names the inputs the formula cannot do without: if
         one is missing the value is null and the input is named, never guessed. settings
         names Duly's own choices that were used on the item's inputs. An item that uses
         an input held in an open conflict has the value null. reading marks an item whose
-        inputs Duly reads as more than they state."""
-        item, value = self._item(item_id, unit, inputs, rule_ids, formula, needs, settings)
+        inputs Duly reads as more than they state. on is the day of the event a rule is
+        measured from: the rule is looked up for that day (SPEC-resolutions point 28)."""
+        item, value = self._item(item_id, unit, inputs, rule_ids, formula, needs, settings, on)
         item["reading"] = item["reading"] or reading
         self.computed.append(item)
         if isinstance(value, date):
@@ -401,17 +411,26 @@ class _Working:
         formula: Callable[[Values], Value],
         needs: tuple[str, ...],
         settings: tuple[str, ...],
+        on: date | None = None,
     ) -> tuple[dict[str, Any], Value]:
-        parameters = [self._rule(rule_id) for rule_id in rule_ids]
+        on_day = [None if on is None else self.pack.value(rule_id, on) for rule_id in rule_ids]
+        # A rule that took effect after the event gives no date for it.
+        lapsed = on is not None and any(found is None for found in on_day)
+        parameters = [
+            self._rule(rule_id) if found is None else found
+            for rule_id, found in zip(rule_ids, on_day, strict=True)
+        ]
         for parameter in parameters:
             self._show_rule(parameter)
         absent = [name for name in needs if inputs[name] is None]
         for name in absent:
             self.name_missing(name)
         unsure = any(name in self.conflicted for name in inputs)
+        if lapsed and not absent and not unsure:
+            self.not_in_force = True
 
         def guarded(values: Values) -> Value:
-            return None if absent or unsure else formula(values)
+            return None if absent or unsure or lapsed else formula(values)
 
         value = guarded({p["id"]: p["value"] for p in parameters})
         item: dict[str, Any] = {
@@ -428,7 +447,7 @@ class _Working:
             settings = (*settings, LOOKAHEAD)
         if settings:
             item["inputs"]["duly_settings"] = list(settings)
-        alternates = self._alternates(rule_ids, guarded, value)
+        alternates = [] if lapsed else self._alternates(rule_ids, guarded, value)
         if alternates:
             item["alternates"] = alternates
             item["operative"] = self._operative(parameters)
@@ -517,6 +536,7 @@ def _add_program_items(work: _Working, case: F1Case) -> None:
         inputs,
         ("opt.apply_before_days",),
         lambda v: end - timedelta(days=_whole(v, "opt.apply_before_days")),
+        on=end,
     )
 
     def days_after(rule_id: str) -> Callable[[Values], Value]:
@@ -527,7 +547,7 @@ def _add_program_items(work: _Working, case: F1Case) -> None:
         ("opt.apply_window_closes", "opt.apply_after_days"),
         ("opt.latest_start", "opt.latest_start_after_days"),
     ):
-        work.add(item_id, "date", inputs, (rule_id,), days_after(rule_id))
+        work.add(item_id, "date", inputs, (rule_id,), days_after(rule_id), on=end)
     work.add(
         "opt.complete_by",
         "date",
@@ -793,6 +813,8 @@ def _add_periods(work: _Working, case: F1Case, ask: Ask) -> bool:
         if card is not None and card[0] <= start <= card[1]:
             about = {begun: start.isoformat(), "stem.ead_start": card[0].isoformat()}
             if ask(f"employment.{number}.new_employer", True, about) == YES:
+                # Point 36: a new plan whose date has passed is asked about as a report is.
+                work.reports.append(f"stem.new_plan_due.{number}")
                 work.add(
                     f"stem.new_plan_due.{number}",
                     "date",
@@ -1073,13 +1095,15 @@ def _window_facts(case: F1Case, work: _Working) -> list[Fact]:
     if opt is None:
         return found
     end = case.program_end_date
-    # The operative value only; the other regime's value stays on the window items.
+    # The operative value only; the other regime's value stays on the window items. The
+    # rule is the one in force on the program end (point 28).
     after = "opt.apply_after_days"
     filed = opt.i765_filed_date
+    in_force = work.pack.value(after, end)
     if (
         filed is not None
-        and work.holds(after)
-        and filed > end + timedelta(days=work.whole_rule(after))
+        and in_force is not None
+        and filed > end + timedelta(days=_whole({after: in_force["value"]}, after))
     ):
         note(
             "opt.i765_filed_date.after_window_closes",
@@ -1099,6 +1123,21 @@ def _window_facts(case: F1Case, work: _Working) -> list[Fact]:
             "opt.ead_end.after_complete_by",
             within,
             {"program_end_date": end, "opt.ead_end": card_end},
+        )
+    # Point 27: a card that ends on or before the program end has no post-completion
+    # part. Taking the card end as the test is Duly's reading, noted in the pack.
+    if card_end is not None and card_end <= end:
+        if work.holds(POST_COMPLETION):
+            work.show(POST_COMPLETION)
+        found.append(
+            Fact(
+                NOT_AFTER_PROGRAM_END,
+                {
+                    "program_end_date": _shown(end),
+                    "opt.ead_start": _shown(opt.ead_start),
+                    "opt.ead_end": _shown(card_end),
+                },
+            )
         )
     return found
 
@@ -1265,7 +1304,12 @@ def compute_f1(
         unsettled.append(fact.id)
         work.conflicted.update(fact.about)
 
+    # Point 27: while the card may not be post-completion OPT, no OPT step is done and
+    # the STEM step is not placed next.
+    pre_completion = NOT_AFTER_PROGRAM_END in unsettled
     for part, block in (("opt", case.opt), ("stem", case.stem)):
+        if part == "opt" and pre_completion:
+            continue
         if block is not None and (block.i765_filed_date is not None or block.ead_start is not None):
             work.done.update(STEPS[part])
 
@@ -1307,7 +1351,7 @@ def compute_f1(
             return None
         return final_end + timedelta(days=_whole(v, grace))
 
-    work.add("grace.ends", "date", ends, (grace,), grace_ends, needs=unknown_end)
+    work.add("grace.ends", "date", ends, (grace,), grace_ends, needs=unknown_end, on=final_end)
     if case.stem is not None:
         _add_stem_items(work, opt, case.stem)
     # Points 20, 21 and 22: until each is answered the verdict is cannot_tell.
@@ -1316,7 +1360,7 @@ def compute_f1(
     not_made = _passed_reports(work, ask)
     unconfirmed += tuple(question["id"] for question in questions[later:])
     lists: list[dict[str, Any]] = []
-    if case.opt is not None and case.stem is None:
+    if case.opt is not None and case.stem is None and not pre_completion:
         _add_next_step(work, case.opt)
         lists = _lists(work)
 
@@ -1354,6 +1398,8 @@ def compute_f1(
         judgement_items = (*judgement_items, "cap_gap_without_training")
     if past_cards and "capgap.ends" in work.dated:
         judgement_items = (*judgement_items, "grace_with_cap_gap")
+    if work.not_in_force:
+        judgement_items = (*judgement_items, NOT_IN_FORCE)
     # Point 25: the regimes give different answers only where an item shown carries an
     # alternate.
     shown = (*work.computed, *work.ahead)
