@@ -72,6 +72,8 @@ function factsOn(topic: Topic, sent: F1Case): string[] {
 // Point 61: a report that names an employment period carries that period's number.
 type Ask = { topics: readonly Topic[]; ask: string; period?: number };
 
+const NOT_IN_FORCE = "rule_not_in_force_on_event_day";
+
 // One question for each talk_to_dso reason. Each asks, and none says what the answer is.
 const ASKS: ReadonlyMap<string, Ask> = new Map(
   Object.entries({
@@ -112,7 +114,7 @@ const ASKS: ReadonlyMap<string, Ask> = new Map(
       topics: ["degree", "opt"],
       ask: "I used OPT before at this degree level. Could you tell me how many months of OPT I have left at this level?",
     },
-    rule_not_in_force_on_event_day: {
+    [NOT_IN_FORCE]: {
       topics: [...CARDS, "cap_gap"],
       ask: "Could you tell me which rules apply to these dates in my case?",
     },
@@ -150,8 +152,22 @@ function hoursAsk(sent: F1Case): Ask {
   };
 }
 
-function askFor(reason: string, sent: F1Case): Ask {
+// Point 64: the engine gives this count null with the step back when a period starts
+// before the rule's row (point 60), so the period is behind the reason.
+const PERIOD_COUNT = "employment.periods_not_reported";
+
+/** Point 64: the step back names the periods when the period count is behind it. */
+function stepBackAsk(output: EngineOutput): Ask {
+  const known = ASKS.get(NOT_IN_FORCE) ?? { topics: ALL, ask: OTHER_ASK };
+  const periodBehind = output.computed.some(
+    (item) => item.id === PERIOD_COUNT && item.value === null,
+  );
+  return periodBehind ? { ...known, topics: [...known.topics, "employment"] } : known;
+}
+
+function askFor(reason: string, output: EngineOutput, sent: F1Case): Ask {
   if (reason === "hours_under_threshold") return hoursAsk(sent);
+  if (reason === NOT_IN_FORCE) return stepBackAsk(output);
   const known = ASKS.get(reason);
   if (known) return known;
   const notMade = NOT_MADE.exec(reason);
@@ -192,7 +208,7 @@ export function dsoDraft(output: EngineOutput, sent: F1Case): string | null {
   const periods = new Set<number>();
   const asks: string[] = [];
   for (const reason of output.verdict.reasons) {
-    const { topics: on, ask, period } = askFor(reason, sent);
+    const { topics: on, ask, period } = askFor(reason, output, sent);
     on.forEach((topic) => topics.add(topic));
     if (period !== undefined) periods.add(period);
     if (!asks.includes(ask)) asks.push(ask);

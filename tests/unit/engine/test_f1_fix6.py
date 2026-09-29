@@ -548,11 +548,14 @@ def test_point_59_a_pack_that_holds_the_interval_gives_the_validations() -> None
 
 def test_point_59_a_pack_without_the_interval_lists_no_validation_report() -> None:
     # stem.validation_interval_months has no row at all, so no row is shown for it and the
-    # number of reports is not known: none is listed, and the engine does not fail.
+    # number of reports is not known: none is listed, and the engine does not fail. The
+    # missing row is never the quiet state (CLAUDE.md; reviews/product-1-fix6.md, finding 4;
+    # SPEC-resolutions.md point 63).
     raw = pack_dict(TODAY, leave_out=("stem.validation_interval_months",))
     out = settle_with(STEM_CASE, TODAY, answer_with(False), raw_pack=raw)
     check_an_output(out)
     assert validation_ids(out) == []
+    assert out["verdict"]["state"] != QUIET
 
 
 def test_point_59_a_pack_without_the_extension_rule_lists_no_validation_report() -> None:
