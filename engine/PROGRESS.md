@@ -945,3 +945,16 @@ Status: done.
   under TMPDIR showed the only lapsing item in all three is employment.periods_not_reported.
 
 Status: done.
+
+## l-engine-1f55dd3fc6 (attempt 1): remove the dead _Working.value_of
+
+- Mission: gate 6 found untested changed lines in engine/f1.py; one is `_Working.value_of`,
+  which nothing calls.
+- `grep -rn value_of --include='*.py' .`: the only hits were the definition in engine/f1.py
+  and a mention in the module docstring of tests/unit/engine/test_f1_fix6.py (text, not a call).
+- Removed the method (5 lines). Nothing else changed.
+- Done command as written, output to a file, no pipe: exit 0. pytest all dots, "engine
+  literals: every number has a source", mypy "no issues found in 57 source files", ruff
+  "All checks passed!", "8 files already formatted".
+
+Status: done.

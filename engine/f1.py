@@ -294,12 +294,6 @@ class _Working:
         found = self._rule(rule_id)
         return None if found is None else _whole({rule_id: found["value"]}, rule_id)
 
-    def value_of(self, rule_id: str) -> Any:
-        """The operative value of a rule in force today. None with the step back when no
-        row is in force today (SPEC-resolutions point 59)."""
-        found = self._rule(rule_id)
-        return None if found is None else found["value"]
-
     def whole_shown(self, rule_id: str, day: date | None) -> int | None:
         """The whole value of the row whose words an item for the day shows. It decides
         which items there are and never a value: each item looks its rule up for itself."""
