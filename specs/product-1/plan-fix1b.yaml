@@ -29,9 +29,15 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
+          Your earlier run of this round is on branch lane/L-tests/l-tests-1117c8c4ae: 70 of 72
+          collisions reconciled, then escalated on two hidden tests of points 21 and 22, which
+          the engine has not built. You were right not to skip them. Bring that work in first:
+          git merge lane/L-tests/l-tests-1117c8c4ae. Then move every hidden test of points 20,
+          21, 22 and 25 into tests/holdout/test_holdout_periods_and_reports.py, and write the
+          unit tests of points 25 and 26 into tests/unit/engine/test_f1_periods_and_reports.py
+          (point 25 is new; the next engine round builds it). Both files wait for that round.
           The engine now has specs/product-1/SPEC-resolutions.md points 11, 12, 14 to 19, 23 and
-          24. Bring every test in tests/unit and tests/holdout in line with them, except
-          tests/unit/engine/test_f1_periods_and_reports.py, which waits for points 20 to 22. The
+          24. Bring every other test in tests/unit and tests/holdout in line with them. The
           builder's list of the 33 older tests that collide, each with its reason, is in
           engine/REPORT.json on branch lane/L-engine/l-engine-9492007270 (git show). For each
           test you change, the reason is a settled point: change the case so its facts fit
@@ -44,21 +50,24 @@ rounds:
         done: >-
           bash -c 'uv run ruff check tests && uv run ruff format --check tests
           && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider
-          --ignore=tests/unit/tools --ignore=tests/unit/engine/test_f1_periods_and_reports.py'
+          --ignore=tests/unit/tools --ignore=tests/unit/engine/test_f1_periods_and_reports.py
+          --ignore=tests/holdout/test_holdout_periods_and_reports.py
+          && test -f tests/holdout/test_holdout_periods_and_reports.py'
     checks:
       - { name: "engine and api tests", run: "uv run pytest tests/unit/engine tests/unit/api -q --ignore=tests/unit/engine/test_f1_periods_and_reports.py" }
-      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q --ignore=tests/holdout/test_holdout_periods_and_reports.py" }
   - name: engine-periods
     checkpoint: false
     lanes:
       - lane: L-engine
         agent: builder
         mission: >
-          Build specs/product-1/SPEC-resolutions.md points 20, 21 and 22 in engine/: the
+          Build specs/product-1/SPEC-resolutions.md points 20, 21, 22 and 25 in engine/: the
           question about a new employer for each period that begins on the STEM card, the
           question about reporting each period's end, the question about each STEM report
           whose date has passed, and the dated items and judgement items each answer gives,
-          including stem.concluding_evaluation_due. The rules opt.report_interruption and
+          including stem.concluding_evaluation_due; and point 25, the litigation reason only
+          where an item shown carries an alternate. The rules opt.report_interruption and
           stem.reporting_required are in the pack. Every day count comes from a rule's value.
           Older tests that collide are reconciled in the next round; list them in your report.
         done: >-
@@ -71,7 +80,7 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
-          The engine now has specs/product-1/SPEC-resolutions.md points 20, 21 and 22. Bring
+          The engine now has specs/product-1/SPEC-resolutions.md points 20, 21, 22 and 25. Bring
           every test in tests/unit and tests/holdout in line with them. Cases with an ended
           employment period, a period beginning on the STEM card, or a STEM report date before
           the day they run now raise questions: answer them in the case with the helpers of
