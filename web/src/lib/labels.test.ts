@@ -4,16 +4,21 @@ import { describe, expect, it } from "vitest";
 import { engineOutputSchema } from "./compute";
 import { OUTPUT } from "./fixtures";
 import {
+  answerLine,
+  becauseLine,
   formatDate,
   formatValue,
   groupOf,
   inputName,
   itemName,
   legalStatusWords,
+  questionCopy,
   reasonText,
   scopeLine,
   settingName,
   statusTag,
+  todayLine,
+  zoneName,
 } from "./labels";
 
 const SPEC_ITEMS = [
@@ -225,5 +230,116 @@ describe("scope line", () => {
     expect(scopeLine(0, null)).toBe(
       "Based on 0 documents you added. The rules have not been checked yet.",
     );
+  });
+});
+
+// SPEC-context, section 4.
+const QUESTION_IDS = [
+  "held_post_completion_opt",
+  "no_employment_to_record",
+  "cap_gap_without_training",
+];
+
+// BOUNDARY.md, the modal test. A question asks what happened, never what to do.
+const MODAL = /\b(should|can|may|must|will|safe|fine|need|needs|allowed|permitted)\b/i;
+
+describe("questions", () => {
+  const copies = QUESTION_IDS.map((id) => {
+    const copy = questionCopy(id);
+    if (!copy) throw new Error(`no words for ${id}`);
+    return copy;
+  });
+
+  it("has words for every question in the SPEC, each different", () => {
+    expect(new Set(copies.map((copy) => copy.ask)).size).toBe(QUESTION_IDS.length);
+  });
+
+  it("asks a question, with two answers that differ", () => {
+    for (const copy of copies) {
+      expect(copy.ask.endsWith("?")).toBe(true);
+      expect(copy.yes).toMatch(/^Yes, /);
+      expect(copy.no).toMatch(/^No, /);
+    }
+  });
+
+  it("asks what happened, never what to do", () => {
+    for (const copy of copies) {
+      for (const text of [copy.ask, copy.yes, copy.no]) expect(text).not.toMatch(MODAL);
+    }
+  });
+
+  it("has no words for a question it does not know, or for a built-in object name", () => {
+    expect(questionCopy("some_new_question")).toBeNull();
+    expect(questionCopy("constructor")).toBeNull();
+  });
+
+  it("names what raised a question", () => {
+    expect(becauseLine(["stem", "opt"])).toBe("Asked because of: STEM OPT dates, OPT dates.");
+    expect(becauseLine(["employment", "opt.ead_start"])).toBe(
+      "Asked because of: Employment periods, OPT EAD start date.",
+    );
+    expect(becauseLine(["cap_gap", "opt", "stem"])).toBe(
+      "Asked because of: Cap-gap petition, OPT dates, STEM OPT dates.",
+    );
+  });
+
+  it("shows an answer as the person's own statement, with its day", () => {
+    const [held] = copies;
+    if (!held) throw new Error("no words");
+    expect(answerLine(held, { answer: true, on: "2026-09-28" })).toBe(
+      'You answered "Yes, I had one" on Sep 28, 2026.',
+    );
+    expect(answerLine(held, { answer: false, on: "2026-09-29" })).toBe(
+      'You answered "No, I did not" on Sep 29, 2026.',
+    );
+  });
+
+  it("says it is waiting while a question is open, and never shows the id", () => {
+    for (const id of [...QUESTION_IDS, "some_new_question"]) {
+      expect(reasonText(`unconfirmed:${id}`)).toBe(
+        "Duly is waiting for your answer to a question below.",
+      );
+    }
+  });
+
+  it("hands the two judgements to the DSO and states no conclusion", () => {
+    for (const reason of ["stem_without_post_completion_opt", "cap_gap_without_training"]) {
+      const line = reasonText(reason);
+      expect(line).toMatch(/^You answered that /);
+      expect(line).toMatch(/so it is a question for your DSO\.$/);
+      expect(line).not.toMatch(MODAL);
+    }
+  });
+
+  it("names the employment that is still to be entered", () => {
+    expect(reasonText("missing:employment")).toBe(
+      "Duly needs the employment periods that are not entered yet.",
+    );
+  });
+});
+
+describe("the day", () => {
+  it("shows the day and the zone the engine used", () => {
+    expect(todayLine("2026-09-28", "America/Los_Angeles")).toBe(
+      "Today is Sep 28, 2026 in America/Los Angeles.",
+    );
+    expect(todayLine("2026-09-29", "Asia/Kolkata")).toBe("Today is Sep 29, 2026 in Asia/Kolkata.");
+  });
+
+  it("keeps the day the engine gave, in every zone", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 28 }),
+        fc.constantFrom("Pacific/Kiritimati", "Pacific/Pago_Pago", "UTC"),
+        (day, zone) => {
+          const iso = `2026-09-${String(day).padStart(2, "0")}`;
+          expect(todayLine(iso, zone)).toContain(`Sep ${day}, 2026`);
+        },
+      ),
+    );
+  });
+
+  it("shows a zone name with spaces", () => {
+    expect(zoneName("America/Argentina/Buenos_Aires")).toBe("America/Argentina/Buenos Aires");
   });
 });

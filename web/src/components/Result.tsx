@@ -1,19 +1,28 @@
 import { useId, useState } from "react";
 import { z } from "zod";
 
-import type { ComputedItem, EngineOutput, ShownRule } from "../lib/compute";
+import type { ComputedItem, Confirmations, EngineOutput, ShownRule } from "../lib/compute";
 import {
   GROUPS,
+  QUESTION_NOT_SHOWN,
+  READING_LABEL,
+  READING_TAG,
+  SOURCE_WORDS,
+  VERBATIM_LINE,
+  answerLine,
+  becauseLine,
   formatDate,
   formatValue,
   groupOf,
   inputName,
   itemName,
   legalStatusWords,
+  questionCopy,
   reasonText,
   scopeLine,
   settingName,
   statusTag,
+  todayLine,
 } from "../lib/labels";
 import { headline } from "../lib/status";
 
@@ -64,14 +73,31 @@ function InputValue({ value }: { value: unknown }) {
 
 function RuleCard({ id, rule }: { id: string; rule: ShownRule }) {
   const tag = statusTag(rule.status);
+  const reading = rule.derivation === "reading";
   return (
     <li className="rule">
       <p className="rule-head">
-        <span className="rule-value">{formatValue(rule.value, rule.unit)}</span>
+        {/* A flag has no value to read: the rule is its words. */}
+        {rule.unit !== "flag" && (
+          <span className="rule-value">{formatValue(rule.value, rule.unit)}</span>
+        )}
         <span className="rule-id">{id}</span>
         {tag && <span className="tag">{tag}</span>}
+        {reading && <span className="tag">{READING_TAG}</span>}
       </p>
-      {rule.quote && <blockquote>{rule.quote}</blockquote>}
+      {rule.quote && (
+        <figure className="quote">
+          <figcaption>{SOURCE_WORDS}</figcaption>
+          <blockquote>{rule.quote}</blockquote>
+        </figure>
+      )}
+      {rule.derivation === "verbatim" && <p className="derivation">{VERBATIM_LINE}</p>}
+      {reading && (
+        <div className="reading">
+          <p className="reading-label">{READING_LABEL}</p>
+          <p>{rule.note}</p>
+        </div>
+      )}
       <p>
         <a href={rule.url} target="_blank" rel="noreferrer">
           {rule.citation}
@@ -151,15 +177,128 @@ function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rul
   );
 }
 
-export function Verdict({ output }: { output: EngineOutput }) {
-  const { verdict, scope, computed } = output;
+export function Verdict(props: { output: EngineOutput; onChangeZone: () => void }) {
+  const { verdict, scope, computed, today } = props.output;
+  // Two reasons may read the same. Each line is shown once.
+  const lines = [...new Set(verdict.reasons.map((reason) => reasonText(reason, computed)))];
   return (
     <section className="verdict" data-state={verdict.state}>
       <h1>{headline(verdict.state)}</h1>
-      {verdict.reasons.map((reason) => (
-        <p key={reason}>{reasonText(reason, computed)}</p>
+      {lines.map((line) => (
+        <p key={line}>{line}</p>
       ))}
       <p className="scope">{scopeLine(scope.documents_count, scope.rules_checked_on)}</p>
+      <p className="scope">
+        {todayLine(today.date, today.time_zone)}{" "}
+        <button type="button" className="quiet" onClick={props.onChangeZone}>
+          Change the time zone
+        </button>
+      </p>
+    </section>
+  );
+}
+
+export function Questions(props: {
+  output: EngineOutput;
+  /** The answers sent with the case this result was computed from. */
+  sent: Confirmations;
+  busy: boolean;
+  onAnswer: (question: string, given: boolean) => void;
+  onWithdraw: (question: string) => void;
+}) {
+  const { output, sent, busy, onAnswer, onWithdraw } = props;
+  const open = new Set(output.questions.map((question) => question.id));
+  const answered = Object.entries(sent).filter(([id]) => !open.has(id));
+  if (open.size === 0 && answered.length === 0) return null;
+
+  return (
+    <>
+      {output.questions.length > 0 && (
+        <section className="questions" aria-labelledby="questions-open">
+          <h3 id="questions-open">Questions for you</h3>
+          <ul>
+            {output.questions.map((question) => {
+              const copy = questionCopy(question.id);
+              return (
+                <li className="question" key={question.id}>
+                  <p className="ask">{copy ? copy.ask : QUESTION_NOT_SHOWN}</p>
+                  <p className="because">{becauseLine(question.because)}</p>
+                  {copy && (
+                    <div className="answers" role="group" aria-label={copy.ask}>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => onAnswer(question.id, true)}
+                      >
+                        {copy.yes}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => onAnswer(question.id, false)}
+                      >
+                        {copy.no}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+      {answered.length > 0 && (
+        <section className="questions" aria-labelledby="questions-answered">
+          <h3 id="questions-answered">Your answers, sent with these dates</h3>
+          <ul>
+            {answered.map(([id, given]) => {
+              const copy = questionCopy(id);
+              if (!copy) return null;
+              return (
+                <li className="question" key={id}>
+                  <p className="ask">{copy.ask}</p>
+                  <p className="given">{answerLine(copy, given)}</p>
+                  <div className="answers" role="group" aria-label={copy.ask}>
+                    <button
+                      type="button"
+                      className="quiet"
+                      disabled={busy}
+                      onClick={() => onAnswer(id, !given.answer)}
+                    >
+                      Change the answer to "{given.answer ? copy.no : copy.yes}"
+                    </button>
+                    <button
+                      type="button"
+                      className="quiet"
+                      disabled={busy}
+                      onClick={() => onWithdraw(id)}
+                    >
+                      Remove the answer
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}
+
+/** Rules the engine sent that no item names: the words that go with the verdict. */
+export function VerdictRules({ output }: { output: EngineOutput }) {
+  const named = new Set(output.computed.flatMap((item) => item.rule_ids));
+  const beside = Object.entries(output.rules).filter(([id]) => !named.has(id));
+  if (beside.length === 0) return null;
+  return (
+    <section className="group">
+      <h3>What the rule says</h3>
+      <ul className="rules">
+        {beside.map(([id, rule]) => (
+          <RuleCard key={id} id={id} rule={rule} />
+        ))}
+      </ul>
     </section>
   );
 }

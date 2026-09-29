@@ -386,3 +386,87 @@ button.quiet {
 .checked {
   color: var(--ink-2);
 }
+
+/* Questions Duly asks, and the person's own answers */
+
+.questions {
+  margin-top: 32px;
+}
+
+.questions h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.questions ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.question {
+  padding: 16px;
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.question p {
+  margin: 0;
+}
+
+.question .because,
+.question .given {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.scope button.quiet {
+  min-height: 0;
+  padding: 2px 8px;
+  font-size: 14px;
+}
+
+/* A rule: the words of the source, and Duly's reading kept apart from them */
+
+.quote {
+  margin: 8px 0;
+}
+
+.quote figcaption,
+.reading-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.quote blockquote {
+  margin: 4px 0 0;
+}
+
+.derivation {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.reading {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--accent-tint);
+}
+
+.reading p {
+  overflow-wrap: anywhere;
+}

@@ -2,8 +2,16 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { CaseForm } from "./components/CaseForm";
-import { Items, Verdict } from "./components/Result";
-import { EMPTY_CASE, buildCase, type CaseFields } from "./lib/caseForm";
+import { Items, Questions, Verdict, VerdictRules } from "./components/Result";
+import {
+  EMPTY_CASE,
+  ZONE_FIELD,
+  answer,
+  buildCase,
+  reportedZone,
+  withdrawAnswer,
+  type CaseFields,
+} from "./lib/caseForm";
 import { CaseRefused, computeF1, type F1Case } from "./lib/compute";
 import { fetchStatus, headline, reasonLine } from "./lib/status";
 
@@ -31,7 +39,11 @@ function refusalLines(error: Error): string[] {
 export function App() {
   const status = useQuery({ queryKey: ["status"], queryFn: () => fetchStatus() });
   const compute = useMutation({ mutationFn: (body: F1Case) => computeF1(body) });
-  const [fields, setFields] = useState<CaseFields>(EMPTY_CASE);
+  // The zone starts as the one the browser reports. The person may change it.
+  const [fields, setFields] = useState<CaseFields>(() => ({
+    ...EMPTY_CASE,
+    time_zone: reportedZone(),
+  }));
   const [problems, setProblems] = useState<string[]>([]);
 
   // A result belongs to the dates it was computed from. Once they change, it goes.
@@ -41,8 +53,8 @@ export function App() {
     if (!compute.isIdle) compute.reset();
   };
 
-  const run = () => {
-    const built = buildCase(fields);
+  const run = (entered: CaseFields = fields) => {
+    const built = buildCase(entered);
     if (built.ok) {
       setProblems([]);
       compute.mutate(built.body);
@@ -52,13 +64,29 @@ export function App() {
     }
   };
 
+  // An answer is the person's own statement. It is kept with the day the engine used
+  // as today when it asked, and the case is computed again.
+  const today = compute.data?.today.date;
+  const record = (question: string, given: boolean) => {
+    if (today === undefined) return;
+    const answered = answer(fields, question, given, today);
+    setFields(answered);
+    run(answered);
+  };
+  const withdraw = (question: string) => {
+    const without = withdrawAnswer(fields, question);
+    setFields(without);
+    run(without);
+  };
+  const toZone = () => document.getElementById(ZONE_FIELD)?.focus();
+
   let verdict;
   if (compute.isPending) {
     verdict = <section className="verdict" aria-busy="true" />;
   } else if (compute.isError) {
     verdict = <CannotTell lines={refusalLines(compute.error)} />;
   } else if (compute.isSuccess) {
-    verdict = <Verdict output={compute.data} />;
+    verdict = <Verdict output={compute.data} onChangeZone={toZone} />;
   } else if (status.isPending) {
     verdict = <section className="verdict" aria-busy="true" />;
   } else if (status.isError) {
@@ -86,12 +114,24 @@ export function App() {
         problems={problems}
         busy={compute.isPending}
         onChange={change}
-        onCompute={run}
+        onCompute={() => run()}
       />
 
       <div className="result" aria-live="polite">
         {verdict}
-        {compute.isSuccess && <Items output={compute.data} />}
+        {compute.isSuccess && (
+          <>
+            <Questions
+              output={compute.data}
+              sent={compute.variables.confirmations}
+              busy={compute.isPending}
+              onAnswer={record}
+              onWithdraw={withdraw}
+            />
+            <VerdictRules output={compute.data} />
+            <Items output={compute.data} />
+          </>
+        )}
       </div>
 
       <p className="footer">

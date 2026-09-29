@@ -1,4 +1,4 @@
-import type { ComputedItem, ItemStatus } from "./compute";
+import type { ComputedItem, Confirmation, ItemStatus } from "./compute";
 import { reasonLine } from "./status";
 
 // Every word a user reads about a computed item. Names state what the item is,
@@ -72,6 +72,9 @@ export function itemName(itemId: string): string {
 const INPUT_NAMES: ReadonlyMap<string, string> = new Map(
   Object.entries({
     program_end_date: "Program end date",
+    opt: "OPT dates",
+    stem: "STEM OPT dates",
+    cap_gap: "Cap-gap petition",
     "opt.dso_recommendation_date": "OPT DSO recommendation date",
     "opt.ead_start": "OPT EAD start date",
     "opt.ead_end": "OPT EAD end date",
@@ -106,6 +109,7 @@ const MISSING_PARTS: ReadonlyMap<string, string> = new Map(
   Object.entries({
     opt: "Duly needs the OPT dates.",
     stem: "Duly needs the STEM OPT dates.",
+    employment: "Duly needs the employment periods that are not entered yet.",
   }),
 );
 
@@ -207,8 +211,73 @@ const FINDINGS: ReadonlyMap<string, string> = new Map(
     cap_gap_petition_not_active:
       "The petition entered is not pending or approved with a change of status.",
     report_employer: "An employment period is not marked as reported.",
+    stem_without_post_completion_opt:
+      "You answered that you had no period of post-completion OPT before the STEM OPT period. The words of the rule are shown below. This part depends on your own situation, so it is a question for your DSO.",
+    cap_gap_without_training:
+      "You answered that you had no period of OPT or STEM OPT. This part depends on your own situation, so it is a question for your DSO.",
   }),
 );
+
+export type QuestionCopy = {
+  /** What Duly asks. It asks what happened, never what to do. */
+  ask: string;
+  /** The button and the recorded words for each answer. */
+  yes: string;
+  no: string;
+};
+
+// The answer yes is sent as true and the answer no as false. What each one means
+// to the engine is in specs/phase-2/SPEC-context.md, section 4.
+const QUESTIONS: ReadonlyMap<string, QuestionCopy> = new Map(
+  Object.entries({
+    held_post_completion_opt: {
+      ask: "STEM OPT dates are entered and OPT dates are not. Did you have a period of post-completion OPT before the STEM OPT period?",
+      yes: "Yes, I had one",
+      no: "No, I did not",
+    },
+    no_employment_to_record: {
+      ask: "No employment period is entered. Is that the whole record, with no employment since the OPT EAD start date?",
+      yes: "Yes, there is none",
+      no: "No, there is some to add",
+    },
+    cap_gap_without_training: {
+      ask: "A cap-gap petition is entered, and OPT and STEM OPT dates are not. Did you have a period of OPT or STEM OPT that is not entered here?",
+      yes: "Yes, I had one",
+      no: "No, I did not",
+    },
+  }),
+);
+
+/** The words for a question, or null for one this screen has no words for. */
+export function questionCopy(questionId: string): QuestionCopy | null {
+  return QUESTIONS.get(questionId) ?? null;
+}
+
+export const QUESTION_NOT_SHOWN =
+  "Duly has a question that this screen does not have the words for yet.";
+
+export function becauseLine(because: readonly string[]): string {
+  return `Asked because of: ${because.map(inputName).join(", ")}.`;
+}
+
+/** The person's own statement, as recorded. */
+export function answerLine(copy: QuestionCopy, given: Confirmation): string {
+  return `You answered "${given.answer ? copy.yes : copy.no}" on ${formatDate(given.on)}.`;
+}
+
+export function todayLine(date: string, timeZone: string): string {
+  return `Today is ${formatDate(date)} in ${zoneName(timeZone)}.`;
+}
+
+/** An IANA name as the person reads it. */
+export function zoneName(timeZone: string): string {
+  return timeZone.replaceAll("_", " ");
+}
+
+export const SOURCE_WORDS = "Words of the source";
+export const VERBATIM_LINE = "The value is written in the quoted words.";
+export const READING_TAG = "Duly's reading";
+export const READING_LABEL = "Duly's reading of the quoted words, not the words of the source";
 
 /** One verdict reason in plain words. Never a raw code, never an empty line. */
 export function reasonText(reason: string, computed: readonly ComputedItem[] = []): string {
@@ -223,6 +292,7 @@ export function reasonText(reason: string, computed: readonly ComputedItem[] = [
   const split = reason.indexOf(":");
   const kind = split < 0 ? "" : reason.slice(0, split);
   const name = split < 0 ? "" : reason.slice(split + 1);
+  if (kind === "unconfirmed") return "Duly is waiting for your answer to a question below.";
   if (kind === "missing") {
     const part = MISSING_PARTS.get(name);
     if (part) return part;

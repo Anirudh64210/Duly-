@@ -1,13 +1,25 @@
 import fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { EMPTY_CASE, addPeriod, buildCase, removePeriod, type CaseFields } from "./caseForm";
+import {
+  EMPTY_CASE,
+  addPeriod,
+  answer,
+  buildCase,
+  removePeriod,
+  reportedZone,
+  withdrawAnswer,
+  zoneChoices,
+  type CaseFields,
+} from "./caseForm";
+import { isZoneName } from "./compute";
 
 const filled: CaseFields = {
   ...EMPTY_CASE,
   program_end_date: "2026-05-15",
   degree_level: "master",
   documents_count: "3",
+  time_zone: "America/Los_Angeles",
 };
 
 function body(fields: CaseFields) {
@@ -32,6 +44,8 @@ describe("buildCase", () => {
       stem: null,
       employment: [],
       cap_gap: null,
+      time_zone: "America/Los_Angeles",
+      confirmations: {},
     });
   });
 
@@ -96,7 +110,7 @@ describe("buildCase", () => {
   });
 
   it("names every field it cannot use", () => {
-    expect(problems(EMPTY_CASE)).toEqual(["Enter the program end date."]);
+    expect(problems(EMPTY_CASE)).toEqual(["Enter the program end date.", "Choose your time zone."]);
     expect(problems({ ...filled, documents_count: "" })).toEqual([
       "Enter the documents added as a whole number, 0 or more.",
     ]);
@@ -148,5 +162,102 @@ describe("employment periods", () => {
     const two = removePeriod(three, 2);
     expect(two.employment.map((p) => p.key)).toEqual([1, 3]);
     expect(addPeriod(two).employment.map((p) => p.key)).toEqual([1, 3, 4]);
+  });
+});
+
+describe("the time zone", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const reports = (timeZone: string) =>
+    vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
+      timeZone,
+    } as Intl.ResolvedDateTimeFormatOptions);
+
+  it("starts from the zone the browser reports", () => {
+    reports("Asia/Kolkata");
+    expect(reportedZone()).toBe("Asia/Kolkata");
+  });
+
+  it("starts empty, never from a guess, when the browser reports none it can send", () => {
+    reports("somewhere");
+    expect(reportedZone()).toBe("");
+    vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockImplementation(() => {
+      throw new Error("no zone");
+    });
+    expect(reportedZone()).toBe("");
+  });
+
+  it("sends the zone that is held, as it is", () => {
+    expect(body({ ...filled, time_zone: "Asia/Kolkata" }).time_zone).toBe("Asia/Kolkata");
+  });
+
+  it("builds no case without a zone the contract takes", () => {
+    fc.assert(
+      fc.property(fc.string(), (text) => {
+        const built = buildCase({ ...filled, time_zone: text });
+        expect(built.ok).toBe(isZoneName(text));
+        if (!built.ok) expect(built.problems).toEqual(["Choose your time zone."]);
+      }),
+    );
+  });
+
+  it("offers the zone held now, UTC, and what the browser knows, each once", () => {
+    const choices = zoneChoices("Asia/Calcutta");
+    expect(choices).toContain("Asia/Calcutta");
+    expect(choices).toContain("UTC");
+    expect(choices).toContain("America/Los_Angeles");
+    expect(new Set(choices).size).toBe(choices.length);
+    expect(choices.every(isZoneName)).toBe(true);
+  });
+
+  it("still offers a choice when the browser gives no list", () => {
+    vi.spyOn(Intl, "supportedValuesOf").mockImplementation(() => {
+      throw new RangeError("no list");
+    });
+    expect(zoneChoices("")).toEqual(["UTC"]);
+    expect(zoneChoices("Asia/Kolkata")).toEqual(["Asia/Kolkata", "UTC"]);
+  });
+});
+
+describe("answers", () => {
+  it("starts with none", () => {
+    expect(body(filled).confirmations).toEqual({});
+  });
+
+  it("records an answer with its day, and sends it as recorded", () => {
+    const answered = answer(filled, "held_post_completion_opt", false, "2026-09-28");
+    expect(body(answered).confirmations).toEqual({
+      held_post_completion_opt: { answer: false, on: "2026-09-28" },
+    });
+    expect(filled.confirmations).toEqual({});
+  });
+
+  it("changes one answer and leaves the others as they were", () => {
+    const two = answer(
+      answer(filled, "held_post_completion_opt", false, "2026-09-27"),
+      "no_employment_to_record",
+      true,
+      "2026-09-27",
+    );
+    const changed = answer(two, "held_post_completion_opt", true, "2026-09-28");
+    expect(changed.confirmations).toEqual({
+      held_post_completion_opt: { answer: true, on: "2026-09-28" },
+      no_employment_to_record: { answer: true, on: "2026-09-27" },
+    });
+  });
+
+  it("removes one answer and leaves the others as they were", () => {
+    const two = answer(
+      answer(filled, "held_post_completion_opt", false, "2026-09-27"),
+      "no_employment_to_record",
+      true,
+      "2026-09-27",
+    );
+    expect(withdrawAnswer(two, "held_post_completion_opt").confirmations).toEqual({
+      no_employment_to_record: { answer: true, on: "2026-09-27" },
+    });
+    expect(withdrawAnswer(filled, "held_post_completion_opt").confirmations).toEqual({});
   });
 });

@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
-import { OUTPUT, STATUS } from "./lib/fixtures";
+import { ANSWERED_NO, ASKING, OUTPUT, STATUS } from "./lib/fixtures";
 
 const body = (state: string, reasons: string[]) => ({
   database: "ok",
@@ -55,9 +55,11 @@ const FOOTER = "Records and computations, not legal advice. Confirm with your DS
 
 type Reply = { status: number; body: unknown };
 
-function serve(compute: Reply) {
+/** Serves each reply in turn to the compute path, and the last one from then on. */
+function serve(...replies: [Reply, ...Reply[]]) {
   const posted: unknown[] = [];
   vi.stubGlobal("fetch", (url: string, init?: RequestInit) => {
+    const compute = replies[Math.min(posted.length, replies.length - 1)] ?? replies[0];
     const reply = url === "/api/v1/compute/f1" ? compute : { status: 200, body: STATUS };
     if (url === "/api/v1/compute/f1") posted.push(JSON.parse(String(init?.body)));
     return Promise.resolve({
@@ -83,8 +85,11 @@ function compute() {
   fireEvent.click(screen.getByRole("button", { name: "Compute" }));
 }
 
+const ZONE = "Your time zone, which sets the day Duly counts as today";
+
 async function computed() {
   enter("Program end date", "2026-05-15");
+  enter(ZONE, "America/Los_Angeles");
   enter("Documents added", "3");
   compute();
   return screen.findByRole("heading", { name: "One thing needs you" });
@@ -172,6 +177,8 @@ describe("the form", () => {
           change_of_status: true,
           status: "approved",
         },
+        time_zone: "America/Los_Angeles",
+        confirmations: {},
       },
     ]);
   });
@@ -374,6 +381,310 @@ describe("when the computation fails", () => {
       expect(screen.queryAllByRole("heading", { level: 3 })).toEqual([]);
     });
   }
+});
+
+function browserReports(timeZone: string) {
+  vi.spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions").mockReturnValue({
+    timeZone,
+  } as Intl.ResolvedDateTimeFormatOptions);
+}
+
+function zoneField() {
+  return screen.getByLabelText(ZONE) as HTMLSelectElement;
+}
+
+describe("the person's own day", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("sends the zone the browser reports", async () => {
+    browserReports("Asia/Kolkata");
+    const posted = serve({ status: 200, body: OUTPUT });
+    expect(zoneField().value).toBe("Asia/Kolkata");
+    enter("Program end date", "2026-05-15");
+    compute();
+    await screen.findByRole("heading", { name: "One thing needs you" });
+    expect(posted).toMatchObject([{ time_zone: "Asia/Kolkata" }]);
+  });
+
+  it("asks for the zone and posts nothing when the browser reports none it can send", () => {
+    browserReports("not a zone");
+    const posted = serve({ status: 200, body: OUTPUT });
+    expect(zoneField().value).toBe("");
+    enter("Program end date", "2026-05-15");
+    compute();
+    expect(screen.getByRole("alert").textContent).toBe("Choose your time zone.");
+    expect(posted).toEqual([]);
+  });
+
+  it("shows the day and the zone the engine used, beside the scope line", async () => {
+    serve({
+      status: 200,
+      body: { ...OUTPUT, today: { date: "2026-09-29", time_zone: "Asia/Kolkata" } },
+    });
+    const heading = await computed();
+    const verdict = heading.closest("section");
+    if (!verdict) throw new Error("no verdict");
+    const scope = within(verdict).getByText(/^Based on 3 documents/);
+    expect(scope.nextElementSibling?.textContent).toContain(
+      "Today is Sep 29, 2026 in Asia/Kolkata.",
+    );
+  });
+
+  it("lets the person change the zone, and sends the one they chose", async () => {
+    browserReports("America/Los_Angeles");
+    const posted = serve({ status: 200, body: OUTPUT });
+    enter("Program end date", "2026-05-15");
+    compute();
+    await screen.findByRole("heading", { name: "One thing needs you" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Change the time zone" }));
+    expect(document.activeElement).toBe(zoneField());
+    // A zone the list of the test runtime holds under this name.
+    enter(ZONE, "Asia/Tokyo");
+    // The result was computed for another day. It goes.
+    expect(screen.queryByRole("heading", { name: "One thing needs you" })).toBeNull();
+    expect(screen.queryByText(/^Today is/)).toBeNull();
+
+    compute();
+    await screen.findByRole("heading", { name: "One thing needs you" });
+    expect(posted).toMatchObject([
+      { time_zone: "America/Los_Angeles" },
+      { time_zone: "Asia/Tokyo" },
+    ]);
+  });
+
+  it("shows the server's own words when it refuses the zone", async () => {
+    const words = "time_zone: the value sent is not a time zone Duly knows";
+    serve({ status: 422, body: { detail: words } });
+    enter("Program end date", "2026-05-15");
+    enter(ZONE, "UTC");
+    compute();
+    expect(await screen.findByText(words)).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Can't tell yet" })).toBeDefined();
+  });
+});
+
+const HELD = /Did you have a period of post-completion OPT before the STEM OPT period\?$/;
+
+async function asked() {
+  enter("Program end date", "2026-05-15");
+  enter("Documents added", "3");
+  enter(ZONE, "America/Los_Angeles");
+  compute();
+  return screen.findByRole("heading", { name: "Questions for you" });
+}
+
+describe("questions", () => {
+  it("shows an open question in plain words, with two answers and what raised it", async () => {
+    serve({ status: 200, body: ASKING });
+    const heading = await asked();
+    const section = heading.closest("section");
+    if (!section) throw new Error("no questions");
+    expect(within(section).getByText(HELD)).toBeDefined();
+    expect(within(section).getByText("Asked because of: STEM OPT dates, OPT dates.")).toBeDefined();
+    expect(
+      within(section)
+        .getAllByRole("button")
+        .map((button) => button.textContent),
+    ).toEqual(["Yes, I had one", "No, I did not"]);
+    expect(screen.getByRole("heading", { name: "Can't tell yet" })).toBeDefined();
+    expect(screen.getByText("Duly is waiting for your answer to a question below.")).toBeDefined();
+  });
+
+  it("never fills an answer in: the first case goes out with none", async () => {
+    const posted = serve({ status: 200, body: ASKING });
+    await asked();
+    expect(posted).toMatchObject([{ confirmations: {} }]);
+  });
+
+  for (const [button, given] of [
+    ["Yes, I had one", true],
+    ["No, I did not", false],
+  ] as const) {
+    it(`records "${button}" with the engine's day and computes again`, async () => {
+      const posted = serve({ status: 200, body: ASKING }, { status: 200, body: ANSWERED_NO });
+      await asked();
+      fireEvent.click(screen.getByRole("button", { name: button }));
+      await screen.findByRole("heading", { name: "A question for your DSO" });
+      expect(posted).toHaveLength(2);
+      expect(posted[1]).toMatchObject({
+        program_end_date: "2026-05-15",
+        time_zone: "America/Los_Angeles",
+        confirmations: { held_post_completion_opt: { answer: given, on: "2026-09-28" } },
+      });
+    });
+  }
+
+  it("takes the day of an answer from the engine, never from the clock of the browser", async () => {
+    vi.useFakeTimers({ now: new Date("2031-01-01T00:00:00Z"), toFake: ["Date"] });
+    try {
+      const posted = serve({ status: 200, body: ASKING }, { status: 200, body: ANSWERED_NO });
+      await asked();
+      fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+      await screen.findByRole("heading", { name: "A question for your DSO" });
+      expect(posted[1]).toMatchObject({
+        confirmations: { held_post_completion_opt: { on: "2026-09-28" } },
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows the answer as the person's own statement, with its day", async () => {
+    serve({ status: 200, body: ASKING }, { status: 200, body: ANSWERED_NO });
+    await asked();
+    fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+    const heading = await screen.findByRole("heading", {
+      name: "Your answers, sent with these dates",
+    });
+    const section = heading.closest("section");
+    if (!section) throw new Error("no answers");
+    expect(within(section).getByText(HELD)).toBeDefined();
+    expect(
+      within(section).getByText('You answered "No, I did not" on Sep 28, 2026.'),
+    ).toBeDefined();
+    expect(screen.queryByRole("heading", { name: "Questions for you" })).toBeNull();
+  });
+
+  it("shows the words of the rule beside the verdict, as a reading, and no conclusion", async () => {
+    serve({ status: 200, body: ASKING }, { status: 200, body: ANSWERED_NO });
+    await asked();
+    fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+    const heading = await screen.findByRole("heading", { name: "What the rule says" });
+    const section = heading.closest("section");
+    if (!section) throw new Error("no rule");
+    expect(
+      within(section).getByText("while in a valid period of post-completion OPT"),
+    ).toBeDefined();
+    expect(within(section).getByText("8 CFR 214.2(f)(10)(ii)(C)")).toBeDefined();
+    expect(
+      within(section).getByText("Duly's reading of the quoted words, not the words of the source"),
+    ).toBeDefined();
+    // A flag is its words. It has no value to show.
+    expect(within(section).queryByText("Yes")).toBeNull();
+    expect(screen.getByText(/so it is a question for your DSO\.$/)).toBeDefined();
+  });
+
+  it("lets an answer be changed", async () => {
+    const posted = serve(
+      { status: 200, body: ASKING },
+      { status: 200, body: ANSWERED_NO },
+      { status: 200, body: OUTPUT },
+    );
+    await asked();
+    fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: 'Change the answer to "Yes, I had one"' }),
+    );
+    await screen.findByText('You answered "Yes, I had one" on Sep 28, 2026.');
+    expect(posted[2]).toMatchObject({
+      confirmations: { held_post_completion_opt: { answer: true, on: "2026-09-28" } },
+    });
+  });
+
+  it("lets an answer be removed, and asks again", async () => {
+    const posted = serve(
+      { status: 200, body: ASKING },
+      { status: 200, body: ANSWERED_NO },
+      { status: 200, body: ASKING },
+    );
+    await asked();
+    fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Remove the answer" }));
+    await screen.findByRole("heading", { name: "Questions for you" });
+    expect(posted[2]).toMatchObject({ confirmations: {} });
+    expect(screen.queryByText(/^You answered/)).toBeNull();
+  });
+
+  it("keeps an answer when a date is changed afterwards", async () => {
+    const posted = serve({ status: 200, body: ASKING }, { status: 200, body: ANSWERED_NO });
+    await asked();
+    fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+    await screen.findByRole("heading", { name: "A question for your DSO" });
+    enter("Program end date", "2026-05-16");
+    compute();
+    await screen.findByRole("heading", { name: "A question for your DSO" });
+    expect(posted[2]).toMatchObject({
+      program_end_date: "2026-05-16",
+      confirmations: { held_post_completion_opt: { answer: false, on: "2026-09-28" } },
+    });
+  });
+
+  it("offers no answers to a question it has no words for", async () => {
+    serve({
+      status: 200,
+      body: {
+        ...ASKING,
+        verdict: { state: "cannot_tell", reasons: ["unconfirmed:some_new_question"] },
+        questions: [{ id: "some_new_question", because: ["stem"] }],
+      },
+    });
+    const heading = await asked();
+    const section = heading.closest("section");
+    if (!section) throw new Error("no questions");
+    expect(
+      within(section).getByText(
+        "Duly has a question that this screen does not have the words for yet.",
+      ),
+    ).toBeDefined();
+    expect(within(section).queryAllByRole("button")).toEqual([]);
+    expect(section.textContent).not.toContain("some_new_question");
+  });
+
+  it("shows no items when a question is open and the verdict is not Can't tell yet", async () => {
+    serve({
+      status: 200,
+      body: { ...ASKING, verdict: { state: "no_open_items", reasons: [] } },
+    });
+    enter("Program end date", "2026-05-15");
+    compute();
+    expect(
+      await screen.findByText("Duly could not read the answer from its server."),
+    ).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Can't tell yet" })).toBeDefined();
+    expect(screen.queryByText(/No open items/)).toBeNull();
+  });
+});
+
+describe("rules shown with their derivation", () => {
+  async function working(row: RegExp) {
+    serve({ status: 200, body: OUTPUT });
+    await computed();
+    fireEvent.click(screen.getByRole("button", { name: row }));
+    const rules = screen.getByRole("heading", { name: "Rules used" }).nextElementSibling;
+    if (!(rules instanceof HTMLElement)) throw new Error("no rules");
+    return rules;
+  }
+
+  it("shows a reading as a reading: the quoted words, then the note, labelled", async () => {
+    const rules = await working(/Full-time CPT days entered/);
+    const text = rules.textContent ?? "";
+    const words = text.indexOf("one year or more of full time curricular practical training");
+    const label = text.indexOf("Duly's reading of the quoted words, not the words of the source");
+    const note = text.indexOf("Reading: the source says one year or more");
+    expect(words).toBeGreaterThan(-1);
+    expect(label).toBeGreaterThan(words);
+    expect(note).toBeGreaterThan(label);
+    expect(within(rules).getByText("Words of the source")).toBeDefined();
+    expect(within(rules).getByText("Duly's reading")).toBeDefined();
+    expect(within(rules).queryByText("The value is written in the quoted words.")).toBeNull();
+  });
+
+  it("shows a verbatim rule as the words of the source, with no reading", async () => {
+    const rules = await working(/Last OPT filing day/);
+    expect(within(rules).getByText("Words of the source")).toBeDefined();
+    expect(within(rules).getByText("The value is written in the quoted words.")).toBeDefined();
+    expect(rules.textContent).not.toContain("Duly's reading");
+  });
+
+  it("says neither of a rule that carries no derivation", async () => {
+    const rules = await working(/Days with no employment period/);
+    expect(within(rules).getByText("an aggregate of 90 days")).toBeDefined();
+    expect(rules.textContent).not.toContain("Duly's reading");
+    expect(rules.textContent).not.toContain("The value is written");
+  });
 });
 
 describe("the footer", () => {
