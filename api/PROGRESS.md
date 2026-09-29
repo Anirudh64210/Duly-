@@ -169,3 +169,18 @@ Stop hook: the same 11 failures a second time. Status escalated, api/ESCALATE.md
   ruff format "8 files already formatted". Exit 0.
 - No code change needed in api/ this run; the 11 disputed tests were fixed by L-tests
   (commit ae3c878) and now pass against the merged api.
+
+## Run l-api-5f392f03a7 (attempt 1)
+Point 35 of specs/product-1/SPEC-resolutions.md: /v1/status uses the packs' own rules_checked_on.
+- api/main.py: each rulepacks entry carries rules_checked_on (ISO day, or null for a pack
+  with no rules), read from Rulepack.rules_checked_on. The empty case given to decide()
+  takes the oldest date among the packs that hold rules (None only when no pack has one),
+  so rules_never_checked no longer shows, and a stale pack is not hidden by a fresh one.
+  checked_at (the page load time) is left as it is; no copy calls it "Checked" here.
+- Done command, run as written with no pipe: all tests in tests/unit/api pass, mypy
+  "Success: no issues found in 56 source files", ruff check "All checks passed!",
+  ruff format "8 files already formatted". Exit 0.
+- Dispute: contracts/openapi.yaml RulepackRef has additionalProperties: false and no
+  rules_checked_on, so the body now goes past the contract. The test asks for the field;
+  the contract change is the founder's and must land first and alone. No api test checks
+  the body against openapi.yaml, so nothing fails today.
