@@ -65,7 +65,6 @@ NEXT_IDS = (
     "next.stem.apply_window_opens",
     "next.stem.apply_window_closes",
     "next.opt.card_ends",
-    "next.grace.ends",
 )
 
 
@@ -427,13 +426,12 @@ def test_what_comes_next_for_a_card_in_hand():
         "next.opt.card_ends": "2027-06-14",
         "opt.complete_by": "2027-07-08",
         "grace.ends": "2027-08-13",
-        "next.grace.ends": "2027-08-13",
     }
     dates = [entry["date"] for entry in out["upcoming"]]
     assert dates == sorted(dates)
     # Under the blocked text, 30 days after 2027-06-14: 16 reach June 30, 14 more reach
     # 2027-07-14.
-    assert ahead["next.grace.ends"]["alternates"] == [
+    assert ahead["grace.ends"]["alternates"] == [
         {"regime": BLOCKED, "legal_status": "enjoined", "value": "2027-07-14"}
     ]
     assert [entry["id"] for entry in out["lists"]] == [STEM_LIST]

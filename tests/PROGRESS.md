@@ -895,3 +895,42 @@ the interval 3: 2026-08-01 + 3 months = 2026-11-01, plus 10 days = 2026-11-11; 2
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-4f74a497fe (attempt 1): SPEC-resolutions.md points 11 to 24, tests first
+
+### What was done
+
+| Point | Tests |
+|---|---|
+| 11, 14, 15, 16 | tests/unit/engine/test_f1_windows.py, table ROWS of 7 conflicts: cannot_tell with conflict:<id> and nothing else; question with the id, its about keys and values; the rule shown in out["rules"] with a quote; every item whose inputs name an about key is null and not in upcoming; each edge day fits (recommendation day, last day of the window, window's first day, complete_by itself) and is not cannot_tell; yes gives talk_to_dso with <id>, no keeps cannot_tell. Edges from rule_value(PACK, id). Missing date raises none. Point 14 sweep case (112 days). Point 15 operative only, and a filing before the window is no conflict. Point 16 with STEM entered, and grace.ends/counts/next.* null. Five hypothesis properties: the rule's value moves the edge (clock injected) |
+| 12 | test_point_12_the_grace_date_is_listed_once; next.grace.ends removed from test_f1_product.py (NEXT_IDS and four tests now read grace.ends in upcoming) and test_holdout_product.py |
+| 17 | STEM filed with no card, OPT with no card end: grace.ends null; control 2026-12-30 |
+| 18 | card to 2026-10-15, cap-gap to 2027-01-15: grace.ends null, grace_with_cap_gap, talk_to_dso; control on NEXT; a denied petition raises nothing |
+| 19 | the sweep case (105 days, 45 remaining); at the limit and one under; property over limit and idle days; no STEM, no new judgement |
+| 20, 21, 22 | tests/unit/engine/test_f1_periods_and_reports.py: new_employer asked for a period from/after stem.ead_start (on the start itself too, not the day before); yes gives stem.new_plan_due.<n> 2026-08-04 as needs_you; no gives nothing; concluding evaluation 2026-07-30 with reading; validation_1_due 2026-09-28 open on the 28th, .made asked on the 29th, yes done, no talk_to_dso with .not_made; evaluation .made on 2027-04-01; property on today; end_reported asked despite employer_reported, yes nothing, no report_employer dated 2026-07-10 status guidance; three properties on pack days. n is read from the question, not assumed |
+| 23 | blocked grace row effective 2026-09-15: 2024 grace date has no alternate, 2027 has; a 2023 window with regime rows has none |
+| 24 | test_dates.py and test_holdout_dates.py: holidays on their own days, business-day rows moved (2026-07-02+1 = Jul 3; 2026-07-01+10 = Jul 15; 2027-12-23+5 = Dec 30 and others). Engine pins moved: CASE_B validation_2 2026-07-15, validation_4 2027-07-15, shifted 07-16 / 2027-07-16; the lookahead rows and properties in test_f1.py and test_f1_sourcing.py; test_f1_context instant 2026-07-16T01:30. Engine-level test_point_24_a_report_date_skips_no_observed_day |
+| Point 4 cases | CASE_C program end 2025-06-01 (complete_by 2026-08-01 >= card end 2026-07-31); opt_card_from keeps 2025-05-16 for its worked rows. holdout_f1 cases(): STEM recommended opt_end-80, filed opt_end-50, drawn only when today >= the filing |
+| Holdout | tests/holdout/test_holdout_windows.py, six tests on a 2025-12-19 program end case |
+
+### What ran
+
+- Done command, exactly as written: exit 0 (ruff check: all passed; format: 46 files formatted; collection clean).
+- New files against today's engine: every conflict edge-fit test passes (the cases are clean); the new rule tests fail on the missing rule (e.g. "assert False is (1 > 0)" for the edge property, grace.ends '2026-12-14' for point 18, validation_1_due '2026-07-16' for point 24).
+- Changed suites: holdout_f1, holdout_sourcing pass; failures are only point 12 (next.grace.ends still emitted) and point 24 (observed day still skipped).
+
+### What change to the code would make each new test fail
+
+- Conflict rows: an engine that does not raise the id, raises it one day early (edge-fit tests), writes 30/60/90/14 in code (the properties under other pack values), or keeps an item that uses the dates.
+- 17/18: a grace date from the OPT card alone; a grace date beside an active cap-gap past the card.
+- 19: an opt-card count that includes STEM days, or a judgement at limit+1.
+- 20-22: a question never asked, or asked for a period before stem.ead_start; the new plan date not from stem.new_plan_due_days; a report date dropped once passed; the employer_reported flag taken as the answer.
+- 23: alternates looked up on today instead of the item's date.
+- 24: add_business_days skipping the observed day.
+No fault was planted through a scratch plugin in this attempt (time).
+
+### Disputes / questions
+
+- Point 11 says each conflict "names its rule in rule_ids"; a question has no rule_ids in contracts/engine_output.schema.json (additionalProperties false). The tests read the rule in out["rules"].
+- Point 16 says the conflict "carries reading"; no field of a question or a reason can hold it. Not asserted.
+- Point 21 will ask .made on every case run after a STEM report date: CASE_B (validation_1 2026-01-15), STEM_NOW in test_f1_product.py and others will turn cannot_tell once the engine rounds. Not changed here; the founder decides whether those cases answer yes or move.

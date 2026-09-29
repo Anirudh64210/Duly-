@@ -84,9 +84,13 @@ def run(
 
 
 # Case C: on the STEM extension since 2026-08-01, one employer, reported, full time.
-# Nothing is open on 2026-11-02.
+# Nothing is open on 2026-11-02. SPEC-resolutions.md, point 16: the program end is
+# 2025-06-01 (it was 2025-05-16, and 14 months from it, 2026-07-16, fell before the OPT
+# card's last day, 2026-07-31). 14 months from 2025-06-01 is 2026-08-01. The OPT filing of
+# 2025-03-12 is before the window closes 60 days after it (point 15); the STEM filing of
+# 2026-05-20 is after the window opens 90 days before 2026-07-31, on 2026-05-02 (point 14).
 CASE_C: dict[str, Any] = {
-    "program_end_date": "2025-05-16",
+    "program_end_date": "2025-06-01",
     "time_zone": TIME_ZONE,
     "confirmations": answered_yes(),
     "degree_level": "doctorate",
@@ -370,7 +374,14 @@ def opt_card_from(opt_start: str) -> dict[str, Any]:
         opt_start,
         (months_later(first, 12) - timedelta(days=1)).isoformat(),
     )
-    return with_changes(CASE_C, opt=card, stem=None, employment=[job(opt_start, None)])
+    # The program end these rows were worked from, kept here now that CASE_C's moved.
+    return with_changes(
+        CASE_C,
+        program_end_date="2025-05-16",
+        opt=card,
+        stem=None,
+        employment=[job(opt_start, None)],
+    )
 
 
 @pytest.mark.parametrize(
