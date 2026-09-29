@@ -50,7 +50,7 @@ def test_broken_lines_are_skipped(repo):
 PAGE = "<p>may not exceed  <i>90 days</i> of &ldquo;unemployment&rdquo;</p>"
 
 
-def pack(tmp_path, **source):
+def pack(tmp_path, value=90, derivation="verbatim", note="", **source):
     folder = tmp_path / "rulepacks" / "f1-us" / "v1"
     (folder / "sources").mkdir(parents=True, exist_ok=True)
     (folder / "sources" / "cfr.xml").write_text(PAGE)
@@ -65,9 +65,11 @@ def pack(tmp_path, **source):
     base.update(source)
     rule = {
         "id": "opt.limit",
-        "value": 90,
+        "value": value,
         "unit": "days",
         "status": "settled",
+        "derivation": derivation,
+        "note": note,
         "effective_from": "2008-04-08",
         "source": {k: v for k, v in base.items() if v},
     }
@@ -88,6 +90,9 @@ def test_a_quote_found_in_the_saved_copy_passes(tmp_path):
         ({"snapshot": "sources/gone.xml"}, "is missing"),
         ({"quote": ""}, "needs quote"),
         ({"url": "https://www.reddit.com/r/f1visa"}, "is not a primary source"),
+        ({"value": 120}, "is not in the quote"),
+        ({"derivation": ""}, "needs derivation"),
+        ({"value": 3, "derivation": "reading"}, "a reading needs a note"),
     ],
 )
 def test_each_weakness_is_caught(tmp_path, change, problem):
@@ -96,9 +101,33 @@ def test_each_weakness_is_caught(tmp_path, change, problem):
 
 
 def test_main_reports_and_fails(tmp_path, monkeypatch, capsys):
-    pack(tmp_path, quote="words that are not there")
+    pack(tmp_path, quote="90 words that are not there")
     monkeypatch.setattr("sys.argv", ["verify", str(tmp_path / "rulepacks")])
     assert verify.main() == 1
     assert "1 problem(s)" in capsys.readouterr().out
     pack(tmp_path)
     assert verify.main() == 0
+
+
+def test_a_reading_with_a_note_passes(tmp_path):
+    path = pack(tmp_path, value=3, derivation="reading", note="90 days is about 3 months")
+    assert verify.check_pack(path) == []
+
+
+@pytest.mark.parametrize(
+    ("value", "quote", "written"),
+    [
+        (90, "may not exceed 90 days", True),
+        (90, "may not exceed ninety days", True),
+        (90, "may not exceed 190 days", False),
+        (12, "one year or more", False),
+        (1, "one year or more", True),
+        (24, "a twenty-four month extension", True),
+        (150, "one hundred fifty days", True),
+        ("04-01", "until April 1 of the fiscal year", True),
+        ("04-01", "until April 15", False),
+        (True, "anything", True),
+    ],
+)
+def test_value_is_written(value, quote, written):
+    assert verify.value_is_written(value, quote) is written

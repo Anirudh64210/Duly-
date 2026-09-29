@@ -46,6 +46,84 @@ def plain(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+ONES = [
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+]
+TENS = ["_", "_", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+MONTHS = [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+]
+
+
+def in_words(n: int) -> str:
+    if n < 20:
+        return ONES[n]
+    if n < 100:
+        tens, ones = divmod(n, 10)
+        return TENS[tens] + ("-" + ONES[ones] if ones else "")
+    hundreds, rest = divmod(n, 100)
+    return ONES[hundreds] + " hundred" + (" " + in_words(rest) if rest else "")
+
+
+def value_is_written(value: object, quote: str) -> bool:
+    """Is the value in the quoted words, as digits, as a number word, or as a month and day?"""
+    text = plain(quote)
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, int | float) and float(value).is_integer() and 0 <= value < 1000:
+        n = int(value)
+        return bool(re.search(rf"(?<![\w.]){n}(?![\w]|\.\d)", text)) or bool(
+            re.search(rf"(?<![\w-]){re.escape(in_words(n))}(?![\w-])", text)
+        )
+    found = re.fullmatch(r"(\d{2})-(\d{2})", str(value))
+    if found and 1 <= int(found.group(1)) <= 12:
+        month, day = MONTHS[int(found.group(1)) - 1], int(found.group(2))
+        return bool(re.search(rf"{month} {day}(?!\d)", text))
+    return str(value).lower() in text
+
+
+def check_derivation(label: str, rule: dict[str, object], quote: str) -> list[str]:
+    derivation = rule.get("derivation")
+    if derivation not in {"verbatim", "reading"}:
+        return [f"{label}: needs derivation, verbatim or reading"]
+    written = value_is_written(rule.get("value"), quote)
+    if derivation == "verbatim" and not written:
+        return [f"{label}: marked verbatim, but the value {rule.get('value')} is not in the quote"]
+    if derivation == "reading" and not str(rule.get("note", "")).strip():
+        return [f"{label}: a reading needs a note that says how the value was read"]
+    return []
+
+
 def check_pack(pack_file: Path) -> list[str]:
     problems: list[str] = []
     folder = pack_file.parent
@@ -55,6 +133,9 @@ def check_pack(pack_file: Path) -> list[str]:
         for p in data.get("parameters", [])
     ]
     rows += [("regime " + r["id"], "litigated", r["source"]) for r in data.get("regimes", [])]
+    for p in data.get("parameters", []):
+        if p.get("status") in NEEDS_QUOTE and p["source"].get("quote"):
+            problems += check_derivation("parameter " + p["id"], p, p["source"]["quote"])
     for label, status, source in rows:
         host = re.sub(r"^https://([^/]+)/.*$", r"\1", source.get("url", ""))
         if status in NEEDS_QUOTE and host not in PRIMARY_HOSTS:

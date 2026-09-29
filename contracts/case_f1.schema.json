@@ -8,7 +8,8 @@
     "program_end_date",
     "degree_level",
     "documents_count",
-    "employment"
+    "employment",
+    "time_zone"
   ],
   "properties": {
     "program_end_date": {
@@ -202,6 +203,38 @@
           ]
         }
       }
+    },
+    "time_zone": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+(/[A-Za-z0-9_+-]+){1,2}$|^UTC$",
+      "maxLength": 64,
+      "description": "The person's own time zone, as an IANA name such as America/Los_Angeles. Today is the calendar day in this zone."
+    },
+    "confirmations": {
+      "type": "object",
+      "maxProperties": 20,
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "answer",
+          "on"
+        ],
+        "properties": {
+          "answer": {
+            "type": "boolean"
+          },
+          "on": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(19[5-9][0-9]|20[0-9]{2})-[0-9]{2}-[0-9]{2}$"
+          }
+        }
+      },
+      "description": "The person's own answers to questions Duly asked, each with the day it was given."
     }
   },
   "description": "Dates run from 1950 through 2099. Numbers must be finite; NaN and Infinity are refused before validation."

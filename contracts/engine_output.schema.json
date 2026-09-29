@@ -5,11 +5,13 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "verdict",
-    "scope",
     "computed",
+    "questions",
     "rulepacks",
-    "rules"
+    "rules",
+    "scope",
+    "today",
+    "verdict"
   ],
   "properties": {
     "verdict": {
@@ -212,7 +214,58 @@
           },
           "regime": {
             "type": "string"
+          },
+          "derivation": {
+            "enum": [
+              "verbatim",
+              "reading"
+            ]
+          },
+          "note": {
+            "type": "string"
           }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "What Duly needs the person to confirm. While any is open the verdict is cannot_tell.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "because"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "because": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "today": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date",
+        "time_zone"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "time_zone": {
+          "type": "string"
         }
       }
     }

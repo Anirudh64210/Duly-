@@ -1,0 +1,15 @@
+# The default rules, with one change.
+#
+# The generic rule guesses at secrets from the word "key" beside a string. In prose it
+# has been wrong twice (progress logs and lessons that mention a "route key"), and it
+# stopped two rounds. It stays on for code and config. In markdown, the rules for named
+# providers (GitHub, AWS, Anthropic, Stripe and the rest) still apply.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "prose"
+paths = ['''\.md$''']

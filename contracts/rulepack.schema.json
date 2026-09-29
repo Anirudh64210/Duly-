@@ -141,6 +141,13 @@
           },
           "note": {
             "type": "string"
+          },
+          "derivation": {
+            "enum": [
+              "verbatim",
+              "reading"
+            ],
+            "description": "verbatim: the value is written in the quoted words. reading: Duly derived the value from the quoted words; the note says how."
           }
         }
       }

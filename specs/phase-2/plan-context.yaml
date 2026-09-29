@@ -1,0 +1,93 @@
+branch: phase-2
+spec: specs/phase-2/SPEC-context.md
+rounds:
+  - name: G1
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        slug: context
+        mission: >
+          Write the tests described in the SPEC, sections 2 to 5, and update the existing
+          tests for the new required time_zone. Read PRINCIPLES.md and tests/PROGRESS.md
+          first. The new tests cannot pass yet; that is expected.
+        done: >-
+          bash -c 'grep -rq "time_zone" tests/unit/engine tests/unit/api tests/holdout
+          && grep -rq "held_post_completion_opt" tests/unit/engine tests/holdout
+          && grep -q "derivation" tests/support/f1_pack.py
+          && uv run ruff check tests && uv run ruff format --check tests'
+        max_iterations: 3
+      - lane: L-content
+        agent: rulepack-drafter
+        slug: context
+        mission: >
+          Do section 1 of the SPEC for every rule in every pack, and source the new flag
+          named in section 4. Read PRINCIPLES.md and rulepacks/PROGRESS.md first. Read the
+          saved source for each rule again; do not mark a rule from memory.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run pytest tests/unit/engine/test_rulepack.py -q
+          && grep -q "stem.requires_post_completion_opt" rulepacks/f1-us/v2026.09/parameters.yaml'
+        max_iterations: 4
+    checks:
+      - { name: "sources: every quote found, every value verbatim or a marked reading", run: "uv run python -m tools.sources.verify rulepacks" }
+  - name: G2
+    lanes:
+      - lane: L-engine
+        agent: builder
+        slug: context
+        mission: >
+          Do the engine work in sections 2 to 5 of the SPEC. Read PRINCIPLES.md and
+          engine/PROGRESS.md first. The tests are your target and you cannot edit them.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+        max_iterations: 6
+    checks:
+      - { name: "engine tests", run: "uv run pytest tests/unit/engine -q" }
+  - name: G3
+    lanes:
+      - lane: L-api
+        agent: builder
+        slug: context
+        mission: >
+          Do the api work in section 2 of the SPEC and keep the api tests green with the new
+          contracts. Read api/PROGRESS.md first. You cannot edit the tests.
+        done: >-
+          bash -c 'uv run pytest tests/unit/api -q && uv run mypy
+          && uv run ruff check api && uv run ruff format --check api'
+        max_iterations: 4
+      - lane: L-web
+        agent: builder
+        slug: context
+        mission: >
+          Do the screen work in sections 2, 4 and 5 of the SPEC. Read PRINCIPLES.md,
+          BOUNDARY.md and web/PROGRESS.md first. Regenerate the api types.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+        max_iterations: 5
+    checks:
+      - { name: "gates 1 to 6", run: "make test BASE=main" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+      - { name: "every engine number has a source", run: "uv run python -m tools.gates.engine_literals" }
+      - { name: "sources: verbatim or a marked reading", run: "uv run python -m tools.sources.verify rulepacks" }
+  - name: G4
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        slug: second
+        mission: >
+          Second review. Read PRINCIPLES.md, then reviews/phase-2.md, your first review.
+          Review everything on this branch that is not on main against specs/phase-2/ (all
+          four SPEC files), PRINCIPLES.md, BOUNDARY.md and CLAUDE.md. Run each input from
+          your first review again and say whether each finding is closed. Then look for new
+          problems with fresh eyes, above all for any place where Duly assumes instead of
+          asking, shows its own reading as the law's words, or gives the quiet verdict on a
+          record with a gap. Write reviews/phase-2-second.md, ending with APPROVE or VETO on
+          its own line.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/phase-2-second.md'
+        max_iterations: 2
+    checks:
+      - { name: "reviewer approved", run: "grep -Eq '^APPROVE$' reviews/phase-2-second.md" }
