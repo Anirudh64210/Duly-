@@ -1,0 +1,145 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+rounds:
+  - name: content
+    checkpoint: false
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          The pack words that specs/product-1/SPEC-resolutions.md points 20, 21, 22 and 24 rest
+          on, in rulepacks/f1-us/v2026.09, each quote found in a saved snapshot. (1) Point 20:
+          the quote of stem.new_plan_due_days leaves out the condition; quote the whole sentence
+          of 8 CFR 214.2(f)(10)(ii)(C)(7)(iv), which begins "If a student initiates a new
+          practical training opportunity with a new employer during his or her 24-month OPT
+          extension", value and status unchanged. (2) Point 22: a new flag rule
+          opt.report_interruption, settled, verbatim, quoting 8 CFR 214.2(f)(12)(i) on reporting
+          "any change of name or address, or interruption of such employment", with no number.
+          (3) Point 21: a new flag rule stem.reporting_required, settled, verbatim, quoting the
+          sentence of 8 CFR 214.2(f)(12)(ii) "Compliance with these reporting requirements is
+          required to maintain F-1 status." (4) Point 24: the note of calendar.federal_holidays_law
+          says that business days skip the days 6103(a) lists on those days and not observed
+          days, quoting the words of 6103(b) from the saved usc-5-6103 copy that limit observed
+          days to "statutes relating to pay and leave of employees". Record each change in the
+          pack's CHANGELOG.md. Never invent a number or a quote.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
+          && grep -q "opt.report_interruption" rulepacks/f1-us/v2026.09/parameters.yaml
+          && grep -q "stem.reporting_required" rulepacks/f1-us/v2026.09/parameters.yaml'
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Write the tests for specs/product-1/SPEC-resolutions.md points 11 to 24, first, before
+          the engine has them. Put the tests for points 20, 21 and 22 (questions about employment
+          periods and passed reports) in tests/unit/engine/test_f1_periods_and_reports.py and
+          every other new engine test in tests/unit/engine/test_f1_windows.py, so each engine
+          round can be held to its own file. For each conflict (points 11, 14, 15, 16): a case
+          that raises it with verdict cannot_tell, reason conflict:<id>, the question with its
+          about, the rule in rule_ids, and the items that use those dates null; yes gives
+          talk_to_dso with the judgement item; no keeps cannot_tell; the edge days fit and raise
+          nothing, each edge from the rule's value in the pack, never a number written in the
+          test. Points 17, 18, 19, 23 and 24 as each states, with the case the point names. For
+          points 20, 21 and 22: the question, cannot_tell until answered, and each answer's
+          result. Property tests with an injected clock where a rule's value moves an edge.
+          In tests/holdout, hidden from the builders, the same rules on other cases. Existing
+          tests whose cases break one of these rules change the case so its facts fit (point 4):
+          among them CASE_C in tests/holdout/test_holdout_sourcing.py (its OPT card runs past
+          opt.complete_by), the generator in tests/holdout/test_holdout_f1.py::cases() (it can
+          date the STEM filing before the window opens), and the tests that pin observed
+          holidays (tests/unit/engine/test_dates.py, tests/holdout/test_holdout_dates.py, CASE_B
+          stem.validation_2_due) which change to the dates point 24 gives. Remove next.grace.ends
+          from every expectation (point 12). Use tests/support/f1_pack.py so no placeholder
+          answer reaches the engine. Name every new test in your report. The new tests are
+          expected to fail until the engine rounds.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null
+          && test -f tests/unit/engine/test_f1_windows.py
+          && test -f tests/unit/engine/test_f1_periods_and_reports.py
+          && grep -q "before_window_opens" tests/unit/engine/test_f1_windows.py
+          && grep -q "end_reported" tests/unit/engine/test_f1_periods_and_reports.py'
+  - name: engine-windows
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md points 11, 12, 14, 15, 16, 17, 18, 19, 23 and
+          24 in engine/. The conflicts work as every conflict of SPEC section 1 does. Every day
+          count comes from a rule's value in the pack; no number is written in code. Your
+          target is every test in tests/unit/engine except
+          tests/unit/engine/test_f1_periods_and_reports.py, which the next round builds.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine -q --ignore=tests/unit/engine/test_f1_periods_and_reports.py
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: engine-periods
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md points 20, 21 and 22 in engine/: the
+          questions about employment periods on the STEM card and about their ends, the
+          questions about STEM reports whose dates have passed, and the dated items and
+          judgement items each answer gives. Every day count comes from a rule's value in the
+          pack. Your target is every test in tests/unit/engine.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+    checks:
+      - { name: "engine tests", run: "uv run pytest tests/unit/engine -q" }
+      - { name: "api tests", run: "uv run pytest tests/unit/api -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: screen
+    lanes:
+      - lane: L-web
+        agent: builder
+        mission: >
+          The engine now raises the conflicts, questions, items and judgement items of
+          specs/product-1/SPEC-resolutions.md points 11 to 24. Give each its words in
+          web/src/lib/labels.ts beside the others: what does not fit, or what is asked, in plain
+          words, never which date is wrong and never that anything was late or missed. The
+          report_employer item from point 22 is shown as SEVP guidance, not as the regulation's
+          words. Points 12 and 13 as each states. A conflict, question or judgement id the
+          screen has no words for is never shown as nothing: it shows a plain line that some
+          facts entered do not fit or that something needs an answer, and a test proves it.
+          Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what this plan changed (git diff product-1...HEAD) against
+          specs/product-1/SPEC-resolutions.md points 11 to 24, PRINCIPLES.md, BOUNDARY.md and
+          CLAUDE.md, following your role file. Send each case the points name, and the four
+          inputs of finding 1 in reviews/product-1.md, through the api. Check that no verdict
+          is no_open_items when a filing is outside its window, a card runs past its date, a
+          report date has passed unanswered, or a period's end is unanswered; that no date
+          shown is later than the words it cites; and that no screen line says anything was
+          late or missed. Write reviews/product-1-fix1.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix1.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1 and this fix cover, as your role
+          file describes, against specs/product-1/SPEC.md and SPEC-resolutions.md. Update
+          docs/requirements/audits/product-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'
