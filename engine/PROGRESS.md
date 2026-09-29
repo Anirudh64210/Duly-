@@ -431,3 +431,130 @@ More readings:
 
 - The orchestrator: bring commit a58226f (the L-tests file) onto the branch that this
   lane is merged with, so that the done command covers is_weekend.
+
+## Run l-engine-b63b2c6ea2, 2026-09-29: product round 1, sections 1 to 6 (attempt 1)
+
+Read: engine/PROGRESS.md, specs/product-1/SPEC.md, CLAUDE.md, the two contracts,
+tests/unit/engine/test_f1_product.py, tests/support/f1_pack.py, tests/PROGRESS.md
+(iteration 6). Only engine/f1.py changed.
+
+### What was written
+
+| Section | In engine/f1.py |
+|---|---|
+| 1 | `_facts`: the 13 rows of the table, in its order. Each is a conflict and a question with the same id, with `about` holding the values by input name. No or no answer: `conflict:<id>` stays. Yes: the id is a judgement item. While a conflict is open, every item with an input named in its `about` has the value null (`_Working.conflicted`). `_pieces` counts inside the cards only, so days between two cards are outside the window |
+| 2 | `nothing_more_to_record` when opt, stem and cap_gap are all absent; no gives `missing:training`. `full_time_cpt_used` when cpt_full_time_days is absent or null; no gives the value 0 with the answer and its day in the inputs; yes gives `missing:cpt_full_time_days`. `parse_case` keeps days not entered as None |
+| 3 | `parse_case(raw, clock=None)`: with a clock, an answer dated after the person's own day raises ValueError. `_answer` reads `about` and, for the yes to no_employment_to_record, the day it was given. Every question carries `about` |
+| 4 | `STEPS` and `_Working.done`: a done item is no open item and is not in `upcoming`. Its date is still computed |
+| 5 | `reading` on each computed item and each entry of `upcoming`, from `derivation` in the pack |
+| 6 | `upcoming`, soonest first. The four `next.` dates with OPT entered and no STEM (`_add_next_step`). `lists` holds the rules of the pack whose ids begin `stem.requires.`, in the order of the pack (`_lists`) |
+
+### What ran and what it printed
+
+- The done command as written, twice: exit 1 both times, with the same 66 failed tests
+  of 763 (697 passed). The four checks after pytest, run one by one: `engine literals:
+  every number has a source`, `Success: no issues found in 54 source files`, `All
+  checks passed!`, `8 files already formatted`.
+- tests/unit/engine/test_f1_product.py: 2 failed, both disputes below. Before this run
+  184 failed in that file.
+- A scratch plugin under TMPDIR held the engine's conflicts against
+  `conflicts_by_the_table` in tests/support/f1_pack.py for every case the suite
+  computes: 3797 calls, 0 that differ. The folder was removed.
+- The same plugin switched off one thing at a time to learn what each of the 64 older
+  failures turns on: the pattern of the question id alone 22, a conflict of section 1
+  in the older case 23, a done step of section 4 in the older case 11, the day of the
+  answer of section 3 in the older case 4, more than one of these 6, `about` on an
+  older question 1, days between two cards counted by the test's own reference 1.
+  (Two of the 66 are in the product file.) None turns on a fault in the engine that I
+  could find.
+- The shipped pack by hand, today 2026-09-28: OPT 2026-06-01 to 2027-05-31 with no STEM
+  gives no_open_items, the four next dates (2027-03-02, 2027-05-31, 2027-05-31,
+  2027-07-30) and one list of 15 rules. A card through 2028-10-31 gives
+  `conflict:opt.card_longer_than_rule` with the counts and grace.ends null.
+
+### Disputes
+
+1. contracts/engine_output.schema.json gives the id of a question the pattern
+   `^[a-z0-9_]+$`. SPEC section 1 gives the question the id of the conflict, which
+   holds dots. test_f1_product.py::test_the_output_of_a_conflict_follows_the_contract
+   cannot pass, and neither can 22 older tests whose case now holds a conflict and
+   which check the contract. The engine follows the SPEC.
+2. test_f1_product.py::test_the_answer_yes_to_another_row_leaves_this_one_open
+   [cap_gap.petition_filed_on.after_start]: the answer is dated 2026-10-05, the day of
+   the row, and the case is run on the default day, 2026-09-28. SPEC section 3: "An
+   answer dated after today is refused". parse_case raises ValueError, as the SPEC says.
+3. test_f1.py::test_window_runs_from_ead_start_through_the_earlier_of_today_and_ead_end
+   (4 cases): no employment, the yes to no_employment_to_record given 2026-09-28, today
+   in 2027. SPEC section 3: "When today is later, the question is open again for the
+   days since." The test expects a count.
+4. Older tests whose case holds a fact of the table of section 1 and which expect dates
+   or counts (29 tests, among them test_f1.py::test_a_period_covers_its_first_and_last_day
+   with a period that begins before the card, test_f1_sourcing.py::
+   test_a_shorter_extension_gives_fewer_reports with a card of 24 months under a pack
+   of fewer, and test_f1_fixes.py::
+   test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows, whose
+   reference counts the days between two cards).
+5. Older tests that expect opt.file_by or opt.apply_window_closes as an open item on a
+   case with the filing or the card recorded (11 tests, among them test_f1.py::
+   test_a_dated_item_from_today_through_14_days_on_is_an_open_item). SPEC section 4.
+6. test_f1_context.py::test_the_question_names_the_inputs_that_raised_it expects a
+   question to hold `id` and `because` only. SPEC section 3: "Each question carries
+   `about`".
+
+### Readings the SPEC leaves open
+
+- An answer with no `about` is taken as an answer (tests lane question 47). The day of
+  the answer is still checked. An api client that leaves `about` out skips the check of
+  section 3 on values. Needs the founder.
+- compute_f1 cannot refuse an answer: it takes a parsed case. An answer dated after
+  today that reaches it (parse_case called with no clock) is read as given. The api has
+  to pass its clock to parse_case.
+- A card whose last day is the day the months end is not a conflict (question 49).
+- The items that use the dates of a conflict are those with an input named in `about`.
+  For employment.period_outside_cards `about` holds the periods with days outside and
+  the dates of the cards, so grace.ends and the STEM dates are null too while it is
+  open.
+- The answer no to a conflict leaves the conflict and asks nothing again until a value
+  in it changes.
+- An open conflict gives the reason `conflict:<id>` and no `unconfirmed:<id>`.
+- The answers to nothing_more_to_record and full_time_cpt_used have no last day. The
+  SPEC gives one to no_employment_to_record only.
+- unemployment.days_used on the STEM card names both limit rules, since the days of the
+  OPT card are in the count. test_the_mark_comes_from_the_pack_and_from_nowhere_else
+  expects the OPT rule on it.
+- A pack that lacks a rule of a next date gives no such date. A pack that lacks
+  opt.max_months or stem.extension_months gives no conflict on the length of the card.
+- Conflict ids of earlier rounds (opt_start, stem_start and the rest) are as they were.
+
+### Requests for files this lane does not own
+
+- contracts/engine_output.schema.json: allow dots in the id of a question.
+- tests/ (L-tests): bring the older cases in line with sections 1, 3 and 4, and date
+  the answer of dispute 2 on the day the case is run.
+- api/ (L-api): pass the clock to `parse_case(raw, clock)` and turn the ValueError
+  into the 422.
+- specs/product-1/SPEC.md: a line on an answer with no `about`.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Lesson
+
+- Failure: 64 older tests failed beside the new ones, and nothing in the output said
+  which were faults of the engine and which were older cases that the new SPEC reads
+  another way.
+  Fix: a scratch plugin under TMPDIR that switches off one new behaviour at a time, and
+  one that holds the engine against the reference table the tests lane wrote.
+  Evidence: 3797 calls, 0 that differ; each of the 64 tied to one section of the SPEC.
+- Failure: a product test dated its answer on the day of its row and ran the case on
+  the default day, so the answer was after today and parse_case refused it.
+  Fix: read the day a test runs on beside the day of each answer before taking a
+  refusal as a fault of the engine.
+  Evidence: ValueError from parse_case, answer 2026-10-05, today 2026-09-28.
+
+### After the stop hook
+
+The stop hook ran the done command and printed the same 66 failures: the third time.
+engine/ESCALATE.md written with what was tried and the failure tail. Nothing else
+changed.
