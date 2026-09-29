@@ -48,6 +48,13 @@ describe("Home placeholder", () => {
     expect(screen.getByText("Nothing has been added yet.")).toBeDefined();
   });
 
+  it("does not call the time the page asked the server a check (SPEC-resolutions point 35)", async () => {
+    show({ ok: true, status: 200, json: () => Promise.resolve(body("no_open_items", [])) });
+    const line = await screen.findByText(/Based on 0 documents you added/);
+    expect(line.textContent).not.toMatch(/checked/i);
+    expect(line.textContent).toContain("Server status read");
+  });
+
   it("always carries the scope line and the footer", async () => {
     show({ ok: true, status: 200, json: () => Promise.resolve(body("no_open_items", [])) });
     expect(await screen.findByText(/Based on 0 documents you added/)).toBeDefined();
@@ -499,8 +506,11 @@ describe("the person's own day", () => {
 
 const HELD = /Did you have a period of post-completion OPT before the STEM OPT period\?$/;
 
+// The facts ASKING's question was raised for: STEM OPT dates and no OPT dates. An answer
+// is kept only while they stand (SPEC-resolutions point 33).
 async function asked() {
   enter("Program end date", "2026-05-15");
+  fireEvent.click(screen.getByLabelText("Include STEM OPT"));
   enter("Documents added", "3");
   enter(ZONE, "America/Los_Angeles");
   compute();
@@ -735,6 +745,15 @@ describe("the footer", () => {
 });
 
 /** Enters the smallest case, computes, and waits for the headline of the reply. */
+// The facts the conflicts of CONFLICT were raised for. An answer is kept only while
+// they stand (SPEC-resolutions point 33).
+async function conflictEntered() {
+  fireEvent.click(screen.getByLabelText("Include OPT"));
+  enter("OPT I-765 filed date", "2026-10-10");
+  enter("OPT EAD start date", "2026-06-01");
+  return computeTo("Can't tell yet");
+}
+
 async function computeTo(headline: string) {
   enter("Program end date", "2026-05-15");
   enter("Documents added", "3");
@@ -803,7 +822,7 @@ describe("SPEC section 1: facts that do not fit", () => {
       { status: 200, body: CONFIRMED },
       { status: 200, body: CONFLICT },
     );
-    await computeTo("Can't tell yet");
+    await conflictEntered();
     const [first] = screen.getAllByRole("button", {
       name: "Yes, they are the dates on my documents",
     });
@@ -1005,5 +1024,19 @@ describe("SPEC section 7: words on the screen", () => {
     await computed();
     expect(screen.getByRole("button", { name: /Unemployment days used/ })).toBeDefined();
     expect(screen.queryByText(/Days with no employment period/)).toBeNull();
+  });
+});
+
+describe("SPEC-resolutions point 33: an answer goes with the facts it was given for", () => {
+  it("removes the answer from the form when one of those facts changes", async () => {
+    const posted = serve({ status: 200, body: ASKING }, { status: 200, body: ANSWERED_NO });
+    await asked();
+    fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
+    await screen.findByRole("heading", { name: "Your answers, sent with these dates" });
+    await waitFor(() => expect(posted).toHaveLength(2));
+    fireEvent.click(screen.getByLabelText("Include OPT"));
+    compute();
+    await waitFor(() => expect(posted).toHaveLength(3));
+    expect(posted[2]).toMatchObject({ confirmations: {} });
   });
 });

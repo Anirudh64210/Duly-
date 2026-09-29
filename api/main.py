@@ -1,3 +1,4 @@
+from datetime import date
 from functools import lru_cache
 from typing import Annotated, Any
 
@@ -48,17 +49,24 @@ def version() -> dict[str, str]:
     return {"api": API_VERSION, "contracts": CONTRACTS_VERSION}
 
 
+def _iso(day: date | None) -> str | None:
+    return None if day is None else day.isoformat()
+
+
 @app.get("/v1/status")
 def status(
     db: Annotated[Engine, Depends(get_db)],
     clock: Annotated[Clock, Depends(get_clock)],
 ) -> dict[str, Any]:
     packs = load_all()
+    # SPEC-resolutions point 35: the packs' own dates. The oldest among the packs that
+    # hold rules, so a stale pack is never hidden by a fresh one.
+    checked_on = [p.rules_checked_on for p in packs if p.rules_checked_on is not None]
     empty_case = VerdictInputs(
         documents_count=0,
         missing_inputs=(),
         conflicting_inputs=(),
-        rules_checked_on=None,
+        rules_checked_on=min(checked_on, default=None),
         depends_on_litigated_rule=False,
         judgement_items=(),
         open_items=(),
@@ -67,7 +75,12 @@ def status(
     return {
         "database": "ok" if database_reachable(db) else "unreachable",
         "rulepacks": [
-            {"category": p.category, "version": p.version, "parameters": len(p.parameters)}
+            {
+                "category": p.category,
+                "version": p.version,
+                "parameters": len(p.parameters),
+                "rules_checked_on": _iso(p.rules_checked_on),
+            }
             for p in packs
         ],
         "verdict": {"state": verdict.state.value, "reasons": list(verdict.reasons)},

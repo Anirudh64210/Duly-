@@ -9,6 +9,7 @@ import {
   type F1Case,
   type PetitionStatus,
 } from "./compute";
+import { fittingAnswers } from "./answers";
 
 // What the form holds: text as typed. buildCase turns it into the case contract.
 
@@ -167,6 +168,25 @@ function isDate(text: string): boolean {
 }
 
 export function buildCase(fields: CaseFields): Built {
+  const { body, problems } = read(fields);
+  return problems.length > 0 ? { ok: false, problems } : { ok: true, body };
+}
+
+/** The facts as entered, checked or not. Text that is not a date stays as typed. */
+export function enteredFacts(fields: CaseFields): F1Case {
+  return read(fields).body;
+}
+
+/**
+ * SPEC-resolutions point 33: when the facts change, an answer given for other values
+ * is removed from the form. The engine would not read it.
+ */
+export function keepFitting(fields: CaseFields): CaseFields {
+  const confirmations = fittingAnswers(fields.confirmations, enteredFacts(fields));
+  return { ...fields, confirmations };
+}
+
+function read(fields: CaseFields): { body: F1Case; problems: string[] } {
   const problems: string[] = [];
 
   const required = (text: string, name: string): string => {
@@ -235,5 +255,5 @@ export function buildCase(fields: CaseFields): Built {
   };
   if (!isZoneName(fields.time_zone)) problems.push("Choose your time zone.");
 
-  return problems.length > 0 ? { ok: false, problems } : { ok: true, body };
+  return { body, problems };
 }

@@ -1,15 +1,18 @@
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { z } from "zod";
 
 import type {
   About,
   Alternate,
   ComputedItem,
+  Confirmation,
   Confirmations,
   EngineOutput,
   F1Case,
   ShownRule,
+  Upcoming,
 } from "../lib/compute";
+import { answerFits } from "../lib/answers";
 import {
   ANSWER_NOT_SHOWN,
   GROUPS,
@@ -22,6 +25,7 @@ import {
   VERBATIM_LINE,
   answerLine,
   becauseLine,
+  computedName,
   conflictLine,
   conflictQuestionCopy,
   dsoQuestion,
@@ -29,10 +33,13 @@ import {
   factRule,
   formatDate,
   formatValue,
+  givenLine,
   groupOf,
   inputName,
   itemName,
   listName,
+  periodDay,
+  periodSpan,
   questionCopy,
   reasonItem,
   reasonText,
@@ -54,6 +61,9 @@ const periodSchema = z.object({
 
 const NOT_ENTERED = "Not entered";
 
+// SPEC-resolutions point 29: an answer among an item's inputs, as the engine gives it.
+const givenSchema = z.strictObject({ answer: z.boolean(), on: z.string() });
+
 function periodLine(raw: unknown): string {
   const period = periodSchema.safeParse(raw);
   if (!period.success) return "This entry could not be shown.";
@@ -68,6 +78,8 @@ function InputValue({ value }: { value: unknown }) {
   if (typeof value === "string") return <>{formatDate(value)}</>;
   if (typeof value === "number") return <>{String(value)}</>;
   if (typeof value === "boolean") return <>{value ? "Yes" : "No"}</>;
+  const given = givenSchema.safeParse(value);
+  if (given.success) return <>{givenLine(given.data.answer, given.data.on)}</>;
   if (Array.isArray(value)) {
     if (value.length === 0) return <>None entered</>;
     if (value.every((entry) => typeof entry === "string")) {
@@ -216,7 +228,7 @@ function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rul
         onClick={() => setOpen(!open)}
       >
         <span className="item-name">
-          {itemName(item.id)}
+          {computedName(item)}
           <Marks status={item.status} reading={item.reading} />
         </span>
         <span className="value">{formatValue(item.value, item.unit)}</span>
@@ -318,16 +330,38 @@ export function Verdict(props: { output: EngineOutput; onChangeZone: () => void 
   );
 }
 
-/** The values entered that raised a question, as the engine gave them. */
-function AboutValues({ about }: { about: About }) {
+/**
+ * The values entered that raised a question, as the engine gave them. An employment
+ * period is shown as its start and end (SPEC-resolutions point 34); an end the question
+ * does not hold is taken from the case the question came from.
+ */
+function AboutValues({ about, entered }: { about: About; entered: F1Case | undefined }) {
+  const rows: { key: string; name: string; shown: ReactNode }[] = [];
+  const periods = new Set<number>();
+  for (const [key, value] of Object.entries(about)) {
+    const day = periodDay(key);
+    if (day === null) {
+      rows.push({ key, name: inputName(key), shown: <InputValue value={value} /> });
+      continue;
+    }
+    if (periods.has(day.period)) continue;
+    periods.add(day.period);
+    const held = entered?.employment[day.period - 1];
+    const start = about[`employment.${day.period}.start`] ?? held?.start;
+    const endKey = `employment.${day.period}.end`;
+    const end = Object.hasOwn(about, endKey) ? about[endKey] : held?.end;
+    rows.push({
+      key,
+      name: `Employment period ${day.period}`,
+      shown: periodSpan(start, end),
+    });
+  }
   return (
     <dl className="about">
-      {Object.entries(about).map(([key, value]) => (
+      {rows.map(({ key, name, shown }) => (
         <div key={key}>
-          <dt>{inputName(key)}</dt>
-          <dd>
-            <InputValue value={value} />
-          </dd>
+          <dt>{name}</dt>
+          <dd>{shown}</dd>
         </div>
       ))}
     </dl>
@@ -338,16 +372,24 @@ export function Questions(props: {
   output: EngineOutput;
   /** The answers sent with the case this result was computed from. */
   sent: Confirmations;
+  /** The case this result was computed from. */
+  entered?: F1Case;
   busy: boolean;
   /** about: the values the question was raised for. The answer is kept with them. */
   onAnswer: (question: string, given: boolean, about: About | undefined) => void;
   onWithdraw: (question: string) => void;
 }) {
-  const { output, sent, busy, onAnswer, onWithdraw } = props;
+  const { output, sent, entered, busy, onAnswer, onWithdraw } = props;
   const open = new Set(output.questions.map((question) => question.id));
   const reasons = output.verdict.reasons;
-  const answered = Object.entries(sent).filter(([id]) => !open.has(id));
-  if (open.size === 0 && answered.length === 0) return null;
+  // SPEC-resolutions point 33: an answer given for values that are not the ones the
+  // engine read is never shown as standing.
+  const fits = ([, given]: [string, Confirmation]) =>
+    entered === undefined ? given.about !== undefined : answerFits(given, entered, output);
+  const sentOnly = Object.entries(sent).filter(([id]) => !open.has(id));
+  const answered = sentOnly.filter(fits);
+  const unread = sentOnly.filter((entry) => !fits(entry));
+  if (open.size === 0 && sentOnly.length === 0) return null;
 
   return (
     <>
@@ -365,7 +407,7 @@ export function Questions(props: {
                   {fact && <p className="fact">{fact}</p>}
                   <p className="ask">{copy ? copy.ask : QUESTION_NOT_SHOWN}</p>
                   {(fact || showsAbout(question.id)) && question.about ? (
-                    <AboutValues about={question.about} />
+                    <AboutValues about={question.about} entered={entered} />
                   ) : (
                     <p className="because">{becauseLine(question.because)}</p>
                   )}
@@ -423,7 +465,7 @@ export function Questions(props: {
               }
               return (
                 <li className="question" key={id}>
-                  {factLine(id) && <p className="fact">{factLine(id)}</p>}
+                  <AnsweredFact id={id} reasons={reasons} />
                   <p className="ask">{copy.ask}</p>
                   <p className="given">{answerLine(copy, given)}</p>
                   <div className="answers" role="group" aria-label={copy.ask}>
@@ -450,9 +492,50 @@ export function Questions(props: {
           </ul>
         </section>
       )}
+      {unread.length > 0 && (
+        <section className="questions" aria-labelledby="questions-unread">
+          <h3 id="questions-unread">Answers Duly did not read</h3>
+          <p>{UNREAD_LINE}</p>
+          <ul>
+            {unread.map(([id]) => (
+              <li className="question" key={id}>
+                <p className="ask">{questionCopy(id)?.ask ?? ANSWER_NOT_SHOWN}</p>
+                <div className="answers">
+                  <button
+                    type="button"
+                    className="quiet"
+                    disabled={busy}
+                    onClick={() => onWithdraw(id)}
+                  >
+                    Remove the answer
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }
+
+const UNREAD_LINE =
+  "These answers were given for dates that are not the ones entered now, so Duly did not read them.";
+
+/**
+ * The line of a conflict the person answered. It is said in the present tense only
+ * while the verdict still holds the conflict (SPEC-resolutions point 33).
+ */
+function AnsweredFact({ id, reasons }: { id: string; reasons: readonly string[] }) {
+  const line = factLine(id);
+  if (line === null) return null;
+  if (reasons.includes(id) || reasons.includes(`conflict:${id}`)) {
+    return <p className="fact">{line}</p>;
+  }
+  return <p className="fact">{FACT_WHEN_ASKED}</p>;
+}
+
+const FACT_WHEN_ASKED = "When Duly asked this, some of the dates entered did not fit together.";
 
 /** Rules the engine sent that no item names: the words that go with the verdict. */
 export function VerdictRules({ output }: { output: EngineOutput }) {
@@ -516,6 +599,50 @@ function CopyButton({ text }: { text: string }) {
 }
 
 /**
+ * SPEC-resolutions point 32: a date ahead opens to its rules, with the value, the words,
+ * the citation and the link, and for a reading the pack's note marked as Duly's reading.
+ */
+function UpcomingRow({ entry, rules }: { entry: Upcoming; rules: EngineOutput["rules"] }) {
+  const [open, setOpen] = useState(false);
+  const panel = useId();
+  return (
+    <li className="item">
+      <button
+        type="button"
+        className="item-row"
+        aria-expanded={open}
+        aria-controls={panel}
+        onClick={() => setOpen(!open)}
+      >
+        <span className="item-name">
+          {itemName(entry.id)}
+          <Marks status={entry.status} reading={entry.reading} />
+        </span>
+        <span className="value">{formatDate(entry.date)}</span>
+      </button>
+      <RuleChange
+        alternates={entry.alternates ?? []}
+        operative={entry.operative}
+        unit="date"
+        ruleIds={entry.rule_ids}
+        rules={rules}
+      />
+      {open && (
+        <div className="working" id={panel}>
+          <h4>Rules used</h4>
+          <ul className="rules">
+            {entry.rule_ids.map((id) => {
+              const rule = rules[id];
+              return rule ? <RuleCard key={id} id={id} rule={rule} /> : null;
+            })}
+          </ul>
+        </div>
+      )}
+    </li>
+  );
+}
+
+/**
  * SPEC section 6: the dates that lie ahead, soonest first, then what the regulation
  * lists for the step the rules place next, and a drafted question for the DSO.
  */
@@ -529,22 +656,7 @@ export function WhatComesNext(props: { output: EngineOutput; sent: F1Case }) {
       {upcoming.length > 0 && (
         <ol className="items upcoming">
           {upcoming.map((entry) => (
-            <li className="item" key={entry.id}>
-              <div className="item-row static">
-                <span className="item-name">
-                  {itemName(entry.id)}
-                  <Marks status={entry.status} reading={entry.reading} />
-                </span>
-                <span className="value">{formatDate(entry.date)}</span>
-              </div>
-              <RuleChange
-                alternates={entry.alternates ?? []}
-                operative={entry.operative}
-                unit="date"
-                ruleIds={entry.rule_ids}
-                rules={rules}
-              />
-            </li>
+            <UpcomingRow key={entry.id} entry={entry} rules={rules} />
           ))}
         </ol>
       )}

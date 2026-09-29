@@ -2,10 +2,11 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { engineOutputSchema, type EngineOutput } from "../lib/compute";
+import { CASE, CONFIRMED, CPT_OVER, NEXT } from "../lib/fixtures";
 import completeBy from "../lib/samples/complete-by.json";
 import answered from "../lib/samples/stem-periods-answered.json";
 import asked from "../lib/samples/stem-periods-asked.json";
-import { Items, Questions, Verdict } from "./Result";
+import { Items, Questions, Verdict, WhatComesNext } from "./Result";
 
 // The samples are the engine's own output for two cases, run on 2026-09-29 with the
 // shipped pack, trimmed to the items and rules these tests read.
@@ -76,7 +77,9 @@ describe("SPEC-resolutions points 20, 21 and 22: questions about a period and a 
         "The date for the final evaluation for employment period 1 is before today. Did you submit this report?",
       ),
     ).toBeDefined();
-    expect(screen.getByText("Employment period 1 end date")).toBeDefined();
+    // SPEC-resolutions point 34: a period is shown as its start and end.
+    expect(screen.getByText("Jun 2, 2025 to Jul 1, 2026")).toBeDefined();
+    expect(screen.getByText("Starts Jul 2, 2026")).toBeDefined();
     expect(screen.getByText("Final evaluation due for employment period 1")).toBeDefined();
     expect(screen.getByText("Jul 11, 2026")).toBeDefined();
     expect(document.body.textContent).not.toMatch(FORBIDDEN);
@@ -214,5 +217,137 @@ describe("an id the screen has no words for is never shown as nothing", () => {
     expect(screen.getByText(/does not have the words for its question yet/)).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Remove the answer" }));
     expect(onWithdraw).toHaveBeenCalledWith("some_new_question");
+  });
+});
+
+describe("SPEC-resolutions point 29: an answer among an item's inputs", () => {
+  it("is shown as the person's answer and its day, and names the item as from the answer", () => {
+    const output = parsed({
+      ...CPT_OVER,
+      computed: [
+        {
+          id: "cpt.full_time_days_used",
+          value: 0,
+          unit: "days",
+          inputs: {
+            cpt_full_time_days: null,
+            full_time_cpt_used: { answer: false, on: "2026-09-29" },
+          },
+          rule_ids: Object.keys(CPT_OVER.rules).slice(0, 1),
+          status: "settled",
+          reading: false,
+        },
+      ],
+    });
+    render(<Items output={output} />);
+    const row = screen.getByRole("button", { name: /Full-time CPT days \(your answer\)/ });
+    fireEvent.click(row);
+    expect(screen.getByText("You answered No on Sep 29, 2026")).toBeDefined();
+    expect(screen.queryByText("This entry could not be shown.")).toBeNull();
+  });
+});
+
+describe("SPEC-resolutions point 32: every date under What comes next opens to its rule", () => {
+  it("shows the value, the words, the citation and the link", () => {
+    render(<WhatComesNext output={parsed(NEXT)} sent={CASE} />);
+    const row = screen.getByRole("button", { name: /STEM OPT filing window opens/ });
+    expect(row.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(row);
+    const item = row.closest("li");
+    if (!item) throw new Error("no item");
+    const working = within(item);
+    expect(working.getByText("90 days")).toBeDefined();
+    expect(working.getByText("up to 90 days before the end date")).toBeDefined();
+    expect(working.getByRole("link", { name: "8 CFR 214.2(f)(10)(ii)(C)" })).toBeDefined();
+  });
+
+  it("marks a reading and shows the pack's note", () => {
+    render(<WhatComesNext output={parsed(NEXT)} sent={CASE} />);
+    const row = screen.getByRole("button", { name: /STEM OPT filing window closes/ });
+    fireEvent.click(row);
+    const item = row.closest("li");
+    if (!item) throw new Error("no item");
+    const working = within(item);
+    expect(
+      working.getByText("Duly's reading of the quoted words, not the words of the source"),
+    ).toBeDefined();
+    expect(working.getByText("Reading: made up for the tests.")).toBeDefined();
+  });
+});
+
+describe("SPEC-resolutions point 33: an answer the engine did not read is never standing", () => {
+  const output = parsed({ ...CONFIRMED, questions: [] });
+  const given = {
+    answer: true,
+    on: "2026-09-28",
+    about: { "opt.i765_filed_date": "2026-10-10" },
+  };
+
+  function showAnswered(entered: typeof CASE, reasons: string[]) {
+    const onWithdraw = vi.fn();
+    render(
+      <Questions
+        output={{ ...output, verdict: { state: "talk_to_dso", reasons } }}
+        sent={{ "opt.i765_filed_date.after_today": given }}
+        entered={entered}
+        busy={false}
+        onAnswer={vi.fn()}
+        onWithdraw={onWithdraw}
+      />,
+    );
+    return onWithdraw;
+  }
+
+  const filedLater = { ...CASE, opt: CASE.opt && { ...CASE.opt, i765_filed_date: "2026-10-10" } };
+
+  it("shows a standing answer with its conflict while the verdict holds it", () => {
+    showAnswered(filedLater, ["opt.i765_filed_date.after_today"]);
+    expect(
+      screen.getByRole("heading", { name: "Your answers, sent with these dates" }),
+    ).toBeDefined();
+    expect(screen.getByText("The OPT I-765 filed date is after today.")).toBeDefined();
+  });
+
+  it("does not say the conflict in the present tense once the verdict no longer holds it", () => {
+    showAnswered(filedLater, []);
+    expect(screen.queryByText("The OPT I-765 filed date is after today.")).toBeNull();
+    expect(
+      screen.getByText("When Duly asked this, some of the dates entered did not fit together."),
+    ).toBeDefined();
+  });
+
+  it("lists an answer given for other dates apart, as not read, with a way to remove it", () => {
+    const onWithdraw = showAnswered(CASE, ["opt.i765_filed_date.after_today"]);
+    expect(
+      screen.queryByRole("heading", { name: "Your answers, sent with these dates" }),
+    ).toBeNull();
+    expect(screen.getByRole("heading", { name: "Answers Duly did not read" })).toBeDefined();
+    expect(screen.queryByText(/^You answered/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Remove the answer" }));
+    expect(onWithdraw).toHaveBeenCalledWith("opt.i765_filed_date.after_today");
+  });
+});
+
+describe("SPEC-resolutions point 34: an employment period in a question", () => {
+  it("is shown as its start and end, the end taken from the case when the question lacks it", () => {
+    render(
+      <Questions
+        output={parsed(asked)}
+        sent={{}}
+        entered={{
+          ...CASE,
+          employment: [
+            { start: "2025-06-02", end: "2026-07-01", hours_per_week: 40, employer_reported: true },
+            { start: "2026-07-02", end: null, hours_per_week: 40, employer_reported: true },
+          ],
+        }}
+        busy={false}
+        onAnswer={vi.fn()}
+        onWithdraw={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Jun 2, 2025 to Jul 1, 2026")).toBeDefined();
+    expect(screen.getByText("Jul 2, 2026, no end date entered")).toBeDefined();
+    expect(screen.getAllByText("Employment period 2").length).toBeGreaterThan(0);
   });
 });

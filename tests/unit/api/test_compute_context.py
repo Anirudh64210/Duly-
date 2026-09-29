@@ -317,7 +317,9 @@ BAD_ANSWERS: dict[str, Any] = {
     "unknown_field": {HELD_OPT: {"answer": True, "on": "2026-09-28", "by": "mark_q7f3kz"}},
     "id_in_capitals": {"HELD_POST_COMPLETION_OPT": {"answer": True, "on": "2026-09-28"}},
     "id_with_a_space": {"held opt": {"answer": True, "on": "2026-09-28"}},
-    "too_many": {f"question_{n}": {"answer": True, "on": "2026-09-28"} for n in range(21)},
+    # SPEC-resolutions.md, point 38: the contract bounds confirmations at 256, so a test of
+    # a refused count sends one more, 257 (range(257) is 0 to 256, which is 257 ids).
+    "too_many": {f"question_{n}": {"answer": True, "on": "2026-09-28"} for n in range(257)},
 }
 
 
