@@ -781,3 +781,101 @@ Status: done.
   guidance; DAY_AFTER: no_open_items.
 
 Status: done.
+
+## Run l-engine-1c477e1c41 (attempt 1): points 39, 40, 42, 43, 46, 48, 49 and 50, plain words, regimes, answers_read
+
+### What was built
+
+- engine/f1.py
+  - Point 39: the question `opt.earlier_at_this_level`, raised whenever an OPT block is
+    entered, about degree_level, opt.ead_start and opt.ead_end. Yes gives the judgement
+    item `opt.months_at_this_level` and shows `opt.max_months`.
+  - Point 40: `_Working.add` takes `on` as one day or a day by rule id. Rules are looked
+    up for the day of their event: the program end (window, latest start, complete_by),
+    the recommendation (file_by and its conflicts), each card's start (unemployment
+    limits, hours, card length, validations, evaluations, new plan, concluding
+    evaluation), the OPT card end (STEM window), the period end (end report), the
+    petition's filing day (capgap.ends). A row missing that day nulls the item and adds
+    `rule_not_in_force_on_event_day`. For validations the holiday list must be in force on
+    every day counted (`holidays_known`). Cap-gap: when `capgap.october_start_condition`
+    is in force on the filing day, a requested start other than October 1 of the next
+    fiscal year gives a null capgap.ends and the step back (no cap_gap_petition_not_active).
+  - Point 42: a point 27 card answered yes is still pre-completion OPT: no OPT step is done,
+    no STEM step, and no unemployment count.
+  - Point 43: the conflict `employment.period_open_after_last_card` (about: each open
+    period's start and the last card's end), raised after the last card and after an
+    active cap-gap's end. The period still raises period_outside_cards for days outside
+    the cards up to the last card end. Answered yes, grace.ends is null (my reading, as
+    point 18; see REPORT.json disputes).
+  - Point 46: `answers_read`, the ids whose answers `ask` read as yes or no.
+  - Point 48: a validation or a 12-month evaluation dated after the STEM card's end is
+    left out (`until`).
+  - Point 49: rule_in_litigation only when an item and an alternate both hold values that
+    differ.
+  - Point 50: the end report of a period that ends on the STEM card uses
+    `stem.report_change_within_days` (settled) when the pack holds it; otherwise the OPT
+    guidance row, as before.
+  - Contract: `rules[].plain` from the pack, and `regimes` for every regime an item or a
+    date ahead names (legal_status, operative, plain, citation, url, checked_on).
+- engine/dates.py: Juneteenth is listed only from 2021-06-17 (Pub. L. 117-17).
+- engine/verdict.py: a cannot_tell verdict lists the judgement items after the blockers.
+  The point 40 tests need `rule_not_in_force_on_event_day` in reasons beside
+  rule_in_litigation.
+
+### What ran
+
+- test_f1_fix4.py: 43 failed before; all 57 pass after.
+- Done command as written, output to a file, no pipe: exit 1. pytest: 45 failed, all in
+  test_f1_fix2.py, test_f1_windows.py and test_f1_periods_and_reports.py, none in
+  test_f1_fix4.py. engine_literals, mypy, ruff check and ruff format --check each pass
+  when run alone ("every number has a source", "no issues found in 57 source files",
+  "All checks passed!", "8 files already formatted").
+- A scratch plugin under TMPDIR that leaves point 39 unasked and drops the point 43 fact:
+  the three older files then pass in full (153). So every one of the 45 is a point 39 or
+  point 43 collision.
+- tests/unit/engine and tests/unit/api against a git archive of HEAD: 250 fail now that
+  passed at HEAD, 42 pass now that failed. With points 39 and 43 off, 28 remain: the
+  contract's two new output keys (15), point 48 (12) and the verdict's reasons (1).
+- Shipped pack by hand: OPT_CASE and STEM_CASE settle to no_open_items; EARLY_STEM
+  settles to talk_to_dso with rule_not_in_force_on_event_day.
+
+Status: blocked. The done command needs the older tests reconciled.
+
+Stop hook: the same 45 failures as the final run. That is the same failure twice, so the
+status is escalated; see engine/ESCALATE.md.
+
+## Run l-engine-f1008abd0f (attempt 1): merge of l-engine-1c477e1c41, points 51, 52 and 53
+
+### What was done
+
+- Merged lane/L-engine/l-engine-1c477e1c41 (points 39, 40, 42, 43, 46, 48, 49, 50, plain
+  words, regimes, answers_read). No conflict.
+- Point 51: kept. engine/verdict.py puts the blockers first, then the judgement items.
+- Point 52: kept. engine/f1.py `grace_ends` is null while point 43 is answered yes.
+- Point 53: engine/dates.py holds no date. `federal_holidays(year, juneteenth_listed=True)`,
+  `is_business_day(d, is_holiday=None)`, `add_business_days(d, n, is_holiday=None)`.
+  engine/f1.py `_Working.is_holiday(day)` reads the row of calendar.federal_holidays_law in
+  force on each counted day; that row holds Juneteenth when its quote names the item
+  "Juneteenth National Independence Day, June 19" as 6103(a) writes it. In the shipped pack
+  the row from 2021-06-17 quotes the list and names it; the row to 2021-06-16 quotes the
+  amendment note, which does not. The test pack's single row from 2000-01-01 has a
+  placeholder quote, so it holds no Juneteenth, which is what
+  test_point_40_a_2020_report_counts_june_19_as_a_business_day asks of the test pack.
+  With no row in force, holidays_known nulls the date with the step back, as before.
+
+### What ran
+
+- Done command as written, no pipe, output to a file: exit 0. 57 passed in
+  test_f1_fix4.py, "engine literals: every number has a source", mypy "no issues found in
+  57 source files", ruff "All checks passed!", "8 files already formatted", no 2021 in
+  engine/dates.py.
+- tests/unit/engine and tests/unit/api: 250 fail now; 42 fail at ddb954d (all in
+  test_f1_fix4.py, now passing). The same 250 fail at the merge commit 0d42c8b, before
+  point 53, so point 53 changes no older test. The 250 come from the merged work: mostly
+  the point 39 question opt.earlier_at_this_level, the new output keys answers_read and
+  regimes, and point 48's validation count. Per file: test_f1_product 97, test_f1 54,
+  test_f1_sourcing 28, test_f1_windows 24, test_f1_context 11, test_f1_periods_and_reports
+  11, test_f1_fix2 10, api/test_compute_product 8, api/test_compute_context 3,
+  api/test_compute 3, test_f1_fixes 1.
+
+Status: done.

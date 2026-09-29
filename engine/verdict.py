@@ -54,7 +54,9 @@ def decide(inputs: VerdictInputs, clock: Clock, today: date | None = None) -> Ve
     if inputs.depends_on_litigated_rule:
         blockers.append("rule_in_litigation")
     if blockers:
-        return Verdict(VerdictState.CANNOT_TELL, tuple(blockers))
+        # A matter for the DSO is still named when Duly cannot tell (SPEC-resolutions
+        # point 40: the verdict carries rule_not_in_force_on_event_day).
+        return Verdict(VerdictState.CANNOT_TELL, (*blockers, *inputs.judgement_items))
 
     if inputs.judgement_items:
         return Verdict(VerdictState.TALK_TO_DSO, inputs.judgement_items)
