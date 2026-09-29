@@ -12,6 +12,7 @@ limits:
   max_retries_per_task: 3        # attempts, then escalate
   repeated_action_limit: 4       # the same tool call this many times in a row stops the run
   stall_minutes: 12              # no action for this long raises an alert and stops the agent
+  require_health_check: true     # an agent must pass its smoke task before joining a run
   seconds_per_minute: 60         # only the factory's own tests change this
   lessons_memory_max_items: 40   # size cap on what is injected from past failures
   lessons_memory_max_chars: 12000

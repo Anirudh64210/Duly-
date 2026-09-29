@@ -121,7 +121,7 @@ def test_malformed_output_and_a_crash_are_survived(tmp_path, monkeypatch):
 
 def test_a_hang_is_stopped_by_the_time_limit(tmp_path, monkeypatch):
     hang = [{"init": mini.MODEL}, {"tool": "Bash", "input": {"command": "x"}}, {"sleep": 30}]
-    repo = mini.build(tmp_path, limits={"stall_minutes": 1000})
+    repo = mini.build(tmp_path, limits={"stall_minutes": 1000, "seconds_per_minute": 0.02})
     _, out = play(tmp_path, monkeypatch, [hang, hang], repo=repo)
     assert out.status == "escalated"
     assert "timeout" in out.reason
@@ -129,7 +129,7 @@ def test_a_hang_is_stopped_by_the_time_limit(tmp_path, monkeypatch):
 
 
 def test_silence_is_stopped_as_a_stall(tmp_path, monkeypatch):
-    repo = mini.build(tmp_path, limits={"stall_minutes": 5})
+    repo = mini.build(tmp_path, limits={"stall_minutes": 5, "seconds_per_minute": 0.02})
     hang = [{"init": mini.MODEL}, {"sleep": 30}]
     _, out = play(tmp_path, monkeypatch, [hang, hang], repo=repo)
     assert "stall" in out.reason

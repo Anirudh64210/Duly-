@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo watch
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -67,6 +67,27 @@ attack:
 watch:
 	@(nohup uv run --script dashboard/app.py >/dev/null 2>&1 &)
 	@echo "Factory window is opening."
+
+stop:
+	@uv run python -m tools.factory.control stop
+
+resume:
+	@uv run python -m tools.factory.control resume
+
+status:
+	@uv run python -m tools.factory.control status
+
+doctor:
+	@uv run python -m tools.factory.control doctor
+
+factory-clean:
+	@uv run python -m tools.factory.control clean
+
+factory-metrics:
+	@uv run python -m tools.factory.control metrics
+
+factory-test:
+	uv run pytest tests/unit/tools -q
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)

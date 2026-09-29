@@ -19,7 +19,10 @@ from pathlib import Path
 
 scenario_file = Path(os.environ["FAKE_AGENT_SCENARIO"])
 scenario = json.loads(scenario_file.read_text())
-counter = scenario_file.with_suffix(".count")
+lane = os.environ.get("DULY_LANE", "")
+if "lanes" in scenario:
+    scenario = scenario["lanes"][lane]
+counter = scenario_file.with_suffix(f".{lane}.count")
 attempt = int(counter.read_text()) if counter.exists() else 0
 counter.write_text(str(attempt + 1))
 steps = scenario["attempts"][min(attempt, len(scenario["attempts"]) - 1)]

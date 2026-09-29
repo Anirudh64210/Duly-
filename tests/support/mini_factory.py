@@ -25,7 +25,8 @@ def build(tmp_path: Path, **limits: float) -> Path:
     for rel in ("factory", "contracts", ".claude/lanes", ".claude/agents"):
         shutil.copytree(REAL / rel, repo / rel)
     config = yaml.safe_load((repo / "factory" / "config.yaml").read_text())
-    config["limits"]["seconds_per_minute"] = 0.02
+    config["limits"]["seconds_per_minute"] = 1.0
+    config["limits"]["require_health_check"] = False
     config["limits"].update(limits.pop("limits", {}))  # type: ignore[arg-type]
     config["budgets"].update(limits.pop("budgets", {}))  # type: ignore[arg-type]
     config["alerts"]["notify"] = "none"
@@ -43,9 +44,17 @@ def build(tmp_path: Path, **limits: float) -> Path:
     return repo
 
 
-def scenario(tmp_path: Path, attempts: list[list[dict]], name: str = "scenario") -> dict[str, str]:
+def scenario(
+    tmp_path: Path, attempts: list[list[dict]] | dict[str, list[list[dict]]], name: str = "scenario"
+) -> dict[str, str]:
+    """One list of attempts for every lane, or a list for each lane by name."""
     path = tmp_path / f"{name}.json"
-    path.write_text(json.dumps({"attempts": attempts}))
+    if isinstance(attempts, dict):
+        path.write_text(json.dumps({"lanes": {k: {"attempts": v} for k, v in attempts.items()}}))
+    else:
+        path.write_text(json.dumps({"attempts": attempts}))
+    for old in tmp_path.glob(f"{name}.*.count"):
+        old.unlink()
     launcher = tmp_path / f"{name}-agent"
     launcher.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{FAKE}" "$@"\n')
     launcher.chmod(0o755)

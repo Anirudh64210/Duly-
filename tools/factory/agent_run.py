@@ -31,6 +31,7 @@ from tools.diff_policy.check import Lane, load_lane, violations
 from tools.factory import (
     alerts,
     budget,
+    health,
     jail,
     ledger,
     memory,
@@ -423,6 +424,16 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         return finish("refused", f"agent {task.agent} has no contract for lane {task.lane}")
     if not jail.available():
         return finish("refused", "no sandbox on this machine")
+    if (
+        config["limits"].get("require_health_check", True)
+        and not task.task.startswith("health/")
+        and not health.passed(contract, task.lane, repo, repo)
+    ):
+        return finish(
+            "refused",
+            f"{task.agent} has not passed its health check for {task.lane} since its "
+            "contract or the sandbox last changed. Run make doctor.",
+        )
     try:
         allowed = budget.allowance(config, contract.budget_usd, clock, repo)
         tree = None
@@ -683,6 +694,8 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                     or worktree.git(["rev-parse", "HEAD"], tree.path).strip()
                 )
                 outcome.files_changed = worktree.changed_files(tree)
+                if task.task.startswith("health/"):
+                    health.remember(contract, task.lane, task.run_id, clock, repo, repo)
                 return finish("done", f"done command passes; {len(outcome.files_changed)} files")
             if report is not None and report["status"] == "escalated":
                 outcome.report = report
@@ -760,7 +773,8 @@ def main() -> int:
             args.done,
             args.base,
             args.run_id,
-        )
+        ),
+        cwd=Path.cwd(),
     )
     text = json.dumps(asdict(outcome), indent=2)
     if args.result:

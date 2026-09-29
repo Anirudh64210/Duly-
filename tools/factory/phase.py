@@ -1,17 +1,21 @@
-"""Run a phase: rounds of lanes in parallel, each lane in its own worktree.
+"""Run a plan: rounds of agents in parallel, each in its own worktree.
 
-After each round, every lane's branch is checked against the diff policy and
-merged into the phase branch. A lane that touched a path it does not own is not
-merged.
+After a round, each agent's work is checked again by the orchestrator and lands on the
+phase branch as one merge, either through a pull request that clean CI must pass, or
+locally. The working agent never merges. Nothing here ever merges into a protected
+branch: that is the founder's step.
 
-Usage: uv run python -m tools.factory.phase specs/phase-2/plan.yaml [--from-round B]
+Usage: uv run python -m tools.factory.phase specs/phase-2/plan.yaml [--from-round X]
+           [--only-round X] [--checks-only X]
 """
 
 import argparse
+import fnmatch
 import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -19,143 +23,356 @@ import yaml
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane, violations
-from tools.factory.log import append, factory_dir
+from tools.factory import alerts, jail, ledger, registry, sandbox, worktree
+from tools.factory.config import load_config, review_problems
+from tools.factory.paths import REPO_ROOT, main_repo, state_dir
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-GIT_ID = ["-c", "user.name=Duly factory", "-c", "user.email=factory@duly.invalid"]
 TRAILER = "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+NEEDS_FOUNDER = {
+    "dependency_added": (
+        "pyproject.toml",
+        "uv.lock",
+        "package.json",
+        "package-lock.json",
+        "*/package.json",
+    ),
+    "ci_or_infra_changed": (".github/*", "infra/*", "Makefile", ".gitleaks.toml"),
+    "guardrail_changed": (
+        ".claude/hooks/*",
+        ".claude/settings.json",
+        ".claude/lanes/*",
+        "tools/*",
+        "factory/*",
+        "security/semgrep/*",
+    ),
+    "skill_or_prompt_changed": (".claude/skills/*", ".claude/agents/*", ".claude/LESSONS/*"),
+    "contract_changed": (
+        "contracts/*",
+        "BOUNDARY.md",
+        "PRINCIPLES.md",
+        "DECISIONS.md",
+        "CLAUDE.md",
+    ),
+}
 
 
-def _run(cmd: list[str], cwd: Path) -> tuple[int, str]:
-    env = dict(os.environ)
-    env["UV_PROJECT_ENVIRONMENT"] = str(REPO_ROOT / ".venv")
-    done = subprocess.run(cmd, cwd=cwd, env=env, check=False, capture_output=True, text=True)
-    return done.returncode, done.stdout + done.stderr
+class PlanError(ValueError):
+    pass
 
 
-def _say(kind: str, message: str) -> None:
-    append("founder", "orchestrator", kind, message, REPO_ROOT)
+def load_plan(path: Path, repo: Path) -> dict[str, Any]:
+    plan = yaml.safe_load(path.read_text())
+    config = load_config(repo)
+    for key in ("branch", "spec", "rounds"):
+        if key not in plan:
+            raise PlanError(f"the plan has no {key}")
+    if plan["branch"] in config["protected_branches"]:
+        raise PlanError(f"{plan['branch']} is protected; agents never land work there")
+    plan.setdefault("merge", "local")
+    if plan["merge"] not in {"local", "pr"}:
+        raise PlanError("merge is local or pr")
+    seen: set[str] = set()
+    for rnd in plan["rounds"]:
+        lanes = [job["lane"] for job in rnd["lanes"]]
+        if len(lanes) != len(set(lanes)):
+            raise PlanError(f"round {rnd['name']} uses a lane twice")
+        if len(lanes) > config["limits"]["max_parallel_agents"]:
+            raise PlanError(f"round {rnd['name']} has more agents than the factory allows at once")
+        for job in rnd["lanes"]:
+            for key in ("lane", "agent", "mission", "done"):
+                if not str(job.get(key, "")).strip():
+                    raise PlanError(f"round {rnd['name']}: a lane has no {key}")
+            job.setdefault("task", f"{plan['branch']}/{rnd['name']}/{job['lane']}")
+            if job["task"] in seen:
+                raise PlanError(f"task {job['task']} appears twice")
+            seen.add(job["task"])
+    return dict(plan)
+
+
+def needs_founder(files: list[str]) -> dict[str, list[str]]:
+    found: dict[str, list[str]] = {}
+    for reason, patterns in NEEDS_FOUNDER.items():
+        hits = [f for f in files if any(fnmatch.fnmatch(f, p) for p in patterns)]
+        if hits:
+            found[reason] = hits
+    return found
+
+
+def _say(repo: Path, kind: str, message: str) -> None:
+    ledger.append("founder", "orchestrator", kind, message, repo)
     print(f"[{kind}] {message}", flush=True)
 
 
-def _hide_holdout(tree: Path) -> None:
-    """Implementation lanes never see the hidden tests."""
-    _, out = _run(["git", "ls-files", "tests/holdout"], tree)
-    for rel in out.split():
-        if rel.endswith((".gitkeep", "README.md")):
-            continue
-        _run(["git", "update-index", "--skip-worktree", rel], tree)
-        (tree / rel).unlink(missing_ok=True)
-
-
-def _launch(job: dict[str, Any], spec: str, base: str) -> subprocess.Popen[str]:
-    lane = job["lane"]
-    tree = REPO_ROOT.parent / f"duly-{lane}"
-    if tree.exists():
-        _run(["git", "worktree", "remove", "--force", str(tree)], REPO_ROOT)
-    branch = f"lane/{lane}/{job.get('slug', 'work')}"
-    code, out = _run(["git", "worktree", "add", "-B", branch, str(tree), base], REPO_ROOT)
-    if code:
-        raise RuntimeError(out)
-    if load_lane(lane, REPO_ROOT).kind == "implementation":
-        _hide_holdout(tree)
-    cmd = [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "tools.factory.run_lane",
-        "--lane",
-        lane,
-        "--agent",
-        job.get("agent", "builder"),
-        "--spec",
-        spec,
-        "--mission",
-        " ".join(job["mission"].split()),
-        "--done",
-        job["done"],
-        "--base",
-        base,
-        "--slug",
-        job.get("slug", "work"),
-        "--max-iterations",
-        str(job.get("max_iterations", 5)),
-        "--max-turns",
-        str(job.get("max_turns", 120)),
-    ]
-    if job.get("model"):
-        cmd += ["--model", job["model"]]
-    if job.get("read_only"):
-        cmd += ["--read-only"]
-    log = (factory_dir(REPO_ROOT) / f"{lane}.log").open("a")
-    return subprocess.Popen(cmd, cwd=REPO_ROOT, stdout=log, stderr=subprocess.STDOUT, text=True)
-
-
-def _collect(job: dict[str, Any], base: str) -> bool:
-    """Commit what the lane left, check it stayed in its paths, merge it."""
-    lane_name = job["lane"]
-    tree = REPO_ROOT.parent / f"duly-{lane_name}"
-    branch = f"lane/{lane_name}/{job.get('slug', 'work')}"
-    _run(["git", "add", "-A"], tree)
-    _run(
-        [
-            "git",
-            *GIT_ID,
-            "commit",
-            "-q",
-            "-m",
-            f"chore({lane_name}): work left uncommitted by the lane\n\n{TRAILER}",
-        ],
-        tree,
+def _git(repo: Path, *args: str) -> tuple[int, str]:
+    done = subprocess.run(
+        ["git", *worktree.GIT_ID, *args], cwd=repo, check=False, capture_output=True, text=True
     )
-    _, out = _run(["git", "diff", "--name-only", f"{base}...{branch}"], REPO_ROOT)
-    changed = [line for line in out.splitlines() if line]
-    if not changed:
-        _say("step", f"{lane_name}: nothing to merge")
+    return done.returncode, (done.stdout + done.stderr).strip()
+
+
+def _gh(repo: Path, *args: str, timeout: int = 1800) -> tuple[int, str]:
+    done = subprocess.run(
+        ["gh", *args], cwd=repo, check=False, capture_output=True, text=True, timeout=timeout
+    )
+    return done.returncode, (done.stdout + done.stderr).strip()
+
+
+def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, Any]) -> bool:
+    """Check one agent's work again and land it. True when it is on the phase branch."""
+    lane = load_lane(out["lane"], repo)
+    base, head, branch = plan["branch"], out["head_commit"], out["branch"]
+    code, listing = _git(repo, "diff", "--name-only", f"{out['base_commit']}...{head}")
+    files = [line for line in listing.splitlines() if line] if code == 0 else []
+    tree = worktree.Tree(out["run_id"], Path(out["worktree"]), branch, out["base_commit"])
+    if not files:
+        _say(repo, "step", f"{lane.name}: nothing to land")
+        worktree.remove(tree, True, repo)
         return True
-    if job.get("merge") is False:
-        _say("step", f"{lane_name}: {len(changed)} files on {branch}, left for founder review")
-        return True
-    bad = violations(load_lane(lane_name, REPO_ROOT), changed)
-    if bad:
-        _say(
-            "blocked",
-            f"{lane_name}: not merged, it changed paths it does not own: " + ", ".join(bad[:6]),
+    outside = violations(lane, files)
+    if outside:
+        alerts.notify(
+            "guardrail",
+            f"{lane.name} changed paths it does not own: {outside[:5]}",
+            lane.name,
+            out["run_id"],
+            repo,
         )
         return False
-    code, out = _run(
-        [
-            "git",
-            *GIT_ID,
+    held = needs_founder(files)
+    if held or job.get("merge") is False:
+        why = ", ".join(held) if held else "the plan keeps this lane for the founder"
+        _say(
+            repo,
+            "blocked",
+            f"{lane.name}: {len(files)} files on {branch}, waiting for the founder ({why})",
+        )
+        worktree.remove(tree, False, repo)
+        return True
+    message = (
+        f"merge({lane.name}): {len(files)} files\n\nFactory-Run: {out['run_id']}\n"
+        f"Factory-Task: {out['task']}\nFactory-Agent: {out['agent']}\n"
+        f"Factory-Trace: {', '.join(out['sessions'])}\n\n{TRAILER}"
+    )
+    if plan["merge"] == "pr":
+        ok = _land_by_pr(repo, base, branch, lane.name, out, message)
+    else:
+        code, text = _git(repo, "merge", "--no-ff", "-q", "-m", message, head)
+        ok = code == 0
+        if not ok:
+            _git(repo, "merge", "--abort")
+            alerts.notify(
+                "failed",
+                f"{lane.name}: merge conflict: {text[:160]}",
+                lane.name,
+                out["run_id"],
+                repo,
+            )
+    if ok:
+        ledger.append(
+            lane.name,
+            "orchestrator",
             "merge",
-            "--no-ff",
-            "-q",
-            "-m",
-            f"merge({lane_name}): {len(changed)} files\n\n{TRAILER}",
-            branch,
-        ],
-        REPO_ROOT,
+            f"merged {len(files)} files into {base}",
+            repo,
+            run_id=out["run_id"],
+            sessions=out["sessions"],
+            head=head,
+        )
+        print(f"[merge] {lane.name}: {len(files)} files into {base}", flush=True)
+        worktree.remove(tree, True, repo)
+    return ok
+
+
+def _land_by_pr(
+    repo: Path, base: str, branch: str, lane: str, out: dict[str, Any], message: str
+) -> bool:
+    """Push the branch, open a pull request, and merge it once clean CI has passed."""
+    body = "\n".join(message.splitlines()[2:-2])
+    body += f"\n\n{chr(0x1F916)} Generated with [Claude Code](https://claude.com/claude-code)"
+    results = [
+        ("push the phase branch", _git(repo, "push", "-q", "origin", base)),
+        ("push the lane branch", _git(repo, "push", "-q", "origin", branch)),
+    ]
+    if not any(code for _, (code, _) in results):
+        results.append(
+            (
+                "open the pull request",
+                _gh(
+                    repo,
+                    "pr",
+                    "create",
+                    "--base",
+                    base,
+                    "--head",
+                    branch,
+                    "--title",
+                    message.splitlines()[0],
+                    "--body",
+                    body,
+                ),
+            )
+        )
+    for name, (code, text) in results:
+        if code:
+            alerts.notify(
+                "failed", f"{lane}: could not {name}: {text[:160]}", lane, out["run_id"], repo
+            )
+            return False
+    time.sleep(8)  # give CI a moment to register its checks
+    code, text = _gh(repo, "pr", "checks", branch, "--watch", "--fail-fast", "--interval", "15")
+    if code:
+        alerts.notify(
+            "failed", f"{lane}: clean CI did not pass: {text[-200:]}", lane, out["run_id"], repo
+        )
+        return False
+    code, text = _gh(
+        repo,
+        "pr",
+        "merge",
+        branch,
+        "--merge",
+        "--delete-branch",
+        "--subject",
+        message.splitlines()[0],
+        "--body",
+        "\n".join(message.splitlines()[2:]),
     )
     if code:
-        _run(["git", "merge", "--abort"], REPO_ROOT)
-        _say("blocked", f"{lane_name}: merge conflict: {out.strip()[:200]}")
+        alerts.notify(
+            "failed",
+            f"{lane}: could not merge the pull request: {text[:160]}",
+            lane,
+            out["run_id"],
+            repo,
+        )
         return False
-    _say("step", f"{lane_name}: merged {len(changed)} files into {base}")
-    return True
+    code, text = _git(repo, "pull", "-q", "--ff-only", "origin", base)
+    return code == 0
 
 
-def _checks(checks: list[dict[str, str]]) -> bool:
+def check_review(repo: Path, job: dict[str, Any], out: dict[str, Any]) -> bool:
+    """A reviewer's scores must match the schema, and the decision must follow from them."""
+    path = Path(out["worktree"]) / "reviews" / "REVIEW.json"
+    if not path.exists():
+        path = repo / "reviews" / "REVIEW.json"
+    try:
+        review = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as err:
+        alerts.notify(
+            "failed", f"the review has no readable scores: {err}", out["lane"], out["run_id"], repo
+        )
+        return False
+    problems = review_problems(review, repo)
+    if problems:
+        alerts.notify(
+            "failed",
+            f"the review was refused: {problems[0][:160]}",
+            out["lane"],
+            out["run_id"],
+            repo,
+        )
+        return False
+    scores = {name: line["score"] for name, line in review["scores"].items()}
+    with (state_dir(repo) / "reviews.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(
+            json.dumps(
+                {
+                    "at": SystemClock().now().isoformat(timespec="seconds"),
+                    "run_id": out["run_id"],
+                    "commit": review["reviewed_commit"],
+                    "scores": scores,
+                    "decision": review["decision"],
+                    "task": job["task"],
+                }
+            )
+            + "\n"
+        )
+    _say(repo, "step", f"review: {review['decision']}, scores {scores}")
+    if review["decision"] != "APPROVE":
+        alerts.notify(
+            "eval_drop", f"the reviewer vetoed: {scores}", out["lane"], out["run_id"], repo
+        )
+    return bool(review["decision"] == "APPROVE")
+
+
+def run_checks(repo: Path, checks: list[dict[str, str]]) -> bool:
     results: dict[str, str] = {}
+    env = sandbox.environment(dict(os.environ), repo, repo, "founder", "checks", "")
+    env.pop("UV_CACHE_DIR", None)
+    env.pop("UV_OFFLINE", None)
+    extra = [Path(p) for p in sandbox.tool_scratch(repo)]
+    cache = Path.home() / ".cache"
     for check in checks:
-        code, out = _run(["bash", "-c", check["run"]], REPO_ROOT)
-        results[check["name"]] = "pass" if code == 0 else "fail"
-        if code:
-            tail = " | ".join(out.strip().splitlines()[-3:])[:300]
-            _say("failed", f"check {check['name']} fails: {tail}")
-    path = factory_dir(REPO_ROOT) / "gates.json"
-    path.write_text(json.dumps({"at": SystemClock().now().isoformat(), "results": results}))
+        done = jail.run(
+            check["run"], repo, env, timeout_seconds=1800, extra_writable=[*extra, cache]
+        )
+        results[check["name"]] = "pass" if done.code == 0 else "fail"
+        if done.code:
+            tail = " | ".join(done.output.strip().splitlines()[-3:])[:300]
+            _say(repo, "failed", f"check {check['name']} fails: {tail}")
+    (state_dir(repo) / "gates.json").write_text(
+        json.dumps({"at": SystemClock().now().isoformat(timespec="seconds"), "results": results})
+    )
     return all(v == "pass" for v in results.values())
+
+
+def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents: bool) -> bool:
+    name = rnd["name"]
+    jobs = [] if skip_agents else rnd["lanes"]
+    _say(repo, "start", f"round {name}: " + ", ".join(j["lane"] for j in rnd["lanes"]))
+    runs = state_dir(repo) / "runs"
+    runs.mkdir(exist_ok=True)
+    procs = []
+    for job in jobs:
+        result = runs / f"result-{job['task'].replace('/', '_')}.json"
+        result.unlink(missing_ok=True)
+        cmd = [
+            sys.executable,
+            "-m",
+            "tools.factory.agent_run",
+            "--lane",
+            job["lane"],
+            "--agent",
+            job["agent"],
+            "--task",
+            job["task"],
+            "--spec",
+            plan["spec"],
+            "--mission",
+            " ".join(job["mission"].split()),
+            "--done",
+            job["done"],
+            "--base",
+            plan["branch"],
+            "--result",
+            str(result),
+        ]
+        env = {**os.environ, "PYTHONPATH": str(REPO_ROOT)}
+        procs.append((job, result, subprocess.Popen(cmd, cwd=repo, env=env)))
+    ok = True
+    outcomes = []
+    for job, result, proc in procs:
+        proc.wait()
+        try:
+            out = json.loads(result.read_text())
+        except (OSError, json.JSONDecodeError):
+            out = {"status": "failed", "reason": "the run left no result", "lane": job["lane"]}
+        outcomes.append((job, out))
+        if out["status"] != "done":
+            ok = False
+            _say(repo, "failed", f"{job['lane']}: {out['status']}: {out.get('reason', '')}"[:300])
+    for job, out in outcomes:
+        if out["status"] != "done":
+            continue
+        if job["agent"] == "reviewer" and not check_review(repo, job, out):
+            ok = False
+        ok = land(repo, plan, job, out) and ok
+    ok = run_checks(repo, rnd.get("checks", [])) and ok
+    if ok:
+        _say(repo, "done", f"round {name} complete")
+    else:
+        _say(repo, "blocked", f"round {name} stopped. Fix, then rerun with --from-round {name}")
+    return ok
 
 
 def main() -> int:
@@ -163,42 +380,58 @@ def main() -> int:
     parser.add_argument("plan")
     parser.add_argument("--from-round", default="")
     parser.add_argument("--only-round", default="")
-    parser.add_argument("--checks-only", default="", help="round whose lanes are already merged")
+    parser.add_argument("--checks-only", default="")
     args = parser.parse_args()
-    plan = yaml.safe_load(Path(args.plan).read_text())
-    base, spec = plan["branch"], plan["spec"]
-
-    _, head = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"], REPO_ROOT)
-    if head.strip() != base:
-        print(f"check out {base} first")
+    repo = main_repo(Path.cwd())
+    try:
+        plan = load_plan(Path(args.plan), repo)
+    except (PlanError, OSError, ValueError) as err:
+        print(f"plan refused: {err}")
         return 1
-
-    started = not args.from_round
-    for rnd in plan["rounds"]:
-        name = rnd["name"]
-        if args.only_round and name != args.only_round:
-            continue
-        if not started:
-            if name != args.from_round:
+    branch = plan["branch"]
+    _, head = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+    if head != branch:
+        print(f"check out {branch} first")
+        return 1
+    _, dirty = _git(repo, "status", "--porcelain", "--untracked-files=no")
+    if dirty:
+        print("commit or put away your changes first; agents start from what is committed")
+        return 1
+    try:
+        registry.claim(
+            f"orchestrator-{os.getpid()}",
+            f"orchestrator:{branch}",
+            f"orchestrate:{branch}",
+            str(repo),
+            "",
+            "orchestrator",
+            repo,
+        )
+    except (registry.ClaimError, registry.StoppedError) as err:
+        print(f"refused: {err}")
+        return 1
+    try:
+        started = not args.from_round
+        for rnd in plan["rounds"]:
+            if args.only_round and rnd["name"] != args.only_round:
                 continue
-            started = True
-        lanes = ", ".join(j["lane"] for j in rnd["lanes"])
-        _say("start", f"round {name}: {lanes}")
-        jobs = [] if name == args.checks_only else rnd["lanes"]
-        procs = [(job, _launch(job, spec, base)) for job in jobs]
-        outcomes = [(job, proc.wait()) for job, proc in procs]
-        merged = True
-        for job, code in outcomes:
-            if code:
-                _say("failed", f"{job['lane']}: lane ended without passing its done command")
-            merged = _collect(job, base) and merged
-        passed = _checks(rnd.get("checks", []))
-        if not (merged and passed and all(code == 0 for _, code in outcomes)):
-            _say("blocked", f"round {name} stopped. Fix, then rerun with --from-round {name}")
-            return 1
-        _say("done", f"round {name} complete")
-    _say("done", f"phase complete on {base}")
-    return 0
+            if not started:
+                if rnd["name"] != args.from_round:
+                    continue
+                started = True
+            if registry.stopped(repo):
+                _say(repo, "blocked", "the factory is stopped")
+                return 1
+            if not run_round(repo, plan, rnd, rnd["name"] == args.checks_only):
+                return 1
+        _say(
+            repo,
+            "done",
+            f"plan complete on {branch}. Merging into a protected branch is the founder's step.",
+        )
+        return 0
+    finally:
+        registry.release(f"orchestrator-{os.getpid()}", repo)
 
 
 if __name__ == "__main__":
