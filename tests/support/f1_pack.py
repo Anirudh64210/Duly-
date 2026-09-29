@@ -109,6 +109,10 @@ SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
     ("stem.requires.degree", True, "flag", "settled", "", "8 CFR 214.2(f)(10)(ii)(C)"),
     ("stem.requires.e_verify", True, "flag", "settled", "", "8 CFR 214.2(f)(10)(ii)(C)"),
     ("stem.requires.training_plan", True, "flag", "settled", "", "8 CFR 214.2(f)(10)(ii)(C)"),
+    # specs/product-1/SPEC-resolutions.md, point 27: the guidance flag the conflict
+    # opt.ead_end.not_after_program_end names, quoting SEVP's definition of post-completion
+    # OPT. The shipped pack holds it as guidance.
+    ("opt.post_completion_definition", True, "flag", "guidance", "", "SEVP guidance"),
 )
 
 # specs/product-1/SPEC.md, section 6: ids of the listed rules begin with this.
@@ -285,6 +289,21 @@ def with_regime_rows(
         for regime, value in ((OPERATIVE, operative), (BLOCKED, blocked)):
             rows.append({**copy.deepcopy(parameter), "regime": regime, "value": value})
     changed["parameters"] = rows
+    return changed
+
+
+def with_blocked_regime_operative(raw_pack: dict[str, Any], effective_from: str) -> dict[str, Any]:
+    """A deep copy of the raw pack on the day the blocked rule becomes operative: the
+    blocked regime is operative and in effect, the other is not operative, and every row
+    written for the blocked regime takes effect on effective_from. A rule with a row under
+    each regime is made with with_regime_rows first. SPEC-resolutions.md, point 28."""
+    changed = copy.deepcopy(raw_pack)
+    for regime in changed["regimes"]:
+        regime["operative"] = regime["id"] == BLOCKED
+        regime["legal_status"] = "effective" if regime["id"] == BLOCKED else "enjoined"
+    for parameter in changed["parameters"]:
+        if parameter.get("regime") == BLOCKED:
+            parameter["effective_from"] = effective_from
     return changed
 
 
@@ -635,6 +654,11 @@ WINDOW_CONFLICT_IDS = (
     "opt.ead_end.after_complete_by",
 )
 
+# SPEC-resolutions.md, point 27: the OPT card ends on or before program_end_date. It works
+# as every conflict of section 1 does, and names the guidance flag below in rules.
+NOT_AFTER_PROGRAM_END = "opt.ead_end.not_after_program_end"
+POST_COMPLETION_RULE = "opt.post_completion_definition"
+
 
 def _operative_value(raw_pack: dict[str, Any], rule_id: str) -> Any:
     """The rule's value for the operative regime when the pack has a row for it, and its
@@ -662,7 +686,8 @@ def conflicts_by_the_table(
     day is the day its months end is not a conflict. Nothing is left open, so the second
     set is empty; it is kept so that the callers read the same.
 
-    SPEC-resolutions.md, points 11, 14, 15 and 16 add seven rows (WINDOW_CONFLICT_IDS).
+    SPEC-resolutions.md, points 11, 14, 15 and 16 add seven rows (WINDOW_CONFLICT_IDS),
+    and point 27 one more (NOT_AFTER_PROGRAM_END).
     Their days are read from raw_pack (the test pack of 2026-09-28 unless one is passed),
     never written here. Each is raised only when both of its dates are entered.
     """
@@ -697,6 +722,9 @@ def conflicts_by_the_table(
         after = _operative_value(rules, "opt.apply_after_days")
         if opt_filed > program_end + timedelta(days=after):
             sure.add("opt.i765_filed_date.after_window_closes")
+    # Point 27: the OPT card ends on or before program_end_date. The day after fits.
+    if program_end is not None and opt_end is not None and opt_end <= program_end:
+        sure.add(NOT_AFTER_PROGRAM_END)
     # Point 16: the OPT card ends after program_end_date plus opt.complete_within_months,
     # whether or not STEM is entered. The day the months end fits.
     if program_end is not None and opt_end is not None:
@@ -857,8 +885,9 @@ def made_question(item_id: str) -> str:
 def _report_ids(case: dict[str, Any]) -> list[str]:
     """Every STEM report item the engine can date for this case: the validations of the
     card (one each six months of it, and one more to spare), the two evaluations, and a
-    concluding evaluation for each period. An answer to a question not asked is left out
-    by with_the_about_asked, so naming one too many costs nothing."""
+    concluding evaluation and a new Form I-983 for each period (point 36: every dated STEM
+    duty is asked about once its date has passed). An answer to a question not asked is
+    left out by with_the_about_asked, so naming one too many costs nothing."""
     card = _card(case.get("stem"))
     validations = 0
     if card is not None and card[1] >= card[0]:
@@ -869,6 +898,7 @@ def _report_ids(case: dict[str, Any]) -> list[str]:
         *(f"stem.validation_{n}_due" for n in range(1, validations + 1)),
         *STEM_REPORTS,
         *(f"stem.concluding_evaluation_due.{n}" for n in range(1, periods + 1)),
+        *(f"stem.new_plan_due.{n}" for n in range(1, periods + 1)),
     ]
 
 

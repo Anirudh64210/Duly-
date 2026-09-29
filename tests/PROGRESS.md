@@ -1102,3 +1102,118 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-4ecbc095b4 (attempt 1): tests first for points 27, 28, 35, 36, 37 and 38
+
+### What was done
+
+- tests/support/f1_pack.py: opt.post_completion_definition (guidance flag, SEVP guidance) at
+  the end of SPEC_RULES (point 27; the shipped pack already holds it). NOT_AFTER_PROGRAM_END
+  and POST_COMPLETION_RULE. conflicts_by_the_table raises the point 27 row when the OPT card
+  ends on or before program_end_date. with_blocked_regime_operative(raw, effective_from):
+  the blocked regime operative and in effect, its rows taking effect on the day given
+  (point 28). _report_ids names stem.new_plan_due.<n> as well (point 36).
+- tests/unit/engine/test_f1_fix2.py (new): point 27 (reason, edge on the program end, day
+  after fits, about, rule in rules, items null, OPT step not done, STEM not next, yes, no,
+  missing card end, the sweep's case, a property over the card end); point 28 on a copy of
+  the test pack with the blocked regime operative (window close, latest start, judgement,
+  rules in force still give dates, program ended after, grace before and after, shipped
+  pack changes nothing, shipped pack 2024); point 36 (the new plan date, open item before
+  and on the day, asked the day after, yes, no, property over the day, concluding
+  evaluation asked and no); point 37 (window opening and complete_by null, every item using
+  program_end_date null).
+- tests/holdout/test_holdout_fix2.py (new): point 27 property against the table, with STEM
+  entered, an answer held to its dates; point 28 property over the program end, the edge
+  day, the judgement on an otherwise clean case, shipped pack property, shipped operative
+  regime.
+- tests/unit/api/test_status_rules.py (new): point 35, rules_checked_on per pack entry,
+  never rules_never_checked while a pack holds checked dates, property over the clock.
+- tests/unit/api/test_compute_context.py: too_many sends 257 answers (point 38).
+
+### What ran
+
+- Done command: exit 0 (ruff: All checks passed; 50 files already formatted; collection ok).
+- New files: 19 of 37 unit engine tests fail, 6 of 8 holdout tests fail, 3 of 4 status
+  tests fail, each on the point not yet built. The rest pass on today's engine.
+- Whole suite on a copy of HEAD (git archive into TMPDIR) against the worktree: one older
+  test newly fails, test_f1_fixes.py::test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows,
+  on a drawn card 2024-01-01 to 2024-01-01 with program end 2024-01-01: the table now
+  expects opt.ead_end.not_after_program_end (point 27). It passes once point 27 is built.
+  too_many[api] failed on HEAD (21 answers are within 256) and passes now.
+- A scratch table check: 300 drawn OPT cases, engine conflicts equal the table's minus the
+  new row, 0 differences.
+
+### What change to the code would make each new test fail
+
+- Point 27: no conflict raised, or raised with an about lacking a date, or items using the
+  card left with a value, or opt.file_by dropped from upcoming as a done step, or next.*
+  placed, or yes not giving talk_to_dso: each fails its test (all fail today).
+- Point 28: a rule looked up on today and not on the event day gives 2025-10-15, 2026-10-10
+  or 2026-10-14 where null is expected (fail today). Nulling items where a row is in force
+  fails the rules-in-force, ended-after and shipped-pack tests.
+- Point 36: a passed new plan date not asked about (fails today). Asking on the due day
+  fails the on-the-day test; asking the concluding evaluation too late fails its test.
+- Point 37: shown with a scratch plugin under TMPDIR that took program_end_date out of the
+  about of opt.ead_end.after_complete_by: all three null tests failed. Removed after.
+- Point 35: status without rules_checked_on (fails today) or giving rules_never_checked.
+- Point 38: a contract bound under 257 accepted; the test fails if the api accepts 257.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+### The new tests, by name
+
+- tests/unit/engine/test_f1_fix2.py:
+  - test_point_27_the_cases_match_the_case_contract
+  - test_point_27_not_after_program_end_is_cannot_tell_with_the_reason
+  - test_point_27_a_card_ending_on_the_program_end_is_raised
+  - test_point_27_a_card_ending_the_day_after_the_program_end_raises_nothing
+  - test_point_27_the_question_holds_the_program_end_and_the_card
+  - test_point_27_the_rule_is_named_in_rules
+  - test_point_27_the_items_that_use_the_card_are_null
+  - test_point_27_no_opt_step_is_marked_done_while_it_is_open
+  - test_point_27_the_stem_step_is_not_placed_next_while_it_is_open
+  - test_point_27_yes_gives_talk_to_dso_with_the_judgement_item
+  - test_point_27_no_keeps_cannot_tell
+  - test_point_27_a_missing_card_end_raises_nothing
+  - test_point_27_the_case_of_the_sweep
+  - test_point_27_raised_when_and_only_when_the_card_ends_on_or_before_the_program_end
+  - test_point_37_the_worked_dates_are_those_of_the_test_pack
+  - test_point_37_while_after_complete_by_is_open_the_window_opening_is_null
+  - test_point_37_while_after_complete_by_is_open_complete_by_is_null
+  - test_point_37_every_item_that_uses_program_end_date_is_null
+  - test_point_28_the_copy_of_the_pack_is_valid_and_blocked_is_operative
+  - test_point_28_a_program_that_ended_before_the_blocked_rows_gets_no_window_close
+  - test_point_28_a_program_that_ended_before_the_blocked_rows_gets_no_latest_start
+  - test_point_28_no_operative_row_on_the_event_day_is_a_judgement_item
+  - test_point_28_rules_in_force_on_the_event_day_still_give_their_dates
+  - test_point_28_a_program_that_ended_after_the_blocked_rows_gets_their_dates
+  - test_point_28_a_card_that_ended_before_the_blocked_rows_gets_no_grace_date
+  - test_point_28_a_card_that_ended_after_the_blocked_rows_gets_its_grace_date
+  - test_point_28_the_shipped_pack_changes_nothing
+  - test_point_28_the_shipped_pack_gives_a_program_that_ended_in_2024_its_dates
+  - test_point_36_the_new_plan_date_is_the_one_worked_by_hand
+  - test_point_36_before_the_new_plan_date_it_is_an_open_item
+  - test_point_36_on_the_new_plan_date_it_is_not_asked_about
+  - test_point_36_the_day_after_the_new_plan_date_duly_asks_whether_it_was_made
+  - test_point_36_yes_makes_the_new_plan_done
+  - test_point_36_no_sends_the_person_to_the_dso
+  - test_point_36_the_question_is_asked_when_and_only_when_the_date_has_passed
+  - test_point_36_a_passed_concluding_evaluation_is_asked_about
+  - test_point_36_no_to_a_concluding_evaluation_sends_the_person_to_the_dso
+- tests/holdout/test_holdout_fix2.py:
+  - test_point_27_the_engine_raises_the_table_with_the_new_row
+  - test_point_27_is_raised_with_stem_entered_and_nulls_what_uses_the_card
+  - test_point_27_a_yes_is_for_the_dates_it_was_given_for
+  - test_point_28_the_window_is_measured_under_the_row_in_force_on_the_program_end
+  - test_point_28_the_edge_is_the_day_the_rows_take_effect
+  - test_point_28_the_judgement_item_on_a_case_otherwise_clean
+  - test_point_28_the_shipped_pack_changes_nothing
+  - test_point_28_the_blocked_regime_is_not_operative_in_the_shipped_pack
+- tests/unit/api/test_status_rules.py:
+  - test_the_f1_pack_holds_checked_dates
+  - test_the_status_names_each_packs_rules_checked_on
+  - test_the_status_never_says_rules_never_checked_when_a_pack_holds_checked_dates
+  - test_on_any_day_after_the_check_the_status_is_not_rules_never_checked
+- tests/unit/api/test_compute_context.py: test_confirmations_that_do_not_match_the_contract_are_refused[too_many], now 257 answers
