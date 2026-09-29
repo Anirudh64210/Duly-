@@ -29,6 +29,7 @@ class VerdictInputs:
     depends_on_litigated_rule: bool
     judgement_items: tuple[str, ...]
     open_items: tuple[str, ...]
+    open_questions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -37,15 +38,18 @@ class Verdict:
     reasons: tuple[str, ...]
 
 
-def decide(inputs: VerdictInputs, clock: Clock) -> Verdict:
+def decide(inputs: VerdictInputs, clock: Clock, today: date | None = None) -> Verdict:
+    """today is the person's own day. Without one the day is read from the clock."""
+    day = clock.today() if today is None else today
     blockers: list[str] = []
     if inputs.documents_count == 0:
         blockers.append("no_documents")
+    blockers.extend(f"unconfirmed:{name}" for name in inputs.open_questions)
     blockers.extend(f"missing:{name}" for name in inputs.missing_inputs)
     blockers.extend(f"conflict:{name}" for name in inputs.conflicting_inputs)
     if inputs.rules_checked_on is None:
         blockers.append("rules_never_checked")
-    elif clock.today() - inputs.rules_checked_on > RULES_STALE_AFTER:
+    elif day - inputs.rules_checked_on > RULES_STALE_AFTER:
         blockers.append("rules_stale")
     if inputs.depends_on_litigated_rule:
         blockers.append("rule_in_litigation")

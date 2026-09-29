@@ -298,3 +298,111 @@ More readings:
   the id by its ending.
   Evidence: no test in tests/unit/engine fails with `_due_from_ead_end` removed from
   OPEN_ITEM_ENDINGS; question 28 in tests/PROGRESS.md.
+
+## Iteration 4, 2026-09-29: the context round
+
+Work for sections 2 to 5 of specs/phase-2/SPEC-context.md. engine/f1.py, engine/clocks.py
+and engine/verdict.py changed.
+
+### What was written
+
+| Section | What changed |
+|---|---|
+| 2 | engine/clocks.py: `zone_named` and `day_in_zone`. Today is `clock.now()` seen from the zone of the case, then its date. `compute_f1` never reads `clock.today()`, and passes the day to `decide`, which takes `today` as a third argument and reads the clock only when none is given. `parse_case` keeps `time_zone` and raises ValueError for a name that is not among the zones of the system. The words of the error do not repeat the name. The output carries `today` |
+| 3 | `_add_file_by` leaves the item out when the recommendation date is absent and a filing date or an EAD start is recorded. A filing date is read for nothing else and is never named |
+| 4 | `compute_f1` raises the three questions, returns the open ones under `questions`, and `decide` gives `unconfirmed:<id>` for each. `parse_case` keeps `confirmations`. An answer is read only when its question is raised |
+| 5 | `_show_rule` copies `derivation` from the pack, and `note` when the rule is a reading |
+
+### What ran and what it printed
+
+- Before: 157 failed in tests/unit/engine.
+- After, the done command as written, output to a file, exit code read: exit 0.
+  `556 passed`, `engine literals: every number has a source`, mypy `no issues found in
+  34 source files`, ruff check passed, `8 files already formatted`.
+- One failure on the way: mypy, "Generator has incompatible item type Sequence[str]" on
+  the list of questions. Fixed with a type on the list.
+- `uv run pytest tests/unit --tb=no`: `7 failed, 921 passed`. All 7 are in
+  tests/unit/api/test_compute_context.py and are about a zone that does not exist. They
+  wait for L-api. See the requests below.
+- `uv run python -m tools.copy_lint.lint`: copy lint: clean.
+- Shipped pack by hand, clock at 01:30 UTC on 2026-09-29.
+  STEM alone in America/Los_Angeles: today 2026-09-28. No answer: cannot_tell,
+  `unconfirmed:held_post_completion_opt`. Yes: cannot_tell, `missing:opt.ead_start`,
+  `missing:opt.ead_end`. No: talk_to_dso, `stem_without_post_completion_opt`, and
+  stem.requires_post_completion_opt is among the rules, as a reading with its note. The
+  counts are null in all three. grace.ends 2028-07-30.
+  Cap-gap alone in Asia/Kolkata: today 2026-09-29. No answer: cannot_tell,
+  `unconfirmed:cap_gap_without_training`, grace.ends null. Yes: `missing:opt.ead_end`,
+  grace.ends null. No: talk_to_dso, `cap_gap_without_training`, grace.ends 2027-02-16.
+- Not run: the hidden tests. `uv run pytest tests/holdout --tb=no` collected nothing in
+  this worktree (exit 5). I did not open the directory.
+
+### Test disputes
+
+None.
+
+### Decisions where the SPEC is open
+
+Numbers follow the questions in tests/PROGRESS.md where one exists.
+
+| # | Question | What the engine does | Why |
+|---|---|---|---|
+| 34 | A recommendation date that is present beside a filing or an EAD | file_by is shown with its date, and is still an open item inside the look-ahead | The older tests require it. Needs the founder |
+| 37 | The answer no to held_post_completion_opt | The counts and the STEM filing window are shown with a null value. OPT is not named as missing | The window cannot be known |
+| 38 | no_employment_to_record open, or answered no | The three counts are null, and employment.periods_not_reported is null as well | A count over a list the person has not confirmed as whole is a guess |
+| 39 | STEM without OPT and an empty list | Only the OPT question is asked. The same when opt.ead_start is absent | The first day of the window is not known |
+| 40 | `because` | held_post_completion_opt: stem, opt. no_employment_to_record: employment, opt.ead_start. cap_gap_without_training: cap_gap, opt, stem | The inputs the condition reads |
+| 42 | A zone in other letters | Refused. The name must be one of `zoneinfo.available_timezones()`, as written there | The same answer on macOS and Linux |
+| 43 | An answer dated after today, or an id the engine does not know | The date is not checked. An unknown id is not read | Not in the SPEC. Needs a line |
+| 45 | A verbatim rule with a note in the pack | The note is not shown | The SPEC says "for a reading, note". The shipped pack has a note on every rule |
+
+More readings:
+
+- The answer yes to a question about OPT: the engine takes the OPT block as held and not
+  entered. held_post_completion_opt names opt.ead_start and opt.ead_end.
+  cap_gap_without_training names opt.ead_end alone, as the SPEC's table has it, although
+  the counts would need the start as well. opt.file_by is not added and the OPT
+  recommendation date is not named: the SPEC names the EAD dates only.
+- grace.ends with cap-gap alone. Until this round it was program_end_date plus the grace
+  period. While the question is open, or answered yes, the last end date may be the end
+  of an OPT that is not entered, so the value is now null. Open: `opt` is among the
+  inputs and nothing is named. Yes: opt.ead_end is among the inputs. With the answer no
+  the date is as before. No unit test covers this. If a hidden test expects the old date
+  for a cap-gap case with no answer or the answer yes, that is a dispute to raise.
+- Employment entered with no OPT, no STEM and no cap-gap still names `opt` as missing, as
+  in iteration 3. No question of this round covers it, and the engine invents none.
+- stem.requires_post_completion_opt is shown among the rules and named by no item. With
+  the answer no and a pack without the rule in force the engine raises RulepackError.
+- The rule is a reading in the shipped pack and verbatim in the test pack. The engine
+  shows what the pack says.
+- `unconfirmed:` reasons come after `no_documents` and before the `missing:` reasons.
+
+### Requests for files this lane does not own
+
+- api/ (L-api): `parse_case` raises ValueError for an unknown zone. The 7 failures in
+  tests/unit/api/test_compute_context.py wait for the 422. api/main.py calls
+  `decide(empty_case, clock)`, which still reads `clock.today()`; it can pass the
+  person's day as the third argument.
+- pyproject.toml: `tzdata` is not listed. Without zone files `available_timezones()` is
+  empty and every case is refused. The same request as in tests/PROGRESS.md.
+- web/ (L-web): `questions`, `today`, `derivation` and `note` are in the output. Counts,
+  employment.periods_not_reported and grace.ends can be null. A file_by item can be
+  absent.
+- specs/phase-2/SPEC-context.md: questions 34, 43 and 45, and grace.ends with cap-gap
+  alone, each need a line.
+- tests/ (L-tests): no test covers grace.ends with cap-gap alone,
+  employment.periods_not_reported while the employment question is open, a zone in other
+  letters, or the answer no with a pack that lacks the rule.
+
+## Lesson
+
+- Failure: a date that was right before a question existed became a guess once the
+  question existed. grace.ends for cap-gap alone was counted from the program end, which
+  assumes there was no OPT. No test failed.
+  Fix: when a question is added, read every item whose inputs include the part the
+  question is about, and ask what the item assumes while the question is open.
+  Evidence: the hand run above, grace.ends null for cap-gap alone with no answer.
+- Failure: mypy read a list of dicts built from a tuple of a string and a list as
+  `dict[str, Sequence[str]]`, and refused `question["id"]` as a string.
+  Fix: give the list its type, `list[dict[str, Any]]`.
+  Evidence: mypy then printed "no issues found in 34 source files".
