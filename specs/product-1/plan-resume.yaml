@@ -39,9 +39,9 @@ rounds:
           pytest tail.
         done: >-
           bash -c 'uv run ruff check tests && uv run ruff format --check tests
-          && R=$PWD && d=$(mktemp -d) && git archive HEAD | tar -x -C $d
+          && R=$PWD && d=$R/.done-scratch && rm -rf $d && mkdir $d && trap "rm -rf $d" EXIT && git archive HEAD | tar -x -C $d
           && git archive lane/L-engine/l-engine-209410c52d engine | tar -x -C $d
-          && cd $d && $R/.venv/bin/python -m pytest tests/unit/engine -q -p no:cacheprovider'
+          && cd $d && ${UV_PROJECT_ENVIRONMENT:-$R/.venv}/bin/python -m pytest tests/unit/engine -q -p no:cacheprovider'
   - name: engine
     checkpoint: false
     lanes:
