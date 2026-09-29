@@ -35,6 +35,7 @@ from tests.support.f1_pack import (
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
@@ -47,6 +48,7 @@ from tests.support.f1_pack import (
     weakest,
     with_block,
     with_changes,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 9, 28)  # a Monday
@@ -61,7 +63,13 @@ def run(
     """Compute a case on a fixed day. The pack was checked that day unless told otherwise."""
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(checked_on or today, **pack_changes)
-    return f1.compute_f1(f1.parse_case(case), pack, clock_on(today))
+    clock = clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock)
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 # Case A: post-completion OPT, no STEM, no cap-gap.
@@ -602,10 +610,12 @@ def test_window_runs_from_ead_start_through_the_earlier_of_today_and_ead_end(tod
     [
         ("2026-06-01", None, 0),  # starts on the first window day
         ("2026-06-02", None, 1),  # starts the day after: Jun 1 is uncovered
-        ("2026-05-01", None, 0),  # starts before the window
-        ("2026-05-01", "2026-05-31", 120),  # ends the day before the window
-        ("2026-05-01", "2026-06-01", 119),  # ends on the first window day, which it covers
-        ("2026-05-01", "2026-06-02", 118),
+        # A period that begins before the card is a conflict of specs/product-1/SPEC.md,
+        # section 1 (employment.period_outside_cards), so the rows here begin inside it.
+        # SPEC-resolutions.md, point 4. The rows that began before the card are in
+        # test_a_period_that_begins_before_the_card_gives_no_count.
+        ("2026-06-01", "2026-06-01", 119),  # ends on the first window day, which it covers
+        ("2026-06-01", "2026-06-02", 118),  # Jun 1 and Jun 2 covered: 120 less 2
         # Covers June: 120 less 30.
         ("2026-06-01", "2026-06-30", 90),
         ("2026-09-28", "2026-09-28", 119),  # a one-day period today
@@ -616,6 +626,27 @@ def test_window_runs_from_ead_start_through_the_earlier_of_today_and_ead_end(tod
 )
 def test_a_period_covers_its_first_and_last_day(start, end, used):
     assert count_a([job(start, end)]) == (used, 0)
+
+
+@pytest.mark.parametrize(
+    ("start", "end"),
+    [
+        ("2026-05-01", None),  # begins a month before the card, still open
+        ("2026-05-01", "2026-05-31"),  # ends the day before the card
+        ("2026-05-01", "2026-06-01"),  # ends on the first day of the card
+        ("2026-05-31", "2026-06-02"),  # one day before the card is enough
+    ],
+)
+def test_a_period_that_begins_before_the_card_gives_no_count(start, end):
+    # specs/product-1/SPEC.md, section 1, employment.period_outside_cards, and
+    # SPEC-resolutions.md, point 4: while the conflict is open, the counts that use its
+    # dates are null and the verdict is cannot_tell. The card of CASE_A begins 2026-06-01.
+    out = run(with_changes(CASE_A, employment=[job(start, end)]))
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "conflict:employment.period_outside_cards" in out["verdict"]["reasons"]
+    got = values(out)
+    assert got["unemployment.days_used"] is None
+    assert got["unemployment.days_remaining"] is None
 
 
 @pytest.mark.parametrize(
@@ -908,19 +939,26 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
             ),
             True,
         ),
-        # The day of.
+        # The day of. The card, the filing and the work are moved with the start, so
+        # that no row of specs/product-1/SPEC.md, section 1, is raised beside it
+        # (SPEC-resolutions.md, point 4): filed 2025-03-10, before the card; the card
+        # ends 2026-05-14, inside 12 months of 2025-05-15 (2026-05-15); work begins on
+        # the first day of the card and is still open.
         (
             with_changes(
-                with_block(CASE_A, "opt", ead_start="2025-05-15"),
-                employment=[job("2025-05-01", None)],
+                CASE_A,
+                opt=ead("2025-03-02", "2025-03-10", "2025-05-15", "2026-05-14"),
+                employment=[job("2025-05-15", None)],
             ),
             False,
         ),
-        # The day after.
+        # The day after. 12 months from 2025-05-16 is 2026-05-16; the card ends the day
+        # before.
         (
             with_changes(
-                with_block(CASE_A, "opt", ead_start="2025-05-16"),
-                employment=[job("2025-05-01", None)],
+                CASE_A,
+                opt=ead("2025-03-02", "2025-03-10", "2025-05-16", "2026-05-15"),
+                employment=[job("2025-05-16", None)],
             ),
             False,
         ),
@@ -1014,7 +1052,11 @@ def test_final_end_is_the_latest_of_the_three_dates_present():
     # Today 2026-09-28 is after the first two and before the third.
     assert "rule_in_litigation" not in run(CASE_B)["verdict"]["reasons"]
     # Without the STEM block the latest is opt.ead_end, and today is after it.
-    no_stem = with_changes(CASE_B, stem=None, cap_gap=None)
+    # Without the STEM card, work closed on 2025-12-31 has days outside every card, a
+    # conflict of specs/product-1/SPEC.md, section 1, that leaves grace.ends null
+    # (SPEC-resolutions.md, point 4). One open period from the first day of the card
+    # has no such days: those after the last card, while open, are not outside.
+    no_stem = with_changes(CASE_B, stem=None, cap_gap=None, employment=[job("2024-07-01", None)])
     out = run(no_stem)
     assert "rule_in_litigation" in out["verdict"]["reasons"]
     # 2025-06-30 plus 60 days: 31 to Jul 31, 29 to Aug 29.
@@ -1100,41 +1142,63 @@ def test_not_knowing_wins_over_a_judgement_item():
 
 
 @pytest.mark.parametrize(
-    ("recommended", "file_by", "open_item"),
+    ("recommended", "file_by"),
     [
         # file_by is the recommendation date plus 30 days. Today is 2026-09-28.
         # Aug 28 plus 30: 3 to Aug 31, 27 to Sep 27. The day before today.
-        ("2026-08-28", "2026-09-27", False),
+        ("2026-08-28", "2026-09-27"),
         # Aug 29 plus 30: Sep 28. Today.
-        ("2026-08-29", "2026-09-28", True),
+        ("2026-08-29", "2026-09-28"),
         # Aug 30 plus 30: Sep 29. Tomorrow.
-        ("2026-08-30", "2026-09-29", True),
+        ("2026-08-30", "2026-09-29"),
         # Sep 12 plus 30: 18 to Sep 30, 12 to Oct 12. Today plus 14 days.
-        ("2026-09-12", "2026-10-12", True),
+        ("2026-09-12", "2026-10-12"),
         # Sep 13 plus 30: Oct 13. Today plus 15 days.
-        ("2026-09-13", "2026-10-13", False),
+        ("2026-09-13", "2026-10-13"),
     ],
 )
-def test_a_dated_item_from_today_through_14_days_on_is_an_open_item(
-    recommended, file_by, open_item
-):
+def test_file_by_is_no_open_item_once_the_filing_is_recorded(recommended, file_by):
+    # specs/product-1/SPEC.md, section 4, and SPEC-resolutions.md, point 5: opt.file_by
+    # is done once opt.i765_filed_date or opt.ead_start is recorded. CASE_A records both,
+    # so the date is still worked out but is an open item on no day. The lookahead is
+    # tested on an item that is never done, in the test below.
     out = run(with_block(CASE_A, "opt", dso_recommendation_date=recommended))
     assert values(out)["opt.file_by"] == file_by
+    assert out["verdict"] == {"state": "no_open_items", "reasons": []}
+
+
+@pytest.mark.parametrize(
+    ("today", "open_item"),
+    [
+        # stem.validation_2_due of CASE_B is 2026-07-16 (see the test below).
+        (date(2026, 7, 17), False),  # the day after
+        (date(2026, 7, 16), True),  # the day of
+        (date(2026, 7, 15), True),
+        (date(2026, 7, 2), True),  # 16 less 14: today plus 14 days is the due day
+        (date(2026, 7, 1), False),  # today plus 15 days
+    ],
+)
+def test_a_dated_item_from_today_through_14_days_on_is_an_open_item(today, open_item):
+    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    out = run(case, today=today)
+    assert values(out)["stem.validation_2_due"] == "2026-07-16"
     if open_item:
-        assert out["verdict"] == {"state": "needs_you", "reasons": ["opt.file_by"]}
+        assert out["verdict"]["state"] == "needs_you"
+        assert "stem.validation_2_due" in out["verdict"]["reasons"]
     else:
-        assert out["verdict"] == {"state": "no_open_items", "reasons": []}
+        assert "stem.validation_2_due" not in out["verdict"]["reasons"]
 
 
-def test_a_window_that_closes_soon_is_an_open_item_but_latest_start_is_not():
+def test_a_window_that_closes_soon_is_no_open_item_once_the_filing_is_recorded():
     # program_end_date 2026-08-01 plus 60 days: 30 to Aug 31, 30 to Sep 30. Two days on.
-    # opt.latest_start falls on the same day, but its id does not end in _due, file_by,
-    # or window_closes.
+    # specs/product-1/SPEC.md, section 4, and SPEC-resolutions.md, point 5: the window
+    # and opt.latest_start are done once the filing or the card is recorded. CASE_A
+    # records both, so neither is an open item though both fall two days on.
     out = run(with_changes(CASE_A, program_end_date="2026-08-01"))
     got = values(out)
     assert got["opt.apply_window_closes"] == "2026-09-30"
     assert got["opt.latest_start"] == "2026-09-30"
-    assert out["verdict"] == {"state": "needs_you", "reasons": ["opt.apply_window_closes"]}
+    assert out["verdict"] == {"state": "no_open_items", "reasons": []}
 
 
 def test_a_validation_report_due_soon_is_an_open_item():
@@ -1150,13 +1214,18 @@ def test_a_validation_report_due_soon_is_an_open_item():
 
 
 def test_unreported_employer_and_a_dated_item_are_both_named():
-    case = with_changes(
-        with_block(CASE_A, "opt", dso_recommendation_date="2026-09-12"),
-        employment=[job("2026-06-01", None, reported=False)],
-    )
-    out = run(case)
+    # Case B on 2026-07-06: stem.validation_2_due 2026-07-16 and
+    # stem.evaluation_12_month_due 2026-07-11 are both within 14 days (the test above).
+    # The dated item is a report, since a filing step is done once the card is recorded
+    # (SPEC section 4).
+    case = with_changes(CASE_B, employment=[job("2024-07-01", None, reported=False)], cap_gap=None)
+    out = run(case, today=date(2026, 7, 6))
     assert out["verdict"]["state"] == "needs_you"
-    assert set(out["verdict"]["reasons"]) == {"report_employer", "opt.file_by"}
+    assert set(out["verdict"]["reasons"]) == {
+        "report_employer",
+        "stem.validation_2_due",
+        "stem.evaluation_12_month_due",
+    }
 
 
 # Properties
@@ -1180,9 +1249,14 @@ def counting_cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
             (stem_start + timedelta(days=729)).isoformat(),
         )
     today = opt_start + timedelta(days=draw(st.integers(min_value=-30, max_value=1200)))
+    last_end = opt_end if stem is None else stem_start + timedelta(days=729)
+    if stem is not None:
+        # A STEM filing dated after today is a conflict of specs/product-1/SPEC.md,
+        # section 1, so the day is on or after the filing, opt_end less 30 days.
+        today = max(today, opt_end - timedelta(days=30))
     employment = []
     for _ in range(draw(st.integers(min_value=0, max_value=5))):
-        employment.append(draw(periods(opt_start, today)))
+        employment.append(draw(periods(opt_start, today, last_end)))
     case = {
         "program_end_date": program_end.isoformat(),
         "time_zone": TIME_ZONE,
@@ -1204,15 +1278,21 @@ def counting_cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
 
 
 @st.composite
-def periods(draw: st.DrawFn, opt_start: date, today: date) -> dict[str, Any]:
-    start = opt_start + timedelta(days=draw(st.integers(min_value=-60, max_value=1200)))
-    is_open = draw(st.booleans())
+def periods(draw: st.DrawFn, opt_start: date, today: date, last_end: date) -> dict[str, Any]:
+    """A period with no day outside every card (specs/product-1/SPEC.md, section 1,
+    employment.period_outside_cards): it begins inside the cards, and a closed one ends
+    on or before the last day of the last card. An open one may run past it."""
+    start = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1200)))
+    start = min(start, last_end)
+    # An open period runs through today, so it starts on or before today; before the
+    # first card begins there is none.
+    is_open = today >= opt_start and draw(st.booleans())
     if is_open:
-        # An open period runs through today, so it starts on or before today.
         start = min(start, today)
         end = None
     else:
-        end = (start + timedelta(days=draw(st.integers(min_value=0, max_value=400)))).isoformat()
+        last = start + timedelta(days=draw(st.integers(min_value=0, max_value=400)))
+        end = min(last, last_end).isoformat()
     return job(start.isoformat(), end, hours=draw(HOURS), reported=draw(st.booleans()))
 
 
@@ -1269,7 +1349,9 @@ def test_remaining_is_the_limit_minus_the_days_used(drawn, shifted):
 @given(st.data())
 def test_adding_an_employment_period_never_raises_days_used(data):
     case, today = data.draw(counting_cases())
-    extra = data.draw(periods(date.fromisoformat(case["opt"]["ead_start"]), today))
+    cards = [case[part]["ead_end"] for part in ("opt", "stem") if case[part] is not None]
+    last_end = date.fromisoformat(max(cards))
+    extra = data.draw(periods(date.fromisoformat(case["opt"]["ead_start"]), today, last_end))
     before = values(run(case, today=today))
     after = values(run(with_changes(case, employment=[*case["employment"], extra]), today=today))
     assert after["unemployment.days_used"] <= before["unemployment.days_used"]

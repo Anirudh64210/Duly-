@@ -44,6 +44,7 @@ from tests.support.f1_pack import (
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
@@ -55,6 +56,7 @@ from tests.support.f1_pack import (
     with_block,
     with_changes,
     with_derivation,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 9, 28)  # a Monday
@@ -134,7 +136,13 @@ def run(
     """Compute a case. The clock stands at noon UTC on today unless one is passed."""
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(checked_on) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(f1.parse_case(case), pack, clock or clock_on(today))
+    clock = clock or clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock)
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 def in_zone(case: dict[str, Any], zone: str) -> dict[str, Any]:

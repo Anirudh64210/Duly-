@@ -696,3 +696,81 @@ Nothing read in this run asked for an action.
   Fix: spy on parse_case through a scratch plugin under TMPDIR to list every test whose
   case lacks the field, then change the cases, not the assertions.
   Evidence: 43 tests listed for cpt_full_time_days, 7 for no training entered.
+
+## Iteration 7, 2026-09-29: the resolutions of the engine builder's escalation (run l-tests-9f87ae7e93)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC-resolutions.md, specs/product-1/SPEC.md,
+CLAUDE.md, engine/PROGRESS.md on lane/L-engine/l-engine-b63b2c6ea2 ("Disputes"),
+contracts/factory_report.schema.json. engine/f1.py was read for the name of `_answer` only
+(to plant the fault below) and for how parse_case takes the clock.
+
+### What was done
+
+| Resolution | Change |
+|---|---|
+| 2 (answer after the day of the case) | answered_yes() now dates its answers ON_THE_DAY_IT_RUNS ("1950-01-01", the first day the case contract takes). dated_on_the_day(case, clock) puts in the person's own day, worked with zoneinfo apart from the engine, before each run. test_the_answer_yes_to_another_row_leaves_this_one_open runs on the row's own day |
+| 3 (no_employment_to_record covers through its day) | the same: an older case's yes is given on the day it is run, which is what it meant. test_window_runs_... passes without a change to its assertions |
+| 4 (open conflict gives nulls) | cases changed so their facts fit: test_f1.py year-mark rows (card, filing and work moved with the start), test_final_end (one open period), the counting property (periods inside the cards, STEM filing on or before today), test_a_period_covers_its_first_and_last_day (rows inside the card; the rows that began before the card moved to a new test that expects the conflict and null counts); test_f1_sourcing.py clamped month, shorter extension, evaluation property, report property, earliest OPT start |
+| 5 (done step is no open item) | opt.file_by and opt.apply_window_closes tests now expect no open item on a case with the card (renamed to say so). The lookahead tests were moved onto stem.validation_2_due (2026-07-16 for CASE_B), which is never done |
+| 7 (no about, no answer) | with_the_about_asked(case, compute) in tests/support/f1_pack.py: each answer with no about is sent with the about of the question the output asked, in the order asked, as the screen does. Every run() helper of the older engine and holdout files goes through it. New tests in test_f1_product.py: test_point_7_* for no_employment_to_record (yes and no), all 13 conflict rows, nothing_more_to_record (yes and no), full_time_cpt_used, and a control with the about |
+| 8 (parse_case(raw, clock)) | every run() helper now calls parse_case(sent, clock). parsed() in the product file no longer guesses by signature. New: test_point_8_parse_case_takes_the_clock_as_its_second_argument, and a property over every day 1950-01-01 to 2099-12-30 with an injected clock |
+| 10 (card through the day its months end) | conflicts_by_the_table no longer leaves it open (unsure is always empty). New: test_point_10_... with 2026-10-31, 2026-11-01 (no conflict) and 2026-11-02 (conflict), 12 months from 2025-11-01 being 2026-11-01 |
+
+Working for the new dates: 2026-07-10 through 2026-09-28 is 22 + 31 + 28 = 81 days.
+stem.validation_2_due 2026-07-16 less 14 is 2026-07-02, less 15 is 2026-07-01. 12 months
+from 2024-08-31 is 2025-08-31; 24 from 2025-08-31 is 2027-08-31. Jun 1 through Sep 28
+is 30 + 31 + 31 + 28 = 120, so a period of Jun 1 alone leaves 119 and Jun 1 to 2 leaves 118.
+
+### What ran and what it printed
+
+- Before: `pytest tests/unit/engine tests/unit/api` 48 failed. With a scratch plugin under
+  TMPDIR that makes `engine.f1._answer` return OPEN for an answer with no about (the fault
+  of point 7 reversed, i.e. point 7 put in): about 150 failed over engine, api and holdout.
+- After, the engine as it is: engine files 25 failed (18 are the new point 7 tests, which
+  must fail until the engine does point 7; 4 in test_f1_context.py, 3 in test_f1_fixes.py),
+  api 5, holdout 23.
+- After, with point 7 put in by the plugin: test_f1.py, test_f1_sourcing.py and
+  test_f1_product.py all pass. Left: test_f1_context.py 4, test_f1_fixes.py 3, api 16,
+  holdout 24.
+- The done command: exit 0 (All checks passed; 40 files already formatted).
+
+### What change to the code would make each new test fail
+
+- test_point_7_*: shown. They fail on the engine as it is (it reads an answer with no
+  about as given: verdict talk_to_dso, no question) and pass with the plugin.
+- test_point_8_*: fail on a parse_case that takes one argument (TypeError) or that reads
+  the day from the system time (the property draws days far from it). Not planted.
+- test_point_10_*: fails on an engine that compares the end with the months less a day
+  (2026-11-01 raised). Not planted.
+- test_a_period_that_begins_before_the_card_gives_no_count: fails on an engine that
+  counts days before the card.
+
+### Not done in this attempt (time)
+
+- test_f1_context.py: test_an_item_is_open_on_the_persons_own_day,
+  test_no_date_from_before_the_ead_blocks_a_case_that_holds_the_ead,
+  test_the_question_names_the_inputs_that_raised_it (point 6: it expects id and because
+  only), test_the_answer_yes_counts_on_an_empty_list (point 7: answers() with no about).
+- test_f1_fixes.py: the two largest cases and the day-by-day property (point 4: days
+  between two cards and periods outside them).
+- tests/unit/api: the compute files answer with answers() and no about (point 7) and do
+  not go through with_the_about_asked; api 422 tests wait for L-api (point 8).
+- tests/holdout: go through the new helpers, but 24 older cases hold facts of section 1
+  or done steps, as in the unit files.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Lesson
+
+- Failure: an older case computed on many days carried answers dated 2026-09-28; point 2
+  refuses them on earlier days and point 3 reopens no_employment_to_record on later days.
+  Fix: a marker date the case contract takes, replaced by the person's own day before the
+  case is computed, so the answer is given on the day the case runs.
+  Evidence: 52 + 16 + 8 ValueErrors "dated after today" went to 0.
+- Failure: resolution 7 changes the meaning of every older answer at once, and the engine
+  had not done it yet, so the tests could not show which cases it breaks.
+  Fix: a scratch pytest plugin that patches engine.f1._answer to put point 7 in, run beside
+  the plain run, and a helper that sends each answer with the about the output asked.
+  Evidence: failures under the plugin in test_f1.py went from 29 to 0.

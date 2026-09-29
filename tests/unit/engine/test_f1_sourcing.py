@@ -30,7 +30,9 @@ from tests.support.f1_pack import (
     case_problems,
     clock_on,
     contract_problems,
+    dated_on_the_day,
     ead,
+    iso,
     items,
     job,
     months_later,
@@ -45,6 +47,7 @@ from tests.support.f1_pack import (
     weakest,
     with_block,
     with_changes,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 9, 28)  # a Monday
@@ -79,7 +82,15 @@ def run(
     """
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(today, values={(rule_id, ""): v for rule_id, v in (rules or {}).items()})
-    return f1.compute_f1(f1.parse_case(case), pack, clock_on(today), settings=settings_dict(chosen))
+    clock = clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(
+            f1.parse_case(sent, clock), pack, clock, settings=settings_dict(chosen)
+        )
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 # Case A: post-completion OPT, no STEM, no cap-gap. Nothing is open on 2026-09-28.
@@ -204,8 +215,16 @@ def test_the_evaluation_date_moves_with_the_interval(months, expected):
 def test_the_evaluation_interval_is_clamped_to_the_end_of_a_short_month():
     # stem.ead_start 2025-08-31 plus 6 months: February 2026 has 28 days. Plus 10 days:
     # Mar 10.
+    # The OPT card is moved to end the day before, so that the cards do not leave a gap
+    # (stem.gap_after_opt) and the work lies inside them (employment.period_outside_cards):
+    # specs/product-1/SPEC.md, section 1, and SPEC-resolutions.md, point 4. 12 months from
+    # 2024-08-31 is 2025-08-31, so the OPT card ending 2025-08-30 is within its rule; 24
+    # months from 2025-08-31 is 2027-08-31, so the STEM card is within its rule.
     case = with_changes(
-        with_block(CASE_B, "stem", ead_start="2025-08-31", ead_end="2027-08-30"), cap_gap=None
+        with_block(CASE_B, "stem", ead_start="2025-08-31", ead_end="2027-08-30"),
+        opt=ead("2024-06-01", "2024-06-15", "2024-08-31", "2025-08-30"),
+        employment=[job("2024-08-31", None)],
+        cap_gap=None,
     )
     got = values(run(case, rules={EVALUATION_INTERVAL: 6}))
     assert got["stem.evaluation_12_month_due"] == "2026-03-10"
@@ -233,7 +252,15 @@ def test_the_shipped_numbers_give_four_reports():
 
 def test_a_shorter_extension_gives_fewer_reports():
     # 12 divided by 6.
-    out = run(CASE_B, rules={"stem.extension_months": 12})
+    # The STEM card runs 12 months, 2025-07-01 through 2026-06-30, so that it is not
+    # longer than the rule (specs/product-1/SPEC.md, section 1, stem.card_longer_than_rule;
+    # SPEC-resolutions.md, point 4). One open period from the first OPT day lies inside.
+    case = with_changes(
+        with_block(CASE_B, "stem", ead_end="2026-06-30"),
+        employment=[job("2024-07-01", None)],
+        cap_gap=None,
+    )
+    out = run(case, rules={"stem.extension_months": 12})
     assert validation_ids(out) == {"stem.validation_1_due", "stem.validation_2_due"}
     got = values(out)
     # The dates are those of the first two reports under the shipped numbers.
@@ -411,38 +438,33 @@ def test_periods_not_reported_names_the_reporting_rule(days):
 
 
 @pytest.mark.parametrize(
-    ("ahead", "recommended", "file_by", "open_item"),
+    ("ahead", "before", "open_item"),
     [
-        # file_by is the recommendation date plus 30 days. Today is 2026-09-28.
-        # Sep 5 plus 30: 25 to Sep 30, 5 to Oct 5. Today plus 7 days.
-        (7, "2026-09-05", "2026-10-05", True),
-        # Sep 6 plus 30: Oct 6. Today plus 8 days.
-        (7, "2026-09-06", "2026-10-06", False),
-        # Sep 12 plus 30: Oct 12. Today plus 14 days: open under 14, not under 7.
-        (7, "2026-09-12", "2026-10-12", False),
-        # Aug 29 plus 30: Sep 28. Today.
-        (7, "2026-08-29", "2026-09-28", True),
-        # Aug 28 plus 30: Sep 27. The day before today.
-        (7, "2026-08-28", "2026-09-27", False),
-        # Sep 13 plus 30: Oct 13. Today plus 15 days: not open under 14, open under 21.
-        (21, "2026-09-13", "2026-10-13", True),
-        # Sep 19 plus 30: 11 to Sep 30, 19 to Oct 19. Today plus 21 days.
-        (21, "2026-09-19", "2026-10-19", True),
-        # Sep 20 plus 30: Oct 20. Today plus 22 days.
-        (21, "2026-09-20", "2026-10-20", False),
+        # stem.validation_2_due of CASE_B is 2026-07-16. The item is open when it falls
+        # from today through today plus the lookahead: today is the due day less `before`.
+        # opt.file_by is not used: it is done once the card is recorded (SPEC-resolutions.md,
+        # point 5), so it is never open on a case that computes.
+        (7, 7, True),  # today plus 7
+        (7, 8, False),  # today plus 8
+        (7, 14, False),  # open under 14, not under 7
+        (7, 0, True),  # today
+        (7, -1, False),  # the day before today
+        (21, 15, True),  # today plus 15: not open under 14, open under 21
+        (21, 21, True),
+        (21, 22, False),
         # Nothing ahead: only an item dated today is open.
-        (0, "2026-08-29", "2026-09-28", True),
-        (0, "2026-08-30", "2026-09-29", False),
+        (0, 0, True),
+        (0, 1, False),
     ],
 )
-def test_the_lookahead_comes_from_the_settings(ahead, recommended, file_by, open_item):
-    case = with_block(CASE_A, "opt", dso_recommendation_date=recommended)
-    out = run(case, chosen={LOOKAHEAD: ahead})
-    assert values(out)["opt.file_by"] == file_by
+def test_the_lookahead_comes_from_the_settings(ahead, before, open_item):
+    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    today = date(2026, 7, 16) - timedelta(days=before)
+    out = run(case, today=today, chosen={LOOKAHEAD: ahead})
+    assert values(out)["stem.validation_2_due"] == "2026-07-16"
+    assert ("stem.validation_2_due" in out["verdict"]["reasons"]) == open_item
     if open_item:
-        assert out["verdict"] == {"state": "needs_you", "reasons": ["opt.file_by"]}
-    else:
-        assert out["verdict"] == {"state": "no_open_items", "reasons": []}
+        assert out["verdict"]["state"] == "needs_you"
 
 
 # Duly's own choices: product.opt_start_earliest_years_before_program_end
@@ -466,11 +488,20 @@ def test_the_lookahead_comes_from_the_settings(ahead, recommended, file_by, open
     ],
 )
 def test_the_earliest_opt_start_comes_from_the_settings(years, opt_start, conflict):
-    case = with_changes(
-        with_block(CASE_A, "opt", ead_start=opt_start),
-        employment=[job("2023-05-01", None)],
+    # The card, its filing and the work move with the start, and the case is run 30 days
+    # into the card, so that no row of specs/product-1/SPEC.md, section 1, is raised
+    # beside the one tested (SPEC-resolutions.md, point 4): recommended 60 and filed 30
+    # days before the card, the card 364 days long (inside 12 months), work from its
+    # first day.
+    start = date.fromisoformat(opt_start)
+    card = ead(
+        iso(start - timedelta(days=60)),
+        iso(start - timedelta(days=30)),
+        opt_start,
+        iso(start + timedelta(days=364)),
     )
-    out = run(case, chosen={LOOKBACK: years})
+    case = with_changes(CASE_A, opt=card, employment=[job(opt_start, None)])
+    out = run(case, today=start + timedelta(days=30), chosen={LOOKBACK: years})
     if conflict:
         assert out["verdict"]["state"] == "cannot_tell"
         assert reasons_with(out, "conflict:")
@@ -542,16 +573,16 @@ def test_same_inputs_and_settings_same_output():
 @given(
     ahead=st.integers(min_value=0, max_value=90),
     offset=st.integers(min_value=-10, max_value=100),
-    today=st.dates(min_value=date(2026, 6, 2), max_value=date(2027, 5, 1)),
 )
-def test_an_item_is_open_from_today_through_the_lookahead_and_on_no_other_day(ahead, offset, today):
-    # opt.file_by falls offset days from today: the recommendation date is that day less
-    # the 30 days of opt.file_within_days_of_recommendation.
-    recommended = today + timedelta(days=offset - 30)
-    case = with_block(CASE_A, "opt", dso_recommendation_date=recommended.isoformat())
-    out = run(case, today=today, chosen={LOOKAHEAD: ahead})
-    assert values(out)["opt.file_by"] == (today + timedelta(days=offset)).isoformat()
-    assert ("opt.file_by" in out["verdict"]["reasons"]) == (0 <= offset <= ahead)
+def test_an_item_is_open_from_today_through_the_lookahead_and_on_no_other_day(ahead, offset):
+    # stem.validation_2_due of CASE_B, 2026-07-16, falls offset days from the day the case
+    # is run. opt.file_by is done once the card is recorded (SPEC-resolutions.md, point
+    # 5), so it cannot carry this property.
+    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    run_on = date(2026, 7, 16) - timedelta(days=offset)
+    out = run(case, today=run_on, chosen={LOOKAHEAD: ahead})
+    assert values(out)["stem.validation_2_due"] == "2026-07-16"
+    assert ("stem.validation_2_due" in out["verdict"]["reasons"]) == (0 <= offset <= ahead)
 
 
 @settings(max_examples=150, deadline=None)
@@ -574,6 +605,10 @@ def test_the_cpt_reason_appears_at_the_bar_and_over_it_and_never_under(bar, days
     start=st.dates(min_value=date(2025, 7, 1), max_value=date(2026, 6, 30)),
 )
 def test_the_evaluation_is_due_the_interval_and_the_days_after_the_start(months, due, start):
+    # The OPT card ends the day before the STEM card and begins 365 days before it, so no
+    # gap lies between them and neither runs past 12 months; the one period of work
+    # begins on the first OPT day. specs/product-1/SPEC.md, section 1.
+    opt_start = start - timedelta(days=365)
     case = with_changes(
         with_block(
             CASE_B,
@@ -581,6 +616,8 @@ def test_the_evaluation_is_due_the_interval_and_the_days_after_the_start(months,
             ead_start=start.isoformat(),
             ead_end=(months_later(start, 24) - timedelta(days=1)).isoformat(),
         ),
+        opt=ead("2024-03-01", "2024-03-15", opt_start.isoformat(), iso(start - timedelta(days=1))),
+        employment=[job(opt_start.isoformat(), None)],
         cap_gap=None,
     )
     out = run(case, rules={EVALUATION_INTERVAL: months, "stem.evaluation_due_days": due})
@@ -600,7 +637,15 @@ def test_there_is_one_report_for_each_interval_in_the_extension(interval, report
         "stem.validation_interval_months": interval,
         "stem.extension_months": interval * reports,
     }
-    out = run(CASE_B, rules=rules)
+    # The STEM card runs the months of the extension from 2025-07-01, less a day, so it
+    # is not longer than the rule (specs/product-1/SPEC.md, section 1).
+    card_end = months_later(date(2025, 7, 1), interval * reports) - timedelta(days=1)
+    case = with_changes(
+        with_block(CASE_B, "stem", ead_end=card_end.isoformat()),
+        employment=[job("2024-07-01", None)],
+        cap_gap=None,
+    )
+    out = run(case, rules=rules)
     assert validation_ids(out) == {f"stem.validation_{n}_due" for n in range(1, reports + 1)}
     got = items(out)
     reached = [months_later(date(2025, 7, 1), interval * n) for n in range(1, reports + 1)]

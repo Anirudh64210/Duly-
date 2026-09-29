@@ -34,6 +34,7 @@ from tests.support.f1_pack import (
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
@@ -44,6 +45,7 @@ from tests.support.f1_pack import (
     with_changes,
     with_operative_status,
     with_regime_rows,
+    with_the_about_asked,
 )
 
 TODAY = date(2025, 3, 14)  # a Friday
@@ -94,7 +96,13 @@ def run(
 ) -> dict[str, Any]:
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(today, **pack_changes) if raw is None else validate_pack(raw)
-    return f1.compute_f1(f1.parse_case(case), pack, clock_on(today), settings=settings_dict())
+    clock = clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock, settings=settings_dict())
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 def names_opt(output: dict[str, Any]) -> list[str]:

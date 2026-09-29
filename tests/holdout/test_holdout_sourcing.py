@@ -24,6 +24,7 @@ from tests.support.f1_pack import (
     case_problems,
     clock_on,
     contract_problems,
+    dated_on_the_day,
     ead,
     items,
     job,
@@ -38,6 +39,7 @@ from tests.support.f1_pack import (
     weakest,
     with_block,
     with_changes,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 11, 2)  # a Monday
@@ -66,7 +68,15 @@ def run(
     """
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(today, values={(rule_id, ""): v for rule_id, v in (rules or {}).items()})
-    return f1.compute_f1(f1.parse_case(case), pack, clock_on(today), settings=settings_dict(chosen))
+    clock = clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(
+            f1.parse_case(sent, clock), pack, clock, settings=settings_dict(chosen)
+        )
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 # Case C: on the STEM extension since 2026-08-01, one employer, reported, full time.

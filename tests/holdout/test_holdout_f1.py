@@ -27,6 +27,7 @@ from tests.support.f1_pack import (
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
@@ -35,12 +36,20 @@ from tests.support.f1_pack import (
     values,
     with_block,
     with_changes,
+    with_the_about_asked,
 )
 
 
 def run(case: dict[str, Any], today: date, **pack_changes: Any) -> dict[str, Any]:
     assert case_problems(case) == [], "the test case itself must match the case contract"
-    return f1.compute_f1(f1.parse_case(case), build_pack(today, **pack_changes), clock_on(today))
+    pack = build_pack(today, **pack_changes)
+    clock = clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock)
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 # Case H1: a bachelor's program that ends in December, OPT across a leap February.

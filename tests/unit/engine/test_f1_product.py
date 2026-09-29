@@ -16,7 +16,6 @@ Where the SPEC leaves a point open, the tests say which side they take, and the 
 listed in tests/PROGRESS.md under "Questions".
 """
 
-import inspect
 from datetime import date, timedelta
 from typing import Any
 
@@ -95,12 +94,9 @@ NEXT_IDS = (
 
 
 def parsed(case: dict[str, Any], clock: Any) -> Any:
-    """Section 3: parse_case refuses an answer dated after today, so it has to learn the
-    day. The SPEC does not say how. Where parse_case takes a second argument, it is
-    given the clock."""
-    if len(inspect.signature(f1.parse_case).parameters) >= 2:
-        return f1.parse_case(case, clock)
-    return f1.parse_case(case)
+    """Section 3: parse_case refuses an answer dated after today. SPEC-resolutions.md,
+    point 8: it learns the day from the clock, passed as `parse_case(raw, clock)`."""
+    return f1.parse_case(case, clock)
 
 
 def run(
@@ -358,7 +354,10 @@ def test_the_answer_no_leaves_the_verdict_at_cannot_tell(conflict):
 def test_the_answer_yes_to_another_row_leaves_this_one_open(conflict):
     today, raises, _, _ = ROWS[conflict]
     other = ROW_IDS[(ROW_IDS.index(conflict) + 1) % len(ROW_IDS)]
-    out = run(with_changes(raises, confirmations=answers(today.isoformat(), **{other: True})))
+    # The case is run on the row's own day, the day the answer is dated: an answer dated
+    # after the day of the case is refused (SPEC-resolutions.md, point 2).
+    given = answers(today.isoformat(), **{other: True})
+    out = run(with_changes(raises, confirmations=given), today=today)
     assert out["verdict"]["state"] == "cannot_tell"
     assert conflicts(out) == [conflict]
     assert question_ids(out) == [conflict]
@@ -683,27 +682,32 @@ def test_no_training_entered_asks_whether_there_is_more_to_record(shape):
     assert question(out, NOTHING_MORE)["because"]
 
 
+def said_of_training(case: dict[str, Any], answer: bool) -> dict[str, Any]:
+    """The case with the person's answer to nothing_more_to_record, given today and
+    carrying the about of the question. SPEC-resolutions.md, point 7: an answer with no
+    about is not an answer."""
+    asked = review(case)
+    return answer_as_the_screen_does(case, asked, "2026-09-28", **{NOTHING_MORE: answer})
+
+
 def test_the_answer_yes_decides_the_verdict_on_what_was_entered():
     # The program ends on 2026-12-15, after today. Two documents, rules checked today.
     # Nothing that was entered is open.
-    out = review(with_changes(IN_PROGRAM, confirmations=answers(**{NOTHING_MORE: True})))
+    out = review(said_of_training(IN_PROGRAM, True))
     assert question_ids(out) == []
     assert out["verdict"] == {"state": "no_open_items", "reasons": []}
     assert contract_problems(out) == []
 
 
 def test_the_answer_no_names_training_as_missing():
-    out = review(with_changes(IN_PROGRAM, confirmations=answers(**{NOTHING_MORE: False})))
+    out = review(said_of_training(IN_PROGRAM, False))
     assert out["verdict"]["state"] == "cannot_tell"
     assert "missing:training" in out["verdict"]["reasons"]
     assert NOTHING_MORE not in question_ids(out)
 
 
 def test_the_answer_yes_does_not_hide_what_else_stops_duly_from_knowing():
-    case = with_changes(
-        IN_PROGRAM, documents_count=0, confirmations=answers(**{NOTHING_MORE: True})
-    )
-    out = review(case)
+    out = review(said_of_training(with_changes(IN_PROGRAM, documents_count=0), True))
     assert out["verdict"]["state"] == "cannot_tell"
     assert "no_documents" in out["verdict"]["reasons"]
 
@@ -1217,7 +1221,7 @@ def test_with_stem_entered_there_is_no_next_step_and_no_list():
 
 
 def test_without_opt_there_is_no_next_step_and_no_list():
-    out = review(with_changes(IN_PROGRAM, confirmations=answers(**{NOTHING_MORE: True})))
+    out = review(said_of_training(IN_PROGRAM, True))
     assert set(NEXT_IDS).isdisjoint(upcoming(out))
     assert out["lists"] == []
 
@@ -1388,3 +1392,126 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
     # Section 5.
     for shown in (*out["computed"], *out["upcoming"]):
         assert shown["reading"] is reading_by_the_rules(out, shown["rule_ids"]), shown["id"]
+
+
+# SPEC-resolutions.md, point 7: an answer with no `about` is not an answer. The question
+# stays open. Duly never assumes that an answer was given for the values in front of it.
+# Each test below would pass on an engine that reads such an answer as given, if the
+# assertions on the open question were taken away; with them, it fails there.
+
+
+@pytest.mark.parametrize("answer", [True, False])
+def test_point_7_an_answer_to_no_employment_with_no_about_is_not_an_answer(answer):
+    # NO_JOBS: the card begins 2026-07-10, no work. The answer is given today, so only the
+    # missing about can keep the question open.
+    out = review(
+        with_changes(NO_JOBS, confirmations=answers("2026-09-28", **{NO_EMPLOYMENT: answer}))
+    )
+    assert question_ids(out) == [NO_EMPLOYMENT]
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert unconfirmed(out) == [NO_EMPLOYMENT]
+    got = items(out)
+    for item_id in COUNTS:
+        assert got[item_id]["value"] is None, item_id
+
+
+def test_point_7_the_same_answer_with_the_about_of_the_question_is_an_answer():
+    # The control for the test above: the one change is the about. 2026-07-10 through
+    # 2026-09-28 is 22 + 31 + 28 = 81 days.
+    out = review(given_on(NO_JOBS, "2026-09-28"))
+    assert question_ids(out) == []
+    assert values(out)["unemployment.days_used"] == 81
+
+
+@pytest.mark.parametrize("conflict", ROW_IDS)
+def test_point_7_the_answer_yes_to_a_conflict_with_no_about_is_not_an_answer(conflict):
+    # The answer is dated on the row's own day, the day the case is run.
+    today, raises, _, _ = ROWS[conflict]
+    given = answers(today.isoformat(), **{conflict: True})
+    out = run(with_changes(raises, confirmations=given), today=today)
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert f"conflict:{conflict}" in out["verdict"]["reasons"]
+    assert conflict in question_ids(out)
+    # The yes would send the person to the DSO with the judgement item <id>: SPEC section 1.
+    assert out["verdict"]["state"] != "talk_to_dso"
+    assert conflict not in out["verdict"]["reasons"]
+
+
+@pytest.mark.parametrize("answer", [True, False])
+def test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_answer(answer):
+    # IN_PROGRAM enters no opt, stem or cap_gap. Neither the yes (verdict decided on what
+    # was entered) nor the no (missing:training) is read.
+    out = review(
+        with_changes(IN_PROGRAM, confirmations=answers("2026-09-28", **{NOTHING_MORE: answer}))
+    )
+    assert question_ids(out) == [NOTHING_MORE]
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:training" not in out["verdict"]["reasons"]
+
+
+def test_point_7_an_answer_to_full_time_cpt_with_no_about_is_not_an_answer():
+    # cpt_full_time_days left out raises full_time_cpt_used (SPEC section 2). The no,
+    # given with no about, does not make the item 0.
+    case = with_changes(FITS, cpt_full_time_days=None)
+    out = run(with_changes(case, confirmations=answers("2026-09-28", **{CPT_USED: False})))
+    assert CPT_USED in question_ids(out)
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert values(out)["cpt.full_time_days_used"] is None
+
+
+# SPEC-resolutions.md, point 8: parse_case(raw, clock) takes the clock, so that an answer
+# dated after today is refused however the engine is called. These call parse_case
+# itself, not a helper. They fail on a parse_case that takes one argument, or that
+# reads the day from anywhere but the clock passed in.
+
+
+def test_point_8_parse_case_takes_the_clock_as_its_second_argument():
+    # 2026-09-28 at noon UTC; the answer is dated the day after, 2026-09-29.
+    case = with_changes(
+        NO_JOBS, time_zone="UTC", confirmations=answers("2026-09-29", **{NO_EMPLOYMENT: True})
+    )
+    with pytest.raises(ValueError):  # noqa: PT011
+        f1.parse_case(case, clock_on(date(2026, 9, 28)))
+    # The same case read on 2026-09-29 holds an answer dated today.
+    f1.parse_case(case, clock_on(date(2026, 9, 29)))
+
+
+@settings(max_examples=100, deadline=None)
+@given(today=st.dates(min_value=date(1950, 1, 1), max_value=date(2099, 12, 30)))
+def test_point_8_the_day_of_the_clock_decides_and_no_other(today):
+    # An injected clock at noon UTC on today, zone UTC: the day is today. An answer dated
+    # today is taken, one dated the day after is refused. The system time is never read,
+    # so a today far from the day the tests run gives the same result.
+    clock = clock_on(today)
+    base = with_changes(NO_JOBS, time_zone="UTC")
+    on_the_day = answers(today.isoformat(), **{NO_EMPLOYMENT: True})
+    f1.parse_case(with_changes(base, confirmations=on_the_day), clock)
+    tomorrow = answers((today + timedelta(days=1)).isoformat(), **{NO_EMPLOYMENT: True})
+    with pytest.raises(ValueError):  # noqa: PT011
+        f1.parse_case(with_changes(base, confirmations=tomorrow), clock)
+
+
+# SPEC-resolutions.md, point 10: a card whose last day is the day its months end is not
+# a conflict. 12 months from 2025-11-01 (the start of the FITS card) is 2026-11-01.
+
+
+@pytest.mark.parametrize(
+    ("ead_end", "longer"),
+    [
+        ("2026-10-31", False),  # the day before the months end
+        ("2026-11-01", False),  # the day the months end: point 10
+        ("2026-11-02", True),  # the day after
+    ],
+)
+def test_point_10_a_card_through_the_day_its_months_end_is_not_a_conflict(ead_end, longer):
+    case = with_block(FITS, "opt", ead_end=ead_end)
+    assert ("opt.card_longer_than_rule" in conflicts(run(case))) == longer
+    if not longer:
+        # With every other question answered, nothing stops Duly from knowing, and
+        # grace.ends, which uses the card's end, has a date.
+        out = run(yes_to_all(case))
+        assert out["verdict"]["state"] != "cannot_tell"
+        assert values(out)["grace.ends"] is not None
+    sure, unsure = conflicts_by_the_table(case, TODAY, 12, 24)
+    assert ("opt.card_longer_than_rule" in sure) == longer
+    assert unsure == set()
