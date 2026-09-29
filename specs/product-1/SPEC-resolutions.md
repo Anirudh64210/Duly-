@@ -93,6 +93,13 @@ From the review of fix 4 (reviews/product-1-fix4.md):
 56. Every rule is looked up for the day of the event it governs, including `opt.report_employer_within_days` for a period's end (point 40). A rule with no row in force on that day gives null with the step back, never an error: no clock and no case makes the engine fail.
 57. The drafted email states no status: it opens "I have a question about my F-1 record." Every dated duty has a name in the draft, including a new Form I-983 for an employment period. A draft about hours states the hours the student entered, not Duly's comparison with the rule.
 
+From the review of fix 5 (reviews/product-1-fix5.md):
+
+58. Every rule of the F-1 pack lists `plain_terms`, the quote's terms of art, and the plain words keep each word for word (contracts/rulepack.schema.json; `tools.sources.plain --require f1` checks it). The six texts the review names are rewritten: "U.S. worker", "subject to section 214(g)(1)(A) of the Act", "U.S. educational institution", "recognized", the time of application as the quote places it, and "period of admission" are kept. A sweep of all 55 plain texts, each rewrite confirmed by two verifiers, is the content lane's starting point (specs/product-1/plain-proposals.json); the lane still checks each against its quote.
+59. No rule lookup ever raises. Where no row is in force on the day a rule is read, `whole_rule`, `value_of` and `show` give null with the step back (`rule_not_in_force_on_event_day`), as the report row does since point 56. A property test draws clocks and cases across the whole range the contract allows, including before every row's start.
+60. `employment.periods_not_reported` reads its rule for each period's start (point 56). A period that starts before the rule's row gives null with `rule_not_in_force_on_event_day`, never a count from a rule that came later.
+61. A draft about a report that names an employment period states that period's dates as the student entered them. The cap-gap draft states the petition's requested start date as entered, and never calls it the student's cap-gap period.
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.
