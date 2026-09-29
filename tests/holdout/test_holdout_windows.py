@@ -1,4 +1,4 @@
-"""Holdout: SPEC-resolutions.md, points 11, 14, 16, 18, 21 and 22 on cases the builders
+"""Holdout: SPEC-resolutions.md, points 11, 14, 16 and 18 on cases the builders
 never see. Every edge is worked from the test pack's rule value. Working beside each."""
 
 from datetime import date, timedelta
@@ -15,7 +15,7 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
-    question_ids,
+    refuse_placeholders,
     rule_value,
     values,
     with_block,
@@ -25,8 +25,10 @@ PACK = pack_dict("2026-09-28")
 
 
 def run(case: dict[str, Any], today: date) -> dict[str, Any]:
+    # tests/unit/support/test_placeholders.py: every run helper sends its case through the
+    # guard, so that a placeholder answer never reaches the engine.
     clock = clock_on(today)
-    return f1.compute_f1(f1.parse_case(case, clock), build_pack(today), clock)
+    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), build_pack(today), clock)
 
 
 # OPT 2026-02-02 to 2027-02-01, program end 2025-12-19 (the window closes 2026-02-17; 14
@@ -98,36 +100,5 @@ def test_holdout_cap_gap_past_the_card_takes_the_grace_date_away():
     assert "grace_with_cap_gap" in out["verdict"]["reasons"]
 
 
-def test_holdout_a_passed_evaluation_is_asked_about():
-    # STEM 2026-02-02 to 2028-02-01 after an OPT card 2025-02-02 to 2026-02-01. The
-    # 12-month evaluation: 2027-02-02 plus 10 days, 2027-02-12. Run on 2027-02-13.
-    case = dict(
-        CASE,
-        program_end_date="2024-12-19",
-        opt=ead("2024-11-20", "2024-12-01", "2025-02-02", "2026-02-01"),
-        stem=ead("2025-11-01", "2025-11-10", "2026-02-02", "2028-02-01"),
-        employment=[job("2025-02-02", None)],
-    )
-    today = date(2027, 2, 13)
-    made = "stem.evaluation_12_month_due.made"
-    out = run(case, today)
-    assert made in question_ids(out)
-    assert out["verdict"]["state"] == "cannot_tell"
-    assert values(run(case, date(2027, 2, 12)))["stem.evaluation_12_month_due"] == "2027-02-12"
-    assert made not in question_ids(run(case, date(2027, 2, 12)))
-
-
-def test_holdout_an_unreported_end_gives_the_report_item():
-    case = dict(CASE, employment=[job("2026-02-02", "2026-10-15"), job("2026-10-16", None)])
-    out = run(case, DAY)
-    asked = [q for q in question_ids(out) if q.endswith(".end_reported")]
-    assert len(asked) == 1
-    no = answer_as_the_screen_does(case, out, DAY.isoformat(), **{asked[0]: False})
-    after = run(no, DAY)
-    assert "report_employer" in after["verdict"]["reasons"]
-    # 2026-10-15 plus 10 days is 2026-10-25.
-    assert "2026-10-25" in {
-        item["value"]
-        for item in after["computed"]
-        if "opt.report_employer_within_days" in item["rule_ids"]
-    }
+# Points 21 and 22 moved to tests/holdout/test_holdout_periods_and_reports.py, which waits
+# for the engine round that builds them.

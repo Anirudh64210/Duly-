@@ -1,0 +1,144 @@
+{
+  "verdict": {
+    "state": "talk_to_dso",
+    "reasons": ["stem.concluding_evaluation_due.1.not_made"]
+  },
+  "scope": {
+    "documents_count": 3,
+    "rules_checked_on": "2026-09-28"
+  },
+  "computed": [
+    {
+      "id": "unemployment.opt_card_days_used",
+      "value": 1,
+      "unit": "days",
+      "inputs": {
+        "opt.ead_start": "2025-06-01",
+        "opt.ead_end": "2026-05-31",
+        "today": "2026-09-29",
+        "employment": [
+          {
+            "start": "2025-06-02",
+            "end": "2026-07-01",
+            "hours_per_week": 40,
+            "employer_reported": true
+          },
+          {
+            "start": "2026-07-02",
+            "end": null,
+            "hours_per_week": 40,
+            "employer_reported": true
+          }
+        ],
+        "duly_settings": ["product.opt_start_earliest_years_before_program_end"]
+      },
+      "rule_ids": ["opt.unemployment_limit_days"],
+      "status": "settled",
+      "reading": false
+    },
+    {
+      "id": "stem.concluding_evaluation_due.1",
+      "value": "2026-07-11",
+      "unit": "date",
+      "inputs": {
+        "employment.1.end": "2026-07-01",
+        "stem.ead_start": "2026-06-01",
+        "stem.ead_end": "2028-05-31",
+        "duly_settings": ["product.open_item_lookahead_days"]
+      },
+      "rule_ids": ["stem.evaluation_due_days"],
+      "status": "settled",
+      "reading": true
+    },
+    {
+      "id": "employment.1.end_report_by",
+      "value": "2026-07-11",
+      "unit": "date",
+      "inputs": {
+        "employment.1.end": "2026-07-01"
+      },
+      "rule_ids": ["opt.report_employer_within_days", "opt.report_interruption"],
+      "status": "guidance",
+      "reading": false
+    },
+    {
+      "id": "stem.new_plan_due.2",
+      "value": "2026-07-12",
+      "unit": "date",
+      "inputs": {
+        "employment.2.start": "2026-07-02",
+        "stem.ead_start": "2026-06-01",
+        "stem.ead_end": "2028-05-31",
+        "duly_settings": ["product.open_item_lookahead_days"]
+      },
+      "rule_ids": ["stem.new_plan_due_days"],
+      "status": "settled",
+      "reading": false
+    }
+  ],
+  "rulepacks": [
+    {
+      "category": "f1",
+      "version": "v2026.09"
+    }
+  ],
+  "rules": {
+    "opt.unemployment_limit_days": {
+      "value": 90,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(E)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "Students may not accrue an aggregate of more than 90 days of unemployment during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B).",
+      "derivation": "verbatim"
+    },
+    "opt.report_employer_within_days": {
+      "value": 10,
+      "unit": "days",
+      "status": "guidance",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "checked_on": "2026-09-28",
+      "quote": "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information.",
+      "derivation": "verbatim"
+    },
+    "stem.evaluation_due_days": {
+      "value": 10,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(9)(i)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "no later than 10 days following the conclusion of the reporting period or conclusion of his or her practical training opportunity, respectively",
+      "derivation": "verbatim"
+    },
+    "opt.report_interruption": {
+      "value": true,
+      "unit": "flag",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(12)(i)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-29",
+      "quote": "An F-1 student who is granted employment authorization by USCIS to engage in optional practical training is required to report any change of name or address, or interruption of such employment to the DSO for the duration of the optional practical training.",
+      "derivation": "verbatim"
+    },
+    "stem.new_plan_due_days": {
+      "value": 10,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-29",
+      "quote": "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation.",
+      "derivation": "verbatim"
+    }
+  },
+  "questions": [],
+  "today": {
+    "date": "2026-09-29",
+    "time_zone": "UTC"
+  },
+  "upcoming": [],
+  "lists": []
+}

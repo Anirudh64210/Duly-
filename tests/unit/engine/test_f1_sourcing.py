@@ -37,6 +37,7 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
+    periods_answered,
     reasons_with,
     refuse_placeholders,
     rule_statuses,
@@ -464,7 +465,11 @@ def test_periods_not_reported_names_the_reporting_rule(days):
     ],
 )
 def test_the_lookahead_comes_from_the_settings(ahead, before, open_item):
-    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    # SPEC-resolutions.md, point 21: each report dated before the day of the run was made
+    # (periods_answered), so no .made question stands between the lookahead and the verdict.
+    case = periods_answered(
+        with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    )
     today = date(2026, 7, 15) - timedelta(days=before)
     out = run(case, today=today, chosen={LOOKAHEAD: ahead})
     assert values(out)["stem.validation_2_due"] == "2026-07-15"
@@ -584,7 +589,11 @@ def test_an_item_is_open_from_today_through_the_lookahead_and_on_no_other_day(ah
     # stem.validation_2_due of CASE_B, 2026-07-15 (point 24), falls offset days from the
     # day the case is run. opt.file_by is done once the card is recorded (SPEC-resolutions.md, point
     # 5), so it cannot carry this property.
-    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    # SPEC-resolutions.md, point 21: each report dated before the day of the run was made
+    # (periods_answered), so no .made question stands between the lookahead and the verdict.
+    case = periods_answered(
+        with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    )
     run_on = date(2026, 7, 15) - timedelta(days=offset)
     out = run(case, today=run_on, chosen={LOOKAHEAD: ahead})
     assert values(out)["stem.validation_2_due"] == "2026-07-15"

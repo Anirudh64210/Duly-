@@ -67,3 +67,11 @@
 - Sent the inputs of phase-2-second findings 1 to 6 again through TestClient, today 2026-09-29 America/Los_Angeles. All closed: each conflict gives cannot_tell with a question; answers after today give 422; answers with no about or an older day stay open; a filed step is no longer an open item.
 - Resolution 11 not built: four inputs (STEM filed before its rec, STEM 101 days after, OPT filed before, OPT 71 days after) return no_open_items with no question. No test covers it. engine/f1.py last changed before the resolution landed.
 - Wrote reviews/product-1.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## 2026-09-29, run l-review-3d5eed74c2 (product round 1, fix 1)
+- Read SPEC-resolutions.md (points 1 to 26), reviews/product-1.md, the engine diff 1060d1a..HEAD (f1.py, dates.py, pack), the labels.ts and Result.tsx diffs, and every removed or changed assertion in the reconcile commits a1a29b2 and 9f12504, holdout included.
+- Ran: unit suites (exit 0), holdout --tb=no (exit 0), web vitest on a TMPDIR copy with --configLoader runner (212 passed), sources verify, engine_literals, copy lint, mypy, ruff (all clean).
+- Sent the four inputs of product-1 finding 1 through TestClient. Each is now cannot_tell with a question. Yes gives talk_to_dso and no keeps cannot_tell. The edges fit (rec day, day 30, day 60) and conflict (day 31, day 61).
+- Sent the cases of points 12 and 14 to 25. Each gives what the point says. Dates were checked by hand, including four business-day validations around 2026-07-04, 2027-01-01, 2027-07-04 and 2028-01-01.
+- Found: a passed stem.new_plan_due.<n> gives no_open_items (needs_you on 2026-07-05, quiet from 2026-07-12). Seven periods make 23 questions, and 23 answers give 422 (maxProperties 20).
+- Wrote reviews/product-1-fix1.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.

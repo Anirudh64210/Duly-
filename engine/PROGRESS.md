@@ -703,3 +703,43 @@ engine/ESCALATE.md written. Status stays escalated. Nothing else changed.
   rules_stale on that day, which is expected: it was checked on 2026-09-28.
 - No change to engine/ beyond the merge was needed.
 - Status: done.
+
+## Run l-engine-ac276e806b (attempt 1): points 20, 21, 22 and 25
+
+### What was built (engine/f1.py)
+
+- Point 20: `_add_periods` numbers the periods as the case lists them (from 1, as the
+  conflict `employment_<n>_end` already does). A period that begins from `stem.ead_start`
+  through `stem.ead_end` asks `employment.<n>.new_employer`, about the period's start and
+  `stem.ead_start`. Yes gives `stem.new_plan_due.<n>` = start + `stem.new_plan_due_days`,
+  an open item through the look-ahead (OPEN_ITEM_PREFIXES). A period on the STEM card
+  whose end is recorded from the card start and before the card end gives
+  `stem.concluding_evaluation_due.<n>` = end + `stem.evaluation_due_days`, reading true
+  (new `reading` flag on `_Working.add`). Neither is asked or given while a STEM card date
+  is missing or held in a conflict, or for a period whose end is before its start.
+- Point 21: `_passed_reports` asks `<item>.made` for each validation, the 12-month
+  evaluation, the final evaluation and each concluding evaluation whose date is before
+  today, about {item id: date}. Yes marks the item done. No gives judgement
+  `<item>.not_made`, and `stem.reporting_required` is shown in `rules` when the pack holds it.
+- Point 22: each period with a recorded end asks `employment.<n>.end_reported`, about its
+  start and end. No gives item `employment.<n>.end_report_by` = end +
+  `opt.report_employer_within_days` (plus `opt.report_interruption` in rule_ids when the
+  pack holds it; status stays guidance), and the open item `report_employer`.
+- Point 25: rule_in_litigation only when today is after the last card end and a computed
+  item or an upcoming entry carries alternates.
+
+### What ran
+
+- Done command as written, no pipe, output to a file: first exit 1 (mypy: tuple[str]
+  assigned a two-tuple at the report rules); fixed with an annotation; second run exit 0:
+  pytest all passed, "engine literals: every number has a source", mypy "no issues found
+  in 56 source files", ruff "All checks passed!", "8 files already formatted".
+- tests/unit on the worktree and on a git archive of HEAD under TMPDIR: 44 tests fail now
+  that passed at HEAD, all on the new questions (list in REPORT.json disputes); 19 fail
+  at HEAD and pass now. tests/unit/tools failures are the sandbox (sandbox_apply) in both.
+- Shipped pack by hand (v2026.09) on the sweep case with a second period 2026-04-01 to
+  2026-07-20: on 2026-09-28 the questions are new_employer, end_reported and
+  concluding_evaluation_due.2.made (2026-07-30); on 2026-09-29 validation_1_due.made
+  (2026-09-28) joins them. Verdict cannot_tell both days.
+
+Status: done.

@@ -24,6 +24,8 @@ STATUS_ORDER = ("settled", "guidance", "school", "litigated", "proposed")
 
 # The final evaluation kept its place among the open items when its name changed.
 OPEN_ITEM_ENDINGS = ("_due", "_due_from_ead_end", "file_by", "window_closes")
+# SPEC-resolutions point 20: dated items of one employment period, numbered as the period.
+OPEN_ITEM_PREFIXES = ("stem.new_plan_due.", "stem.concluding_evaluation_due.")
 CAP_GAP_ACTIVE = ("pending", "approved")
 
 # Duly's own choices, in contracts/product_settings.yaml.
@@ -37,6 +39,10 @@ FISCAL_YEAR_START = "capgap.fiscal_year_start_month_day"
 REPORT_EMPLOYER = "opt.report_employer_within_days"
 STEM_WINDOW_CLOSES = "stem.apply_window_closes_rule"
 STEM_FOLLOWS_OPT = "stem.requires_post_completion_opt"
+NEW_PLAN = "stem.new_plan_due_days"
+EVALUATION_DUE = "stem.evaluation_due_days"
+REPORT_INTERRUPTION = "opt.report_interruption"
+STEM_REPORTING = "stem.reporting_required"
 
 # SPEC-context, section 4: what Duly asks the person to confirm.
 HELD_OPT = "held_post_completion_opt"
@@ -249,6 +255,8 @@ class _Working:
         # Items whose step is recorded as done: no open item, nothing ahead.
         self.done: set[str] = set()
         self.ahead: list[dict[str, Any]] = []
+        # The STEM report items: a date of one that has passed is asked about (point 21).
+        self.reports: list[str] = []
 
     def name_missing(self, name: str) -> None:
         if name not in self.missing and name not in self.silent:
@@ -352,12 +360,15 @@ class _Working:
         formula: Callable[[Values], Value],
         needs: tuple[str, ...] = (),
         settings: tuple[str, ...] = (),
+        reading: bool = False,
     ) -> None:
         """One computed item. needs names the inputs the formula cannot do without: if
         one is missing the value is null and the input is named, never guessed. settings
         names Duly's own choices that were used on the item's inputs. An item that uses
-        an input held in an open conflict has the value null."""
+        an input held in an open conflict has the value null. reading marks an item whose
+        inputs Duly reads as more than they state."""
         item, value = self._item(item_id, unit, inputs, rule_ids, formula, needs, settings)
+        item["reading"] = item["reading"] or reading
         self.computed.append(item)
         if isinstance(value, date):
             self.dated[item_id] = value
@@ -413,7 +424,7 @@ class _Working:
             "reading": any(p.get("derivation") == "reading" for p in parameters),
         }
         # The look-ahead decides whether a dated item of this kind is an open item.
-        if isinstance(value, date) and item_id.endswith(OPEN_ITEM_ENDINGS):
+        if isinstance(value, date) and _open_kind(item_id):
             settings = (*settings, LOOKAHEAD)
         if settings:
             item["inputs"]["duly_settings"] = list(settings)
@@ -422,6 +433,14 @@ class _Working:
             item["alternates"] = alternates
             item["operative"] = self._operative(parameters)
         return item, value
+
+
+def _open_kind(item_id: str) -> bool:
+    return item_id.endswith(OPEN_ITEM_ENDINGS) or item_id.startswith(OPEN_ITEM_PREFIXES)
+
+
+def _days_after(day: date, rule_id: str) -> Callable[[Values], Value]:
+    return lambda v: day + timedelta(days=_whole(v, rule_id))
 
 
 def _ahead(item: dict[str, Any], entry_id: str) -> dict[str, Any]:
@@ -717,6 +736,7 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
         return formula
 
     for report in _validation_reports(work, extension, interval):
+        work.reports.append(f"stem.validation_{report}_due")
         work.add(
             f"stem.validation_{report}_due",
             "date",
@@ -725,6 +745,7 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
             validation_due(report),
             needs=("stem.ead_start",),
         )
+    work.reports.extend(("stem.evaluation_12_month_due", "stem.final_evaluation_due_from_ead_end"))
     work.add(
         "stem.evaluation_12_month_due",
         "date",
@@ -745,6 +766,88 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
         lambda v: None if end is None else end + timedelta(days=_whole(v, due)),
         needs=("stem.ead_end",),
     )
+
+
+Ask = Callable[[str, bool, dict[str, Any]], str]
+
+
+def _stem_card(work: _Working, stem: EadBlock | None) -> tuple[date, date] | None:
+    """The STEM card, when both its dates are entered and neither is held in a conflict."""
+    if stem is None or stem.ead_start is None or stem.ead_end is None:
+        return None
+    if {"stem.ead_start", "stem.ead_end"} & work.conflicted:
+        return None
+    return stem.ead_start, stem.ead_end
+
+
+def _add_periods(work: _Working, case: F1Case, ask: Ask) -> bool:
+    """SPEC-resolutions points 20 and 22, for each employment period, numbered as the
+    case lists them. Returns whether the end of a period is still to be reported."""
+    card = _stem_card(work, case.stem)
+    owed = False
+    for number, period in enumerate(case.employment, start=1):
+        start, end = period.start, period.end
+        if end is not None and end < start:
+            continue
+        begun = f"employment.{number}.start"
+        if card is not None and card[0] <= start <= card[1]:
+            about = {begun: start.isoformat(), "stem.ead_start": card[0].isoformat()}
+            if ask(f"employment.{number}.new_employer", True, about) == YES:
+                work.add(
+                    f"stem.new_plan_due.{number}",
+                    "date",
+                    {begun: start, "stem.ead_start": card[0], "stem.ead_end": card[1]},
+                    (NEW_PLAN,),
+                    _days_after(start, NEW_PLAN),
+                )
+        if end is None:
+            continue
+        ended = f"employment.{number}.end"
+        if card is not None and card[0] <= end < card[1]:
+            # Taking the period's end as the conclusion of the opportunity is a reading.
+            concluding = f"stem.concluding_evaluation_due.{number}"
+            work.reports.append(concluding)
+            work.add(
+                concluding,
+                "date",
+                {ended: end, "stem.ead_start": card[0], "stem.ead_end": card[1]},
+                (EVALUATION_DUE,),
+                _days_after(end, EVALUATION_DUE),
+                reading=True,
+            )
+        about = {begun: start.isoformat(), ended: end.isoformat()}
+        if ask(f"employment.{number}.end_reported", True, about) == NO:
+            # The regulation states the duty and no days; the days are SEVP's guidance.
+            rules: tuple[str, ...] = (REPORT_EMPLOYER,)
+            if work.holds(REPORT_INTERRUPTION):
+                rules = (*rules, REPORT_INTERRUPTION)
+            work.add(
+                f"employment.{number}.end_report_by",
+                "date",
+                {ended: end},
+                rules,
+                _days_after(end, REPORT_EMPLOYER),
+            )
+            owed = True
+    return owed
+
+
+def _passed_reports(work: _Working, ask: Ask) -> tuple[str, ...]:
+    """SPEC-resolutions point 21: a STEM report whose date has passed does not drop out.
+    Returns the judgement items of the reports the person says were not made."""
+    not_made = []
+    for item_id in work.reports:
+        day = work.dated.get(item_id)
+        if day is None or day >= work.today:
+            continue
+        made = ask(f"{item_id}.made", True, {item_id: day.isoformat()})
+        if made == YES:
+            work.done.add(item_id)
+        elif made == NO:
+            not_made.append(f"{item_id}.not_made")
+    if not_made and work.holds(STEM_REPORTING):
+        work.show(STEM_REPORTING)
+    return tuple(not_made)
 
 
 def _cap_gap_active(cap_gap: CapGap) -> bool:
@@ -1060,15 +1163,15 @@ def _judgement_items(work: _Working, case: F1Case, cpt_days: int | None) -> tupl
     return tuple(found)
 
 
-def _open_items(work: _Working) -> tuple[str, ...]:
+def _open_items(work: _Working, end_owed: bool) -> tuple[str, ...]:
     found = []
-    if work.numbers.get("employment.periods_not_reported", 0) > 0:
+    if end_owed or work.numbers.get("employment.periods_not_reported", 0) > 0:
         found.append("report_employer")
     horizon = work.today + timedelta(days=work.setting(LOOKAHEAD))
     for item_id, day in work.dated.items():
         if item_id in work.done:
             continue
-        if item_id.endswith(OPEN_ITEM_ENDINGS) and work.today <= day <= horizon:
+        if _open_kind(item_id) and work.today <= day <= horizon:
             found.append(item_id)
     return tuple(found)
 
@@ -1207,6 +1310,11 @@ def compute_f1(
     work.add("grace.ends", "date", ends, (grace,), grace_ends, needs=unknown_end)
     if case.stem is not None:
         _add_stem_items(work, opt, case.stem)
+    # Points 20, 21 and 22: until each is answered the verdict is cannot_tell.
+    later = len(questions)
+    end_owed = _add_periods(work, case, ask)
+    not_made = _passed_reports(work, ask)
+    unconfirmed += tuple(question["id"] for question in questions[later:])
     lists: list[dict[str, Any]] = []
     if case.opt is not None and case.stem is None:
         _add_next_step(work, case.opt)
@@ -1237,7 +1345,7 @@ def compute_f1(
         _add_cap_gap(work, case.cap_gap)
 
     _missing_ead_dates(work, opt, case.stem)
-    judgement_items = (*_judgement_items(work, case, cpt_days), *confirmed)
+    judgement_items = (*_judgement_items(work, case, cpt_days), *confirmed, *not_made)
     if held == NO:
         # The engine states no conclusion. The words of the law go with the judgement.
         work.show(STEM_FOLLOWS_OPT)
@@ -1246,15 +1354,19 @@ def compute_f1(
         judgement_items = (*judgement_items, "cap_gap_without_training")
     if past_cards and "capgap.ends" in work.dated:
         judgement_items = (*judgement_items, "grace_with_cap_gap")
+    # Point 25: the regimes give different answers only where an item shown carries an
+    # alternate.
+    shown = (*work.computed, *work.ahead)
+    litigated = today > final_end and any("alternates" in entry for entry in shown)
     verdict = decide(
         VerdictInputs(
             documents_count=case.documents_count,
             missing_inputs=tuple(work.missing),
             conflicting_inputs=(*conflicts, *unsettled),
             rules_checked_on=pack.rules_checked_on,
-            depends_on_litigated_rule=today > final_end,
+            depends_on_litigated_rule=litigated,
             judgement_items=judgement_items,
-            open_items=_open_items(work),
+            open_items=_open_items(work, end_owed),
             open_questions=unconfirmed,
         ),
         clock,

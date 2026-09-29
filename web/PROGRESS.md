@@ -437,3 +437,46 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   five new tests failed on ''.
 - fix: set `test.css.include` to the stylesheet in web/vite.config.ts.
 - evidence: iteration 5, `npx vitest run --root web src/styles.test.ts`, "expected '' to contain".
+
+## 2026-09-29, iteration 6: words for SPEC-resolutions points 11 to 24 (run l-web-96eb65b9eb)
+
+### Done
+
+- web/src/lib/labels.ts: lines for the seven new conflicts of points 11, 14, 15 and 16. Each
+  says what does not fit and names no number of days; none says a filing was late. The line
+  for `opt.ead_end.after_complete_by` says the date is Duly's count from the months in the
+  rule. `factRule` names the rule each conflict is checked against (point 26), and the screen
+  shows that rule's card beside the question.
+- Questions of points 20, 21 and 22: `employment.<n>.new_employer`,
+  `employment.<n>.end_reported`, `<report>.made`, with their values shown from `about`.
+- Judgement items: `grace_with_cap_gap` (18), `unemployment_opt_card_at_or_over_limit` (19,
+  the count and the rule, with the rule's words beside it), `<report>.not_made` (21).
+- Items: `stem.new_plan_due.<n>`, `stem.concluding_evaluation_due.<n>`,
+  `employment.<n>.end_report_by` (named as from SEVP guidance), `unemployment.opt_card_days_used`.
+- `report_employer` (22) now says the day to report is SEVP guidance, not the words of the
+  regulation.
+- Point 12: `next.grace.ends` has no name of its own now; the NEXT fixture holds `grace.ends`.
+  Point 13 was already in place (LEGAL_STATUS) and keeps its test.
+- Fallbacks: an unknown `conflict:<id>` reads "Some facts entered do not fit together.", and
+  its question asks the one conflict question with its buttons (the verdict's reasons show it is
+  a conflict). An unknown reason with no kind reads "Something in what you entered needs an
+  answer." An answer the screen has no words for is shown with a Remove button, not dropped.
+- web/src/lib/samples/*.json: engine output from engine.f1.compute_f1 for two cases on
+  2026-09-29, trimmed to the items and rules the tests read. web/src/components/Result.test.tsx
+  renders them.
+
+### Ran
+
+- The done command as written: exit 1. typecheck clean; 7 files, 212 tests passed; statements
+  97.31%, branches 93.61%; eslint clean; prettier clean; then `uv run python -m
+  tools.copy_lint.lint` raised PermissionError on tests/holdout/.gitkeep (the sandbox denies
+  reads there). Not a finding.
+- The same linter over the repo with tests/holdout left out (a scratch script under TMPDIR that
+  wraps `_candidates`): 0 findings.
+
+## Lesson
+
+- failure: whole engine output saved as a fixture under web/src/ failed the copy linter: rule
+  quotes hold "ineligible", "qualify", "compliance".
+- fix: trim a saved sample to the items and rules the test reads.
+- evidence: iteration 6, scoped lint gave 46 findings, all in web/src/lib/samples, then 0.

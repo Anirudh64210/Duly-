@@ -1,0 +1,91 @@
+{
+  "verdict": {
+    "state": "cannot_tell",
+    "reasons": [
+      "conflict:opt.card_longer_than_rule",
+      "conflict:opt.ead_end.after_complete_by",
+      "rule_in_litigation"
+    ]
+  },
+  "scope": {
+    "documents_count": 3,
+    "rules_checked_on": "2026-09-28"
+  },
+  "computed": [
+    {
+      "id": "opt.complete_by",
+      "value": null,
+      "unit": "date",
+      "inputs": {
+        "program_end_date": "2025-05-15"
+      },
+      "rule_ids": ["opt.complete_within_months"],
+      "status": "settled",
+      "reading": false
+    },
+    {
+      "id": "opt.file_by",
+      "value": "2025-05-01",
+      "unit": "date",
+      "inputs": {
+        "opt.dso_recommendation_date": "2025-04-01",
+        "duly_settings": ["product.open_item_lookahead_days"]
+      },
+      "rule_ids": ["opt.file_within_days_of_recommendation"],
+      "status": "settled",
+      "reading": false
+    }
+  ],
+  "rulepacks": [
+    {
+      "category": "f1",
+      "version": "v2026.09"
+    }
+  ],
+  "rules": {
+    "opt.complete_within_months": {
+      "value": 14,
+      "unit": "months",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(A)(3)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "A student must complete all practical training within a 14-month period following the completion of study",
+      "derivation": "verbatim"
+    },
+    "opt.file_within_days_of_recommendation": {
+      "value": 30,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(11)(i)(B)(2)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "The student must also file his or her Form I-765 or successor form with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record.",
+      "derivation": "verbatim"
+    }
+  },
+  "questions": [
+    {
+      "id": "opt.card_longer_than_rule",
+      "because": ["opt.ead_start", "opt.ead_end"],
+      "about": {
+        "opt.ead_start": "2025-06-01",
+        "opt.ead_end": "2026-08-01"
+      }
+    },
+    {
+      "id": "opt.ead_end.after_complete_by",
+      "because": ["program_end_date", "opt.ead_end"],
+      "about": {
+        "program_end_date": "2025-05-15",
+        "opt.ead_end": "2026-08-01"
+      }
+    }
+  ],
+  "today": {
+    "date": "2026-09-29",
+    "time_zone": "UTC"
+  },
+  "upcoming": [],
+  "lists": []
+}

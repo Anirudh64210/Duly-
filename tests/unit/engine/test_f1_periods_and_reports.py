@@ -1,5 +1,5 @@
 """engine/f1.py: questions about employment periods and passed reports.
-specs/product-1/SPEC-resolutions.md, points 20, 21 and 22.
+specs/product-1/SPEC-resolutions.md, points 20, 21, 22, 25 and 26.
 
 Written before the engine has them. Each point asks a question with an about; until it is
 answered the verdict is cannot_tell; each answer has its own result.
@@ -23,10 +23,12 @@ from hypothesis import strategies as st
 from engine import f1
 from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
+    BLOCKED,
     answer_as_the_screen_does,
     build_pack,
     case_problems,
     clock_on,
+    conflicts,
     contract_problems,
     ead,
     items,
@@ -34,8 +36,10 @@ from tests.support.f1_pack import (
     pack_dict,
     question,
     question_ids,
+    refuse_placeholders,
     rule_value,
     said,
+    values,
     with_changes,
 )
 
@@ -52,7 +56,8 @@ def run(
     assert case_problems(case) == [], "the test case itself must match the case contract"
     clock = clock_on(today)
     pack = build_pack(today) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(f1.parse_case(case, clock), pack, clock)
+    # tests/unit/support/test_placeholders.py: the case goes through the guard.
+    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), pack, clock)
 
 
 def answered(case: dict[str, Any], today: date, **given_answers: bool) -> dict[str, Any]:
@@ -342,3 +347,125 @@ def test_point_22_the_report_days_come_from_the_pack(days):
 def test_point_22_an_open_period_is_not_asked_about():
     case = with_changes(OPT_ONLY, employment=[job("2025-11-01", None)])
     assert asked_like(run(case, TODAY), END_REPORTED) == []
+
+
+# Point 25: rule_in_litigation only when today is after the last card end and at least one
+# item shown carries an alternate. After point 23 an item dated before the blocked row's
+# effective_from carries none, and the two regimes then give the same answer.
+
+
+def with_blocked_grace_from(raw: dict[str, Any], effective_from: str) -> dict[str, Any]:
+    changed = copy.deepcopy(raw)
+    for parameter in changed["parameters"]:
+        if parameter["id"] == "grace.after_completion_days" and parameter.get("regime") == BLOCKED:
+            parameter["effective_from"] = effective_from
+    return changed
+
+
+# 91 FR 44976 took effect on 2026-09-15.
+BLOCKED_FROM = "2026-09-15"
+
+# OPT 2023-06-01 to 2024-05-31, program end 2023-05-15. The window closes 2023-05-15 + 60 =
+# 2023-07-14 (16 to May 31, 30 to Jun 30, 14 more); the card begins before. Filed 9 days
+# after the recommendation. 14 months reach 2024-07-15, after the card end. grace.ends:
+# 2024-05-31 + 60 = 2024-07-30 (30 to Jun 30, 30 more), before 2026-09-15. One period open
+# from the first day of the card, so no period has a recorded end.
+ENDED_2024: dict[str, Any] = with_changes(
+    OPT_ONLY,
+    program_end_date="2023-05-15",
+    opt=ead("2023-03-01", "2023-03-10", "2023-06-01", "2024-05-31"),
+    employment=[job("2023-06-01", None)],
+)
+
+# The same card three years later: OPT 2026-06-01 to 2027-05-31, program end 2026-05-15.
+# grace.ends 2027-05-31 + 60 = 2027-07-30 (30 to Jun 30, 30 more); under the blocked value
+# of 30, 2027-06-30. Both after 2026-09-15.
+ENDS_2027: dict[str, Any] = with_changes(
+    ENDED_2024,
+    program_end_date="2026-05-15",
+    opt=ead("2026-03-02", "2026-03-10", "2026-06-01", "2027-05-31"),
+    employment=[job("2026-06-01", None)],
+)
+
+
+def test_point_25_the_cases_are_clean():
+    assert conflicts(run(ENDED_2024, TODAY)) == []
+    assert conflicts(run(ENDS_2027, date(2027, 6, 15), pack_dict("2027-06-15"))) == []
+
+
+def test_point_25_a_grace_period_over_before_the_blocked_rule_is_no_litigation():
+    raw = with_blocked_grace_from(pack_dict(TODAY), BLOCKED_FROM)
+    out = run(ENDED_2024, TODAY, raw)
+    assert values(out)["grace.ends"] == "2024-07-30"
+    # No item shown carries an alternate (point 23), so the regimes give the same answer.
+    assert not [i for i, item in items(out).items() if "alternates" in item]
+    assert "rule_in_litigation" not in out["verdict"]["reasons"]
+    # Nothing else is open in the case: the verdict is not the not-knowing state.
+    assert out["verdict"]["state"] != "cannot_tell"
+
+
+def test_point_25_where_the_regimes_differ_the_verdict_stays_cannot_tell():
+    today = date(2027, 6, 15)  # after the card end 2027-05-31
+    raw = with_blocked_grace_from(pack_dict(today), BLOCKED_FROM)
+    out = run(ENDS_2027, today, raw)
+    assert items(out)["grace.ends"]["alternates"][0]["value"] == "2027-06-30"
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "rule_in_litigation" in out["verdict"]["reasons"]
+
+
+def test_point_25_on_or_before_the_last_card_end_there_is_no_litigation():
+    for today in (date(2027, 5, 30), date(2027, 5, 31)):
+        raw = with_blocked_grace_from(pack_dict(today), BLOCKED_FROM)
+        out = run(ENDS_2027, today, raw)
+        assert "alternates" in items(out)["grace.ends"]
+        assert "rule_in_litigation" not in out["verdict"]["reasons"]
+
+
+@settings(deadline=None, max_examples=25)
+@given(st.dates(min_value=date(2024, 6, 1), max_value=date(2030, 12, 31)))
+def test_point_25_litigation_follows_the_alternates_whatever_the_day(today):
+    # Every day after the card end 2024-05-31. With the blocked row from 2026-09-15 no
+    # item of ENDED_2024 carries an alternate on any day; with it from 2000-01-01
+    # grace.ends carries one (2024-05-31 + 30 = 2024-06-30), and the reason is there.
+    later = with_blocked_grace_from(pack_dict(today), BLOCKED_FROM)
+    assert "rule_in_litigation" not in run(ENDED_2024, today, later)["verdict"]["reasons"]
+    assert "rule_in_litigation" in run(ENDED_2024, today, pack_dict(today))["verdict"]["reasons"]
+
+
+# Point 26: a conflict's rule is named in the output's rules, not on the question. A
+# question carries id, because and about (point 6) and no rule_ids.
+# The OPT card of OPT_ONLY with one open period. The recommendation is 2025-08-01.
+ONE_OPEN: dict[str, Any] = with_changes(OPT_ONLY, employment=[job("2025-11-01", None)])
+FILED_EARLY: dict[str, Any] = with_changes(
+    ONE_OPEN, opt=ead("2025-08-01", "2025-07-31", "2025-11-01", "2026-10-31")
+)
+# opt.complete_by: 2025-09-15 + 14 months = 2026-11-15. A card from 2025-11-20 through
+# 2026-11-16 runs one day past it.
+PAST_COMPLETE_BY: dict[str, Any] = with_changes(
+    ONE_OPEN,
+    opt=ead("2025-08-01", "2025-08-10", "2025-11-20", "2026-11-16"),
+    employment=[job("2025-11-20", None)],
+)
+POINT_26 = [
+    (
+        FILED_EARLY,
+        "opt.i765_filed_date.before_recommendation",
+        "opt.file_within_days_of_recommendation",
+    ),
+    (PAST_COMPLETE_BY, "opt.ead_end.after_complete_by", "opt.complete_within_months"),
+]
+
+
+def test_point_26_a_conflict_question_carries_no_rule_ids():
+    for case, conflict, _ in POINT_26:
+        out = run(case, TODAY)
+        assert conflicts(out) == [conflict]
+        assert set(question(out, conflict)) == {"id", "because", "about"}
+
+
+def test_point_26_a_conflicts_rule_is_named_in_rules():
+    for case, conflict, rule_id in POINT_26:
+        out = run(case, TODAY)
+        assert rule_id in out["rules"], conflict
+        assert out["rules"][rule_id]["quote"], conflict
+        assert contract_problems(out) == []

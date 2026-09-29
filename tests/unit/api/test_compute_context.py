@@ -31,6 +31,7 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    periods_answered,
     question_ids,
     with_changes,
 )
@@ -54,15 +55,19 @@ GOOD: dict[str, Any] = {
     "time_zone": "America/Los_Angeles",
 }
 
-STEM_ONLY: dict[str, Any] = {
-    "program_end_date": "2026-05-15",
-    "degree_level": "master",
-    "documents_count": 2,
-    "cpt_full_time_days": 0,
-    "employment": [job("2026-06-01", None)],
-    "stem": ead("2026-04-01", "2026-04-20", "2026-06-01", "2028-05-31"),
-    "time_zone": "Asia/Kolkata",
-}
+# SPEC-resolutions.md, point 20: the period begins on the STEM card; it is not with a new
+# employer (periods_answered). The tests here are about held_post_completion_opt.
+STEM_ONLY: dict[str, Any] = periods_answered(
+    {
+        "program_end_date": "2026-05-15",
+        "degree_level": "master",
+        "documents_count": 2,
+        "cpt_full_time_days": 0,
+        "employment": [job("2026-06-01", None)],
+        "stem": ead("2026-04-01", "2026-04-20", "2026-06-01", "2028-05-31"),
+        "time_zone": "Asia/Kolkata",
+    }
+)
 
 CAP_GAP_ONLY: dict[str, Any] = {
     "program_end_date": "2026-12-18",
@@ -101,6 +106,11 @@ def computed(client: TestClient, case: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = response.json()
     assert contract_problems(out) == []
     return out
+
+
+def with_answers(case: dict[str, Any], given: dict[str, Any]) -> dict[str, Any]:
+    """The case with the answers given added to those it holds (periods_answered)."""
+    return with_changes(case, confirmations={**case.get("confirmations", {}), **given})
 
 
 def refused_in_plain_words(response: Any) -> str:
@@ -217,7 +227,9 @@ def test_a_good_case_after_a_refused_zone_is_answered(client):
 
 
 def test_a_case_with_no_gap_carries_an_empty_list_of_questions(client):
-    out = computed(client, GOOD)
+    # SPEC-resolutions.md, point 22: the end of GOOD's period, 2026-08-31, was reported
+    # (periods_answered). The test is about the questions of SPEC-context, section 4.
+    out = computed(client, periods_answered(GOOD))
     assert out["questions"] == []
     assert unconfirmed(out) == []
 
@@ -248,7 +260,7 @@ def test_a_gap_is_asked_about_and_the_verdict_waits(client, case, question):
     ids=[HELD_OPT, CAP_GAP_ALONE],
 )
 def test_the_answer_yes_names_what_is_missing(client, case, question, missing):
-    out = computed(client, with_changes(case, confirmations=answers(**{question: True})))
+    out = computed(client, with_answers(case, answers(**{question: True})))
     assert out["questions"] == []
     assert out["verdict"]["state"] == "cannot_tell"
     assert missing in out["verdict"]["reasons"]
@@ -263,14 +275,14 @@ def test_the_answer_yes_names_what_is_missing(client, case, question, missing):
     ids=[HELD_OPT, CAP_GAP_ALONE],
 )
 def test_the_answer_no_is_for_the_dso(client, case, question, judgement):
-    out = computed(client, with_changes(case, confirmations=answers(**{question: False})))
+    out = computed(client, with_answers(case, answers(**{question: False})))
     assert out["questions"] == []
     assert out["verdict"]["state"] == "talk_to_dso"
     assert judgement in out["verdict"]["reasons"]
 
 
 def test_the_answer_no_about_opt_shows_the_paragraph_on_who_may_apply(client):
-    case = with_changes(STEM_ONLY, confirmations=answers(held_post_completion_opt=False))
+    case = with_answers(STEM_ONLY, answers(held_post_completion_opt=False))
     shown = computed(client, case)["rules"]["stem.requires_post_completion_opt"]
     assert shown["quote"].strip()
     assert shown["citation"].strip()
@@ -279,11 +291,11 @@ def test_the_answer_no_about_opt_shows_the_paragraph_on_who_may_apply(client):
 
 def test_no_employment_answered_yes_is_counted_and_answered_no_is_missing(client):
     empty = with_changes(GOOD, employment=[])
-    yes = computed(client, with_changes(empty, confirmations=answers(**{NO_EMPLOYMENT: True})))
+    yes = computed(client, with_answers(empty, answers(**{NO_EMPLOYMENT: True})))
     # OPT from 2026-06-01 through 2026-09-28 in Los Angeles: 30 + 31 + 31 + 28.
     assert items(yes)["unemployment.days_used"]["value"] == 120
     assert yes["questions"] == []
-    no = computed(client, with_changes(empty, confirmations=answers(**{NO_EMPLOYMENT: False})))
+    no = computed(client, with_answers(empty, answers(**{NO_EMPLOYMENT: False})))
     assert no["verdict"]["state"] == "cannot_tell"
     assert "missing:employment" in no["verdict"]["reasons"]
 
@@ -317,7 +329,7 @@ def test_confirmations_that_do_not_match_the_contract_are_refused(client, sent):
 
 
 def test_nothing_is_kept_between_requests_not_even_an_answer(client):
-    answered = with_changes(STEM_ONLY, confirmations=answers(held_post_completion_opt=True))
+    answered = with_answers(STEM_ONLY, answers(held_post_completion_opt=True))
     assert computed(client, answered)["questions"] == []
     # The same person, asked again without the answer, is asked the question again.
     assert question_ids(computed(client, STEM_ONLY)) == [HELD_OPT]

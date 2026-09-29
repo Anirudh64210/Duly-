@@ -11,6 +11,7 @@ import type {
   ShownRule,
 } from "../lib/compute";
 import {
+  ANSWER_NOT_SHOWN,
   GROUPS,
   LIST_LINE,
   NEXT_HEADING,
@@ -21,8 +22,11 @@ import {
   VERBATIM_LINE,
   answerLine,
   becauseLine,
+  conflictLine,
+  conflictQuestionCopy,
   dsoQuestion,
   factLine,
+  factRule,
   formatDate,
   formatValue,
   groupOf,
@@ -35,6 +39,7 @@ import {
   regimeLine,
   scopeLine,
   settingName,
+  showsAbout,
   statusTag,
   todayLine,
 } from "../lib/labels";
@@ -252,7 +257,10 @@ function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rul
 // SPEC section 5: where the verdict turns on Duly's count, the words of the regulation
 // are shown beside it.
 const COUNT_BESIDE: ReadonlyMap<string, string> = new Map(
-  Object.entries({ cpt_full_time_at_or_over_bar: "cpt.full_time_bar_days" }),
+  Object.entries({
+    cpt_full_time_at_or_over_bar: "cpt.full_time_bar_days",
+    unemployment_opt_card_at_or_over_limit: "opt.unemployment_limit_days",
+  }),
 );
 
 export function Verdict(props: { output: EngineOutput; onChangeZone: () => void }) {
@@ -337,6 +345,7 @@ export function Questions(props: {
 }) {
   const { output, sent, busy, onAnswer, onWithdraw } = props;
   const open = new Set(output.questions.map((question) => question.id));
+  const reasons = output.verdict.reasons;
   const answered = Object.entries(sent).filter(([id]) => !open.has(id));
   if (open.size === 0 && answered.length === 0) return null;
 
@@ -347,16 +356,23 @@ export function Questions(props: {
           <h3 id="questions-open">Questions for you</h3>
           <ul>
             {output.questions.map((question) => {
-              const copy = questionCopy(question.id);
-              const fact = factLine(question.id);
+              const copy = conflictQuestionCopy(question.id, reasons);
+              const fact = conflictLine(question.id, reasons);
+              const ruleId = factRule(question.id);
+              const rule = ruleId === null ? undefined : output.rules[ruleId];
               return (
                 <li className="question" key={question.id}>
                   {fact && <p className="fact">{fact}</p>}
                   <p className="ask">{copy ? copy.ask : QUESTION_NOT_SHOWN}</p>
-                  {fact && question.about ? (
+                  {(fact || showsAbout(question.id)) && question.about ? (
                     <AboutValues about={question.about} />
                   ) : (
                     <p className="because">{becauseLine(question.because)}</p>
+                  )}
+                  {ruleId !== null && rule && (
+                    <ul className="rules">
+                      <RuleCard id={ruleId} rule={rule} />
+                    </ul>
                   )}
                   {copy && (
                     <div className="answers" role="group" aria-label={copy.ask}>
@@ -388,7 +404,23 @@ export function Questions(props: {
           <ul>
             {answered.map(([id, given]) => {
               const copy = questionCopy(id);
-              if (!copy) return null;
+              if (!copy) {
+                return (
+                  <li className="question" key={id}>
+                    <p className="ask">{ANSWER_NOT_SHOWN}</p>
+                    <div className="answers">
+                      <button
+                        type="button"
+                        className="quiet"
+                        disabled={busy}
+                        onClick={() => onWithdraw(id)}
+                      >
+                        Remove the answer
+                      </button>
+                    </div>
+                  </li>
+                );
+              }
               return (
                 <li className="question" key={id}>
                   {factLine(id) && <p className="fact">{factLine(id)}</p>}

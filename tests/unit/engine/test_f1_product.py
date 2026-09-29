@@ -37,6 +37,7 @@ from tests.support.f1_pack import (
     QUESTION_IDS,
     SHIFTED,
     STEM_LIST,
+    WINDOW_CONFLICT_IDS,
     answer_as_the_screen_does,
     answers,
     answers_with_no_about,
@@ -49,10 +50,13 @@ from tests.support.f1_pack import (
     conflicts_by_the_table,
     contract_problems,
     ead,
+    is_period_or_report_question,
     items,
     job,
     months_later,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     reasons_with,
@@ -117,7 +121,13 @@ def run(
     clock = clock or clock_on(today)
     checked = clock.now().date()
     pack = build_pack(checked) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(parsed(case, clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(parsed(sent, clock), pack, clock)
+
+    # SPEC-resolutions.md, points 20 to 22: a case whose period and report questions are
+    # answered with periods_answered is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def review(case: dict[str, Any]) -> dict[str, Any]:
@@ -169,18 +179,23 @@ STEM_AHEAD: dict[str, Any] = with_changes(
 )
 
 # The STEM card is in hand. 24 months from 2024-11-01 is 2026-11-01.
-STEM_NOW: dict[str, Any] = with_changes(
-    FITS,
-    program_end_date="2023-09-15",
-    opt=ead("2023-08-01", "2023-08-10", "2023-11-01", "2024-10-31"),
-    stem=ead("2024-08-15", "2024-08-20", "2024-11-01", "2026-10-31"),
-    employment=[job("2023-11-01", None)],
+# SPEC-resolutions.md, point 21: the reports dated before 2026-09-28 were made
+# (periods_answered); the rows of the table are about the dates of the cards.
+STEM_NOW: dict[str, Any] = periods_answered(
+    with_changes(
+        FITS,
+        program_end_date="2023-09-15",
+        opt=ead("2023-08-01", "2023-08-10", "2023-11-01", "2024-10-31"),
+        stem=ead("2024-08-15", "2024-08-20", "2024-11-01", "2026-10-31"),
+        employment=[job("2023-11-01", None)],
+    )
 )
 
 # STEM_NOW with no employment on 2024-11-01, so that a STEM card which begins a day
-# later leaves no employment between the cards.
-TWO_JOBS: dict[str, Any] = with_changes(
-    STEM_NOW, employment=[job("2023-11-01", "2024-10-31"), job("2024-11-02", None)]
+# later leaves no employment between the cards. Points 20 to 22: the first end was
+# reported, the second period is not with a new employer, and the reports were made.
+TWO_JOBS: dict[str, Any] = periods_answered(
+    with_changes(STEM_NOW, employment=[job("2023-11-01", "2024-10-31"), job("2024-11-02", None)])
 )
 
 PETITION: dict[str, Any] = with_changes(
@@ -205,16 +220,24 @@ ROWS: dict[str, tuple[date, dict[str, Any], dict[str, Any], set[str]]] = {
         with_block(STEM_AHEAD, "stem", i765_filed_date="2026-09-28"),
         {"2026-09-29"},
     ),
+    # SPEC-resolutions.md, point 11: a filing dated before its recommendation is a conflict
+    # of its own. A recommendation after today lies after any filing on or before today,
+    # so the case that raises this row has no filing (with a date missing, point 11 raises
+    # none of its four), and the safe case files on the recommendation day, which fits.
     "opt.dso_recommendation_date.after_today": (
         TODAY,
-        with_block(AHEAD, "opt", dso_recommendation_date="2026-09-29"),
-        with_block(AHEAD, "opt", dso_recommendation_date="2026-09-28"),
+        with_block(AHEAD, "opt", dso_recommendation_date="2026-09-29", i765_filed_date=None),
+        with_block(
+            AHEAD, "opt", dso_recommendation_date="2026-09-28", i765_filed_date="2026-09-28"
+        ),
         {"2026-09-29"},
     ),
     "stem.dso_recommendation_date.after_today": (
         TODAY,
-        with_block(STEM_AHEAD, "stem", dso_recommendation_date="2026-09-29"),
-        with_block(STEM_AHEAD, "stem", dso_recommendation_date="2026-09-28"),
+        with_block(STEM_AHEAD, "stem", dso_recommendation_date="2026-09-29", i765_filed_date=None),
+        with_block(
+            STEM_AHEAD, "stem", dso_recommendation_date="2026-09-28", i765_filed_date="2026-09-28"
+        ),
         {"2026-09-29"},
     ),
     # The start asked for is 2026-10-01, after both filing dates.
@@ -224,18 +247,28 @@ ROWS: dict[str, tuple[date, dict[str, Any], dict[str, Any], set[str]]] = {
         with_block(PETITION, "cap_gap", petition_filed_on="2026-09-28"),
         {"2026-09-29"},
     ),
-    # The OPT card begins on 2025-11-01.
+    # The OPT card begins on 2025-11-01. SPEC-resolutions.md, point 11: the recommendation
+    # moves to 2025-10-15 so that both filings are within its 30 days (16 days reach Oct 31,
+    # 14 more 2025-11-14). Point 15: the window closes 60 days after 2025-09-15, on
+    # 2025-11-14, so neither filing is after it.
     "opt.i765_filed_date.after_card": (
         TODAY,
-        with_block(FITS, "opt", i765_filed_date="2025-11-02"),
-        with_block(FITS, "opt", i765_filed_date="2025-11-01"),
+        with_block(FITS, "opt", dso_recommendation_date="2025-10-15", i765_filed_date="2025-11-02"),
+        with_block(FITS, "opt", dso_recommendation_date="2025-10-15", i765_filed_date="2025-11-01"),
         {"2025-11-02", "2025-11-01"},
     ),
-    # The STEM card begins on 2024-11-01.
+    # The STEM card begins on 2024-11-01. Point 11: the recommendation moves to 2024-10-01
+    # so that both filings are within its 60 days (30 days reach Oct 31, 30 more
+    # 2024-11-30). Point 14: the window opens 90 days before the OPT card's end of
+    # 2024-10-31, on 2024-08-02, so neither filing is before it.
     "stem.i765_filed_date.after_card": (
         TODAY,
-        with_block(STEM_NOW, "stem", i765_filed_date="2024-11-02"),
-        with_block(STEM_NOW, "stem", i765_filed_date="2024-11-01"),
+        with_block(
+            STEM_NOW, "stem", dso_recommendation_date="2024-10-01", i765_filed_date="2024-11-02"
+        ),
+        with_block(
+            STEM_NOW, "stem", dso_recommendation_date="2024-10-01", i765_filed_date="2024-11-01"
+        ),
         {"2024-11-02", "2024-11-01"},
     ),
     # Today is 2026-10-05, so neither filing date is after today.
@@ -366,6 +399,8 @@ def test_the_answer_yes_to_another_row_leaves_this_one_open(conflict):
     # wrong: an answer is read for the question it names.
     about = question(run(raises, today=today), conflict)["about"]
     given = {other: {"answer": True, "on": today.isoformat(), "about": about}}
+    # The answers the case holds to the questions of points 20 to 22 are kept.
+    given = {**raises.get("confirmations", {}), **given}
     out = run(with_changes(raises, confirmations=given), today=today)
     assert out["verdict"]["state"] == "cannot_tell"
     assert conflicts(out) == [conflict]
@@ -493,9 +528,13 @@ def test_review_1_a_filing_dated_2030():
     # 2030-01-01 is after today, 2026-09-28, and after the card, which begins 2025-11-01.
     out = review(with_block(REVIEW_OPT, "opt", i765_filed_date="2030-01-01"))
     assert out["verdict"]["state"] == "cannot_tell"
+    # SPEC-resolutions.md, point 15: the OPT window closes 60 days after the program end of
+    # 2025-09-15 (15 days reach Sep 30, 31 Oct 31, 14 more 2025-11-14); 2030-01-01 is after
+    # it. No recommendation is entered, so point 11 raises nothing.
     assert set(conflicts(out)) == {
         "opt.i765_filed_date.after_today",
         "opt.i765_filed_date.after_card",
+        "opt.i765_filed_date.after_window_closes",
     }
     assert sorted(question_ids(out)) == sorted(conflicts(out))
 
@@ -548,18 +587,24 @@ def test_review_1_an_opt_card_of_three_years():
     # 12 months from 2025-11-01 is 2026-11-01. The card runs through 2028-10-31.
     out = review(with_block(REVIEW_OPT, "opt", ead_end="2028-10-31"))
     assert out["verdict"]["state"] == "cannot_tell"
-    assert conflicts(out) == ["opt.card_longer_than_rule"]
-    assert question_ids(out) == ["opt.card_longer_than_rule"]
+    # SPEC-resolutions.md, point 16: 14 months from the program end of 2025-09-15 is
+    # 2026-11-15, and the card runs through 2028-10-31, after it.
+    assert sorted(conflicts(out)) == ["opt.card_longer_than_rule", "opt.ead_end.after_complete_by"]
+    assert sorted(question_ids(out)) == sorted(conflicts(out))
 
 
 # OPT 2024-11-01 to 2025-10-31, STEM 2026-03-01 to 2028-02-29. 24 months from
 # 2026-03-01 is 2028-03-01, so the STEM card is not longer than the rule.
-FOUR_MONTHS: dict[str, Any] = with_changes(
-    REVIEW_OPT,
-    program_end_date="2024-09-15",
-    opt=ead(None, None, "2024-11-01", "2025-10-31"),
-    stem=ead(None, None, "2026-03-01", "2028-02-29"),
-    employment=[job("2024-11-01", None)],
+# SPEC-resolutions.md, point 21: the reports dated before the day of the review were
+# made (periods_answered).
+FOUR_MONTHS: dict[str, Any] = periods_answered(
+    with_changes(
+        REVIEW_OPT,
+        program_end_date="2024-09-15",
+        opt=ead(None, None, "2024-11-01", "2025-10-31"),
+        stem=ead(None, None, "2026-03-01", "2028-02-29"),
+        employment=[job("2024-11-01", None)],
+    )
 )
 
 
@@ -577,12 +622,16 @@ def test_review_1_four_months_between_the_two_cards():
 # OPT 2024-07-01 to 2025-06-30, STEM 2025-10-01 to 2027-09-30. Employment stops at the
 # OPT end and starts again at the STEM start. Between them lie July (31), August (31)
 # and September (30): 92 days.
-HOLE: dict[str, Any] = with_changes(
-    REVIEW_OPT,
-    program_end_date="2024-05-15",
-    opt=ead(None, None, "2024-07-01", "2025-06-30"),
-    stem=ead(None, None, "2025-10-01", "2027-09-30"),
-    employment=[job("2024-07-01", "2025-06-30"), job("2025-10-01", None)],
+# SPEC-resolutions.md, points 20 to 22: the first end was reported, the second period is
+# not with a new employer, and the reports were made (periods_answered).
+HOLE: dict[str, Any] = periods_answered(
+    with_changes(
+        REVIEW_OPT,
+        program_end_date="2024-05-15",
+        opt=ead(None, None, "2024-07-01", "2025-06-30"),
+        stem=ead(None, None, "2025-10-01", "2027-09-30"),
+        employment=[job("2024-07-01", "2025-06-30"), job("2025-10-01", None)],
+    )
 )
 
 
@@ -1355,7 +1404,11 @@ def records(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         else:
             del case[part]
     given_answers = draw(
-        st.dictionaries(st.sampled_from((*ALL_QUESTIONS, *CONFLICT_IDS)), st.booleans(), max_size=6)
+        st.dictionaries(
+            st.sampled_from((*ALL_QUESTIONS, *CONFLICT_IDS, *WINDOW_CONFLICT_IDS)),
+            st.booleans(),
+            max_size=6,
+        )
     )
     if given_answers:
         case["confirmations"] = answers(today.isoformat(), **given_answers)
@@ -1377,7 +1430,11 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
     asked = question_ids(out)
     answered = case.get("confirmations", {})
     assert len(asked) == len(set(asked))
-    assert set(asked) <= set(ALL_QUESTIONS) | set(CONFLICT_IDS)
+    # SPEC-resolutions.md, points 11, 14, 15 and 16: seven rows joined the table.
+    # Points 20, 21 and 22: the questions of a period and of a passed report.
+    assert {q for q in asked if not is_period_or_report_question(q)} <= (
+        set(ALL_QUESTIONS) | set(CONFLICT_IDS) | set(WINDOW_CONFLICT_IDS)
+    )
     if asked or conflicts(out) or unconfirmed(out) or reasons_with(out, "missing:"):
         assert state == "cannot_tell"
 
@@ -1389,7 +1446,9 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
             assert conflict in conflicts(out)
     # The engine finds no conflict that the table does not hold. The ids it had before
     # this round, such as stem_start, are not in the table and are left to their tests.
-    assert {c for c in conflicts(out) if c in CONFLICT_IDS} <= sure | unsure
+    # Points 11, 14, 15 and 16: the seven new rows are held to the table too.
+    table = set(CONFLICT_IDS) | set(WINDOW_CONFLICT_IDS)
+    assert {c for c in conflicts(out) if c in table} <= sure | unsure
     if state in ("no_open_items", "needs_you"):
         # A conflict answered with yes is for the DSO. It is never quiet.
         assert sure == set()
