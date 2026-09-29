@@ -32,6 +32,7 @@ class Violation:
     gate: int
     name: str
     branch: str
+    expect: str
     plant: Callable[[Path], None]
 
 
@@ -62,54 +63,66 @@ def _fake_token() -> str:
 
 VIOLATIONS: tuple[Violation, ...] = (
     Violation(
-        1, "unused import", "lane/founder/g1a", lambda r: _write(r, "api/extra.py", "import os\n")
+        1,
+        "unused import",
+        "lane/founder/g1a",
+        "F401",
+        lambda r: _write(r, "api/extra.py", "import os\n"),
     ),
     Violation(
         1,
         "forbidden word in product copy",
         "lane/founder/g1b",
+        "phrase:eligible",
         lambda r: _write(r, "web/src/extra.ts", 'export const line = "You are eligible";\n'),
     ),
     Violation(
         1,
         "long dash in a doc",
         "lane/founder/g1c",
+        "dash:",
         lambda r: _write(r, "specs/extra.md", f"one {chr(0x2014)} two\n"),
     ),
     Violation(
         2,
         "python type error",
         "lane/founder/g2a",
+        "api/extra.py:2",
         lambda r: _write(r, "api/extra.py", "def f() -> int:\n    return 'one'\n"),
     ),
     Violation(
         2,
         "typescript type error",
         "lane/founder/g2b",
+        "extra.ts",
         lambda r: _write(r, "web/src/extra.ts", 'export const n: number = "one";\n'),
     ),
     Violation(
         3,
         "web lane edits the hidden tests",
         "lane/L-web/g3a",
+        "may not change tests/holdout/extra.py",
         lambda r: _write(r, "tests/holdout/extra.py", "def test_pass():\n    assert True\n"),
     ),
     Violation(
         3,
         "web lane edits the boundary",
         "lane/L-web/g3b",
+        "may not change BOUNDARY.md",
         lambda r: _append(r, "BOUNDARY.md", "\nDuly may answer anything.\n"),
     ),
     Violation(
         4,
         "committed secret",
         "lane/founder/g4a",
+        "leaks found: 1",
         lambda r: _write(r, "api/extra.py", f'TOKEN = "{_fake_token()}"\n'),
     ),
     Violation(
         4,
         "time read outside the clock",
         "lane/founder/g4b",
+        "duly-time-only-through-clocks",
         lambda r: _write(
             r,
             "api/extra.py",
@@ -122,6 +135,7 @@ VIOLATIONS: tuple[Violation, ...] = (
         5,
         "quiet verdict made the fallback",
         "lane/founder/g5a",
+        "test_not_knowing_wins_over_everything",
         lambda r: _replace(
             r,
             "engine/verdict.py",
@@ -133,6 +147,7 @@ VIOLATIONS: tuple[Violation, ...] = (
         5,
         "web headline changed",
         "lane/founder/g5b",
+        "scopes the quiet state",
         lambda r: _replace(
             r,
             "web/src/lib/status.ts",
@@ -144,6 +159,7 @@ VIOLATIONS: tuple[Violation, ...] = (
         6,
         "new code with no test",
         "lane/founder/g6a",
+        "api/extra.py (0.0%)",
         lambda r: _write(
             r,
             "api/extra.py",
@@ -193,6 +209,12 @@ def _gate(number: int) -> tuple[int, str]:
 def _reset() -> None:
     _run([*GIT, "checkout", "-q", "-f", "main"], SCRATCH)
     _run([*GIT, "clean", "-qfd", "-e", "node_modules"], SCRATCH)
+    # A planted commit must not stay reachable, or it would trip the next scan.
+    _, out = _run([*GIT, "branch", "--format=%(refname:short)"], SCRATCH)
+    for branch in out.split():
+        if branch != "main":
+            _run([*GIT, "branch", "-q", "-D", branch], SCRATCH)
+    _run([*GIT, "reflog", "expire", "--expire=now", "--all"], SCRATCH)
 
 
 def main() -> int:
@@ -215,11 +237,13 @@ def main() -> int:
         v.plant(SCRATCH)
         _run([*GIT, "add", "-A"], SCRATCH)
         _run([*GIT, "commit", "-q", "-m", v.name], SCRATCH)
-        code, _ = _gate(v.gate)
-        caught = code != 0
+        code, out = _gate(v.gate)
+        caught = code != 0 and v.expect in out
         print(f"  gate {v.gate}: {v.name}: {'caught' if caught else 'MISSED'}")
         if not caught:
-            failures.append(f"gate {v.gate} missed: {v.name}")
+            reason = "passed" if code == 0 else f"failed without saying {v.expect!r}"
+            failures.append(f"gate {v.gate} missed: {v.name} ({reason})")
+            print(out[-1200:])
     _reset()
 
     if failures:

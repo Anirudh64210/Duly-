@@ -58,6 +58,12 @@ describe("verdict copy", () => {
     expect(reasonLine("conflict:program_end")).toBe("Two documents disagree on program end.");
   });
 
+  it("does not mistake built-in object names for reasons", () => {
+    for (const name of ["constructor", "valueOf", "toString", "__proto__", "hasOwnProperty"]) {
+      expect(reasonLine(name)).toBe("Duly needs more before it can say.");
+    }
+  });
+
   it("never shows a raw code or an empty line, whatever the reason", () => {
     fc.assert(
       fc.property(fc.string(), (reason) => {

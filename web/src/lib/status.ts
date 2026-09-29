@@ -40,19 +40,21 @@ const HEADLINES: Record<VerdictState, string> = {
   cannot_tell: "Can't tell yet",
 };
 
-const REASONS: Record<string, string> = {
-  no_documents: "Nothing has been added yet.",
-  rules_never_checked: "The rules have not been checked yet.",
-  rules_stale: "The rules have not been checked this week.",
-  rule_in_litigation: "A rule that applies here is before a court.",
-};
+const REASONS: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    no_documents: "Nothing has been added yet.",
+    rules_never_checked: "The rules have not been checked yet.",
+    rules_stale: "The rules have not been checked this week.",
+    rule_in_litigation: "A rule that applies here is before a court.",
+  }),
+);
 
 export function headline(state: VerdictState): string {
   return HEADLINES[state];
 }
 
 export function reasonLine(reason: string): string {
-  const known = REASONS[reason];
+  const known = REASONS.get(reason);
   if (known) return known;
   const [kind, name] = reason.split(":");
   if (kind === "missing" && name) return `Duly needs your ${name.replaceAll("_", " ")}.`;
