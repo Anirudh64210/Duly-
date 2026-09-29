@@ -133,3 +133,18 @@ def test_terms_of_art_are_few_and_are_not_legal_phrasing():
     ]
     many = {**entry, "plain_terms": ["a", "b", "c", "d"]}
     assert any("at most 3" in p for p in plain.term_problems(many, "a b c d", True))
+
+
+def test_an_abbreviation_does_not_end_a_sentence():
+    # The review of fix 8: "U.S." was read as two sentence ends, and a text at a real grade of
+    # 24 was scored under 9.
+    one = (
+        "The older degree must be from a U.S. educational institution that is accredited and "
+        "SEVP-certified when the DSO recommends the student for the extension and must be in "
+        "a category on the STEM list at that time and granted in the 10 years before that day."
+    )
+    assert len(plain._sentences(one)) == 1
+    assert plain.grade(one) > plain.GRADE
+    assert any("reading grade" in p for p in plain.problems(one, "rule", one))
+    short = "The older degree must be from a U.S. school. The school must be accredited."
+    assert len(plain._sentences(short)) == 2

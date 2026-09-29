@@ -38,6 +38,9 @@ def changed(base: dict[str, Any], head: dict[str, Any]) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0].startswith("--"):
+        print("plain changes: give the base first, then --allow and the rows")
+        return 2
     allowed: set[str] | None = None
     if "--allow" in args:
         at = args.index("--allow")
@@ -62,7 +65,10 @@ def main(argv: list[str] | None = None) -> int:
         named = ", ".join(outside)
         print(f"plain changes: {len(outside)} row(s) changed that no review named: {named}")
         return 1
-    print(f"plain changes: {len(rows)} row(s) changed, all allowed")
+    if allowed is None:
+        print(f"plain changes: {len(rows)} row(s) changed; no --allow given, so none was checked")
+    else:
+        print(f"plain changes: {len(rows)} row(s) changed, each one allowed")
     return 0
 
 
