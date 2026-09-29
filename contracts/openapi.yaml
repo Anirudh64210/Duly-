@@ -1,0 +1,95 @@
+openapi: 3.1.0
+info:
+  title: Duly API
+  version: 0.0.0
+  description: Phase 0 surface. Health, version, and stack status only.
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          description: The api process is up.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /version:
+    get:
+      operationId: getVersion
+      responses:
+        "200":
+          description: Build and contract versions.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+  /v1/status:
+    get:
+      operationId: getStatus
+      responses:
+        "200":
+          description: Stack status and the verdict for an empty case.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+  /ops/v1/status:
+    get:
+      operationId: getOpsStatus
+      responses:
+        "200":
+          description: Ops status. Only served to allowed network addresses.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpsStatus"
+        "403":
+          description: The caller's network address is not on the allowlist.
+components:
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+    Version:
+      type: object
+      additionalProperties: false
+      required: [api, contracts]
+      properties:
+        api: { type: string }
+        contracts: { type: string }
+    RulepackRef:
+      type: object
+      additionalProperties: false
+      required: [category, version, parameters]
+      properties:
+        category: { type: string }
+        version: { type: string }
+        parameters: { type: integer }
+    Status:
+      type: object
+      additionalProperties: false
+      required: [database, rulepacks, verdict, checked_at]
+      properties:
+        database: { type: string, enum: [ok, unreachable] }
+        rulepacks:
+          type: array
+          items: { $ref: "#/components/schemas/RulepackRef" }
+        verdict:
+          type: object
+          additionalProperties: false
+          required: [state, reasons]
+          properties:
+            state: { type: string, enum: [no_open_items, needs_you, talk_to_dso, cannot_tell] }
+            reasons: { type: array, items: { type: string } }
+        checked_at: { type: string, format: date-time }
+    OpsStatus:
+      type: object
+      additionalProperties: false
+      required: [caller, allowlist]
+      properties:
+        caller: { type: string }
+        allowlist: { type: array, items: { type: string } }

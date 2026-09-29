@@ -1,0 +1,39 @@
+/* Two design systems, one family. Do not blend the palettes.
+   Duly tokens are the default. WorkBook screens set data-module="workbook". */
+
+:root {
+  --ground: #f8f7f4;
+  --surface: #ffffff;
+  --ink: #1a1917;
+  --ink-2: #6b6862;
+  --hairline: #eceae4;
+  --accent: #2b4ea2;
+  --accent-tint: #e9eef9;
+  --ai-mark: #b45309;
+  --font-ui: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --radius: 12px;
+  --target: 44px;
+  --halo-opacity: 0.05;
+  --halo-period: 8s;
+  --halo-cycles: 3;
+}
+
+[data-module="workbook"] {
+  --ground: #ffffff;
+  --surface: #ffffff;
+  --ink: #141816;
+  --ink-2: #56605b;
+  --hairline: #eceeed;
+  --accent: #1b7a57;
+  --accent-tint: #f2f8f5;
+  --ai-mark: #c08a2e;
+  --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --radius: 10px;
+}
+
+/* Danger exists only in Ops. */
+[data-app="ops"] {
+  --danger: #a1271e;
+}

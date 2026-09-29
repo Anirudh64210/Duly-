@@ -1,0 +1,6 @@
+name: L-security
+kind: guard
+review: high
+owned: ["security/**"]
+test: make gate-4
+spec: ""

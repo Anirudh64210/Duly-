@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/workbook_bridge.schema.json",
+  "title": "WorkBook bridge v1 (placeholder, filled in Phase 8)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "endpoints"],
+  "properties": {
+    "version": { "const": "v1" },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "GET /case", "PUT /case", "GET /days", "GET /history", "GET /documents",
+          "POST /exports", "GET /exports/:id", "POST /links", "DELETE /links/:id"
+        ]
+      }
+    }
+  }
+}

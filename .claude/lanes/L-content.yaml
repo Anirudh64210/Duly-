@@ -1,0 +1,6 @@
+name: L-content
+kind: implementation
+review: high
+owned: ["rulepacks/**", "emails/**"]
+test: uv run pytest tests/unit/engine/test_rulepack.py -q
+spec: ""

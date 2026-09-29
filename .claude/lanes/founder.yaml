@@ -1,0 +1,6 @@
+name: founder
+kind: founder
+review: high
+owned: ["**"]
+test: make test
+spec: ""

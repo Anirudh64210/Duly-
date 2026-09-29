@@ -1,0 +1,6 @@
+name: L-evals
+kind: guard
+review: high
+owned: ["evals/**"]
+test: uv run pytest tests/unit/assistant -q
+spec: ""

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Onboarding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;font-family:"IBM Plex Sans",system-ui,sans-serif;background:#FFFFFF;color:#141816}
+a{color:#1B7A57}a:hover{color:#125C41}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.opt{display:flex;flex-direction:column;gap:3px;text-align:left;padding:14px 16px;border-radius:10px;border:1px solid #DDE2DF;background:#FFFFFF;font:inherit;color:#141816;cursor:pointer;min-height:68px}
+.opt:hover{border-color:#A9B3AE}
+.sel{border:1.5px solid #1B7A57;background:#F2F8F5}
+.ot{font-size:15px;font-weight:600}
+.od{font-size:13px;color:#6A726E}
+.src{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid #DDE2DF;background:#FFFFFF;font:inherit;color:#141816;cursor:pointer;text-align:left;min-height:52px}
+.box{width:18px;height:18px;border-radius:5px;border:1.5px solid #A9B3AE;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.boxon{background:#1B7A57;border-color:#1B7A57}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #1B7A57;outline-offset:2px}
+input.t{font:inherit;font-size:15px;color:#141816;border:1px solid #DDE2DF;border-radius:9px;padding:10px 12px;background:#FFFFFF}
+.step{display:flex;align-items:center;gap:12px;font-size:14px;color:#8A928E;min-height:32px}
+.dot{width:22px;height:22px;border-radius:11px;border:1.5px solid #C9D0CC;display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:11px;flex-shrink:0}
+.warn{padding:12px 14px;border-radius:10px;background:#FBF3E4;color:#6E4708;font-size:13.5px;line-height:1.5}
+</style>
+</helmet>
+<div style="width: 1120px; height: 760px; display: flex; background: #FFFFFF">
+  <aside style="width: 280px; flex-shrink: 0; box-sizing: border-box; background: #F6F7F6; border-right: 1px solid #E6E9E7; padding: 36px 32px; display: flex; flex-direction: column; gap: 30px">
+    <span style="font-weight: 600; font-size: 15px">WorkBook</span>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="5">
+        <sc-if value="{{ st.cur }}" hint-placeholder-val="{{ false }}"><div class="step" style="color: #141816; font-weight: 600"><span class="dot" style="border-color: #141816; background: #141816; color: #FFFFFF">{{ st.n }}</span>{{ st.label }}</div></sc-if>
+        <sc-if value="{{ st.done }}" hint-placeholder-val="{{ false }}"><div class="step" style="color: #3F4744"><span class="dot" style="border-color: #1B7A57; background: #1B7A57; color: #FFFFFF">✓</span>{{ st.label }}</div></sc-if>
+        <sc-if value="{{ st.todo }}" hint-placeholder-val="{{ true }}"><div class="step"><span class="dot">{{ st.n }}</span>{{ st.label }}</div></sc-if>
+      </sc-for>
+    </div>
+    <p style="margin: 0 0 0; margin-top: auto; font-size: 13px; color: #6A726E; line-height: 1.55">Your answers set what gets tracked. Change any of them later in Your case.</p>
+  </aside>
+  <main style="flex-grow: 1; box-sizing: border-box; padding: 48px 64px 36px; display: flex; flex-direction: column; gap: 26px">
+    <sc-if value="{{ s1 }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 26px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -.015em">What's your status?</h1><p style="margin: 0; font-size: 15px; color: #6A726E">This decides which rules your records are checked against.</p></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{ statuses }}" as="o" hint-placeholder-count="6">
+            <sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="opt sel" onClick="{{ o.pick }}"><span class="ot">{{ o.t }}</span><span class="od">{{ o.d }}</span></button></sc-if>
+            <sc-if value="{{ o.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="opt" onClick="{{ o.pick }}"><span class="ot">{{ o.t }}</span><span class="od">{{ o.d }}</span></button></sc-if>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -.015em">How are you working?</h1><p style="margin: 0; font-size: 15px; color: #6A726E">Add more roles later if you have more than one.</p></div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{ works }}" as="o" hint-placeholder-count="4">
+            <sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="opt sel" onClick="{{ o.pick }}"><span class="ot">{{ o.t }}</span><span class="od">{{ o.d }}</span></button></sc-if>
+            <sc-if value="{{ o.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="opt" onClick="{{ o.pick }}"><span class="ot">{{ o.t }}</span><span class="od">{{ o.d }}</span></button></sc-if>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+          <div style="display: flex; flex-direction: column; gap: 6px"><label for="ti" style="font-size: 13px; color: #3F4744">Job title</label><input id="ti" class="t" value="Founding Engineer"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px"><label for="or" style="font-size: 13px; color: #3F4744">Organization</label><input id="or" class="t" value="Example Co"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px"><label for="sd" style="font-size: 13px; color: #3F4744">Start date</label><input id="sd" class="t mono" value="2026-06-01"></div>
+        </div>
+        <sc-if value="{{ warnWork }}" hint-placeholder-val="{{ false }}"><div class="warn">{{ warnWorkText }}</div></sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -.015em">Hours and field</h1><p style="margin: 0; font-size: 15px; color: #6A726E">Sets your weekly target and which tools we suggest.</p></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{ hours }}" as="o" hint-placeholder-count="3">
+            <sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="opt sel" onClick="{{ o.pick }}"><span class="ot">{{ o.t }}</span><span class="od">{{ o.d }}</span></button></sc-if>
+            <sc-if value="{{ o.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="opt" onClick="{{ o.pick }}"><span class="ot">{{ o.t }}</span><span class="od">{{ o.d }}</span></button></sc-if>
+          </sc-for>
+        </div>
+        <sc-if value="{{ warnHours }}" hint-placeholder-val="{{ false }}"><div class="warn">Under 20 hours a week doesn't count as OPT employment. Those days add to your unemployment count.</div></sc-if>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{ fields }}" as="o" hint-placeholder-count="6">
+            <sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="opt sel" style="min-height: 48px" onClick="{{ o.pick }}"><span class="ot" style="font-size: 14px">{{ o.t }}</span></button></sc-if>
+            <sc-if value="{{ o.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="opt" style="min-height: 48px" onClick="{{ o.pick }}"><span class="ot" style="font-size: 14px; font-weight: 500">{{ o.t }}</span></button></sc-if>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; max-width: 420px"><label for="dg" style="font-size: 13px; color: #3F4744">Degree</label><input id="dg" class="t" value="M.Eng, Computer Science"></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -.015em">Where does your work happen?</h1><p style="margin: 0; font-size: 15px; color: #6A726E">Suggested for {{ fieldName }}. We read times and titles only, never content.</p></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{ sources }}" as="o" hint-placeholder-count="9">
+            <sc-if value="{{ o.on }}" hint-placeholder-val="{{ true }}"><button type="button" class="src" style="border-color: #1B7A57" onClick="{{ o.pick }}"><span class="box boxon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span><span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">{{ o.t }}</span><span class="od" style="font-size: 12px">{{ o.d }}</span></span></button></sc-if>
+            <sc-if value="{{ o.off }}" hint-placeholder-val="{{ false }}"><button type="button" class="src" onClick="{{ o.pick }}"><span class="box"></span><span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">{{ o.t }}</span><span class="od" style="font-size: 12px">{{ o.d }}</span></span></button></sc-if>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; color: #6A726E">Nothing connects until you sign in to each one on the next screen.</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ s5 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -.015em">Your setup</h1><p style="margin: 0; font-size: 15px; color: #6A726E">{{ caseLine }}</p></div>
+        <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); row-gap: 16px; column-gap: 24px; font-size: 15px">
+          <span style="color: #6A726E">Weekly target</span><span>{{ rule.min }}</span>
+          <span style="color: #6A726E">Also watching</span><span>{{ rule.clock }}</span>
+          <span style="color: #6A726E">Documents to keep</span><span>{{ docsLine }}</span>
+          <span style="color: #6A726E">Sources</span><span>{{ srcLine }}</span>
+          <span style="color: #6A726E">Summaries</span><span>Written on this device, marked as AI, confirmed by you</span>
+          <span style="color: #6A726E">Your files</span><span class="mono" style="font-size: 14px">~/WorkBook/</span>
+        </div>
+        <sc-if value="{{ warnWork }}" hint-placeholder-val="{{ false }}"><div class="warn">{{ warnWorkText }}</div></sc-if>
+      </div>
+    </sc-if>
+    <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center">
+      <button type="button" onClick="{{ back }}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: transparent; color: #3F4744; font: inherit; font-size: 15px; cursor: pointer">{{ backLabel }}</button>
+      <button type="button" onClick="{{ next }}" style="min-height: 48px; padding: 0 28px; border-radius: 10px; border: 0; background: #141816; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">{{ nextLabel }}</button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1120,"height":760}}'>
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    this.state = { step: 1, status: 'opt', work: 'founder', hours: 'ft20', field: 'sw', off: {} };
+  }
+  renderVals() {
+    const S = this.state;
+    const set = (k, v) => () => this.setState({ [k]: v });
+    const mk = (arr, key) => arr.map(o => Object.assign({}, o, { on: S[key] === o.id, off: S[key] !== o.id, pick: set(key, o.id) }));
+    const statuses = [
+      { id: 'opt', t: 'F-1 OPT', d: 'Post-completion, first 12 months' },
+      { id: 'stem', t: 'F-1 STEM OPT', d: '24-month extension' },
+      { id: 'cpt', t: 'F-1 CPT', d: 'Training during your program' },
+      { id: 'h1b', t: 'H-1B', d: 'Employer-sponsored' },
+      { id: 'o1', t: 'O-1', d: 'Extraordinary ability' },
+      { id: 'none', t: 'No visa', d: 'Keeping proof of work anyway' }
+    ];
+    const works = [
+      { id: 'w2', t: 'Employee', d: 'W-2 payroll' },
+      { id: 'c1099', t: 'Contractor', d: '1099 or freelance' },
+      { id: 'founder', t: 'Founder', d: 'Your own company' },
+      { id: 'unpaid', t: 'Unpaid', d: 'Volunteer or unpaid' }
+    ];
+    const hours = [
+      { id: 'pt', t: 'Under 20 h', d: 'Part-time' },
+      { id: 'ft20', t: '20 to 39 h', d: 'Counts as full employment on OPT' },
+      { id: 'ft40', t: '40 h or more', d: 'Full-time' }
+    ];
+    const fields = [
+      { id: 'sw', t: 'Software' }, { id: 'ml', t: 'Data and ML' }, { id: 'ds', t: 'Design' },
+      { id: 'rs', t: 'Research' }, { id: 'biz', t: 'Business and ops' }, { id: 'ot', t: 'Other' }
+    ];
+    const suggest = {
+      sw: ['gh', 'cal', 'meet', 'slack', 'linear', 'git'],
+      ml: ['gh', 'cal', 'meet', 'slack', 'notion', 'git'],
+      ds: ['figma', 'cal', 'meet', 'slack', 'notion'],
+      rs: ['cal', 'meet', 'drive', 'notion', 'gh'],
+      biz: ['cal', 'meet', 'slack', 'drive', 'notion'],
+      ot: ['cal', 'meet', 'slack']
+    }[S.field];
+    const allSrc = [
+      { id: 'gh', t: 'GitHub', d: 'Commits, PRs, reviews' },
+      { id: 'git', t: 'Local git', d: 'Folders on this Mac' },
+      { id: 'cal', t: 'Google Calendar', d: 'Meeting times' },
+      { id: 'meet', t: 'Google Meet', d: 'Join and leave times' },
+      { id: 'slack', t: 'Slack', d: 'Your message times' },
+      { id: 'linear', t: 'Linear', d: 'Issues moved, closed' },
+      { id: 'notion', t: 'Notion', d: 'Page edit times' },
+      { id: 'drive', t: 'Google Drive', d: 'Doc edit activity' },
+      { id: 'figma', t: 'Figma', d: 'File versions' }
+    ];
+    const isOn = id => suggest.indexOf(id) > -1 ? !S.off[id] : !!S.off[id];
+    const sources = allSrc.map(o => {
+      const on = isOn(o.id);
+      return Object.assign({}, o, { on: on, off: !on, pick: () => this.setState({ off: Object.assign({}, S.off, { [o.id]: !S.off[o.id] }) }) });
+    });
+    const rules = {
+      opt: { min: '20 h a week', clock: '90-day unemployment limit', docs: ['EAD card', 'I-20 with OPT recommendation', 'SEVP portal report'] },
+      stem: { min: '20 h a week, paid', clock: '150-day unemployment limit, I-983 evaluations', docs: ['EAD card', 'I-983 training plan', 'Self-evaluations'] },
+      cpt: { min: 'Hours your school authorized', clock: 'CPT dates on your I-20', docs: ['I-20 with CPT', 'Offer letter'] },
+      h1b: { min: 'Hours in your petition', clock: 'Employer and worksite match your petition', docs: ['I-797 approval', 'Pay stubs'] },
+      o1: { min: 'Your own target', clock: 'Work matches your itinerary', docs: ['I-797 approval', 'Contracts'] },
+      none: { min: 'Your own target', clock: 'Nothing extra', docs: [] }
+    };
+    const workDocs = { w2: ['Offer letter', 'Pay stubs'], c1099: ['Contracts', 'Invoices'], founder: ['EIN letter', 'Articles of incorporation', 'Business license'], unpaid: ['Letter confirming hours and duties'] };
+    const rule = rules[S.status];
+    const docs = rule.docs.concat(workDocs[S.work]);
+    let warn = '';
+    if (S.status === 'stem' && S.work !== 'w2') warn = 'STEM OPT needs a paid role with an E-Verify employer and a supervisor who signs your I-983. Self-employment, 1099 and unpaid roles don’t qualify.';
+    if (S.status === 'cpt' && S.work === 'founder') warn = 'CPT is authorized by your school for a specific employer and dates. Check with your DSO before counting founder work.';
+    const labels = ['Status', 'Work', 'Hours and field', 'Sources', 'Your setup'];
+    const steps = labels.map((l, i) => ({ n: i + 1, label: l, cur: S.step === i + 1, done: S.step > i + 1, todo: S.step < i + 1 }));
+    const tName = statuses.find(o => o.id === S.status).t;
+    const wName = works.find(o => o.id === S.work).t.toLowerCase();
+    const fName = fields.find(o => o.id === S.field).t;
+    return {
+      steps: steps,
+      s1: S.step === 1, s2: S.step === 2, s3: S.step === 3, s4: S.step === 4, s5: S.step === 5,
+      statuses: mk(statuses, 'status'), works: mk(works, 'work'), hours: mk(hours, 'hours'), fields: mk(fields, 'field'),
+      sources: sources,
+      fieldName: fName.toLowerCase(),
+      warnWork: warn !== '', warnWorkText: warn,
+      warnHours: S.hours === 'pt' && (S.status === 'opt' || S.status === 'stem'),
+      rule: rule,
+      caseLine: tName + ', ' + wName + ', ' + fName.toLowerCase(),
+      docsLine: docs.length ? docs.join(', ') : 'Anything you choose to add',
+      srcLine: sources.filter(s => s.on).map(s => s.t).join(', '),
+      back: () => this.setState({ step: Math.max(1, S.step - 1) }),
+      next: () => this.setState({ step: S.step < 5 ? S.step + 1 : 1 }),
+      backLabel: S.step === 1 ? '' : 'Back',
+      nextLabel: S.step === 4 ? 'Review setup' : (S.step === 5 ? 'Start recording' : 'Continue')
+    };
+  }
+}
+</script>
+</body>
+</html>

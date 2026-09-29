@@ -1,0 +1,16 @@
+# kind: primary sources may support a claim. signal sources only say where to look.
+# Hosts here are the allowlist for the pipeline. Nothing else is fetched.
+sources:
+  - { id: federal_register, kind: primary, host: www.federalregister.gov, every: 6h }
+  - { id: ecfr_point_in_time, kind: primary, host: www.ecfr.gov, every: 24h, note: "Pin a date. Never read current as live law without checking for a court order." }
+  - { id: reginfo, kind: primary, host: www.reginfo.gov, every: 24h }
+  - { id: uscis, kind: primary, host: www.uscis.gov, every: 6h }
+  - { id: study_in_the_states, kind: primary, host: studyinthestates.dhs.gov, every: 6h }
+  - { id: ice_sevp, kind: primary, host: www.ice.gov, every: 12h }
+  - { id: state_visa_bulletin, kind: primary, host: travel.state.gov, every: 24h }
+  - { id: dol_flag, kind: primary, host: flag.dol.gov, every: 24h }
+  - { id: white_house, kind: primary, host: www.whitehouse.gov, every: 12h }
+  - { id: courtlistener, kind: primary, host: www.courtlistener.com, every: 6h }
+  - { id: nafsa, kind: signal, host: www.nafsa.org, every: 12h }
+  - { id: aila, kind: signal, host: www.aila.org, every: 12h }
+schools: []  # 100 schools, each with its ISSS page, arrive in Phase 6

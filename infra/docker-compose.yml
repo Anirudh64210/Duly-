@@ -1,0 +1,107 @@
+name: ${DULY_PROJECT:-duly}
+
+x-api-env: &api-env
+  DULY_ENV: dev
+  DULY_DATABASE_URL: postgresql+psycopg://duly:duly@postgres:5432/duly
+  DULY_OPS_IP_ALLOWLIST: ${DULY_OPS_IP_ALLOWLIST:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: duly
+      POSTGRES_PASSWORD: duly
+      POSTGRES_DB: duly
+    ports: ["${DULY_PG_PORT:-5432}:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U duly -d duly"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    networks: [duly]
+
+  # The MinIO project no longer publishes its own images; this is the Chainguard build.
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: duly
+      MINIO_ROOT_PASSWORD: duly-local-only
+    ports: ["${DULY_MINIO_PORT:-9000}:9000", "${DULY_MINIO_CONSOLE_PORT:-9001}:9001"]
+    volumes: ["miniodata:/data"]
+    networks: [duly]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["${DULY_SMTP_PORT:-1025}:1025", "${DULY_MAIL_UI_PORT:-8025}:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [duly]
+
+  api:
+    build: { context: .., dockerfile: infra/Dockerfile.api }
+    environment: *api-env
+    command:
+      - uvicorn
+      - api.main:app
+      - --host=0.0.0.0
+      - --port=8000
+      - --proxy-headers
+      - --forwarded-allow-ips=172.28.0.10,172.28.0.11
+    ports: ["${DULY_API_PORT:-8000}:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [duly]
+
+  worker:
+    build: { context: .., dockerfile: infra/Dockerfile.api }
+    environment: *api-env
+    command: ["python", "-m", "api.worker"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [duly]
+
+  web:
+    build: { context: .., dockerfile: infra/Dockerfile.web }
+    ports: ["${DULY_WEB_PORT:-5173}:8080"]
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks:
+      duly: { ipv4_address: 172.28.0.10 }
+
+  ops:
+    build: { context: .., dockerfile: infra/Dockerfile.ops }
+    ports: ["${DULY_OPS_PORT:-5174}:8080"]
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks:
+      duly: { ipv4_address: 172.28.0.11 }
+
+networks:
+  duly:
+    ipam:
+      config:
+        - subnet: ${DULY_SUBNET:-172.28.0.0/24}
+
+volumes:
+  pgdata:
+  miniodata:

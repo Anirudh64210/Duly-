@@ -1,0 +1,6 @@
+name: L-desktop
+kind: implementation
+review: low
+owned: ["desktop/**"]
+test: npm run test -w desktop
+spec: ""

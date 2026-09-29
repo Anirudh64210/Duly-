@@ -1,0 +1,76 @@
+from typing import Annotated, Any
+
+from fastapi import Depends, FastAPI, HTTPException, Request
+from sqlalchemy.engine import Engine
+
+from api.db import database_reachable, make_engine
+from api.ops_guard import caller_allowed
+from api.settings import Settings, get_settings
+from engine.clocks import Clock, SystemClock
+from engine.rulepack import load_all
+from engine.verdict import VerdictInputs, decide
+
+API_VERSION = "0.0.0"
+CONTRACTS_VERSION = "0.0.0"
+
+app = FastAPI(title="Duly API", version=API_VERSION, docs_url=None, redoc_url=None)
+
+_engines: dict[str, Engine] = {}
+
+
+def get_clock() -> Clock:
+    return SystemClock()
+
+
+def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Engine:
+    if settings.database_url not in _engines:
+        _engines[settings.database_url] = make_engine(settings.database_url)
+    return _engines[settings.database_url]
+
+
+@app.get("/health")
+def health() -> dict[str, bool]:
+    return {"ok": True}
+
+
+@app.get("/version")
+def version() -> dict[str, str]:
+    return {"api": API_VERSION, "contracts": CONTRACTS_VERSION}
+
+
+@app.get("/v1/status")
+def status(
+    db: Annotated[Engine, Depends(get_db)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> dict[str, Any]:
+    packs = load_all()
+    empty_case = VerdictInputs(
+        documents_count=0,
+        missing_inputs=(),
+        conflicting_inputs=(),
+        rules_checked_on=None,
+        depends_on_litigated_rule=False,
+        judgement_items=(),
+        open_items=(),
+    )
+    verdict = decide(empty_case, clock)
+    return {
+        "database": "ok" if database_reachable(db) else "unreachable",
+        "rulepacks": [
+            {"category": p.category, "version": p.version, "parameters": len(p.parameters)}
+            for p in packs
+        ],
+        "verdict": {"state": verdict.state.value, "reasons": list(verdict.reasons)},
+        "checked_at": clock.now().isoformat(),
+    }
+
+
+@app.get("/ops/v1/status")
+def ops_status(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, Any]:
+    caller = request.client.host if request.client else ""
+    if not caller_allowed(caller, settings.ops_networks):
+        raise HTTPException(status_code=403, detail="This address is not on the allowlist.")
+    return {"caller": caller, "allowlist": settings.ops_networks}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/update.schema.json",
+  "title": "Law update",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "headline", "legal_status", "status_as_of", "claims", "categories", "checks", "approval", "history"],
+  "properties": {
+    "id": { "type": "string" },
+    "headline": { "type": "string" },
+    "legal_status": {
+      "enum": [
+        "announced", "proposed", "comment_period", "omb_review", "final",
+        "effective", "enjoined", "stayed", "vacated", "appealed", "rescinded"
+      ]
+    },
+    "status_as_of": { "type": "string", "format": "date" },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "quote", "source_url", "source_kind", "snapshot_sha256", "quote_found"],
+        "properties": {
+          "text": { "type": "string" },
+          "quote": { "type": "string" },
+          "source_url": { "type": "string", "pattern": "^https://" },
+          "source_kind": { "enum": ["primary", "signal"] },
+          "snapshot_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "quote_found": { "type": "boolean" }
+        }
+      }
+    },
+    "categories": { "type": "array", "items": { "enum": ["f1", "h1b", "o1", "eb1a"] } },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independent_check_passed", "refutation_survived"],
+      "properties": {
+        "independent_check_passed": { "type": "boolean" },
+        "refutation_survived": { "type": "boolean" }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approved", "approved_by", "approved_at"],
+      "properties": {
+        "approved": { "type": "boolean" },
+        "approved_by": { "type": ["string", "null"] },
+        "approved_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["on", "legal_status", "note", "source_url"],
+        "properties": {
+          "on": { "type": "string", "format": "date" },
+          "legal_status": { "type": "string" },
+          "note": { "type": "string" },
+          "source_url": { "type": "string", "pattern": "^https://" }
+        }
+      }
+    }
+  }
+}

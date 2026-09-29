@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WorkBook</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;font-family:"IBM Plex Sans",system-ui,sans-serif;background:#FFFFFF;color:#141816}
+a{color:#1B7A57}a:hover{color:#125C41}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.nv{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:0 12px;border-radius:9px;border:0;background:transparent;color:#3F4744;font:inherit;font-size:15px;cursor:pointer;text-align:left}
+.nv:hover{background:#ECEFED;color:#141816}
+.nvon{background:#FFFFFF;color:#141816;font-weight:600;box-shadow:0 0 0 1px #E1E5E2}
+.pen{width:34px;height:34px;border:0;border-radius:8px;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;opacity:.55}
+.pen:hover{background:#ECEFED;opacity:1}
+.rowbtn{border:0;background:transparent;padding:0;font:inherit;font-size:16.5px;color:#141816;text-align:left;cursor:pointer;line-height:1.4}
+.rowbtn:hover{color:#1B7A57}
+.in{font:inherit;font-size:15.5px;color:#141816;border:1px solid #DDE2DF;border-radius:9px;padding:8px 11px;background:#FFFFFF;min-width:0}
+.in:focus{border-color:#1B7A57;outline:0}
+.btn{min-height:40px;padding:0 16px;border-radius:10px;border:1px solid #DDE2DF;background:#FFFFFF;color:#141816;font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#A9B3AE}
+.pri{background:#141816;border-color:#141816;color:#FFFFFF;font-weight:600}
+.pri:hover{background:#2A302D}
+.quiet{border:0;background:transparent;color:#56605B}
+.quiet:hover{color:#141816;background:#F2F4F3}
+.bin{width:40px;height:40px;justify-self:end;border:1px solid #F0D4D2;border-radius:10px;background:#FFFFFF;color:#A1271E;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.bin:hover{background:#FBEDEC;border-color:#E3B4B0}
+.plus{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 10px 0 6px;margin-top:4px;border:0;border-radius:8px;background:transparent;color:#1B7A57;font:inherit;font-size:14.5px;cursor:pointer}
+.plus:hover{background:#F2F8F5}
+.chip{min-height:32px;padding:0 12px;border-radius:16px;border:1px solid #DDE2DF;background:#FFFFFF;color:#3F4744;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:#A9B3AE}
+.chipon{background:#141816;border-color:#141816;color:#FFFFFF}
+.link{border:0;background:transparent;padding:6px 0;font:inherit;font-size:15px;color:#1B7A57;cursor:pointer}
+.h1{margin:0;font-size:30px;font-weight:600;letter-spacing:-.015em}
+.lead{font-size:16px;color:#56605B}
+.sec{font-size:13.5px;color:#7A827E;padding:26px 0 8px;letter-spacing:.02em}
+.dayrow{width:100%;display:grid;grid-template-columns:150px minmax(0,1fr) 70px 24px;gap:14px;align-items:center;min-height:58px;border:0;border-top:1px solid #ECEFED;background:transparent;padding:0;font:inherit;text-align:left;cursor:pointer;color:#141816}
+.dayrow:hover{background:#FAFBFA}
+.sw{width:40px;height:24px;border-radius:12px;border:0;position:relative;cursor:pointer;flex-shrink:0}
+.knob{position:absolute;top:3px;width:18px;height:18px;border-radius:9px;background:#FFFFFF}
+.card{flex:1;display:flex;flex-direction:column;gap:6px;padding:18px 20px;border-radius:14px;border:1px solid #DDE2DF;background:#FFFFFF;font:inherit;text-align:left;cursor:pointer;color:#141816}
+.card:hover{border-color:#A9B3AE}
+.cardon{border:1.5px solid #141816}
+.drop{border:1.5px dashed #C9D0CC;border-radius:14px;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#56605B;font-size:15px;text-align:center}
+.blur{filter:blur(5px);user-select:none;color:#8A928E}
+.pop{position:absolute;background:#FFFFFF;border-radius:14px;box-shadow:0 12px 40px rgba(20,24,22,.18);border:1px solid #E6E9E7;padding:16px 18px;display:flex;flex-direction:column;gap:12px;z-index:5}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #1B7A57;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1280px; height: 840px; display: flex; background: #FFFFFF; position: relative; overflow: hidden">
+  <aside style="width: 232px; flex-shrink: 0; box-sizing: border-box; background: #F6F7F6; border-right: 1px solid #E6E9E7; padding: 26px 14px; display: flex; flex-direction: column; gap: 2px; position: relative">
+    <span style="font-weight: 600; font-size: 16px; padding: 0 12px 22px">WorkBook</span>
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="5">
+      <sc-if value="{{ n.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="nv nvon" onClick="{{ n.go }}">{{ n.label }}</button></sc-if>
+      <sc-if value="{{ n.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="nv" onClick="{{ n.go }}">{{ n.label }}</button></sc-if>
+    </sc-for>
+    <div style="height: 1px; background: #E6E9E7; margin: 12px 12px"></div>
+    <sc-if value="{{ caseOn }}" hint-placeholder-val="{{ false }}"><button type="button" class="nv nvon" onClick="{{ goCase }}">Your case</button></sc-if>
+    <sc-if value="{{ caseOff }}" hint-placeholder-val="{{ true }}"><button type="button" class="nv" onClick="{{ goCase }}">Your case</button></sc-if>
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px">
+        <span style="display: flex; align-items: center; gap: 9px; font-size: 14.5px; color: #3F4744"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{ recColor }}"></span>{{ recLabel }}</span>
+        <button type="button" class="link" style="font-size: 14px" onClick="{{ togglePause }}">{{ pauseLabel }}</button>
+      </div>
+      <button type="button" class="nv" onClick="{{ fbToggle }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path></svg>Feedback</button>
+    </div>
+    <sc-if value="{{ fbOpen }}" hint-placeholder-val="{{ false }}">
+      <div class="pop" style="left: 14px; bottom: 60px; width: 320px">
+        <span style="font-size: 16px; font-weight: 600">{{ fbTitle }}</span>
+        <div style="display: flex; gap: 6px">
+          <sc-for list="{{ fbKinds }}" as="k" hint-placeholder-count="3">
+            <sc-if value="{{ k.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn pri" style="min-height: 34px; padding: 0 12px; font-size: 14px; font-weight: 500" onClick="{{ k.go }}">{{ k.l }}</button></sc-if>
+            <sc-if value="{{ k.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" style="min-height: 34px; padding: 0 12px; font-size: 14px" onClick="{{ k.go }}">{{ k.l }}</button></sc-if>
+          </sc-for>
+        </div>
+        <textarea class="in" rows="4" aria-label="Your message" placeholder="{{ fbHint }}" value="{{ fbText }}" onChange="{{ onFb }}" style="resize: none; line-height: 1.5"></textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="font-size: 13px; color: #7A827E">Sent without any of your records.</span>
+          <span style="display: flex; gap: 6px"><button type="button" class="btn quiet" style="min-height: 36px" onClick="{{ fbToggle }}">Cancel</button><button type="button" class="btn pri" style="min-height: 36px" onClick="{{ fbSend }}">Send</button></span>
+        </div>
+      </div>
+    </sc-if>
+  </aside>
+
+  <main style="flex-grow: 1; box-sizing: border-box; padding: 36px 52px; display: flex; flex-direction: column; min-width: 0; overflow-y: auto; position: relative">
+
+    <sc-if value="{{ vToday }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 28px; min-height: 100%">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <h1 class="h1">Tuesday, October 6</h1>
+            <span class="lead">{{ todayHours }} hours so far</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end; margin-bottom: 6px"><span style="font-size: 14px; color: #56605B">{{ weekHours }} of 20 hours this week</span><div style="width: 200px; height: 8px; border-radius: 4px; background: #ECEFED; overflow: hidden"><div style="width: {{ weekPct }}; height: 8px; background: #1B7A57"></div></div></div>
+        </div>
+        <div style="display: flex; flex-direction: column; border-top: 1px solid #ECEFED">
+          <sc-for list="{{ todayRows }}" as="r" hint-placeholder-count="5">
+            <div style="border-bottom: 1px solid #ECEFED">
+              <sc-if value="{{ r.view }}" hint-placeholder-val="{{ true }}">
+                <div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) 60px 34px; gap: 14px; align-items: center; min-height: 60px">
+                  <span class="mono" style="font-size: 15px; color: #56605B; white-space: pre">{{ r.time }}</span>
+                  <span style="display: flex; align-items: center; gap: 8px; min-width: 0"><button type="button" class="rowbtn" onClick="{{ r.toggle }}">{{ r.text }}</button><sc-if value="{{ r.ai }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="#C08A2E" aria-label="Written by AI" role="img"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"></path></svg></sc-if></span>
+                  <span class="mono" style="font-size: 16px; text-align: right">{{ r.hrs }}</span>
+                  <button class="pen" type="button" aria-label="Edit" onClick="{{ r.edit }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F4744" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M13.5 6.5l4 4"></path></svg></button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ r.editing }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) 70px 40px 78px 34px; gap: 8px; align-items: center; min-height: 60px; padding: 8px 0">
+                  <span class="mono" style="font-size: 15px; color: #56605B; white-space: pre">{{ r.time }}</span>
+                  <input class="in" style="border-color: #1B7A57" aria-label="Entry" value="{{ r.dText }}" onChange="{{ onText }}" onKeyDown="{{ onKey }}">
+                  <input class="in mono" aria-label="Hours" value="{{ r.dHrs }}" onChange="{{ onHrs }}" onKeyDown="{{ onKey }}" style="text-align: right">
+                  <button type="button" class="bin" aria-label="Delete entry" onClick="{{ r.remove }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+                  <button type="button" class="btn pri" style="padding: 0" onClick="{{ save }}">Save</button>
+                  <button type="button" class="pen" style="opacity: 1" aria-label="Cancel" onClick="{{ cancel }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3F4744" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding: 0 0 18px 154px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: #3F4744">
+                  <sc-for list="{{ r.srcs }}" as="s" hint-placeholder-count="2"><span>{{ s }}</span></sc-for>
+                  <sc-if value="{{ r.ai }}" hint-placeholder-val="{{ false }}"><span style="color: #8A5A0E">Written by AI from these events. Edit it to put it in your words.</span></sc-if>
+                  <sc-if value="{{ r.edited }}" hint-placeholder-val="{{ false }}"><span style="color: #56605B">Edited by you. The original is kept in History.</span></sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ adding }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) 76px auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #ECEFED">
+              <span class="mono" style="font-size: 15px; color: #56605B">17:00</span>
+              <input class="in" style="border-color: #1B7A57" aria-label="What did you work on?" placeholder="What did you work on?" value="{{ nText }}" onChange="{{ onNText }}" onKeyDown="{{ onNKey }}">
+              <input class="in mono" aria-label="Hours" placeholder="Hours" value="{{ nHrs }}" onChange="{{ onNHrs }}" onKeyDown="{{ onNKey }}" style="text-align: right">
+              <span style="display: flex; gap: 6px"><button type="button" class="btn pri" onClick="{{ addSave }}">Add</button><button type="button" class="btn quiet" onClick="{{ addCancel }}">Cancel</button></span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notAdding }}" hint-placeholder-val="{{ true }}"><button type="button" class="link" style="align-self: flex-start; margin-top: 12px" onClick="{{ addOpen }}">+ Add entry</button></sc-if>
+        </div>
+        <div style="margin-top: auto; display: flex; justify-content: flex-end">
+          <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn pri" style="min-height: 48px; padding: 0 26px" onClick="{{ complete }}">Mark day complete</button></sc-if>
+          <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #1B7A57"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B7A57" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Day complete. You can still edit.</span></sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vLog }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px">
+          <h1 class="h1">Log</h1>
+          <div style="display: flex; align-items: center; gap: 6px; position: relative">
+            <sc-for list="{{ activeChips }}" as="c" hint-placeholder-count="0"><button type="button" class="chip chipon" onClick="{{ c.rm }}">{{ c.l }}  ×</button></sc-for>
+            <input class="in" aria-label="Search" placeholder="Search" value="{{ q }}" onChange="{{ onQ }}" style="width: 220px">
+            <button type="button" class="btn quiet" aria-label="Filter by date or source" onClick="{{ filterToggle }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg></button>
+            <sc-if value="{{ filterOpen }}" hint-placeholder-val="{{ false }}">
+              <div class="pop" style="right: 0; top: 46px; width: 380px">
+                <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13.5px; color: #56605B">Dates</span>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                    <sc-for list="{{ fQuick }}" as="c" hint-placeholder-count="4"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.l }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.l }}</button></sc-if></sc-for>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center"><input class="in mono" aria-label="From" placeholder="From" value="{{ fFrom }}" onChange="{{ onFrom }}" style="width: 140px"><span style="color: #7A827E">to</span><input class="in mono" aria-label="To" placeholder="To" value="{{ fTo }}" onChange="{{ onTo }}" style="width: 140px"></div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13.5px; color: #56605B">From these tools</span>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                    <sc-for list="{{ fSrcs }}" as="c" hint-placeholder-count="7"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.l }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.l }}</button></sc-if></sc-for>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13.5px; color: #56605B">Show</span>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                    <sc-for list="{{ fKinds }}" as="c" hint-placeholder-count="4"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.l }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.l }}</button></sc-if></sc-for>
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px"><span style="font-size: 14px; color: #56605B">{{ filterCount }}</span><span style="display: flex; gap: 6px"><button type="button" class="btn quiet" style="min-height: 36px" onClick="{{ clearFilter }}">Clear</button><button type="button" class="btn pri" style="min-height: 36px" onClick="{{ filterToggle }}">Done</button></span></div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <sc-for list="{{ months }}" as="m" hint-placeholder-count="2">
+          <div style="display: flex; flex-direction: column">
+            <div style="display: flex; justify-content: space-between; align-items: baseline"><span class="sec">{{ m.name }}</span><span class="sec mono">{{ m.hrs }} h</span></div>
+            <sc-for list="{{ m.days }}" as="d" hint-placeholder-count="7">
+              <div>
+                <button type="button" class="dayrow" onClick="{{ d.toggle }}">
+                  <span style="font-size: 16.5px; color: {{ d.color }}">{{ d.label }}</span>
+                  <span style="font-size: 15px; color: #56605B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ d.preview }}</span>
+                  <span class="mono" style="font-size: 15.5px; text-align: right; color: {{ d.color }}">{{ d.hrs }}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0B7B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ d.chev }}"></path></svg>
+                </button>
+                <sc-if value="{{ d.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding: 0 0 12px 164px; display: flex; flex-direction: column">
+                    <sc-for list="{{ d.items }}" as="r" hint-placeholder-count="3">
+                      <sc-if value="{{ r.view }}" hint-placeholder-val="{{ true }}">
+                        <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 56px 34px; gap: 12px; align-items: center; min-height: 46px; font-size: 15.5px">
+                          <span class="mono" style="font-size: 14px; color: #56605B; white-space: pre">{{ r.time }}</span>
+                          <span style="display: flex; gap: 8px; align-items: center; min-width: 0"><span>{{ r.text }}</span><sc-if value="{{ r.ai }}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="#C08A2E" aria-label="Written by AI" role="img"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"></path></svg></sc-if><sc-if value="{{ r.edited }}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: #8A5A0E">edited</span></sc-if></span>
+                          <span class="mono" style="text-align: right">{{ r.hrs }}</span>
+                          <button class="pen" type="button" aria-label="Edit" onClick="{{ r.edit }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3F4744" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M13.5 6.5l4 4"></path></svg></button>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ r.editing }}" hint-placeholder-val="{{ false }}">
+                        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px auto; gap: 10px; align-items: center; min-height: 54px">
+                          <input class="in" style="border-color: #1B7A57" aria-label="Entry" value="{{ r.dText }}" onChange="{{ onText }}" onKeyDown="{{ onKey }}">
+                          <input class="in mono" aria-label="Hours" value="{{ r.dHrs }}" onChange="{{ onHrs }}" onKeyDown="{{ onKey }}" style="text-align: right">
+                          <span style="display: flex; gap: 6px"><button type="button" class="btn pri" onClick="{{ save }}">Save</button><button type="button" class="btn quiet" onClick="{{ cancel }}">Cancel</button></span>
+                        </div>
+                      </sc-if>
+                    </sc-for>
+                    <sc-if value="{{ d.empty }}" hint-placeholder-val="{{ false }}">
+                      <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; font-size: 15px; color: #56605B">
+                        <sc-if value="{{ d.noteView }}" hint-placeholder-val="{{ true }}"><span>{{ d.noteText }}</span><button type="button" class="link" style="font-size: 14px" onClick="{{ d.noteEdit }}">{{ d.noteBtn }}</button></sc-if>
+                        <sc-if value="{{ d.noteEditing }}" hint-placeholder-val="{{ false }}"><input class="in" style="border-color: #1B7A57; width: 320px" aria-label="Note for this day" placeholder="Day off, sick, travel..." value="{{ noteDraft }}" onChange="{{ onNote }}" onKeyDown="{{ onNoteKey }}"><button type="button" class="btn pri" style="min-height: 36px" onClick="{{ noteSave }}">Save</button></sc-if>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ d.addingHere }}" hint-placeholder-val="{{ false }}">
+                      <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 70px auto; gap: 10px; align-items: center; min-height: 54px">
+                        <input class="in mono" style="border-color: #1B7A57" aria-label="Time" placeholder="09:00" value="{{ nTime }}" onChange="{{ onNTime }}" onKeyDown="{{ onNKey }}">
+                        <input class="in" style="border-color: #1B7A57" aria-label="What did you work on?" placeholder="What did you work on?" value="{{ nText }}" onChange="{{ onNText }}" onKeyDown="{{ onNKey }}">
+                        <input class="in mono" aria-label="Hours" placeholder="Hours" value="{{ nHrs }}" onChange="{{ onNHrs }}" onKeyDown="{{ onNKey }}" style="text-align: right">
+                        <span style="display: flex; gap: 6px"><button type="button" class="btn pri" onClick="{{ addSave }}">Add</button><button type="button" class="btn quiet" onClick="{{ addCancel }}">Cancel</button></span>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ d.notAddingHere }}" hint-placeholder-val="{{ true }}"><button type="button" class="plus" aria-label="Add entry to this day" onClick="{{ d.addHere }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add entry</button></sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noHits }}" hint-placeholder-val="{{ false }}"><span class="lead" style="padding: 22px 0">Nothing here.</span></sc-if>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 22px; border-top: 1px solid #ECEFED; margin-top: 14px">
+          <span style="font-size: 14px; color: #7A827E">Every change ever made is kept.</span>
+          <button type="button" class="link" onClick="{{ goHistory }}">History</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vHistory }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px">
+          <div style="display: flex; align-items: center; gap: 14px"><button type="button" class="btn quiet" aria-label="Back to Log" onClick="{{ goLog }}" style="padding: 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button><h1 class="h1">History</h1></div>
+          <span style="display: flex; gap: 10px; align-items: center"><span style="font-size: 14px; color: #7A827E">{{ vaultCheck }}</span><button type="button" class="btn" onClick="{{ verify }}">Check nothing changed</button></span>
+        </div>
+        <div style="display: flex; flex-direction: column; border-top: 1px solid #ECEFED">
+          <sc-for list="{{ vaultRows }}" as="v" hint-placeholder-count="9">
+            <div style="border-bottom: 1px solid #ECEFED">
+              <button type="button" onClick="{{ v.toggle }}" style="width: 100%; display: grid; grid-template-columns: 130px minmax(0, 1fr) 24px; gap: 14px; align-items: center; min-height: 54px; border: 0; background: transparent; padding: 0; font: inherit; text-align: left; cursor: pointer; color: #141816">
+                <span class="mono" style="font-size: 14px; color: #56605B">{{ v.when }}</span>
+                <span style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ v.title }}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0B7B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ v.chev }}"></path></svg>
+              </button>
+              <sc-if value="{{ v.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding: 0 0 16px 144px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: #3F4744">
+                  <span>{{ v.detail }}</span>
+                  <sc-if value="{{ v.hasDiff }}" hint-placeholder-val="{{ false }}"><span style="display: flex; flex-direction: column; gap: 4px"><span style="text-decoration: line-through; color: #7A827E">{{ v.before }}</span><span>{{ v.after }}</span></span></sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vDocs }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px; min-height: 100%">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h1 class="h1">Documents</h1>
+          <span style="display: flex; gap: 8px; align-items: center">
+            <sc-if value="{{ unlocked }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn quiet" onClick="{{ privToggle }}">Privacy</button><button type="button" class="btn" onClick="{{ lockNow }}">Lock</button><label class="btn pri" style="display: inline-flex; align-items: center; gap: 8px; position: relative"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add<input type="file" multiple aria-label="Add documents" onChange="{{ pickDocs }}" style="position: absolute; width: 1px; height: 1px; opacity: 0"></label></sc-if>
+            <sc-if value="{{ locked }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn pri" onClick="{{ askUnlock }}">Unlock</button></sc-if>
+          </span>
+        </div>
+        <sc-if value="{{ showUnlock }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-radius: 14px; background: #F6F7F6">
+            <input class="in" type="password" aria-label="Passphrase" placeholder="Passphrase" value="{{ pass }}" onChange="{{ onPass }}" onKeyDown="{{ onPassKey }}" style="width: 240px">
+            <button type="button" class="btn pri" onClick="{{ unlock }}">Unlock</button>
+            <button type="button" class="btn" onClick="{{ unlock }}">Touch ID</button>
+            <span style="font-size: 14px; color: #7A827E; margin-left: auto">Locks again after 5 minutes.</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ privOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 36px; padding: 6px 18px; border-radius: 14px; background: #F6F7F6">
+            <sc-for list="{{ privacy }}" as="p" hint-placeholder-count="4">
+              <div style="display: flex; justify-content: space-between; align-items: center; min-height: 46px; gap: 12px"><span style="font-size: 15px">{{ p.n }}</span><button type="button" class="sw" style="background: {{ p.bg }}" aria-label="{{ p.n }}" aria-pressed="{{ p.on }}" onClick="{{ p.flip }}"><span class="knob" style="left: {{ p.left }}"></span></button></div>
+            </sc-for>
+            <div style="display: flex; justify-content: space-between; align-items: center; min-height: 46px; gap: 12px"><label for="al" style="font-size: 15px">Lock after</label><select id="al" class="in" style="font-size: 14px; padding: 5px 10px"><option>1 minute</option><option selected>5 minutes</option><option>15 minutes</option><option>When I quit</option></select></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; min-height: 46px; gap: 12px"><span style="font-size: 15px">Encrypted on this Mac</span><span style="font-size: 14px; color: #1B7A57">Always</span></div>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; border-top: 1px solid #ECEFED">
+          <sc-for list="{{ docs }}" as="d" hint-placeholder-count="7">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 120px auto; gap: 16px; align-items: center; min-height: 58px; border-bottom: 1px solid #ECEFED">
+              <sc-if value="{{ locked }}" hint-placeholder-val="{{ true }}"><span style="display: flex; align-items: center; gap: 12px; font-size: 16.5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A928E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><span class="blur">{{ d.name }}</span></span></sc-if>
+              <sc-if value="{{ unlocked }}" hint-placeholder-val="{{ false }}"><button type="button" class="rowbtn" onClick="{{ d.view }}">{{ d.name }}</button></sc-if>
+              <span style="font-size: 14.5px; color: #7A827E">{{ d.added }}</span>
+              <sc-if value="{{ unlocked }}" hint-placeholder-val="{{ false }}"><span style="display: flex; gap: 4px; justify-content: flex-end"><sc-if value="{{ d.normal }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" style="min-height: 34px; font-size: 14px; color: #A1271E; border-color: #F0D4D2" onClick="{{ d.askDel }}">Remove</button></sc-if><sc-if value="{{ d.confirming }}" hint-placeholder-val="{{ false }}"><span style="font-size: 14px; color: #56605B; align-self: center">Remove?</span><button type="button" class="btn" style="min-height: 34px; font-size: 14px; color: #A1271E" onClick="{{ d.del }}">Yes</button><button type="button" class="btn quiet" style="min-height: 34px; font-size: 14px" onClick="{{ d.noDel }}">No</button></sc-if></span></sc-if>
+              <sc-if value="{{ locked }}" hint-placeholder-val="{{ true }}"><span></span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <label class="drop" style="{{ dropStyle }}" onDragOver="{{ dragOver }}" onDragLeave="{{ dragLeave }}" onDrop="{{ dropDocs }}">
+          <span style="font-size: 16px; color: #141816">Drop files here, or click to choose</span>
+          <span>Encrypted before it is saved. Any file type.</span>
+          <input type="file" multiple aria-label="Add documents" onChange="{{ pickDocs }}" style="position: absolute; width: 1px; height: 1px; opacity: 0">
+        </label>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vExports }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 24px; min-height: 100%">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="display: flex; align-items: center; gap: 14px"><sc-if value="{{ exNotBuild }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn quiet" aria-label="Back" onClick="{{ exBack }}" style="padding: 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button></sc-if><h1 class="h1">{{ exTitle }}</h1></div>
+          <span style="font-size: 14px; color: #7A827E">{{ exStepLabel }}</span>
+        </div>
+
+        <sc-if value="{{ exBuild }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 22px">
+            <div style="display: flex; gap: 12px">
+              <sc-for list="{{ kinds }}" as="k" hint-placeholder-count="2">
+                <sc-if value="{{ k.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="card cardon" onClick="{{ k.go }}"><span style="font-size: 17px; font-weight: 600">{{ k.n }}</span><span style="font-size: 14.5px; color: #56605B">{{ k.d }}</span></button></sc-if>
+                <sc-if value="{{ k.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="card" onClick="{{ k.go }}"><span style="font-size: 17px; font-weight: 600">{{ k.n }}</span><span style="font-size: 14.5px; color: #56605B">{{ k.d }}</span></button></sc-if>
+              </sc-for>
+            </div>
+            <sc-if value="{{ exCustom }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px 22px; border-radius: 14px; background: #F6F7F6">
+                <div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 15px; font-weight: 600">Dates</span>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+                    <sc-for list="{{ exQuick }}" as="c" hint-placeholder-count="4"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.l }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.l }}</button></sc-if></sc-for>
+                    <span style="width: 12px"></span>
+                    <input class="in mono" aria-label="From date" value="{{ exFrom }}" onChange="{{ onExFrom }}" style="width: 136px"><span style="color: #7A827E">to</span><input class="in mono" aria-label="To date" value="{{ exTo }}" onChange="{{ onExTo }}" style="width: 136px">
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 15px; font-weight: 600">Sources</span>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{ exSrcs }}" as="c" hint-placeholder-count="7"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.l }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.l }}</button></sc-if></sc-for></div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 15px; font-weight: 600">Documents</span>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{ exDocList }}" as="c" hint-placeholder-count="7"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.n }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.n }}</button></sc-if></sc-for></div>
+                </div>
+              </div>
+            </sc-if>
+            <label class="drop" style="{{ exDropStyle }}" onDragOver="{{ exDragOver }}" onDragLeave="{{ exDragLeave }}" onDrop="{{ dropExtra }}">
+              <sc-if value="{{ noExtra }}" hint-placeholder-val="{{ true }}"><span style="font-size: 16px; color: #141816">Drop anything else to include, or click to choose</span><span>A pay stub, a letter, a screenshot</span></sc-if>
+              <sc-if value="{{ hasExtra }}" hint-placeholder-val="{{ false }}"><span style="font-size: 16px; color: #141816">Also including</span><span style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center"><sc-for list="{{ extras }}" as="x" hint-placeholder-count="2"><span style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #F2F4F3; color: #141816; font-size: 14px">{{ x.n }}<button type="button" aria-label="Remove" onClick="{{ x.rm }}" style="border: 0; background: transparent; padding: 0; cursor: pointer; color: #7A827E; font-size: 16px; line-height: 1">×</button></span></sc-for></span></sc-if>
+              <input type="file" multiple aria-label="Add files to export" onChange="{{ pickExtra }}" style="position: absolute; width: 1px; height: 1px; opacity: 0">
+            </label>
+            <div style="display: flex; align-items: center; gap: 16px">
+              <button type="button" class="btn pri" style="min-height: 48px; padding: 0 28px" onClick="{{ exPreview }}">Preview</button>
+              <span style="font-size: 15px; color: #56605B">{{ exSummary }}</span>
+              <sc-if value="{{ exNeedsUnlock }}" hint-placeholder-val="{{ false }}"><span style="font-size: 14.5px; color: #8A5A0E">Documents are locked, so you will be asked to unlock.</span></sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ exPrev }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 18px">
+            <div style="display: flex; flex-direction: column; border: 1px solid #E1E5E2; border-radius: 14px; overflow: hidden">
+              <div style="padding: 16px 20px; background: #F6F7F6; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 16px; font-weight: 600">{{ packName }}</span><span class="mono" style="font-size: 14px; color: #56605B">{{ packPages }} pages</span></div>
+              <sc-for list="{{ packItems }}" as="i" hint-placeholder-count="6">
+                <div style="display: grid; grid-template-columns: 34px minmax(0, 1fr) 90px; gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-top: 1px solid #ECEFED; font-size: 15.5px"><span class="mono" style="font-size: 13.5px; color: #7A827E">{{ i.n }}</span><span>{{ i.t }}</span><span class="mono" style="font-size: 14px; color: #56605B; text-align: right">{{ i.p }}</span></div>
+              </sc-for>
+            </div>
+            <div style="padding: 16px 20px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E1E5E2; display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: #3F4744">
+              <span style="font-weight: 600; color: #141816">Timesheet, first rows</span>
+              <sc-for list="{{ packRows }}" as="r" hint-placeholder-count="4"><span style="display: grid; grid-template-columns: 110px 130px minmax(0, 1fr) 50px; gap: 12px"><span>{{ r.d }}</span><span class="mono" style="font-size: 14px; white-space: pre">{{ r.t }}</span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.x }}</span><span class="mono" style="text-align: right">{{ r.h }}</span></span></sc-for>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{ opts }}" as="o" hint-placeholder-count="3"><sc-if value="{{ o.on }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip chipon" onClick="{{ o.flip }}">{{ o.n }}</button></sc-if><sc-if value="{{ o.off }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip" onClick="{{ o.flip }}">{{ o.n }}</button></sc-if></sc-for></div>
+            <div style="display: flex; gap: 10px"><button type="button" class="btn pri" style="min-height: 48px; padding: 0 28px" onClick="{{ exGoDeliver }}">Export</button><button type="button" class="btn" style="min-height: 48px" onClick="{{ exBack }}">Change</button></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ exDeliver }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 22px">
+            <div style="display: flex; gap: 12px">
+              <sc-for list="{{ delivs }}" as="k" hint-placeholder-count="3">
+                <sc-if value="{{ k.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="card cardon" onClick="{{ k.go }}"><span style="font-size: 17px; font-weight: 600">{{ k.n }}</span><span style="font-size: 14.5px; color: #56605B">{{ k.d }}</span></button></sc-if>
+                <sc-if value="{{ k.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="card" onClick="{{ k.go }}"><span style="font-size: 17px; font-weight: 600">{{ k.n }}</span><span style="font-size: 14.5px; color: #56605B">{{ k.d }}</span></button></sc-if>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isLink }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border-radius: 14px; background: #F6F7F6">
+                <span style="font-size: 15px; font-weight: 600">Who can open it</span>
+                <div style="display: flex; gap: 6px"><sc-for list="{{ whoOpts }}" as="c" hint-placeholder-count="2"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><button type="button" class="chip chipon" onClick="{{ c.go }}">{{ c.l }}</button></sc-if><sc-if value="{{ c.off }}" hint-placeholder-val="{{ true }}"><button type="button" class="chip" onClick="{{ c.go }}">{{ c.l }}</button></sc-if></sc-for></div>
+                <sc-if value="{{ whoPeople }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; flex-direction: column; gap: 8px">
+                    <div style="display: flex; gap: 8px"><input class="in" aria-label="Email address" placeholder="name@school.edu" value="{{ emailDraft }}" onChange="{{ onEmail }}" onKeyDown="{{ onEmailKey }}" style="width: 320px"><button type="button" class="btn" onClick="{{ addEmail }}">Add</button></div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ emails }}" as="e" hint-placeholder-count="1"><span style="display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #FFFFFF; border: 1px solid #DDE2DF; font-size: 14px">{{ e.n }}<button type="button" aria-label="Remove" onClick="{{ e.rm }}" style="border: 0; background: transparent; padding: 0; cursor: pointer; color: #7A827E; font-size: 16px; line-height: 1">×</button></span></sc-for></div>
+                    <span style="font-size: 14px; color: #56605B">They sign in with that email to open it. You can revoke any time.</span>
+                  </div>
+                </sc-if>
+                <div style="display: flex; align-items: center; gap: 12px"><label for="exp" style="font-size: 15px">Link expires</label><select id="exp" class="in" style="font-size: 14.5px; padding: 6px 10px"><option>In 30 days</option><option>In 7 days</option><option>Never</option></select></div>
+              </div>
+            </sc-if>
+            <div style="display: flex; align-items: center; gap: 16px"><button type="button" class="btn pri" style="min-height: 48px; padding: 0 28px" onClick="{{ createExport }}">{{ exBtn }}</button><span style="font-size: 15px; color: #56605B">{{ packName }}</span></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ exBuild }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top: auto; display: flex; flex-direction: column">
+            <span class="sec">Made before</span>
+            <sc-for list="{{ recent }}" as="x" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; gap: 14px; align-items: center; min-height: 46px; border-top: 1px solid #ECEFED">
+                <span class="mono" style="font-size: 14px; color: #56605B">{{ x.when }}</span>
+                <span style="font-size: 15.5px">{{ x.name }}</span>
+                <span style="display: flex; gap: 4px"><button type="button" class="btn quiet" style="min-height: 34px; font-size: 14px" onClick="{{ x.open }}">Open</button><sc-if value="{{ x.isLink }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn quiet" style="min-height: 34px; font-size: 14px; color: #A1271E" onClick="{{ x.revoke }}">Revoke</button></sc-if></span>
+              </div>
+            </sc-for>
+            <div style="margin-top: 22px; padding: 16px 20px; border-radius: 14px; background: #F6F7F6; display: flex; justify-content: space-between; align-items: center; gap: 20px">
+              <span style="font-size: 16px">Received a Request for Evidence?</span>
+              <button type="button" class="btn" onClick="{{ rfe }}">Build a response</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vCase }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 22px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h1 class="h1">Your case</h1><a href="V3Setup.dc.html" style="font-size: 15px; text-decoration: none">Run setup again</a></div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 48px">
+          <div style="display: flex; flex-direction: column; border-top: 1px solid #ECEFED">
+            <sc-for list="{{ fields }}" as="f" hint-placeholder-count="9">
+              <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 54px; border-bottom: 1px solid #ECEFED">
+                <span style="font-size: 15px; color: #56605B">{{ f.k }}</span>
+                <sc-if value="{{ f.view }}" hint-placeholder-val="{{ true }}"><span style="font-size: 16px">{{ f.v }}</span></sc-if>
+                <sc-if value="{{ f.editing }}" hint-placeholder-val="{{ false }}"><input class="in" style="border-color: #1B7A57" aria-label="{{ f.k }}" value="{{ f.draft }}" onChange="{{ onCase }}" onKeyDown="{{ onCaseKey }}"></sc-if>
+                <sc-if value="{{ f.view }}" hint-placeholder-val="{{ true }}"><button class="pen" type="button" aria-label="Edit" onClick="{{ f.edit }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F4744" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M13.5 6.5l4 4"></path></svg></button></sc-if>
+                <sc-if value="{{ f.editing }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn pri" style="min-height: 38px" onClick="{{ caseSave }}">Save</button></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-direction: column; border-top: 1px solid #ECEFED">
+            <sc-for list="{{ switches }}" as="w" hint-placeholder-count="7">
+              <div style="display: flex; justify-content: space-between; align-items: center; min-height: 54px; border-bottom: 1px solid #ECEFED; gap: 12px">
+                <span style="font-size: 16px">{{ w.n }}</span>
+                <button type="button" class="sw" style="background: {{ w.bg }}" aria-label="{{ w.n }}" aria-pressed="{{ w.on }}" onClick="{{ w.flip }}"><span class="knob" style="left: {{ w.left }}"></span></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: absolute; left: 756px; bottom: 28px; transform: translateX(-50%); padding: 12px 18px; border-radius: 10px; background: #141816; color: #FFFFFF; font-size: 15px; box-shadow: 0 8px 24px rgba(20,24,22,.25); white-space: nowrap">{{ toast }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":840}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    const E = (id, date, time, text, hrs, src, ai, edited, manual) => ({ id: id, date: date, time: time, text: text, hrs: hrs, src: src, ai: !!ai, edited: !!edited, manual: !!manual });
+    this.state = {
+      view: 'today', open: 0, editing: 0, dText: '', dHrs: '', adding: false, nText: '', nHrs: '', done: false, paused: false, toast: '',
+      q: '', filterOpen: false, fFrom: '', fTo: '', fSrcs: {}, fKind: 'all', fQuick: '', dayOpen: '2026-10-06', noteEdit: '', noteDraft: '', addDay: '', nTime: '', notes: { '2026-10-03': 'Day off', '2026-09-26': 'Day off', '2026-09-27': 'Day off' },
+      vOpen: 0, checked: '',
+      locked: true, askUnlock: false, pass: '', privOpen: false, docConfirm: '', dragging: false, exDragging: false,
+      priv: { blur: true, reqExport: true, logViews: true, notify: false },
+      exKind: 'record', exStep: 'build', exFrom: '2026-06-01', exTo: '2026-10-06', exDeliv: 'zip', who: 'people', emails: ['advisor@school.edu'], emailDraft: '', exSrcOff: {}, exDocOff: {}, extras: [], optOpen: false,
+      exOpt: { ai: true, names: true, history: false },
+      fbOpen: false, fbKind: 'tool', fbText: '',
+      recent: [
+        { id: 1, when: 'Oct 1, 00:05', name: 'September record', isLink: false },
+        { id: 2, when: 'Sep 12, 10:40', name: 'Link for DSO, Jun 1 to Sep 12', isLink: true, revoked: false }
+      ],
+      all: [
+        E(1, '2026-10-06', '09:02  10:00', 'Refresh-token rotation for backend auth', '1.0', ['GitHub'], true),
+        E(2, '2026-10-06', '10:00  10:30', 'Sprint planning', '0.5', ['Calendar', 'Meet']),
+        E(3, '2026-10-06', '10:30  12:10', 'Reviewed and merged PR #42', '1.7', ['GitHub'], true),
+        E(4, '2026-10-06', '13:00  14:40', 'Wrote pricing spec v2 and closed ENG-118', '1.7', ['Notion', 'Linear'], false, true),
+        E(5, '2026-10-06', '14:40  15:55', 'Usage metering for billing', '1.3', ['GitHub'], true),
+        E(6, '2026-10-05', '09:00  12:15', 'Auth service error handling', '3.2', ['GitHub', 'Slack'], true),
+        E(7, '2026-10-05', '13:10  15:55', 'Session store migration', '2.8', ['GitHub']),
+        E(8, '2026-10-05', '16:00  16:45', 'Customer interview #6', '0.8', ['Calendar', 'Meet']),
+        E(9, '2026-10-04', '19:00  20:10', 'Pricing notes for spec v2', '1.2', ['Added by me'], false, false, true),
+        E(10, '2026-10-02', '09:30  12:05', 'Billing schema and Linear triage', '2.6', ['GitHub', 'Linear'], true),
+        E(11, '2026-10-02', '14:00  17:20', 'Reviewed and merged PR #39', '3.3', ['GitHub'], false, true),
+        E(12, '2026-10-01', '09:00  13:05', 'Auth service groundwork', '4.1', ['GitHub'], true),
+        E(13, '2026-10-01', '14:00  15:00', 'Sprint review', '1.0', ['Calendar', 'Meet']),
+        E(14, '2026-10-01', '15:10  17:10', 'Contributor onboarding doc', '2.0', ['Notion'], true),
+        E(15, '2026-09-30', '09:15  12:45', 'Rate limiting middleware', '3.5', ['GitHub']),
+        E(16, '2026-09-30', '14:00  15:30', 'Investor update draft', '1.5', ['Added by me'], false, false, true),
+        E(17, '2026-09-30', '16:00  16:40', 'Customer interview #5', '0.7', ['Calendar', 'Meet']),
+        E(18, '2026-09-29', '09:30  12:30', 'Webhook retries', '3.0', ['GitHub'], true),
+        E(19, '2026-09-29', '13:30  14:30', 'Design review', '1.0', ['Calendar', 'Meet']),
+        E(20, '2026-09-28', '09:00  12:00', 'Auth service planning', '3.0', ['Notion', 'Linear'], true),
+        E(21, '2026-09-28', '13:00  16:30', 'Login flow fixes', '3.5', ['GitHub'], true),
+        E(22, '2026-09-25', '09:30  13:00', 'Signup API', '3.5', ['GitHub'], true),
+        E(23, '2026-09-25', '14:00  15:00', 'Weekly sync', '1.0', ['Calendar', 'Meet']),
+        E(24, '2026-09-24', '10:00  16:20', 'Database migrations', '6.3', ['GitHub'], true),
+        E(25, '2026-09-23', '09:00  12:30', 'Customer interviews #3 and #4', '3.5', ['Calendar', 'Meet']),
+        E(26, '2026-09-23', '14:00  17:00', 'Interview notes and follow-ups', '3.0', ['Notion'], true),
+        E(27, '2026-09-22', '09:15  15:45', 'Project setup and CI', '6.5', ['GitHub'], true)
+      ],
+      vault: [
+        { id: 1, when: 'Oct 5, 18:02', title: 'Day completed, Mon Oct 5', detail: '3 entries, 6.8 hours' },
+        { id: 2, when: 'Oct 5, 09:10', title: 'EAD card opened', detail: 'Unlocked with Touch ID, locked again at 09:15' },
+        { id: 3, when: 'Oct 4, 20:15', title: 'Entry added, Oct 4', detail: '1.2 hours', before: '', after: 'Pricing notes for spec v2' },
+        { id: 4, when: 'Oct 3, 10:12', title: 'Entry edited, Oct 2', detail: 'Wrong PR number', before: 'Reviewed and merged PR #38', after: 'Reviewed and merged PR #39' },
+        { id: 5, when: 'Oct 2, 18:30', title: 'Day completed, Fri Oct 2', detail: '2 entries, 5.9 hours' },
+        { id: 6, when: 'Oct 1, 00:05', title: 'September record exported', detail: 'PDF and folder, 22 days, 118.4 hours' },
+        { id: 7, when: 'Sep 28, 11:00', title: 'Weekly target changed', detail: 'Your case', before: '25 hours a week', after: '20 hours a week' },
+        { id: 8, when: 'Jun 12, 14:20', title: 'SEVP portal report added', detail: '1 page, encrypted' }
+      ],
+      docs: [
+        { k: 'ead', n: 'EAD card', added: 'Jun 3' },
+        { k: 'i20', n: 'I-20 with OPT recommendation', added: 'Jun 3' },
+        { k: 'sevp', n: 'SEVP portal employer report', added: 'Jun 12' },
+        { k: 'art', n: 'Articles of incorporation', added: 'May 20' },
+        { k: 'ein', n: 'EIN confirmation letter', added: 'May 28' },
+        { k: 'role', n: 'Role description', added: 'Jun 1' },
+        { k: 'bank', n: 'Bank statement, September', added: 'Oct 2' }
+      ],
+      caseEdit: '', caseDraft: '',
+      caseVals: { status: 'F-1 OPT, Jun 1, 2026 to May 31, 2027', role: 'Founding Engineer, Example Co', type: 'Founder, self-employed', target: '20 hours a week', degree: 'M.Eng, Computer Science', d1: 'Build backend services', d2: 'Write product specs', d3: 'Customer research', d4: 'Coordinate engineering' },
+      sw: { gh: true, cal: true, slack: true, lin: true, figma: false, ai: true, content: false }
+    };
+    this.vid = 100;
+  }
+  say(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2400); }
+  stamp() { const d = new Date(); return 'Oct 6, ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+  logV(title, detail, before, after) { this.vid += 1; return { id: this.vid, when: this.stamp(), title: title, detail: detail, before: before || '', after: after || '' }; }
+  names(fileList) { const out = []; for (let i = 0; i < fileList.length; i++) out.push(fileList[i].name); return out; }
+  renderVals() {
+    const S = this.state;
+    const go = v => () => this.setState({ view: v, editing: 0, caseEdit: '', askUnlock: false, filterOpen: false, fbOpen: false });
+    const nav = [['today', 'Today'], ['log', 'Log'], ['docs', 'Documents'], ['exports', 'Exports']].map(n => ({ label: n[1], on: S.view === n[0] || (n[0] === 'log' && S.view === 'history'), off: !(S.view === n[0] || (n[0] === 'log' && S.view === 'history')), go: go(n[0]) }));
+    const num = x => parseFloat(x) || 0;
+    const today = S.all.filter(e => e.date === '2026-10-06');
+    const sumT = today.reduce((a, e) => a + num(e.hrs), 0);
+    const week = S.all.filter(e => e.date >= '2026-10-05').reduce((a, e) => a + num(e.hrs), 0);
+
+    const rowOf = e => ({
+      time: e.time, text: e.text, hrs: e.hrs, ai: e.ai, edited: e.edited,
+      srcs: e.src.map(s => s === 'Added by me' ? 'Added by you' : 'From ' + s),
+      view: S.editing !== e.id, editing: S.editing === e.id, open: S.open === e.id && S.editing !== e.id,
+      dText: S.dText, dHrs: S.dHrs,
+      toggle: () => this.setState({ open: S.open === e.id ? 0 : e.id }),
+      edit: () => this.setState({ editing: e.id, dText: e.text, dHrs: e.hrs, open: 0 }),
+      remove: () => { this.setState({ all: S.all.filter(x => x.id !== e.id), editing: 0, vault: [this.logV('Entry deleted', 'A copy is kept here', e.text, '(deleted)')].concat(S.vault) }); this.say('Deleted. A copy stays in History.'); }
+    });
+    const save = () => {
+      const old = S.all.find(e => e.id === S.editing); if (!old) return;
+      const changed = old.text !== S.dText || old.hrs !== S.dHrs;
+      const all = S.all.map(e => e.id === S.editing ? Object.assign({}, e, { text: S.dText, hrs: S.dHrs, ai: changed ? false : e.ai, edited: e.edited || changed }) : e);
+      this.setState({ all: all, editing: 0, vault: changed ? [this.logV('Entry edited', old.hrs + ' h to ' + S.dHrs + ' h', old.text, S.dText)].concat(S.vault) : S.vault });
+      this.say(changed ? 'Saved. The original is kept in History.' : 'No changes');
+    };
+    const cancel = () => this.setState({ editing: 0 });
+    const addSave = () => {
+      if (!S.nText.trim()) { this.setState({ adding: false, addDay: '' }); return; }
+      const date = S.addDay || '2026-10-06';
+      const t = S.addDay ? (S.nTime || '09:00') : '17:00';
+      const e = { id: Date.now(), date: date, time: t, text: S.nText.trim(), hrs: S.nHrs || '0.5', src: ['Added by me'], ai: false, edited: false, manual: true };
+      this.setState({ all: S.all.concat([e]), adding: false, addDay: '', nText: '', nHrs: '', nTime: '', vault: [this.logV('Entry added, ' + date, e.hrs + ' hours', '', e.text)].concat(S.vault) });
+      this.say('Added');
+    };
+
+    const q = S.q.toLowerCase();
+    const srcOn = Object.keys(S.fSrcs).filter(k => S.fSrcs[k]);
+    const hasFilter = !!(S.fFrom || S.fTo || srcOn.length || S.fKind !== 'all');
+    const from = S.fFrom || '2026-09-22', to = S.fTo || '2026-10-06';
+    const kindOk = e => S.fKind === 'all' || (S.fKind === 'ai' && e.ai) || (S.fKind === 'edited' && e.edited) || (S.fKind === 'manual' && e.manual);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = [];
+    const byMonth = {};
+    const cur = new Date('2026-10-06T12:00:00');
+    const start = new Date('2026-09-22T12:00:00');
+    for (let d = new Date(cur); d >= start; d.setDate(d.getDate() - 1)) {
+      const key = d.toISOString().slice(0, 10);
+      if (key < from || key > to) continue;
+      let items = S.all.filter(e => e.date === key);
+      if (q) items = items.filter(e => e.text.toLowerCase().indexOf(q) > -1);
+      if (srcOn.length) items = items.filter(e => e.src.some(x => S.fSrcs[x]));
+      if (S.fKind !== 'all') items = items.filter(kindOk);
+      if ((q || srcOn.length || S.fKind !== 'all') && items.length === 0) continue;
+      const mk = key.slice(0, 7);
+      if (!byMonth[mk]) { byMonth[mk] = { name: monthsFull[d.getMonth()] + ' ' + d.getFullYear(), days: [], hrs: 0 }; months.push(byMonth[mk]); }
+      const hrs = items.reduce((a, e) => a + num(e.hrs), 0);
+      byMonth[mk].hrs += hrs;
+      const isToday = key === '2026-10-06';
+      const empty = items.length === 0;
+      const note = S.notes[key] || '';
+      const open = S.dayOpen === key;
+      const names = items.slice().reverse().map(e => e.text);
+      byMonth[mk].days.push({
+        label: dayNames[d.getDay()] + ', ' + monNames[d.getMonth()] + ' ' + d.getDate(),
+        preview: empty ? (note || 'No work') : (isToday && !S.done ? 'Still open. ' : '') + names.slice(0, 2).join(', ') + (names.length > 2 ? ', and ' + (names.length - 2) + ' more' : ''),
+        hrs: empty ? '' : hrs.toFixed(1),
+        color: empty ? '#8A928E' : '#141816',
+        open: open, chev: open ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6',
+        toggle: () => this.setState({ dayOpen: open ? '' : key, editing: 0, noteEdit: '' }),
+        items: items.slice().reverse().map(rowOf),
+        empty: empty, noteView: S.noteEdit !== key, noteEditing: S.noteEdit === key,
+        noteText: note || 'Nothing was recorded.', noteBtn: note ? 'Change' : 'Add a note',
+        noteEdit: () => this.setState({ noteEdit: key, noteDraft: note }),
+        addingHere: S.addDay === key, notAddingHere: S.addDay !== key,
+        addHere: () => this.setState({ addDay: key, nText: '', nHrs: '', nTime: '', editing: 0, noteEdit: '' })
+      });
+    }
+    months.forEach(m => { m.hrs = m.hrs.toFixed(1); });
+    const noteSave = () => { const k = S.noteEdit; this.setState({ notes: Object.assign({}, S.notes, { [k]: S.noteDraft }), noteEdit: '', vault: [this.logV('Note added for ' + k, S.noteDraft)].concat(S.vault) }); this.say('Saved'); };
+    const quick = [['week', 'This week', '2026-10-05', ''], ['month', 'This month', '2026-10-01', ''], ['last', 'Last month', '2026-09-01', '2026-09-30'], ['all', 'Everything', '', '']];
+    const fQuick = quick.map(k => ({ l: k[1], on: S.fQuick === k[0], off: S.fQuick !== k[0], go: () => this.setState({ fQuick: k[0], fFrom: k[2], fTo: k[3] }) }));
+    const srcNames = ['GitHub', 'Calendar', 'Meet', 'Slack', 'Notion', 'Linear', 'Added by me'];
+    const fSrcs = srcNames.map(n => ({ l: n, on: !!S.fSrcs[n], off: !S.fSrcs[n], go: () => this.setState({ fSrcs: Object.assign({}, S.fSrcs, { [n]: !S.fSrcs[n] }) }) }));
+    const fKinds = [['all', 'Everything'], ['ai', 'Written by AI'], ['edited', 'Edited'], ['manual', 'Added by me']].map(k => ({ l: k[1], on: S.fKind === k[0], off: S.fKind !== k[0], go: () => this.setState({ fKind: k[0] }) }));
+    const activeChips = [];
+    if (S.fFrom || S.fTo) activeChips.push({ l: (S.fFrom || 'start') + ' to ' + (S.fTo || 'today'), rm: () => this.setState({ fFrom: '', fTo: '', fQuick: '' }) });
+    srcOn.forEach(n => activeChips.push({ l: n, rm: () => this.setState({ fSrcs: Object.assign({}, S.fSrcs, { [n]: false }) }) }));
+    if (S.fKind !== 'all') activeChips.push({ l: fKinds.find(k => k.on).l, rm: () => this.setState({ fKind: 'all' }) });
+    const filteredCount = months.reduce((a, m) => a + m.days.reduce((b, d) => b + d.items.length, 0), 0);
+
+    const vaultRows = S.vault.map(v => ({ when: v.when, title: v.title, detail: v.detail, hasDiff: !!(v.before || v.after), before: v.before || '(new)', after: v.after, open: S.vOpen === v.id, chev: S.vOpen === v.id ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6', toggle: () => this.setState({ vOpen: S.vOpen === v.id ? 0 : v.id }) }));
+
+    const unlock = () => { this.setState({ locked: false, askUnlock: false, pass: '', vault: [this.logV('Documents unlocked', 'Locks again after 5 minutes')].concat(S.vault) }); this.say('Unlocked for 5 minutes'); };
+    const addFiles = (list) => {
+      const ns = this.names(list); if (!ns.length) return;
+      const docs = S.docs.concat(ns.map(n => ({ k: n + Date.now(), n: n, added: 'Today' })));
+      this.setState({ docs: docs, dragging: false, vault: [this.logV(ns.length + (ns.length === 1 ? ' document added' : ' documents added'), ns.join(', '))].concat(S.vault) });
+      this.say(ns.length === 1 ? 'Added and encrypted' : ns.length + ' files added and encrypted');
+    };
+    const docs = S.docs.map(d => ({
+      name: d.n, added: d.added, normal: S.docConfirm !== d.k, confirming: S.docConfirm === d.k,
+      view: () => { this.setState({ vault: S.priv.logViews ? [this.logV(d.n + ' opened')].concat(S.vault) : S.vault }); this.say('Opening ' + d.n); },
+      askDel: () => this.setState({ docConfirm: d.k }), noDel: () => this.setState({ docConfirm: '' }),
+      del: () => { this.setState({ docs: S.docs.filter(x => x.k !== d.k), docConfirm: '', vault: [this.logV(d.n + ' removed', 'Deleted from this Mac')].concat(S.vault) }); this.say('Removed'); }
+    }));
+    const privacy = [['blur', 'Blur names while locked'], ['reqExport', 'Ask before exporting documents'], ['logViews', 'Keep a record of every time a document is opened'], ['notify', 'Notify me when a document is opened']].map(p => ({ n: p[1], on: !!S.priv[p[0]], bg: S.priv[p[0]] ? '#1B7A57' : '#C9D0CC', left: S.priv[p[0]] ? '19px' : '3px', flip: () => this.setState({ priv: Object.assign({}, S.priv, { [p[0]]: !S.priv[p[0]] }) }) }));
+
+    const kinds = [['record', 'Everything', 'All entries, sources and documents since Jun 1'], ['custom', 'Custom', 'Pick dates, sources and documents']].map(k => ({ n: k[1], d: k[2], on: S.exKind === k[0], off: S.exKind !== k[0], go: () => this.setState(k[0] === 'record' ? { exKind: 'record', exFrom: '2026-06-01', exTo: '2026-10-06' } : { exKind: 'custom' }) }));
+    const exQuick = [['month', 'This month', '2026-10-01', '2026-10-06'], ['last', 'Last month', '2026-09-01', '2026-09-30'], ['q', 'Last 3 months', '2026-07-06', '2026-10-06'], ['opt', 'Since Jun 1', '2026-06-01', '2026-10-06']].map(k => ({ l: k[1], on: S.exFrom === k[2] && S.exTo === k[3], off: !(S.exFrom === k[2] && S.exTo === k[3]), go: () => this.setState({ exFrom: k[2], exTo: k[3] }) }));
+    const srcAll = ['GitHub', 'Calendar', 'Meet', 'Slack', 'Notion', 'Linear', 'Added by me'];
+    const exSrcs = srcAll.map(n => ({ l: n, on: !S.exSrcOff[n], off: !!S.exSrcOff[n], go: () => this.setState({ exSrcOff: Object.assign({}, S.exSrcOff, { [n]: !S.exSrcOff[n] }) }) }));
+    const exDocList = S.docs.map(d => ({ n: d.n, on: !S.exDocOff[d.k], off: !!S.exDocOff[d.k], go: () => this.setState({ exDocOff: Object.assign({}, S.exDocOff, { [d.k]: !S.exDocOff[d.k] }) }) }));
+    const useSrc = e => S.exKind !== 'custom' || e.src.some(x => !S.exSrcOff[x]);
+    const inRange = S.all.filter(e => e.date >= S.exFrom && e.date <= S.exTo && useSrc(e));
+    const days = {}; inRange.forEach(e => { days[e.date] = 1; });
+    const docsIn = S.exKind === 'record' ? S.docs : (S.exKind === 'custom' ? S.docs.filter(d => !S.exDocOff[d.k]) : []);
+    const docCount = docsIn.length;
+    const needsUnlock = docCount > 0 && S.locked && S.priv.reqExport;
+    const hoursIn = inRange.reduce((a, e) => a + num(e.hrs), 0);
+    const exSummary = Object.keys(days).length + ' days, ' + hoursIn.toFixed(1) + ' hours' + (docCount ? ', ' + docCount + ' documents' : '') + (S.extras.length ? ', ' + S.extras.length + ' extra' : '');
+    const opts = [['ai', 'Note which entries were written by AI'], ['names', 'Hide other people\u2019s names'], ['history', 'Include edit history']].map(o => ({ n: o[1], on: !!S.exOpt[o[0]], off: !S.exOpt[o[0]], bg: S.exOpt[o[0]] ? '#1B7A57' : '#C9D0CC', left: S.exOpt[o[0]] ? '19px' : '3px', flip: () => this.setState({ exOpt: Object.assign({}, S.exOpt, { [o[0]]: !S.exOpt[o[0]] }) }) }));
+    const kindName = S.exKind === 'record' ? 'Full record' : 'Record';
+    const packName = kindName + ', ' + S.exFrom + ' to ' + S.exTo;
+    const tsPages = Math.max(1, Math.ceil(inRange.length / 12));
+    const packItems = [{ n: '1', t: 'Summary: role, dates, weekly hours', p: '1 p' }, { n: '2', t: 'Timesheet, ' + inRange.length + ' entries', p: tsPages + ' pp' }];
+    packItems.push({ n: '3', t: 'Source records: ' + (S.exKind === 'custom' ? srcAll.filter(n => !S.exSrcOff[n]).join(', ') : srcAll.join(', ')), p: Math.max(1, Math.ceil(inRange.length / 4)) + ' pp' });
+    docsIn.forEach(d => packItems.push({ n: String(packItems.length + 1), t: d.n, p: '1 p' }));
+    S.extras.forEach(x => packItems.push({ n: String(packItems.length + 1), t: x, p: '1 p' }));
+    if (S.exOpt.ai) packItems.push({ n: String(packItems.length + 1), t: 'Method note: which entries were drafted by AI, all reviewed by you', p: '1 p' });
+    const packPages = packItems.reduce((a, i) => a + parseInt(i.p, 10), 0);
+    const packRows = inRange.slice(0, 4).map(e => ({ d: e.date.slice(5), t: e.time, x: e.text, h: e.hrs }));
+    const delivs = [['zip', 'Zip file', 'One file to attach or upload'], ['folder', 'Folder', 'Plain files on this Mac'], ['link', 'Link', 'Opens in a browser, read-only']].map(k => ({ n: k[1], d: k[2], on: S.exDeliv === k[0], off: S.exDeliv !== k[0], go: () => this.setState({ exDeliv: k[0] }) }));
+    const whoOpts = [['people', 'Only people I add'], ['anyone', 'Anyone with the link']].map(k => ({ l: k[1], on: S.who === k[0], off: S.who !== k[0], go: () => this.setState({ who: k[0] }) }));
+    const addEmail = () => { const v = S.emailDraft.trim(); if (!v) return; this.setState({ emails: S.emails.concat([v]), emailDraft: '' }); };
+    const emails = S.emails.map((n, i) => ({ n: n, rm: () => this.setState({ emails: S.emails.filter((_, j) => j !== i) }) }));
+    const createExport = () => {
+      if (needsUnlock) { this.setState({ view: 'docs', askUnlock: true }); this.say('Unlock documents first'); return; }
+      const isLink = S.exDeliv === 'link';
+      const name = packName + (isLink ? (S.who === 'people' ? ', link for ' + S.emails.length + (S.emails.length === 1 ? ' person' : ' people') : ', open link') : '');
+      this.setState({ recent: [{ id: Date.now(), when: this.stamp(), name: name, isLink: isLink, revoked: false }].concat(S.recent), extras: [], exStep: 'build', vault: [this.logV(name + ' exported', exSummary)].concat(S.vault) });
+      this.say(isLink ? 'Link copied. Revoke it any time.' : (S.exDeliv === 'zip' ? 'Zip saved to ~/WorkBook/exports' : 'Folder saved to ~/WorkBook/exports'));
+    };
+    const extras = S.extras.map((n, i) => ({ n: n, rm: () => this.setState({ extras: S.extras.filter((_, j) => j !== i) }) }));
+    const recent = S.recent.map(x => ({ when: x.when, name: x.name + (x.revoked ? ' (revoked)' : ''), isLink: x.isLink && !x.revoked, open: () => this.say('Opening ' + x.name), revoke: () => { this.setState({ recent: S.recent.map(r => r.id === x.id ? Object.assign({}, r, { revoked: true }) : r), vault: [this.logV('Link revoked', x.name)].concat(S.vault) }); this.say('Revoked. The link no longer opens.'); } }));
+
+    const fDef = [['status', 'Status'], ['role', 'Role'], ['type', 'Work type'], ['target', 'Weekly target'], ['degree', 'Degree'], ['d1', 'Duty'], ['d2', 'Duty'], ['d3', 'Duty'], ['d4', 'Duty']];
+    const fields = fDef.map(f => ({ k: f[1], v: S.caseVals[f[0]], view: S.caseEdit !== f[0], editing: S.caseEdit === f[0], draft: S.caseDraft, edit: () => this.setState({ caseEdit: f[0], caseDraft: S.caseVals[f[0]] }) }));
+    const caseSave = () => { const k = S.caseEdit, old = S.caseVals[k]; const label = fDef.find(f => f[0] === k)[1]; this.setState({ caseVals: Object.assign({}, S.caseVals, { [k]: S.caseDraft }), caseEdit: '', vault: old !== S.caseDraft ? [this.logV(label + ' changed', 'Your case', old, S.caseDraft)].concat(S.vault) : S.vault }); this.say('Saved'); };
+    const switches = [['gh', 'GitHub'], ['cal', 'Calendar and Meet'], ['slack', 'Slack'], ['lin', 'Linear and Notion'], ['figma', 'Figma'], ['ai', 'AI summaries on this device'], ['content', 'Read message content']].map(w => ({ n: w[1], on: !!S.sw[w[0]], bg: S.sw[w[0]] ? '#1B7A57' : '#C9D0CC', left: S.sw[w[0]] ? '19px' : '3px', flip: () => this.setState({ sw: Object.assign({}, S.sw, { [w[0]]: !S.sw[w[0]] }) }) }));
+
+    const fbKinds = [['tool', 'Request a tool'], ['problem', 'Problem'], ['idea', 'Idea']].map(k => ({ l: k[1], on: S.fbKind === k[0], off: S.fbKind !== k[0], go: () => this.setState({ fbKind: k[0] }) }));
+    const fbHint = { tool: 'Which tool should we pull from? Jira, Zoom, Figma...', problem: 'What went wrong?', idea: 'What would make this better?' }[S.fbKind];
+
+    return {
+      nav: nav, caseOn: S.view === 'case', caseOff: S.view !== 'case', goCase: go('case'),
+      vToday: S.view === 'today', vLog: S.view === 'log', vHistory: S.view === 'history', vDocs: S.view === 'docs', vExports: S.view === 'exports', vCase: S.view === 'case',
+      goHistory: go('history'), goLog: go('log'),
+      recColor: S.paused ? '#B7BEBA' : '#1B7A57', recLabel: S.paused ? 'Paused' : 'Recording', pauseLabel: S.paused ? 'Resume' : 'Pause',
+      togglePause: () => { this.setState({ paused: !S.paused }); this.say(S.paused ? 'Recording again' : 'Paused'); },
+      fbOpen: S.fbOpen, fbToggle: () => this.setState({ fbOpen: !S.fbOpen }), fbKinds: fbKinds, fbTitle: 'Tell us', fbHint: fbHint, fbText: S.fbText,
+      onFb: e => this.setState({ fbText: e.target.value }), fbSend: () => { this.setState({ fbOpen: false, fbText: '' }); this.say('Thanks, sent.'); },
+      todayHours: sumT.toFixed(1), weekHours: week.toFixed(1), weekPct: Math.min(100, week / 20 * 100).toFixed(0) + '%',
+      todayRows: today.map(rowOf), save: save, cancel: cancel,
+      onText: e => this.setState({ dText: e.target.value }), onHrs: e => this.setState({ dHrs: e.target.value }),
+      onKey: e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); },
+      adding: S.adding, notAdding: !S.adding, nText: S.nText, nHrs: S.nHrs,
+      addOpen: () => this.setState({ adding: true, addDay: '' }), addCancel: () => this.setState({ adding: false, addDay: '', nText: '', nHrs: '', nTime: '' }), addSave: addSave,
+      onNText: e => this.setState({ nText: e.target.value }), onNHrs: e => this.setState({ nHrs: e.target.value }),
+      onNKey: e => { if (e.key === 'Enter') addSave(); if (e.key === 'Escape') this.setState({ adding: false, addDay: '' }); },
+      done: S.done, notDone: !S.done,
+      complete: () => { this.setState({ done: true, vault: [this.logV('Day completed, Tue Oct 6', today.length + ' entries, ' + sumT.toFixed(1) + ' hours')].concat(S.vault) }); this.say('Saved'); },
+      q: S.q, onQ: e => this.setState({ q: e.target.value }),
+      filterOpen: S.filterOpen, filterToggle: () => this.setState({ filterOpen: !S.filterOpen }),
+      hasFilter: hasFilter, activeChips: activeChips, clearFilter: () => this.setState({ fFrom: '', fTo: '', fSrcs: {}, fKind: 'all', fQuick: '' }),
+      fQuick: fQuick, fSrcs: fSrcs, fKinds: fKinds, filterCount: filteredCount + ' entries',
+      fFrom: S.fFrom, fTo: S.fTo, onFrom: e => this.setState({ fFrom: e.target.value, fQuick: '' }), onTo: e => this.setState({ fTo: e.target.value, fQuick: '' }),
+      nTime: S.nTime, onNTime: e => this.setState({ nTime: e.target.value }),
+      months: months, noHits: months.length === 0,
+      noteDraft: S.noteDraft, onNote: e => this.setState({ noteDraft: e.target.value }), onNoteKey: e => { if (e.key === 'Enter') noteSave(); if (e.key === 'Escape') this.setState({ noteEdit: '' }); }, noteSave: noteSave,
+      vaultRows: vaultRows, vaultCheck: S.checked, verify: () => { this.setState({ checked: S.vault.length + ' items checked' }); this.say('Nothing has changed since it was saved'); },
+      locked: S.locked, unlocked: !S.locked, showUnlock: S.askUnlock && S.locked, askUnlock: () => this.setState({ askUnlock: true }),
+      lockNow: () => { this.setState({ locked: true, privOpen: false }); this.say('Locked'); },
+      pass: S.pass, onPass: e => this.setState({ pass: e.target.value }), onPassKey: e => { if (e.key === 'Enter') unlock(); }, unlock: unlock,
+      privOpen: S.privOpen, privToggle: () => this.setState({ privOpen: !S.privOpen }), privacy: privacy,
+      docs: docs,
+      dropStyle: S.dragging ? 'border-color: #1B7A57; background: #F2F8F5; cursor: pointer; position: relative' : 'cursor: pointer; position: relative',
+      dragOver: e => { e.preventDefault(); if (!S.dragging) this.setState({ dragging: true }); },
+      dragLeave: () => this.setState({ dragging: false }),
+      dropDocs: e => { e.preventDefault(); addFiles(e.dataTransfer.files); },
+      pickDocs: e => addFiles(e.target.files),
+      kinds: kinds, exFrom: S.exFrom, exTo: S.exTo, onExFrom: e => this.setState({ exFrom: e.target.value }), onExTo: e => this.setState({ exTo: e.target.value }),
+      exBuild: S.exStep === 'build', exPrev: S.exStep === 'preview', exDeliver: S.exStep === 'deliver', exNotBuild: S.exStep !== 'build',
+      exTitle: S.exStep === 'build' ? 'Exports' : (S.exStep === 'preview' ? 'Preview' : 'Send as'),
+      exStepLabel: S.exStep === 'build' ? '' : (S.exStep === 'preview' ? 'Step 2 of 3' : 'Step 3 of 3'),
+      exPreview: () => this.setState({ exStep: 'preview' }), exGoDeliver: () => this.setState({ exStep: 'deliver' }), exBack: () => this.setState({ exStep: S.exStep === 'deliver' ? 'preview' : 'build' }),
+      exCustom: S.exKind === 'custom', exSrcs: exSrcs, exDocList: exDocList, exQuick: exQuick,
+      exSummary: exSummary, exNeedsUnlock: needsUnlock, createExport: createExport,
+      exBtn: S.exDeliv === 'link' ? 'Create link' : (S.exDeliv === 'zip' ? 'Save zip' : 'Save folder'),
+      packName: packName, packItems: packItems, packPages: packPages, packRows: packRows,
+      delivs: delivs, isLink: S.exDeliv === 'link', whoOpts: whoOpts, whoPeople: S.who === 'people',
+      emails: emails, emailDraft: S.emailDraft, onEmail: e => this.setState({ emailDraft: e.target.value }), onEmailKey: e => { if (e.key === 'Enter') addEmail(); }, addEmail: addEmail,
+      exDropStyle: S.exDragging ? 'border-color: #1B7A57; background: #F2F8F5; cursor: pointer; position: relative' : 'cursor: pointer; position: relative',
+      exDragOver: e => { e.preventDefault(); if (!S.exDragging) this.setState({ exDragging: true }); },
+      exDragLeave: () => this.setState({ exDragging: false }),
+      dropExtra: e => { e.preventDefault(); this.setState({ extras: S.extras.concat(this.names(e.dataTransfer.files)), exDragging: false }); },
+      pickExtra: e => this.setState({ extras: S.extras.concat(this.names(e.target.files)) }),
+      extras: extras, hasExtra: S.extras.length > 0, noExtra: S.extras.length === 0,
+      optOpen: S.optOpen, optToggle: () => this.setState({ optOpen: !S.optOpen }), optLabel: S.optOpen ? 'Hide options' : 'Options', opts: opts,
+      recent: recent, rfe: () => this.say('The RFE builder is the next screen we design'),
+      fields: fields, caseSave: caseSave, onCase: e => this.setState({ caseDraft: e.target.value }),
+      onCaseKey: e => { if (e.key === 'Enter') caseSave(); if (e.key === 'Escape') this.setState({ caseEdit: '' }); },
+      switches: switches,
+      hasToast: S.toast !== '', toast: S.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+name: L-narration
+kind: implementation
+review: high
+owned: ["assistant/**"]
+test: uv run pytest tests/unit/assistant -q
+spec: ""

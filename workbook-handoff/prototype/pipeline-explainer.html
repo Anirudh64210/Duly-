@@ -1,0 +1,414 @@
+<title>WorkBook Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F2F4F6; --surface:#FFFFFF; --surface-2:#E8ECEF; --ink:#141C24; --ink-2:#4A5763; --ink-3:#7A8793;
+  --line:#D3DAE0; --accent:#1C7A5C; --accent-soft:#DDEFE7; --accent-ink:#0F5A42;
+  --amber:#A86A12; --amber-soft:#F6E8CF; --blue:#2F5F9E; --blue-soft:#DEE8F5;
+  --seal:#6B3FA0; --seal-soft:#ECE3F6;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F151B; --surface:#161E26; --surface-2:#1E2831; --ink:#E6ECF1; --ink-2:#A7B4BF; --ink-3:#77858F;
+    --line:#2A3641; --accent:#3FB68C; --accent-soft:#16352A; --accent-ink:#7FD9B6;
+    --amber:#E0A447; --amber-soft:#3A2C14; --blue:#7FA8E0; --blue-soft:#1B2B40;
+    --seal:#B08BE0; --seal-soft:#2C2140;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F151B; --surface:#161E26; --surface-2:#1E2831; --ink:#E6ECF1; --ink-2:#A7B4BF; --ink-3:#77858F;
+  --line:#2A3641; --accent:#3FB68C; --accent-soft:#16352A; --accent-ink:#7FD9B6;
+  --amber:#E0A447; --amber-soft:#3A2C14; --blue:#7FA8E0; --blue-soft:#1B2B40;
+  --seal:#B08BE0; --seal-soft:#2C2140;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--cond);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,4.2vw,40px);font-weight:700;line-height:1.1}
+h2{font-size:22px;font-weight:600}
+h3{font-size:16px;font-weight:600}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.muted{color:var(--ink-2)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;flex-direction:column;gap:12px}
+header p{max-width:66ch;color:var(--ink-2)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-family:var(--mono);font-size:12px;padding:3px 9px;border:1px solid var(--line);border-radius:4px;color:var(--ink-2);background:var(--surface)}
+.tag.ex{border-color:var(--amber);color:var(--amber)}
+section{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;flex-direction:column;gap:6px}
+.sec-head p{max-width:70ch;color:var(--ink-2)}
+
+/* pipeline */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:inherit;font-size:14px;cursor:pointer;border-radius:6px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+:root[data-theme="dark"] button.primary{color:#0B1A14}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.primary{color:#0B1A14}}
+button:focus-visible,.stage:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.clock{font-family:var(--mono);font-size:13px;color:var(--ink-2);margin-left:auto}
+.pipe-scroll{overflow-x:auto;padding-bottom:6px}
+.pipeline{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:26px;min-width:900px;position:relative}
+.stage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:6px;text-align:left;cursor:pointer;transition:border-color .25s,box-shadow .25s,transform .25s}
+.stage .n{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.stage .t{font-family:var(--cond);font-weight:600;font-size:15.5px;line-height:1.2}
+.stage .d{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.stage .where{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:3px;align-self:flex-start;margin-top:auto}
+.where.local{background:var(--accent-soft);color:var(--accent-ink)}
+.where.you{background:var(--amber-soft);color:var(--amber)}
+.where.net{background:var(--blue-soft);color:var(--blue)}
+.stage:not(:last-child)::after{content:"";position:absolute;right:-22px;top:50%;width:18px;height:2px;background:var(--line)}
+.stage:not(:last-child)::before{content:"";position:absolute;right:-23px;top:calc(50% - 4px);border:5px solid transparent;border-left:6px solid var(--line);border-right:0}
+.stage.active{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);transform:translateY(-2px)}
+.stage.active::after{background:linear-gradient(90deg,var(--accent) 50%,transparent 50%);background-size:8px 2px;animation:flow .5s linear infinite}
+.stage.done .n::after{content:" ✓";color:var(--accent)}
+@keyframes flow{to{background-position:8px 0}}
+.stage-detail{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.stage-detail ul{margin:6px 0 0;padding-left:18px;color:var(--ink-2);font-size:14px}
+.stage-detail li{margin:2px 0}
+
+/* sample day */
+.day{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
+.ev{display:grid;grid-template-columns:48px 76px minmax(0,1fr);gap:8px;align-items:baseline;font-size:13.5px;padding:5px 6px;border-radius:5px;transition:opacity .35s,background .35s}
+.ev .tm{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.src{font-family:var(--mono);font-size:10.5px;padding:1px 6px;border-radius:3px;text-align:center;background:var(--surface-2);color:var(--ink-2)}
+.ev.pending{opacity:.25}
+.ev.fresh{background:var(--accent-soft)}
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.mono{white-space:nowrap}
+tr.row{transition:opacity .35s}
+tr.row.pending{opacity:0}
+.duty{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:3px;background:var(--blue-soft);color:var(--blue);white-space:nowrap}
+.st{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.st.draft{background:var(--amber-soft);color:var(--amber)}
+.st.ok{background:var(--accent-soft);color:var(--accent-ink)}
+.total{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-2);padding-top:4px}
+.seal{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-family:var(--mono);font-size:12.5px;background:var(--seal-soft);color:var(--seal);border-radius:6px;padding:10px 12px;transition:opacity .4s}
+.seal.pending{opacity:.3}
+.seal b{font-weight:500}
+
+/* outputs */
+.outs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.slack{font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.slack .who{display:flex;gap:8px;align-items:baseline}
+.slack .who b{font-weight:600}
+.slack ul{margin:0;padding-left:18px;color:var(--ink-2)}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:130px;position:relative;padding-top:6px}
+.bar{background:var(--accent);border-radius:3px 3px 0 0;position:relative}
+.bar.low{background:var(--amber)}
+.bar span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--ink-2)}
+.bar-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:center}
+.meter{height:10px;background:var(--surface-2);border-radius:5px;position:relative;overflow:hidden}
+.meter i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:5px}
+.meter b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.tree{font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--ink-2);white-space:pre;overflow-x:auto;margin:0}
+.tree .h{color:var(--ink)}
+
+/* plan */
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink-2)}
+.list b{color:var(--ink);font-weight:600}
+.phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.phase{border-top:3px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.phase.now{border-top-color:var(--accent)}
+.phase ul{margin:0;padding-left:16px;font-size:13.5px;color:var(--ink-2)}
+.qs{counter-reset:q;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.qs li{counter-increment:q;display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;font-size:14px}
+.qs li::before{content:"Q" counter(q);font-family:var(--mono);font-size:12px;color:var(--accent);padding-top:2px}
+.qs li span{color:var(--ink-2)}
+footer{font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:14px}
+
+@media (max-width:820px){
+  .day,.outs,.split,.stage-detail{grid-template-columns:minmax(0,1fr)}
+  .phases{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:480px){.phases{grid-template-columns:minmax(0,1fr)}.clock{margin-left:0;width:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Open-source proof-of-work tool · working draft v0.1</span>
+    <h1>From the tools you already use to a sealed evidence record</h1>
+    <p>No screenshots. The app reads activity you already leave in GitHub, your calendar, Slack, and your docs, groups it into work blocks, maps each block to your declared duties, and seals each day so it can't be quietly edited later. You approve everything the AI drafts.</p>
+    <div class="tags">
+      <span class="tag">local-first</span><span class="tag">no screen capture</span><span class="tag">user-approved entries</span><span class="tag">daily cryptographic seal</span><span class="tag ex">sample data below is fictional</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-flow">
+    <div class="sec-head">
+      <span class="eyebrow">The pipeline</span>
+      <h2 id="h-flow">How one day moves through the system</h2>
+      <p>Press play to watch a sample workday flow through. Click any stage to see what it does and what runs where.</p>
+    </div>
+    <div class="controls">
+      <button class="primary" id="play" type="button">▶ Play the day</button>
+      <button id="step" type="button">Next step</button>
+      <button id="reset" type="button">Show finished day</button>
+      <span class="clock" id="clock">Finished day · Tue Oct 6 (example)</span>
+    </div>
+    <div class="pipe-scroll">
+      <div class="pipeline" id="pipeline"></div>
+    </div>
+    <div class="stage-detail" id="detail"></div>
+  </section>
+
+  <section aria-labelledby="h-day">
+    <div class="sec-head">
+      <span class="eyebrow">Sample day · example data</span>
+      <h2 id="h-day">Raw events become a timesheet you approve</h2>
+    </div>
+    <div class="day">
+      <div class="panel">
+        <div class="panel-h"><h3>Event stream</h3><span class="eyebrow" id="evcount">11 events</span></div>
+        <ul class="events" id="events"></ul>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Generated timesheet</h3><span class="eyebrow">Role: Founding Engineer</span></div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Block</th><th>Hrs</th><th>Work performed</th><th>Duty</th><th>Status</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="total"><span>Day total</span><span id="daytotal">7.3 h</span></div>
+        <div class="seal" id="seal">
+          <span>Day sealed</span>
+          <span>root <b>sha256:9f3c…a1e7</b></span>
+          <span>anchor <b>OpenTimestamps · confirmed</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-out">
+    <div class="sec-head">
+      <span class="eyebrow">Outputs</span>
+      <h2 id="h-out">What you get out of it</h2>
+    </div>
+    <div class="outs">
+      <div class="panel">
+        <h3>Daily Slack post</h3>
+        <div class="slack">
+          <div class="who"><b>worklog bot</b><span class="mono muted" style="font-size:12px">5:32 PM</span></div>
+          <div><b>Tue Oct 6 · 7.3 h</b></div>
+          <ul>
+            <li>Shipped refresh-token rotation (PR #42)</li>
+            <li>Sprint planning, 3 attendees</li>
+            <li>Drafted pricing spec v2</li>
+            <li>Customer interview #7</li>
+          </ul>
+          <p class="muted" style="font-size:12.5px">Posted after you approve. The Slack timestamp becomes one more third-party record.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Weekly hours check</h3><span class="eyebrow">OPT min 20 h</span></div>
+        <div class="bars" aria-label="Hours per day this week">
+          <div class="bar" style="height:57%"><span>6.8</span></div>
+          <div class="bar" style="height:61%"><span>7.3</span></div>
+          <div class="bar" style="height:53%"><span>6.4</span></div>
+          <div class="bar low" style="height:17%"><span>2.0</span></div>
+          <div class="bar" style="height:48%"><span>5.8</span></div>
+          <div class="bar" style="height:0%"><span>0</span></div>
+          <div class="bar" style="height:0%"><span>0</span></div>
+        </div>
+        <div class="bar-labels"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="meter" aria-label="28.3 of 40 hours, threshold at 20"><i style="width:70.75%"></i><b style="left:50%"></b></div>
+        <div class="total"><span>28.3 h this week</span><span>20 h line</span></div>
+        <p class="muted" style="font-size:12.5px">Thursday flagged: a low day with no linked events prompts a quick note so gaps are explained while you still remember.</p>
+      </div>
+      <div class="panel">
+        <h3>Monthly evidence packet</h3>
+<pre class="tree"><span class="h">2026-10_founding-engineer/</span>
+├─ summary.pdf
+├─ timesheet.csv
+├─ duties_map.md
+├─ sources/
+│  ├─ github_commits.json
+│  ├─ calendar_events.json
+│  └─ slack_messages.json
+├─ vault/  <span style="color:var(--ink-3)">(EIN, offer, I-983…)</span>
+├─ manifest.sha256
+├─ proofs/*.ots
+└─ verify.py</pre>
+        <p class="muted" style="font-size:12.5px">One folder per month. Anyone can re-run verify.py to confirm nothing changed after sealing.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-plan">
+    <div class="sec-head">
+      <span class="eyebrow">Plan draft</span>
+      <h2 id="h-plan">Architecture and build order</h2>
+    </div>
+    <div class="split">
+      <div class="panel">
+        <h3>Runs on your machine</h3>
+        <ul class="list">
+          <li><b>Connectors</b> pull from GitHub, Google or Outlook Calendar, Slack, Linear or Jira, Notion or Google Docs, all read-only</li>
+          <li><b>Event store</b> encrypted SQLite with the key in the OS keychain</li>
+          <li><b>Session builder</b> rules that group nearby events into work blocks</li>
+          <li><b>Local AI</b> writes the "work performed" line and suggests a duty (Apple on-device model or Ollama)</li>
+          <li><b>Sealer</b> hashes each day and anchors it with OpenTimestamps (sends only a hash)</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Optional, your choice</h3>
+        <ul class="list">
+          <li><b>Cloud AI</b> with your own API key, for the monthly narrative only</li>
+          <li><b>Slack bot</b> to post the approved daily summary</li>
+          <li><b>Encrypted backup</b> to your own Drive, iCloud, or S3</li>
+          <li><b>Supervisor view</b> read-only link for STEM OPT evaluations (later)</li>
+          <li><b>Parent product hook</b> exposes the store through a clean API so the bigger product can plug in</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phases">
+      <div class="phase now"><span class="eyebrow">Phase 0 · now</span><h3>Spec</h3><ul><li>Evidence schema</li><li>Role and duty profile</li><li>Threat model</li><li>License, name</li></ul></div>
+      <div class="phase"><span class="eyebrow">Phase 1</span><h3>MVP</h3><ul><li>GitHub + Calendar</li><li>Check-in / out</li><li>Timesheet builder</li><li>Daily seal</li></ul></div>
+      <div class="phase"><span class="eyebrow">Phase 2</span><h3>AI + outputs</h3><ul><li>Duty mapping</li><li>Approve queue</li><li>Slack post</li><li>Monthly packet</li></ul></div>
+      <div class="phase"><span class="eyebrow">Phase 3</span><h3>Expand</h3><ul><li>More connectors</li><li>Multiple roles</li><li>Supervisor view</li><li>Sync, API</li></ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-q">
+    <div class="sec-head">
+      <span class="eyebrow">Open decisions</span>
+      <h2 id="h-q">What we settle next</h2>
+    </div>
+    <div class="panel">
+      <ol class="qs">
+        <li><div>Platform for v0 <span>· native macOS (Swift) or cross-platform (Tauri + Rust)?</span></div></li>
+        <li><div>First two connectors <span>· GitHub + Google Calendar is the proposal. Swap either?</span></div></li>
+        <li><div>Manual check-in / out <span>· keep as an anchor, or derive the day purely from events?</span></div></li>
+        <li><div>Approval cadence <span>· daily 2-minute queue, or weekly batch review?</span></div></li>
+        <li><div>Name <span>· placeholder "WorkBook" until you pick one.</span></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>Concept mockup for planning. Not legal advice; the evidence schema should be reviewed by an immigration attorney before release.</footer>
+</div>
+
+<script>
+const STAGES=[
+ {t:"Connect",d:"Read-only links to the tools you already work in.",w:["local","on device"],
+  what:["OAuth read-only scopes per tool","Pulls on a schedule and when the laptop wakes","Nothing is captured from your screen"],
+  why:["Third-party timestamps are much harder to fake than screenshots","You can revoke any source at any time"]},
+ {t:"Collect",d:"Every event lands in one encrypted local store.",w:["local","on device"],
+  what:["Normalizes commits, meetings, messages, doc edits into one event format","Dedupes and keeps the source link for each event"],
+  why:["One timeline across tools","Survives if a tool deletes history later"]},
+ {t:"Build blocks",d:"Nearby events are grouped into work blocks with start and end times.",w:["local","on device"],
+  what:["Gap rules (e.g. under 45 min apart = same block)","Meetings keep their calendar times","Check-in and check-out bound the day"],
+  why:["Produces the start/end rows a timesheet needs","No manual time entry"]},
+ {t:"Map duties",d:"Local AI drafts the work line and tags a declared duty.",w:["local","on device AI"],
+  what:["You declare duties once, linked to your degree","AI only summarizes events it can cite","Low-confidence blocks are left untagged for you"],
+  why:["Closes the gap between job description and daily work","Nothing is invented"]},
+ {t:"Approve",d:"A short review queue. You edit or accept each block.",w:["you","your call"],
+  what:["Accept, edit, split, or mark personal","Explain gaps in one line","Only approved entries are sealed"],
+  why:["You stay the author of your record","Keeps AI errors out of evidence"]},
+ {t:"Seal & ship",d:"Hash the day, anchor the timestamp, send the outputs.",w:["net","hash only"],
+  what:["SHA-256 of each entry, daily Merkle root","OpenTimestamps anchor (only the hash leaves)","Slack post, weekly check, monthly packet"],
+  why:["Shows the record existed on that date and wasn't edited","Ready before anyone asks"]}
+];
+const EVENTS=[
+ ["09:02","check-in","Started day from menu bar",0],
+ ["09:15","github","Commit: auth: rotate refresh tokens",1],
+ ["10:00","calendar","Sprint planning · 3 attendees · 30 min",2],
+ ["10:41","slack","Thread in #eng on token expiry",3],
+ ["11:20","github","Opened PR #42",3],
+ ["12:05","github","PR #42 merged after review",3],
+ ["13:05","notion","Edited 'Pricing spec v2'",4],
+ ["14:30","linear","Closed ENG-118",4],
+ ["15:10","github","Commit: billing: usage metering",5],
+ ["16:45","calendar","Customer interview #7 · 30 min",6],
+ ["17:30","check-out","Ended day",6]
+];
+const ROWS=[
+ ["09:02-10:00",0.97,"Backend auth: refresh-token rotation","D1 Build backend"],
+ ["10:00-10:30",0.5,"Sprint planning with team","D4 Coordinate"],
+ ["10:30-12:10",1.67,"Code review and merge of PR #42","D1 Build backend"],
+ ["13:00-14:40",1.67,"Pricing spec v2, closed ENG-118","D2 Product specs"],
+ ["14:40-16:40",2.0,"Usage metering for billing","D1 Build backend"],
+ ["16:45-17:15",0.5,"Customer interview #7","D3 Customer research"]
+];
+// event index at which rows appear
+const ROW_AT=[1,2,5,7,8,9];
+const $=s=>document.querySelector(s);
+const pipe=$("#pipeline"),det=$("#detail"),evs=$("#events"),rows=$("#rows"),seal=$("#seal"),clock=$("#clock");
+STAGES.forEach((s,i)=>{
+  const b=document.createElement("button");b.type="button";b.className="stage";b.id="stage-"+i;
+  b.innerHTML=`<span class="n">${String(i+1)}</span><span class="t">${s.t}</span><span class="d">${s.d}</span><span class="where ${s.w[0]}">${s.w[1]}</span>`;
+  b.addEventListener("click",()=>{stop();focusStage(i)});
+  pipe.appendChild(b);
+});
+EVENTS.forEach(e=>{
+  const li=document.createElement("li");li.className="ev";
+  li.innerHTML=`<span class="tm">${e[0]}</span><span class="src">${e[1]}</span><span>${e[2]}</span>`;
+  evs.appendChild(li);
+});
+ROWS.forEach(r=>{
+  const tr=document.createElement("tr");tr.className="row";
+  tr.innerHTML=`<td class="mono">${r[0]}</td><td class="mono">${r[1].toFixed(1)}</td><td>${r[2]}</td><td><span class="duty">${r[3]}</span></td><td><span class="st ok">approved</span></td>`;
+  rows.appendChild(tr);
+});
+function focusStage(i){
+  document.querySelectorAll(".stage").forEach((el,k)=>{el.classList.toggle("active",k===i)});
+  const s=STAGES[i];
+  det.innerHTML=`<div><span class="eyebrow">Stage ${i+1} · what it does</span><h3 style="margin-top:4px">${s.t}</h3><ul>${s.what.map(x=>`<li>${x}</li>`).join("")}</ul></div><div><span class="eyebrow">Why it matters for evidence</span><ul>${s.why.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
+}
+function setDone(n){document.querySelectorAll(".stage").forEach((el,k)=>el.classList.toggle("done",k<n))}
+function finished(){
+  document.querySelectorAll(".ev").forEach(e=>e.classList.remove("pending","fresh"));
+  document.querySelectorAll("tr.row").forEach(r=>{r.classList.remove("pending");r.querySelector(".st").className="st ok";r.querySelector(".st").textContent="approved"});
+  seal.classList.remove("pending");setDone(6);focusStage(5);
+  $("#daytotal").textContent="7.3 h";clock.textContent="Finished day · Tue Oct 6 (example)";
+}
+let timer=null,step=0;
+const PLAN=[];
+// build a step script
+PLAN.push(()=>{reset0();focusStage(0);clock.textContent="Morning · connecting sources"});
+EVENTS.forEach((e,i)=>PLAN.push(()=>{
+  focusStage(i<2?1:2);setDone(i<2?1:2);
+  const li=evs.children[i];document.querySelectorAll(".ev.fresh").forEach(x=>x.classList.remove("fresh"));
+  li.classList.remove("pending");li.classList.add("fresh");li.scrollIntoView({block:"nearest",behavior:"smooth"});
+  clock.textContent=e[0]+" · "+e[1]+" event collected";
+  ROW_AT.forEach((at,r)=>{if(at===i){const tr=rows.children[r];tr.classList.remove("pending");const st=tr.querySelector(".st");st.className="st draft";st.textContent="draft";}});
+  $("#daytotal").textContent=ROWS.filter((_,r)=>ROW_AT[r]<=i).reduce((a,r)=>a+r[1],0).toFixed(1)+" h";
+}));
+PLAN.push(()=>{focusStage(3);setDone(3);clock.textContent="17:31 · local AI tagging duties"});
+ROWS.forEach((_,r)=>PLAN.push(()=>{focusStage(4);setDone(4);clock.textContent="17:32 · you approve block "+(r+1)+" of "+ROWS.length;const st=rows.children[r].querySelector(".st");st.className="st ok";st.textContent="approved"}));
+PLAN.push(()=>{focusStage(5);setDone(5);seal.classList.remove("pending");clock.textContent="17:33 · day sealed, Slack post sent"});
+PLAN.push(()=>{finished()});
+function reset0(){
+  document.querySelectorAll(".ev").forEach(e=>{e.classList.add("pending");e.classList.remove("fresh")});
+  document.querySelectorAll("tr.row").forEach(r=>r.classList.add("pending"));
+  seal.classList.add("pending");setDone(0);$("#daytotal").textContent="0.0 h";evs.scrollTop=0;
+}
+function next(){if(step>=PLAN.length){step=0}PLAN[step++]();if(step>=PLAN.length){stop()}}
+function stop(){clearInterval(timer);timer=null;$("#play").textContent="▶ Play the day"}
+$("#play").addEventListener("click",()=>{
+  if(timer){stop();return}
+  if(step===0||step>=PLAN.length){step=0}
+  next();timer=setInterval(next,matchMedia("(prefers-reduced-motion: reduce)").matches?300:950);
+  $("#play").textContent="❚❚ Pause";
+});
+$("#step").addEventListener("click",()=>{stop();next()});
+$("#reset").addEventListener("click",()=>{stop();step=0;finished()});
+finished();
+</script>

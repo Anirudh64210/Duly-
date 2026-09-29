@@ -1,0 +1,6 @@
+name: L-tests
+kind: guard
+review: high
+owned: ["tests/**"]
+test: uv run pytest -q
+spec: ""

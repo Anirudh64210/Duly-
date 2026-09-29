@@ -1,0 +1,6 @@
+name: L-pipeline
+kind: implementation
+review: high
+owned: ["pipeline/**", "watch/**"]
+test: uv run pytest tests/unit/pipeline -q
+spec: ""

@@ -1,0 +1,58 @@
+rules:
+  - id: duly-time-only-through-clocks
+    message: Read the time through engine.clocks. Nothing else may ask the system what time it is.
+    severity: ERROR
+    languages: [python]
+    paths:
+      exclude: ["engine/clocks.py", "tests/**"]
+    pattern-either:
+      - pattern: datetime.now(...)
+      - pattern: datetime.utcnow(...)
+      - pattern: datetime.today(...)
+      - pattern: date.today(...)
+      - pattern: datetime.datetime.now(...)
+      - pattern: datetime.datetime.utcnow(...)
+      - pattern: datetime.date.today(...)
+      - pattern: time.time(...)
+
+  - id: duly-engine-stays-pure
+    message: The engine is pure functions. It may not import the api, the assistant, or the pipeline.
+    severity: ERROR
+    languages: [python]
+    paths:
+      include: ["engine/**"]
+    pattern-either:
+      - pattern: import api
+      - pattern: import api.$X
+      - pattern: from api import $X
+      - pattern: from api.$Y import $X
+      - pattern: import assistant
+      - pattern: from assistant import $X
+      - pattern: from assistant.$Y import $X
+      - pattern: import pipeline
+      - pattern: from pipeline import $X
+      - pattern: from pipeline.$Y import $X
+
+  - id: duly-models-only-behind-the-boundary
+    message: Model clients live in assistant/providers and pipeline/models only. No other code talks to a model.
+    severity: ERROR
+    languages: [python]
+    paths:
+      exclude: ["assistant/providers.py", "assistant/providers/**", "pipeline/models/**", "tests/**"]
+    pattern-either:
+      - pattern: import anthropic
+      - pattern: from anthropic import $X
+      - pattern: import openai
+      - pattern: from openai import $X
+      - pattern: $B.client("bedrock-runtime", ...)
+      - pattern: $B.client("bedrock", ...)
+
+  - id: duly-no-raw-sql-strings
+    message: Build queries with SQLAlchemy, never by formatting strings.
+    severity: ERROR
+    languages: [python]
+    pattern-either:
+      - pattern: text(f"...")
+      - pattern: text("..." % ...)
+      - pattern: text("...".format(...))
+      - pattern: $C.execute(f"...")
