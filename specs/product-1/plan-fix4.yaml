@@ -102,6 +102,10 @@ rounds:
       - lane: L-web
         agent: builder
         mission: >
+          Your earlier run built all of this on branch lane/L-web/l-web-e2d830be5b and escalated
+          only because the copy lint failed on a path your sandbox may not read; that is fixed.
+          Bring your work in first: git merge lane/L-web/l-web-e2d830be5b, then run the done
+          command and finish anything left. The work:
           Build specs/plain-1/SPEC.md sections 2 to 5 in web/: plain words first with the exact
           words one tap away; what a court did in plain words from the output's regimes, with a
           link to the order and the paused change behind a tap, and none of the forbidden status
