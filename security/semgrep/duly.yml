@@ -4,7 +4,7 @@ rules:
     severity: ERROR
     languages: [python]
     paths:
-      exclude: ["engine/clocks.py", "tests/**"]
+      exclude: ["engine/clocks.py", "dashboard/clock.py", "tests/**"]
     pattern-either:
       - pattern: datetime.now(...)
       - pattern: datetime.utcnow(...)

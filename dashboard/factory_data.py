@@ -16,6 +16,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+try:
+    from dashboard import clock
+except ImportError:  # run as a script
+    import clock  # type: ignore[no-redef]
+
 ORCHESTRATOR = "founder"
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
 
@@ -387,7 +392,7 @@ def load(
             gates = {}
     factory = repo / ".factory"
     runs = read_jsonl(factory / "metrics.jsonl")
-    today = (now or datetime.now().astimezone()).date().isoformat()
+    today = (now or clock.now()).date().isoformat()
     day_cap = 0.0
     found = re.search(
         r"(?m)^\s*per_day_usd:\s*([0-9.]+)",
