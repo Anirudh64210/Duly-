@@ -74,10 +74,6 @@ type Ask = { topics: readonly Topic[]; ask: string };
 // One question for each talk_to_dso reason. Each asks, and none says what the answer is.
 const ASKS: ReadonlyMap<string, Ask> = new Map(
   Object.entries({
-    hours_under_threshold: {
-      topics: ["opt", "stem", "employment"],
-      ask: "Could you tell me how your office reads the weeks when I worked fewer hours?",
-    },
     unemployment_at_or_over_limit: {
       topics: [...CARDS, "employment"],
       ask: "Could you look at my days without employment and tell me what your office needs from me?",
@@ -128,7 +124,21 @@ const OTHER_ASK =
 const ALL: readonly Topic[] = ["program", "degree", "opt", "stem", "employment", "cap_gap", "cpt"];
 const NOT_MADE = /^(.+)\.not_made$/;
 
-function askFor(reason: string): Ask {
+/** Point 57: the hours as entered, and no comparison with the rule. */
+function hoursAsk(sent: F1Case): Ask {
+  const hours = [...new Set(sent.employment.map((period) => period.hours_per_week))];
+  const weeks =
+    hours.length === 0
+      ? "the hours a week I worked"
+      : `my weeks at ${hours.join(" and ")} hours a week`;
+  return {
+    topics: ["opt", "stem", "employment"],
+    ask: `Could you tell me how your office reads ${weeks}?`,
+  };
+}
+
+function askFor(reason: string, sent: F1Case): Ask {
+  if (reason === "hours_under_threshold") return hoursAsk(sent);
   const known = ASKS.get(reason);
   if (known) return known;
   const notMade = NOT_MADE.exec(reason);
@@ -151,7 +161,8 @@ function letter(subject: string, facts: readonly string[], asks: readonly string
     "",
     "Hello,",
     "",
-    "I am an F-1 student, and I have a question about my record.",
+    // Point 57: the opening states no status.
+    "I have a question about my F-1 record.",
     "",
     ...known,
     ...asks.flatMap((ask) => [ask, ""]),
@@ -166,7 +177,7 @@ export function dsoDraft(output: EngineOutput, sent: F1Case): string | null {
   const topics = new Set<Topic>();
   const asks: string[] = [];
   for (const reason of output.verdict.reasons) {
-    const { topics: on, ask } = askFor(reason);
+    const { topics: on, ask } = askFor(reason, sent);
     on.forEach((topic) => topics.add(topic));
     if (!asks.includes(ask)) asks.push(ask);
   }

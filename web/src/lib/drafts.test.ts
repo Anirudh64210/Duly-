@@ -52,6 +52,7 @@ const REASONS = [
   "opt.months_at_this_level",
   "rule_not_in_force_on_event_day",
   "stem.validation_1_due.not_made",
+  "stem.new_plan_due.2.not_made",
   "opt.i765_filed_date.after_file_by",
   "employment.period_open_after_last_card",
   "some_new_judgement",
@@ -165,6 +166,53 @@ describe("the draft for a talk_to_dso verdict", () => {
     expect(ends).toContain("My OPT EAD card ends on May 31, 2027.");
     const none = dsoDraft(talk(["report_employer"]), { ...CASE, employment: [] }) ?? "";
     expect(none).not.toContain("These are my dates");
+  });
+
+  it("opens with the question and states no status (point 57)", () => {
+    for (const reason of REASONS) {
+      const draft = dsoDraft(talk([reason]), FULL) ?? "";
+      expect(draft).toContain("Hello,\n\nI have a question about my F-1 record.\n");
+      expect(draft).not.toMatch(/\bI am an?\b/);
+      expect(draft).not.toMatch(/\bstudent\b/i);
+    }
+  });
+
+  it("names a new Form I-983 answered not made (point 57)", () => {
+    const draft = dsoDraft(talk(["stem.new_plan_due.2.not_made"]), FULL) ?? "";
+    expect(draft).toContain(
+      "I did not submit my new Form I-983 for employment period 2. Could you tell me what your office needs from me?",
+    );
+    expect(draft).not.toContain("Could you look at my record");
+  });
+
+  it("gives every dated duty a name of its own (point 57)", () => {
+    const duties = [
+      "stem.validation_1_due",
+      "stem.evaluation_12_month_due",
+      "stem.final_evaluation_due_from_ead_end",
+      "stem.new_plan_due.2",
+      "stem.concluding_evaluation_due.2",
+    ];
+    for (const duty of duties) {
+      const draft = dsoDraft(talk([`${duty}.not_made`]), FULL) ?? "";
+      expect(draft).toMatch(/I did not submit my \S/);
+      expect(draft).not.toContain("Could you look at my record");
+    }
+  });
+
+  it("states the hours entered and no comparison with the rule (point 57)", () => {
+    const draft = dsoDraft(talk(["hours_under_threshold"]), FULL) ?? "";
+    expect(draft).toContain(
+      "Could you tell me how your office reads my weeks at 15 and 40 hours a week?",
+    );
+    expect(draft).not.toMatch(/fewer|less|under|below|minimum|threshold|20 hours/i);
+    const same = dsoDraft(talk(["hours_under_threshold"]), {
+      ...FULL,
+      employment: FULL.employment.map((period) => ({ ...period, hours_per_week: 10 })),
+    });
+    expect(same).toContain("how your office reads my weeks at 10 hours a week?");
+    const none = dsoDraft(talk(["hours_under_threshold"]), { ...FULL, employment: [] });
+    expect(none).toContain("how your office reads the hours a week I worked?");
   });
 
   it("is not drafted for any other verdict", () => {

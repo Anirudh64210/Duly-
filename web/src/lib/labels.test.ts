@@ -578,6 +578,8 @@ describe("SPEC-resolutions points 11 to 24", () => {
       ["stem.evaluation_12_month_due.made", "12-month evaluation"],
       ["stem.final_evaluation_due_from_ead_end.made", "final evaluation"],
       ["stem.concluding_evaluation_due.1.made", "final evaluation for employment period 1"],
+      // Point 57: the new plan has a name too.
+      ["stem.new_plan_due.2.made", "new Form I-983 for employment period 2"],
     ] as const) {
       expect(questionCopy(id)?.ask).toBe(
         `The date for the ${report} is before today. Did you submit this report?`,

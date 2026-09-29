@@ -363,6 +363,29 @@ class _Working:
             raise RulepackError(f"{rule_id}: no rule in force on {self.today.isoformat()}")
         return found
 
+    def _row_shown(self, rule_id: str, day: date | None) -> dict[str, Any]:
+        """The row whose words an item shows when no row is in force on its event's day:
+        the row in force today, else the first operative row that takes effect after the
+        day (today, for an item with no event day). A value measured from the event is
+        null all the same (SPEC-resolutions point 56): no clock and no case makes the
+        engine fail for a rule that has a row at all."""
+        found = self.pack.value(rule_id, self.today)
+        if found is not None:
+            return found
+        after = (self.today if day is None else day).isoformat()
+        operative = {r["id"] for r in self.pack.regimes if r["operative"]}
+        later = sorted(
+            (
+                p
+                for p in self.pack.parameters
+                if p["id"] == rule_id
+                and p.get("regime", "") in {*operative, ""}
+                and p["effective_from"] > after
+            ),
+            key=lambda p: str(p["effective_from"]),
+        )
+        return later[0] if later else self._rule(rule_id)
+
     def show(self, rule_id: str) -> None:
         """A rule whose words the screen shows beside a judgement for the DSO."""
         self._show_rule(self._rule(rule_id))
@@ -412,11 +435,15 @@ class _Working:
             ):
                 continue
             values = {r: p["value"] for r, p in under.items() if p is not None}
+            other = formula(values)
+            # SPEC-resolutions point 55: an alternate is carried only where it holds a value.
+            if other is None:
+                continue
             found.append(
                 {
                     "regime": regime["id"],
                     "legal_status": regime["legal_status"],
-                    "value": _shown(formula(values)),
+                    "value": _shown(other),
                 }
             )
         return found
@@ -493,8 +520,8 @@ class _Working:
             day is not None and found is None for day, found in zip(days, on_day, strict=True)
         )
         parameters = [
-            self._rule(rule_id) if found is None else found
-            for rule_id, found in zip(rule_ids, on_day, strict=True)
+            self._row_shown(rule_id, day) if found is None else found
+            for rule_id, day, found in zip(rule_ids, days, on_day, strict=True)
         ]
         for parameter in parameters:
             self._show_rule(parameter)
