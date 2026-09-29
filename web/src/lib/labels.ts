@@ -1,4 +1,4 @@
-import type { ComputedItem, Confirmation, ItemStatus } from "./compute";
+import type { ComputedItem, Confirmation, EadBlock, ItemStatus, Upcoming } from "./compute";
 import { reasonLine } from "./status";
 
 // Every word a user reads about a computed item. Names state what the item is,
@@ -38,9 +38,9 @@ const ITEM_NAMES: ReadonlyMap<string, string> = new Map(
     "opt.file_by": "Last OPT filing day after the DSO recommendation",
     "opt.latest_start": "Latest OPT start date",
     "opt.complete_by": "Date OPT is to be completed by",
-    "unemployment.limit": "Unemployment day limit",
-    "unemployment.days_used": "Days with no employment period",
-    "unemployment.days_remaining": "Limit minus days with no employment period",
+    "unemployment.limit": "Unemployment days allowed",
+    "unemployment.days_used": "Unemployment days used",
+    "unemployment.days_remaining": "Unemployment days remaining",
     "employment.days_under_hours": "Days under the weekly hours rule",
     "employment.periods_not_reported": "Employment periods not marked as reported",
     "grace.ends": "Grace period ends",
@@ -51,6 +51,10 @@ const ITEM_NAMES: ReadonlyMap<string, string> = new Map(
     "stem.final_evaluation_due_from_ead_end": "Final evaluation due, counted from the EAD end date",
     "cpt.full_time_days_used": "Full-time CPT days entered",
     "capgap.ends": "Cap-gap period ends",
+    "next.stem.apply_window_opens": "STEM OPT filing window opens",
+    "next.stem.apply_window_closes": "STEM OPT filing window closes",
+    "next.opt.card_ends": "OPT EAD card ends",
+    "next.grace.ends": "Grace period ends, counted from the OPT EAD end date",
   }),
 );
 
@@ -76,6 +80,8 @@ const INPUT_NAMES: ReadonlyMap<string, string> = new Map(
     stem: "STEM OPT dates",
     cap_gap: "Cap-gap petition",
     "opt.dso_recommendation_date": "OPT DSO recommendation date",
+    "opt.i765_filed_date": "OPT I-765 filed date",
+    "stem.i765_filed_date": "STEM OPT I-765 filed date",
     "opt.ead_start": "OPT EAD start date",
     "opt.ead_end": "OPT EAD end date",
     "stem.dso_recommendation_date": "STEM OPT DSO recommendation date",
@@ -85,6 +91,8 @@ const INPUT_NAMES: ReadonlyMap<string, string> = new Map(
     employment: "Employment periods",
     cpt_full_time_days: "Full-time CPT days",
     "cap_gap.requested_start": "Requested start date",
+    "cap_gap.petition_filed_on": "Petition filed date",
+    full_time_cpt_used: "Your answer on full-time CPT",
     "cap_gap.status": "Petition status",
     "cap_gap.change_of_status": "Change of status requested",
     duly_settings: "Duly settings used, which are not law",
@@ -110,6 +118,8 @@ const MISSING_PARTS: ReadonlyMap<string, string> = new Map(
     opt: "Duly needs the OPT dates.",
     stem: "Duly needs the STEM OPT dates.",
     employment: "Duly needs the employment periods that are not entered yet.",
+    training: "Duly needs the OPT, STEM OPT, or cap-gap dates that are not entered yet.",
+    cpt_full_time_days: "Duly needs the number of full-time CPT days.",
   }),
 );
 
@@ -201,13 +211,49 @@ const CONFLICTS: ReadonlyMap<string, string> = new Map(
 
 const EMPLOYMENT_CONFLICT = /^employment_(\d+)_end$/;
 
+// specs/product-1/SPEC.md, section 1: facts entered that do not fit. Each line says
+// what does not fit, never which date is wrong or what it means.
+const FACTS: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    "opt.i765_filed_date.after_today": "The OPT I-765 filed date is after today.",
+    "stem.i765_filed_date.after_today": "The STEM OPT I-765 filed date is after today.",
+    "opt.dso_recommendation_date.after_today": "The OPT DSO recommendation date is after today.",
+    "stem.dso_recommendation_date.after_today":
+      "The STEM OPT DSO recommendation date is after today.",
+    "cap_gap.petition_filed_on.after_today": "The petition filed date is after today.",
+    "opt.i765_filed_date.after_card": "The OPT I-765 filed date is after the OPT EAD start date.",
+    "stem.i765_filed_date.after_card":
+      "The STEM OPT I-765 filed date is after the STEM OPT EAD start date.",
+    "cap_gap.petition_filed_on.after_start":
+      "The petition filed date is after the start date the petition asks for.",
+    "cap_gap.requested_start.before_training":
+      "The start date the petition asks for is before the first EAD start date.",
+    "opt.card_longer_than_rule":
+      "The OPT EAD dates run longer than the months the rule gives from the start date.",
+    "stem.card_longer_than_rule":
+      "The STEM OPT EAD dates run longer than the months the rule gives from the start date.",
+    "stem.gap_after_opt":
+      "The STEM OPT EAD start date is more than one day after the OPT EAD end date.",
+    "employment.period_outside_cards":
+      "An employment period has days outside the EAD dates entered.",
+  }),
+);
+
+/** What does not fit, for a conflict of SPEC section 1, or null for another id. */
+export function factLine(factId: string): string | null {
+  return FACTS.get(factId) ?? null;
+}
+
+const CONFIRMED_FACT =
+  "You answered that these are the dates on your documents. What they mean is a question for your DSO.";
+
 const FINDINGS: ReadonlyMap<string, string> = new Map(
   Object.entries({
     hours_under_threshold:
       "Some days are under the weekly hours rule. Whether they count is a question for your DSO.",
     unemployment_at_or_over_limit: "The days with no employment period are at or over the limit.",
     cpt_full_time_at_or_over_bar:
-      "The full-time CPT days entered are at or over the number in the rule.",
+      "The full-time CPT days entered are at or over Duly's count of one year in days. The words of the regulation are beside this line.",
     cap_gap_petition_not_active:
       "The petition entered is not pending or approved with a change of status.",
     report_employer: "An employment period is not marked as reported.",
@@ -245,11 +291,29 @@ const QUESTIONS: ReadonlyMap<string, QuestionCopy> = new Map(
       yes: "Yes, I had one",
       no: "No, I did not",
     },
+    nothing_more_to_record: {
+      ask: "No OPT, STEM OPT, or cap-gap dates are entered. Is that the whole record, with no OPT, no STEM OPT, and no cap-gap petition to add?",
+      yes: "Yes, there is nothing more",
+      no: "No, there is more to add",
+    },
+    full_time_cpt_used: {
+      ask: "No number of full-time CPT days is entered. Did you use any full-time CPT?",
+      yes: "Yes, I used some",
+      no: "No, I used none",
+    },
   }),
 );
 
+// SPEC section 1: every conflict asks the same one thing.
+const FACT_QUESTION: QuestionCopy = {
+  ask: "Are these the dates on your documents?",
+  yes: "Yes, they are the dates on my documents",
+  no: "No, I will correct them",
+};
+
 /** The words for a question, or null for one this screen has no words for. */
 export function questionCopy(questionId: string): QuestionCopy | null {
+  if (FACTS.has(questionId)) return FACT_QUESTION;
   return QUESTIONS.get(questionId) ?? null;
 }
 
@@ -283,6 +347,9 @@ export const READING_LABEL = "Duly's reading of the quoted words, not the words 
 export function reasonText(reason: string, computed: readonly ComputedItem[] = []): string {
   const finding = FINDINGS.get(reason);
   if (finding) return finding;
+  // A conflict the person answered yes to: the dates stand, and the matter is the DSO's.
+  const confirmed = FACTS.get(reason);
+  if (confirmed) return `${confirmed} ${CONFIRMED_FACT}`;
 
   const item = computed.find((candidate) => candidate.id === reason);
   if (item && item.value !== null) {
@@ -301,7 +368,7 @@ export function reasonText(reason: string, computed: readonly ComputedItem[] = [
     return `Duly needs the ${inputName(name)}.`;
   }
   if (kind === "conflict") {
-    const known = CONFLICTS.get(name);
+    const known = CONFLICTS.get(name) ?? FACTS.get(name);
     if (known) return known;
     const period = EMPLOYMENT_CONFLICT.exec(name);
     if (period) return `Employment period ${period[1]} ends before it starts.`;
@@ -316,4 +383,71 @@ export function scopeLine(documentsCount: number, rulesCheckedOn: string | null)
       ? "The rules have not been checked yet."
       : `Rules checked ${formatDate(rulesCheckedOn)}.`;
   return `Based on ${documents} you added. ${rules}`;
+}
+
+/** The item a verdict reason rests on, so the line can carry the item's marks. */
+export function reasonItem(
+  reason: string,
+  computed: readonly ComputedItem[],
+): ComputedItem | undefined {
+  const itemId = reason === "cpt_full_time_at_or_over_bar" ? "cpt.full_time_days_used" : reason;
+  return computed.find((item) => item.id === itemId);
+}
+
+/** SPEC section 7: the one line under a value that has a rule change beside it. */
+export function regimeLine(legalStatus: string): string {
+  if (legalStatus === "enjoined") {
+    return "A rule change is blocked by a court. See what it would change.";
+  }
+  return `A rule change is ${legalStatusWords(legalStatus)}. See what it would change.`;
+}
+
+export const NEXT_HEADING = "What comes next";
+export const LIST_LINE =
+  "This is what the regulation says. Whether it applies to you is a question for your DSO.";
+
+const LIST_NAMES: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    "stem.extension.what_the_regulation_lists":
+      "What the regulation lists for the 24-month STEM OPT extension",
+  }),
+);
+
+export function listName(listId: string): string {
+  return LIST_NAMES.get(listId) ?? (plain(listId) || "What the regulation lists");
+}
+
+function dayOrNot(iso: string | null | undefined): string {
+  return iso ? formatDate(iso) : "not entered";
+}
+
+/**
+ * SPEC section 6 and BOUNDARY.md: a question for the DSO, from a template and the
+ * person's own dates. It asks. It states no conclusion. Duly never sends it.
+ */
+export function dsoQuestion(
+  opt: EadBlock | null,
+  upcoming: readonly Upcoming[],
+  citation: string,
+): string {
+  const lines = upcoming
+    .filter((entry) => entry.id.startsWith("next.stem."))
+    .map((entry) => {
+      const reading = entry.reading ? " (Duly's reading of the regulation)" : "";
+      return `${itemName(entry.id)}: ${formatDate(entry.date)}${reading}`;
+    });
+  const computed =
+    lines.length === 0
+      ? []
+      : ["", "Duly, a record keeping tool, computed these dates from my card:", ...lines];
+  return [
+    "Hello,",
+    "",
+    `My OPT EAD card runs from ${dayOrNot(opt?.ead_start)} to ${dayOrNot(opt?.ead_end)}.`,
+    ...computed,
+    "",
+    `Could you tell me whether ${citation} applies to my case, and what your office would need from me for a 24-month STEM OPT extension?`,
+    "",
+    "Thank you.",
+  ].join("\n");
 }

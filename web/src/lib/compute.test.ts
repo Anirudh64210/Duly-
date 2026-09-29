@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import fc from "fast-check";
 
 import { CaseRefused, computeF1, engineOutputSchema, isZoneName } from "./compute";
-import { ANSWERED_NO, ASKING, CASE, OUTPUT } from "./fixtures";
+import { ANSWERED_NO, ASKING, CASE, CONFLICT, NEXT, NOTHING_ENTERED, OUTPUT } from "./fixtures";
 
 const reply = (body: unknown, status = 200) =>
   vi.fn(() =>
@@ -235,5 +235,67 @@ describe("computeF1", () => {
 
   it("throws on a malformed body", async () => {
     await expect(computeF1(CASE, asFetch(reply({ verdict: {} })))).rejects.toThrow();
+  });
+});
+
+describe("product round 1: the output carries readings, dates ahead and lists", () => {
+  it("accepts the dates ahead and what the regulation lists", () => {
+    expect(engineOutputSchema.parse(NEXT)).toEqual(NEXT);
+  });
+
+  it("accepts a question whose id holds dots, with the values that raised it", () => {
+    const parsed = engineOutputSchema.parse(CONFLICT);
+    expect(parsed.questions[0]).toEqual({
+      id: "opt.i765_filed_date.after_today",
+      because: ["opt.i765_filed_date"],
+      about: { "opt.i765_filed_date": "2026-10-10" },
+    });
+    expect(engineOutputSchema.parse(NOTHING_ENTERED).questions).toHaveLength(2);
+  });
+
+  it("refuses an item that does not say whether it rests on a reading", () => {
+    const [first, ...rest] = OUTPUT.computed;
+    if (!first) throw new Error("no item");
+    const bare = without(first, "reading");
+    expect(() => engineOutputSchema.parse({ ...OUTPUT, computed: [bare, ...rest] })).toThrow();
+  });
+
+  it("refuses an output without upcoming or lists", () => {
+    expect(() => engineOutputSchema.parse(without(NEXT, "upcoming"))).toThrow();
+    expect(() => engineOutputSchema.parse(without(NEXT, "lists"))).toThrow();
+  });
+
+  it("refuses a date ahead or a list that names a rule with no source", () => {
+    const [first, ...rest] = NEXT.upcoming;
+    expect(() =>
+      engineOutputSchema.parse({
+        ...NEXT,
+        upcoming: [{ ...first, rule_ids: ["stem.unknown"] }, ...rest],
+      }),
+    ).toThrow(/no source/);
+    expect(() =>
+      engineOutputSchema.parse({
+        ...NEXT,
+        lists: [{ id: "stem.extension.what_the_regulation_lists", rule_ids: ["stem.unknown"] }],
+      }),
+    ).toThrow(/no source/);
+  });
+
+  it("refuses a date ahead with alternates and no operative regime", () => {
+    const upcoming = NEXT.upcoming.map((entry) => without(entry, "operative"));
+    expect(() => engineOutputSchema.parse({ ...NEXT, upcoming })).toThrow(/operative/);
+  });
+
+  it("refuses a date ahead that is not a date, and a field the contract does not name", () => {
+    const [first, ...rest] = NEXT.upcoming;
+    expect(() =>
+      engineOutputSchema.parse({ ...NEXT, upcoming: [{ ...first, date: "soon" }, ...rest] }),
+    ).toThrow();
+    expect(() =>
+      engineOutputSchema.parse({
+        ...NEXT,
+        upcoming: [{ ...first, advice: "file now" }, ...rest],
+      }),
+    ).toThrow();
   });
 });

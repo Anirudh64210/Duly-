@@ -283,20 +283,29 @@ button.quiet {
   white-space: nowrap;
 }
 
-.regimes {
-  display: flex;
-  gap: 20px;
-}
-
-.regime {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+/* Duly's reading: an outline, so it never reads as a status tag. */
+.reading-tag {
+  background: none;
+  border: 1px solid var(--accent);
 }
 
 .legal {
+  display: block;
   font-size: 12px;
   color: var(--ink-2);
+}
+
+/* SPEC section 7: one value, and one line under it for a rule change. */
+.rule-change {
+  padding: 0 0 10px;
+}
+
+.rule-change dl {
+  margin: 0 0 8px;
+}
+
+.item-row.static {
+  cursor: default;
 }
 
 .working {
@@ -469,4 +478,125 @@ button.quiet {
 
 .reading p {
   overflow-wrap: anywhere;
+}
+
+/* SPEC section 1: the values that do not fit, beside the question. */
+.question .fact {
+  font-weight: 600;
+}
+
+.about {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
+
+.about > div {
+  display: contents;
+}
+
+.about dt {
+  color: var(--ink-2);
+}
+
+.about dd {
+  margin: 0;
+  font-family: var(--font-mono);
+}
+
+.verdict-line .quote {
+  padding-left: 12px;
+  border-left: 2px solid var(--hairline);
+}
+
+/* SPEC section 6: what comes next. */
+.next .list {
+  margin-top: 24px;
+}
+
+.next h4 {
+  margin: 16px 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.list-line,
+.beside {
+  color: var(--ink-2);
+}
+
+.listed {
+  padding-left: 20px;
+}
+
+.listed li {
+  margin: 0 0 12px;
+}
+
+.listed blockquote {
+  margin: 0;
+}
+
+.listed p {
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+
+.draft {
+  padding: 12px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* Motion from design/canvas/DESIGN-SPEC.md. Transform and background only, so the screen is
+   complete with animations off. */
+button {
+  transition: transform 0.16s ease-out;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.item-row:not(.static) {
+  transition:
+    background-color 0.16s ease-out,
+    transform 0.16s ease-out;
+}
+
+.item-row:not(.static):hover {
+  background: var(--ground);
+}
+
+.item-row:active {
+  transform: none;
+}
+
+.working {
+  animation: drop-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes drop-in {
+  from {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .item-row,
+  .working {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  button:active:not(:disabled) {
+    transform: none;
+  }
 }

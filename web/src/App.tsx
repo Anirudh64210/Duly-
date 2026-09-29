@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { CaseForm } from "./components/CaseForm";
-import { Items, Questions, Verdict, VerdictRules } from "./components/Result";
+import { Items, Questions, Verdict, VerdictRules, WhatComesNext } from "./components/Result";
 import {
   EMPTY_CASE,
   ZONE_FIELD,
@@ -12,7 +12,7 @@ import {
   withdrawAnswer,
   type CaseFields,
 } from "./lib/caseForm";
-import { CaseRefused, computeF1, type F1Case } from "./lib/compute";
+import { CaseRefused, computeF1, type About, type F1Case } from "./lib/compute";
 import { fetchStatus, headline, reasonLine } from "./lib/status";
 
 function CannotTell({ lines }: { lines: readonly string[] }) {
@@ -65,11 +65,12 @@ export function App() {
   };
 
   // An answer is the person's own statement. It is kept with the day the engine used
-  // as today when it asked, and the case is computed again.
+  // as today when it asked, and with the values it was asked about, and the case is
+  // computed again.
   const today = compute.data?.today.date;
-  const record = (question: string, given: boolean) => {
+  const record = (question: string, given: boolean, about: About | undefined) => {
     if (today === undefined) return;
-    const answered = answer(fields, question, given, today);
+    const answered = answer(fields, question, given, today, about);
     setFields(answered);
     run(answered);
   };
@@ -128,6 +129,7 @@ export function App() {
               onAnswer={record}
               onWithdraw={withdraw}
             />
+            <WhatComesNext output={compute.data} sent={compute.variables} />
             <VerdictRules output={compute.data} />
             <Items output={compute.data} />
           </>

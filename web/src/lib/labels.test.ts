@@ -2,7 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { engineOutputSchema } from "./compute";
-import { OUTPUT } from "./fixtures";
+import { CASE, CPT_OVER, NEXT, OUTPUT } from "./fixtures";
 import {
   answerLine,
   becauseLine,
@@ -11,9 +11,14 @@ import {
   groupOf,
   inputName,
   itemName,
+  dsoQuestion,
+  factLine,
   legalStatusWords,
+  listName,
   questionCopy,
+  reasonItem,
   reasonText,
+  regimeLine,
   scopeLine,
   settingName,
   statusTag,
@@ -341,5 +346,165 @@ describe("the day", () => {
 
   it("shows a zone name with spaces", () => {
     expect(zoneName("America/Argentina/Buenos_Aires")).toBe("America/Argentina/Buenos Aires");
+  });
+});
+
+// specs/product-1/SPEC.md, section 1, the table of conflicts.
+const FACT_IDS = [
+  "opt.i765_filed_date.after_today",
+  "stem.i765_filed_date.after_today",
+  "opt.dso_recommendation_date.after_today",
+  "stem.dso_recommendation_date.after_today",
+  "cap_gap.petition_filed_on.after_today",
+  "opt.i765_filed_date.after_card",
+  "stem.i765_filed_date.after_card",
+  "cap_gap.petition_filed_on.after_start",
+  "cap_gap.requested_start.before_training",
+  "opt.card_longer_than_rule",
+  "stem.card_longer_than_rule",
+  "stem.gap_after_opt",
+  "employment.period_outside_cards",
+];
+
+describe("SPEC section 7: item names", () => {
+  it("names the unemployment items as a person would", () => {
+    expect(itemName("unemployment.days_remaining")).toBe("Unemployment days remaining");
+    expect(itemName("unemployment.days_used")).toBe("Unemployment days used");
+    expect(itemName("unemployment.limit")).toBe("Unemployment days allowed");
+  });
+
+  it("names every date of the next step", () => {
+    expect(itemName("next.stem.apply_window_opens")).toBe("STEM OPT filing window opens");
+    expect(itemName("next.stem.apply_window_closes")).toBe("STEM OPT filing window closes");
+    expect(itemName("next.opt.card_ends")).toBe("OPT EAD card ends");
+    expect(itemName("next.grace.ends")).toBe(
+      "Grace period ends, counted from the OPT EAD end date",
+    );
+  });
+
+  it("says a rule change is blocked by a court only for the status enjoined", () => {
+    expect(regimeLine("enjoined")).toBe(
+      "A rule change is blocked by a court. See what it would change.",
+    );
+    expect(regimeLine("proposed")).toBe("A rule change is proposed. See what it would change.");
+  });
+});
+
+describe("SPEC section 1: facts that do not fit", () => {
+  it("has a line for every conflict in the table, and none says which date is wrong", () => {
+    for (const id of FACT_IDS) {
+      const line = factLine(id);
+      expect(line, id).not.toBeNull();
+      expect(line).not.toMatch(/wrong|mistake|error|should|must/i);
+    }
+    expect(factLine("opt_end")).toBeNull();
+  });
+
+  it("asks one thing for every conflict", () => {
+    for (const id of FACT_IDS) {
+      expect(questionCopy(id)).toEqual({
+        ask: "Are these the dates on your documents?",
+        yes: "Yes, they are the dates on my documents",
+        no: "No, I will correct them",
+      });
+    }
+  });
+
+  it("reads an open conflict as what does not fit", () => {
+    expect(reasonText("conflict:opt.i765_filed_date.after_today")).toBe(
+      "The OPT I-765 filed date is after today.",
+    );
+    expect(reasonText("conflict:stem.gap_after_opt")).toBe(
+      "The STEM OPT EAD start date is more than one day after the OPT EAD end date.",
+    );
+  });
+
+  it("reads a confirmed conflict as a question for the DSO, with no meaning of its own", () => {
+    expect(reasonText("opt.i765_filed_date.after_card")).toBe(
+      "The OPT I-765 filed date is after the OPT EAD start date. You answered that these are the dates on your documents. What they mean is a question for your DSO.",
+    );
+  });
+
+  it("names the inputs a conflict holds", () => {
+    expect(inputName("opt.i765_filed_date")).toBe("OPT I-765 filed date");
+    expect(inputName("stem.i765_filed_date")).toBe("STEM OPT I-765 filed date");
+    expect(inputName("cap_gap.petition_filed_on")).toBe("Petition filed date");
+  });
+});
+
+describe("SPEC section 2: nothing entered is not nothing to record", () => {
+  it("asks whether there is nothing more to record", () => {
+    const copy = questionCopy("nothing_more_to_record");
+    expect(copy?.yes).toBe("Yes, there is nothing more");
+    expect(copy?.no).toBe("No, there is more to add");
+  });
+
+  it("asks whether full-time CPT was used", () => {
+    const copy = questionCopy("full_time_cpt_used");
+    expect(copy?.ask).toBe(
+      "No number of full-time CPT days is entered. Did you use any full-time CPT?",
+    );
+    expect(copy?.no).toBe("No, I used none");
+  });
+
+  it("names what is missing after the answers", () => {
+    expect(reasonText("missing:training")).toBe(
+      "Duly needs the OPT, STEM OPT, or cap-gap dates that are not entered yet.",
+    );
+    expect(reasonText("missing:cpt_full_time_days")).toBe(
+      "Duly needs the number of full-time CPT days.",
+    );
+    expect(inputName("full_time_cpt_used")).toBe("Your answer on full-time CPT");
+  });
+});
+
+describe("SPEC section 5: Duly's count", () => {
+  it("never calls Duly's count the number in the rule", () => {
+    const line = reasonText("cpt_full_time_at_or_over_bar");
+    expect(line).toContain("at or over Duly's count of one year in days");
+    expect(line).not.toContain("number in the rule");
+  });
+
+  it("finds the item a reason rests on, so the line carries its reading mark", () => {
+    const computed = engineOutputSchema.parse(CPT_OVER).computed;
+    expect(reasonItem("cpt_full_time_at_or_over_bar", computed)?.id).toBe(
+      "cpt.full_time_days_used",
+    );
+    const output = engineOutputSchema.parse(OUTPUT).computed;
+    expect(reasonItem("opt.file_by", output)?.reading).toBe(false);
+    expect(reasonItem("rules_stale", output)).toBeUndefined();
+  });
+});
+
+describe("SPEC section 6: the question for the DSO", () => {
+  const output = engineOutputSchema.parse(NEXT);
+  const draft = dsoQuestion(CASE.opt, output.upcoming, "8 CFR 214.2(f)(10)(ii)(C)");
+
+  it("is built from the person's own dates and the engine's dates", () => {
+    expect(draft).toContain("My OPT EAD card runs from Jun 1, 2026 to May 31, 2027.");
+    expect(draft).toContain("STEM OPT filing window opens: Mar 2, 2027");
+    expect(draft).toContain(
+      "STEM OPT filing window closes: May 31, 2027 (Duly's reading of the regulation)",
+    );
+    expect(draft).toContain("8 CFR 214.2(f)(10)(ii)(C)");
+  });
+
+  it("asks and states no conclusion", () => {
+    expect(draft).toMatch(/Could you tell me whether/);
+    expect(draft).not.toMatch(/\b(you (must|should|can|may)|I (can|may|must))\b/i);
+    expect(draft).not.toContain("next.opt.card_ends");
+  });
+
+  it("says a date is not entered rather than guess it", () => {
+    const bare = dsoQuestion(null, [], "the regulation");
+    expect(bare).toContain("My OPT EAD card runs from not entered to not entered.");
+    expect(bare).not.toContain("Duly, a record keeping tool, computed");
+  });
+
+  it("names the list in words", () => {
+    expect(listName("stem.extension.what_the_regulation_lists")).toBe(
+      "What the regulation lists for the 24-month STEM OPT extension",
+    );
+    expect(listName("h1b.something")).toBe("H1b something");
   });
 });

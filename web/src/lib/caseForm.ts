@@ -1,5 +1,6 @@
 import {
   isZoneName,
+  type About,
   type CapGap,
   type Confirmations,
   type DegreeLevel,
@@ -64,7 +65,8 @@ export const EMPTY_CASE: CaseFields = {
   program_end_date: "",
   degree_level: "bachelor",
   documents_count: "0",
-  cpt_full_time_days: "0",
+  // Empty until the person enters a number. Empty is sent as null, never as zero.
+  cpt_full_time_days: "",
   opt_on: false,
   opt: EMPTY_EAD,
   stem_on: false,
@@ -104,16 +106,21 @@ export function zoneChoices(held: string): string[] {
   return [...choices].filter(isZoneName).sort();
 }
 
-/** The person's answer, with the day Duly used as today when it asked. */
+/**
+ * The person's answer, with the day Duly used as today when it asked, and the values
+ * the question was raised for. The engine reads an answer only for those values.
+ */
 export function answer(
   fields: CaseFields,
   question: string,
   given: boolean,
   on: string,
+  about?: About,
 ): CaseFields {
+  const recorded = about === undefined ? { answer: given, on } : { answer: given, on, about };
   return {
     ...fields,
-    confirmations: { ...fields.confirmations, [question]: { answer: given, on } },
+    confirmations: { ...fields.confirmations, [question]: recorded },
   };
 }
 
@@ -176,6 +183,14 @@ export function buildCase(fields: CaseFields): Built {
     if (!WHOLE.test(trimmed)) problems.push(`Enter ${name} as a whole number, 0 or more.`);
     return Number(trimmed);
   };
+  const wholeOrNone = (text: string, name: string): number | null => {
+    const trimmed = text.trim();
+    if (trimmed === "") return null;
+    if (!WHOLE.test(trimmed)) {
+      problems.push(`Enter ${name} as a whole number, 0 or more, or leave it empty.`);
+    }
+    return Number(trimmed);
+  };
   const ead = (block: EadFields, part: string): EadBlock => ({
     dso_recommendation_date: optional(
       block.dso_recommendation_date,
@@ -210,7 +225,7 @@ export function buildCase(fields: CaseFields): Built {
     program_end_date: required(fields.program_end_date, "the program end date"),
     degree_level: fields.degree_level,
     documents_count: whole(fields.documents_count, "the documents added"),
-    cpt_full_time_days: whole(fields.cpt_full_time_days, "the full-time CPT days"),
+    cpt_full_time_days: wholeOrNone(fields.cpt_full_time_days, "the full-time CPT days"),
     opt: fields.opt_on ? ead(fields.opt, "OPT") : null,
     stem: fields.stem_on ? ead(fields.stem, "STEM OPT") : null,
     employment: fields.employment.map((entered, index) => period(entered, index + 1)),
