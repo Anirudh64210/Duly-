@@ -1,11 +1,10 @@
-import json
 from functools import lru_cache
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from sqlalchemy.engine import Engine
 
-from api.case_f1 import NOT_JSON, first_problem
+from api.case_f1 import NOT_A_NUMBER, NOT_JSON, NotANumberError, first_problem, read_body
 from api.db import database_reachable, make_engine
 from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
@@ -74,15 +73,24 @@ def get_f1_pack() -> Rulepack:
     return next(p for p in load_all() if p.category == "f1")
 
 
+async def get_body(request: Request) -> bytes:
+    return await request.body()
+
+
 @app.post("/v1/compute/f1")
-async def compute_f1_case(
-    request: Request,
+def compute_f1_case(
+    body: Annotated[bytes, Depends(get_body)],
     pack: Annotated[Rulepack, Depends(get_f1_pack)],
     clock: Annotated[Clock, Depends(get_clock)],
 ) -> dict[str, Any]:
-    """Stateless. The body is read here, checked, computed, and dropped."""
+    """Stateless. The body is read here, checked, computed, and dropped.
+
+    A plain def, so the engine runs on a worker thread and not on the event loop.
+    """
     try:
-        raw = json.loads(await request.body())
+        raw = read_body(body)
+    except NotANumberError:
+        raise HTTPException(status_code=422, detail=NOT_A_NUMBER) from None
     except (ValueError, RecursionError):
         raise HTTPException(status_code=422, detail=NOT_JSON) from None
     problem = first_problem(raw)

@@ -6,6 +6,7 @@ entered.
 """
 
 import json
+import math
 from functools import lru_cache
 from typing import Any
 
@@ -17,6 +18,10 @@ from engine.rulepack import REPO_ROOT
 SCHEMA_PATH = REPO_ROOT / "contracts" / "case_f1.schema.json"
 
 NOT_JSON = "The body is not JSON."
+NOT_A_NUMBER = (
+    "The body holds a number that is not a number. "
+    "NaN, Infinity and numbers too large to hold are not read."
+)
 
 TYPE_WORDS = {
     "string": "text",
@@ -59,6 +64,27 @@ def _in_words(error: ValidationError) -> str:
         "maximum": f"the contract allows {rule} or less.",
     }
     return f"{where}: {words.get(str(error.validator), 'this does not match the contract.')}"
+
+
+class NotANumberError(ValueError):
+    """The body holds NaN, Infinity, -Infinity, or a number that overflows to one."""
+
+
+def _no_constant(_text: str) -> Any:
+    raise NotANumberError
+
+
+def _finite(text: str) -> float:
+    value = float(text)
+    if not math.isfinite(value):
+        raise NotANumberError
+    return value
+
+
+def read_body(body: bytes) -> Any:
+    """The body as JSON. Raises NotANumberError before anything else is known about the case,
+    and ValueError or RecursionError when the body is not JSON."""
+    return json.loads(body, parse_constant=_no_constant, parse_float=_finite)
 
 
 def first_problem(raw: Any) -> str | None:
