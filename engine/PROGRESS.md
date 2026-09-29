@@ -558,3 +558,56 @@ Nothing read in this run asked for an action.
 The stop hook ran the done command and printed the same 66 failures: the third time.
 engine/ESCALATE.md written with what was tried and the failure tail. Nothing else
 changed.
+
+## Run l-engine-209410c52d (attempt 1): points 7 and 8 of SPEC-resolutions.md
+
+- `git merge lane/L-engine/l-engine-b63b2c6ea2`: "Already up to date"; the branch is
+  an ancestor of HEAD.
+- Point 7: `_answer` in engine/f1.py treats an answer with no `about` as no answer; the
+  question stays open. The 17 test_point_7 tests in test_f1_product.py now pass.
+- Point 8: `parse_case(raw, clock)` already took the clock and refused an answer dated
+  after the person's own day. The test_point_8 tests pass. The clock stays optional in
+  the signature because older tests call `parse_case(case)` with no clock to check
+  parsing alone.
+- Done command, run as written: exit 1. engine_literals, mypy, ruff check and ruff
+  format --check all pass on their own (exit 0). pytest: 7 failures, all present before
+  the point 7 change, each an older test that contradicts a settled point:
+  - test_f1_context::test_an_item_is_open_on_the_persons_own_day: CASE_A holds an OPT
+    filing (2026-03-10), so the apply step is done and not an open item. Point 5.
+  - test_f1_context::test_no_date_from_before_the_ead_blocks_a_case_that_holds_the_ead:
+    the drawn case dates the STEM recommendation (2024-11-01) after today (2024-01-02),
+    a conflict of SPEC section 1 row stem.dso_recommendation_date.after_today; emptying
+    the date clears that conflict, so the verdict differs. Section 1, point 4.
+  - test_f1_context::test_the_question_names_the_inputs_that_raised_it: expects keys
+    {id, because}. Point 6 says id, because and about.
+  - test_f1_context::test_the_answer_yes_counts_on_an_empty_list: `answered()` dates the
+    answer 2026-09-28 and the case runs on 2026-08-01; parse_case refuses it. Point 2.
+  - test_f1_fixes::test_the_largest_case_is_counted_right and
+    test_the_largest_window_with_no_employment_is_counted_right: the cards run 75 years,
+    conflicts opt/stem.card_longer_than_rule are open, so the counts are null. Point 4.
+  - test_f1_fixes::test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows:
+    the generator puts the STEM start 1 to 5 days after the OPT end; more than one day
+    is stem.gap_after_opt, and the counts are null. Point 4.
+- Also seen: every case built with tests/support/f1_pack.answered_yes carries answers
+  with no `about`. Under point 7 those are not answers. They pass today only where the
+  question is not raised.
+- Status: escalated. No test was changed or worked around.
+
+### After the stop hook
+
+The stop hook ran the done command and printed the same 7 failures: the same failure a
+second time. Status stays escalated; engine/ESCALATE.md and engine/REPORT.json stand.
+Nothing else changed.
+
+## Run l-engine-91e2117f32 (attempt 1): merge and pass
+
+- `git merge --no-edit lane/L-engine/l-engine-209410c52d`: merge made; engine/f1.py
+  (point 7 in `_answer`) and engine/PROGRESS.md came in. git printed "Operation not
+  permitted" for tests/holdout/, which the sandbox closes to this lane; the merge went
+  through.
+- Done command, run as written with no pipe: exit 0. pytest all pass, engine literals
+  "every number has a source", mypy "no issues found in 56 source files", ruff check
+  "All checks passed!", ruff format "8 files already formatted".
+- The seven tests named in the last run's disputes pass now that the tests round fixed
+  them. No change to engine/ beyond the merge was needed.
+- Status: done.
