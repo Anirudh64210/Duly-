@@ -1,0 +1,1973 @@
+[
+ {
+  "id": "CANVAS-001",
+  "source": "design/canvas/DESIGN-SPEC.md, The nine",
+  "text": "Build the nine approved screens as designed: Home, Timeline, Documents, Checklists, Updates, WorkBook, Mobile home, Scenarios, Onboarding.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/App.tsx",
+  "note": "Only one page exists, a case form with a verdict and computed rows; none of the nine screens is built."
+ },
+ {
+  "id": "CANVAS-002",
+  "source": "design/canvas/DESIGN-SPEC.md, The nine",
+  "text": "Desktop screens are laid out for 1280x832; Mobile home for 390x844.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No screen at these sizes exists; the desktop window SPEC opens at 1200x860."
+ },
+ {
+  "id": "CANVAS-003",
+  "source": "design/canvas/DESIGN-SPEC.md, The nine; design/canvas/CANVAS-README.md",
+  "text": "Case, Settings and Feedback are nav destinations never drawn on the canvas; design them from the nine using the same system.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "None of the three pages exists in web/src."
+ },
+ {
+  "id": "CANVAS-004",
+  "source": "design/canvas/CANVAS-README.md, Why the plan says nine plus",
+  "text": "Billing is a placeholder page designed from the same system.",
+  "kind": "design",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D8, D18",
+  "note": "Pricing is parked (D8) and Stripe is to be set up later (D18)."
+ },
+ {
+  "id": "CANVAS-005",
+  "source": "design/canvas/CANVAS-README.md, Why the plan says nine plus; every desktop screen",
+  "text": "Desktop sidebar lists Home, Timeline, Documents, Checklists, Scenarios, Updates, WorkBook at the top and Your case, Settings, Feedback pinned at the bottom.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The web app has no sidebar or navigation."
+ },
+ {
+  "id": "CANVAS-006",
+  "source": "design/canvas/screens/*.dc.html, sidebar",
+  "text": "Sidebar: wordmark Duly with a blue period at 17px 700; items 14px with 7px 10px padding; active item 600 in visa blue; others secondary grey with row hover; right hairline #ECEAE4.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sidebar exists."
+ },
+ {
+  "id": "CANVAS-007",
+  "source": "design/canvas/DESIGN-SPEC.md, Using these files",
+  "text": "The app rebuilds these screens in React against real endpoints; support.js is a viewer runtime, not product code.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/App.tsx, web/src/lib/status.ts, web/src/lib/compute.ts",
+  "note": "React calls /api/v1/status and /api/v1/compute/f1, but none of the canvas screens is rebuilt yet."
+ },
+ {
+  "id": "CANVAS-008",
+  "source": "design/canvas/DESIGN-SPEC.md, 6 WorkBook; design/canvas/CANVAS-README.md, Note for WorkBook",
+  "text": "Inside the WorkBook module its own visual system applies (IBM Plex and green, from the WorkBook handoff); the handoff wins on behavior.",
+  "kind": "workbook",
+  "status": "partial",
+  "evidence": "web/src/design/tokens.css",
+  "note": "The workbook token set exists under data-module=workbook, but no WorkBook screen uses it; the README also says the canvas wins on colors and type, which contradicts the spec."
+ },
+ {
+  "id": "CANVAS-009",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Ground color #F8F7F4.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--ground), web/src/styles.css (body background)",
+  "note": "The token matches and is the page background."
+ },
+ {
+  "id": "CANVAS-010",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Surface white #FFFFFF.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--surface)",
+  "note": "The token matches."
+ },
+ {
+  "id": "CANVAS-011",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Ink #1A1917.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--ink)",
+  "note": "The token matches and is the body text color."
+ },
+ {
+  "id": "CANVAS-012",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Secondary text #6B6862.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--ink-2)",
+  "note": "The token matches."
+ },
+ {
+  "id": "CANVAS-013",
+  "source": "design/canvas/CANVAS-README.md, Design tokens",
+  "text": "Second secondary text #4A4844, used for expanded row body text.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such token exists."
+ },
+ {
+  "id": "CANVAS-014",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Tertiary text #8A8780.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No tertiary token exists."
+ },
+ {
+  "id": "CANVAS-015",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Faint text #B0ACA3 (footers, chevrons).",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No faint token exists."
+ },
+ {
+  "id": "CANVAS-016",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Structural hairline #ECEAE4.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--hairline)",
+  "note": "The token matches and draws the row borders."
+ },
+ {
+  "id": "CANVAS-017",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Hairline inside lists #F0EEE8.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The web app uses one hairline everywhere."
+ },
+ {
+  "id": "CANVAS-018",
+  "source": "design/canvas/CANVAS-README.md, Design tokens",
+  "text": "Card and chip border #E5E2DA.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such token exists."
+ },
+ {
+  "id": "CANVAS-019",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Visa blue #2B4EA2.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--accent)",
+  "note": "The token matches."
+ },
+ {
+  "id": "CANVAS-020",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors; design/canvas/CANVAS-README.md",
+  "text": "Blue hover #22417F for links (and #24448C for filled buttons).",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No hover token exists; three canvas screens also use a green link hover #0A4C41, which looks like a slip."
+ },
+ {
+  "id": "CANVAS-021",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Blue tint #E9EEF9.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--accent-tint)",
+  "note": "The token matches."
+ },
+ {
+  "id": "CANVAS-022",
+  "source": "design/canvas/CANVAS-README.md, Design tokens",
+  "text": "Blue tint border #CBD6EE for hovered chips and source pills.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such token exists."
+ },
+ {
+  "id": "CANVAS-023",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Muted mark #8FA6D9 for the ring on the next phase.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such token exists."
+ },
+ {
+  "id": "CANVAS-024",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Confetti secondary color #6B8AD4.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10",
+  "note": "Confetti is removed by D10, so its color has no use."
+ },
+ {
+  "id": "CANVAS-025",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Amber #B45309 is reserved for the AI-drafted star and nothing else.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/design/tokens.css (--ai-mark)",
+  "note": "The token is named for the AI mark, but nothing checks its use; the canvas itself also uses amber for impact dots and confetti, and the README calls it the warnings color."
+ },
+ {
+  "id": "CANVAS-026",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Caution text #8A6A2A for the honest-caveat and varies-by-university lines.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No caution token exists."
+ },
+ {
+  "id": "CANVAS-027",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Progress bar track #E8E6E0.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No bar track token exists; Checklist and WorkBook markup use #E9E6DF instead."
+ },
+ {
+  "id": "CANVAS-028",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
+  "text": "Row hover background #F0EEE8.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row hover exists in the web app."
+ },
+ {
+  "id": "CANVAS-029",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Instrument Sans is the only typeface.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css",
+  "note": "Instrument Sans is the UI font, but values and rule ids are set in a system monospace (--font-mono)."
+ },
+ {
+  "id": "CANVAS-030",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Instrument Sans loaded at weights 400, 500, 600 and 700.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css",
+  "note": "Only the 400 and 600 weights are imported."
+ },
+ {
+  "id": "CANVAS-031",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Headings are weight 600 at -0.02em tracking.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/styles.css (h1, h2)",
+  "note": "h1 and h2 are set to 600 and -0.02em."
+ },
+ {
+  "id": "CANVAS-032",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Page titles are 30 to 34px.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No page title exists; the case form heading is 22px."
+ },
+ {
+  "id": "CANVAS-033",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Hero verdict is 40 to 42px on desktop.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css (.verdict h1)",
+  "note": "A verdict heading exists but is 28px."
+ },
+ {
+  "id": "CANVAS-034",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Hero verdict is 29px on mobile.",
+  "kind": "design",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D7",
+  "note": "D7 names macOS and Windows as the platforms; no mobile surface is planned yet."
+ },
+ {
+  "id": "CANVAS-035",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Body text is 14 to 15px.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css",
+  "note": "Body is 16px; some secondary lines are 14px."
+ },
+ {
+  "id": "CANVAS-036",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Row titles are 14.5px at weight 500.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Rows use the inherited 16px at 400."
+ },
+ {
+  "id": "CANVAS-037",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Meta lines are 12.5 to 13px.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No meta line style exists."
+ },
+ {
+  "id": "CANVAS-038",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
+  "text": "Eyebrow labels are 11 to 11.5px, weight 600, 0.10 to 0.14em tracking, uppercase.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No eyebrow style exists."
+ },
+ {
+  "id": "CANVAS-039",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Sidebar is 208px wide.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sidebar exists."
+ },
+ {
+  "id": "CANVAS-040",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Content column is 720px wide and centered.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css (.page)",
+  "note": "The column is centered but 640px wide."
+ },
+ {
+  "id": "CANVAS-041",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Top padding of the content is 50 to 54px.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css (.page)",
+  "note": "Top padding is 48px."
+ },
+ {
+  "id": "CANVAS-042",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Rows have 13 to 17px vertical padding and negative 12px side margins so the hover extends past the text.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css (.item-row)",
+  "note": "Rows have 10px vertical padding and no negative margins."
+ },
+ {
+  "id": "CANVAS-043",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Nav items have a 7px radius.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No nav exists."
+ },
+ {
+  "id": "CANVAS-044",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Rows have a 10px radius.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Rows have no radius."
+ },
+ {
+  "id": "CANVAS-045",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Cards have a 12 to 14px radius.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "web/src/design/tokens.css (--radius: 12px)",
+  "note": "The radius token is 12px and is used by the bordered blocks."
+ },
+ {
+  "id": "CANVAS-046",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Pills (chips, pill buttons, tags) have a 99px radius.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css (.tag)",
+  "note": "Tags are pills, but buttons use an 8px radius where the canvas uses pill buttons."
+ },
+ {
+  "id": "CANVAS-047",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
+  "text": "Touch targets are at least 44px.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/design/tokens.css (--target), web/src/styles.css (button, .field input)",
+  "note": "Buttons and inputs use the 44px minimum, but .scope button.quiet sets min-height to 0."
+ },
+ {
+  "id": "CANVAS-048",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion; design/canvas/CANVAS-README.md",
+  "text": "Entrance: rise 0.55s cubic-bezier(.2,.7,.2,1) from translateY 12px, staggered 60 to 90ms down the page.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No entrance animation exists."
+ },
+ {
+  "id": "CANVAS-049",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "Entrance motion uses transform only, so nothing depends on animation to be visible.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No entrance animation exists to check."
+ },
+ {
+  "id": "CANVAS-050",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "Row hover background transitions over 0.16s.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row hover exists."
+ },
+ {
+  "id": "CANVAS-051",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "Button press scales to 0.97.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No press transform exists."
+ },
+ {
+  "id": "CANVAS-052",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "Chevrons rotate 90 degrees over 0.22s when a row opens.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The web disclosure rows have no chevron."
+ },
+ {
+  "id": "CANVAS-053",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "Progress bars fill once from 0 over 1.1s with a 0.4 to 0.5s delay.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No progress bar exists."
+ },
+ {
+  "id": "CANVAS-054",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion; design/canvas/CANVAS-README.md",
+  "text": "Disclosure content drops in over 0.28s from translateY -6px.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Disclosed working appears with no motion."
+ },
+ {
+  "id": "CANVAS-055",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "The ALL CLEAR shield carries a blurred blue halo breathing on a continuous 4.8s ease-in-out cycle at low amplitude.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D11; web/src/styles.css, web/src/design/tokens.css",
+  "note": "D11 makes the glow smaller, slower and not continuous; the web halo runs 8s for 3 cycles at 0.05 opacity and wakes once on hover."
+ },
+ {
+  "id": "CANVAS-056",
+  "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
+  "text": "Confetti: eight 6px squares on 0.65 to 0.7s ease-out arcs, fired on completed journey phases and finished checklists.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10",
+  "note": "D10 removes confetti in favour of a quiet completion moment whose spec is pending."
+ },
+ {
+  "id": "CANVAS-057",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "One hero per screen.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/App.tsx",
+  "note": "The single page has one verdict section; no other screen exists to check."
+ },
+ {
+  "id": "CANVAS-058",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "Verdict before data, data before detail.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/App.tsx, web/src/components/Result.tsx",
+  "note": "The result shows the verdict before rules and rows, but the case form sits above the verdict on the page."
+ },
+ {
+  "id": "CANVAS-059",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "No card grids: hairlines and whitespace instead.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css",
+  "note": "Rows use hairlines, but the verdict, form sections, rule cards and questions are bordered cards."
+ },
+ {
+  "id": "CANVAS-060",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "No eyebrow captions or grey filler under rows.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx",
+  "note": "Current rows carry no filler, but nothing checks it."
+ },
+ {
+  "id": "CANVAS-061",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "No badges, counters, urgency, or red.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/design/tokens.css (--danger only under data-app=ops), tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+  "note": "Red is confined to Ops and urgency words are linted, but the web shows status and reading tags as pill badges."
+ },
+ {
+  "id": "CANVAS-062",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "Two choices, not three.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx",
+  "note": "Each question offers two answers; no check covers other choice sets."
+ },
+ {
+  "id": "CANVAS-063",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "Every AI surface shows its sources, rule pack version, and the disclaimer footer.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No AI surface exists in the web app; the result shows rule citations and the check date but not the rule pack version."
+ },
+ {
+  "id": "CANVAS-064",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "No em dashes, no en dashes, no emoji.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py, Makefile",
+  "note": "The copy linter flags long dashes and emoji in every text file and runs in make test; design/canvas is excluded from it."
+ },
+ {
+  "id": "CANVAS-065",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "Nothing says sealed, cryptographic, or AI-generated.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+  "note": "All three are on the forbidden list for product copy."
+ },
+ {
+  "id": "CANVAS-066",
+  "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
+  "text": "Motion is additive: with animations off the design is complete.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/styles.css (prefers-reduced-motion)",
+  "note": "The halo is switched off under reduced motion; no other motion exists yet."
+ },
+ {
+  "id": "HOME-001",
+  "source": "design/canvas/screens/Main.dc.html, date line",
+  "text": "A date line opens the page, 12px tertiary, naming the person's day, for example Monday, September 28.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx (todayLine), web/src/lib/labels.ts",
+  "note": "The person's day in their own zone (D33) is shown inside the verdict after a computation, not as a date line above the hero."
+ },
+ {
+  "id": "HOME-002",
+  "source": "design/canvas/screens/Main.dc.html, hero; design/canvas/DESIGN-SPEC.md, 1 Home",
+  "text": "Hero eyebrow: blue shield with the word ALL CLEAR at 11.5px, 600, 0.14em, blue.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D4; BOUNDARY.md B1, B10",
+  "note": "\"ALL CLEAR\" is an unscoped status claim; the verdict has four states and the quiet one is scoped to what was added."
+ },
+ {
+  "id": "HOME-003",
+  "source": "design/canvas/screens/Main.dc.html, hero; design/canvas/DESIGN-SPEC.md, 1 Home",
+  "text": "Hero headline at 40px 600 -0.02em: \"Everything is in order.\"",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D4; web/src/lib/status.ts, web/src/lib/status.test.ts",
+  "note": "D4 replaces it with four states; the web already shows \"No open items in what you've added\" and never falls back to it."
+ },
+ {
+  "id": "HOME-004",
+  "source": "design/canvas/screens/Main.dc.html, hero; design/canvas/DESIGN-SPEC.md, 1 Home",
+  "text": "Hero line under the headline names the next dated item, for example \"Next: SEVP check-in, October 7.\", with the date from the engine.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No next-item line exists; the check-in date also needs a primary source, since 8 CFR 214.2(f)(12)(ii) six-month reporting is written for STEM OPT."
+ },
+ {
+  "id": "HOME-005",
+  "source": "design/canvas/screens/Main.dc.html, hero",
+  "text": "Hero line opens with \"Nothing needs you today.\"",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D4; BOUNDARY.md B10",
+  "note": "It is a statement about the person, not the record; D4's quiet state is scoped to what they added."
+ },
+ {
+  "id": "HOME-006",
+  "source": "design/canvas/screens/Main.dc.html, metrics; design/canvas/DESIGN-SPEC.md, 1 Home",
+  "text": "Three metrics side by side divided by 1px vertical hairlines: 11px eyebrow label, 28px value (24px for a date), 13px tertiary meta.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No metric row exists."
+ },
+ {
+  "id": "HOME-007",
+  "source": "design/canvas/screens/Main.dc.html, metric 1",
+  "text": "90-DAY UNEMPLOYMENT CLOCK: days used, days left, and a 3px bar filled to the share used (12 used, 78 left, 13 percent).",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py (unemployment.days_used, unemployment.days_remaining, unemployment.limit), web/src/components/Result.tsx",
+  "note": "The engine computes the counts and the web shows them as rows; there is no metric or bar, and the limit label must come from the engine since STEM OPT uses a different limit."
+ },
+ {
+  "id": "HOME-008",
+  "source": "design/canvas/screens/Main.dc.html, metric 2",
+  "text": "THIS WEEK: hours this week out of 20 with a 3px bar (14.2 of 20, 71 percent).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Needs WorkBook hours; the 20 hour figure also needs a primary source under D35."
+ },
+ {
+  "id": "HOME-009",
+  "source": "design/canvas/screens/Main.dc.html, metric 3",
+  "text": "EAD VALID UNTIL: the EAD end date and the days left (Feb 9 2027, 134 days left).",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py (opt.ead_end, stem.ead_end)",
+  "note": "The engine returns the EAD end date; no days-left count and no metric exist."
+ },
+ {
+  "id": "HOME-010",
+  "source": "design/canvas/screens/Main.dc.html, next move section",
+  "text": "Section eyebrow \"YOUR NEXT MOVE\".",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4; DECISIONS.md D47",
+  "note": "It frames each row as a recommended move; D47 speaks of what comes next."
+ },
+ {
+  "id": "HOME-011",
+  "source": "design/canvas/screens/Main.dc.html, next move section",
+  "text": "Three hairline rows, each a 14.5px 500 title, a 13px tertiary meta line and a right chevron, with a 10px radius hover background.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such rows exist on a Home screen."
+ },
+ {
+  "id": "HOME-012",
+  "source": "design/canvas/screens/Main.dc.html, renderVals",
+  "text": "The three rows are an accordion: all closed at first, one open at a time, a second click closes, the chevron rotates and the content drops in.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The web rows are independent disclosures with no chevron, and there is no Home accordion."
+ },
+ {
+  "id": "HOME-013",
+  "source": "design/canvas/screens/Main.dc.html, row 1 closed",
+  "text": "Row 1 reads \"Start preparing your STEM OPT extension\" with meta \"Best filing start: Dec 12 to Jan 10\".",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4; DECISIONS.md D35",
+  "note": "It instructs and picks a best window, and no source states a best filing start."
+ },
+ {
+  "id": "HOME-014",
+  "source": "design/canvas/screens/Main.dc.html, row 1 expanded",
+  "text": "Row 1 open: \"2 of 6 steps done. Up next: the I-983 with your supervisor.\" and a link \"Open the checklist\" to Checklists.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The count must come from the person's confirmed checklist steps."
+ },
+ {
+  "id": "HOME-015",
+  "source": "design/canvas/screens/Main.dc.html, row 2 closed",
+  "text": "Row 2 reads \"One update affects you\" with meta \"RFE deadlines shortened · moderate impact, no panic\".",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B3, B10; DECISIONS.md D1, D2",
+  "note": "\"no panic\" reassures, \"moderate impact\" judges the case, and the update carries no legal status."
+ },
+ {
+  "id": "HOME-016",
+  "source": "design/canvas/screens/Main.dc.html, row 2 expanded",
+  "text": "Row 2 open: \"USCIS can now deny incomplete filings without asking first. Your move: file complete, the first time.\"",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4; DECISIONS.md D1, D2",
+  "note": "\"Your move\" recommends an action, and the change is stated without its status and citation."
+ },
+ {
+  "id": "HOME-017",
+  "source": "design/canvas/screens/Main.dc.html, row 2 expanded",
+  "text": "Row 2 open carries a link \"Read what it means\" to Updates.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Updates screen exists."
+ },
+ {
+  "id": "HOME-018",
+  "source": "design/canvas/screens/Main.dc.html, row 3 closed",
+  "text": "Row 3 reads \"Tell Duly what you want to do next\" with meta \"A new job, travel, H-1B: get the plan before you move\".",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4; DECISIONS.md D5",
+  "note": "\"get the plan\" promises a strategy for the person."
+ },
+ {
+  "id": "HOME-019",
+  "source": "design/canvas/screens/Main.dc.html, row 3 expanded",
+  "text": "Row 3 open shows three pill chips (white, #E5E2DA border, 13px): \"I'm changing jobs\" and \"I want to travel\" to Scenarios, \"Thinking about H-1B\" to Checklists; hover tint, press scale 0.96.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No chips exist."
+ },
+ {
+  "id": "HOME-020",
+  "source": "design/canvas/screens/Main.dc.html, footer",
+  "text": "Footer \"Checked today, 6:00 AM\" at 12px faint.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "web/src/lib/labels.ts (scopeLine), web/src/App.tsx",
+  "note": "The verdict carries \"Rules checked\" with a date, not a footer with a time."
+ },
+ {
+  "id": "HOME-021",
+  "source": "design/canvas/DESIGN-SPEC.md, 1 Home, Rule",
+  "text": "Every date and number on Home comes from the engine, never the client and never the model.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx, tools/gates/engine_literals.py",
+  "note": "The web only formats engine values, but no test asserts the client computes none."
+ },
+ {
+  "id": "TIME-001",
+  "source": "design/canvas/screens/Timeline.dc.html, header",
+  "text": "Title \"Timeline\" at 32px with a right-aligned 13px meta of phase and requirement counts (\"6 phases · 24 requirements tracked\").",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Timeline screen exists; the counts must come from the path model (D48)."
+ },
+ {
+  "id": "TIME-002",
+  "source": "design/canvas/screens/Timeline.dc.html, header; design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Header meta ends \"nothing missed\".",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md, Words Duly never uses about itself; PRINCIPLES.md 4",
+  "note": "It is a completeness promise in the family of \"never miss a deadline\"."
+ },
+ {
+  "id": "TIME-003",
+  "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Six phase rows: Visa and entry, M.Eng Computer Science, CPT two authorizations, Post-completion OPT, STEM OPT extension, Beyond, each with a 12.5px meta line.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Phases must come from the person's record through the path model, not a fixed list (D47, D48)."
+ },
+ {
+  "id": "TIME-004",
+  "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Completed phases carry a filled blue check icon.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No phase rows exist."
+ },
+ {
+  "id": "TIME-005",
+  "source": "design/canvas/screens/Timeline.dc.html, NOW row",
+  "text": "The current phase carries a NOW tag (10px 700, white on blue, 5px radius) in the left gutter, a 16px 600 title, a meta line such as \"Day 228 of 365\", and a 3px progress bar up to 400px.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No phase rows exist; the day count must be engine arithmetic."
+ },
+ {
+  "id": "TIME-006",
+  "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Future phases carry a hollow ring: #8FA6D9 for the next phase, #C9C5BC for later ones.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No phase rows exist."
+ },
+ {
+  "id": "TIME-007",
+  "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Every phase title is full-strength ink; history is never greyed.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No phase rows exist."
+ },
+ {
+  "id": "TIME-008",
+  "source": "design/canvas/screens/Timeline.dc.html, renderVals",
+  "text": "Phases are an accordion, one open at a time, with the NOW phase open by default; a second click closes it.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No accordion exists."
+ },
+ {
+  "id": "TIME-009",
+  "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Completed phases fire confetti on open.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10",
+  "note": "Confetti is removed."
+ },
+ {
+  "id": "TIME-010",
+  "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Completed phases open to their met requirements, each with a small check, and a link \"N documents\" to Documents.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No phase detail exists."
+ },
+ {
+  "id": "TIME-011",
+  "source": "design/canvas/screens/Timeline.dc.html, Visa and entry expanded",
+  "text": "Visa and entry opens to: visa stamp valid until Jul 12 2028, passport valid through Mar 2031, first I-94 entry Aug 9 2023, and \"3 documents\".",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "These are the person's document dates, kept as records (A8)."
+ },
+ {
+  "id": "TIME-012",
+  "source": "design/canvas/screens/Timeline.dc.html, M.Eng expanded",
+  "text": "M.Eng opens with \"F-1 status maintained, all 5 semesters\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B1",
+  "note": "It states the person was in status."
+ },
+ {
+  "id": "TIME-013",
+  "source": "design/canvas/screens/Timeline.dc.html, M.Eng expanded",
+  "text": "M.Eng also lists \"Full-time enrollment every term\" and \"Degree conferred Dec 13, 2025 · transcript in vault\" with \"4 documents\".",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "These must be the person's own recorded statements, shown as such."
+ },
+ {
+  "id": "TIME-014",
+  "source": "design/canvas/screens/Timeline.dc.html, CPT expanded",
+  "text": "CPT opens with \"Both authorized on the I-20 before day one\" and \"Employment dates match SEVIS exactly\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "PRINCIPLES.md 2; BOUNDARY.md B3",
+  "note": "Duly cannot read SEVIS, so the match is an unverified claim."
+ },
+ {
+  "id": "TIME-015",
+  "source": "design/canvas/screens/Timeline.dc.html, NOW expanded; design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "The OPT phase shows the application tracker inline: APPLICATION, Filed Nov 2, Approved Jan 21, EAD delivered Feb 2, \"via USCIS case status\".",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No USCIS case status link is planned; the dates would be the person's entries."
+ },
+ {
+  "id": "TIME-016",
+  "source": "design/canvas/screens/Timeline.dc.html, NOW expanded; design/canvas/DESIGN-SPEC.md, 2 Timeline",
+  "text": "Coverage grid \"COVERED · 7 OF 8\" in two columns: EAD card, SSN, fresh I-94, employer in SEVP, travel signature, US address, WorkBook recording, and the open item with a hollow ring, \"SEVP 6-month check-in · due Oct 7\".",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No grid exists; the six-month item needs a primary source, since that reporting is written for STEM OPT."
+ },
+ {
+  "id": "TIME-017",
+  "source": "design/canvas/screens/Timeline.dc.html, STEM row",
+  "text": "STEM OPT row meta \"Window opens Dec 12 · 2 of 6 steps done\"; open, it links \"Open the checklist\".",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py (stem.apply_window_opens, stem.file_by)",
+  "note": "The engine computes the STEM window dates; no row exists."
+ },
+ {
+  "id": "TIME-018",
+  "source": "design/canvas/screens/Timeline.dc.html, STEM expanded",
+  "text": "STEM open text: \"24 more months. File between Dec 12 and Feb 9 with an E-Verify employer and a signed I-983.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, A1",
+  "note": "It is an instruction to the person rather than the rule stated with its citation."
+ },
+ {
+  "id": "TIME-019",
+  "source": "design/canvas/screens/Timeline.dc.html, Beyond expanded",
+  "text": "Beyond open text: \"H-1B registration runs each March. O-1 and green card paths build on the same record you're keeping now. Each wakes up here when it becomes your move.\" with \"See the H-1B plan\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4; DECISIONS.md D35",
+  "note": "\"your move\" and \"plan\" recommend, and the March timing needs a primary source."
+ },
+ {
+  "id": "TIME-020",
+  "source": "design/canvas/screens/Timeline.dc.html, footer",
+  "text": "Footer \"Every phase keeps its documents, checks and dates together.\"",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Timeline screen exists."
+ },
+ {
+  "id": "TIME-021",
+  "source": "design/canvas/screens/Timeline.dc.html, rows",
+  "text": "Phase rows use 13px padding (15px for NOW), the first border #ECEAE4, inner borders #F0EEE8, a closing #ECEAE4 border, and a staggered rise.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No phase rows exist."
+ },
+ {
+  "id": "DOCS-001",
+  "source": "design/canvas/screens/Documents.dc.html, banner; design/canvas/DESIGN-SPEC.md, 3 Documents",
+  "text": "Consistency banner: blue outline check, eyebrow, 32px title and a 14px line reporting a code-computed cross-document check of names, dates and SEVIS ID.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "The vault is Phase 8; the result must be scoped to the documents added."
+ },
+ {
+  "id": "DOCS-002",
+  "source": "design/canvas/screens/Documents.dc.html, banner",
+  "text": "Banner copy: \"CONSISTENT\", \"15 documents, one story.\" and \"Names, dates and SEVIS ID match everywhere. Checked today.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D4; PRINCIPLES.md 4",
+  "note": "\"one story\" and \"everywhere\" claim more than the compared fields in the added documents."
+ },
+ {
+  "id": "DOCS-003",
+  "source": "design/canvas/screens/Documents.dc.html, lock state",
+  "text": "Lock state top right: lock icon and \"Unlocked · locks in 4:32\" countdown, 12.5px tertiary.",
+  "kind": "desktop",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "Needs the encrypted store."
+ },
+ {
+  "id": "DOCS-004",
+  "source": "design/canvas/screens/Documents.dc.html, tabs",
+  "text": "Category tab row: All, Identity, I-20 history · 6 (selected: 600 ink, 2px blue underline), Employment, Filings, Evidence packs, over a hairline.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-005",
+  "source": "design/canvas/screens/Documents.dc.html, renderVals",
+  "text": "Three collapsible groups (OPT, CPT, Initial attendance), each with its version count; OPT open by default; groups toggle independently.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-006",
+  "source": "design/canvas/screens/Documents.dc.html, OPT v6",
+  "text": "OPT v6 row: CURRENT (11px 700 blue) and v6, \"OPT recommended · travel signature added\", meta with the signed date, and an Open action.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-007",
+  "source": "design/canvas/screens/Documents.dc.html, OPT v6 meta",
+  "text": "v6 meta reads \"valid for re-entry until Feb 14, 2027\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B1, B2",
+  "note": "It concludes the person can re-enter; the date belongs to the rule on signature age, stated as such."
+ },
+ {
+  "id": "DOCS-008",
+  "source": "design/canvas/screens/Documents.dc.html, OPT v5",
+  "text": "OPT v5 row: \"OPT recommended · corrected end date\", \"Reissued Jan 6, 2026 · superseded, kept for the record\".",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-009",
+  "source": "design/canvas/screens/Documents.dc.html, OPT v4",
+  "text": "OPT v4 row: \"OPT recommended · original\", \"Issued Dec 19, 2025 · the copy filed with your I-765\".",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-010",
+  "source": "design/canvas/screens/Documents.dc.html, CPT group",
+  "text": "CPT group holds v3 (research assistantship, Spring 2025) and v2 (data science internship, Summer 2024), each with issued date and Open.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-011",
+  "source": "design/canvas/screens/Documents.dc.html, Initial attendance",
+  "text": "Initial attendance holds v1, \"Initial I-20 · program start\", issued Jun 2, 2023.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-012",
+  "source": "design/canvas/DESIGN-SPEC.md, 3 Documents",
+  "text": "Every version row is full-strength ink with a 128px version column and an Open action.",
+  "kind": "design",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No Documents screen exists."
+ },
+ {
+  "id": "DOCS-013",
+  "source": "design/canvas/DESIGN-SPEC.md, 3 Documents",
+  "text": "Every version is kept; nothing is overwritten.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "No document store exists."
+ },
+ {
+  "id": "DOCS-014",
+  "source": "design/canvas/screens/Documents.dc.html, footer",
+  "text": "Footer \"Every version kept. Old I-20s prove the chain. Encrypted on this device.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B3",
+  "note": "\"prove\" is a legal conclusion about the documents."
+ },
+ {
+  "id": "CHECK-001",
+  "source": "design/canvas/screens/Checklist.dc.html, path chips; design/canvas/DESIGN-SPEC.md, 4 Checklists",
+  "text": "A pill chip row CPT, OPT, STEM OPT, H-1B switches the whole view; STEM OPT is the default; the selected chip is ink on #F0EEE8 with a #C9C5BC border.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Checklists screen exists."
+ },
+ {
+  "id": "CHECK-002",
+  "source": "design/canvas/screens/Checklist.dc.html, path chips",
+  "text": "Completed paths show a check mark on their chip, drawn in the markup as the character U+2713.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+  "note": "U+2713 falls in the linter's emoji range; draw the mark as an SVG icon."
+ },
+ {
+  "id": "CHECK-003",
+  "source": "design/canvas/screens/Checklist.dc.html, STEM view",
+  "text": "STEM view eyebrow \"YOUR NEXT FILING · WINDOW OPENS DEC 12\" with the date from the engine.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py (stem.apply_window_opens)",
+  "note": "The engine computes the window opening; no screen shows it."
+ },
+ {
+  "id": "CHECK-004",
+  "source": "design/canvas/screens/Checklist.dc.html, STEM view",
+  "text": "STEM view title \"STEM OPT extension\" at 30px.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Checklists screen exists."
+ },
+ {
+  "id": "CHECK-005",
+  "source": "design/canvas/screens/Checklist.dc.html, STEM view; renderVals",
+  "text": "A 180px 3px progress bar at done/6 with \"N of 6 done · you confirm each step\"; the bar width animates over 0.35s as steps change.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No checklist exists."
+ },
+ {
+  "id": "CHECK-006",
+  "source": "design/canvas/screens/Checklist.dc.html, STEM steps",
+  "text": "Two completed steps are struck through in tertiary with their citations at right: \"Degree CIP code is on the DHS STEM list\" (DHS list, 2026) and \"Employer enrolled in E-Verify, company ID noted\" (8 CFR 214.2(f)).",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Citations must be primary and pinpointed (D34)."
+ },
+ {
+  "id": "CHECK-007",
+  "source": "design/canvas/screens/Checklist.dc.html, STEM steps; renderVals",
+  "text": "Four open steps have 18px circular checkboxes that toggle on click, recompute the count and bar, scale 1.08 on hover and 0.92 on press, and carry an aria-label.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No checklist exists."
+ },
+ {
+  "id": "CHECK-008",
+  "source": "design/canvas/screens/Checklist.dc.html, I-983 step",
+  "text": "Step \"Complete Form I-983 with your supervisor\", source Study in the States.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "A5 allows listing what a source says a process requires."
+ },
+ {
+  "id": "CHECK-009",
+  "source": "design/canvas/screens/Checklist.dc.html, DSO step",
+  "text": "Step \"Request your STEM OPT I-20 from your DSO\" with the caution line \"This step varies by university. Your school's process is the authority here.\"",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Per-school records (D3, D24) would back this line."
+ },
+ {
+  "id": "CHECK-010",
+  "source": "design/canvas/screens/Checklist.dc.html, DSO step",
+  "text": "A pill button \"Draft the question for your DSO\" drafts an editable question the person sends from their own mail.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "assistant/boundary.py",
+  "note": "The boundary code exists but no draft or button is in the web app."
+ },
+ {
+  "id": "CHECK-011",
+  "source": "design/canvas/screens/Checklist.dc.html, I-765 step",
+  "text": "Step \"File I-765 within 60 days of the recommendation\" with \"And before your EAD expires Feb 9, 2027 · Source: USCIS I-765\".",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py (stem.file_by, stem.apply_window_closes)",
+  "note": "The engine computes the filing dates; the source shown should be the regulation (D34)."
+ },
+ {
+  "id": "CHECK-012",
+  "source": "design/canvas/screens/Checklist.dc.html, evidence step",
+  "text": "Step \"Assemble your evidence pack\" with meta \"Degree relatedness, hours, employer record · builds from WorkBook\" and an Open link to WorkBook.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "\"Degree relatedness\" names a judgement (B3); see canvas-conflicts.md."
+ },
+ {
+  "id": "CHECK-013",
+  "source": "design/canvas/screens/Checklist.dc.html, allDone; design/canvas/DESIGN-SPEC.md, 4 Checklists",
+  "text": "Completing all six fires confetti and shows \"Every step done. You're ready to file on December 12.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10; BOUNDARY.md B2, B4",
+  "note": "Confetti is removed and the line concludes readiness and tells the person when to file."
+ },
+ {
+  "id": "CHECK-014",
+  "source": "design/canvas/screens/Checklist.dc.html, H-1B view",
+  "text": "H-1B view eyebrow \"LATER · NOT YOUR MOVE YET\" and title \"H-1B. You've got time.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B10",
+  "note": "It reassures about time and ranks moves."
+ },
+ {
+  "id": "CHECK-015",
+  "source": "design/canvas/screens/Checklist.dc.html, H-1B view",
+  "text": "H-1B body: \"STEM OPT gives you up to 36 months of runway and three lottery cycles. The right order is STEM first...\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B2, B4, B6",
+  "note": "It prescribes an order and forecasts lottery chances."
+ },
+ {
+  "id": "CHECK-016",
+  "source": "design/canvas/screens/Checklist.dc.html, H-1B view",
+  "text": "H-1B numbered list: \"Finish your STEM OPT filing first: it protects every later option\", \"Registration runs each March...\", \"Keep WorkBook running: the same record backs an H-1B petition years from now\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B6",
+  "note": "Items one and three recommend and predict; item two is a rule statement that needs its citation."
+ },
+ {
+  "id": "CHECK-017",
+  "source": "design/canvas/screens/Checklist.dc.html, H-1B view",
+  "text": "H-1B view promises \"We'll surface this checklist in February, before registration opens.\"",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The February date must come from a sourced registration rule (D35)."
+ },
+ {
+  "id": "CHECK-018",
+  "source": "design/canvas/screens/Checklist.dc.html, OPT view; design/canvas/DESIGN-SPEC.md, 4 Checklists",
+  "text": "OPT view: confetti, \"COMPLETE · JAN 21, 2026\", \"OPT: done, and done right.\" and \"Filed in week two of the window, zero RFEs, approved in 80 days.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10; BOUNDARY.md B3, B10",
+  "note": "Confetti is removed and \"done right\" grades the person's case."
+ },
+ {
+  "id": "CHECK-019",
+  "source": "design/canvas/screens/Checklist.dc.html, OPT view",
+  "text": "OPT view lists completed items with checks: DSO recommendation on I-20 before filing; I-765 filed online, complete on the first pass; EAD received, employer reported within 10 days.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "These must be the person's recorded dates."
+ },
+ {
+  "id": "CHECK-020",
+  "source": "design/canvas/screens/Checklist.dc.html, CPT view",
+  "text": "CPT view: confetti, \"COMPLETE · TWO AUTHORIZATIONS\", \"CPT: a clean record, twice.\" and \"That record now supports everything after it.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10; BOUNDARY.md B3, B6, B10",
+  "note": "Confetti is removed; the copy grades and predicts."
+ },
+ {
+  "id": "CHECK-021",
+  "source": "design/canvas/screens/Checklist.dc.html, footer",
+  "text": "Footer \"Every step cites its source. Nothing files itself. Records, not legal advice.\"",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The web footer has different words on a different screen."
+ },
+ {
+  "id": "UPD-001",
+  "source": "design/canvas/screens/Updates.dc.html, header",
+  "text": "Title \"One thing worth knowing.\" at 30px with \"Checked today, 6:00 AM\" at right, 12.5px faint; the count in the title follows the number of matching items.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Updates screen exists."
+ },
+ {
+  "id": "UPD-002",
+  "source": "design/canvas/screens/Updates.dc.html, hero item",
+  "text": "The one matching item is the hero, under the eyebrow \"AFFECTS YOUR CASE\".",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md A4, B3",
+  "note": "Whether a change affects a case is a judgement; A4 says which field matched."
+ },
+ {
+  "id": "UPD-003",
+  "source": "design/canvas/screens/Updates.dc.html, hero item",
+  "text": "Source and date line beside the eyebrow: \"USCIS · PA-2026-05 · Sep 24\".",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "D1 also requires the legal status and a primary citation here."
+ },
+ {
+  "id": "UPD-004",
+  "source": "design/canvas/screens/Updates.dc.html, hero item; design/canvas/DESIGN-SPEC.md, 5 Updates",
+  "text": "Hero headline states the change: \"RFE deadlines are shorter now, and incomplete filings can be denied without one.\" (spec 23px, markup 20px).",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The spec and markup disagree on size; the change must carry its status (D1) and pass the pipeline's publish checks (D22)."
+ },
+ {
+  "id": "UPD-005",
+  "source": "design/canvas/screens/Updates.dc.html, impact block; design/canvas/DESIGN-SPEC.md, 5 Updates",
+  "text": "Impact block: two of three amber dots and MODERATE IMPACT in caution color.",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D2; BOUNDARY.md B3, B6; DESIGN-SPEC laws",
+  "note": "An impact grade judges the case, reads as urgency, and uses amber outside the AI star."
+ },
+ {
+  "id": "UPD-006",
+  "source": "design/canvas/screens/Updates.dc.html, impact block",
+  "text": "Impact line \"Worry? No. Prepare? Yes.\"",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "tools/copy_lint/lint.py (worry); DECISIONS.md D29; BOUNDARY.md B4, B10",
+  "note": "The linter bans \"worry\" and the line reassures and instructs."
+ },
+ {
+  "id": "UPD-007",
+  "source": "design/canvas/screens/Updates.dc.html, meaning paragraph",
+  "text": "Meaning for this case: \"Your STEM filing window opens December 12, so this changes one thing: the first submission has to be complete. Your checklist and evidence pack already cover the items USCIS most often asks for.\"",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B3, B10; DECISIONS.md D2",
+  "note": "It judges what the change means for the person and reassures that they are covered."
+ },
+ {
+  "id": "UPD-008",
+  "source": "design/canvas/screens/Updates.dc.html, links",
+  "text": "Links under the hero: \"Review your checklist\" to Checklists, then source links USCIS notice and Federal Register in 12.5px tertiary.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Updates screen exists."
+ },
+ {
+  "id": "UPD-009",
+  "source": "design/canvas/screens/Updates.dc.html, links; design/canvas/DESIGN-SPEC.md, 5 Updates",
+  "text": "Sources include \"Community discussion\" (hero and both rows).",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D2, D34",
+  "note": "Only primary sources are cited."
+ },
+ {
+  "id": "UPD-010",
+  "source": "design/canvas/screens/Updates.dc.html, everything else",
+  "text": "EVERYTHING ELSE eyebrow and rows with a 100px source-date column, a 14.5px 500 title, a label at right and a chevron; full-strength ink; accordion one at a time, closed by default.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Updates screen exists."
+ },
+ {
+  "id": "UPD-011",
+  "source": "design/canvas/screens/Updates.dc.html, SEVP row",
+  "text": "The SEVP row carries the verdict label \"Nothing to do\" in blue.",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4",
+  "note": "It tells the person what to do; label the kind of item instead."
+ },
+ {
+  "id": "UPD-012",
+  "source": "design/canvas/screens/Updates.dc.html, SEVP row expanded",
+  "text": "SEVP row open: \"A routine SEVP reminder. Duly checked: your employer record matches SEVIS, last verified today.\" with SEVP broadcast link.",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "PRINCIPLES.md 2, 4",
+  "note": "Duly cannot read SEVIS, so the check it claims did not happen."
+ },
+ {
+  "id": "UPD-013",
+  "source": "design/canvas/screens/Updates.dc.html, Court row",
+  "text": "Court row: \"Court · Sep 12\", \"Injunction continues in SEVIS termination litigation\", label \"Context\".",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The item must name the case and its status with the order as source (D1)."
+ },
+ {
+  "id": "UPD-014",
+  "source": "design/canvas/screens/Updates.dc.html, Court row expanded",
+  "text": "Court row open: \"Impact on you: none directly, and your consistent, timestamped record is exactly the protection attorneys recommend keeping.\" with sources Court order, AILA summary, Community discussion.",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B1, B4, B6; DECISIONS.md D34",
+  "note": "It states the impact on the person and endorses a protection; AILA and forum links are not primary."
+ },
+ {
+  "id": "UPD-015",
+  "source": "design/canvas/DESIGN-SPEC.md, 5 Updates",
+  "text": "Each row opens to an explanation and its own primary source links.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Updates screen exists."
+ },
+ {
+  "id": "UPD-016",
+  "source": "design/canvas/screens/Updates.dc.html, footer",
+  "text": "Footer \"Only what touches your case rises to the top. Every item links to its original source.\"",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Updates screen exists."
+ },
+ {
+  "id": "UPD-017",
+  "source": "design/canvas/DESIGN-SPEC.md, 5 Updates, Rule",
+  "text": "Which items match a case is computed deterministically from case attributes, never generated in the send path.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The spec's impact score is dropped (UPD-005); matching by field (A4) keeps the determinism rule."
+ },
+ {
+  "id": "WBC-001",
+  "source": "design/canvas/DESIGN-SPEC.md, 6 WorkBook",
+  "text": "WorkBook is a three-stage flow inside the Duly shell (intro, setup, today) and always optional.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "The WorkBook handoff wins on behavior."
+ },
+ {
+  "id": "WBC-002",
+  "source": "design/canvas/screens/WorkBook.dc.html, intro",
+  "text": "Intro: eyebrow \"WORKBOOK · OPTIONAL, YOURS\", 34px \"Working a job, a contract, or your own thing?\", and a 15px value line.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-003",
+  "source": "design/canvas/screens/WorkBook.dc.html, intro value line",
+  "text": "Value line ends \"When anyone ever asks for proof, it's already written.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B6",
+  "note": "It promises the log will serve as proof."
+ },
+ {
+  "id": "WBC-004",
+  "source": "design/canvas/screens/WorkBook.dc.html, intro promise 1",
+  "text": "Promise: \"Builds itself from GitHub, Calendar, Slack and more, with no screenshots, ever\".",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-005",
+  "source": "design/canvas/screens/WorkBook.dc.html, intro promise 2",
+  "text": "Promise: \"Metadata only, encrypted, never leaves this device\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "tools/copy_lint/lint.py (never leaves); DECISIONS.md D13, D20",
+  "note": "The linter bans the unscoped claim and the drafting model may run in the cloud (D20 open)."
+ },
+ {
+  "id": "WBC-006",
+  "source": "design/canvas/screens/WorkBook.dc.html, intro promise 3",
+  "text": "Promise: \"You confirm every day. AI drafts, you own the record\".",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-007",
+  "source": "design/canvas/screens/WorkBook.dc.html, intro buttons",
+  "text": "Blue pill button \"Set up WorkBook\" and a quiet \"Not now\" link to Home.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-008",
+  "source": "design/canvas/screens/WorkBook.dc.html, setup",
+  "text": "Setup: eyebrow \"SET UP · 1 OF 2\", 30px \"Where does your work already live?\", and \"Read-only, metadata only: times, titles and links, never content. Nothing connects until you sign in to it.\"",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "Step 2 of setup is never drawn."
+ },
+ {
+  "id": "WBC-009",
+  "source": "design/canvas/screens/WorkBook.dc.html, setup grid; renderVals",
+  "text": "Six connector tiles in three columns (GitHub, Google Calendar, Slack, Google Meet, Linear, Stripe) with a 1.5px border that turns blue with a check when selected; tiles toggle; GitHub and Calendar preselected.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-010",
+  "source": "design/canvas/screens/WorkBook.dc.html, setup buttons; renderVals",
+  "text": "\"Start recording · N sources\" counts the selected tiles and goes to Today; Back returns to the intro.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-011",
+  "source": "design/canvas/screens/WorkBook.dc.html, today tabs",
+  "text": "Today stage tab row: Today (selected), Log, Exports.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "The handoff lists more tabs and wins on behavior."
+ },
+ {
+  "id": "WBC-012",
+  "source": "design/canvas/screens/WorkBook.dc.html, today header",
+  "text": "Date heading at 30px, \"6.2 hours so far · recording from N sources\", and at right \"12.6 of 20 h this week\" over a 200px bar.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "Home shows 14.2 hours for the same week, so the canvas figures disagree; hours must come from code."
+ },
+ {
+  "id": "WBC-013",
+  "source": "design/canvas/screens/WorkBook.dc.html, today blocks",
+  "text": "Four blocks, each with a 96px time range column, a 14.5px title and hours at right, with row hover.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-014",
+  "source": "design/canvas/screens/WorkBook.dc.html, today blocks",
+  "text": "AI-drafted lines carry a 12px amber star with the accessible label \"Drafted by AI\".",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-015",
+  "source": "design/canvas/screens/WorkBook.dc.html, today blocks",
+  "text": "A line the person changed carries the mark \"edited by you\".",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-016",
+  "source": "design/canvas/DESIGN-SPEC.md, 6 WorkBook",
+  "text": "GitHub provenance shows under one block.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "The spec names it but the markup has none; only a Meet join time appears."
+ },
+ {
+  "id": "WBC-017",
+  "source": "design/canvas/screens/WorkBook.dc.html, today actions",
+  "text": "\"+ Add entry\" text button and a blue pill \"Mark day complete\".",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (WorkBook is Phase 8)",
+  "note": "No WorkBook screen exists."
+ },
+ {
+  "id": "WBC-018",
+  "source": "design/canvas/screens/WorkBook.dc.html, footer; design/canvas/DESIGN-SPEC.md, 6 WorkBook",
+  "text": "Footer \"The amber star marks AI-drafted lines, forever, exports included · you confirm every day\".",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D6",
+  "note": "Whether exports carry the AI mark is an open founder decision."
+ },
+ {
+  "id": "MOB-001",
+  "source": "design/canvas/DESIGN-SPEC.md, 7 Mobile home",
+  "text": "Mobile home is the countdown surface at 390x844 with the wordmark at left and the short date at right.",
+  "kind": "design",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D7",
+  "note": "D7 names macOS and Windows; no mobile build is planned."
+ },
+ {
+  "id": "MOB-002",
+  "source": "design/canvas/screens/Phone.dc.html, hero",
+  "text": "Mobile hero: shield with breathing halo, \"ALL CLEAR\", \"Everything is in order.\" at 29px and \"Nothing needs you today.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D4, D11; BOUNDARY.md B1, B10",
+  "note": "Same conflict as the Home hero."
+ },
+ {
+  "id": "MOB-003",
+  "source": "design/canvas/screens/Phone.dc.html, metrics",
+  "text": "Two metrics split by a hairline: 90-DAY CLOCK (used, left, bar) and EAD VALID UNTIL (19px date, days left).",
+  "kind": "design",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D7",
+  "note": "No mobile build is planned."
+ },
+ {
+  "id": "MOB-004",
+  "source": "design/canvas/screens/Phone.dc.html, next move",
+  "text": "\"YOUR NEXT MOVE\" with two expandable rows, one open at a time.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D7",
+  "note": "The eyebrow wording is superseded as on Home (HOME-010)."
+ },
+ {
+  "id": "MOB-005",
+  "source": "design/canvas/screens/Phone.dc.html, row 1",
+  "text": "Row 1 \"Start your STEM OPT prep\", meta \"Window opens Dec 12 · 2 of 6 done\"; open: \"Up next: the I-983 with your supervisor.\" and \"Open the checklist\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4",
+  "note": "The title instructs the person."
+ },
+ {
+  "id": "MOB-006",
+  "source": "design/canvas/screens/Phone.dc.html, row 2",
+  "text": "Row 2 \"One update affects you\", meta \"RFE deadlines shortened · no panic\"; open: \"File complete, the first time. Your checklist covers it.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B10",
+  "note": "It reassures and instructs."
+ },
+ {
+  "id": "MOB-007",
+  "source": "design/canvas/screens/Phone.dc.html, footer",
+  "text": "Footer \"Checked today, 6:00 AM\" at 11.5px.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D7",
+  "note": "No mobile build is planned."
+ },
+ {
+  "id": "MOB-008",
+  "source": "design/canvas/screens/Phone.dc.html, tab bar",
+  "text": "Four-item tab bar with icons: Home (active, blue 600), Timeline, Scenarios, Docs; 10.5px labels, top hairline.",
+  "kind": "design",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D7",
+  "note": "The markup links are placeholders."
+ },
+ {
+  "id": "SCEN-001",
+  "source": "design/canvas/DESIGN-SPEC.md, 8 Scenarios",
+  "text": "Scenarios is its own panel, not a tab of Home, titled \"Scenarios\" at 32px.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Scenarios screen exists."
+ },
+ {
+  "id": "SCEN-002",
+  "source": "design/canvas/screens/Simulator.dc.html, subline",
+  "text": "Subline \"Ask anything. Duly answers from your case and the rules, cites them, and says when it isn't sure.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D5, D23; BOUNDARY.md",
+  "note": "It promises personal answers; the assistant states rules and steps back to the DSO."
+ },
+ {
+  "id": "SCEN-003",
+  "source": "design/canvas/screens/Simulator.dc.html, ask field",
+  "text": "Ask field with placeholder \"What happens if\" and a hidden label, and a blue \"Ask\" button, both 10px radius.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "assistant/boundary.py",
+  "note": "The classifier and validator exist; no ask field or step-back card is in the web app."
+ },
+ {
+  "id": "SCEN-004",
+  "source": "design/canvas/screens/Simulator.dc.html, tabs; renderVals",
+  "text": "Three switchable scenario tabs: I lose my job (default), I travel abroad, My filing gets an RFE; active tab ink 600 with a 2px blue underline.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Scenarios screen exists."
+ },
+ {
+  "id": "SCEN-005",
+  "source": "design/canvas/DESIGN-SPEC.md, 8 Scenarios",
+  "text": "Each scenario shows the rules that touch it with citations and status, the arithmetic from the case, and a RULES PULLED row of pill citation chips (white, blue text, tint on hover).",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "This is the part of the scenario layout that stays inside A1, A3 and A7."
+ },
+ {
+  "id": "SCEN-006",
+  "source": "design/canvas/DESIGN-SPEC.md, 8 Scenarios",
+  "text": "Each scenario shows numbered practical steps.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4; DECISIONS.md D5",
+  "note": "Steps for the person are recommendations; a drafted DSO question takes their place."
+ },
+ {
+  "id": "SCEN-007",
+  "source": "design/canvas/DESIGN-SPEC.md, 8 Scenarios",
+  "text": "Each scenario has an \"Honest caveats\" paragraph in caution color.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Kept as a line that names where sources differ or are guidance (A7, B9); the canvas caveat texts are superseded below."
+ },
+ {
+  "id": "SCEN-008",
+  "source": "design/canvas/screens/Simulator.dc.html, job headline",
+  "text": "Job-loss headline \"You'd have 78 days, and clear moves.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B10",
+  "note": "It reassures and promises moves."
+ },
+ {
+  "id": "SCEN-009",
+  "source": "design/canvas/screens/Simulator.dc.html, job specifics",
+  "text": "Job-loss specifics \"If employment ends Nov 1: 12 of 90 unemployment days used, new work reported by Jan 18, 2027. Your STEM window stays open.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B2, A3",
+  "note": "The counts are A3 arithmetic, but \"Your STEM window stays open\" concludes eligibility."
+ },
+ {
+  "id": "SCEN-010",
+  "source": "design/canvas/screens/Simulator.dc.html, job steps; design/canvas/DESIGN-SPEC.md, 8 Scenarios",
+  "text": "Job-loss steps \"ordered as real advice\": land the next role first, any qualifying work stops the clock, report within 10 days, then unpaid work as \"the honest bridge\", \"not a paper shield\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B3, B4; DECISIONS.md D5",
+  "note": "It orders strategy and judges what qualifies."
+ },
+ {
+  "id": "SCEN-011",
+  "source": "design/canvas/screens/Simulator.dc.html, job caveat",
+  "text": "Job-loss caveat: volunteering genuinely unpaid, in field, not displacing paid labor; part-time jobs can add to 20 hours; some DSOs read the rules more strictly, so confirm with yours.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Allowed if shown as SEVP guidance with its source and tag (A7)."
+ },
+ {
+  "id": "SCEN-012",
+  "source": "design/canvas/screens/Simulator.dc.html, job rules",
+  "text": "Job-loss RULES PULLED: 8 CFR 214.2(f)(10)(ii)(E), SEVP OPT Policy Guidance, ICE OPT unemployment FAQ, Your SEVP record.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "\"Your SEVP record\" is not a rule and guidance must carry its tag."
+ },
+ {
+  "id": "SCEN-013",
+  "source": "design/canvas/screens/Simulator.dc.html, travel headline",
+  "text": "Travel headline \"Travel is fine, with four things in hand.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B1, B4, B10",
+  "note": "It says the person is safe to travel."
+ },
+ {
+  "id": "SCEN-014",
+  "source": "design/canvas/screens/Simulator.dc.html, travel subline",
+  "text": "Travel subline \"While employed on approved OPT, you can leave and re-enter. Duly checked your four against the vault.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B2, B4",
+  "note": "\"you can\" fails the modal test."
+ },
+ {
+  "id": "SCEN-015",
+  "source": "design/canvas/screens/Simulator.dc.html, travel documents",
+  "text": "Travel lists four document checks from the vault: passport through Mar 2031, visa stamp until Jul 12 2028, EAD card in the vault, I-20 travel signature until Feb 14.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
+  "note": "Needs the document vault."
+ },
+ {
+  "id": "SCEN-016",
+  "source": "design/canvas/screens/Simulator.dc.html, travel I-94 line",
+  "text": "Travel line \"On the way back, pull a fresh I-94 and check it. Duly reminds you and files it.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B8",
+  "note": "It instructs and says Duly files."
+ },
+ {
+  "id": "SCEN-017",
+  "source": "design/canvas/screens/Simulator.dc.html, travel caveat",
+  "text": "Travel caveat: days abroad while unemployed count toward the 90; \"wait for the receipt notice before flying, because re-entry on a pending case is riskier\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B6",
+  "note": "It tells the person when to fly and rates risk."
+ },
+ {
+  "id": "SCEN-018",
+  "source": "design/canvas/screens/Simulator.dc.html, travel rules",
+  "text": "Travel RULES PULLED: CBP I-94 records, ICE travel FAQ, Your documents.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Chips must link primary sources."
+ },
+ {
+  "id": "SCEN-019",
+  "source": "design/canvas/screens/Simulator.dc.html, RFE headline",
+  "text": "RFE headline \"An RFE is a request, not a denial.\" with \"USCIS is asking for evidence, and you keep working while you answer. Deadlines are shorter now under PA-2026-05.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B1, A2; DECISIONS.md D1",
+  "note": "The headline is a term explained (A2), but \"you keep working\" concludes status and PA-2026-05 lacks its status."
+ },
+ {
+  "id": "SCEN-020",
+  "source": "design/canvas/screens/Simulator.dc.html, RFE steps",
+  "text": "RFE steps: answer in order, \"Duly assembles the pack\", one response sent once, consistency check \"before it ships\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, B7, B8",
+  "note": "Duly may organise records (A8) but not build or send a response to USCIS."
+ },
+ {
+  "id": "SCEN-021",
+  "source": "design/canvas/screens/Simulator.dc.html, RFE caveat",
+  "text": "RFE caveat \"the cover letter and any legal argument come from you or an attorney. For a complex request, an attorney review is money well spent.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B4, The step back",
+  "note": "It recommends paying an attorney; the step back gives a neutral pointer."
+ },
+ {
+  "id": "SCEN-022",
+  "source": "design/canvas/screens/Simulator.dc.html, RFE rules",
+  "text": "RFE RULES PULLED: USCIS PA-2026-05, RFE response standards, Your evidence pack.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "PA-2026-05 must show its status (D1)."
+ },
+ {
+  "id": "SCEN-023",
+  "source": "design/canvas/screens/Simulator.dc.html, footer",
+  "text": "Footer \"Every answer cites its rules. Where the rules are unclear, Duly says so. Not legal advice.\"",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Scenarios screen exists."
+ },
+ {
+  "id": "ONB-001",
+  "source": "design/canvas/DESIGN-SPEC.md, 9 Onboarding",
+  "text": "Onboarding is a centered 560px column on the ground color with no sidebar and a 19px wordmark.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No onboarding exists."
+ },
+ {
+  "id": "ONB-002",
+  "source": "design/canvas/screens/Onboarding.dc.html, pips; renderVals",
+  "text": "Five progress pips (22 by 4px) fill blue up to the current step, #DDD9D0 after, with a step label (\"Step 2 of 5\", \"Done\").",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Steps 1, 4 and 5 are never drawn; under D9 they hold the status tagging."
+ },
+ {
+  "id": "ONB-003",
+  "source": "design/canvas/screens/Onboarding.dc.html, step 2; design/canvas/DESIGN-SPEC.md, 9 Onboarding",
+  "text": "Step 2 \"What kind of work do you do?\" with four selectable cards (Employee W-2, Contractor 1099, Founder, Unpaid), selected with a 1.5px blue border and check; Employee by default.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D9",
+  "note": "Work details belong to WorkBook setup; onboarding owns status tagging."
+ },
+ {
+  "id": "ONB-004",
+  "source": "design/canvas/screens/Onboarding.dc.html, step 2 cards",
+  "text": "Card subtitles \"Your own business, related to your degree\" and \"Volunteer or unpaid role in your field\".",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "BOUNDARY.md B3",
+  "note": "Relatedness to the degree or field is a judgement Duly does not make."
+ },
+ {
+  "id": "ONB-005",
+  "source": "design/canvas/screens/Onboarding.dc.html, step 2 why line",
+  "text": "Why line \"Your work type decides which rules apply to you. It stays on this device.\"",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D13, D27; tools/copy_lint/lint.py (never leaves)",
+  "note": "The v0 runs on AWS, so the device-only claim may be false."
+ },
+ {
+  "id": "ONB-006",
+  "source": "design/canvas/screens/Onboarding.dc.html, step 3; design/canvas/DESIGN-SPEC.md, 9 Onboarding",
+  "text": "Step 3 \"What field is your work in?\" with a six-tile grid (Software, Data & ML, Design, Research, Business & ops, Other), Software by default, and \"The field decides which sources Duly suggests for WorkBook.\"",
+  "kind": "workbook",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D9",
+  "note": "Field and source suggestions belong to WorkBook setup."
+ },
+ {
+  "id": "ONB-007",
+  "source": "design/canvas/screens/Onboarding.dc.html, renderVals",
+  "text": "Every step remembers its selection and has a working Back and Continue.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No onboarding exists; the step 2 Back is a placeholder in the markup."
+ },
+ {
+  "id": "ONB-008",
+  "source": "design/canvas/screens/Onboarding.dc.html, done; design/canvas/DESIGN-SPEC.md, 9 Onboarding",
+  "text": "The final screen fires confetti.",
+  "kind": "design",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D10",
+  "note": "Replaced by the quiet completion moment."
+ },
+ {
+  "id": "ONB-009",
+  "source": "design/canvas/screens/Onboarding.dc.html, done",
+  "text": "Final screen \"You're set.\" summarises the actual choices (status, work and field, watched items: 90-day clock, STEM window, SEVP reporting), says \"Everything lives in Your case and can be changed any time.\", with Back and a blue pill \"Open Duly\" to Home.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The status line is hard-coded in the canvas and must come from the person's tagging."
+ },
+ {
+  "id": "ONB-010",
+  "source": "design/canvas/DESIGN-SPEC.md, 9 Onboarding",
+  "text": "Every step carries its why-we-ask line.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No onboarding exists."
+ }
+]

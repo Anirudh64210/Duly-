@@ -30,6 +30,7 @@ from engine.clocks import Clock, SystemClock
 from tools.diff_policy.check import Lane, load_lane, violations
 from tools.factory import (
     alerts,
+    billing,
     budget,
     health,
     jail,
@@ -125,6 +126,7 @@ class Outcome:
     cost_usd: float = 0.0
     tokens_in: int = 0
     tokens_out: int = 0
+    tokens_charged: int = 0  # what counts against the budget; see charged()
     turns: int = 0
     seconds: int = 0
     started_at: str = ""
@@ -137,6 +139,7 @@ class Outcome:
     branch: str = ""
     worktree: str = ""
     files_changed: list[str] = field(default_factory=list)
+    kept_commit: str = ""  # unaccepted work saved on the run's own branch, never merged
     report: dict[str, Any] | None = None
 
 
@@ -147,9 +150,26 @@ class Attempt:
     cost_usd: float = 0.0
     tokens_in: int = 0
     tokens_out: int = 0
+    tokens_charged: int = 0
     turns: int = 0
     session: str = ""
     model: str = ""
+
+
+def charged(usage: dict[str, Any]) -> int:
+    """The tokens one model call counts against a task's budget.
+
+    Every turn reads the whole conversation again from the cache. Those reads are billed at
+    a tenth of fresh input, so counting them in full stopped a healthy run at 6 million
+    tokens when it had used under 0.8 million of real work (run l-web-d1622b0c58, where
+    97 percent of the count was cache reads). Raw counts still go to telemetry.
+    """
+    return (
+        int(usage.get("input_tokens") or 0)
+        + int(usage.get("cache_creation_input_tokens") or 0)
+        + int(usage.get("cache_read_input_tokens") or 0) // 10
+        + int(usage.get("output_tokens") or 0)
+    )
 
 
 def new_run_id(lane: str) -> str:
@@ -242,6 +262,11 @@ def watch(
         if kind == "system" and event.get("subtype") == "init":
             out.session = str(event.get("session_id", ""))
             out.model = str(event.get("model", ""))
+            paid = billing.key_in_use(event)
+            if paid:
+                out.ended, out.detail = "billing", f"the run reports a key in use ({paid})"
+                _kill(proc)
+                return out
             if not out.model.startswith(contract.model):
                 out.ended, out.detail = "model", f"ran on {out.model}, pinned {contract.model}"
                 _kill(proc)
@@ -261,7 +286,9 @@ def watch(
                         "cache_read_input_tokens",
                     )
                 )
-            if out.tokens_in + out.tokens_out > tokens_left:
+                out.tokens_charged += charged(usage)
+                out.turns = len(seen_messages)
+            if out.tokens_charged > tokens_left:
                 out.ended, out.detail = "tokens", "the token budget is used up"
                 _kill(proc)
                 return out
@@ -282,7 +309,7 @@ def watch(
                     return out
         elif kind == "result":
             out.cost_usd = float(event.get("total_cost_usd") or 0.0)
-            out.turns = int(event.get("num_turns") or 0)
+            out.turns = int(event.get("num_turns") or out.turns)
             out.session = str(event.get("session_id") or out.session)
 
 
@@ -351,9 +378,12 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         started_at=clock.now().isoformat(timespec="seconds"),
     )
     began = time.monotonic()
+    live: dict[str, Any] = {}  # the worktree and lane, once the run has them
 
     def finish(status: str, reason: str) -> Outcome:
         outcome.status, outcome.reason = status, reason
+        if status in {"failed", "escalated", "stopped"} and "tree" in live:
+            outcome.kept_commit = keep_unaccepted(live["tree"], live["lane"], task, status, repo)
         outcome.seconds = int(time.monotonic() - began)
         outcome.ended_at = clock.now().isoformat(timespec="seconds")
         kind = {
@@ -419,6 +449,16 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         return finish("refused", f"agent {task.agent} has no contract for lane {task.lane}")
     if not jail.available():
         return finish("refused", "no sandbox on this machine")
+    if not os.environ.get("DULY_CLAUDE_BIN"):  # the stand-in used in tests has no login
+        try:
+            billing.require_subscription()
+        except billing.BillingError as err:
+            alerts.notify("guardrail", str(err), task.lane, task.run_id, repo)
+            return finish("refused", str(err))
+    paid = billing.settings_problems(repo)
+    if paid:
+        alerts.notify("guardrail", paid[0], task.lane, task.run_id, repo)
+        return finish("refused", f"{paid[0]}. Agents run on the subscription login only.")
     if (
         config["limits"].get("require_health_check", True)
         and not task.task.startswith("health/")
@@ -455,6 +495,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             alerts.notify("budget", str(err), task.lane, task.run_id, repo)
         return finish("refused", str(err))
 
+    live.update(tree=tree, lane=lane)
     outcome.base_commit, outcome.branch, outcome.worktree = (
         tree.base_commit,
         tree.branch,
@@ -490,7 +531,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         if registry.stopped(repo):
             return finish("stopped", "the factory was stopped")
         left = round(allowed - outcome.cost_usd, 2)
-        tokens_left = contract.token_budget - outcome.tokens_in - outcome.tokens_out
+        tokens_left = contract.token_budget - outcome.tokens_charged
         if left <= 0 or tokens_left <= 0:
             alerts.notify(
                 "budget",
@@ -579,6 +620,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         outcome.cost_usd = round(outcome.cost_usd + result.cost_usd, 4)
         outcome.tokens_in += result.tokens_in
         outcome.tokens_out += result.tokens_out
+        outcome.tokens_charged += result.tokens_charged
         outcome.turns += result.turns
         outcome.model = result.model or outcome.model
         if result.session:
@@ -635,6 +677,9 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             )
         if result.ended == "stopped":
             return finish("stopped", result.detail)
+        if result.ended == "billing":
+            alerts.notify("guardrail", result.detail, task.lane, task.run_id, repo)
+            return finish("refused", result.detail + ". Agents run on the subscription login only.")
         if result.ended == "model":
             alerts.notify("model", result.detail, task.lane, task.run_id, repo)
             return finish("refused", result.detail)
@@ -674,15 +719,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 if report["status"] != "done":
                     outcome.report = report
                     return finish("escalated", report["summary"][:300])
-                for lesson in report["lessons"]:
-                    memory.record(
-                        task.lane,
-                        lesson["failure"],
-                        lesson["fix"],
-                        lesson["evidence"],
-                        f"agent report, run {task.run_id}",
-                        repo,
-                    )
+                # An agent's own lessons are proposals. They reach later agents only after the
+                # founder accepts them into .claude/LESSONS/ (D44); nothing an agent writes about
+                # itself is handed on unchecked.
+                memory.propose(task.lane, task.run_id, report["lessons"], repo)
                 outcome.report = report
                 outcome.head_commit = (
                     worktree.commit_all(tree, _message(task, outcome, contract), task.agent)
@@ -729,6 +769,47 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     )
 
 
+def keep_unaccepted(tree: worktree.Tree, lane: Lane, task: Task, status: str, repo: Path) -> str:
+    """Save the work of a run that ended without being accepted, on its own branch only.
+
+    A run cut off by a budget or a limit used to leave its work uncommitted in a worktree
+    that the next run never sees, so the next run began again from nothing. The work is
+    committed to the run's branch, marked as not accepted, and never merged: only a later
+    run that passes its done command can carry it forward. Files outside the lane are left
+    out. Nothing here may stop the run from ending, so a failure is recorded and passed.
+    """
+    try:
+        outside = tuple(violations(lane, _all_changes(tree)))
+        sha = worktree.commit_all(
+            tree,
+            f"wip({task.lane}): not accepted ({status}); kept for the next run\n\n"
+            f"Factory-Run: {task.run_id}\nFactory-Task: {task.task}\n"
+            f"Factory-Base: {tree.base_commit}\n",
+            task.agent,
+            exclude=outside,
+        )
+    except worktree.WorktreeError as err:
+        ledger.append(
+            task.lane,
+            "orchestrator",
+            "step",
+            f"work not kept: {err}"[:400],
+            repo,
+            run_id=task.run_id,
+        )
+        return ""
+    if sha:
+        ledger.append(
+            task.lane,
+            "orchestrator",
+            "step",
+            f"unaccepted work kept on {tree.branch} at {sha[:10]}; not merged",
+            repo,
+            run_id=task.run_id,
+        )
+    return sha
+
+
 def _all_changes(tree: worktree.Tree) -> list[str]:
     status = worktree.git(["status", "--porcelain", "--untracked-files=all"], tree.path)
     dirty = {line[3:].split(" -> ")[-1] for line in status.splitlines() if line.strip()}
@@ -747,7 +828,7 @@ def _message(task: Task, outcome: Outcome, contract: Contract) -> str:
         f"Factory-Base: {outcome.base_commit}\n"
         f"Factory-Trace: {', '.join(outcome.sessions)}\n"
         f"Factory-Cost-USD: {outcome.cost_usd}\n\n"
-        "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+        "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     )
 
 

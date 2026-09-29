@@ -62,6 +62,16 @@ git revert -m 1 <merge commit>
 
 The merge commit names its run (`Factory-Run`), its sessions (`Factory-Trace`) and the seal of the ledger at that moment (`Factory-Ledger`).
 
+## Restoring main
+
+Every change to `main` is marked on GitHub with a tag named for the moment it landed, `main-YYYY-MM-DD-HHMMSS`. To see them: `git fetch --tags && git tag --list "main-*"`. To put `main` back to one of them, the founder runs `git push origin +<tag>^{commit}:main` after checking what it holds.
+
+## Talking to Claude from the window
+
+The box "Tell Claude" in the Factory window saves a note and Claude is told at once. Each note shows whether it is sent, in hand, or done, with Claude's reply under it. From a terminal: `uv run python -m tools.factory.control inbox` lists the notes that are waiting.
+
+The panel "The factory's own check" appears when the window itself can see something wrong or stale: a card that says working with no live process, a claim held by a process that ended, a health check out of date, worktrees left over, an alert open for more than six hours. "Needs you" holds only alerts nobody has dealt with; an alert leaves it when the same task later passes or when someone records how it was dealt with.
+
 ## The record of actions
 
 `.factory/events.jsonl` is append only. Each line holds the seal of the line before it, so a changed, removed or reordered line shows in `make status`. Each merge pins the seal in the repository's history.

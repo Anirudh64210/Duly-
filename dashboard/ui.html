@@ -269,6 +269,59 @@
       .alert-line b {
         font-weight: 600;
       }
+      textarea {
+        width: 100%;
+        font: inherit;
+        color: var(--ink);
+        background: var(--sunken);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        resize: vertical;
+        user-select: text;
+        cursor: text;
+      }
+      .note-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 8px;
+        font-size: 12.5px;
+      }
+      .send {
+        flex: none;
+        padding: 7px 14px;
+        border-radius: 99px;
+        background: var(--accent);
+        color: var(--surface);
+        font-weight: 600;
+      }
+      .send:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .note {
+        border-top: 1px solid var(--line);
+        margin-top: 12px;
+        padding-top: 10px;
+        font-size: 13px;
+      }
+      .note .said {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .note .reply {
+        margin-top: 6px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: var(--accent-tint);
+      }
+      .note time {
+        color: var(--ink-3);
+      }
       .bar-top {
         display: flex;
         justify-content: space-between;
@@ -319,6 +372,18 @@
         margin: 0 0 10px;
       }
 
+      h2.earlier {
+        margin-top: 26px;
+      }
+      #cards-now:empty {
+        display: none;
+      }
+      .card[data-alive="true"] {
+        border-color: var(--accent);
+        box-shadow:
+          0 0 0 1px var(--accent),
+          var(--shadow);
+      }
       .cards {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
@@ -793,11 +858,29 @@
       <div class="tiles" id="tiles"></div>
       <div class="columns">
         <section>
-          <h2>Agents</h2>
+          <h2 id="now-head">Working now</h2>
+          <div class="cards" id="cards-now"></div>
+          <h2 class="earlier">Earlier, most recent first</h2>
           <div class="cards" id="cards"></div>
         </section>
         <aside>
-          <div class="panel hidden" id="checks-running"></div>
+          <div class="panel">
+            <h2>Tell Claude</h2>
+            <textarea
+              id="note-text"
+              rows="3"
+              placeholder="What looks wrong, or what you want changed"
+            ></textarea>
+            <div class="note-actions">
+              <span class="muted" id="note-hint">Claude is told as soon as you send it.</span>
+              <button class="send" id="note-send">Send to Claude</button>
+            </div>
+            <div id="notes"></div>
+          </div>
+          <div class="panel hidden" id="notices-panel">
+            <h2>The factory's own check</h2>
+            <ul class="rows" id="notices"></ul>
+          </div>
           <div class="panel">
             <h2>Needs you</h2>
             <div id="alerts"></div>
@@ -1023,7 +1106,6 @@
         if (snapshot && snapshot.spend.charged) return text;
         return String(text).replace(/,? ?\$?\d+(\.\d+)? USD/g, "");
       }
-      const CHECK_NAMES = { health: "health check", golden: "golden task", drift: "judge check" };
       function runningTile(s) {
         const work = s.live.filter((r) => r.kind === "work").length;
         const checks = s.live.length - work;
@@ -1033,30 +1115,35 @@
         else if (checks) sub = work + " at work, " + checks + " checking the factory";
         return tile("Running now", String(s.live.length), sub);
       }
-      function checksPanel(s) {
-        const rows = s.live
-          .filter((r) => r.kind !== "work")
-          .map((r) => {
-            const row = el("li", "health-row");
-            const who = el("div", "who");
-            who.append(
-              el("b", "", r.agent),
-              el(
-                "span",
-                "mono muted",
-                r.lane + ", " + (CHECK_NAMES[r.kind] || r.kind) + ", running " + span(r.started_at),
-              ),
-            );
-            const pill = el("span", "state");
-            pill.append(el("span", "dot live"), "Running");
-            row.append(who, pill);
-            return row;
-          });
-        const panel = $("checks-running");
-        panel.classList.toggle("hidden", rows.length === 0);
-        const list = el("ul", "rows");
-        list.append(...rows);
-        panel.replaceChildren(el("h2", "", "Checks of the factory, running now"), list);
+      function drawNotes(s) {
+        const notes = s.notes.slice(0, 6).map((n) => {
+          const box = el("div", "note");
+          const said = el("div", "said");
+          const text = el("div");
+          text.append(el("time", "mono", short(n.at) + "  "), n.text);
+          const pill = el("span", "state");
+          const done = n.state === "done";
+          if (done) pill.append(icon("done", "var(--good)"), "Done");
+          else pill.append(el("span", "dot live"), n.replies.length ? "In hand" : "Sent");
+          said.append(text, pill);
+          box.append(said);
+          for (const r of n.replies) {
+            const reply = el("div", "reply");
+            reply.append(el("time", "mono", short(r.at) + "  "), "Claude: " + r.text);
+            box.append(reply);
+          }
+          return box;
+        });
+        $("notes").replaceChildren(...notes);
+        const notices = s.notices.map((text) => {
+          const li = el("li");
+          const pill = el("span", "state");
+          pill.append(icon("blocked", "var(--warning)"), "Check");
+          li.append(el("span", "", text), pill);
+          return li;
+        });
+        $("notices-panel").classList.toggle("hidden", notices.length === 0);
+        $("notices").replaceChildren(...notices);
       }
       function spendTile(spend) {
         const node = spend.charged
@@ -1066,9 +1153,9 @@
               "in API credits, of $" + spend.cap.toFixed(0) + " allowed",
             )
           : tile(
-              "Usage today",
+              "Safety cap used today",
               share(spend.today, spend.cap),
-              "of the factory's daily limit. " + spend.plan + ", nothing is charged",
+              "A cap that stops runaway agents. It is not your subscription's limit. Nothing is charged.",
             );
         const track = el("div", "spend-track");
         const fill = el("i");
@@ -1101,7 +1188,7 @@
       function drawMain() {
         const s = snapshot;
         drawStop();
-        checksPanel(s);
+        drawNotes(s);
 
         const alerts = s.alerts.slice(0, 6).map((a) => {
           const row = el("div", "alert-line");
@@ -1123,7 +1210,7 @@
             "Runs",
             "Pass",
             "Tries",
-            s.spend.charged ? "Cost" : "Limit",
+            s.spend.charged ? "Cost" : "Cap",
             "Min",
           ])
             head.append(el("th", "", h));
@@ -1222,7 +1309,10 @@
           $("health").replaceChildren(list, note);
         } else $("health").replaceChildren(el("div", "muted", "No agent contracts found."));
 
-        $("round").textContent = s.round || "No round has started.";
+        $("round").textContent = s.plan.running
+          ? "A plan is running on " + s.plan.branch + ". " + tidy(s.plan.message)
+          : "No plan is running." +
+            (s.plan.message ? " Last word, " + short(s.plan.at) + ": " + tidy(s.plan.message) : "");
         $("head").textContent = s.head;
         const t = s.totals;
         $("tiles").replaceChildren(
@@ -1241,6 +1331,7 @@
         const cards = s.agents.map((a) => {
           const card = el("button", "card");
           card.dataset.state = a.state;
+          card.dataset.alive = String(a.alive);
           card.addEventListener("click", () => openAgent(a.lane));
           const top = el("div", "card-top");
           const name = el("div");
@@ -1272,7 +1363,7 @@
             [a.files_changed + a.uncommitted, "files"],
             [
               usage(a.cost_usd, snapshot.spend, snapshot.spend.task_cap),
-              snapshot.spend.charged ? "cost" : "of limit",
+              snapshot.spend.charged ? "cost" : "of task cap",
             ],
           ]) {
             const fact = el("div", "fact");
@@ -1287,8 +1378,12 @@
           }
           return card;
         });
+        const busy = cards.filter((c) => c.dataset.alive === "true");
+        const rest = cards.filter((c) => c.dataset.alive !== "true");
+        $("cards-now").replaceChildren(...busy);
+        $("now-head").textContent = busy.length ? "Working now" : "Nobody is working now";
         $("cards").replaceChildren(
-          ...(cards.length ? cards : [el("div", "empty", "No agent has run yet.")]),
+          ...(rest.length ? rest : [el("div", "empty", "No agent has finished a run yet.")]),
         );
 
         const row = (label, value) => {
@@ -1382,7 +1477,7 @@
           [count(a.tokens_in + a.tokens_out), "tokens"],
           [
             usage(a.cost_usd, snapshot.spend, snapshot.spend.task_cap),
-            snapshot.spend.charged ? "cost" : "of limit",
+            snapshot.spend.charged ? "cost" : "of task cap",
           ],
           [a.merged ? "yes" : "no", "merged"],
         ].map(([value, label]) => {
@@ -1499,6 +1594,19 @@
         drawStop();
         setTimeout(drawStop, 4100);
       });
+      $("note-text").addEventListener("input", () => {
+        $("note-send").disabled = !$("note-text").value.trim();
+      });
+      $("note-send").disabled = true;
+      $("note-send").addEventListener("click", async () => {
+        const text = $("note-text").value.trim();
+        if (!text || !bridge) return;
+        $("note-send").disabled = true;
+        await bridge.note(text);
+        $("note-text").value = "";
+        $("note-hint").textContent = "Sent. Claude has been told.";
+        refresh();
+      });
       $("back").addEventListener("click", closeAgent);
       $("follow").addEventListener("click", () => {
         follow = !follow;
@@ -1514,6 +1622,7 @@
         }
       });
       document.addEventListener("keydown", (event) => {
+        if (event.target instanceof HTMLTextAreaElement) return;
         if (event.key === "Escape" && open) closeAgent();
         const order = ["trace", "activity", "progress", "changes"];
         if (open && order[Number(event.key) - 1]) {

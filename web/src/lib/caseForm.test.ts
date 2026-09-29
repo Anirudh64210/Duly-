@@ -39,7 +39,7 @@ describe("buildCase", () => {
       program_end_date: "2026-05-15",
       degree_level: "master",
       documents_count: 3,
-      cpt_full_time_days: 0,
+      cpt_full_time_days: null,
       opt: null,
       stem: null,
       employment: [],
@@ -47,6 +47,14 @@ describe("buildCase", () => {
       time_zone: "America/Los_Angeles",
       confirmations: {},
     });
+  });
+
+  it("sends empty full-time CPT days as null, never as zero", () => {
+    expect(EMPTY_CASE.cpt_full_time_days).toBe("");
+    expect(body({ ...filled, cpt_full_time_days: "" }).cpt_full_time_days).toBeNull();
+    expect(body({ ...filled, cpt_full_time_days: "  " }).cpt_full_time_days).toBeNull();
+    expect(body({ ...filled, cpt_full_time_days: "0" }).cpt_full_time_days).toBe(0);
+    expect(body({ ...filled, cpt_full_time_days: "120" }).cpt_full_time_days).toBe(120);
   });
 
   it("sends an empty date inside a part that is on as null, never a guess", () => {
@@ -116,7 +124,7 @@ describe("buildCase", () => {
     ]);
     expect(problems({ ...filled, documents_count: "-1" })).toHaveLength(1);
     expect(problems({ ...filled, cpt_full_time_days: "1.5" })).toEqual([
-      "Enter the full-time CPT days as a whole number, 0 or more.",
+      "Enter the full-time CPT days as a whole number, 0 or more, or leave it empty.",
     ]);
     expect(problems({ ...filled, cap_gap_on: true })).toEqual([
       "Enter the date the petition was filed.",
@@ -259,5 +267,24 @@ describe("answers", () => {
       no_employment_to_record: { answer: true, on: "2026-09-27" },
     });
     expect(withdrawAnswer(filled, "held_post_completion_opt").confirmations).toEqual({});
+  });
+});
+
+describe("an answer and what it was given for", () => {
+  it("keeps the values the question was raised for with the answer", () => {
+    const about = { "opt.i765_filed_date": "2026-10-10" };
+    const answered = answer(filled, "opt.i765_filed_date.after_today", true, "2026-09-29", about);
+    expect(answered.confirmations).toEqual({
+      "opt.i765_filed_date.after_today": { answer: true, on: "2026-09-29", about },
+    });
+    expect(body(answered).confirmations).toEqual(answered.confirmations);
+  });
+
+  it("adds no values of its own when the question carried none", () => {
+    const answered = answer(filled, "held_post_completion_opt", false, "2026-09-28");
+    expect(answered.confirmations["held_post_completion_opt"]).toEqual({
+      answer: false,
+      on: "2026-09-28",
+    });
   });
 });

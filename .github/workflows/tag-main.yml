@@ -1,0 +1,22 @@
+name: tag main
+# After every change to main, mark the commit with a dated tag, so that any earlier state
+# of main can be found and restored by name.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag this commit
+        run: |
+          name="main-$(date -u +%Y-%m-%d-%H%M%S)"
+          git tag "$name" "$GITHUB_SHA"
+          git push origin "$name"
+          echo "Tagged $GITHUB_SHA as $name"

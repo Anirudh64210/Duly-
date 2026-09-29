@@ -1,0 +1,2594 @@
+[
+ {
+  "id": "PLAN07-001",
+  "source": "07-quality-gates-and-tests.md, intro",
+  "text": "Green is a conjunction of independently gameable checks, none of which the implementing agent can see or edit.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/factory/sandbox.py; tools/diff_policy/check.py; tests/unit/tools/test_factory_core.py",
+  "note": "Agents cannot edit the gates and cannot read tests/holdout, but the Makefile, the gate scripts and the CI file are readable to them."
+ },
+ {
+  "id": "PLAN07-002",
+  "source": "07-quality-gates-and-tests.md, intro",
+  "text": "Ordering is fail-fast.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": ".github/workflows/ci.yml",
+  "note": "CI runs the gates one after another in a single job, but gate 7 runs before gate 6 and there are no separate tiers."
+ },
+ {
+  "id": "PLAN07-003",
+  "source": "07-quality-gates-and-tests.md, intro",
+  "text": "Expensive tiers run in the merge queue and nightly.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no merge queue and no scheduled workflow; ci.yml runs on push and pull request only."
+ },
+ {
+  "id": "PLAN07-004",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Gate 1 Format and lint runs on every push with zero warnings.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile gate-1; .github/workflows/ci.yml; tools/gates/prove.py",
+  "note": "Runs in CI on every push and is proven by planted violations in make prove-gates."
+ },
+ {
+  "id": "PLAN07-005",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "ruff check",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile gate-1 (ruff check and ruff format --check)",
+  "note": "Runs in gate 1."
+ },
+ {
+  "id": "PLAN07-006",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "eslint, zero warnings",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile gate-1 (npx eslint . --max-warnings 0); eslint.config.mjs",
+  "note": "Runs in gate 1."
+ },
+ {
+  "id": "PLAN07-007",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "prettier check",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile gate-1",
+  "note": "Runs over web, ops and desktop."
+ },
+ {
+  "id": "PLAN07-008",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint: forbidden-phrase scanner over UI strings.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+  "note": "PRODUCT_PREFIXES covers web/src, ops/src and desktop."
+ },
+ {
+  "id": "PLAN07-009",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint scans prompts.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py (assistant/prompts/ prefix)",
+  "note": "The prefix is listed but assistant/prompts/ does not exist, so nothing is scanned there yet."
+ },
+ {
+  "id": "PLAN07-010",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint scans email templates.",
+  "kind": "email",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py (emails/ prefix)",
+  "note": "The prefix is listed but emails/ holds only a README; no template exists to scan."
+ },
+ {
+  "id": "PLAN07-011",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids em and en dashes.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py DASHES; tests/unit/tools/test_copy_lint.py",
+  "note": "Applied to every text file in the repository."
+ },
+ {
+  "id": "PLAN07-012",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids emoji.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py EMOJI",
+  "note": "Applied to every text file in the repository."
+ },
+ {
+  "id": "PLAN07-013",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids the words sealed, cryptographic and AI-generated.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES",
+  "note": "All three are in the list."
+ },
+ {
+  "id": "PLAN07-014",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids eligible, compliant and qualifies.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES",
+  "note": "All three and their variants are in the list."
+ },
+ {
+  "id": "PLAN07-015",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids success adjectives.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES (successfully, seamless, powerful)",
+  "note": "A short list of quality words is enforced."
+ },
+ {
+  "id": "PLAN07-016",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids unqualified never-leaves claims.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES (never leaves, never leave)",
+  "note": "The phrase is banned outright; the linter cannot tell a qualified claim from an unqualified one."
+ },
+ {
+  "id": "PLAN07-017",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 1",
+  "text": "Copy lint forbids lawyer-equivalence phrases.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES (ai lawyer, like a lawyer, paralegal, notario)",
+  "note": "In the list."
+ },
+ {
+  "id": "PLAN07-018",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 2",
+  "text": "Gate 2 Types runs on every push.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile gate-2; .github/workflows/ci.yml",
+  "note": "Runs in CI."
+ },
+ {
+  "id": "PLAN07-019",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 2",
+  "text": "mypy strict",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "pyproject.toml [tool.mypy] strict = true",
+  "note": "Covers engine, api, assistant, pipeline and tools."
+ },
+ {
+  "id": "PLAN07-020",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 2",
+  "text": "tsc strict",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "web/tsconfig.json; ops/tsconfig.json; desktop/tsconfig.json",
+  "note": "All three set strict to true and npm run typecheck runs them."
+ },
+ {
+  "id": "PLAN07-021",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 2",
+  "text": "engine/ at 100 percent typed.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "pyproject.toml mypy packages engine; no type ignore in engine/",
+  "note": "Strict mypy passes on engine with no ignores found."
+ },
+ {
+  "id": "PLAN07-022",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 2",
+  "text": "desktop/main at 100 percent typed.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/tsconfig.json; desktop/src/about.ts",
+  "note": "desktop/ is checked by strict tsc but desktop/main does not exist yet; only desktop/src/about.ts is there."
+ },
+ {
+  "id": "PLAN07-023",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 3",
+  "text": "Gate 3 Diff policy (mechanical): implementation lanes cannot touch tests/, tests/holdout/, evals/, security/, .claude/, CI, hooks.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/diff_policy/check.py PROTECTED; tests/unit/tools/test_diff_policy.py; tools/gates/prove.py",
+  "note": "Runs in CI and is proven by a planted write to tests/holdout."
+ },
+ {
+  "id": "PLAN07-024",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 3",
+  "text": "Implementation lanes cannot touch migrations guard files.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No migrations path is in the protected list and no migrations exist."
+ },
+ {
+  "id": "PLAN07-025",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 3",
+  "text": "Test and eval changes ship only via their own lanes.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-tests.yaml; .claude/lanes/L-evals.yaml; tools/diff_policy/check.py",
+  "note": "Only the guard lanes own tests/ and evals/."
+ },
+ {
+  "id": "PLAN07-026",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 3",
+  "text": "Test and eval changes ship with founder review.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/phase.py; factory/config.yaml approval_required",
+  "note": "Test lane work is merged by the orchestrator after the reviewer agent (commit merge(L-tests)); tests are not in the list that is held for the founder."
+ },
+ {
+  "id": "PLAN07-027",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "Gate 4 Security static runs on every push.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "Makefile gate-4; .github/workflows/ci.yml",
+  "note": "Runs in CI."
+ },
+ {
+  "id": "PLAN07-028",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "gitleaks",
+  "kind": "security",
+  "status": "met",
+  "evidence": "Makefile gate-4; ci.yml installs gitleaks 8.30.1",
+  "note": "Runs in gate 4 and in the offline gates."
+ },
+ {
+  "id": "PLAN07-029",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "semgrep with owasp, python and typescript rule sets.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "Makefile gate-4 (--config security/semgrep only)",
+  "note": "Only the four custom rules run; no public rule set is configured."
+ },
+ {
+  "id": "PLAN07-030",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "semgrep custom rules for the LLM boundary.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "security/semgrep/duly.yml (duly-models-only-behind-the-boundary)",
+  "note": "Runs in gate 4."
+ },
+ {
+  "id": "PLAN07-031",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "semgrep custom rules for RLS usage.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/semgrep/duly.yml",
+  "note": "No RLS rule exists; the nearest is duly-no-raw-sql-strings."
+ },
+ {
+  "id": "PLAN07-032",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "pip-audit high fails.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "Makefile gate-4 (pip-audit --strict)",
+  "note": "Runs in gate 4."
+ },
+ {
+  "id": "PLAN07-033",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "npm audit high fails.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "Makefile gate-4 (npm audit --audit-level=high)",
+  "note": "Runs in gate 4."
+ },
+ {
+  "id": "PLAN07-034",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 4",
+  "text": "License check.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "pyproject.toml dev group (pip-licenses)",
+  "note": "pip-licenses is installed but no gate runs it, and nothing checks npm licenses."
+ },
+ {
+  "id": "PLAN07-035",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "Gate 5 Unit and property: pytest.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile gate-5; tests/unit/",
+  "note": "Runs in CI."
+ },
+ {
+  "id": "PLAN07-036",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "vitest",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "web/package.json; ops/package.json; desktop/package.json; npm test in gate-5",
+  "note": "Runs in CI."
+ },
+ {
+  "id": "PLAN07-037",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "Hypothesis on all date math with frozen injectable clocks.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_dates.py; tests/unit/engine/test_clocks.py; engine/clocks.py",
+  "note": "Property tests use an injected clock."
+ },
+ {
+  "id": "PLAN07-038",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "fast-check on all date and money math (TypeScript side).",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "web/src/lib/compute.test.ts; web/src/lib/status.test.ts",
+  "note": "fast-check is used in the web tests."
+ },
+ {
+  "id": "PLAN07-039",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "Property tests on all money math.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no money math in the repository yet; pricing is parked by D8."
+ },
+ {
+  "id": "PLAN07-040",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "WorkBook block-rule invariants.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 8",
+  "note": "No WorkBook code exists; the build sequence places it in Phase 8."
+ },
+ {
+  "id": "PLAN07-041",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "Engine golden suite.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "tests/unit/engine/test_f1.py; tests/holdout/test_holdout_f1.py",
+  "note": "Hand worked cases exist in the engine tests but there is no named golden case corpus."
+ },
+ {
+  "id": "PLAN07-042",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "Rulepack schema validation (rule tests).",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/rulepack.schema.json; engine/rulepack.py; tests/unit/engine/test_rulepack.py",
+  "note": "Loads are validated against the schema."
+ },
+ {
+  "id": "PLAN07-043",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 5",
+  "text": "Rulepack effective-date overlap checks.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/rulepack.py _reject_overlaps; test_overlapping_dates_are_refused",
+  "note": "Tested."
+ },
+ {
+  "id": "PLAN07-044",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 6",
+  "text": "Gate 6 Diff coverage: 80 percent on changed lines.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/gates/diff_coverage.py; factory/config.yaml gates.diff_coverage_percent",
+  "note": "Runs in CI and is proven by prove-gates."
+ },
+ {
+  "id": "PLAN07-045",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 6",
+  "text": "engine/ ratchets to 95.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "tools/gates/diff_coverage.py (--include engine/*)",
+  "note": "Runs in CI."
+ },
+ {
+  "id": "PLAN07-046",
+  "source": "07-quality-gates-and-tests.md, Per-push gates, gate 6",
+  "text": "desktop/main ratchets to 95.",
+  "kind": "desktop",
+  "status": "not_started",
+  "evidence": "tools/gates/diff_coverage.py",
+  "note": "The gate has no rule for desktop and desktop/main does not exist."
+ },
+ {
+  "id": "PLAN07-047",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 7",
+  "text": "Gate 7 Integration: Testcontainers real Postgres.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 1",
+  "note": "Nothing uses Testcontainers; the name gate 7 in the Makefile is a different check (factory files and sources)."
+ },
+ {
+  "id": "PLAN07-048",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 7",
+  "text": "Fresh migrations in the integration gate.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 1",
+  "note": "No migrations exist."
+ },
+ {
+  "id": "PLAN07-049",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 7",
+  "text": "RLS matrix: for every tenant table, cross-tenant read returns zero rows.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 1",
+  "note": "No tenant tables exist."
+ },
+ {
+  "id": "PLAN07-050",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 7",
+  "text": "RLS matrix: a policy exists for every tenant table.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 1",
+  "note": "No tenant tables exist."
+ },
+ {
+  "id": "PLAN07-051",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 7",
+  "text": "Authz matrix test: every endpoint times every role (anon, user, other-user, ops) asserts the expected status.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 1",
+  "note": "No authz matrix harness exists."
+ },
+ {
+  "id": "PLAN07-052",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 8",
+  "text": "Gate 8 Contract: schemathesis against the live OpenAPI.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 3",
+  "note": "contracts/openapi.yaml exists but schemathesis is not installed or run."
+ },
+ {
+  "id": "PLAN07-053",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 8",
+  "text": "Workbook bridge contract suite.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 8",
+  "note": "contracts/workbook_bridge.schema.json exists with no suite against it."
+ },
+ {
+  "id": "PLAN07-054",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 8",
+  "text": "Email template render snapshots.",
+  "kind": "email",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 7",
+  "note": "No email template exists."
+ },
+ {
+  "id": "PLAN07-055",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 9",
+  "text": "Gate 9 Regulation: consent flow e2e (cannot reach sensitive processing without unbundled opt-in).",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 9",
+  "note": "No consent flow exists."
+ },
+ {
+  "id": "PLAN07-056",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 9",
+  "text": "Disclaimer presence assertions on every AI surface and email.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.test.tsx (not legal advice footer)",
+  "note": "One web test asserts the footer; there is no assistant surface or email to assert on yet."
+ },
+ {
+  "id": "PLAN07-057",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 9",
+  "text": "Rights request lifecycle within SLA clock.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 9",
+  "note": "Nothing built."
+ },
+ {
+  "id": "PLAN07-058",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 9",
+  "text": "Retention sweeper honors schedule.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 9",
+  "note": "Nothing built."
+ },
+ {
+  "id": "PLAN07-059",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 9",
+  "text": "GPC honored.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 9",
+  "note": "Nothing built."
+ },
+ {
+  "id": "PLAN07-060",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Gate 10 Accuracy and honesty evals run on a promptfoo harness over evals/.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "evals/boundary/; tests/unit/assistant/test_boundary_evals.py",
+  "note": "promptfoo is not used; the boundary set is run by pytest instead, and the build sequence places the eval harness in Phase 5."
+ },
+ {
+  "id": "PLAN07-061",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Accuracy: engine differential oracle on the golden case corpus.",
+  "kind": "engine",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "No differential oracle and no golden corpus exist."
+ },
+ {
+  "id": "PLAN07-062",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Narration answers checked to contain only engine values: no-new-facts validator unit test.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/unit/assistant/test_validator.py; assistant/boundary.py",
+  "note": "A validator and its unit tests exist; no model is wired so it has not checked a real answer."
+ },
+ {
+  "id": "PLAN07-063",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "No-new-facts validator end to end.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "No assistant endpoint exists to test end to end."
+ },
+ {
+  "id": "PLAN07-064",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Citation accuracy: every cited source id must resolve to a stored snapshot.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/sources/verify.py; Makefile gate-7; rulepacks/f1-us/v2026.09/sources/",
+  "note": "Done for rulepack rules in CI; not done for assistant answers."
+ },
+ {
+  "id": "PLAN07-065",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "The quoted or paraphrased span must match the snapshot (string containment or embedding threshold); broken citation fails.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/sources/verify.py",
+  "note": "String containment is checked for rulepack quotes; there is no check on answers and no embedding threshold."
+ },
+ {
+  "id": "PLAN07-066",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Honesty: abstention set (questions outside rule packs must yield OUT_OF_SCOPE cards).",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "evals/boundary/pairs.jsonl; tests/unit/assistant/test_boundary_evals.py",
+  "note": "The boundary set tests step back on personal questions (D23); there is no set of questions outside the rule packs."
+ },
+ {
+  "id": "PLAN07-067",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Honesty: overconfidence set (answers may not contain certainty words for contested items).",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "No overconfidence set exists."
+ },
+ {
+  "id": "PLAN07-068",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Honesty: disclaimer footer present on answers.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "No answer surface exists."
+ },
+ {
+  "id": "PLAN07-069",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Calibration report published as artifact.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "Nothing publishes a calibration report."
+ },
+ {
+  "id": "PLAN07-070",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Safety: prompt injection corpus (including strings embedded in fake document metadata).",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "No injection corpus exists in evals/ or security/."
+ },
+ {
+  "id": "PLAN07-071",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Safety: jailbreak set.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "None exists."
+ },
+ {
+  "id": "PLAN07-072",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Safety: PII exfil probes.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "None exists."
+ },
+ {
+  "id": "PLAN07-073",
+  "source": "07-quality-gates-and-tests.md, Per-PR gates, gate 10",
+  "text": "Zero leaks tolerated.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "No leak test exists to hold to zero."
+ },
+ {
+  "id": "PLAN07-074",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 11",
+  "text": "Gate 11 E2E: Playwright over the compose e2e profile.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 3; specs/phase-0/SPEC.md",
+  "note": "make e2e prints that the profile arrives in Phase 3 and exits 1; Playwright is not installed."
+ },
+ {
+  "id": "PLAN07-075",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 11",
+  "text": "E2E: onboarding to verdict.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 3 and 4",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-076",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 11",
+  "text": "E2E: checklist toggle persistence.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 4",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-077",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 11",
+  "text": "E2E: scenario answer with sources.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 5",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-078",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 11",
+  "text": "E2E: ops approve flow publishing an update that changes a user brief.",
+  "kind": "updates",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 6 and 7",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-079",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 11",
+  "text": "E2E: WorkBook manual day to export to verify.py pass.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 8",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-080",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 12",
+  "text": "Gate 12 Hidden holdout suite exists and runs.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/holdout/ (six files); specs/phase-2/plan-sourcing.yaml hidden tests check; tools/factory/sandbox.py",
+  "note": "The suite exists and the orchestrator runs it inside plans, but GitHub CI never runs it (pytest testpaths is tests/unit)."
+ },
+ {
+  "id": "PLAN07-081",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 12",
+  "text": "The holdout suite runs as an isolated job.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "tests/holdout/README.md",
+  "note": "The README says it runs in CI as its own job, but ci.yml has no such job."
+ },
+ {
+  "id": "PLAN07-082",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 12",
+  "text": "The holdout suite is rotated monthly.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No rotation tool, schedule or record exists."
+ },
+ {
+  "id": "PLAN07-083",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 13",
+  "text": "Gate 13 Mutation audit: incremental mutmut on changed files.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/gates/mutation.py; .factory/mutation.jsonl",
+  "note": "A home made mutation tool was run once by hand on two engine files (66 of 70 caught); it is not mutmut, not incremental and not in CI or nightly."
+ },
+ {
+  "id": "PLAN07-084",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 13",
+  "text": "StrykerJS on changed files.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Stryker is not installed."
+ },
+ {
+  "id": "PLAN07-085",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 13",
+  "text": "No new surviving mutants in engine/.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": ".factory/mutation.jsonl",
+  "note": "Four survivors in engine/dates.py are recorded and nothing fails a build on them; the floor is a score of 0.8."
+ },
+ {
+  "id": "PLAN07-086",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 13",
+  "text": "No new surviving mutants in desktop/main.",
+  "kind": "desktop",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No mutation testing of TypeScript exists."
+ },
+ {
+  "id": "PLAN07-087",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 13",
+  "text": "Divergence of coverage up with mutation flat pages the founder.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing compares coverage with mutation score over time."
+ },
+ {
+  "id": "PLAN07-088",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 14",
+  "text": "Gate 14 DAST: ZAP baseline against the e2e stack.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "ZAP is not set up."
+ },
+ {
+  "id": "PLAN07-089",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 14",
+  "text": "ZAP weekly full scan.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "No scheduled scan exists."
+ },
+ {
+  "id": "PLAN07-090",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "Gate 15 Stress: k6 profile steady 50 rps mixed read.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "k6 is not set up."
+ },
+ {
+  "id": "PLAN07-091",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "k6 profile brief-send burst.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-092",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "k6 profile narration concurrency at budget caps.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-093",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "p95 and error budgets asserted.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-094",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "Queue drain time bounded.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-095",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "Chaos-lite nightly: kill worker mid-job.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "The chaos cases that exist are for the factory's agents, not for the product stack."
+ },
+ {
+  "id": "PLAN07-096",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "Chaos-lite nightly: restart Postgres.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Not built."
+ },
+ {
+  "id": "PLAN07-097",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 15",
+  "text": "Assert idempotent recovery (jobs carry idempotency keys).",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "api/worker.py has no jobs with idempotency keys under test."
+ },
+ {
+  "id": "PLAN07-098",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 16",
+  "text": "Gate 16 Red-team run: the security/attack corpus executed by the adversarial lane against a fresh stack.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "security/ holds semgrep rules and a threat model only; there is no attack corpus and make attack exits 1."
+ },
+ {
+  "id": "PLAN07-099",
+  "source": "07-quality-gates-and-tests.md, Merge queue and nightly, gate 16",
+  "text": "Red-team findings file into loop L7.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "No findings have been filed and no L7 loop exists."
+ },
+ {
+  "id": "PLAN07-100",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "PRR-lite checklist on the release PR.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "No release checklist exists."
+ },
+ {
+  "id": "PLAN07-101",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Alert exists for each new failure mode.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "Factory alerts exist; product alerts do not."
+ },
+ {
+  "id": "PLAN07-102",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Runbook stub for the release.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "docs/factory/RUNBOOK.md covers the factory only."
+ },
+ {
+  "id": "PLAN07-103",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Reversible migration verified.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "No migrations exist."
+ },
+ {
+  "id": "PLAN07-104",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Backup restore rehearsed this month.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "No backup exists."
+ },
+ {
+  "id": "PLAN07-105",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Rate limits configured.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "None configured."
+ },
+ {
+  "id": "PLAN07-106",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Feature flags default safe.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "No feature flags exist."
+ },
+ {
+  "id": "PLAN07-107",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "Staging soak on the same digest for 24 hours.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "No staging exists."
+ },
+ {
+  "id": "PLAN07-108",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "External pen test gates the first public launch.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11 and launch",
+  "note": "Not arranged."
+ },
+ {
+  "id": "PLAN07-109",
+  "source": "07-quality-gates-and-tests.md, Release (pre-deploy)",
+  "text": "External pen test gates each annual cycle.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "after launch",
+  "note": "Not arranged."
+ },
+ {
+  "id": "PLAN07-110",
+  "source": "07-quality-gates-and-tests.md, Ownership",
+  "text": "Test-author lane owns tests/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-tests.yaml; .claude/agents/test-author.md",
+  "note": "Enforced by the diff policy and the sandbox."
+ },
+ {
+  "id": "PLAN07-111",
+  "source": "07-quality-gates-and-tests.md, Ownership",
+  "text": "Eval lane owns evals/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-evals.yaml; .claude/agents/eval-curator.md",
+  "note": "Enforced by the diff policy."
+ },
+ {
+  "id": "PLAN07-112",
+  "source": "07-quality-gates-and-tests.md, Ownership",
+  "text": "Security lane owns security/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-security.yaml",
+  "note": "Enforced by the diff policy."
+ },
+ {
+  "id": "PLAN07-113",
+  "source": "07-quality-gates-and-tests.md, Ownership",
+  "text": "Security lane owns gates 4, 14 and 16.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": ".claude/lanes/L-security.yaml (test: make gate-4)",
+  "note": "The lane's test is gate 4; gates 14 and 16 do not exist."
+ },
+ {
+  "id": "PLAN07-114",
+  "source": "07-quality-gates-and-tests.md, Ownership",
+  "text": "Nobody grades their own work.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "test_hidden_tests_are_not_in_a_builders_worktree; .claude/agents/reviewer.md; docs/factory/CHECKLIST.md 4.3",
+  "note": "A separate reviewer and a separate test author are used, and the orchestrator runs the done command itself."
+ },
+ {
+  "id": "PLAN07-115",
+  "source": "07-quality-gates-and-tests.md, Ownership",
+  "text": "Thresholds change only by founder PR.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml; tools/factory/sandbox.py; docs/factory/CHECKLIST.md 3.2",
+  "note": "Agents cannot write factory/config.yaml, but the founder's change is a local merge and not a pull request, and main is not protected on GitHub (D40)."
+ },
+ {
+  "id": "PLAN08-001",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Bare repo plus one worktree per lane.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/worktree.py; test_a_seed_plan_becomes_a_checked_traceable_branch",
+  "note": "Worktrees are made per agent per task, but the repository is an ordinary checkout and not a bare repo."
+ },
+ {
+  "id": "PLAN08-002",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Compose project-name namespacing per worktree.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/hooks/guard_bash.py",
+  "note": "The Bash hook refuses another lane's project name, but make lane and worktree.py do not set a project name."
+ },
+ {
+  "id": "PLAN08-003",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Port namespacing per worktree.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "infra/docker-compose.yml",
+  "note": "Ports are fixed; two stacks cannot run side by side."
+ },
+ {
+  "id": "PLAN08-004",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Lane ownership is CODEOWNERS-mirrored.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no CODEOWNERS file."
+ },
+ {
+  "id": "PLAN08-005",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Lane ownership is hook-enforced.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/guard_paths.py; .claude/settings.json; tools/factory/sandbox.py",
+  "note": "The hook and the operating system sandbox both refuse writes outside the lane."
+ },
+ {
+  "id": "PLAN08-006",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-engine (high attention): engine/, rulepacks schema loaders.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-engine.yaml",
+  "note": "Owns engine/**, review high; the loader is engine/rulepack.py."
+ },
+ {
+  "id": "PLAN08-007",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-api: api/ minus admin and narration.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-api.yaml",
+  "note": "Owns api/**; narration lives outside api/ now."
+ },
+ {
+  "id": "PLAN08-008",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-narration: api/narration, evals consumer.",
+  "kind": "factory",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D23; .claude/lanes/L-narration.yaml",
+  "note": "The lane owns assistant/** because D23 replaced the narration service with the assistant."
+ },
+ {
+  "id": "PLAN08-009",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-web: web/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-web.yaml",
+  "note": "Exists."
+ },
+ {
+  "id": "PLAN08-010",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-ops: ops/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-ops.yaml",
+  "note": "Exists."
+ },
+ {
+  "id": "PLAN08-011",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-desktop: desktop/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-desktop.yaml",
+  "note": "Exists."
+ },
+ {
+  "id": "PLAN08-012",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-tests: tests/ only.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-tests.yaml",
+  "note": "Owns tests/** only."
+ },
+ {
+  "id": "PLAN08-013",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-evals: evals/ only.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-evals.yaml",
+  "note": "Exists."
+ },
+ {
+  "id": "PLAN08-014",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-security (red team): security/, attack runs, fix PRs limited to findings.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/lanes/L-security.yaml; factory/agents/red-team.yaml",
+  "note": "The lane exists and owns security/**; no attack run or fix has ever been made."
+ },
+ {
+  "id": "PLAN08-015",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-content: rulepacks/ data and emails/ copy.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-content.yaml",
+  "note": "Owns rulepacks/** and emails/**."
+ },
+ {
+  "id": "PLAN08-016",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "L-content merges are attorney-gated.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D14 and D28",
+  "note": "No attorney is retained; attorneys are sought only after validation, so the founder is the gate."
+ },
+ {
+  "id": "PLAN08-017",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "One high-attention lane live at a time.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "factory/config.yaml limits.max_parallel_agents",
+  "note": "Lanes carry a review level but nothing limits high attention lanes to one at a time."
+ },
+ {
+  "id": "PLAN08-018",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Two to four low-attention lanes.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml limits.max_parallel_agents: 4",
+  "note": "A cap of four agents exists; it does not tell high from low attention."
+ },
+ {
+  "id": "PLAN08-019",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Overnight Ralph loops only on specs with executable done-criteria.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "loops/ralph.sh (DONE_CMD required); tools/factory/phase.py",
+  "note": "The runner refuses to start without a done command, but no overnight loop has been run; plans are started by hand."
+ },
+ {
+  "id": "PLAN08-020",
+  "source": "08-agentic-factory.md, Topology",
+  "text": "Ralph loops have 20 to 50 iteration caps.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/ralph.sh (default 20, refuses above 50)",
+  "note": "The cap is enforced in the script."
+ },
+ {
+  "id": "PLAN08-021",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Every lane starts with SPEC.md (interfaces named, files listed, verification steps) before code.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "specs/product-1/SPEC.md; specs/phase-2/SPEC.md; .claude/lanes/*.yaml",
+  "note": "SPECs exist for each phase, but every lane file has an empty spec pointer and nothing refuses code without a SPEC."
+ },
+ {
+  "id": "PLAN08-022",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Progress log appended per iteration.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "engine/PROGRESS.md; tests/PROGRESS.md; rulepacks/PROGRESS.md; tools/factory/agent_run.py PROMPT",
+  "note": "Logs are written by real runs; it is asked of the agent, not checked by a test."
+ },
+ {
+  "id": "PLAN08-023",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Fresh context per Ralph iteration with file-based state.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/ralph.sh; tools/factory/agent_run.py",
+  "note": "Each attempt is a new claude process that reads PROGRESS.md."
+ },
+ {
+  "id": "PLAN08-024",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Self testing: Stop hook blocks turn end until the lane test command passes.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lane_test.py; .claude/settings.json",
+  "note": "Ran in real runs; two lessons in .claude/LESSONS/factory-fixed.md are about this hook."
+ },
+ {
+  "id": "PLAN08-025",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "PostToolUse runs ruff on touched files.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lint_touched.py",
+  "note": "Runs ruff check and format check."
+ },
+ {
+  "id": "PLAN08-026",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "PostToolUse runs mypy on touched files.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": ".claude/hooks/lint_touched.py",
+  "note": "The hook does not run mypy."
+ },
+ {
+  "id": "PLAN08-027",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "PostToolUse runs eslint on touched files.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lint_touched.py",
+  "note": "Runs eslint with zero warnings."
+ },
+ {
+  "id": "PLAN08-028",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Self debugging: iterate only on fresh execution signal.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "test_the_orchestrator_runs_the_done_command_itself; tools/factory/jail.py",
+  "note": "The orchestrator runs the done command itself and feeds back the failure tail."
+ },
+ {
+  "id": "PLAN08-029",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Two identical failures triggers the escalation ladder.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/agent_run.py (the same failure twice); test_an_agent_can_escalate_and_is_not_asked_again",
+  "note": "Runs and is recorded; metrics.jsonl shows two escalated runs."
+ },
+ {
+  "id": "PLAN08-030",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Self-judgment-only signal triggers the escalation ladder.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/agent_run.py",
+  "note": "An agent's word is never accepted as done, but a self judgment only signal does not itself escalate."
+ },
+ {
+  "id": "PLAN08-031",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Escalation ladder step 1: fresh-context replan.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "docs/factory/RUNBOOK.md, When the factory cannot finish a task",
+  "note": "No replan step exists; an escalated run stops the round."
+ },
+ {
+  "id": "PLAN08-032",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Escalation ladder step 2: reviewer agent.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "docs/factory/RUNBOOK.md",
+  "note": "The reviewer reviews finished work; it is not called when a lane is stuck."
+ },
+ {
+  "id": "PLAN08-033",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Escalation ladder step 3: stronger model.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "DECISIONS.md D43; factory/config.yaml model.pinned",
+  "note": "D43 moves agents to another model only when the pinned model's limit is reached; no code switches model on a stuck task."
+ },
+ {
+  "id": "PLAN08-034",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Escalation ladder step 4: founder.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "docs/factory/RUNBOOK.md; tools/factory/alerts.py; test_an_agent_can_escalate_and_is_not_asked_again",
+  "note": "The round stops and the founder is notified."
+ },
+ {
+  "id": "PLAN08-035",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Budget three rounds per failure.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml max_retries_per_task: 3; factory/agents/*.yaml max_attempts",
+  "note": "The config says 3 but contracts such as skill-curator and red-team set max_attempts to 2."
+ },
+ {
+  "id": "PLAN08-036",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Self rewarding: the only reward is the external gate conjunction of 07.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".github/workflows/ci.yml; tools/factory/phase.py",
+  "note": "Six of the sixteen gates of 07 exist, so the conjunction is a part of what 07 describes."
+ },
+ {
+  "id": "PLAN08-037",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "The reward is computed in CI the implementer cannot read or modify.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/sandbox.py; test_work_reaches_the_phase_branch_only_through_a_pull_request_that_ci_passed",
+  "note": "The implementer cannot modify CI, but .github/workflows/ci.yml and the gate scripts are readable in its worktree."
+ },
+ {
+  "id": "PLAN08-038",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Reviewer agent (fresh context, correctness scope only) holds a veto.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/agents/reviewer.md; test_a_veto_stops_the_plan; .factory/golden.jsonl",
+  "note": "The golden run shows the reviewer vetoing a planted fault."
+ },
+ {
+  "id": "PLAN08-039",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "No instance scores its own code.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/phase.py check_review; docs/factory/CHECKLIST.md 4.3",
+  "note": "The reviewer runs in its own worktree with no memory of the build."
+ },
+ {
+  "id": "PLAN08-040",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Anti-hacking: reward channel invisibility.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/sandbox.py (holdout_hidden)",
+  "note": "Only tests/holdout is hidden; the other gates are visible."
+ },
+ {
+  "id": "PLAN08-041",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Anti-hacking: diff policy gate.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/diff_policy/check.py; Makefile gate-3",
+  "note": "Runs in CI."
+ },
+ {
+  "id": "PLAN08-042",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Anti-hacking: holdout rotation.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Never rotated and no tool to do it."
+ },
+ {
+  "id": "PLAN08-043",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Anti-hacking: mutation-score canary.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/gates/mutation.py; .factory/mutation.jsonl",
+  "note": "One manual run is recorded; it does not run on a schedule or on each change, so it cannot act as a canary."
+ },
+ {
+  "id": "PLAN08-044",
+  "source": "08-agentic-factory.md, Loop mechanics",
+  "text": "Anti-hacking: inoculation framing in agent prompts (gates are the spec, passing by circumvention is task failure).",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md; .claude/hooks/guard_paths.py; CLAUDE.md",
+  "note": "The wording is in the prompt template and in the guard message."
+ },
+ {
+  "id": "PLAN08-045",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Memory tier: CLAUDE.md (short: commands, conventions, gotchas) in .claude/.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "CLAUDE.md",
+  "note": "Kept at the repository root, not inside .claude/."
+ },
+ {
+  "id": "PLAN08-046",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Memory tier: skills/ (workflow skills).",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/skills/ (six skills)",
+  "note": "Exists."
+ },
+ {
+  "id": "PLAN08-047",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Memory tier: agents/ (role definitions).",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/agents/ (seven role files); factory/agents/*.yaml",
+  "note": "Exists."
+ },
+ {
+  "id": "PLAN08-048",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Memory tier: LESSONS/<lane>.md (verified post-mortems with provenance).",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/LESSONS/L-engine.md; L-tests.md; L-api.md; L-content.md; L-web.md; DECISIONS.md D44",
+  "note": "Files exist and tools/factory/memory.py hands them to agents, but the lessons were accepted by the founder under D44 and not verified by replay, and entries carry no commit."
+ },
+ {
+  "id": "PLAN08-049",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Capture: any lane that resolves a failure or repeats a workflow appends a lesson proposal (what happened, fix, commit, evidence link) to LESSONS/proposals/.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/memory.py; .factory/failures.jsonl (36 rows); git history of .claude/LESSONS/proposals (22 files)",
+  "note": "Capture runs: 22 proposals were written and 36 failures recorded. Agents can no longer write under .claude/, so lessons now go through REPORT.json and proposals/, and the inbox is empty."
+ },
+ {
+  "id": "PLAN08-050",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Draft: the skill-curator agent runs weekly.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": ".claude/agents/skill-curator.md; .factory/metrics.jsonl",
+  "note": "Nothing schedules it; the only curator runs in the metrics are health checks."
+ },
+ {
+  "id": "PLAN08-051",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Draft: the skill-curator agent runs on demand.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/skills/README.md (first curation run, 2026-09-28)",
+  "note": "One curation run was made; proposals/skills/ and proposals/lessons/ are empty now."
+ },
+ {
+  "id": "PLAN08-052",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "The curator converts recurring proposals into skill diffs: new skill files or edits.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/skills/boundary-answer-shape; DECISIONS.md D36",
+  "note": "One run produced corrections to a stale skill; no later run has drafted from the 22 lessons."
+ },
+ {
+  "id": "PLAN08-053",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Each skill diff has a verification block naming the replay task that proves it.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/skills/*/SKILL.md (Verification section)",
+  "note": "All six skills have one."
+ },
+ {
+  "id": "PLAN08-054",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Verify: curator replays each skill against its verification task on a scratch worktree.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/skills/*/REPLAY.md",
+  "note": "Done once for six skills, one run per arm, on a git archive copy and not a worktree; the REPLAY files state these limits."
+ },
+ {
+  "id": "PLAN08-055",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "A skill that does not demonstrably change the outcome is rejected.",
+  "kind": "factory",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D36",
+  "note": "All six replays showed no change and D36 keeps every skill until harder replays are designed."
+ },
+ {
+  "id": "PLAN08-056",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Stale skills (referenced files changed) are flagged for re-verification by a freshness job reading git diffs.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": ".claude/skills/add-eval-case/REPLAY.md",
+  "note": "The curator checked referenced files by hand in one run; there is no freshness job."
+ },
+ {
+  "id": "PLAN08-057",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Approve: one weekly curation PR to .claude/ that the founder reviews.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "proposals/README.md; docs/factory/CHECKLIST.md 3.2",
+  "note": "The founder copies accepted proposals in by a local merge; there is no pull request and no weekly rhythm yet."
+ },
+ {
+  "id": "PLAN08-058",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Nothing self-modifies the factory config without that merge.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "test_work_kept_for_the_founder_is_not_merged; tools/factory/sandbox.py; factory/agents/skill-curator.yaml health check",
+  "note": "The operating system refuses agent writes under .claude/ and factory/."
+ },
+ {
+  "id": "PLAN08-059",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "SICA-style unsupervised self-modification stays off until local data justifies it.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml approval_required: skill_or_prompt_changed",
+  "note": "Off."
+ },
+ {
+  "id": "PLAN08-060",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Measure: factory metrics track skill hit rate (lessons cited in successful iterations).",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "contracts/factory_report.schema.json; tools/factory/telemetry.py",
+  "note": "Reports have no field for a cited skill or lesson and nothing counts citations."
+ },
+ {
+  "id": "PLAN08-061",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Measure: factory metrics track lane merge rate.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".factory/metrics.jsonl; tools/factory/telemetry.py summary",
+  "note": "Each run records its lane and status, but the summary is per agent success rate; no merge rate per lane is computed or shown."
+ },
+ {
+  "id": "PLAN08-062",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Measure: factory metrics track rework rate.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/telemetry.py (mean_attempts)",
+  "note": "Attempts per run are measured; rework after merge (reverts, fix rounds) is not."
+ },
+ {
+  "id": "PLAN08-063",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "Measure: factory metrics track gate-failure taxonomy.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".factory/failures.jsonl (fingerprint); tools/factory/alerts.py",
+  "note": "Failures are stored with a fingerprint and alerts have kinds, but failures are not classed by gate and no count by class is reported."
+ },
+ {
+  "id": "PLAN08-064",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "A skill uncited for 60 days is proposed for pruning.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": ".claude/agents/skill-curator.md rule 4",
+  "note": "It is one sentence in the role file; citations are not recorded, so the 60 days cannot be measured."
+ },
+ {
+  "id": "PLAN08-065",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "External currency: a monthly docs-refresh task has the curator re-check the pinned externals.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "A source list exists; no task, schedule or run exists."
+ },
+ {
+  "id": "PLAN08-066",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "The refresh re-checks Claude API changes.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Not run."
+ },
+ {
+  "id": "PLAN08-067",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "The refresh re-checks FR and USCIS endpoints.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "Listed, never checked by a task."
+ },
+ {
+  "id": "PLAN08-068",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "The refresh re-checks dependency majors.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "pip-audit and npm audit check for known flaws, not for new major versions."
+ },
+ {
+  "id": "PLAN08-069",
+  "source": "08-agentic-factory.md, Self growing",
+  "text": "The refresh proposes skill updates the same gated way.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Not run."
+ },
+ {
+  "id": "PLAN08-070",
+  "source": "08-agentic-factory.md, Red-team lane",
+  "text": "Nightly: the red-team lane runs the attack corpus against a fresh stack.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "The three red-team runs in .factory/metrics.jsonl are health checks; there is no corpus, no schedule and make attack exits 1."
+ },
+ {
+  "id": "PLAN08-071",
+  "source": "08-agentic-factory.md, Red-team lane",
+  "text": "Nightly: the red-team lane runs ZAP against a fresh stack.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "ZAP is not set up."
+ },
+ {
+  "id": "PLAN08-072",
+  "source": "08-agentic-factory.md, Red-team lane",
+  "text": "Files findings as structured issues with reproduction.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "No finding has been filed."
+ },
+ {
+  "id": "PLAN08-073",
+  "source": "08-agentic-factory.md, Red-team lane",
+  "text": "May open fix PRs limited to the finding.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Written in .claude/agents/red-team.md only."
+ },
+ {
+  "id": "PLAN08-074",
+  "source": "08-agentic-factory.md, Red-team lane",
+  "text": "New attack strings it discovers enter security/ through its own reviewed lane.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Written in the role file only; security/ holds no attack strings."
+ },
+ {
+  "id": "PLAN08-075",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Daily: lanes run.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".factory/metrics.jsonl (53 runs on 2026-09-28 and 29)",
+  "note": "Lanes run when the founder starts a plan; nothing runs them daily."
+ },
+ {
+  "id": "PLAN08-076",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Daily: merge queue lands green work.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/phase.py; test_nothing_reaches_the_phase_branch_when_ci_fails",
+  "note": "Work lands by pull request after green CI, but there is no merge queue."
+ },
+ {
+  "id": "PLAN08-077",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Daily: nightly gates run.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": ".github/workflows/",
+  "note": "No scheduled workflow, cron entry or launch agent exists."
+ },
+ {
+  "id": "PLAN08-078",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Daily: red team runs nightly.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 10",
+  "note": "Not running."
+ },
+ {
+  "id": "PLAN08-079",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Weekly: curation PR.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No weekly curation has happened; the project is two days old and nothing schedules it."
+ },
+ {
+  "id": "PLAN08-080",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Weekly: eval drift review.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/drift.py; test_judge_drift_is_a_number; docs/factory/CHECKLIST.md 4.5",
+  "note": "make drift is built and tested but has never been run for real; it checks the reviewer's scores, not the product evals."
+ },
+ {
+  "id": "PLAN08-081",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Weekly: factory metrics review.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/weekly.py; Makefile weekly",
+  "note": "The tool exists, but docs/factory/reviews/ does not exist, so no review has been written or read."
+ },
+ {
+  "id": "PLAN08-082",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Weekly: holdout spot check.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing does this."
+ },
+ {
+  "id": "PLAN08-083",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Monthly: holdout rotation.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing does this."
+ },
+ {
+  "id": "PLAN08-084",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Monthly: restore rehearsal.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 11",
+  "note": "No database backup exists; the runbook covers restoring main from tags only."
+ },
+ {
+  "id": "PLAN08-085",
+  "source": "08-agentic-factory.md, Cadence",
+  "text": "Monthly: threshold review from local data (all numeric priors are starting values to be replaced by measured ones).",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md (re-baselined at Phase 10)",
+  "note": "Thresholds in factory/config.yaml are still the starting values."
+ },
+ {
+  "id": "PLAN11-001",
+  "source": "11-claude-code-handoff/CLAUDE.md, header",
+  "text": "CLAUDE.md is copied to the repo root.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "CLAUDE.md",
+  "note": "Present, rewritten to follow DECISIONS.md."
+ },
+ {
+  "id": "PLAN11-002",
+  "source": "11-claude-code-handoff/CLAUDE.md, header",
+  "text": "Duly: immigration record keeping for F-1/OPT students.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D12 and D47",
+  "note": "Scope is now every category, with F-1, H-1B, O-1 and EB-1A packs."
+ },
+ {
+  "id": "PLAN11-003",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make up and make down run the full local stack (api, worker, web 5173, ops 5174, pg, minio, mailpit).",
+  "kind": "ops",
+  "status": "met",
+  "evidence": "Makefile; infra/docker-compose.yml",
+  "note": "All seven services are in the compose file."
+ },
+ {
+  "id": "PLAN11-004",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make seed",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "Makefile seed",
+  "note": "The target only prints that there is nothing to seed yet."
+ },
+ {
+  "id": "PLAN11-005",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make test runs gates 1 to 8 locally.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "Makefile test",
+  "note": "It runs gates 1 to 6 and a different gate 7; the integration and contract gates of 07 do not exist."
+ },
+ {
+  "id": "PLAN11-006",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make test uses the same containers as CI.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "specs/phase-0/SPEC.md, Changes from the original plan",
+  "note": "The same scripts run on the machine and in CI, with no containers; this was changed in the Phase 0 SPEC and not by a decision."
+ },
+ {
+  "id": "PLAN11-007",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make e2e runs the compose e2e profile.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "Makefile e2e; duly-plan/10-build-sequence.md Phase 3",
+  "note": "The target exits 1 with a message."
+ },
+ {
+  "id": "PLAN11-008",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make attack runs the attack profile.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "Makefile attack; duly-plan/10-build-sequence.md Phase 10",
+  "note": "The target exits 1 with a message."
+ },
+ {
+  "id": "PLAN11-009",
+  "source": "11-claude-code-handoff/CLAUDE.md, Commands",
+  "text": "make lane NAME=<lane> creates a worktree with namespaced compose project.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "Makefile lane",
+  "note": "It creates the worktree and the .lane marker; it sets no compose project name."
+ },
+ {
+  "id": "PLAN11-010",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Violations of the hard rules fail CI.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".github/workflows/ci.yml; tools/gates/prove.py",
+  "note": "True for the rules that have a gate (time, model clients, protected paths, copy); the rules on documents, RLS and SQLCipher have no check yet."
+ },
+ {
+  "id": "PLAN11-011",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Never compute or output a date, deadline, hours value, or eligibility statement in LLM code paths; engine/ owns all of it.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "security/semgrep/duly.yml; tests/unit/assistant/test_validator.py; tools/gates/engine_literals.py",
+  "note": "Model clients are confined and a validator exists, but no model is wired so the rule has not been tested against real answers."
+ },
+ {
+  "id": "PLAN11-012",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Clock injected, no datetime.now outside clocks providers.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "security/semgrep/duly.yml duly-time-only-through-clocks; engine/clocks.py; tools/gates/prove.py",
+  "note": "The only call is in engine/clocks.py and the gate is proven by a planted violation."
+ },
+ {
+  "id": "PLAN11-013",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Never edit tests/, tests/holdout/, evals/, security/, .claude/, CI, hooks from an implementation lane.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/diff_policy/check.py; .claude/hooks/guard_paths.py; tools/factory/sandbox.py",
+  "note": "Enforced three ways."
+ },
+ {
+  "id": "PLAN11-014",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Never edit migrations from an implementation lane.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No migrations path is protected."
+ },
+ {
+  "id": "PLAN11-015",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Copy rules: no em or en dashes, no emoji, no sealed or cryptographic or AI-generated wording, no eligible or compliant or qualifies; the copy linter enforces this.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py; Makefile gate-1",
+  "note": "Enforced in gate 1."
+ },
+ {
+  "id": "PLAN11-016",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Buttons name outcomes.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The linter has no check on button labels."
+ },
+ {
+  "id": "PLAN11-017",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Every AI-visible answer carries sources.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "contracts/engine_output.schema.json; tests/unit/assistant/test_validator.py",
+  "note": "Rules carry sources and the validator checks citations; no assistant answer surface exists."
+ },
+ {
+  "id": "PLAN11-018",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Every AI-visible answer carries the rulepack version.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No field or test for a rulepack version on an answer was found."
+ },
+ {
+  "id": "PLAN11-019",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Every AI-visible answer carries the disclaimer footer.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.tsx; web/src/App.test.tsx",
+  "note": "The web page footer is tested; there are no assistant answers to carry it."
+ },
+ {
+  "id": "PLAN11-020",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Abstain (OUT_OF_SCOPE card) rather than improvise.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D5 and D23; BOUNDARY.md; assistant/boundary.py",
+  "note": "The assistant steps back and drafts the question to the DSO, and the verdict uses Can't tell yet (D4)."
+ },
+ {
+  "id": "PLAN11-021",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Sensitive zones: document bytes and names never reach the server.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 8",
+  "note": "No document feature exists and no test guards this."
+ },
+ {
+  "id": "PLAN11-022",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Only allowlisted structured params reach the LLM serializer.",
+  "kind": "privacy",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D13 and D23",
+  "note": "No user data goes to an outside model at all; the assistant runs on infrastructure Duly controls."
+ },
+ {
+  "id": "PLAN11-023",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "Postgres only.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "infra/docker-compose.yml; api/db.py",
+  "note": "Postgres is the only server database."
+ },
+ {
+  "id": "PLAN11-024",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "RLS on every tenant table.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 1",
+  "note": "No tenant table exists."
+ },
+ {
+  "id": "PLAN11-025",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "SQLCipher only inside desktop/main.",
+  "kind": "desktop",
+  "status": "deferred",
+  "evidence": "duly-plan/10-build-sequence.md Phase 8",
+  "note": "SQLCipher is not used anywhere and desktop/main does not exist."
+ },
+ {
+  "id": "PLAN11-026",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "One agent, one module, one worktree, one PR.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/registry.py; test_a_lane_or_a_task_can_be_claimed_once",
+  "note": "One agent, lane and worktree per task is enforced; a whole round of lanes goes out as one pull request."
+ },
+ {
+  "id": "PLAN11-027",
+  "source": "11-claude-code-handoff/CLAUDE.md, Hard rules",
+  "text": "contracts/ changes land first and alone.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/diff_policy/check.py PROTECTED; factory/config.yaml approval_required contract_changed",
+  "note": "Contract changes are held for the founder; nothing checks that they land first and alone."
+ },
+ {
+  "id": "PLAN11-028",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "Python 3.12.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "pyproject.toml requires-python",
+  "note": "Pinned."
+ },
+ {
+  "id": "PLAN11-029",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "ruff and mypy strict.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "pyproject.toml",
+  "note": "Set."
+ },
+ {
+  "id": "PLAN11-030",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "TS strict.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "web/tsconfig.json; ops/tsconfig.json; desktop/tsconfig.json",
+  "note": "Set."
+ },
+ {
+  "id": "PLAN11-031",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "Conventional commits.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "git log",
+  "note": "Most commits follow the form, but agent commits such as L-tests: Write the tests do not, and nothing checks it."
+ },
+ {
+  "id": "PLAN11-032",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "Small PRs.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing measures or limits size; one merge removed or added thousands of lines."
+ },
+ {
+  "id": "PLAN11-033",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "SPEC.md before code in every lane.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "specs/",
+  "note": "SPECs exist per phase; not enforced per lane."
+ },
+ {
+  "id": "PLAN11-034",
+  "source": "11-claude-code-handoff/CLAUDE.md, Conventions",
+  "text": "Append progress notes to the lane log each iteration.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "engine/PROGRESS.md; api/PROGRESS.md; web/PROGRESS.md",
+  "note": "Logs are written by real runs."
+ },
+ {
+  "id": "PLAN11-035",
+  "source": "11-claude-code-handoff/CLAUDE.md, Pointers",
+  "text": "Plans in duly-plan/ (read 07 before writing tests, 05 before touching auth or crypto, 04 and workbook-handoff before desktop/).",
+  "kind": "factory",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D34; CLAUDE.md",
+  "note": "The root CLAUDE.md sends agents to DECISIONS.md, PRINCIPLES.md and BOUNDARY.md; the plan is starting context only."
+ },
+ {
+  "id": "PLAN11-036",
+  "source": "11-claude-code-handoff/CLAUDE.md, Pointers",
+  "text": "Lessons live in .claude/LESSONS/<lane>.md.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/LESSONS/L-engine.md and four more; tools/factory/memory.py accepted",
+  "note": "Filed by lane and handed to agents at the start of each run."
+ },
+ {
+  "id": "PLAN11-037",
+  "source": "11-claude-code-handoff/CLAUDE.md, Pointers",
+  "text": "Propose, never self-approve.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "proposals/README.md; tools/factory/sandbox.py",
+  "note": "Agents cannot write under .claude/."
+ },
+ {
+  "id": "PLAN11-038",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "reviewer.md: fresh-context correctness reviewer; scope: logic, security, doctrine violations only.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/agents/reviewer.md; factory/agents/reviewer.yaml",
+  "note": "Exists and has run (golden task)."
+ },
+ {
+  "id": "PLAN11-039",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "The reviewer may veto.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "test_a_veto_stops_the_plan",
+  "note": "Tested and seen in the golden run."
+ },
+ {
+  "id": "PLAN11-040",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "The reviewer may not edit code.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/L-review.yaml (owns reviews/** only)",
+  "note": "The sandbox limits its writes to reviews/."
+ },
+ {
+  "id": "PLAN11-041",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "test-author.md: owns tests/; writes and strengthens tests from specs and findings.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/agents/test-author.md; .factory/metrics.jsonl (7 runs)",
+  "note": "Exists and has run."
+ },
+ {
+  "id": "PLAN11-042",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "The test author never weakens assertions.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": ".claude/agents/test-author.md rule 4",
+  "note": "Stated in the role file; nothing mechanical detects a weakened assertion."
+ },
+ {
+  "id": "PLAN11-043",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "The test author cites the behavior source for each test.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": ".claude/agents/test-author.md rule 1",
+  "note": "Stated in the role file; not checked."
+ },
+ {
+  "id": "PLAN11-044",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "eval-curator.md: owns evals/; converts L2 bad answers and incidents into eval cases.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/agents/eval-curator.md; factory/agents/eval-curator.yaml",
+  "note": "The role exists; its only runs are health checks and no L2 loop feeds it."
+ },
+ {
+  "id": "PLAN11-045",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "The eval curator maintains citation and honesty suites.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "evals/",
+  "note": "evals/ holds the boundary set and the factory golden set; no citation or honesty suite."
+ },
+ {
+  "id": "PLAN11-046",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "red-team.md: runs security/attack corpus and ZAP nightly.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": ".claude/agents/red-team.md",
+  "note": "The role file exists; nothing has run beyond health checks."
+ },
+ {
+  "id": "PLAN11-047",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "red-team files findings issues with reproductions; fix PRs limited to the finding; proposes new attack strings via its lane.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": ".claude/agents/red-team.md",
+  "note": "Stated in the role file; never exercised."
+ },
+ {
+  "id": "PLAN11-048",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "skill-curator.md: weekly; turns LESSONS/proposals into skill diffs with verification blocks.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/agents/skill-curator.md; factory/agents/skill-curator.yaml",
+  "note": "The role exists and ran once; not weekly."
+ },
+ {
+  "id": "PLAN11-049",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "skill-curator replays verification on a scratch worktree.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/skills/*/REPLAY.md",
+  "note": "Done once, on a scratch copy."
+ },
+ {
+  "id": "PLAN11-050",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "skill-curator opens the single curation PR.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "proposals/README.md",
+  "note": "The curator has no network and cannot open a pull request; the founder copies proposals by hand."
+ },
+ {
+  "id": "PLAN11-051",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "skill-curator prunes stale skills.",
+  "kind": "factory",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D36",
+  "note": "No skill is removed yet."
+ },
+ {
+  "id": "PLAN11-052",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "rulepack-drafter.md: drafts parameter and checklist diffs from approved review-queue items with citations and snapshots.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": ".claude/agents/rulepack-drafter.md; .factory/metrics.jsonl (4 runs); rulepacks/f1-us/v2026.09/sources/",
+  "note": "It has drafted packs with saved sources; there is no review queue to draft from."
+ },
+ {
+  "id": "PLAN11-053",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
+  "text": "Rulepack drafter output goes to the attorney gate, never direct to main.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D14 and D28",
+  "note": "No attorney is retained; the founder is the gate and the orchestrator cannot merge to main."
+ },
+ {
+  "id": "PLAN11-054",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: add-effective-dated-parameter.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/skills/add-effective-dated-parameter/SKILL.md",
+  "note": "Written and replayed."
+ },
+ {
+  "id": "PLAN11-055",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: write-clock-injected-property-test.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/skills/write-clock-injected-property-test/SKILL.md",
+  "note": "Written and replayed."
+ },
+ {
+  "id": "PLAN11-056",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: add-rls-table (policy plus matrix test).",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": ".claude/skills/README.md (arrives with Phase 1)",
+  "note": "Not written."
+ },
+ {
+  "id": "PLAN11-057",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: add-endpoint (router, schema, authz matrix row, schemathesis).",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": ".claude/skills/README.md (arrives with Phase 3)",
+  "note": "Not written."
+ },
+ {
+  "id": "PLAN11-058",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: narration-answer-shape (validator contract).",
+  "kind": "factory",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D23; .claude/skills/boundary-answer-shape/SKILL.md",
+  "note": "Replaced by boundary-answer-shape for the assistant."
+ },
+ {
+  "id": "PLAN11-059",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: add-eval-case.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/skills/add-eval-case/SKILL.md",
+  "note": "Written and replayed."
+ },
+ {
+  "id": "PLAN11-060",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: compose-e2e-flow.",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": ".claude/skills/README.md (arrives with Phase 3)",
+  "note": "Not written."
+ },
+ {
+  "id": "PLAN11-061",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: workbook-block-rules.",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": ".claude/skills/README.md (arrives with Phase 8)",
+  "note": "Not written."
+ },
+ {
+  "id": "PLAN11-062",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: email-template-change (render snapshot plus copy lint).",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": ".claude/skills/README.md (arrives with Phase 7)",
+  "note": "Not written."
+ },
+ {
+  "id": "PLAN11-063",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Starter skill: terraform-change (plan review protocol).",
+  "kind": "factory",
+  "status": "deferred",
+  "evidence": ".claude/skills/README.md (arrives with Phase 11)",
+  "note": "Not written."
+ },
+ {
+  "id": "PLAN11-064",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, skills/",
+  "text": "Each starter skill has a verification block.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/skills/*/SKILL.md",
+  "note": "True of the six skills that exist."
+ },
+ {
+  "id": "PLAN11-065",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "PreToolUse Write and Edit: block paths outside the lane ownership file .claude/lanes/<lane>.paths.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/guard_paths.py; .claude/lanes/*.yaml",
+  "note": "Ownership is the owned field of the lane's yaml file."
+ },
+ {
+  "id": "PLAN11-066",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "Block the protected set globally for implementation lanes.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/diff_policy/check.py load_lane; tests/unit/tools/test_diff_policy.py",
+  "note": "An implementation lane that owns a protected path is refused."
+ },
+ {
+  "id": "PLAN11-067",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "PostToolUse Write and Edit: run ruff and eslint on touched files; nonzero blocks.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lint_touched.py",
+  "note": "Exits 2 on failure."
+ },
+ {
+  "id": "PLAN11-068",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "PostToolUse: targeted mypy or tsc on touched files.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": ".claude/hooks/lint_touched.py",
+  "note": "Neither is run by the hook."
+ },
+ {
+  "id": "PLAN11-069",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "Stop: run the lane test command from .claude/lanes/<lane>.test.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lane_test.py",
+  "note": "The command is the test field of the lane's yaml file, or DULY_DONE for the round."
+ },
+ {
+  "id": "PLAN11-070",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "Stop: failure blocks turn end with the failure tail.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lane_test.py",
+  "note": "Prints the last 2500 characters."
+ },
+ {
+  "id": "PLAN11-071",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "PreToolUse Bash: deny network installs outside the allowlist.",
+  "kind": "security",
+  "status": "met",
+  "evidence": ".claude/hooks/guard_bash.py",
+  "note": "Stricter than asked: every install is refused for a lane."
+ },
+ {
+  "id": "PLAN11-072",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "PreToolUse Bash: deny docker commands that would touch other lanes projects.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/guard_bash.py",
+  "note": "Checks the compose project name and refuses prune, kill and volume removal."
+ },
+ {
+  "id": "PLAN11-073",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, hooks",
+  "text": "The hooks are proven by tests.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/unit/tools/test_diff_policy.py; docs/factory/CHECKLIST.md sandbox probes",
+  "note": "The path rules they share are tested; no unit test runs guard_bash.py, lint_touched.py or lane_test.py themselves."
+ },
+ {
+  "id": "PLAN11-074",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "loops/ralph.sh: while true with iteration cap from env.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "loops/ralph.sh",
+  "note": "The script exists with MAX_ITERATIONS, but no test or recorded run uses it; the factory runs agents through tools/factory/agent_run.py."
+ },
+ {
+  "id": "PLAN11-075",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "Each iteration: fresh claude -p with the contents of PROMPT.md.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "loops/ralph.sh",
+  "note": "Written as asked; never seen to run."
+ },
+ {
+  "id": "PLAN11-076",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "PROMPT.md template section: mission (one feature).",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md",
+  "note": "Present in the template."
+ },
+ {
+  "id": "PLAN11-077",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "PROMPT.md template section: SPEC path.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md",
+  "note": "Present in the template."
+ },
+ {
+  "id": "PLAN11-078",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "PROMPT.md template section: done criteria (executable commands that must pass).",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md",
+  "note": "Present in the template."
+ },
+ {
+  "id": "PLAN11-079",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "PROMPT.md template section: forbidden paths reminder.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md",
+  "note": "Present in the template."
+ },
+ {
+  "id": "PLAN11-080",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "PROMPT.md template section: instruction to read progress log first and append after.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md",
+  "note": "Present in the template."
+ },
+ {
+  "id": "PLAN11-081",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "PROMPT.md template section: escalation rule (two identical failures: write ESCALATE.md and exit).",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "loops/PROMPT.template.md",
+  "note": "Present in the template."
+ },
+ {
+  "id": "PLAN11-082",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, Ralph lane runner",
+  "text": "Runner exits on cap, ESCALATE.md, or done criteria green.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "loops/ralph.sh",
+  "note": "All three exits are in the script; untested."
+ },
+ {
+  "id": "PLAN11-083",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, lanes/",
+  "text": "One file per lane.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/ (14 files); tools/factory/validate.py",
+  "note": "Checked in CI by make gate-7."
+ },
+ {
+  "id": "PLAN11-084",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, lanes/",
+  "text": "Each lane file has name, owned paths, test command and review level (high or low).",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/lanes/L-review.yaml",
+  "note": "All have the fields, but L-review has an empty test command."
+ },
+ {
+  "id": "PLAN11-085",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, lanes/",
+  "text": "Each lane file has the current SPEC pointer.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/lanes/*.yaml",
+  "note": "The field exists and is empty in every lane file read."
+ },
+ {
+  "id": "PLAN11-086",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, LESSONS/",
+  "text": "LESSONS has a proposals/ inbox.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/LESSONS/proposals/.gitkeep; .claude/LESSONS/README.md",
+  "note": "Kept, empty after D44."
+ },
+ {
+  "id": "PLAN11-087",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, LESSONS/",
+  "text": "LESSONS has per-lane verified files.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/LESSONS/L-*.md; DECISIONS.md D44",
+  "note": "Present; accepted by the founder, not verified by replay."
+ },
+ {
+  "id": "PLAN11-088",
+  "source": "11-claude-code-handoff/claude-scaffolding.md, LESSONS/",
+  "text": "Entry shape: date, commit, failure, fix, evidence link, verification task id.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/LESSONS/README.md; .claude/LESSONS/L-tests.md",
+  "note": "Proposals had all six fields; the filed per-lane entries keep failure, fix and evidence and drop the commit and the verification task."
+ }
+]

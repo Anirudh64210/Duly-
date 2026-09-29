@@ -14,7 +14,6 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pytest
-from fastapi.testclient import TestClient
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -23,13 +22,18 @@ from api.settings import Settings
 from engine import f1
 from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
+from tests.support.api_client import CheckedClient
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
+    CONFLICT_IDS,
+    CPT_USED,
     HELD_OPT,
     NO_EMPLOYMENT,
+    NOTHING_MORE,
     QUESTION_IDS,
     READINGS,
     SHIFTED,
+    answer_as_the_screen_does,
     answers,
     build_pack,
     cap_gap,
@@ -38,16 +42,19 @@ from tests.support.f1_pack import (
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
     pack_dict,
     question_ids,
     reasons_with,
+    refuse_placeholders,
     values,
     with_block,
     with_changes,
     with_derivation,
+    with_the_about_asked,
 )
 
 URL = "/v1/compute/f1"
@@ -91,6 +98,7 @@ STEM_ALONE: dict[str, Any] = {
     "program_end_date": "2024-12-13",
     "degree_level": "master",
     "documents_count": 1,
+    "cpt_full_time_days": 0,
     "opt": None,
     "stem": ead("2025-11-03", "2025-11-17", "2026-02-01", "2028-01-31"),
     "employment": [job("2026-02-01", None, hours=25)],
@@ -101,8 +109,12 @@ CAP_GAP_ALONE_CASE: dict[str, Any] = {
     "program_end_date": "2026-05-08",
     "degree_level": "bachelor",
     "documents_count": 6,
+    "cpt_full_time_days": 0,
     "employment": [job("2025-01-06", "2025-03-28", hours=12)],
-    "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-04-01"),
+    # Filed on 2026-03-02, a week before TODAY (2026-03-09): a filing dated after the day
+    # of the case is a conflict of its own (specs/product-1/SPEC.md, section 1;
+    # SPEC-resolutions.md, point 4), and this case is about the question alone.
+    "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-03-02"),
 }
 
 
@@ -117,7 +129,13 @@ def run(
     assert case_problems(case) == [], "the test case itself must match the case contract"
     checked = checked_on or today
     pack = build_pack(checked, **pack_changes) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(f1.parse_case(case), pack, clock or clock_on(today))
+    clock = clock or clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 def unconfirmed(output: dict[str, Any]) -> list[str]:
@@ -412,6 +430,7 @@ def records(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         "program_end_date": program_end.isoformat(),
         "degree_level": "master",
         "documents_count": draw(st.integers(min_value=1, max_value=9)),
+        "cpt_full_time_days": 0,
         "opt": ead(None, None, opt_start.isoformat(), opt_end.isoformat()),
         "stem": ead(
             None,
@@ -438,10 +457,13 @@ def test_a_record_with_a_gap_is_asked_about_and_never_called_quiet(drawn):
     case, today = drawn
     out = run(case, today=today)
     assert contract_problems(out) == []
-    asked = question_ids(out)
+    # specs/product-1/SPEC.md, sections 1 and 2: the engine now asks two more questions,
+    # and one for each conflict, whose reason is conflict:<id>. Those have their own
+    # property in the product tests. This one keeps to the questions of its round.
+    asked = [asked_id for asked_id in question_ids(out) if asked_id not in CONFLICT_IDS]
     given = case.get("confirmations", {})
     assert sorted(unconfirmed(out)) == sorted(asked)
-    assert set(asked) <= set(QUESTION_IDS)
+    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
     assert set(asked).isdisjoint(given)
     state = out["verdict"]["state"]
     if asked:
@@ -496,7 +518,7 @@ def client():
         datetime(2026, 9, 28, 23, 10, tzinfo=UTC)
     )
     app.dependency_overrides[get_settings] = lambda: Settings(database_url=UNREACHABLE)
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
@@ -505,6 +527,7 @@ API_CASE: dict[str, Any] = {
     "program_end_date": "2026-05-22",
     "degree_level": "master",
     "documents_count": 8,
+    "cpt_full_time_days": 0,
     "opt": ead("2026-03-16", "2026-03-30", "2026-06-15", "2027-06-14"),
     "employment": [job("2026-06-15", "2026-09-10", hours=30)],
 }
@@ -544,7 +567,9 @@ def test_the_api_asks_and_follows_the_answer(client):
     assert question_ids(asked) == [NO_EMPLOYMENT]
     assert asked["verdict"]["state"] == "cannot_tell"
     assert f"unconfirmed:{NO_EMPLOYMENT}" in asked["verdict"]["reasons"]
-    no = with_changes(case, confirmations=answers("2026-09-29", **{NO_EMPLOYMENT: False}))
+    # The answer no, dated 2026-09-29, the day in Tokyo (23:10 UTC on 2026-09-28 is 08:10
+    # on 2026-09-29 there), with the about the api asked (SPEC-resolutions.md, point 7).
+    no = answer_as_the_screen_does(case, asked, "2026-09-29", **{NO_EMPLOYMENT: False})
     answered = client.post(URL, json=no).json()
     assert answered["questions"] == []
     assert "missing:employment" in answered["verdict"]["reasons"]

@@ -160,6 +160,35 @@ def test_a_token_budget_stops_the_run(tmp_path, monkeypatch):
     assert "budget" in out.reason
 
 
+def test_cache_reads_count_at_a_tenth_against_the_budget(tmp_path, monkeypatch):
+    # Nine million tokens read from the cache charge 900,000, well inside the budget.
+    steps = mini.good(["engine/new.py"])
+    steps.insert(1, {"usage": {"in": 100, "out": 10, "cached": 9_000_000}})
+    _, out = play(tmp_path, monkeypatch, [steps])
+    assert out.status == "done"
+    assert out.tokens_charged == 100 + 10 + 900_000
+    assert out.tokens_in == 9_000_100  # telemetry keeps the raw count
+
+
+def test_work_cut_off_by_the_budget_is_kept_on_its_branch_and_not_merged(tmp_path, monkeypatch):
+    greedy = [
+        {"init": mini.MODEL},
+        {"write": "engine/new.py"},
+        {"write": "tests/cheat.py"},
+        {"usage": {"in": 9_000_000, "out": 10}},
+        {"sleep": 30},
+    ]
+    repo, out = play(tmp_path, monkeypatch, [greedy])
+    assert out.status == "failed"
+    assert out.kept_commit
+    kept = mini.git(repo, "show", "--stat", "--format=%B", out.kept_commit)
+    assert "not accepted" in kept
+    assert "engine/new.py" in kept
+    assert "tests/cheat.py" not in kept  # nothing outside the lane is kept
+    assert out.head_commit == ""
+    assert mini.git(repo, "rev-parse", "phase-x") == out.base_commit  # nothing was merged
+
+
 def test_writes_outside_the_lane_are_never_accepted(tmp_path, monkeypatch):
     strays = [
         {"init": mini.MODEL},
@@ -256,7 +285,7 @@ def test_an_agent_can_escalate_and_is_not_asked_again(tmp_path, monkeypatch):
     assert "contradicts the SPEC" in out.reason
 
 
-def test_lessons_from_a_report_are_kept_once(tmp_path, monkeypatch):
+def test_an_agents_lessons_wait_for_the_founder(tmp_path, monkeypatch):
     lesson = {
         "failure": "The done command was piped through tail and hid its exit code.",
         "fix": "Run it unpiped.",
@@ -266,8 +295,12 @@ def test_lessons_from_a_report_are_kept_once(tmp_path, monkeypatch):
     steps[-2]["lessons"] = [lesson, lesson]
     repo, out = play(tmp_path, monkeypatch, [steps])
     assert out.status == "done"
-    assert len(memory.read(repo)) == 1
-    assert "piped through tail" in memory.for_prompt("L-engine", 40, 12000, repo)
+    # An agent's lessons go to the founder's inbox once, and reach no agent until accepted.
+    inbox = list((repo / ".claude" / "LESSONS" / "proposals").glob("*.md"))
+    assert len(inbox) == 1
+    assert "piped through tail" in inbox[0].read_text()
+    assert memory.read(repo) == []
+    assert "piped through tail" not in memory.for_prompt("L-engine", 40, 12000, repo)
 
 
 def test_a_rerun_of_the_same_task_leaves_no_duplicate(tmp_path, monkeypatch):
@@ -319,3 +352,33 @@ def test_the_founders_work_on_another_branch_does_not_fail_a_run(tmp_path, monke
     ]
     _, out = play(tmp_path, monkeypatch, [elsewhere])
     assert out.status == "done", out.reason
+
+
+def test_a_run_that_reports_a_key_in_use_is_ended_at_once(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    path = tmp_path / "keyed.json"
+    # The stand-in cannot add fields to its first event, so the event is given raw.
+    first = json.dumps(
+        {
+            "type": "system",
+            "subtype": "init",
+            "session_id": "s",
+            "model": mini.MODEL,
+            "apiKeySource": "ANTHROPIC_API_KEY",
+        }
+    )
+    keyed = [{"raw": first}, {"write": "engine/new.py"}, {"sleep": 30}]
+    _, out = play(tmp_path, monkeypatch, [keyed], repo=repo)
+    assert out.status == "refused"
+    assert "key in use" in out.reason
+    assert out.seconds < 20
+    assert any(row.get("alert") == "guardrail" for row in ledger.read(repo))
+    assert path.exists() is False
+
+
+def test_project_settings_that_name_a_key_refuse_the_run(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    (repo / ".claude" / "settings.json").write_text('{"apiKeyHelper": "get-key.sh"}')
+    _, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])], repo=repo)
+    assert out.status == "refused"
+    assert "apiKeyHelper" in out.reason

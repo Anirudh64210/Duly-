@@ -43,6 +43,28 @@ HELD_OPT = "held_post_completion_opt"
 NO_EMPLOYMENT = "no_employment_to_record"
 CAP_GAP_ALONE = "cap_gap_without_training"
 
+# specs/product-1/SPEC.md, section 2 (D41): nothing entered is not nothing to record.
+NOTHING_MORE = "nothing_more_to_record"
+CPT_USED = "full_time_cpt_used"
+CPT_DAYS = "cpt_full_time_days"
+
+# specs/product-1/SPEC.md, section 4: the items of a step, done once the filing or the
+# card of that step is recorded.
+STEPS = {
+    "opt": (
+        "opt.apply_window_opens",
+        "opt.apply_window_closes",
+        "opt.file_by",
+        "opt.latest_start",
+    ),
+    "stem": ("stem.apply_window_opens", "stem.apply_window_closes", "stem.file_by"),
+}
+
+# specs/product-1/SPEC.md, section 6: what the regulation lists for the step after OPT.
+STEM_LIST = "stem.extension.what_the_regulation_lists"
+LISTED_PREFIX = "stem.requires."
+CARD_MONTHS = {"opt": "opt.max_months", "stem": "stem.extension_months"}
+
 # Where a question stands. The engine never fills an answer in.
 NOT_RAISED = "not_raised"
 OPEN = "open"
@@ -85,6 +107,8 @@ class Confirmation:
 
     answer: bool
     on: date
+    # The input values the answer was given for. None when the answer carried none.
+    about: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -92,7 +116,8 @@ class F1Case:
     program_end_date: date
     degree_level: str
     documents_count: int
-    cpt_full_time_days: int
+    # None means nothing was entered. It is never taken as zero.
+    cpt_full_time_days: int | None
     opt: EadBlock | None
     stem: EadBlock | None
     employment: tuple[EmploymentPeriod, ...]
@@ -127,18 +152,30 @@ def _finite(raw: Any, name: str) -> Any:
     return raw
 
 
-def parse_case(raw: dict[str, Any]) -> F1Case:
+def _confirmations(raw: dict[str, Any], clock: Clock | None) -> dict[str, Confirmation]:
+    today = None if clock is None else day_in_zone(clock, raw["time_zone"])
+    found = {}
+    for question, given in (raw.get("confirmations") or {}).items():
+        on = date.fromisoformat(given["on"])
+        if today is not None and on > today:
+            raise ValueError(f"confirmations: the answer to {question} is dated after today")
+        found[question] = Confirmation(answer=given["answer"], on=on, about=given.get("about"))
+    return found
+
+
+def parse_case(raw: dict[str, Any], clock: Clock | None = None) -> F1Case:
     """A case that matches contracts/case_f1.schema.json, as frozen dataclasses.
 
     Raises ValueError for a number that is NaN, Infinity or -Infinity, and for a
-    time zone that does not exist."""
+    time zone that does not exist. With a clock, raises ValueError for an answer dated
+    after the person's own day."""
     cap_gap = raw.get("cap_gap")
     zone_named(raw["time_zone"])
     return F1Case(
         program_end_date=date.fromisoformat(raw["program_end_date"]),
         degree_level=raw["degree_level"],
         documents_count=_finite(raw["documents_count"], "documents_count"),
-        cpt_full_time_days=_finite(raw.get("cpt_full_time_days", 0), "cpt_full_time_days"),
+        cpt_full_time_days=_finite(raw.get(CPT_DAYS), CPT_DAYS),
         opt=_ead_block(raw.get("opt")),
         stem=_ead_block(raw.get("stem")),
         employment=tuple(
@@ -159,10 +196,7 @@ def parse_case(raw: dict[str, Any]) -> F1Case:
             status=cap_gap["status"],
         ),
         time_zone=raw["time_zone"],
-        confirmations={
-            question: Confirmation(answer=given["answer"], on=date.fromisoformat(given["on"]))
-            for question, given in (raw.get("confirmations") or {}).items()
-        },
+        confirmations=_confirmations(raw, clock),
     )
 
 
@@ -210,6 +244,11 @@ class _Working:
         # Inputs a question covers. Until the person answers, Duly does not say they
         # are missing: that would be a guess that the part exists.
         self.silent: set[str] = set()
+        # Inputs held in a conflict that is open. An item that uses one has no value.
+        self.conflicted: set[str] = set()
+        # Items whose step is recorded as done: no open item, nothing ahead.
+        self.done: set[str] = set()
+        self.ahead: list[dict[str, Any]] = []
 
     def name_missing(self, name: str) -> None:
         if name not in self.missing and name not in self.silent:
@@ -305,16 +344,52 @@ class _Working:
     ) -> None:
         """One computed item. needs names the inputs the formula cannot do without: if
         one is missing the value is null and the input is named, never guessed. settings
-        names Duly's own choices that were used on the item's inputs."""
+        names Duly's own choices that were used on the item's inputs. An item that uses
+        an input held in an open conflict has the value null."""
+        item, value = self._item(item_id, unit, inputs, rule_ids, formula, needs, settings)
+        self.computed.append(item)
+        if isinstance(value, date):
+            self.dated[item_id] = value
+            if value > self.today and item_id not in self.done:
+                self.ahead.append(_ahead(item, item_id))
+        elif value is not None:
+            self.numbers[item_id] = value
+
+    def add_ahead(
+        self,
+        entry_id: str,
+        inputs: dict[str, Any],
+        rule_ids: tuple[str, ...],
+        formula: Callable[[Values], Value],
+    ) -> None:
+        """A date of the step that the rules place next. It is a date ahead and is not
+        among the computed items. A pack that lacks one of the rules gives no date."""
+        if not all(self.holds(rule_id) for rule_id in rule_ids):
+            return
+        item, value = self._item(entry_id, "date", inputs, rule_ids, formula, tuple(inputs), ())
+        if isinstance(value, date) and value > self.today:
+            self.ahead.append(_ahead(item, entry_id))
+
+    def _item(
+        self,
+        item_id: str,
+        unit: str,
+        inputs: dict[str, Any],
+        rule_ids: tuple[str, ...],
+        formula: Callable[[Values], Value],
+        needs: tuple[str, ...],
+        settings: tuple[str, ...],
+    ) -> tuple[dict[str, Any], Value]:
         parameters = [self._rule(rule_id) for rule_id in rule_ids]
         for parameter in parameters:
             self._show_rule(parameter)
         absent = [name for name in needs if inputs[name] is None]
         for name in absent:
             self.name_missing(name)
+        unsure = any(name in self.conflicted for name in inputs)
 
         def guarded(values: Values) -> Value:
-            return None if absent else formula(values)
+            return None if absent or unsure else formula(values)
 
         value = guarded({p["id"]: p["value"] for p in parameters})
         item: dict[str, Any] = {
@@ -324,6 +399,7 @@ class _Working:
             "inputs": {name: _shown(entered) for name, entered in inputs.items()},
             "rule_ids": list(rule_ids),
             "status": max((p["status"] for p in parameters), key=STATUS_ORDER.index),
+            "reading": any(p.get("derivation") == "reading" for p in parameters),
         }
         # The look-ahead decides whether a dated item of this kind is an open item.
         if isinstance(value, date) and item_id.endswith(OPEN_ITEM_ENDINGS):
@@ -334,11 +410,22 @@ class _Working:
         if alternates:
             item["alternates"] = alternates
             item["operative"] = self._operative(parameters)
-        self.computed.append(item)
-        if isinstance(value, date):
-            self.dated[item_id] = value
-        elif value is not None:
-            self.numbers[item_id] = value
+        return item, value
+
+
+def _ahead(item: dict[str, Any], entry_id: str) -> dict[str, Any]:
+    """An entry of upcoming: the date, its rules, and nothing more."""
+    entry = {
+        "id": entry_id,
+        "date": item["value"],
+        "rule_ids": item["rule_ids"],
+        "status": item["status"],
+        "reading": item["reading"],
+    }
+    for name in ("alternates", "operative"):
+        if name in item:
+            entry[name] = item[name]
+    return entry
 
 
 Piece = tuple[date, int, float | None]
@@ -351,29 +438,31 @@ def _pieces(case: F1Case, opt: EadBlock, today: date) -> list[Piece] | None:
 
     The work grows with the number of periods, never with the length of the window."""
     blocks = [opt] if case.stem is None else [opt, case.stem]
-    ends = [block.ead_end for block in blocks if block.ead_end is not None]
-    stem_start = None if case.stem is None else case.stem.ead_start
-    first = opt.ead_start
-    if first is None or len(ends) < len(blocks) or (case.stem is not None and stem_start is None):
+    cards = [
+        (block.ead_start, block.ead_end)
+        for block in blocks
+        if block.ead_start is not None and block.ead_end is not None
+    ]
+    if len(cards) < len(blocks):
         return None
-    last = min(today, max(ends))
-    if last < first:
-        return []
     periods = [
         (p.start, today if p.end is None else p.end, p.hours_per_week) for p in case.employment
     ]
-    cuts = {first, last + ONE_DAY}
-    if stem_start is not None and first < stem_start <= last:
-        cuts.add(stem_start)
-    for start, end, _ in periods:
-        if first < start <= last:
-            cuts.add(start)
-        if first <= end < last:
-            cuts.add(end + ONE_DAY)
     found: list[Piece] = []
-    for begin, after in pairwise(sorted(cuts)):
-        hours = [h for start, end, h in periods if start <= begin <= end]
-        found.append((begin, (after - begin).days, max(hours, default=None)))
+    # Days between two cards are outside the window: never employed, never unemployed.
+    for first, card_end in cards:
+        last = min(today, card_end)
+        if last < first:
+            continue
+        cuts = {first, last + ONE_DAY}
+        for start, end, _ in periods:
+            if first < start <= last:
+                cuts.add(start)
+            if first <= end < last:
+                cuts.add(end + ONE_DAY)
+        for begin, after in pairwise(sorted(cuts)):
+            hours = [h for start, end, h in periods if start <= begin <= end]
+            found.append((begin, (after - begin).days, max(hours, default=None)))
     return found
 
 
@@ -491,11 +580,16 @@ def _add_counts(
     )
     # opt.ead_start is checked against the earliest start Duly takes as entered right.
     checked = (OPT_START_LOOKBACK,)
+    # On the STEM card the days used still hold the days of the OPT card, so the item
+    # names the rule of each card it counted in.
+    counted: tuple[str, ...] = (limit_rule,)
+    if on_stem:
+        counted = (limit_rule, "opt.unemployment_limit_days")
     work.add(
         "unemployment.days_used",
         "days",
         counting_inputs,
-        (limit_rule,),
+        counted,
         lambda v: used,
         needs=tuple(window),
         settings=checked,
@@ -645,14 +739,129 @@ def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
     )
 
 
-def _answer(case: F1Case, question: str, raised: bool) -> str:
-    """Where a question stands. An answer to a question that is not raised is not read."""
+def _answer(
+    case: F1Case,
+    question: str,
+    raised: bool,
+    about: Mapping[str, Any],
+    through: date | None = None,
+) -> str:
+    """Where a question stands. An answer to a question that is not raised is not read.
+
+    An answer holds for the values it was given for: one that carries other values, or
+    none, is not an answer to this question (SPEC-resolutions point 7). through is the
+    last day a yes has to cover: a yes given before it leaves the days since open."""
     if not raised:
         return NOT_RAISED
     given = case.confirmations.get(question)
     if given is None:
         return OPEN
+    if given.about is None or dict(given.about) != dict(about):
+        return OPEN
+    if given.answer and through is not None and given.on < through:
+        return OPEN
     return YES if given.answer else NO
+
+
+@dataclass(frozen=True)
+class Fact:
+    """Facts entered that do not fit: the id of the row, and the values, by input."""
+
+    id: str
+    about: dict[str, Any]
+
+
+def _has_days_outside(first: date, final: date, cards: list[tuple[date, date]]) -> bool:
+    """Whether a day from first through final lies outside every card."""
+    day = first
+    for begin, finish in sorted(cards):
+        if day > final or begin > day:
+            break
+        if finish >= day:
+            day = finish + ONE_DAY
+    return day <= final
+
+
+def _facts(case: F1Case, work: _Working) -> list[Fact]:
+    """specs/product-1/SPEC.md, section 1, in the order of the table. The engine says
+    that the facts do not fit. It never says which one is wrong, or what they mean."""
+    today = work.today
+    found: list[Fact] = []
+    blocks = [(part, block) for part, block in (("opt", case.opt), ("stem", case.stem)) if block]
+    gap = case.cap_gap
+
+    def note(fact_id: str, about: dict[str, Any]) -> None:
+        found.append(Fact(fact_id, {name: _shown(value) for name, value in about.items()}))
+
+    for name in ("i765_filed_date", "dso_recommendation_date"):
+        for part, block in blocks:
+            entered = getattr(block, name)
+            if entered is not None and entered > today:
+                note(f"{part}.{name}.after_today", {f"{part}.{name}": entered})
+    if gap is not None and gap.petition_filed_on > today:
+        note(
+            "cap_gap.petition_filed_on.after_today",
+            {"cap_gap.petition_filed_on": gap.petition_filed_on},
+        )
+    for part, block in blocks:
+        filed, start = block.i765_filed_date, block.ead_start
+        if filed is not None and start is not None and filed > start:
+            note(
+                f"{part}.i765_filed_date.after_card",
+                {f"{part}.i765_filed_date": filed, f"{part}.ead_start": start},
+            )
+    cards = {
+        part: (block.ead_start, block.ead_end)
+        for part, block in blocks
+        if block.ead_start is not None and block.ead_end is not None
+    }
+    shown_cards: dict[str, Any] = {}
+    for part, (start, end) in cards.items():
+        shown_cards |= {f"{part}.ead_start": start, f"{part}.ead_end": end}
+    if gap is not None:
+        if gap.petition_filed_on > gap.requested_start:
+            note(
+                "cap_gap.petition_filed_on.after_start",
+                {
+                    "cap_gap.petition_filed_on": gap.petition_filed_on,
+                    "cap_gap.requested_start": gap.requested_start,
+                },
+            )
+        if cards:
+            first_part = min(cards, key=lambda part: cards[part][0])
+            if gap.requested_start < cards[first_part][0]:
+                note(
+                    "cap_gap.requested_start.before_training",
+                    {
+                        "cap_gap.requested_start": gap.requested_start,
+                        f"{first_part}.ead_start": cards[first_part][0],
+                    },
+                )
+    for part, (start, end) in cards.items():
+        rule_id = CARD_MONTHS[part]
+        # A pack without the rule gives no length to hold the card against.
+        if work.holds(rule_id) and end > add_months(start, work.whole_rule(rule_id)):
+            work.show(rule_id)
+            note(
+                f"{part}.card_longer_than_rule",
+                {f"{part}.ead_start": start, f"{part}.ead_end": end},
+            )
+    if "opt" in cards and "stem" in cards and cards["stem"][0] > cards["opt"][1] + ONE_DAY:
+        note(
+            "stem.gap_after_opt",
+            {"opt.ead_end": cards["opt"][1], "stem.ead_start": cards["stem"][0]},
+        )
+    if cards:
+        last_end = max(end for _, end in cards.values())
+        outside = []
+        for period in case.employment:
+            # An open period runs through today. Its days after the last card are left.
+            final = min(today, last_end) if period.end is None else period.end
+            if _has_days_outside(period.start, final, list(cards.values())):
+                outside.append({"start": period.start.isoformat(), "end": _shown(period.end)})
+        if outside:
+            note("employment.period_outside_cards", {"employment": outside, **shown_cards})
+    return found
 
 
 def _missing_ead_dates(work: _Working, opt: EadBlock | None, stem: EadBlock | None) -> None:
@@ -691,14 +900,14 @@ def _conflicts(case: F1Case, earliest_years: int) -> tuple[str, ...]:
     return tuple(found)
 
 
-def _judgement_items(work: _Working, case: F1Case) -> tuple[str, ...]:
+def _judgement_items(work: _Working, case: F1Case, cpt_days: int | None) -> tuple[str, ...]:
     found = []
     if work.numbers.get("employment.days_under_hours", 0) > 0:
         found.append("hours_under_threshold")
     remaining = work.numbers.get("unemployment.days_remaining")
     if remaining is not None and remaining <= 0:
         found.append("unemployment_at_or_over_limit")
-    if case.cpt_full_time_days >= work.whole_rule(CPT_BAR):
+    if cpt_days is not None and cpt_days >= work.whole_rule(CPT_BAR):
         found.append("cpt_full_time_at_or_over_bar")
     if case.cap_gap is not None and "capgap.ends" not in work.dated:
         found.append("cap_gap_petition_not_active")
@@ -711,9 +920,49 @@ def _open_items(work: _Working) -> tuple[str, ...]:
         found.append("report_employer")
     horizon = work.today + timedelta(days=work.setting(LOOKAHEAD))
     for item_id, day in work.dated.items():
+        if item_id in work.done:
+            continue
         if item_id.endswith(OPEN_ITEM_ENDINGS) and work.today <= day <= horizon:
             found.append(item_id)
     return tuple(found)
+
+
+def _add_next_step(
+    work: _Working,
+    opt: EadBlock,
+    ends: dict[str, Any],
+    grace_ends: Callable[[Values], Value],
+) -> None:
+    """specs/product-1/SPEC.md, section 6: with OPT entered and no STEM entered, the
+    dates of the step that the rules place next, from the OPT card. These are dates and
+    nothing more."""
+    card_end = opt.ead_end
+    inputs = {"opt.ead_end": card_end}
+    before = "stem.apply_before_expiry_days"
+    work.add_ahead(
+        "next.stem.apply_window_opens",
+        inputs,
+        (before,),
+        lambda v: None if card_end is None else card_end - timedelta(days=_whole(v, before)),
+    )
+    work.add_ahead(
+        "next.stem.apply_window_closes", inputs, (STEM_WINDOW_CLOSES,), lambda v: card_end
+    )
+    work.add_ahead("next.opt.card_ends", inputs, (CARD_MONTHS["opt"],), lambda v: card_end)
+    work.add_ahead("next.grace.ends", ends, ("grace.after_completion_days",), grace_ends)
+
+
+def _lists(work: _Working) -> list[dict[str, Any]]:
+    """What the regulation lists for the 24-month extension: the rules the pack holds
+    for it, in the order of the pack. The engine adds none and says nothing of whether
+    any of them is met."""
+    listed: list[str] = []
+    for parameter in work.pack.parameters:
+        rule_id = parameter["id"]
+        if rule_id.startswith(LISTED_PREFIX) and rule_id not in listed and work.holds(rule_id):
+            work.show(rule_id)
+            listed.append(rule_id)
+    return [{"id": STEM_LIST, "rule_ids": listed}] if listed else []
 
 
 def compute_f1(
@@ -729,22 +978,53 @@ def compute_f1(
 
     conflicts = _conflicts(case, work.setting(OPT_START_LOOKBACK))
 
+    questions: list[dict[str, Any]] = []
+
+    def ask(question: str, raised: bool, about: dict[str, Any], through: date | None = None) -> str:
+        stands = _answer(case, question, raised, about, through)
+        if stands == OPEN:
+            questions.append({"id": question, "because": list(about), "about": about})
+        return stands
+
     # Confirm, never assume. Each gap the person can close with a plain answer.
     no_training = case.opt is None and case.stem is None
-    held = _answer(case, HELD_OPT, case.stem is not None and case.opt is None)
-    alone = _answer(case, CAP_GAP_ALONE, case.cap_gap is not None and no_training)
+    held = ask(HELD_OPT, case.stem is not None and case.opt is None, {"stem": True, "opt": None})
     begun = case.opt is not None and case.opt.ead_start is not None and today >= case.opt.ead_start
-    empty = _answer(case, NO_EMPLOYMENT, begun and not case.employment)
-    asked = {
-        HELD_OPT: (held, ["stem", "opt"]),
-        NO_EMPLOYMENT: (empty, ["employment", "opt.ead_start"]),
-        CAP_GAP_ALONE: (alone, ["cap_gap", "opt", "stem"]),
-    }
-    questions: list[dict[str, Any]] = [
-        {"id": question, "because": because}
-        for question, (stands, because) in asked.items()
-        if stands == OPEN
-    ]
+    started = None if case.opt is None else _shown(case.opt.ead_start)
+    empty = ask(
+        NO_EMPLOYMENT,
+        begun and not case.employment,
+        {"employment": [], "opt.ead_start": started},
+        through=today,
+    )
+    alone = ask(
+        CAP_GAP_ALONE,
+        case.cap_gap is not None and no_training,
+        {"cap_gap": True, "opt": None, "stem": None},
+    )
+    nothing = ask(
+        NOTHING_MORE,
+        no_training and case.cap_gap is None,
+        {"opt": None, "stem": None, "cap_gap": None},
+    )
+    cpt = ask(CPT_USED, case.cpt_full_time_days is None, {CPT_DAYS: None})
+    unconfirmed = tuple(question["id"] for question in questions)
+
+    # Facts that do not fit. With the answer yes the dates stand as entered and the
+    # matter is one for the DSO. Until then the inputs in it give no value.
+    confirmed: list[str] = []
+    unsettled: list[str] = []
+    for fact in _facts(case, work):
+        stands = ask(fact.id, True, fact.about)
+        if stands == YES:
+            confirmed.append(fact.id)
+            continue
+        unsettled.append(fact.id)
+        work.conflicted.update(fact.about)
+
+    for part, block in (("opt", case.opt), ("stem", case.stem)):
+        if block is not None and (block.i765_filed_date is not None or block.ead_start is not None):
+            work.done.update(STEPS[part])
 
     # With the answer yes the OPT block is one the person holds and has not entered.
     opt = NOT_ENTERED if case.opt is None and YES in (held, alone) else case.opt
@@ -756,6 +1036,8 @@ def compute_f1(
     listed = empty in (NOT_RAISED, YES)
     if empty == NO:
         work.name_missing("employment")
+    if nothing == NO:
+        work.name_missing("training")
 
     _add_program_items(work, case)
     if case.opt is not None:
@@ -771,28 +1053,44 @@ def compute_f1(
         unknown_end = ("opt" if alone == OPEN else "opt.ead_end",)
         ends |= dict.fromkeys(unknown_end)
     grace = "grace.after_completion_days"
-    work.add(
-        "grace.ends",
-        "date",
-        ends,
-        (grace,),
-        lambda v: final_end + timedelta(days=_whole(v, grace)),
-        needs=unknown_end,
-    )
+
+    def grace_ends(v: Values) -> Value:
+        return final_end + timedelta(days=_whole(v, grace))
+
+    work.add("grace.ends", "date", ends, (grace,), grace_ends, needs=unknown_end)
     if case.stem is not None:
         _add_stem_items(work, opt, case.stem)
+    lists: list[dict[str, Any]] = []
+    if case.opt is not None and case.stem is None:
+        _add_next_step(work, case.opt, ends, grace_ends)
+        lists = _lists(work)
+
+    # Full-time CPT. Days that were not entered are never taken as zero: the zero is
+    # the person's own statement, and the inputs say so.
+    cpt_days = case.cpt_full_time_days
+    cpt_inputs: dict[str, Any] = {CPT_DAYS: cpt_days}
+    if cpt == NO:
+        cpt_days = 0
+        cpt_inputs[CPT_USED] = {
+            "answer": False,
+            "on": case.confirmations[CPT_USED].on.isoformat(),
+        }
+    elif cpt == OPEN:
+        work.silent.add(CPT_DAYS)
+    stated = cpt_days
     work.add(
         "cpt.full_time_days_used",
         "days",
-        {"cpt_full_time_days": case.cpt_full_time_days},
+        cpt_inputs,
         ("cpt.full_time_months_bar", CPT_BAR),
-        lambda v: case.cpt_full_time_days,
+        lambda v: stated,
+        needs=(CPT_DAYS,) if cpt in (OPEN, YES) else (),
     )
     if case.cap_gap is not None:
         _add_cap_gap(work, case.cap_gap)
 
     _missing_ead_dates(work, opt, case.stem)
-    judgement_items = _judgement_items(work, case)
+    judgement_items = (*_judgement_items(work, case, cpt_days), *confirmed)
     if held == NO:
         # The engine states no conclusion. The words of the law go with the judgement.
         work.show(STEM_FOLLOWS_OPT)
@@ -803,12 +1101,12 @@ def compute_f1(
         VerdictInputs(
             documents_count=case.documents_count,
             missing_inputs=tuple(work.missing),
-            conflicting_inputs=conflicts,
+            conflicting_inputs=(*conflicts, *unsettled),
             rules_checked_on=pack.rules_checked_on,
             depends_on_litigated_rule=today > final_end,
             judgement_items=judgement_items,
             open_items=_open_items(work),
-            open_questions=tuple(question["id"] for question in questions),
+            open_questions=unconfirmed,
         ),
         clock,
         today,
@@ -824,4 +1122,6 @@ def compute_f1(
         "rules": work.rules,
         "questions": questions,
         "today": {"date": today.isoformat(), "time_zone": case.time_zone},
+        "upcoming": sorted(work.ahead, key=lambda entry: str(entry["date"])),
+        "lists": lists,
     }

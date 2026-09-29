@@ -16,6 +16,8 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -23,11 +25,11 @@ import yaml
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane, violations
-from tools.factory import alerts, jail, ledger, registry, sandbox, worktree
+from tools.factory import alerts, billing, jail, ledger, registry, sandbox, worktree
 from tools.factory.config import load_config, review_problems
 from tools.factory.paths import REPO_ROOT, main_repo, state_dir
 
-TRAILER = "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+TRAILER = "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 NEEDS_FOUNDER = {
     "dependency_added": (
         "pyproject.toml",
@@ -76,6 +78,9 @@ def load_plan(path: Path, repo: Path) -> dict[str, Any]:
     plan.setdefault("merge", "local")
     if plan["merge"] not in {"local", "pr"}:
         raise PlanError("merge is local or pr")
+    agents = [job["agent"] for rnd in plan["rounds"] for job in rnd["lanes"]]
+    if plan.get("audited", True) and "auditor" not in agents:
+        raise PlanError("the plan has no audit: its last round must run the auditor")
     seen: set[str] = set()
     for rnd in plan["rounds"]:
         lanes = [job["lane"] for job in rnd["lanes"]]
@@ -120,6 +125,134 @@ def _gh(repo: Path, *args: str, timeout: int = 1800) -> tuple[int, str]:
         ["gh", *args], cwd=repo, check=False, capture_output=True, text=True, timeout=timeout
     )
     return done.returncode, (done.stdout + done.stderr).strip()
+
+
+# Errors from the network or GitHub that pass on their own; a remote step is tried again.
+TRANSIENT = (
+    "Permission denied (publickey)",
+    "Could not read from remote repository",
+    "Connection reset",
+    "Connection closed",
+    "Connection refused",
+    "timed out",
+    "Could not resolve host",
+    "error connecting to api.github.com",
+    "HTTP 502",
+    "HTTP 503",
+    "HTTP 504",
+    "unexpected EOF",
+)
+
+
+def _remote(call: Callable[[], tuple[int, str]]) -> tuple[int, str]:
+    """Run a step that talks to the remote, again after a wait while it fails transiently.
+
+    A push was once refused with Permission denied (publickey) and passed a minute later
+    with nothing changed. Three more tries, 5, 20 and 60 seconds apart, before the step is
+    reported as failed; an error that is not on the list is reported at once.
+    """
+    waits = [float(w) for w in os.environ.get("DULY_RETRY_SECONDS", "5,20,60").split(",") if w]
+    code, text = call()
+    for wait in waits:
+        if code == 0 or not any(sign in text for sign in TRANSIENT):
+            break
+        time.sleep(wait)
+        code, text = call()
+    return code, text
+
+
+# How long CI may take to register checks on a pushed commit, and to finish them.
+CI_REGISTER_SECONDS = 600
+CI_FINISH_SECONDS = 3600
+PASSED = {"SUCCESS", "NEUTRAL", "SKIPPED"}
+
+
+def open_pull_request(repo: Path, target: str, work: str, title: str, body: str) -> tuple[int, str]:
+    """Open the pull request from work into target, or bring the one already open up to date.
+
+    A round that is run again after a failure finds its first pull request still open;
+    GitHub allows one per pair of branches, so that one is used.
+    """
+    code, text = _remote(
+        lambda: _gh(
+            repo,
+            "pr",
+            "list",
+            "--head",
+            work,
+            "--base",
+            target,
+            "--state",
+            "open",
+            "--json",
+            "number",
+        )
+    )
+    if code:
+        return code, text
+    try:
+        already = json.loads(text or "[]")
+    except json.JSONDecodeError:
+        return 1, f"gh pr list gave no JSON: {text[:120]}"
+    if already:
+        return _remote(lambda: _gh(repo, "pr", "edit", work, "--title", title, "--body", body))
+    return _remote(
+        lambda: _gh(
+            repo, "pr", "create", "--base", target, "--head", work, "--title", title, "--body", body
+        )
+    )
+
+
+def _check_state(check: dict[str, Any]) -> str:
+    """pending, passed or failed, for a check run or a commit status of statusCheckRollup."""
+    if check.get("__typename") == "StatusContext":
+        state = str(check.get("state", "")).upper()
+        return (
+            "pending"
+            if state in {"PENDING", "EXPECTED", ""}
+            else ("passed" if state in PASSED else "failed")
+        )
+    if str(check.get("status", "")).upper() != "COMPLETED":
+        return "pending"
+    return "passed" if str(check.get("conclusion", "")).upper() in PASSED else "failed"
+
+
+def wait_for_ci(repo: Path, work: str, sha: str) -> tuple[bool, str]:
+    """Wait for every check on the commit sha, the head of work, and say whether all passed.
+
+    Only the checks of that exact commit are read. Right after a push, GitHub may still
+    show the pull request at its earlier head, with that commit's results; those are never
+    taken for the new commit's.
+    """
+    poll = float(os.environ.get("DULY_CI_POLL_SECONDS", "15"))
+    began = time.monotonic()
+    seen = False
+    while True:
+        waited = time.monotonic() - began
+        code, text = _gh(repo, "pr", "view", work, "--json", "headRefOid,statusCheckRollup")
+        if code == 0:
+            view = json.loads(text or "{}")
+            checks = view.get("statusCheckRollup") or []
+            if view.get("headRefOid") == sha and checks:
+                seen = True
+                states = [_check_state(c) for c in checks]
+                if "failed" in states:
+                    names = [
+                        str(c.get("name") or c.get("context"))
+                        for c, st in zip(checks, states, strict=True)
+                        if st == "failed"
+                    ]
+                    return False, f"failed on {sha[:10]}: {', '.join(names)}"
+                if all(st == "passed" for st in states):
+                    return True, f"{len(checks)} checks passed on {sha[:10]}"
+        if not seen and waited > CI_REGISTER_SECONDS:
+            return (
+                False,
+                f"no CI checks registered on {sha[:10]} in {CI_REGISTER_SECONDS // 60} minutes",
+            )
+        if waited > CI_FINISH_SECONDS:
+            return False, f"CI did not finish on {sha[:10]} in {CI_FINISH_SECONDS // 60} minutes"
+        time.sleep(poll)
 
 
 def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, Any]) -> bool:
@@ -206,48 +339,28 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
         f"{chr(0x1F916)} Generated with [Claude Code](https://claude.com/claude-code)"
     )
     steps = [
-        ("push the phase branch", _git(repo, "push", "-q", "origin", target)),
-        ("push the working branch", _git(repo, "push", "-q", "--force-with-lease", "origin", work)),
+        ("push the phase branch", _remote(lambda: _git(repo, "push", "-q", "origin", target))),
+        (
+            "push the working branch",
+            _remote(lambda: _git(repo, "push", "-q", "--force-with-lease", "origin", work)),
+        ),
     ]
     if not any(code for _, (code, _) in steps):
-        steps.append(
-            (
-                "open the pull request",
-                _gh(
-                    repo,
-                    "pr",
-                    "create",
-                    "--base",
-                    target,
-                    "--head",
-                    work,
-                    "--title",
-                    title,
-                    "--body",
-                    body,
-                ),
-            )
-        )
+        steps.append(("open the pull request", open_pull_request(repo, target, work, title, body)))
     for what, (code, text) in steps:
         if code:
             alerts.notify("failed", f"could not {what}: {text[:160]}", cwd=repo)
             return False
-    _say(repo, "step", f"pull request opened for round {name}; waiting for clean CI")
-    time.sleep(10)  # give CI a moment to register its checks
-    code, text = _gh(repo, "pr", "checks", work, "--watch", "--fail-fast", "--interval", "15")
-    if code:
-        alerts.notify("failed", f"clean CI did not pass for round {name}: {text[-200:]}", cwd=repo)
+    _, sha = _git(repo, "rev-parse", work)
+    _say(repo, "step", f"pull request ready for round {name}; waiting for clean CI on {sha[:10]}")
+    passed, detail = wait_for_ci(repo, work, sha.strip())
+    if not passed:
+        alerts.notify("failed", f"clean CI did not pass for round {name}: {detail}", cwd=repo)
         return False
-    code, text = _gh(
-        repo,
-        "pr",
-        "merge",
-        work,
-        "--merge",
-        "--subject",
-        title,
-        "--body",
-        f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}",
+    _say(repo, "step", f"clean CI for round {name}: {detail}")
+    merge_body = f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}"
+    code, text = _remote(
+        lambda: _gh(repo, "pr", "merge", work, "--merge", "--subject", title, "--body", merge_body)
     )
     if code:
         alerts.notify("failed", f"could not merge the pull request: {text[:160]}", cwd=repo)
@@ -257,7 +370,7 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
         ("branch", "-f", target, f"origin/{target}"),
         ("merge", "-q", "--ff-only", f"origin/{target}"),
     ):
-        code, text = _git(repo, *args)
+        code, text = _remote(partial(_git, repo, *args))
         if code:
             alerts.notify("failed", f"could not bring {target} back: {text[:160]}", cwd=repo)
             return False
@@ -358,6 +471,8 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
             "--done",
             job["done"],
             "--base",
+            working_branch(plan),
+            "--protect",
             plan["branch"],
             "--result",
             str(result),
@@ -419,6 +534,13 @@ def main() -> int:
     if head != branch:
         print(f"check out {plan['branch']} first")
         return 1
+    if not os.environ.get("DULY_CLAUDE_BIN"):
+        try:
+            plan_name = billing.require_subscription()
+        except billing.BillingError as err:
+            print(f"refused: {err}")
+            return 1
+        print(f"Running on the {plan_name} subscription login. No key is in use.", flush=True)
     try:
         registry.claim(
             f"orchestrator-{os.getpid()}",

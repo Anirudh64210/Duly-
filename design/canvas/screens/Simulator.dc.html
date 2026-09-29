@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scenarios</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F8F7F4;color:#1A1917;-webkit-font-smoothing:antialiased}
+a{color:#2B4EA2;text-decoration:none}a:hover{color:#22417F}
+@keyframes rise{from{transform:translateY(12px)}to{transform:none}}
+@keyframes drop{from{transform:translateY(-6px)}to{transform:none}}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1)}
+.d1{animation-delay:.06s}.d2{animation-delay:.14s}.d3{animation-delay:.24s}
+.hrow{transition:background .16s ease}
+.hrow:hover{background:#F0EEE8}
+.btn{transition:transform .12s ease,background .16s ease}
+.btn:hover{background:#24448C}
+.btn:active{transform:scale(.97)}
+.tab{cursor:pointer;transition:color .16s ease,border-color .16s ease}
+.drop{animation:drop .3s ease-out}
+.src{transition:background .16s ease,border-color .16s ease}
+.src:hover{background:#E9EEF9;border-color:#CBD6EE}
+</style>
+</helmet>
+<div style="width: 1280px; height: 832px; box-sizing: border-box; display: flex; background: #F8F7F4">
+
+  <div style="width: 208px; flex-shrink: 0; box-sizing: border-box; border-right: 1px solid #ECEAE4; display: flex; flex-direction: column; gap: 2px; padding: 26px 14px">
+    <div style="padding: 0 10px; margin-bottom: 26px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em">Duly<span style="color: #2B4EA2">.</span></div>
+    <a href="Main.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Home</a>
+    <a href="Timeline.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Timeline</a>
+    <a href="Documents.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Documents</a>
+    <a href="Checklist.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Checklists</a>
+    <a href="Simulator.dc.html" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; font-weight: 600; color: #2B4EA2">Scenarios</a>
+    <a href="Updates.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Updates</a>
+    <a href="WorkBook.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">WorkBook</a>
+    <div style="flex-grow: 1"></div>
+    <a href="#case" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Your case</a>
+    <a href="#settings" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Settings</a>
+    <a href="#feedback" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Feedback</a>
+  </div>
+
+  <div style="flex-grow: 1; box-sizing: border-box; display: flex; justify-content: center; overflow: hidden">
+    <div style="width: 720px; display: flex; flex-direction: column; padding-top: 50px">
+
+      <div class="rise" style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em">Scenarios</div>
+        <div style="font-size: 14px; color: #6B6862">Ask anything. Duly answers from your case and the rules, cites them, and says when it isn't sure.</div>
+      </div>
+
+      <div class="rise d1" style="margin-top: 20px; display: flex; gap: 10px">
+        <label for="ask" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Ask a question</label>
+        <input id="ask" type="text" placeholder="What happens if…" style="flex-grow: 1; font-family: inherit; font-size: 14px; color: #1A1917; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 10px; padding: 12px 16px; outline: none">
+        <button class="btn" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border: none; border-radius: 10px; padding: 12px 24px; cursor: pointer">Ask</button>
+      </div>
+
+      <div class="rise d2" style="margin-top: 22px; display: flex; gap: 20px; font-size: 13.5px; border-bottom: 1px solid #ECEAE4">
+        <span class="tab" role="button" tabindex="0" onClick="{{pJob}}" style="padding-bottom: 9px; font-weight: {{jobW}}; color: {{jobC}}; border-bottom: 2px solid {{jobB}}">I lose my job</span>
+        <span class="tab" role="button" tabindex="0" onClick="{{pTravel}}" style="padding-bottom: 9px; font-weight: {{travelW}}; color: {{travelC}}; border-bottom: 2px solid {{travelB}}">I travel abroad</span>
+        <span class="tab" role="button" tabindex="0" onClick="{{pRfe}}" style="padding-bottom: 9px; font-weight: {{rfeW}}; color: {{rfeC}}; border-bottom: 2px solid {{rfeB}}">My filing gets an RFE</span>
+      </div>
+
+      <sc-if value="{{isJob}}" hint-placeholder-val="{{ true }}">
+        <div class="drop" style="display: flex; flex-direction: column; padding-top: 26px">
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em">You'd have 78 days, and clear moves.</div>
+          <div style="font-size: 13.5px; color: #6B6862; margin-top: 6px">If employment ends Nov 1: 12 of 90 unemployment days used, new work reported by Jan 18, 2027. Your STEM window stays open.</div>
+          <div style="margin-top: 22px; display: flex; flex-direction: column">
+            <div style="display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid #F0EEE8">
+              <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">1</span>
+              <div style="font-size: 14px; color: #1A1917">Land the next role first. Any qualifying work stops the clock: full-time, part-time at 20+ hours, contract, or self-employment in your field.</div>
+            </div>
+            <div style="display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid #F0EEE8">
+              <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">2</span>
+              <div style="font-size: 14px; color: #1A1917">Report the change in the SEVP portal within 10 days: the end of the old job and the start of the new one.</div>
+            </div>
+            <div style="display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid #F0EEE8; border-bottom: 1px solid #F0EEE8">
+              <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">3</span>
+              <div style="font-size: 14px; color: #1A1917">If the search runs long, unpaid work in your field at 20+ hours legitimately stops the clock too. Real work, logged in WorkBook, not a paper shield.</div>
+            </div>
+          </div>
+          <div style="margin-top: 18px; font-size: 13px; color: #8A6A2A; line-height: 1.55; max-width: 640px"><span style="font-weight: 600">Honest caveats:</span> volunteering must be genuinely unpaid, in your field, and not displace paid labor. Several part-time jobs can add up to 20 hours. Some DSOs read these rules more strictly, so confirm with yours.</div>
+          <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+            <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">RULES PULLED</span>
+            <a href="#cfr" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">8 CFR 214.2(f)(10)(ii)(E)</a>
+            <a href="#sevp" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">SEVP OPT Policy Guidance</a>
+            <a href="#ice" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">ICE OPT unemployment FAQ</a>
+            <a href="#rec" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">Your SEVP record</a>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isTravel}}" hint-placeholder-val="{{ false }}">
+        <div class="drop" style="display: flex; flex-direction: column; padding-top: 26px">
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em">Travel is fine, with four things in hand.</div>
+          <div style="font-size: 13.5px; color: #6B6862; margin-top: 6px">While employed on approved OPT, you can leave and re-enter. Duly checked your four against the vault.</div>
+          <div style="margin-top: 22px; display: flex; flex-direction: column">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #F0EEE8; font-size: 14px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Passport valid through Mar 2031</div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #F0EEE8; font-size: 14px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>F-1 visa stamp valid until Jul 12, 2028</div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #F0EEE8; font-size: 14px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>EAD card in the vault</div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid #F0EEE8; border-bottom: 1px solid #F0EEE8; font-size: 14px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>I-20 travel signature valid until Feb 14. After that, ask your DSO for a fresh one</div>
+          </div>
+          <div style="margin-top: 14px; font-size: 13.5px; color: #4A4844">On the way back, pull a fresh I-94 and check it. Duly reminds you and files it.</div>
+          <div style="margin-top: 14px; font-size: 13px; color: #8A6A2A; line-height: 1.55; max-width: 640px"><span style="font-weight: 600">Honest caveats:</span> days abroad while unemployed still count toward your 90. If a STEM filing is pending, wait for the receipt notice before flying, because re-entry on a pending case is riskier and we'd rather say so.</div>
+          <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+            <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">RULES PULLED</span>
+            <a href="#cbp" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">CBP I-94 records</a>
+            <a href="#icefaq" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">ICE travel FAQ</a>
+            <a href="#docs" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">Your documents</a>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isRfe}}" hint-placeholder-val="{{ false }}">
+        <div class="drop" style="display: flex; flex-direction: column; padding-top: 26px">
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em">An RFE is a request, not a denial.</div>
+          <div style="font-size: 13.5px; color: #6B6862; margin-top: 6px">USCIS is asking for evidence, and you keep working while you answer. Deadlines are shorter now under PA-2026-05.</div>
+          <div style="margin-top: 22px; display: flex; flex-direction: column">
+            <div style="display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid #F0EEE8">
+              <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">1</span>
+              <div style="font-size: 14px; color: #1A1917">Read exactly what's asked. Answer those requests, in their order, nothing invented.</div>
+            </div>
+            <div style="display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid #F0EEE8">
+              <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">2</span>
+              <div style="font-size: 14px; color: #1A1917">One complete response, sent once. Duly assembles the pack: notice on top, exhibit index, numbered exhibits, continuous pages.</div>
+            </div>
+            <div style="display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid #F0EEE8; border-bottom: 1px solid #F0EEE8">
+              <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">3</span>
+              <div style="font-size: 14px; color: #1A1917">A missing document gets explained, never omitted, and your consistency check runs across every exhibit before it ships.</div>
+            </div>
+          </div>
+          <div style="margin-top: 18px; font-size: 13px; color: #8A6A2A; line-height: 1.55; max-width: 640px"><span style="font-weight: 600">Honest caveats:</span> Duly organizes the record; the cover letter and any legal argument come from you or an attorney. For a complex request, an attorney review is money well spent.</div>
+          <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+            <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">RULES PULLED</span>
+            <a href="#pa" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">USCIS PA-2026-05</a>
+            <a href="#rfeformat" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">RFE response standards</a>
+            <a href="#pack" class="src" style="font-size: 12px; color: #2B4EA2; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 4px 11px">Your evidence pack</a>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="flex-grow: 1"></div>
+      <div class="rise d3" style="padding-bottom: 24px; font-size: 12px; color: #B0ACA3">Every answer cites its rules. Where the rules are unclear, Duly says so. Not legal advice.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":832}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const path = (this.state && this.state.path) || 'job';
+    const set = (p) => () => this.setState({ path: p });
+    const on = { c: '#1A1917', b: '#2B4EA2', w: '600' };
+    const off = { c: '#8A8780', b: 'transparent', w: '400' };
+    const s = (p) => path === p ? on : off;
+    return {
+      isJob: path === 'job', isTravel: path === 'travel', isRfe: path === 'rfe',
+      jobC: s('job').c, jobB: s('job').b, jobW: s('job').w,
+      travelC: s('travel').c, travelB: s('travel').b, travelW: s('travel').w,
+      rfeC: s('rfe').c, rfeB: s('rfe').b, rfeW: s('rfe').w,
+      pJob: set('job'), pTravel: set('travel'), pRfe: set('rfe')
+    };
+  }
+}
+</script>
+</body>
+</html>

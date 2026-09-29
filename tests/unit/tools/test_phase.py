@@ -51,7 +51,14 @@ def plan_file(repo: Path, rounds: list[dict], **extra) -> Path:
     path = repo / "plan.yaml"
     path.write_text(
         yaml.safe_dump(
-            {"branch": "phase-x", "spec": "README.md", "merge": "local", "rounds": rounds, **extra}
+            {
+                "branch": "phase-x",
+                "spec": "README.md",
+                "merge": "local",
+                "audited": False,
+                "rounds": rounds,
+                **extra,
+            }
         )
     )
     mini.git(repo, "checkout", "-q", "phase-x")
@@ -359,7 +366,7 @@ def test_a_merge_conflict_is_reported_and_leaves_the_branch_clean(tmp_path, monk
 )
 def test_a_bad_plan_is_refused(tmp_path, change, problem):
     repo = mini.build(tmp_path)
-    plan = {"branch": "phase-x", "spec": "README.md", "rounds": [], **change}
+    plan = {"branch": "phase-x", "spec": "README.md", "audited": False, "rounds": [], **change}
     path = tmp_path / "p.yaml"
     path.write_text(yaml.safe_dump(plan))
     with pytest.raises(phase.PlanError, match=problem):
@@ -379,7 +386,9 @@ def test_two_orchestrators_cannot_share_a_branch(tmp_path):
         repo,
         pid=os.getpid(),
     )
-    done = orchestrate(repo, {"DULY_NO_NOTIFY": "1"})
+    # The stand-in agent, so the claim is what refuses and not the login check: CI runs
+    # on a machine with no Claude login.
+    done = orchestrate(repo, {"DULY_NO_NOTIFY": "1", **mini.scenario(tmp_path, [])})
     assert done.returncode == 1
     assert "already claimed" in done.stdout
 
@@ -420,6 +429,7 @@ def with_remote(tmp_path: Path, repo: Path, ci: str = "pass") -> dict[str, str]:
         "PATH": f"{tools}:{os.environ['PATH']}",
         "FAKE_GH_STATE": str(tmp_path / "gh.json"),
         "FAKE_GH_CI": ci,
+        "DULY_CI_POLL_SECONDS": "0",
     }
 
 
@@ -436,7 +446,10 @@ def pr_plan(repo: Path) -> None:
             {
                 "name": "B",
                 "checks": [{"name": "landed", "run": "test -f engine/new.py"}],
-                "lanes": [job("L-engine", "builder", "test -f engine/new.py")],
+                # The second round must start from what the first round landed.
+                "lanes": [
+                    job("L-engine", "builder", "test -f engine/new.py -a -f tests/test_new.py")
+                ],
             },
         ],
         merge="pr",
@@ -498,3 +511,112 @@ def test_nothing_reaches_the_phase_branch_when_ci_fails(tmp_path):
     assert mini.git(repo, "rev-parse", "phase-x") == before
     assert any("clean CI did not pass" in row["message"] for row in ledger.read(repo))
     assert (repo / "engine" / "new.py").exists()  # the work waits on the working branch
+
+
+def test_a_round_run_again_reuses_its_open_pull_request(tmp_path):
+    repo = mini.build(tmp_path)
+    env = {
+        **mini.scenario(
+            tmp_path,
+            {
+                "L-tests": [mini.good(["tests/test_new.py"], "tests")],
+                "L-engine": [mini.good(["engine/new.py"])],
+            },
+        ),
+        **with_remote(tmp_path, repo),
+    }
+    # The first attempt at the round left its pull request open.
+    (tmp_path / "gh.json").write_text(
+        json.dumps(
+            {
+                "prs": [
+                    {
+                        "base": "phase-x",
+                        "head": "work/phase-x",
+                        "title": "phase-x: round B",
+                        "body": "first attempt",
+                        "state": "open",
+                    }
+                ]
+            }
+        )
+    )
+    pr_plan(repo)
+    done = orchestrate(repo, env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    prs = json.loads((tmp_path / "gh.json").read_text())["prs"]
+    assert [(p["head"], p["state"]) for p in prs] == [("work/phase-x", "merged")]
+    assert prs[0]["edits"] == 1
+    assert "merge(L-engine)" in prs[0]["body"]
+
+
+def test_checks_left_from_an_earlier_commit_are_never_read_as_the_new_ones(tmp_path):
+    repo = mini.build(tmp_path)
+    env = {
+        **mini.scenario(
+            tmp_path,
+            {
+                "L-tests": [mini.good(["tests/test_new.py"], "tests")],
+                "L-engine": [mini.good(["engine/new.py"])],
+            },
+        ),
+        **with_remote(tmp_path, repo),
+        "FAKE_GH_STALE": "3",  # three views still show the earlier head, with a failed check
+    }
+    pr_plan(repo)
+    done = orchestrate(repo, env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    state = json.loads((tmp_path / "gh.json").read_text())
+    assert state["views"] == 4
+    assert state["prs"][0]["state"] == "merged"
+
+
+def test_the_check_states_of_github_are_read_right():
+    run = {"__typename": "CheckRun", "status": "COMPLETED"}
+    assert phase._check_state({**run, "conclusion": "SUCCESS"}) == "passed"
+    assert phase._check_state({**run, "conclusion": "SKIPPED"}) == "passed"
+    assert phase._check_state({**run, "conclusion": "FAILURE"}) == "failed"
+    assert phase._check_state({**run, "conclusion": "CANCELLED"}) == "failed"
+    assert phase._check_state({"__typename": "CheckRun", "status": "IN_PROGRESS"}) == "pending"
+    status = {"__typename": "StatusContext"}
+    assert phase._check_state({**status, "state": "PENDING"}) == "pending"
+    assert phase._check_state({**status, "state": "SUCCESS"}) == "passed"
+    assert phase._check_state({**status, "state": "ERROR"}) == "failed"
+
+
+def test_a_plan_must_end_with_an_audit(tmp_path):
+    repo = mini.build(tmp_path)
+    rounds = [{"name": "A", "lanes": [job("L-engine", "builder", "true")]}]
+    path = tmp_path / "p.yaml"
+    path.write_text(yaml.safe_dump({"branch": "phase-x", "spec": "README.md", "rounds": rounds}))
+    with pytest.raises(phase.PlanError, match="no audit"):
+        phase.load_plan(path, repo)
+    rounds.append({"name": "Z", "lanes": [job("L-audit", "auditor", "true")]})
+    path.write_text(yaml.safe_dump({"branch": "phase-x", "spec": "README.md", "rounds": rounds}))
+    assert phase.load_plan(path, repo)["rounds"][-1]["name"] == "Z"
+
+
+def test_a_remote_step_is_tried_again_only_while_it_fails_transiently(monkeypatch):
+    monkeypatch.setenv("DULY_RETRY_SECONDS", "0,0,0")
+    denied = (128, "git@github.com: Permission denied (publickey).")
+
+    def replies(*answers):
+        calls = []
+
+        def call():
+            calls.append(1)
+            return answers[min(len(calls), len(answers)) - 1]
+
+        return call, calls
+
+    call, calls = replies(denied, (0, "pushed"))
+    assert phase._remote(call) == (0, "pushed")
+    assert len(calls) == 2
+
+    call, calls = replies((1, "! [rejected] stale info"))  # not transient: reported at once
+    assert phase._remote(call) == (1, "! [rejected] stale info")
+    assert len(calls) == 1
+
+    call, calls = replies(denied)  # still refused after every wait: reported
+    assert phase._remote(call) == denied
+    assert len(calls) == 4

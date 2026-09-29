@@ -1,0 +1,2540 @@
+[
+  {
+    "id": "PLAN00-001",
+    "source": "duly-plan/00-README.md, Read order",
+    "text": "Read order for a Claude Code session: 01 master plan, 02 architecture, 03 through 10, 11-claude-code-handoff, 12 open questions.",
+    "kind": "factory",
+    "status": "superseded",
+    "evidence": "D34; CLAUDE.md",
+    "note": "D34 makes the plan starting context only, and CLAUDE.md now sets the read order as DECISIONS, PRINCIPLES, BOUNDARY, then the lane SPEC."
+  },
+  {
+    "id": "PLAN00-002",
+    "source": "duly-plan/00-README.md, Read order",
+    "text": "11-claude-code-handoff: copy its contents into the repo.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "CLAUDE.md; .claude/settings.json; .claude/hooks/guard_paths.py",
+    "note": "CLAUDE.md, .claude, hooks and the contracts folder are in the repository."
+  },
+  {
+    "id": "PLAN00-003",
+    "source": "duly-plan/00-README.md, Companion inputs",
+    "text": "workbook-handoff/ (the approved WorkBook design package; its docs 02, 04, 07 and 08 are binding) is available to the session.",
+    "kind": "workbook",
+    "status": "met",
+    "evidence": "workbook-handoff/docs/02-design-principles.md, 04, 07, 08",
+    "note": "The folder and the four binding documents are present; nothing in the code implements them yet."
+  },
+  {
+    "id": "PLAN00-004",
+    "source": "duly-plan/00-README.md, Companion inputs",
+    "text": "The four research docs are available: market and pricing validation, compliance and system design, backend and agent factory, skeleton plan v0.",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "docs/research holds one law and liability document and five notes; none of the four named documents is in the repository."
+  },
+  {
+    "id": "PLAN00-005",
+    "source": "duly-plan/00-README.md, Working agreement with the founder",
+    "text": "Nothing user-visible ships without passing the full gate pipeline in 07.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": ".github/workflows/ci.yml; Makefile",
+    "note": "Gates 1 to 7 run in CI, but the e2e and attack targets only print a message and exit 1, and no eval, ZAP or load gate exists."
+  },
+  {
+    "id": "PLAN00-006",
+    "source": "duly-plan/00-README.md, Working agreement with the founder",
+    "text": "The Rejected lists (workbook-handoff 07 and this package 01) are never reintroduced.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+    "note": "The copy linter blocks the rejected wording; no check covers the rejected design items such as red badges or countdowns."
+  },
+  {
+    "id": "PLAN00-007",
+    "source": "duly-plan/00-README.md, Working agreement with the founder",
+    "text": "Speed does not matter. Quality does. When a spec is ambiguous, stop and ask; do not pattern-match.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "CLAUDE.md (When you are stuck; Confirm, never assume); PRINCIPLES.md",
+    "note": "The rule is written into the agent instructions; it is a working rule and no gate can test it."
+  },
+  {
+    "id": "PLAN00-008",
+    "source": "duly-plan/00-README.md, Working agreement with the founder",
+    "text": "No em dashes or en dashes anywhere: code comments, UI copy, emails, docs.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py (DASHES); make gate-1; tests/unit/tools/test_copy_lint.py",
+    "note": "Gate 1 fails on any long dash; docs/research and the WorkBook prototype are skipped by the linter."
+  },
+  {
+    "id": "PLAN00-009",
+    "source": "duly-plan/00-README.md, Working agreement with the founder",
+    "text": "The founder tests everything locally first: make up must always produce a working full stack.",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "Makefile (up); infra/docker-compose.yml; specs/phase-0/SPEC.md Result",
+    "note": "make up is recorded as passing once on 2026-09-28; no automated test boots the stack, so nothing proves it always works."
+  },
+  {
+    "id": "PLAN00-010",
+    "source": "duly-plan/00-README.md, Collaboration protocol for Claude Code CLI",
+    "text": "Initialize the repo from 11-claude-code-handoff (CLAUDE.md, .claude/, hooks, contracts skeleton).",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "CLAUDE.md; .claude/hooks/; contracts/",
+    "note": "All four pieces exist."
+  },
+  {
+    "id": "PLAN00-011",
+    "source": "duly-plan/00-README.md, Collaboration protocol for Claude Code CLI",
+    "text": "Work one lane per worktree per 08.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "Makefile (lane); tools/factory/worktree.py; tools/factory/registry.py",
+    "note": "Worktrees are made per lane and a registry refuses a second claim."
+  },
+  {
+    "id": "PLAN00-012",
+    "source": "duly-plan/00-README.md, Collaboration protocol for Claude Code CLI",
+    "text": "Open a SPEC.md before code in every lane.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "specs/phase-0/SPEC.md; specs/phase-2/SPEC.md; specs/product-1/SPEC.md; specs/desktop-1/SPEC.md",
+    "note": "SPEC files exist per phase or round, not per lane; the spec field in every .claude/lanes file is empty."
+  },
+  {
+    "id": "PLAN00-013",
+    "source": "duly-plan/00-README.md, Collaboration protocol for Claude Code CLI",
+    "text": "Present each phase of 10 as a reviewed PR set.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "docs/factory/CHECKLIST.md item 2.3; reviews/phase-2.md",
+    "note": "Rounds reach the phase branch by pull request and phase 2 has written reviews; phases 1 and 3 to 12 have not been presented."
+  },
+  {
+    "id": "PLAN00-014",
+    "source": "duly-plan/00-README.md, Collaboration protocol for Claude Code CLI",
+    "text": "The founder is the merge authority on high-attention paths.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": ".claude/lanes/*.yaml (review field); D40",
+    "note": "Lanes carry a review level and held work waits for the founder, but GitHub branch protection is off (D40) and L-api is marked review low where the plan calls it high attention."
+  },
+  {
+    "id": "PLAN01-001",
+    "source": "duly-plan/01-master-plan.md, Product in one line",
+    "text": "Duly is your immigration record, kept: documents, deadlines, cited answers, and proof of work.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "engine/f1.py; web/src/components/Result.tsx",
+    "note": "Only F-1 dates with citations are computed, statelessly; no record is kept, and documents and proof of work do not exist."
+  },
+  {
+    "id": "PLAN01-002",
+    "source": "duly-plan/01-master-plan.md, Product in one line",
+    "text": "Computed by code.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/f1.py; tools/gates/engine_literals.py; security/semgrep/duly.yml",
+    "note": "Every date comes from the engine and gate 7 refuses unsourced numbers in it."
+  },
+  {
+    "id": "PLAN01-003",
+    "source": "duly-plan/01-master-plan.md, Product in one line",
+    "text": "Watched daily.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "watch/sources.yaml; pipeline/graph.py",
+    "note": "Only a source list and a stage skeleton exist; nothing watches any source."
+  },
+  {
+    "id": "PLAN01-004",
+    "source": "duly-plan/01-master-plan.md, Product in one line",
+    "text": "Honest always.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
+    "note": "The verdict never falls back to the quiet state; the wider honesty suites in evals do not exist."
+  },
+  {
+    "id": "PLAN01-005",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Web frontend: React 18 + TypeScript + Vite.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/package.json",
+    "note": "TypeScript and Vite are used, but React is version 19; the change is recorded in specs/phase-0/SPEC.md and not in DECISIONS.md."
+  },
+  {
+    "id": "PLAN01-006",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Web frontend: TanStack Router and Query.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/package.json",
+    "note": "TanStack Query is used; TanStack Router is not installed and the app has one screen with no routes."
+  },
+  {
+    "id": "PLAN01-007",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Web frontend: Tailwind with Duly tokens.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/vite.config.ts; web/src/design/tokens.css; web/src/styles.css",
+    "note": "Tailwind is wired into the build and the token file exists."
+  },
+  {
+    "id": "PLAN01-008",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Desktop: Electron shell wrapping the same web app.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/package.json; desktop/src/about.ts; specs/desktop-1/SPEC.md",
+    "note": "Electron is installed and the app address helper is written; main, protocol, guard, preload and smoke files named in the SPEC do not exist."
+  },
+  {
+    "id": "PLAN01-009",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Desktop: native main-process modules for WorkBook local capture, OS keychain, SQLCipher store, file exports.",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No main-process module exists; the desktop SPEC places them in Phase 8."
+  },
+  {
+    "id": "PLAN01-010",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Ops dashboard: same React stack, separate build.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "ops/package.json; infra/Dockerfile.ops",
+    "note": "Ops is its own workspace and image."
+  },
+  {
+    "id": "PLAN01-011",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Ops dashboard served behind admin auth (05).",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "api/ops_guard.py; tests/unit/api/test_api.py test_ops_refuses_any_other_address",
+    "note": "Only a network allowlist guards Ops; there is no login of any kind."
+  },
+  {
+    "id": "PLAN01-012",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Backend: FastAPI monolith + worker, one codebase, Python 3.12.",
+    "kind": "product",
+    "status": "met",
+    "evidence": "api/main.py; api/worker.py; pyproject.toml",
+    "note": "Both processes run from one codebase on Python 3.12; the worker only sends a heartbeat."
+  },
+  {
+    "id": "PLAN01-013",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Backend: SQLAlchemy + Alembic.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "pyproject.toml; api/db.py",
+    "note": "SQLAlchemy is used for one connection check; Alembic is not installed and there are no models or migrations."
+  },
+  {
+    "id": "PLAN01-014",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Database: Postgres 16 with RLS everywhere.",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml (postgres:16-alpine)",
+    "note": "Postgres 16 runs but has no tables and no row level security."
+  },
+  {
+    "id": "PLAN01-015",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "SQLite (SQLCipher) only inside the Electron WorkBook store.",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "CLAUDE.md hard rule",
+    "note": "The rule is written down but no store exists and no gate checks for SQLite use."
+  },
+  {
+    "id": "PLAN01-016",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Queue: Postgres SKIP LOCKED jobs.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "api/worker.py",
+    "note": "The worker has no jobs table and no queue."
+  },
+  {
+    "id": "PLAN01-017",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Queue: no Redis.",
+    "kind": "product",
+    "status": "met",
+    "evidence": "pyproject.toml; infra/docker-compose.yml",
+    "note": "No Redis dependency or service is present."
+  },
+  {
+    "id": "PLAN01-018",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Cloud: AWS: ECS Fargate (api, worker), RDS Postgres, S3, SES, CloudFront, KMS, Secrets Manager.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No cloud resource is defined; D16 fixes the region as us-west-2."
+  },
+  {
+    "id": "PLAN01-019",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Terraform in infra/aws.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "infra/aws does not exist."
+  },
+  {
+    "id": "PLAN01-020",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "docker compose remains the single local truth and the images are identical.",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml; infra/Dockerfile.api",
+    "note": "Compose builds the three images locally; there is no cloud or CI use of the images to compare against."
+  },
+  {
+    "id": "PLAN01-021",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "LLM: Claude via API through the narration service only.",
+    "kind": "engine",
+    "status": "superseded",
+    "evidence": "D13, D23, D27",
+    "note": "The assistant runs on infrastructure Duly controls, with Claude through Bedrock for v0, and no user data goes to Anthropic."
+  },
+  {
+    "id": "PLAN01-022",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "LLM: structured outputs.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "assistant/providers.py (NotWired)",
+    "note": "No model is wired, so no structured output exists."
+  },
+  {
+    "id": "PLAN01-023",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "LLM: no-new-facts validator.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py",
+    "note": "An output validator exists as a pattern based floor; it has never run against a model answer."
+  },
+  {
+    "id": "PLAN01-024",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "LLM: ZDR pursued (verify terms).",
+    "kind": "privacy",
+    "status": "superseded",
+    "evidence": "D28",
+    "note": "D28 moves zero retention terms to after validation."
+  },
+  {
+    "id": "PLAN01-025",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Email: sent via SES from duly subdomain identities aliased under the ExpandRange Google Workspace domain (06).",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "api/settings.py (placeholder addresses at duly.invalid)",
+    "note": "No mail is sent and no identity is set up; D15 parks the domain."
+  },
+  {
+    "id": "PLAN01-026",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "WorkBook: optional module, per the approved handoff; intro gate, never compulsory.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists."
+  },
+  {
+    "id": "PLAN01-027",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "WorkBook: Electron-native store.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No store exists."
+  },
+  {
+    "id": "PLAN01-028",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "WorkBook: web shows summaries and manual entry only.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The web app has no WorkBook screen."
+  },
+  {
+    "id": "PLAN01-029",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Pricing (from research): Free core; Pro 79 USD per year; fear-moment packs 29 to 99 USD; web billing; 14-day refund.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Payments; D8, D18",
+    "note": "Payments are cut from v0 and D8 parks pricing."
+  },
+  {
+    "id": "PLAN01-030",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Positioning: record first; AI is the interface to the record.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no stored record and no assistant interface."
+  },
+  {
+    "id": "PLAN01-031",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Positioning: never an advisor.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "BOUNDARY.md; assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py",
+    "note": "The boundary classifier steps back on personal conclusions and the copy linter bans advisor claims."
+  },
+  {
+    "id": "PLAN01-032",
+    "source": "duly-plan/01-master-plan.md, Locked decisions",
+    "text": "Positioning: honesty and citations as brand.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/SOURCES.md; tools/sources/verify.py",
+    "note": "F-1 rules carry saved sources and checked quotes; the other three packs are empty."
+  },
+  {
+    "id": "PLAN01-033",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Onboarding.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "web/src/components/CaseForm.tsx",
+    "note": "A single stateless date form exists; there is no onboarding flow or account."
+  },
+  {
+    "id": "PLAN01-034",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Home verdict.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx; web/src/App.test.tsx",
+    "note": "The four state verdict is shown for dates typed in; it is not a Home screen over a stored record."
+  },
+  {
+    "id": "PLAN01-035",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Timeline (6 phases, coverage grid).",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No timeline screen or coverage computation exists."
+  },
+  {
+    "id": "PLAN01-036",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Documents index.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No documents feature exists."
+  },
+  {
+    "id": "PLAN01-037",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Checklists (stateful).",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No checklist data or screen exists."
+  },
+  {
+    "id": "PLAN01-038",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Scenarios (validated narration).",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No scenario screen or endpoint exists."
+  },
+  {
+    "id": "PLAN01-039",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Updates with impact score.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "pipeline/graph.py; contracts/update.schema.json",
+    "note": "Only the pipeline skeleton and the update contract exist; no screen and no impact score."
+  },
+  {
+    "id": "PLAN01-040",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Case.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/components/CaseForm.tsx; contracts/case_f1.schema.json",
+    "note": "Case dates can be entered for one computation; nothing is saved."
+  },
+  {
+    "id": "PLAN01-041",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Full student app: Feedback.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No feedback screen or endpoint exists."
+  },
+  {
+    "id": "PLAN01-042",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "WorkBook module: intro, setup, Today with manual day entry.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing is built."
+  },
+  {
+    "id": "PLAN01-043",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "WorkBook module: GitHub + Google Calendar connectors behind a flag.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md WorkBook source connectors",
+    "note": "The cutlines move connectors to Phase 12."
+  },
+  {
+    "id": "PLAN01-044",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "WorkBook module: sealing and method note per handoff.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing is built."
+  },
+  {
+    "id": "PLAN01-045",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Duly Ops: review queue (attorney gate).",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "pipeline/graph.py publish_blockers",
+    "note": "The publish rule exists in code but Ops has no queue; D22 makes founder approval in Ops the final pass and D14 records no attorney."
+  },
+  {
+    "id": "PLAN01-046",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Duly Ops: rule packs with diff and rollback.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Ops shows only the allowlist."
+  },
+  {
+    "id": "PLAN01-047",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Duly Ops: audit browser with replay.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No audit log exists."
+  },
+  {
+    "id": "PLAN01-048",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Duly Ops: users and consents.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No users exist."
+  },
+  {
+    "id": "PLAN01-049",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Duly Ops: feedback inbox.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing is built."
+  },
+  {
+    "id": "PLAN01-050",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Duly Ops: factory and cost metrics.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "dashboard/app.py; tools/factory/control.py (metrics); tests/unit/tools/test_dashboard_data.py",
+    "note": "Metrics exist in a separate factory window, not inside the Ops app."
+  },
+  {
+    "id": "PLAN01-051",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "Weekly brief email from updates@ with per-user impact scores.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "emails/README.md; contracts/emails.md",
+    "note": "Only a placeholder table and a sender setting exist."
+  },
+  {
+    "id": "PLAN01-052",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "support@ inbox flow.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing is built."
+  },
+  {
+    "id": "PLAN01-053",
+    "source": "duly-plan/01-master-plan.md, v0 scope",
+    "text": "The complete gate pipeline of 07 running in CI from day one.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": ".github/workflows/ci.yml",
+    "note": "Seven gates run in CI; hidden tests, e2e, evals and attack runs are not in CI."
+  },
+  {
+    "id": "PLAN01-054",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: Payments.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version by the plan itself; no payment code is present."
+  },
+  {
+    "id": "PLAN01-055",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: mobile apps.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-056",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: USCIS live polling.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-057",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "USCIS: manual receipt entry + stub job (in place of live polling).",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No receipt field and no stub job exist."
+  },
+  {
+    "id": "PLAN01-058",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: Slack bot.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-059",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: university portal.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-060",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: attorney marketplace.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-061",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: multi-role cases.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-062",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: Gmail source.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-063",
+    "source": "duly-plan/01-master-plan.md, Explicit non-goals for v0",
+    "text": "Non-goal for v0: cloud sync of WorkBook (local only, optional user-key backup later).",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/01-master-plan.md non-goals; 13-cutlines.md",
+    "note": "Out of the first version; none is present."
+  },
+  {
+    "id": "PLAN01-064",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: everything in workbook-handoff/docs/07 Rejected.",
+    "kind": "workbook",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py (handoff rule 10 words)",
+    "note": "The rejected wording is linted; no WorkBook code exists, so the rest of the list is untested."
+  },
+  {
+    "id": "PLAN01-065",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: fear mongering UI: red badges, countdown panic, urgency framing.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py (urgency words); web/src/design/tokens.css",
+    "note": "Urgency words are blocked; a danger colour token is defined and no test forbids red badges or countdowns."
+  },
+  {
+    "id": "PLAN01-066",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: AI computing any date, deadline, or eligibility statement.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "security/semgrep/duly.yml duly-models-only-behind-the-boundary; assistant/providers.py; tools/gates/engine_literals.py",
+    "note": "No model is wired and model clients are confined by a gate 4 rule."
+  },
+  {
+    "id": "PLAN01-067",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: third-party analytics or ad SDKs in any client.",
+    "kind": "privacy",
+    "status": "met",
+    "evidence": "web/package.json; ops/package.json; desktop/package.json",
+    "note": "No such package is installed; the check is by dependency review, with no gate that names these packages."
+  },
+  {
+    "id": "PLAN01-068",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: \"Sealed\" or \"cryptographic\" wording in user-facing copy.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+    "note": "Both words are on the forbidden list for product copy."
+  },
+  {
+    "id": "PLAN01-069",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: lawyer-equivalence or prevention claims in any marketing or product copy.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py (ai lawyer, guarantee, prevents and others)",
+    "note": "The phrases are blocked in product copy; no marketing copy exists yet."
+  },
+  {
+    "id": "PLAN01-070",
+    "source": "duly-plan/01-master-plan.md, Rejected (do not reintroduce)",
+    "text": "Rejected: blinking status indicators; motion is slow, low amplitude, additive only.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css (breathe, prefers-reduced-motion); D11",
+    "note": "One slow halo animation with a fixed number of cycles exists; no test checks motion limits and the D11 spec is pending."
+  },
+  {
+    "id": "PLAN01-071",
+    "source": "duly-plan/01-master-plan.md, Success criteria for the founder's first self-test",
+    "text": "make up && make seed then a full walkthrough of every screen against real endpoints with zero mocked responses in the path.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "Makefile (up, seed); api/main.py",
+    "note": "make up works and the one screen calls the real api; make seed prints that there is nothing to seed and the other screens do not exist."
+  },
+  {
+    "id": "PLAN01-072",
+    "source": "duly-plan/01-master-plan.md, Success criteria for the founder's first self-test",
+    "text": "Change a rule pack parameter in Ops, approve it, and watch Home, Timeline, and the weekly brief change consistently, with the audit browser explaining every answer.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Ops cannot edit a pack and there is no timeline, brief or audit browser."
+  },
+  {
+    "id": "PLAN01-073",
+    "source": "duly-plan/01-master-plan.md, Success criteria for the founder's first self-test",
+    "text": "Enter a WorkBook day, mark complete, export a pack, run verify.py, confirm hashes.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook and no verify.py for exports exist."
+  },
+  {
+    "id": "PLAN01-074",
+    "source": "duly-plan/01-master-plan.md, Success criteria for the founder's first self-test",
+    "text": "Ask three scenario questions; every answer carries sources, rule pack version, the disclaimer footer, and at least one is a correct abstention.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no scenario endpoint and no model."
+  },
+  {
+    "id": "PLAN01-075",
+    "source": "duly-plan/01-master-plan.md, Success criteria for the founder's first self-test",
+    "text": "Run make attack; the adversarial suite passes with zero criticals.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "Makefile (attack)",
+    "note": "The target prints that the attack profile arrives in Phase 10 and exits 1."
+  },
+  {
+    "id": "PLAN02-001",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "contracts/: openapi.yaml, engine_output.schema.json, rulepack.schema.json, workbook_bridge.schema.json, events.md, emails.md.",
+    "kind": "product",
+    "status": "met",
+    "evidence": "contracts/",
+    "note": "All six files exist; the bridge schema, events.md and emails.md are marked as placeholders."
+  },
+  {
+    "id": "PLAN02-002",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "engine/: pure functions, clock injected.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/clocks.py; security/semgrep/duly.yml; tests/unit/engine/test_clocks.py",
+    "note": "Gate 4 rules forbid reading the system time elsewhere and forbid engine imports of api code."
+  },
+  {
+    "id": "PLAN02-003",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "engine/ modules: clocks, windows, verdict, coverage, impact.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/clocks.py; engine/verdict.py; engine/f1.py",
+    "note": "clocks and verdict exist and windows are computed inside f1.py; coverage and impact do not exist."
+  },
+  {
+    "id": "PLAN02-004",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "rulepacks/f1-us/vX/: parameters.yaml, checklists.yaml, sources snapshots, CHANGELOG.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/",
+    "note": "parameters.yaml, saved sources and CHANGELOG.md exist; checklists.yaml is missing."
+  },
+  {
+    "id": "PLAN02-005",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "api/: FastAPI app + worker (auth, cases, timeline, checklists, updates, narration, workbook, documents, consent, feedback, admin, audit, jobs, db).",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "api/main.py; api/db.py; api/worker.py",
+    "note": "Only status, the stateless F-1 computation, the Ops guard, db and a worker loop exist; the other thirteen modules are missing."
+  },
+  {
+    "id": "PLAN02-006",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "web/: student app (React TS Vite).",
+    "kind": "product",
+    "status": "met",
+    "evidence": "web/package.json; web/src/App.tsx",
+    "note": "The workspace exists with one screen."
+  },
+  {
+    "id": "PLAN02-007",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "desktop/: Electron: main/ (capture, keychain, sqlcipher, bridge server), preload/, loads web build.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/package.json; desktop/src/about.ts",
+    "note": "Only the package and one helper exist; there is no main or preload folder."
+  },
+  {
+    "id": "PLAN02-008",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "ops/: admin dashboard (React TS Vite).",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "ops/package.json; ops/src/App.tsx",
+    "note": "The workspace exists with one status page."
+  },
+  {
+    "id": "PLAN02-009",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "emails/: MJML or react-email templates: weekly brief, update alert, support replies, transactional.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "emails/README.md",
+    "note": "The folder holds only a README that says templates arrive in Phase 7."
+  },
+  {
+    "id": "PLAN02-010",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "infra/docker-compose.yml with profiles dev, test, e2e, attack.",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml; specs/phase-0/SPEC.md",
+    "note": "The file has no profiles; only the dev stack is defined."
+  },
+  {
+    "id": "PLAN02-011",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "infra/: Dockerfile.api Dockerfile.web Dockerfile.ops.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "infra/Dockerfile.api; infra/Dockerfile.web; infra/Dockerfile.ops",
+    "note": "All three exist."
+  },
+  {
+    "id": "PLAN02-012",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "infra/aws/: terraform: vpc, ecs fargate (api, worker), rds, s3, cloudfront, ses, kms, secrets, waf.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The folder does not exist."
+  },
+  {
+    "id": "PLAN02-013",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "security/: threat-model.md.",
+    "kind": "security",
+    "status": "met",
+    "evidence": "security/threat-model.md",
+    "note": "Version 1 is present."
+  },
+  {
+    "id": "PLAN02-014",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "security/: attack corpus.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not present."
+  },
+  {
+    "id": "PLAN02-015",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "security/: zap config.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not present."
+  },
+  {
+    "id": "PLAN02-016",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "security/: authz matrix.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not present."
+  },
+  {
+    "id": "PLAN02-017",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "security/: semgrep rules.",
+    "kind": "security",
+    "status": "met",
+    "evidence": "security/semgrep/duly.yml; Makefile gate-4",
+    "note": "Rules exist and run in gate 4."
+  },
+  {
+    "id": "PLAN02-018",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "evals/: narration eval sets, citation checker, honesty and abstention suites, promptfoo config.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl; evals/boundary/drift.jsonl",
+    "note": "Only boundary question pairs exist; there is no narration set, citation checker, honesty suite or promptfoo config."
+  },
+  {
+    "id": "PLAN02-019",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": ".claude/: factory (11).",
+    "kind": "factory",
+    "status": "met",
+    "evidence": ".claude/agents; .claude/hooks; .claude/lanes; .claude/skills",
+    "note": "Present."
+  },
+  {
+    "id": "PLAN02-020",
+    "source": "duly-plan/02-architecture.md, Monorepo",
+    "text": "tests/holdout/: hidden suite (excluded from agent contexts).",
+    "kind": "testing",
+    "status": "met",
+    "evidence": "tests/holdout/test_holdout_f1.py; tools/factory/agent_run.py; tests/unit/tools/test_agent_run.py test_hidden_tests_are_not_in_a_builders_worktree",
+    "note": "Six hidden test files exist and are removed from builder worktrees."
+  },
+  {
+    "id": "PLAN02-021",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "Local: compose dev profile: api, worker, web 5173, ops 5174.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "infra/docker-compose.yml",
+    "note": "All four services are defined on those ports."
+  },
+  {
+    "id": "PLAN02-022",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "Local: Postgres (migrated, RLS on).",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml",
+    "note": "Postgres runs with an empty database; there are no migrations and no RLS."
+  },
+  {
+    "id": "PLAN02-023",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "Local: MinIO, mailpit.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "infra/docker-compose.yml",
+    "note": "Both services are defined; nothing uses them yet."
+  },
+  {
+    "id": "PLAN02-024",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "Local: OTel console.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The compose file has no telemetry service; the only telemetry is the factory's own."
+  },
+  {
+    "id": "PLAN02-025",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "Desktop: pnpm dev in desktop/ attaches Electron to web dev server.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "Makefile (desktop); desktop/package.json",
+    "note": "npm is used in place of pnpm and the start script points at dist/main.js, which has no source file yet."
+  },
+  {
+    "id": "PLAN02-026",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "WorkBook bridge serves http://127.0.0.1:47821 locally only.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "contracts/workbook_bridge.schema.json",
+    "note": "Only a placeholder schema exists; no server."
+  },
+  {
+    "id": "PLAN02-027",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: same api and worker images on Fargate behind ALB + WAF.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-028",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: RDS Postgres (encrypted, automated backups, monthly restore rehearsal).",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-029",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: S3 for exports staging and web/ops static via CloudFront.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-030",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: SES for mail.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-031",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: KMS CMKs for envelope encryption.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-032",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: Secrets Manager for config.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-033",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "AWS: CloudWatch + OTel collector.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-034",
+    "source": "duly-plan/02-architecture.md, Runtime topology",
+    "text": "No Kubernetes; Terraform makes the later move mechanical.",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "infra/",
+    "note": "No Kubernetes is present, and no Terraform is present either."
+  },
+  {
+    "id": "PLAN02-035",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "Device zone: WorkBook events, blocks, documents blobs and names (SQLCipher, key in OS keychain).",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No device store exists."
+  },
+  {
+    "id": "PLAN02-036",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "Device zone data is never uploaded.",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "api/main.py; security/threat-model.md invariant 1",
+    "note": "The api has no upload path today because no document feature exists; no test asserts the invariant."
+  },
+  {
+    "id": "PLAN02-037",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "Web fallback stores only manual day summaries server-side, clearly labeled.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-038",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "Encrypted cloud zone: account, case profile, checklist state, updates impacts, workbook day summaries the user chose to sync, feedback.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The server stores nothing."
+  },
+  {
+    "id": "PLAN02-039",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "Field-level AES-256-GCM with per-user data keys wrapped by KMS (05).",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No encryption code exists."
+  },
+  {
+    "id": "PLAN02-040",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "LLM zone: minimized structured parameters and retrieved rule text only; never document contents, never names, never free identifiers.",
+    "kind": "privacy",
+    "status": "superseded",
+    "evidence": "D13, D23",
+    "note": "D13 and D23 are stricter: no user data goes to an outside model provider at all."
+  },
+  {
+    "id": "PLAN02-041",
+    "source": "duly-plan/02-architecture.md, Data planes (three zones, enforced)",
+    "text": "Enforced by a serializer allowlist at the narration boundary, not by convention.",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "security/semgrep/duly.yml duly-models-only-behind-the-boundary; assistant/providers.py",
+    "note": "Model clients are confined to two folders by a gate; no serializer allowlist exists because no model call exists."
+  },
+  {
+    "id": "PLAN02-042",
+    "source": "duly-plan/02-architecture.md, Request path",
+    "text": "case to engine(case, rulepack@version, now) to deterministic result.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "api/main.py compute_f1_case; tests/unit/api/test_compute.py; tests/unit/engine/test_f1.py",
+    "note": "The F-1 path takes a case, the pack and an injected clock."
+  },
+  {
+    "id": "PLAN02-043",
+    "source": "duly-plan/02-architecture.md, Request path",
+    "text": "Optional narration: retrieve pack text, Claude structured output, no-new-facts validator, abstention on failure.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py; D23",
+    "note": "The classifier and validator floor exist; retrieval and the model do not, and D23 changes where the model runs."
+  },
+  {
+    "id": "PLAN02-044",
+    "source": "duly-plan/02-architecture.md, Request path",
+    "text": "Response then append-only audit row (hash chained).",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No audit table or writer exists."
+  },
+  {
+    "id": "PLAN02-045",
+    "source": "duly-plan/02-architecture.md, WorkBook bridge",
+    "text": "Electron main exposes the versioned local API: GET/PUT /case, GET /days, GET /history, GET /documents (index), POST /exports, POST/DELETE /links.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "contracts/workbook_bridge.schema.json",
+    "note": "The endpoints are only listed in a placeholder schema."
+  },
+  {
+    "id": "PLAN02-046",
+    "source": "duly-plan/02-architecture.md, WorkBook bridge",
+    "text": "Duly web (when running inside Electron or on the same machine) reads weekly hours and day summaries through the bridge.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-047",
+    "source": "duly-plan/02-architecture.md, WorkBook bridge",
+    "text": "The server only ever receives what the user syncs.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no sync."
+  },
+  {
+    "id": "PLAN02-048",
+    "source": "duly-plan/02-architecture.md, WorkBook bridge",
+    "text": "Ownership split exactly as the handoff states: Duly owns status documents and dates; WorkBook owns duties, sources, hours target.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "D9",
+    "note": "D9 confirms the split for onboarding; nothing implements it."
+  },
+  {
+    "id": "PLAN02-049",
+    "source": "duly-plan/02-architecture.md, WorkBook bridge",
+    "text": "Shared encrypted store, one lock.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN02-050",
+    "source": "duly-plan/02-architecture.md, Environments",
+    "text": "dev (compose) = test (CI containers) = prod (AWS) by image digest.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "specs/phase-0/SPEC.md; .github/workflows/ci.yml",
+    "note": "CI runs the scripts directly on the runner and builds no image; there is no prod."
+  },
+  {
+    "id": "PLAN02-051",
+    "source": "duly-plan/02-architecture.md, Environments",
+    "text": "pydantic-settings validates config at boot.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "api/settings.py; tests/unit/api/test_api.py test_bad_allowlist_stops_boot, test_unknown_environment_stops_boot",
+    "note": "A bad value stops the process."
+  },
+  {
+    "id": "PLAN02-052",
+    "source": "duly-plan/02-architecture.md, Environments",
+    "text": "Feature flags in a Postgres table.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No table exists."
+  },
+  {
+    "id": "PLAN02-053",
+    "source": "duly-plan/02-architecture.md, Environments",
+    "text": "Migrations run in CI and on deploy with lock.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There are no migrations."
+  },
+  {
+    "id": "PLAN02-054",
+    "source": "duly-plan/02-architecture.md, Environments",
+    "text": "Every migration reversible.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There are no migrations."
+  },
+  {
+    "id": "PLAN10-001",
+    "source": "duly-plan/10-build-sequence.md, intro",
+    "text": "Each phase is a PR set behind the full applicable gates.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": ".github/workflows/ci.yml; docs/factory/CHECKLIST.md item 2.3",
+    "note": "Work lands by pull request after CI; only phases 0 and 2 and two product rounds have been through it."
+  },
+  {
+    "id": "PLAN10-002",
+    "source": "duly-plan/10-build-sequence.md, intro",
+    "text": "Definition of done includes the founder walking the result locally.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "specs/phase-0/SPEC.md Result; D39",
+    "note": "Phase 0 still reads waiting for the founder; D39 records one walk of the F-1 screen."
+  },
+  {
+    "id": "PLAN10-003",
+    "source": "duly-plan/10-build-sequence.md, intro",
+    "text": "Phases are built in the order 0 to 12.",
+    "kind": "factory",
+    "status": "superseded",
+    "evidence": "D38, D42",
+    "note": "D38 puts the factory first and D42 sets the next work as the product backlog and then a desktop window."
+  },
+  {
+    "id": "PLAN10-004",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers repo skeleton: contracts.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "contracts/",
+    "note": "Present."
+  },
+  {
+    "id": "PLAN10-005",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers compose profiles.",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml",
+    "note": "Only the dev stack; no profiles."
+  },
+  {
+    "id": "PLAN10-006",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers Dockerfiles.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "infra/Dockerfile.api; infra/Dockerfile.web; infra/Dockerfile.ops",
+    "note": "Present."
+  },
+  {
+    "id": "PLAN10-007",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers CI gates 1 to 6.",
+    "kind": "testing",
+    "status": "met",
+    "evidence": ".github/workflows/ci.yml",
+    "note": "Gates 1 to 7 run on every push and pull request."
+  },
+  {
+    "id": "PLAN10-008",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers hooks and .claude.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": ".claude/settings.json; .claude/hooks/guard_paths.py; .claude/hooks/guard_bash.py",
+    "note": "Present."
+  },
+  {
+    "id": "PLAN10-009",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers holdout scaffolding.",
+    "kind": "testing",
+    "status": "met",
+    "evidence": "tests/holdout/README.md",
+    "note": "Present."
+  },
+  {
+    "id": "PLAN10-010",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 delivers security/threat-model.md v1.",
+    "kind": "security",
+    "status": "met",
+    "evidence": "security/threat-model.md",
+    "note": "Present."
+  },
+  {
+    "id": "PLAN10-011",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 done when make up boots empty stack.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "specs/phase-0/SPEC.md Result; Makefile",
+    "note": "Recorded as passing with all seven containers healthy; not re-run in this audit."
+  },
+  {
+    "id": "PLAN10-012",
+    "source": "duly-plan/10-build-sequence.md, Phase 0",
+    "text": "Phase 0 done when a trivial PR passes and a seeded violation of each gate fails.",
+    "kind": "testing",
+    "status": "met",
+    "evidence": "tools/gates/prove.py; make prove-gates",
+    "note": "Twelve planted violations cover gates 1 to 6; gate 7 has no planted violation."
+  },
+  {
+    "id": "PLAN10-013",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 delivers DB models.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None exist."
+  },
+  {
+    "id": "PLAN10-014",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 delivers migrations.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None exist."
+  },
+  {
+    "id": "PLAN10-015",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 delivers RLS.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None exists."
+  },
+  {
+    "id": "PLAN10-016",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 delivers envelope crypto plumbing.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None exists."
+  },
+  {
+    "id": "PLAN10-017",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 delivers audit writer.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None exists."
+  },
+  {
+    "id": "PLAN10-018",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 delivers authz matrix harness.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None exists."
+  },
+  {
+    "id": "PLAN10-019",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 lane is L-api high attention.",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": ".claude/lanes/L-api.yaml",
+    "note": "L-api is marked review low."
+  },
+  {
+    "id": "PLAN10-020",
+    "source": "duly-plan/10-build-sequence.md, Phase 1",
+    "text": "Phase 1 done when RLS and authz matrices green; audit chain verifies.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Phase 1 was skipped; the Makefile seed target still says tables arrive in Phase 1."
+  },
+  {
+    "id": "PLAN10-021",
+    "source": "duly-plan/10-build-sequence.md, Phase 2",
+    "text": "Phase 2 delivers Engine v0 (clocks, windows, verdict, coverage, impact).",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/clocks.py; engine/verdict.py; engine/f1.py; engine/dates.py",
+    "note": "Clocks, verdict and F-1 windows are built; coverage and impact are not."
+  },
+  {
+    "id": "PLAN10-022",
+    "source": "duly-plan/10-build-sequence.md, Phase 2",
+    "text": "Phase 2 delivers rulepack v2026.09 authored from compliance-report sources.",
+    "kind": "engine",
+    "status": "superseded",
+    "evidence": "D34, D35; rulepacks/f1-us/v2026.09/SOURCES.md",
+    "note": "The pack is written from the saved text of the law and not from the report; only the F-1 pack has rules."
+  },
+  {
+    "id": "PLAN10-023",
+    "source": "duly-plan/10-build-sequence.md, Phase 2",
+    "text": "Phase 2 includes an attorney pass.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "D14",
+    "note": "No attorney is retained and no attorney review is recorded."
+  },
+  {
+    "id": "PLAN10-024",
+    "source": "duly-plan/10-build-sequence.md, Phase 2",
+    "text": "Phase 2 done when golden and property suites green.",
+    "kind": "testing",
+    "status": "met",
+    "evidence": "tests/unit/engine/test_f1.py; tests/unit/engine/test_dates.py; tests/unit/engine/test_verdict.py",
+    "note": "Worked examples and Hypothesis property tests run in gate 5; not re-run in this audit."
+  },
+  {
+    "id": "PLAN10-025",
+    "source": "duly-plan/10-build-sequence.md, Phase 2",
+    "text": "Phase 2 done when holdout live.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "tests/holdout/test_holdout_f1.py; pyproject.toml testpaths",
+    "note": "Hidden tests exist, but CI has no job that runs tests/holdout and pytest only collects tests/unit."
+  },
+  {
+    "id": "PLAN10-026",
+    "source": "duly-plan/10-build-sequence.md, Phase 2",
+    "text": "Phase 2 done when pack diff renders in a script.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No script renders a diff between two pack versions."
+  },
+  {
+    "id": "PLAN10-027",
+    "source": "duly-plan/10-build-sequence.md, Phase 3",
+    "text": "Phase 3 delivers Core API (cases, timeline, checklists, updates read).",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "api/main.py POST /v1/compute/f1",
+    "note": "One stateless compute endpoint exists; no cases, timeline, checklists or updates endpoints."
+  },
+  {
+    "id": "PLAN10-028",
+    "source": "duly-plan/10-build-sequence.md, Phase 3",
+    "text": "Phase 3 delivers generated client.",
+    "kind": "product",
+    "status": "met",
+    "evidence": "web/src/lib/api-types.ts; ops/src/lib/api-types.ts; package.json (openapi-typescript)",
+    "note": "Types are generated from the contract and checked against the zod schemas."
+  },
+  {
+    "id": "PLAN10-029",
+    "source": "duly-plan/10-build-sequence.md, Phase 3",
+    "text": "Phase 3 done when schemathesis green.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "schemathesis is not installed."
+  },
+  {
+    "id": "PLAN10-030",
+    "source": "duly-plan/10-build-sequence.md, Phase 3",
+    "text": "Phase 3 done when e2e skeleton walks onboarding to verdict via curl.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "Makefile (e2e)",
+    "note": "The target exits 1 with a message."
+  },
+  {
+    "id": "PLAN10-031",
+    "source": "duly-plan/10-build-sequence.md, Phase 4",
+    "text": "Phase 4 delivers web app: Onboarding, Home, Timeline, Checklists, Updates, Case, Feedback on real endpoints.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/App.tsx; web/src/components/CaseForm.tsx; web/src/components/Result.tsx",
+    "note": "One screen with a date form and a verdict calls the real api; the seven named screens do not exist."
+  },
+  {
+    "id": "PLAN10-032",
+    "source": "duly-plan/10-build-sequence.md, Phase 4",
+    "text": "Phase 4 delivers Duly tokens and motion.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css; web/src/styles.css",
+    "note": "Tokens and one halo animation exist; D10 and D11 specs are pending."
+  },
+  {
+    "id": "PLAN10-033",
+    "source": "duly-plan/10-build-sequence.md, Phase 4",
+    "text": "Phase 4 done when founder walkthrough matches approved canvas behavior.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "D39; specs/product/BACKLOG.md",
+    "note": "The founder found the wording and the two regime display hard to read; no match to the canvas is recorded."
+  },
+  {
+    "id": "PLAN10-034",
+    "source": "duly-plan/10-build-sequence.md, Phase 4",
+    "text": "Phase 4 done when a11y checks pass.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "web/src/App.test.tsx",
+    "note": "Tests find elements by role; no automated accessibility checker is installed."
+  },
+  {
+    "id": "PLAN10-035",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 delivers narration service: retrieval.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-036",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 delivers narration service: structured output.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "assistant/providers.py",
+    "note": "The provider is NotWired."
+  },
+  {
+    "id": "PLAN10-037",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 delivers narration service: validator.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py",
+    "note": "A pattern based floor exists; the threat model calls it not the finished guard."
+  },
+  {
+    "id": "PLAN10-038",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 delivers narration service: abstention.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "assistant/boundary.py classify_turn; tests/unit/assistant/test_boundary_evals.py",
+    "note": "The step back decision exists; no answer path exists to abstain from."
+  },
+  {
+    "id": "PLAN10-039",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 delivers scenario and explain endpoints.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "contracts/openapi.yaml",
+    "note": "Neither endpoint is in the contract or the api."
+  },
+  {
+    "id": "PLAN10-040",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 delivers eval harness seeded (accuracy, citation, honesty, safety sets).",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl",
+    "note": "Only the boundary set exists."
+  },
+  {
+    "id": "PLAN10-041",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 done when eval gates green including zero injection leaks.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No eval gate and no injection test exist."
+  },
+  {
+    "id": "PLAN10-042",
+    "source": "duly-plan/10-build-sequence.md, Phase 5",
+    "text": "Phase 5 done when per-answer footer asserted.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "web/src/App.test.tsx (always carries the scope line and the footer)",
+    "note": "The page footer is tested; there are no assistant answers to carry a footer."
+  },
+  {
+    "id": "PLAN10-043",
+    "source": "duly-plan/10-build-sequence.md, Phase 6",
+    "text": "Phase 6 delivers ingestion jobs.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py; watch/sources.yaml; tests/unit/pipeline/test_graph.py",
+    "note": "Stage order and the publish rule exist; no stage fetches or reads anything."
+  },
+  {
+    "id": "PLAN10-044",
+    "source": "duly-plan/10-build-sequence.md, Phase 6",
+    "text": "Phase 6 delivers review queue.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-045",
+    "source": "duly-plan/10-build-sequence.md, Phase 6",
+    "text": "Phase 6 delivers Ops panes 1 to 3.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "ops/src/App.tsx",
+    "note": "Ops has one status page."
+  },
+  {
+    "id": "PLAN10-046",
+    "source": "duly-plan/10-build-sequence.md, Phase 6",
+    "text": "Phase 6 delivers ops WebAuthn auth.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-047",
+    "source": "duly-plan/10-build-sequence.md, Phase 6",
+    "text": "Phase 6 done when attorney flow end to end: ingest to approve to published update to changed user timeline, all audited.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "D22",
+    "note": "Nothing runs end to end; D22 makes the approver the founder in Ops."
+  },
+  {
+    "id": "PLAN10-048",
+    "source": "duly-plan/10-build-sequence.md, Phase 7",
+    "text": "Phase 7 delivers impacts.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-049",
+    "source": "duly-plan/10-build-sequence.md, Phase 7",
+    "text": "Phase 7 delivers weekly brief.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-050",
+    "source": "duly-plan/10-build-sequence.md, Phase 7",
+    "text": "Phase 7 delivers SES setup (identities, DKIM, DMARC, suppression).",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-051",
+    "source": "duly-plan/10-build-sequence.md, Phase 7",
+    "text": "Phase 7 delivers alert policy.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "contracts/product_settings.yaml",
+    "note": "Only the 14 day look ahead setting exists; no alert is sent."
+  },
+  {
+    "id": "PLAN10-052",
+    "source": "duly-plan/10-build-sequence.md, Phase 7",
+    "text": "Phase 7 delivers mailpit e2e.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "infra/docker-compose.yml",
+    "note": "mailpit runs but no test sends mail to it."
+  },
+  {
+    "id": "PLAN10-053",
+    "source": "duly-plan/10-build-sequence.md, Phase 7",
+    "text": "Phase 7 done when founder receives a real brief for the seed case from updates@ in staging.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no staging and no brief."
+  },
+  {
+    "id": "PLAN10-054",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 delivers Electron shell.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/package.json; desktop/src/about.ts; desktop/src/about.test.ts",
+    "note": "Started under specs/desktop-1; the window cannot open yet because main.ts is missing."
+  },
+  {
+    "id": "PLAN10-055",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 delivers WorkBook v0 manual (Today, Log, complete, amendments, sealing, exports, verify.py).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-056",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 delivers bridge.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-057",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 delivers shared doc index.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-058",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 done when handoff golden days and seal round trip green.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No such tests exist."
+  },
+  {
+    "id": "PLAN10-059",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 done when export verifies.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No export exists."
+  },
+  {
+    "id": "PLAN10-060",
+    "source": "duly-plan/10-build-sequence.md, Phase 8",
+    "text": "Phase 8 done when module copy lint green.",
+    "kind": "workbook",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py (desktop/ is product copy)",
+    "note": "The linter covers the desktop folder; there is no module copy to lint."
+  },
+  {
+    "id": "PLAN10-061",
+    "source": "duly-plan/10-build-sequence.md, Phase 9",
+    "text": "Phase 9 delivers consent and rights plumbing.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-062",
+    "source": "duly-plan/10-build-sequence.md, Phase 9",
+    "text": "Phase 9 delivers privacy pages.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-063",
+    "source": "duly-plan/10-build-sequence.md, Phase 9",
+    "text": "Phase 9 delivers disclaimer stack.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "web/src/App.tsx footer; web/src/App.test.tsx",
+    "note": "One footer line is shown and tested; no layered disclaimers."
+  },
+  {
+    "id": "PLAN10-064",
+    "source": "duly-plan/10-build-sequence.md, Phase 9",
+    "text": "Phase 9 delivers retention sweeper.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-065",
+    "source": "duly-plan/10-build-sequence.md, Phase 9",
+    "text": "Phase 9 delivers Ops pane 4.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-066",
+    "source": "duly-plan/10-build-sequence.md, Phase 9",
+    "text": "Phase 9 done when regulation gates green; DPIA updated.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No regulation gate and no DPIA exist in the repository."
+  },
+  {
+    "id": "PLAN10-067",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers attack profile.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "Makefile (attack)",
+    "note": "The target exits 1."
+  },
+  {
+    "id": "PLAN10-068",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers ZAP.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-069",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers k6.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-070",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers chaos-lite.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-071",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers red-team lane live.",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "factory/agents/red-team.yaml; .claude/agents/red-team.md; .claude/lanes/L-security.yaml",
+    "note": "The agent and lane are defined; no product attack run is recorded."
+  },
+  {
+    "id": "PLAN10-072",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers VDP page.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-073",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 delivers Ops panes 5 and 6.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-074",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 done when make attack zero criticals.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "Makefile (attack)",
+    "note": "The target exits 1."
+  },
+  {
+    "id": "PLAN10-075",
+    "source": "duly-plan/10-build-sequence.md, Phase 10",
+    "text": "Phase 10 done when nightly green one full week.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": ".github/workflows/ci.yml",
+    "note": "CI runs on push and pull request only; there is no nightly run."
+  },
+  {
+    "id": "PLAN10-076",
+    "source": "duly-plan/10-build-sequence.md, Phase 11",
+    "text": "Phase 11 delivers AWS: terraform apply.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-077",
+    "source": "duly-plan/10-build-sequence.md, Phase 11",
+    "text": "Phase 11 delivers staging soak.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-078",
+    "source": "duly-plan/10-build-sequence.md, Phase 11",
+    "text": "Phase 11 delivers PRR-lite.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-079",
+    "source": "duly-plan/10-build-sequence.md, Phase 11",
+    "text": "Phase 11 delivers first deploy.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "PLAN10-080",
+    "source": "duly-plan/10-build-sequence.md, Phase 11",
+    "text": "Phase 11: founder self-test script (01 success criteria) executed.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No self-test script exists."
+  },
+  {
+    "id": "PLAN10-081",
+    "source": "duly-plan/10-build-sequence.md, Phase 11",
+    "text": "Phase 11 done when all five success criteria pass on staging from the same digests.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None of the five can pass today."
+  },
+  {
+    "id": "PLAN10-082",
+    "source": "duly-plan/10-build-sequence.md, Phase 12",
+    "text": "Phase 12 delivers source connectors behind flags (Calendar, Meet, GitHub, Slack) per handoff scopes.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md WorkBook source connectors",
+    "note": "Placed after v0 by the cutlines."
+  },
+  {
+    "id": "PLAN10-083",
+    "source": "duly-plan/10-build-sequence.md, Phase 12",
+    "text": "Phase 12 done when connector contract tests and revocation flows green.",
+    "kind": "testing",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md WorkBook source connectors",
+    "note": "Placed after v0 by the cutlines."
+  },
+  {
+    "id": "PLAN10-084",
+    "source": "duly-plan/10-build-sequence.md, Parallelism guide",
+    "text": "At most one high-attention phase in flight.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "tools/factory/registry.py; .claude/lanes/*.yaml",
+    "note": "The registry allows one claim per lane and task; nothing counts high attention phases."
+  },
+  {
+    "id": "PLAN10-085",
+    "source": "duly-plan/10-build-sequence.md, Parallelism guide",
+    "text": "3 to 5, 6 to 7, and 8 can interleave in low-attention lanes once 2 lands.",
+    "kind": "factory",
+    "status": "superseded",
+    "evidence": "D38, D42",
+    "note": "The founder set the order of work: factory, then the product backlog, then the desktop window."
+  },
+  {
+    "id": "PLAN10-086",
+    "source": "duly-plan/10-build-sequence.md, Parallelism guide",
+    "text": "Every numeric threshold in 07 is re-baselined from local data at phase 10.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "factory/config.yaml",
+    "note": "Phase 10 has not started; thresholds in the factory config have not been re-baselined."
+  },
+  {
+    "id": "PLAN12-001",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Domain: build on duly.expandrange.com now, or register the standalone duly domain first (email identities and SES verification depend on it).",
+    "kind": "email",
+    "status": "superseded",
+    "evidence": "D15",
+    "note": "D15 parks the domain; sender addresses are placeholders at duly.invalid."
+  },
+  {
+    "id": "PLAN12-002",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Confirm AWS region (us-west-2 suggested).",
+    "kind": "ops",
+    "status": "superseded",
+    "evidence": "D16",
+    "note": "D16 decides us-west-2; no infrastructure uses it yet."
+  },
+  {
+    "id": "PLAN12-003",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Confirm that the ExpandRange AWS account is the home, or a fresh account per product.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No decision is recorded."
+  },
+  {
+    "id": "PLAN12-004",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Attorney reviewer: who signs off rule packs in v0. Phase 2 and the Ops gate assume someone.",
+    "kind": "legal",
+    "status": "superseded",
+    "evidence": "D14, D22, D28",
+    "note": "No attorney is retained, founder approval in Ops is the final pass, and attorneys are looked for after validation."
+  },
+  {
+    "id": "PLAN12-005",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "v0 on Electron for stack unity.",
+    "kind": "desktop",
+    "status": "met",
+    "evidence": "desktop/package.json; D42",
+    "note": "Electron is the chosen shell."
+  },
+  {
+    "id": "PLAN12-006",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Revisit native macOS after phase 8 with real performance and Foundation Models needs.",
+    "kind": "desktop",
+    "status": "deferred",
+    "evidence": "duly-plan/12-open-questions.md item 4",
+    "note": "The document places this after Phase 8."
+  },
+  {
+    "id": "PLAN12-007",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "WorkBook local drafting model on non-Apple dev machines: ship with drafting off, or bundle Ollama setup docs.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "D20",
+    "note": "D20 is still open."
+  },
+  {
+    "id": "PLAN12-008",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Weekly brief default: opt-in at signup (recommended, compliance-clean) or on-by-default with first-brief opt-out.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No decision is recorded."
+  },
+  {
+    "id": "PLAN12-009",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Impact score display in email: dots plus label as in-app, confirmed?",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No decision is recorded."
+  },
+  {
+    "id": "PLAN12-010",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Ops IP allowlist: enforce from day one or WebAuthn-only until launch.",
+    "kind": "security",
+    "status": "met",
+    "evidence": "D17; api/ops_guard.py; tests/unit/api/test_api.py test_ops_refuses_any_other_address; Makefile ops-block-demo",
+    "note": "The allowlist is built as a prototype the founder can see."
+  },
+  {
+    "id": "PLAN12-011",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Billing rails (deferred but decide before phase 11 ends): Stripe assumed; confirm.",
+    "kind": "product",
+    "status": "superseded",
+    "evidence": "D18",
+    "note": "D18 confirms Stripe, to be set up later."
+  },
+  {
+    "id": "PLAN12-012",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Name check: clear trademark search for Duly before public artifacts.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "D19",
+    "note": "A preliminary check is done; full clearance is pending and no record of the check is in the repository."
+  },
+  {
+    "id": "PLAN12-013",
+    "source": "duly-plan/12-open-questions.md, Open questions",
+    "text": "Name check: app-store availability search for Duly before public artifacts.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No record exists."
+  },
+  {
+    "id": "PLAN12-014",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: CPPA 7027 purpose list text.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No counsel is retained (D14) and nothing records an answer."
+  },
+  {
+    "id": "PLAN12-015",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: crypto-shred sufficiency.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No answer is recorded."
+  },
+  {
+    "id": "PLAN12-016",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: NC posture.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No answer is recorded."
+  },
+  {
+    "id": "PLAN12-017",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: NJ sensitive list verbatim.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No answer is recorded."
+  },
+  {
+    "id": "PLAN12-018",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: ABA 512 citation.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "docs/research/notes/upl_liability.md",
+    "note": "Research notes exist; no counsel answer is recorded."
+  },
+  {
+    "id": "PLAN12-019",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: Anthropic ZDR terms.",
+    "kind": "privacy",
+    "status": "superseded",
+    "evidence": "D28",
+    "note": "Moved to after validation."
+  },
+  {
+    "id": "PLAN12-020",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: TurboTax-style guarantee treatment.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "tools/copy_lint/lint.py (guarantee)",
+    "note": "The word is banned from product copy; the counsel question is unanswered."
+  },
+  {
+    "id": "PLAN12-021",
+    "source": "duly-plan/12-open-questions.md, Standing counsel items",
+    "text": "Counsel item: SBA size standard for the TDPSA exemption.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No answer is recorded."
+  },
+  {
+    "id": "PLAN13-001",
+    "source": "duly-plan/13-cutlines.md, intro",
+    "text": "The factory never builds these speculatively; each enters only on its trigger.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "pyproject.toml; package.json; web/package.json; infra/docker-compose.yml",
+    "note": "None of the cut items has code or a dependency in the repository."
+  },
+  {
+    "id": "PLAN13-002",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Payments (Stripe): enters at Phase 11 to 12, after the founder self-test passes.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Payments; D18",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-003",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Payments work: Stripe web checkout, CA ARL consent flow, 14-day refund plumbing; pricing fixed: 79 USD per year, 29 to 99 USD packs.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Payments; D8",
+    "note": "Cut from v0; D8 parks pricing."
+  },
+  {
+    "id": "PLAN13-004",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "USCIS live case polling: post v0 experiment.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md USCIS live case polling",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-005",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Manual receipt entry ships with the poll job stubbed.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "contracts/case_f1.schema.json; api/worker.py",
+    "note": "This part is in v0 and is not built."
+  },
+  {
+    "id": "PLAN13-006",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Evaluate USCIS Torch API access, else a careful checker with backoff behind a flag.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md USCIS live case polling",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-007",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "WorkBook source connectors (Calendar, Meet, GitHub, Slack): Phase 12, behind flags.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md WorkBook source connectors",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-008",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Register OAuth apps during Phase 3 to 4 (Google verification is the long pole).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing in the repository records a registration."
+  },
+  {
+    "id": "PLAN13-009",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Connector scopes per handoff; connector contract tests specced.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No connector test SPEC exists."
+  },
+  {
+    "id": "PLAN13-010",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Full on-device vault encryption on web: desktop real in Phase 8; web later.",
+    "kind": "security",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Full on-device vault encryption on web",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-011",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Electron SQLCipher plus keychain is the v0 vault.",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "specs/desktop-1/SPEC.md",
+    "note": "The desktop SPEC leaves the encrypted store to Phase 8; nothing is built."
+  },
+  {
+    "id": "PLAN13-012",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Web vault waits on the key-recovery decision (secret key vs passphrase).",
+    "kind": "security",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Full on-device vault encryption on web",
+    "note": "No decision is recorded."
+  },
+  {
+    "id": "PLAN13-013",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Push notifications: enter with mobile apps.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Push notifications",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-014",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Weekly brief and threshold alerts via SES carry the job.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "emails/README.md",
+    "note": "No brief or alert is built."
+  },
+  {
+    "id": "PLAN13-015",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Slack daily post (WorkBook): post Phase 12; founder designs; then one chat.write scope and one worker job.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Slack daily post",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-016",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Mobile apps: after paid web validation; React Native vs wrapped PWA decided then.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Mobile apps; D7",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-017",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Multi-role cases: enter when a real user needs it; UI plus per-case engine runs.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Multi-role cases",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-018",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Multi-role cases: schema allows a list.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "contracts/case_f1.schema.json",
+    "note": "The case contract is for one F-1 case and holds no list of roles."
+  },
+  {
+    "id": "PLAN13-019",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "University portal and DSO share: after validation experiments; reuses export links (supervisor view per handoff).",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md University portal and DSO share",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-020",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "First step is the three DSO conversations, not code.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing in the repository records these conversations."
+  },
+  {
+    "id": "PLAN13-021",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Attorney marketplace and consults: Year 2 tier; UPL structure (referral vs ABS) decided later.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Attorney marketplace and consults",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-022",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Gmail source: stays out unless the assessment cost is ever justified.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Gmail source",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-023",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "WorkBook cloud backup: post v0, opt in; E2E encrypted backup to user-held Drive or S3 with their passphrase.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md WorkBook cloud backup",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-024",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Redis, Temporal, Kubernetes: only on measured triggers; Postgres queue plus ECS suffice.",
+    "kind": "ops",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Redis, Temporal, Kubernetes",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-025",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Migration triggers documented in the backend plan.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The backend plan is not in the repository."
+  },
+  {
+    "id": "PLAN13-026",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "SOC 2: when the university channel demands it.",
+    "kind": "security",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md SOC 2",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-027",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "VDP, security page, and pen test cover v0 scrutiny.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "security/threat-model.md",
+    "note": "Only the threat model exists; no VDP, security page or pen test."
+  },
+  {
+    "id": "PLAN13-028",
+    "source": "duly-plan/13-cutlines.md, Cutlines table",
+    "text": "Monthly AI narrative (WorkBook): post Phase 12; small feature once BYO-key UX exists.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/13-cutlines.md Monthly AI narrative",
+    "note": "Cut from v0 by this document; no code for it is present."
+  },
+  {
+    "id": "PLAN13-029",
+    "source": "duly-plan/13-cutlines.md, Operating notes",
+    "text": "Nothing on this list blocks the founder self-test.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "duly-plan/01-master-plan.md success criteria",
+    "note": "No cut item is what blocks the self-test, but the self-test itself cannot run yet, so this is unproven."
+  },
+  {
+    "id": "PLAN13-030",
+    "source": "duly-plan/13-cutlines.md, Operating notes",
+    "text": "Long-lead paperwork starts early: Google OAuth verification kicks off around Phase 3.",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No record exists."
+  },
+  {
+    "id": "PLAN13-031",
+    "source": "duly-plan/13-cutlines.md, Operating notes",
+    "text": "Long-lead paperwork starts early: the Duly domain plus SES warmup kick off around Phase 3.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "D15",
+    "note": "D15 parks the domain and nothing is started."
+  },
+  {
+    "id": "PLAN13-032",
+    "source": "duly-plan/13-cutlines.md, Operating notes",
+    "text": "Three items are decisions, not code: DSO channel, attorney structure, mobile timing (see 12).",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "D14, D28",
+    "note": "Attorney structure is put off by D28; no decision is recorded for the DSO channel or mobile timing."
+  }
+]

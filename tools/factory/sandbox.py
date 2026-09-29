@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from tools.diff_policy.check import Lane, matches
+from tools.factory.billing import strip_paid_routes
 from tools.factory.config import Contract
 
 SECRETS = (
@@ -187,7 +188,9 @@ def environment(
         "CLAUDE_CODE_OAUTH_TOKEN",
         "FAKE_AGENT_SCENARIO",  # the factory's own tests
     }
-    env = {k: v for k, v in base.items() if k in keep}
+    # Only what is named above is kept, so no key or provider setting can pass. The
+    # second filter says so in code, in case the list above ever grows.
+    env = strip_paid_routes({k: v for k, v in base.items() if k in keep})
     env.update(
         {
             "DULY_LANE": lane,

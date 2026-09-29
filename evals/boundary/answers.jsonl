@@ -1,0 +1,31 @@
+{"id":"out-01","expect":"stop","why":"instruction","text":"File this form now."}
+{"id":"out-02","expect":"stop","why":"instruction","text":"Submit the I-765 this week."}
+{"id":"out-03","expect":"stop","why":"instruction","text":"Apply before the window closes."}
+{"id":"out-04","expect":"stop","why":"instruction","text":"Do not travel."}
+{"id":"out-05","expect":"stop","why":"instruction","text":"Sign the form and send it."}
+{"id":"out-06","expect":"stop","why":"instruction","text":"Make sure to report your employer."}
+{"id":"out-07","expect":"stop","why":"instruction","text":"Consider applying early."}
+{"id":"out-08","expect":"stop","why":"instruction","text":"Please keep a copy of every pay stub."}
+{"id":"out-09","expect":"stop","why":"instruction","text":"The window opens on March 3, so apply then."}
+{"id":"out-10","expect":"stop","why":"instruction","text":"First, gather your documents, then file."}
+{"id":"out-11","expect":"stop","why":"advice","text":"It is best to file early."}
+{"id":"out-12","expect":"stop","why":"advice","text":"There is no need to report this."}
+{"id":"out-13","expect":"stop","why":"advice","text":"The safest option is to wait for the card."}
+{"id":"out-14","expect":"stop","why":"advice","text":"It is not too late to apply."}
+{"id":"out-15","expect":"stop","why":"advice","text":"This has to be done as soon as possible."}
+{"id":"out-16","expect":"stop","why":"conclusion","text":"You are eligible for the extension."}
+{"id":"out-17","expect":"stop","why":"conclusion","text":"Your startup counts as employment."}
+{"id":"out-18","expect":"stop","why":"conclusion","text":"You can keep working until April."}
+{"id":"out-19","expect":"stop","why":"conclusion","text":"There is nothing to worry about."}
+{"id":"out-20","expect":"stop","why":"conclusion","text":"You will be fine."}
+{"id":"out-21","expect":"ok","why":"rule","text":"Post-completion OPT allows 90 days of unemployment in total."}
+{"id":"out-22","expect":"ok","why":"rule","text":"The regulation says a student may file Form I-765 up to 90 days before the program end date."}
+{"id":"out-23","expect":"ok","why":"rule","text":"The rule that would change the grace period is blocked by a court."}
+{"id":"out-24","expect":"ok","why":"rule","text":"The regulation lists an employer enrolled in E-Verify among the requirements for the extension."}
+{"id":"out-25","expect":"ok","why":"arithmetic","text":"From the dates entered, 35 of 90 days are counted."}
+{"id":"out-26","expect":"ok","why":"to the dso","text":"Ask your DSO."}
+{"id":"out-27","expect":"ok","why":"to the dso","text":"Confirm with your DSO or an attorney."}
+{"id":"out-28","expect":"ok","why":"to the dso","text":"This part depends on your own situation, so it is a question for your DSO."}
+{"id":"out-29","expect":"ok","why":"rule","text":"Your school's page says CPT needs a course enrollment."}
+{"id":"out-30","expect":"ok","why":"rule","text":"The filing window opens 90 days before the program end date."}
+{"id":"out-31","expect":"ok","why":"rule","text":"The source uses the words: \"File Form I-765 with USCIS\"."}

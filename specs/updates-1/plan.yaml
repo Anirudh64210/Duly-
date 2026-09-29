@@ -1,0 +1,53 @@
+branch: updates-1
+spec: specs/updates-1/SPEC.md
+merge: pr
+rounds:
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: Write the tests the SPEC describes under "The tests". They cannot pass yet.
+        done: >-
+          bash -c 'ls tests/unit/pipeline/test_watch*.py >/dev/null
+          && uv run ruff check tests && uv run ruff format --check tests'
+  - name: build
+    lanes:
+      - lane: L-pipeline
+        agent: builder
+        mission: >
+          Build watch/register.py, watch/check.py and the schedule script the SPEC describes.
+          Your tests use a local fake server; you have no network in your sandbox.
+        done: >-
+          bash -c 'uv run pytest tests/unit/pipeline -q && uv run mypy
+          && uv run ruff check pipeline watch && uv run ruff format --check pipeline watch'
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Make the engine take freshness as an input: the day each rule was last checked and
+          the rules that are stale, as the SPEC describes under "What a result does". The
+          engine stays pure; the api reads watch/state and passes it in. The tests in
+          tests/unit/engine are your target.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine -q && uv run mypy
+          && uv run ruff check engine && uv run ruff format --check engine'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=updates-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review the work of this plan against specs/updates-1/SPEC.md. Try hardest to make
+          a change in the law pass as unchanged, to reach a host not on the list, and to make
+          the watcher write a rule pack. Write reviews/updates-1.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/updates-1.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: Audit updates round 1 as your role file describes. Write docs/requirements/audits/updates-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/updates-1.md
+          && uv run python -m tools.requirements.register check'

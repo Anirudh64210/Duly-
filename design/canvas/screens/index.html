@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duly screens</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F8F7F4;--ink:#1A1917;--mid:#6B6862;--soft:#B0ACA3;--line:#ECEAE4;--blue:#2B4EA2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:56px 24px 80px}
+  h1{font-size:32px;font-weight:600;letter-spacing:-.02em;margin:0}
+  .sub{font-size:15px;color:var(--mid);margin-top:10px;max-width:640px;line-height:1.55}
+  .note{margin-top:22px;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:13.5px;color:var(--mid);line-height:1.6}
+  .grid{margin-top:40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .16s ease,transform .12s ease}
+  .card:hover{border-color:#C9C5BC;transform:translateY(-2px)}
+  .shot{height:210px;background:var(--bg);border-bottom:1px solid var(--line);overflow:hidden;position:relative}
+  .shot iframe{position:absolute;top:0;left:0;border:0;transform-origin:top left;pointer-events:none}
+  .meta{padding:14px 18px;display:flex;align-items:baseline;gap:10px}
+  .name{font-size:15px;font-weight:600}
+  .file{font-size:12px;color:var(--soft);margin-left:auto;font-variant-numeric:tabular-nums}
+  .tag{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--blue)}
+  footer{margin-top:48px;font-size:12.5px;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Duly screens</h1>
+  <div class="sub">The nine approved artboards from the design canvas. Each one opens as a working page: expandable rows, stateful checklists, switchable scenarios, confetti on completed phases.</div>
+  <div class="note">Click any card to open that screen full size. These files render through <strong>support.js</strong>, a small standalone runtime included here, so they work from the file system with no build step. An internet connection loads Instrument Sans; without it the layout is identical but the typeface falls back.</div>
+  <div class="grid" id="grid"></div>
+  <footer>Source of truth for Phase 4. Behaviors are written out in DESIGN-SPEC.md.</footer>
+</div>
+<script>
+const SCREENS = [
+  ["Main.dc.html","Home",1280,832,"DESKTOP"],
+  ["Timeline.dc.html","Timeline",1280,832,"DESKTOP"],
+  ["Documents.dc.html","Documents",1280,832,"DESKTOP"],
+  ["Checklist.dc.html","Checklists",1280,832,"DESKTOP"],
+  ["Simulator.dc.html","Scenarios",1280,832,"DESKTOP"],
+  ["Updates.dc.html","Updates",1280,832,"DESKTOP"],
+  ["WorkBook.dc.html","WorkBook",1280,832,"DESKTOP"],
+  ["Onboarding.dc.html","Onboarding",1280,832,"DESKTOP"],
+  ["Phone.dc.html","Mobile home",390,844,"MOBILE"]
+];
+const grid = document.getElementById('grid');
+SCREENS.forEach(([file,name,w,h,tag])=>{
+  const a = document.createElement('a');
+  a.className='card'; a.href=file; a.target='_blank'; a.rel='noopener';
+  a.innerHTML = `<div class="shot"><iframe src="${file}" scrolling="no" width="${w}" height="${h}" loading="lazy"></iframe></div>
+    <div class="meta"><span class="tag">${tag}</span><span class="name">${name}</span><span class="file">${file}</span></div>`;
+  grid.appendChild(a);
+  const frame = a.querySelector('iframe');
+  const fit = () => { const s = a.querySelector('.shot').clientWidth / w; frame.style.transform = `scale(${s})`; };
+  fit(); window.addEventListener('resize', fit);
+});
+</script>
+</body>
+</html>

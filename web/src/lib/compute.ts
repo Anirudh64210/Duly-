@@ -45,7 +45,8 @@ export type F1Case = {
   program_end_date: string;
   degree_level: DegreeLevel;
   documents_count: number;
-  cpt_full_time_days: number;
+  /** Null means nothing was entered. Duly never takes it as zero. */
+  cpt_full_time_days: number | null;
   opt: EadBlock | null;
   stem: EadBlock | null;
   employment: EmploymentPeriod[];
@@ -54,8 +55,14 @@ export type F1Case = {
   confirmations: Confirmations;
 };
 
-/** The person's own answer to a question Duly asked, and the day it was given. */
-export type Confirmation = { answer: boolean; on: string };
+/** The input values a question was raised for, as the engine gave them. */
+export type About = Record<string, unknown>;
+
+/**
+ * The person's own answer to a question Duly asked, the day it was given, and the
+ * values it was given for. An answer without them is no answer to the engine.
+ */
+export type Confirmation = { answer: boolean; on: string; about?: About };
 export type Confirmations = Record<string, Confirmation>;
 
 // The pattern the case contract gives for time_zone.
@@ -70,6 +77,18 @@ export const DERIVATIONS = ["verbatim", "reading"] as const;
 export type Derivation = (typeof DERIVATIONS)[number];
 
 const valueSchema = z.union([z.number(), z.string(), z.null()]);
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const alternatesSchema = z
+  .array(
+    z.strictObject({
+      regime: z.string(),
+      legal_status: z.string(),
+      value: valueSchema,
+    }),
+  )
+  .optional();
+// The regime the value was computed under, and its legal status from the pack.
+const operativeSchema = z.strictObject({ regime: z.string(), legal_status: z.string() }).optional();
 
 // Mirrors contracts/engine_output.schema.json.
 export const engineOutputSchema = z
@@ -90,17 +109,10 @@ export const engineOutputSchema = z
         inputs: z.record(z.string(), z.unknown()),
         rule_ids: z.array(z.string()).min(1),
         status: z.enum(ITEM_STATUSES),
-        alternates: z
-          .array(
-            z.strictObject({
-              regime: z.string(),
-              legal_status: z.string(),
-              value: valueSchema,
-            }),
-          )
-          .optional(),
-        // The regime the item's value was computed under, and its legal status from the pack.
-        operative: z.strictObject({ regime: z.string(), legal_status: z.string() }).optional(),
+        alternates: alternatesSchema,
+        operative: operativeSchema,
+        // True when a rule the item used is Duly's reading of the source.
+        reading: z.boolean(),
       }),
     ),
     rulepacks: z.array(z.strictObject({ category: z.string(), version: z.string() })),
@@ -121,23 +133,43 @@ export const engineOutputSchema = z
     ),
     questions: z.array(
       z.strictObject({
-        id: z.string().regex(/^[a-z0-9_]+$/),
+        id: z.string().regex(/^[a-z0-9_.]+$/),
         because: z.array(z.string()).min(1),
+        about: z.record(z.string(), z.unknown()).optional(),
       }),
     ),
-    today: z.strictObject({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time_zone: z.string() }),
+    today: z.strictObject({ date: z.string().regex(ISO_DAY), time_zone: z.string() }),
+    upcoming: z.array(
+      z.strictObject({
+        id: z.string(),
+        date: z.string().regex(ISO_DAY),
+        rule_ids: z.array(z.string()).min(1),
+        status: z.enum(ITEM_STATUSES),
+        reading: z.boolean(),
+        alternates: alternatesSchema,
+        operative: operativeSchema,
+      }),
+    ),
+    lists: z.array(
+      z.strictObject({
+        id: z.string().regex(/^[a-z0-9_.]+$/),
+        rule_ids: z.array(z.string()).min(1),
+      }),
+    ),
   })
   // An item is never shown without the source of every rule it used.
   .refine(
     (output) =>
-      output.computed.every((item) => item.rule_ids.every((id) => Object.hasOwn(output.rules, id))),
-    { message: "a computed item names a rule that has no source" },
+      [...output.computed, ...output.upcoming, ...output.lists].every((entry) =>
+        entry.rule_ids.every((id) => Object.hasOwn(output.rules, id)),
+      ),
+    { message: "an item, a date ahead, or a list names a rule that has no source" },
   )
   // A value beside alternates is never shown without the legal status the pack gives it.
   .refine(
     (output) =>
-      output.computed.every(
-        (item) => (item.alternates ?? []).length === 0 || item.operative !== undefined,
+      [...output.computed, ...output.upcoming].every(
+        (entry) => (entry.alternates ?? []).length === 0 || entry.operative !== undefined,
       ),
     { message: "an item with alternates does not name its operative regime" },
   )
@@ -159,6 +191,8 @@ export type ComputedItem = EngineOutput["computed"][number];
 export type Alternate = NonNullable<ComputedItem["alternates"]>[number];
 export type ShownRule = EngineOutput["rules"][string];
 export type Question = EngineOutput["questions"][number];
+export type Upcoming = EngineOutput["upcoming"][number];
+export type ListEntry = EngineOutput["lists"][number];
 
 const COMPUTE_PATH = "/v1/compute/f1" satisfies keyof paths;
 

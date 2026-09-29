@@ -575,3 +575,323 @@ no test can see that from outside. Gate rules on engine.clocks cover it.
   date.max if the first day were drawn from the whole range.
   Fix: draw the first day from dates up to date.max minus six days.
   Evidence: tests/unit/engine/test_is_weekend.py, `days`.
+
+## Iteration 6, 2026-09-29: product round 1 (run l-tests-10980efb8b)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC.md, reviews/phase-2-second.md, CLAUDE.md,
+PRINCIPLES.md, BOUNDARY.md, DECISIONS.md, contracts/engine_output.schema.json,
+contracts/case_f1.schema.json. engine/f1.py and engine/verdict.py were read for the
+names they hold and for the conflict ids of earlier rounds.
+
+### What was written
+
+| File | What it covers |
+|---|---|
+| tests/unit/engine/test_f1_product.py | Sections 1 to 6. For each of the 13 conflicts: the input that raises it, the input to the safe side, the answers yes and no, the about of the question. The reviewer's inputs of findings 1, 4, 5 and 6. Days between two cards. The two questions of section 2. The day and the about of an answer. Done items. reading on items and on upcoming. The four next dates, lists. A property over generated records |
+| tests/unit/api/test_compute_product.py | The same findings through POST /v1/compute/f1 with the reviewer's clock and zone, the 422 for an answer dated after today, upcoming and lists in the response |
+| tests/holdout/test_holdout_product.py | Hidden second set: other dates, today 2027-03-10, a leap day, two conflicts at once, a second property |
+| tests/support/f1_pack.py | Three placeholder rules stem.requires.*, the ids of the questions and conflicts, helpers for upcoming, conflicts and answers that carry about, and the table of section 1 written apart from the engine (conflicts_by_the_table) |
+
+### Changes to existing tests, each because a contract changed
+
+No assertion was switched off or deleted. Each change is listed so the founder can judge it.
+
+1. Cases without cpt_full_time_days (STEM_ONLY, CAP_GAP_ONLY, STEM_WITHOUT_OPT and six
+   more, in test_f1_context.py, test_f1_fixes.py, test_compute_context.py,
+   test_holdout_context.py, test_holdout_fixes.py) gained `cpt_full_time_days: 0`.
+   Without it each would now raise full_time_cpt_used, which is not what they test.
+2. tests/unit/engine/test_f1.py, test_parse_case_fills_what_the_contract_lets_a_case_leave_out:
+   `cpt_full_time_days == 0` became `is None`. The case contract no longer has the default.
+3. tests/unit/engine/test_f1_context.py, test_an_empty_list_with_neither_opt_nor_stem_raises_no_question:
+   `questions == []` became `NO_EMPLOYMENT not in question_ids`. The engine now asks
+   nothing_more_to_record in that case (D41). This is narrower than before.
+4. The two older properties (test_f1_context.py and test_holdout_context.py) allowed only
+   the three questions of their round. They now allow the two new questions and leave
+   conflict questions to the new property. This is narrower than before.
+
+### What ran and what it printed
+
+- The done command: exit 0. `ruff check tests`: All checks passed. `ruff format --check tests`: 39 files already formatted.
+- `uv run pytest tests/unit/engine tests/unit/api tests/holdout` before any change: 151 failed, 896 passed.
+  Every one of the 151 is the older tests meeting the new output contract (upcoming, lists, reading required).
+- The same after the changes, without the three new files: 152 failed, 895 passed. The one
+  more is change 2 above, which cannot pass until the engine stops defaulting to 0.
+- With the three new files: 432 failed, 911 passed. The SPEC expects the new tests to fail.
+- The safe side of every conflict was run on the engine as it is: each fails only on the
+  contract check that comes last, so each case reaches a verdict other than cannot_tell.
+- Every date and count was worked by hand and then checked with datetime in a scratch
+  script: all agree.
+
+### What change to the code would make each test fail
+
+Not shown by planted faults this time. No reference engine for the new contract was
+written: the time limit of the attempt did not allow it. This is a gap. What is known:
+
+| Tests | Fail on the engine as it is, because |
+|---|---|
+| conflict raised, question, about, yes, no (13 rows each) | no conflict of the table exists: verdict is no_open_items or needs_you |
+| null items while a conflict is open | the items hold dates and counts |
+| section 2 questions | cpt days default to 0; nothing is asked |
+| answer dated after today | parse_case takes it |
+| answer before today, answer about other values | `_answer` never reads `on` or `about` |
+| done items | opt.apply_window_closes is an open item |
+| reading, upcoming, lists | the keys are absent |
+
+Thirteen tests pass on the engine as it is. Each says that something is not asked or
+not refused (an open period past the last card, a part entered, cpt days entered, an
+answer dated today). They fail on an engine that asks or refuses too much.
+
+### Disputes
+
+1. contracts/engine_output.schema.json, questions.items.id has the pattern
+   `^[a-z0-9_]+$`. SPEC section 1 gives the question the id of the conflict, such as
+   `opt.card_longer_than_rule`, which holds dots. The case contract was changed to take
+   dots in the names of confirmations; the output contract was not. The tests follow
+   the SPEC. test_the_output_of_a_conflict_follows_the_contract and
+   test_the_response_to_a_conflict_follows_the_contract cannot pass with both as written.
+
+### Questions (the SPEC is unclear; the tests take no side unless stated)
+
+47. An answer with no `about` at all. Is it an answer to a question that carries about?
+    Most older tests answer through `answers()`, with no about. If it is not an answer,
+    those tests need the helper answer_as_the_screen_does. Not tested. Needs the founder.
+48. How parse_case learns the day. The tests pass the clock as a second argument when
+    parse_case takes two or more, and one argument otherwise. Older tests call it with one.
+49. A card whose last day is the day the months end (2025-11-01 to 2026-11-01). Longer
+    than the rule or not? Left open: the raising input is one day past it, the safe input
+    one day before it.
+50. The shape of `about`. The tests require only that the values that do not fit are
+    somewhere inside it, and that the engine compares it with what the answer carries.
+51. The shape of the inputs of cpt.full_time_days_used after the answer no. The tests
+    require the id full_time_cpt_used and the day of the answer somewhere inside, and
+    that cpt_full_time_days is not shown as 0.
+52. Which items "use the dates" of a conflict. Tested: grace.ends and the counts for the
+    card rows, the counts for the gap and the employment rows, capgap.ends for the
+    requested start (and for the petition date in the reviewer's input, where the
+    reviewer named it).
+53. Whether the rules named in upcoming and lists are shown under `rules`. The contract
+    says "every rule named in computed". The tests require them there, since the screen
+    shows their words.
+54. Conflict ids of earlier rounds (stem_start, opt_start) are not in the table. Untouched.
+55. The reason for an open question of section 2 is taken to be `unconfirmed:<id>`, as
+    SPEC-context section 4 has it.
+
+### Requests for files this lane does not own
+
+- contracts/engine_output.schema.json: allow dots in the id of a question, or the SPEC
+  names another id for the question of a conflict.
+- specs/product-1/SPEC.md: a line for each of questions 47, 48 and 49.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Lesson
+
+- Failure: a date after today for a filing also lies after a card in hand, so one input
+  raised two conflicts and the row could not be tested alone.
+  Fix: test the after_today rows on a case whose card begins after today.
+  Evidence: tests/unit/engine/test_f1_product.py, AHEAD and STEM_AHEAD.
+- Failure: older cases that leave a field out change meaning when the contract drops a default.
+  Fix: spy on parse_case through a scratch plugin under TMPDIR to list every test whose
+  case lacks the field, then change the cases, not the assertions.
+  Evidence: 43 tests listed for cpt_full_time_days, 7 for no training entered.
+
+## Iteration 7, 2026-09-29: the resolutions of the engine builder's escalation (run l-tests-9f87ae7e93)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC-resolutions.md, specs/product-1/SPEC.md,
+CLAUDE.md, engine/PROGRESS.md on lane/L-engine/l-engine-b63b2c6ea2 ("Disputes"),
+contracts/factory_report.schema.json. engine/f1.py was read for the name of `_answer` only
+(to plant the fault below) and for how parse_case takes the clock.
+
+### What was done
+
+| Resolution | Change |
+|---|---|
+| 2 (answer after the day of the case) | answered_yes() now dates its answers ON_THE_DAY_IT_RUNS ("1950-01-01", the first day the case contract takes). dated_on_the_day(case, clock) puts in the person's own day, worked with zoneinfo apart from the engine, before each run. test_the_answer_yes_to_another_row_leaves_this_one_open runs on the row's own day |
+| 3 (no_employment_to_record covers through its day) | the same: an older case's yes is given on the day it is run, which is what it meant. test_window_runs_... passes without a change to its assertions |
+| 4 (open conflict gives nulls) | cases changed so their facts fit: test_f1.py year-mark rows (card, filing and work moved with the start), test_final_end (one open period), the counting property (periods inside the cards, STEM filing on or before today), test_a_period_covers_its_first_and_last_day (rows inside the card; the rows that began before the card moved to a new test that expects the conflict and null counts); test_f1_sourcing.py clamped month, shorter extension, evaluation property, report property, earliest OPT start |
+| 5 (done step is no open item) | opt.file_by and opt.apply_window_closes tests now expect no open item on a case with the card (renamed to say so). The lookahead tests were moved onto stem.validation_2_due (2026-07-16 for CASE_B), which is never done |
+| 7 (no about, no answer) | with_the_about_asked(case, compute) in tests/support/f1_pack.py: each answer with no about is sent with the about of the question the output asked, in the order asked, as the screen does. Every run() helper of the older engine and holdout files goes through it. New tests in test_f1_product.py: test_point_7_* for no_employment_to_record (yes and no), all 13 conflict rows, nothing_more_to_record (yes and no), full_time_cpt_used, and a control with the about |
+| 8 (parse_case(raw, clock)) | every run() helper now calls parse_case(sent, clock). parsed() in the product file no longer guesses by signature. New: test_point_8_parse_case_takes_the_clock_as_its_second_argument, and a property over every day 1950-01-01 to 2099-12-30 with an injected clock |
+| 10 (card through the day its months end) | conflicts_by_the_table no longer leaves it open (unsure is always empty). New: test_point_10_... with 2026-10-31, 2026-11-01 (no conflict) and 2026-11-02 (conflict), 12 months from 2025-11-01 being 2026-11-01 |
+
+Working for the new dates: 2026-07-10 through 2026-09-28 is 22 + 31 + 28 = 81 days.
+stem.validation_2_due 2026-07-16 less 14 is 2026-07-02, less 15 is 2026-07-01. 12 months
+from 2024-08-31 is 2025-08-31; 24 from 2025-08-31 is 2027-08-31. Jun 1 through Sep 28
+is 30 + 31 + 31 + 28 = 120, so a period of Jun 1 alone leaves 119 and Jun 1 to 2 leaves 118.
+
+### What ran and what it printed
+
+- Before: `pytest tests/unit/engine tests/unit/api` 48 failed. With a scratch plugin under
+  TMPDIR that makes `engine.f1._answer` return OPEN for an answer with no about (the fault
+  of point 7 reversed, i.e. point 7 put in): about 150 failed over engine, api and holdout.
+- After, the engine as it is: engine files 25 failed (18 are the new point 7 tests, which
+  must fail until the engine does point 7; 4 in test_f1_context.py, 3 in test_f1_fixes.py),
+  api 5, holdout 23.
+- After, with point 7 put in by the plugin: test_f1.py, test_f1_sourcing.py and
+  test_f1_product.py all pass. Left: test_f1_context.py 4, test_f1_fixes.py 3, api 16,
+  holdout 24.
+- The done command: exit 0 (All checks passed; 40 files already formatted).
+
+### What change to the code would make each new test fail
+
+- test_point_7_*: shown. They fail on the engine as it is (it reads an answer with no
+  about as given: verdict talk_to_dso, no question) and pass with the plugin.
+- test_point_8_*: fail on a parse_case that takes one argument (TypeError) or that reads
+  the day from the system time (the property draws days far from it). Not planted.
+- test_point_10_*: fails on an engine that compares the end with the months less a day
+  (2026-11-01 raised). Not planted.
+- test_a_period_that_begins_before_the_card_gives_no_count: fails on an engine that
+  counts days before the card.
+
+### Not done in this attempt (time)
+
+- test_f1_context.py: test_an_item_is_open_on_the_persons_own_day,
+  test_no_date_from_before_the_ead_blocks_a_case_that_holds_the_ead,
+  test_the_question_names_the_inputs_that_raised_it (point 6: it expects id and because
+  only), test_the_answer_yes_counts_on_an_empty_list (point 7: answers() with no about).
+- test_f1_fixes.py: the two largest cases and the day-by-day property (point 4: days
+  between two cards and periods outside them).
+- tests/unit/api: the compute files answer with answers() and no about (point 7) and do
+  not go through with_the_about_asked; api 422 tests wait for L-api (point 8).
+- tests/holdout: go through the new helpers, but 24 older cases hold facts of section 1
+  or done steps, as in the unit files.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Lesson
+
+- Failure: an older case computed on many days carried answers dated 2026-09-28; point 2
+  refuses them on earlier days and point 3 reopens no_employment_to_record on later days.
+  Fix: a marker date the case contract takes, replaced by the person's own day before the
+  case is computed, so the answer is given on the day the case runs.
+  Evidence: 52 + 16 + 8 ValueErrors "dated after today" went to 0.
+- Failure: resolution 7 changes the meaning of every older answer at once, and the engine
+  had not done it yet, so the tests could not show which cases it breaks.
+  Fix: a scratch pytest plugin that patches engine.f1._answer to put point 7 in, run beside
+  the plain run, and a helper that sends each answer with the about the output asked.
+  Evidence: failures under the plugin in test_f1.py went from 29 to 0.
+
+## Iteration 8, 2026-09-29: the seven tests the engine builder named (run l-tests-0da09336d8)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC-resolutions.md, specs/product-1/SPEC.md
+sections 1 to 6, CLAUDE.md, engine/PROGRESS.md on lane/L-engine/l-engine-209410c52d,
+contracts/case_f1.schema.json (confirmations.about), contracts/engine_output.schema.json
+(questions.about), contracts/factory_report.schema.json. engine/f1.py and
+engine/verdict.py on the engine branch were read to see why a case the mission asked for
+could not raise an open item (below), not to take expected values from them.
+
+### What was done
+
+| Mission point | Change |
+|---|---|
+| 1 | tests/support/f1_pack.py: answers() and answered_yes() give each answer `about: about_asked(<question id>)`, an about naming the question, and a day: `on`, or with `clock=` the person's own day at its instant (day_of, zoneinfo apart from the engine). The default day stays ON_THE_DAY_IT_RUNS, put in as the case's day by dated_on_the_day. with_the_about_asked now fills in the values of the question for an answer whose about is about_asked(id) as well as for one with none. answers_with_no_about() is new, for the point 7 tests only (test_f1_product.py uses it in its four point 7 tests, so they still send no about). ANSWERED_ON removed (unused). test_f1_context.answered() defaults to ON_THE_DAY_IT_RUNS |
+| 2 | test_an_item_is_open_on_the_persons_own_day: no case the SPEC allows gives opt.apply_window_closes as an open item (dispute below). Moved to stem.validation_2_due on CASE_B (2026-07-16), at 01:30 UTC on 2026-07-17: open in Los Angeles (Jul 16), past in Kolkata (Jul 17); east also asserted not cannot_tell |
+| 3 | whole_cases in test_f1_context.py: today is drawn from opt_start + 334 on (the STEM filing, the latest date drawn: opt_end - 30 = opt_start + 364 - 30) |
+| 4 | test_the_question_names_the_inputs_that_raised_it expects {id, because, about}, about a mapping |
+| 5 | test_the_answer_yes_counts_on_an_empty_list dates the answer 2026-08-01, the case's day, and asserts so |
+| 6 | largest_case_the_rules_allow(): OPT 2097-01-01..2097-12-31, STEM 2098-01-01..2099-12-31, 50 periods, program end 2096-12-15. Both counting tests use it and assert no conflict. largest_case() stays the contract's widest for the timing and step tests |
+| 7 | small window property: conflicts_by_the_table decides; any row other than after_today (these touch no date the counts use) gives null counts, cannot_tell and the row among the conflicts; otherwise the day-by-day comparison as before. The generator keeps every period inside the cards in half the draws, so the comparison still runs on many cases |
+
+Working: 12 months from 2097-01-01 is 2098-01-01; 24 from 2098-01-01 is 2100-01-01. 2097,
+2098, 2099 are not leap years: 3 x 365 = 1,095 days; 150 - 1,095. stem.validation_2_due
+for CASE_B: 2025-07-01 + 12 months = 2026-07-01, then 10 business days with Jul 3 the
+observed Jul 4: Jul 2, 6, 7, 8, 9, 10, 13, 14, 15, 16.
+
+### What ran and what it printed
+
+- Done command as written: ruff check and ruff format --check pass; then `git archive
+  HEAD | tar -x` into .done-scratch fails with "Can't create '.claude/agents/...':
+  Operation not permitted" (the sandbox refuses .claude/ paths even in the scratch copy),
+  exit 1, before pytest. The same steps with .claude excluded, into TMPDIR, with the
+  working tree's tests/ over HEAD and engine/ from the engine branch:
+  - before: 7 failed (the seven named)
+  - after: tests/unit/engine 794 passed, 0 failed, exit 0
+- tests/unit/api and tests/holdout on the same engine: 38 failed before, 36 after; no
+  new failure (the two holdout empty-list tests now pass).
+- ruff check tests: All checks passed. ruff format: done after the last write.
+
+### What change to the code would make each changed test fail
+
+- small window property: an engine that drops stem.gap_after_opt (planted with a
+  scratch plugin under TMPDIR replacing engine.f1._facts): the property fails. Shown.
+- largest case tests: an engine that counts days outside the cards, or that raises
+  card_longer_than_rule on a card ending the day before its months end.
+- question keys: an engine that leaves about off a question.
+- item open on the person's day: an engine that reads the day in UTC, or that lists an
+  item on the day after it.
+- whole_cases: an engine that lets an emptied filing date change a count.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Iteration 9, 2026-09-29: api and holdout tests in line with the resolutions (run l-tests-2591450738)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC-resolutions.md, specs/product-1/SPEC.md
+sections 1 to 6, specs/phase-2/SPEC.md (missing_inputs), contracts/engine_output.schema.json
+(questions.about), contracts/factory_report.schema.json, api/REPORT.json disputes on
+lane/L-api/l-api-b92dbaa4da (api/ESCALATE.md is not on that branch: `git show` says the path
+does not exist). The api branch was laid over a scratch copy under TMPDIR, never merged.
+
+### What was done
+
+| Mission point | Change |
+|---|---|
+| Guard | tests/support/f1_pack.py: refuse_placeholders(case) raises PlaceholderAnswerError (an Exception, not a ValueError, so that a test expecting the engine's refusal cannot pass on the marker) when an answer is dated ON_THE_DAY_IT_RUNS or carries an about of the form {"question": id}. with_the_about_asked now leaves out an answer whose question is never asked, rather than sending the placeholder. Every run helper that calls parse_case with a clock (5 engine files, 5 holdout files) passes its case through the guard. tests/support/api_client.py (new): CheckedClient, a TestClient whose post refuses a placeholder in `json=` or in `content=` before anything is sent, and as_the_screen_sends(client, url, case, clock), the screen's step against the api. Every api fixture (tests/unit/api, holdout context and fixes) uses CheckedClient |
+| Refusal test | tests/unit/support/test_placeholders.py (new): the two markers are refused; the error is no ValueError; real answers pass unchanged; a run helper refuses before parse_case is called; CheckedClient refuses before the api reads its clock; a body that is not JSON is still posted; the screen step gives an answer on the person's own day with the question's about, which the api takes (81 days); an ast scan finds every helper that calls parse_case(x, clock) without refuse_placeholders; a scan finds any TestClient(app ... in the api and holdout files |
+| api callers | test_compute.py and test_compute_fixes.py: GOOD carries no answer (it raises no question). test_nothing_is_kept_between_requests answers no_employment_to_record through as_the_screen_sends (2026-09-28, the case day); test_cap_gap_with_neither_opt_nor_stem gives answered_yes() through it; the reviewer's body now carries the about the api asked; the largest case goes through it before the timed request. test_compute_context.computed() goes through as_the_screen_sends. test_compute_product: the refusal tests carry the asked about, so only their day is out of place |
+| Key set | test_a_good_case_returns_the_engine_output adds upcoming and lists (SPEC.md section 3 of product-1) |
+| Engine callers the guard found | test_f1_product.py: the yes to another row carries this row's about (only the id is wrong); the person's-own-day test uses given_on; the after-today property carries the row's about (row_about, cached); the quiet-verdict property goes through with_the_about_asked. test_holdout_product.py: the same for its tomorrow test and its property. 1950-01-01 as a real answer day (engine and api review 5 tests) became 1950-01-02: 1950-01-01 is the marker |
+| Point 4 in hidden cases | CAP_GAP_ALONE_CASE filed 2026-03-02 (was 2026-04-01, after TODAY 2026-03-09). test_capgap filed on H1_TODAY 2024-03-01 (the default 2026-04-02 was after it). holdout_f1 cases(): STEM recommendation and filing are min(date, today); periods start on or after the OPT start and end on or before the last card day. holdout_sourcing CASE_D petition filed 2026-10-05 (was 2027-04-05, after TODAY 2026-11-02). The long 30-year OPT window (holdout_fixes) is a card_longer_than_rule conflict: the person answers yes, and the test asserts talk_to_dso naming it, then the same counts |
+| Extension reports | test_there_is_one_report_for_each_interval_in_the_extension was null because the STEM card of 24 months is longer than an extension of interval x reports months: card_longer_than_rule, point 4. The case now has a card as long as the extension (with_extension_of), the expectation unchanged. The same for the eight-month test |
+| Lookahead | see Disputes: moved onto stem.evaluation_12_month_due with the interval at 3 months (2026-11-11), today varied; the property too |
+| Earliest OPT start | opt_card_from(start): no STEM, a 12-month card from the start, filed before it, one period from its first day, run 30 days in. The rows keep their expectations |
+| Evaluation property | CASE_C moved whole (moved()) so that STEM begins on the drawn start and no gap after OPT opens |
+
+Working: 8 months from 2026-08-01 is 2027-04-01, so the card ends 2027-03-31. Evaluation with
+the interval 3: 2026-08-01 + 3 months = 2026-11-01, plus 10 days = 2026-11-11; 2026-10-12 + 30
+= 19 days to Oct 31 and 11 to Nov 11. OPT 2026-06-02 through 2026-09-28: 29 + 31 + 31 + 28 =
+119. 2026-07-10 through 2026-09-28: 22 + 31 + 28 = 81. The long window: 10 + 3,287 + 174 =
+3,471 used, 3,652 + 182 = 3,834 under hours (as the test already worked).
+
+### What ran and what it printed
+
+- Before, HEAD tests over the api branch (scratch copy under TMPDIR, .claude left out because
+  the sandbox refuses to write .claude/ even in a scratch folder): 34 failed (11 api, 23
+  holdout). The done command as written fails the same way as in iteration 8: tar "Can't
+  create '.claude/agents/...': Operation not permitted", exit 1, before pytest.
+- With the guard alone: 17 more tests failed with PlaceholderAnswerError (test_f1_product.py
+  and test_holdout_product.py sent answers() straight to the engine), then 53 in all.
+- After: tests/unit (without tools) and tests/holdout, exit 0, no failure.
+- ruff check tests: All checks passed. ruff format --check tests: 42 files already formatted.
+
+### What change would make each new or changed test fail (planted in a scratch copy)
+
+- CheckedClient.post without refuse_placeholders: test_the_checked_client_refuses_... fails. Shown.
+- PlaceholderAnswerError a ValueError: test_the_refusal_is_not_the_refusal_the_engine_gives fails. Shown.
+- holdout_f1 run() calling parse_case(sent, clock): test_every_run_helper_passes_... fails. Shown.
+- The guard not checking the about: test_a_case_whose_about_names_the_question_is_refused fails. Shown.
+- The api tests: an api that keeps an answer between requests, or takes an answer with no about
+  (the answer would then be read in test_nothing_is_kept_... and the count would differ).
+- The lookahead rows: an engine that opens an item one day too early or too late (2026-11-05
+  with 5, 2026-11-12 with 5, 2026-10-11 with 30).
+- The extension reports: an engine that gives more or fewer reports than the extension holds.
+
+### Disputes
+
+- test_the_lookahead_comes_from_the_settings: the mission says to give it a case with no STEM
+  filing. That is not enough: SPEC section 4 marks stem.file_by done when stem.i765_filed_date
+  or stem.ead_start is recorded, and a STEM block without stem.ead_start is a missing input
+  (phase-2 SPEC, missing_inputs), so the verdict is cannot_tell and never needs_you with
+  stem.file_by. Probed: no filing and the card gives no_open_items; no filing and no card
+  gives cannot_tell (missing:stem.ead_start, missing:stem.ead_end). The test and its property
+  were moved to stem.evaluation_12_month_due, as the engine round moved its lookahead tests to
+  stem.validation_2_due. The founder may prefer another item.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

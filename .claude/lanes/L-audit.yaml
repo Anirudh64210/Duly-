@@ -1,0 +1,6 @@
+name: L-audit
+kind: guard
+review: high
+owned: ["docs/requirements/**"]
+test: uv run python -m tools.requirements.register check
+spec: ""

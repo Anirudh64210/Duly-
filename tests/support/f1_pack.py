@@ -10,9 +10,11 @@ The quotes below are placeholders for a test pack. They are not the words of any
 import calendar
 import copy
 import json
+from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
@@ -101,7 +103,18 @@ SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
         "",
         "8 CFR 214.2(f)(10)(ii)(C)",
     ),
+    # specs/product-1/SPEC.md, section 6: the rules that state what the regulation lists
+    # for the 24-month extension. The ids and their number belong to L-content. These
+    # three stand in for them in the test pack, in this order.
+    ("stem.requires.degree", True, "flag", "settled", "", "8 CFR 214.2(f)(10)(ii)(C)"),
+    ("stem.requires.e_verify", True, "flag", "settled", "", "8 CFR 214.2(f)(10)(ii)(C)"),
+    ("stem.requires.training_plan", True, "flag", "settled", "", "8 CFR 214.2(f)(10)(ii)(C)"),
 )
+
+# specs/product-1/SPEC.md, section 6: ids of the listed rules begin with this.
+LISTED_PREFIX = "stem.requires."
+STEM_LIST = "stem.extension.what_the_regulation_lists"
+LISTED_RULES = tuple(row[0] for row in SPEC_RULES if row[0].startswith(LISTED_PREFIX))
 
 # specs/phase-2/SPEC-context.md, section 1: every rule is verbatim or a reading, and a
 # reading carries a note. The rules named here are readings in the test pack; every
@@ -121,7 +134,27 @@ HELD_OPT = "held_post_completion_opt"
 NO_EMPLOYMENT = "no_employment_to_record"
 CAP_GAP_ALONE = "cap_gap_without_training"
 QUESTION_IDS = (HELD_OPT, NO_EMPLOYMENT, CAP_GAP_ALONE)
-ANSWERED_ON = "2026-09-28"
+
+# specs/product-1/SPEC.md, section 2: the two questions of product round 1.
+NOTHING_MORE = "nothing_more_to_record"
+CPT_USED = "full_time_cpt_used"
+
+# specs/product-1/SPEC.md, section 1: the table of facts that do not fit, in its order.
+CONFLICT_IDS = (
+    "opt.i765_filed_date.after_today",
+    "stem.i765_filed_date.after_today",
+    "opt.dso_recommendation_date.after_today",
+    "stem.dso_recommendation_date.after_today",
+    "cap_gap.petition_filed_on.after_today",
+    "opt.i765_filed_date.after_card",
+    "stem.i765_filed_date.after_card",
+    "cap_gap.petition_filed_on.after_start",
+    "cap_gap.requested_start.before_training",
+    "opt.card_longer_than_rule",
+    "stem.card_longer_than_rule",
+    "stem.gap_after_opt",
+    "employment.period_outside_cards",
+)
 
 # specs/phase-2/SPEC-sourcing.md, "Duly's own choices": id, value, unit. The values are
 # those of contracts/product_settings.yaml, written here so that a test never depends on
@@ -332,17 +365,67 @@ def clock_at(instant: str) -> FixedClock:
     return FixedClock(datetime.fromisoformat(instant).replace(tzinfo=UTC))
 
 
-def answers(on: str = ANSWERED_ON, **given: bool) -> dict[str, Any]:
+# The day of an answer given on the day the case is run, whatever day that is (the first
+# day the case contract takes, which no real answer holds). A case
+# computed on many days carries it; dated_on_the_day puts the day in before the case is
+# computed. SPEC-resolutions.md, points 2 and 3: an answer dated after today is refused,
+# and a yes to no_employment_to_record covers the days through the day it was given only.
+ON_THE_DAY_IT_RUNS = "1950-01-01"
+
+
+def about_asked(question_id: str) -> dict[str, str]:
+    """The about of an answer written in a test before the case is run: it names the
+    question the answer is for. SPEC-resolutions.md, point 7: an answer with no about is
+    not an answer, and an answer is never taken for values it was not given for. The
+    engine reads this about as it reads any other: an answer carrying it is open until
+    with_the_about_asked puts in the values of the question as the output asked it, the
+    step the screen takes (contracts/engine_output.schema.json, questions.about)."""
+    return {"question": question_id}
+
+
+def day_of(clock: Any, time_zone: str = TIME_ZONE) -> str:
+    """The person's own day at the instant of the clock, worked with zoneinfo apart from
+    the engine. specs/phase-2/SPEC-context.md, section 2."""
+    return str(clock.now().astimezone(ZoneInfo(time_zone)).date().isoformat())
+
+
+def answers(
+    on: str | date = ON_THE_DAY_IT_RUNS,
+    *,
+    clock: Any = None,
+    time_zone: str = TIME_ZONE,
+    **given: bool,
+) -> dict[str, Any]:
     """The confirmations of the case contract: the person's answer to each question
-    named, and the day it was given."""
-    return {question: {"answer": answer, "on": on} for question, answer in given.items()}
+    named, the day it was given, and the about naming the question it answers.
+
+    SPEC-resolutions.md, point 2: an answer is dated on or before the day the case is
+    run. With a clock, the day is the person's own day at its instant in time_zone. With
+    none, it is `on`; the default ON_THE_DAY_IT_RUNS is put in by dated_on_the_day as the
+    day of the case. Point 7: each answer carries about_asked(question)."""
+    day = day_of(clock, time_zone) if clock is not None else on
+    dated = day.isoformat() if isinstance(day, date) else day
+    return {
+        question: {"answer": answer, "on": dated, "about": about_asked(question)}
+        for question, answer in given.items()
+    }
 
 
-def answered_yes(on: str = ANSWERED_ON) -> dict[str, Any]:
+def answers_with_no_about(on: str | date, **given: bool) -> dict[str, Any]:
+    """Answers as a caller that leaves the about out would send them: the case that
+    SPEC-resolutions.md, point 7 says is not an answer. Only the tests of point 7 use it."""
+    dated = on.isoformat() if isinstance(on, date) else on
+    return {question: {"answer": answer, "on": dated} for question, answer in given.items()}
+
+
+def answered_yes(
+    on: str | date = ON_THE_DAY_IT_RUNS, *, clock: Any = None, time_zone: str = TIME_ZONE
+) -> dict[str, Any]:
     """Yes to every question of the round. A case written before the questions existed
     carries this, so that it still says what it said: the person held OPT, and the
-    employment entered is all there is."""
-    return answers(on, **dict.fromkeys(QUESTION_IDS, True))
+    employment entered is all there is, up to the day the case is run. Each answer
+    carries its about and a day, as answers() gives them."""
+    return answers(on, clock=clock, time_zone=time_zone, **dict.fromkeys(QUESTION_IDS, True))
 
 
 def question_ids(output: dict[str, Any]) -> list[str]:
@@ -472,3 +555,213 @@ def count_days(
             counts["under"] += 1
         day += timedelta(days=1)
     return counts
+
+
+# specs/product-1/SPEC.md: helpers for product round 1.
+
+
+def upcoming(output: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Entries of upcoming by id. Fails if an id appears twice."""
+    found: dict[str, dict[str, Any]] = {}
+    for entry in output["upcoming"]:
+        assert entry["id"] not in found, f"{entry['id']} appears twice in upcoming"
+        found[entry["id"]] = entry
+    return found
+
+
+def conflicts(output: dict[str, Any]) -> list[str]:
+    """The ids of the facts that do not fit, from the reasons of the verdict."""
+    return [r.removeprefix("conflict:") for r in reasons_with(output, "conflict:")]
+
+
+def question(output: dict[str, Any], question_id: str) -> dict[str, Any]:
+    found = [q for q in output["questions"] if q["id"] == question_id]
+    assert len(found) == 1, f"{question_id} is asked {len(found)} times"
+    return found[0]
+
+
+def said(found: Any) -> set[Any]:
+    """Every plain value held anywhere inside a mapping or a list, and every key."""
+    if isinstance(found, dict):
+        inside = set(found)
+        for value in found.values():
+            inside |= said(value)
+        return inside
+    if isinstance(found, list | tuple):
+        inside = set()
+        for value in found:
+            inside |= said(value)
+        return inside
+    return {found}
+
+
+def answer_as_the_screen_does(
+    case: dict[str, Any], output: dict[str, Any], on: str, **given: bool
+) -> dict[str, Any]:
+    """A deep copy of the case with an answer to each question named, carrying the
+    about of the question as the output gave it. contracts/engine_output.schema.json,
+    questions.about: the screen sends the values back with the answer.
+
+    Ids with a dot are passed as **{"opt.card_longer_than_rule": True}."""
+    confirmations = copy.deepcopy(case.get("confirmations", {}))
+    for question_id, answer in given.items():
+        asked = question(output, question_id)
+        confirmations[question_id] = {"answer": answer, "on": on}
+        if "about" in asked:
+            confirmations[question_id]["about"] = copy.deepcopy(asked["about"])
+    return with_changes(case, confirmations=confirmations)
+
+
+def _day(raw: str | None) -> date | None:
+    return None if raw is None else date.fromisoformat(raw)
+
+
+def _card(block: dict[str, Any] | None) -> tuple[date, date] | None:
+    if not block or block["ead_start"] is None or block["ead_end"] is None:
+        return None
+    return date.fromisoformat(block["ead_start"]), date.fromisoformat(block["ead_end"])
+
+
+def conflicts_by_the_table(
+    case: dict[str, Any], today: date, opt_months: int, stem_months: int
+) -> tuple[set[str], set[str]]:
+    """specs/product-1/SPEC.md, section 1, row by row, written apart from the engine.
+
+    Returns the ids that the table raises for certain, and the ids the SPEC leaves
+    open. SPEC-resolutions.md, point 10, settled the one open point: a card whose last
+    day is the day its months end is not a conflict. Nothing is left open, so the second
+    set is empty; it is kept so that the callers read the same.
+    """
+    sure: set[str] = set()
+    unsure: set[str] = set()
+    opt, stem, gap = case.get("opt"), case.get("stem"), case.get("cap_gap")
+    for part, block, months in (("opt", opt, opt_months), ("stem", stem, stem_months)):
+        if not block:
+            continue
+        filed = _day(block["i765_filed_date"])
+        recommended = _day(block["dso_recommendation_date"])
+        start, end = _day(block["ead_start"]), _day(block["ead_end"])
+        if filed is not None and filed > today:
+            sure.add(f"{part}.i765_filed_date.after_today")
+        if recommended is not None and recommended > today:
+            sure.add(f"{part}.dso_recommendation_date.after_today")
+        if filed is not None and start is not None and filed > start:
+            sure.add(f"{part}.i765_filed_date.after_card")
+        if start is not None and end is not None:
+            limit = months_later(start, months)
+            # The day the months end is not past them: point 10.
+            if end > limit:
+                sure.add(f"{part}.card_longer_than_rule")
+    cards = [card for card in (_card(opt), _card(stem)) if card is not None]
+    if gap:
+        filed_on = date.fromisoformat(gap["petition_filed_on"])
+        requested = date.fromisoformat(gap["requested_start"])
+        if filed_on > today:
+            sure.add("cap_gap.petition_filed_on.after_today")
+        if filed_on > requested:
+            sure.add("cap_gap.petition_filed_on.after_start")
+        if cards and requested < min(first for first, _ in cards):
+            sure.add("cap_gap.requested_start.before_training")
+    opt_card, stem_card = _card(opt), _card(stem)
+    if opt_card and stem_card and stem_card[0] > opt_card[1] + timedelta(days=1):
+        sure.add("stem.gap_after_opt")
+    if cards:
+        last_end = max(final for _, final in cards)
+        for period in case["employment"]:
+            first = date.fromisoformat(period["start"])
+            is_open = period["end"] is None
+            final = today if is_open else date.fromisoformat(period["end"])
+            day = first
+            while day <= final:
+                inside = any(begin <= day <= finish for begin, finish in cards)
+                if not inside and not (is_open and day > last_end):
+                    sure.add("employment.period_outside_cards")
+                    break
+                day += timedelta(days=1)
+    return sure, unsure
+
+
+def with_the_about_asked(
+    case: dict[str, Any], compute: Callable[[dict[str, Any]], dict[str, Any]]
+) -> dict[str, Any]:
+    """The case as the screen sends it: each answer given without `about`, or with
+    about_asked(question), carries the about of the question it answers, as the output
+    asked it.
+
+    specs/product-1/SPEC-resolutions.md, point 7: an answer with no `about` is not an
+    answer. The cases written before that point give their answers with no about; this
+    is the step the screen takes for them. It answers only what is asked, in the order
+    it is asked (an answer can raise another question), and gives the answer unchanged
+    when its question is never asked, since an answer to a question not raised is not
+    read. An answer that carries any other about is sent as it is.
+
+    compute is the engine or the api, called on a case and giving the output."""
+    given = case.get("confirmations") or {}
+    pending = {
+        name: answer
+        for name, answer in given.items()
+        if answer.get("about", about_asked(name)) == about_asked(name)
+    }
+    if not pending:
+        return case
+    sent = {name: answer for name, answer in given.items() if name not in pending}
+    for _ in range(len(pending)):
+        out = compute(with_changes(case, confirmations=sent))
+        asked = [q for q in out["questions"] if q["id"] in pending and q["id"] not in sent]
+        if not asked:
+            break
+        for q in asked:
+            sent[q["id"]] = {**pending[q["id"]], "about": copy.deepcopy(q["about"])}
+    # An answer whose question was never asked is left out: it would not be read, and a
+    # placeholder never reaches the engine or the api (refuse_placeholders).
+    return with_changes(case, confirmations=sent)
+
+
+class PlaceholderAnswerError(Exception):
+    """A case still holds a placeholder answer where a real one belongs. Not a ValueError,
+    so that a test expecting the engine to refuse a case cannot pass on the marker."""
+
+
+def refuse_placeholders(case: Any) -> Any:
+    """The case, unchanged, once it is shown to hold no placeholder answer; raises
+    PlaceholderAnswerError otherwise. Every run helper calls it on what it passes to the engine,
+    and CheckedClient on what it posts to the api.
+
+    SPEC-resolutions.md, point 2: an answer is dated on or before the day of the case; a
+    day of ON_THE_DAY_IT_RUNS is a marker that dated_on_the_day has not replaced. Point 7:
+    an answer is taken only for the values it was given for; an about of the form
+    {"question": id} (about_asked) is a marker that with_the_about_asked has not replaced.
+    A test that sends either one tests the marker, not the rule it names."""
+    given = case.get("confirmations") if isinstance(case, dict) else None
+    if not isinstance(given, dict):
+        return case
+    for name, answer in given.items():
+        if not isinstance(answer, dict):
+            continue
+        if answer.get("on") == ON_THE_DAY_IT_RUNS:
+            raise PlaceholderAnswerError(
+                f"the answer to {name} is still dated ON_THE_DAY_IT_RUNS: "
+                "pass the case through dated_on_the_day first"
+            )
+        about = answer.get("about")
+        if isinstance(about, dict) and set(about) == {"question"}:
+            raise PlaceholderAnswerError(
+                f"the answer to {name} still carries the about {about}: "
+                "pass the case through with_the_about_asked first"
+            )
+    return case
+
+
+def dated_on_the_day(case: dict[str, Any], clock: Any) -> dict[str, Any]:
+    """The case with each answer dated ON_THE_DAY_IT_RUNS dated on the person's own day:
+    the instant of the clock seen from the case's zone. Worked here with zoneinfo, apart
+    from the engine."""
+    given = case.get("confirmations") or {}
+    if not any(answer.get("on") == ON_THE_DAY_IT_RUNS for answer in given.values()):
+        return case
+    today = day_of(clock, case["time_zone"])
+    dated = {
+        name: {**answer, "on": today} if answer.get("on") == ON_THE_DAY_IT_RUNS else answer
+        for name, answer in given.items()
+    }
+    return with_changes(case, confirmations=dated)

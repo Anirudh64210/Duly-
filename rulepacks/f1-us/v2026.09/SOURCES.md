@@ -75,3 +75,16 @@ None of the five has a different value under the blocked rule, so none has a row
 | stem.apply_window_closes_rule | "while in a valid period of post-completion OPT", opening text of (f)(10)(ii)(C) | same words, same paragraph |
 
 No new source was fetched in the third pass. Both rules rest on copies already in the table above.
+
+### Rules added in product round 1, 2026-09-29
+
+The 15 rows whose ids begin stem.requires. rest on paragraph (f)(10)(ii)(C), from its heading to the end of (C)(11). That stretch of the 2026-09-14 text and of the 2026-09-15 text was cut out and compared: the two are the same, character for character. Each quote was also found in sources/fr-2016-04828.xml, which gives the start date.
+
+| Rule | 2026-09-14 text | 2026-09-15 text |
+|---|---|---|
+| stem.requires.* (15 rows) | (f)(10)(ii)(C), opening text and (1) to (10) | same words, same paragraphs |
+| cpt.full_time_bar_days, status now settled | one year or more, (f)(10)(i) | same words, same paragraph |
+
+No new source was fetched. The status of the court order was not checked again on 2026-09-29; none of these rows has a different value under the blocked rule.
+
+Not saved and not read, though named in the quoted words: 8 CFR 274a.12(c)(3)(i)(B), the STEM Designated Degree Program List, Form I-983 and its instructions.

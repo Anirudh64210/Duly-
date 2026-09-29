@@ -401,17 +401,17 @@ parameters:
   - id: cpt.full_time_bar_days
     value: 365
     unit: days
-    status: school
+    status: settled
     effective_from: 2003-01-01
     source:
       citation: "8 CFR 214.2(f)(10)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-09-29
       quote: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
-    note: "Reading: the regulation says one year or more and states no number of days; 365 is one year counted in days, the way a school may count it. The regulation says one year or more. It states no number of days, and 365 appears nowhere in the source. The count in days is how schools apply the rule, so the value is tagged school and is not the words of the law. A school may count differently, for example across a leap year. The regulation is quoted to show what the law does say. Start date as for cpt.full_time_months_bar. The 2026-09-15 text has the same words."
+    note: "Reading: the regulation says one year or more and states no number of days; 365 is Duly's count of one year in days. The number 365 appears nowhere in the source. The count is Duly's own and is not the words of the law: one year counted in days can come to a different number, for example across a leap year, and the regulation does not say how the year is counted. The status is settled because the quoted sentence is regulation in force and has the same words in the 2026-09-14 and 2026-09-15 texts; settled describes the sentence, not the count. The row was tagged school until 2026-09-29; it cites the regulation and no school's page, and no school document is saved with this pack, so it is not school policy. The sentence ends ineligible for post-completion academic training; it does not use the words optional practical training. Start date as for cpt.full_time_months_bar. Words checked again in the 2026-09-14 text on 2026-09-29."
   - id: capgap.fiscal_year_start_month_day
     value: "10-01"
     unit: date
@@ -468,3 +468,213 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the regulation says a qualified student may apply for the extension while in a valid period of post-completion OPT, and Duly reads those words as saying the extension follows a period of post-completion OPT. The sentence is the first one of paragraph (f)(10)(ii)(C), whose heading is 24-month extension of post-completion OPT. The words are may apply while in; the regulation does not use the word only and does not say must. The preamble of 81 FR 13040 (FR Doc. 2016-04828), saved as sources/fr-2016-04828.xml, says a student may file for a STEM OPT extension only if the student is in a valid period of post-completion OPT at the time of filing; that is the agency explaining the rule, not the regulation. The same preamble says a period extended under cap-gap is a valid period. The second extension is stated with the same words, while in a valid period of post-completion OPT. The regulatory text printed in 81 FR 13040 at 8 CFR 214.16 excepted students then on a 17-month extension from this requirement; whether 8 CFR 214.16 is still in the Code was not checked and no copy is saved. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040, effective 2016-05-10, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says about who may apply. It says nothing about any one person."
+  - id: stem.requires.all_of_the_following
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The sentence is the last one of the opening text of paragraph (f)(10)(ii)(C). Eleven numbered paragraphs follow it, (1) to (11). Paragraphs (1) to (10) are recorded in rows whose ids begin stem.requires. Paragraph (11), headed Site visits, is not recorded as a row: its words are DHS, at its discretion, may conduct a site visit of any employer, which states what DHS may do and states nothing to be met by the student or the employer before the extension. The opening text also says a qualified student may apply while in a valid period of post-completion OPT; that is recorded as stem.requires_post_completion_opt. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.accreditation
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(1)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution accredited by an accrediting agency recognized by the Department of Education at the time of application."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quoted sentence says the degree is from an accredited institution and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is Accreditation. The words at the time of application are the regulation's; the regulation does not say in this sentence which application. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.dhs_approved_degree
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(2)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The degree that is the basis for the 24-month OPT extension is a bachelor's, master's, or doctoral degree in a field determined by the Secretary, or his or her designee, to qualify within a science, technology, engineering, or mathematics field."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quoted sentence says what the degree is and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is DHS-approved degree. Paragraph (2)(i) defines the term science, technology, engineering or mathematics field, and paragraph (2)(ii) says the Secretary will maintain the STEM Designated Degree Program List; neither is recorded as a row. The list itself is not saved with this pack and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.degree_on_designated_list
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(2)(iii)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "At the time the DSO recommends a 24-month OPT extension under this paragraph (f)(10)(ii)(C) in SEVIS, the degree that is the basis for the application for the OPT extension must be contained within a category on the STEM Designated Degree Program List."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quoted sentence is the whole of paragraph (f)(10)(ii)(C)(2)(iii). It names a point in time, the time the DSO recommends the extension in SEVIS. The STEM Designated Degree Program List is not saved with this pack and was not read; the pack does not say which degrees are on it. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.previously_obtained_degree
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(3)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "If an application for a 24-month OPT extension under this paragraph (f)(10)(ii)(C) is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B), that previously obtained degree must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation. That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quoted words are the second and third sentences of paragraph (f)(10)(ii)(C)(3), headed Previously obtained STEM degree(s). They begin with If: they state what is required where the application is based upon a degree obtained before the degree that was the basis for the period of post-completion OPT. The first sentence of the paragraph says the degree that is the basis for the extension may be, but is not required to be, the degree that is the basis for the post-completion OPT period. The number 10 in the quote is a count of years; it is not recorded as a value in this pack. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.eligible_practical_training_opportunity
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(4)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The STEM practical training opportunity that is the basis for the 24-month OPT extension under this paragraph (f)(10)(ii)(C) must be directly related to the degree that qualifies the student for such extension"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quoted words are the first part of the one sentence of paragraph (f)(10)(ii)(C)(4), headed Eligible practical training opportunity. The sentence goes on: which may be the previously obtained degree described in paragraph (f)(10)(ii)(C)(3) of this section. The quote stops before those words because the saved copy prints the paragraph number 3 in italics and the source check cannot match a quote across it. The regulation says directly related and gives no test for it in this paragraph; whether a training opportunity is directly related to a degree is not something this pack states. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.employer_qualification
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(5)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The student's employer is enrolled in E-Verify, as evidenced by either a valid E-Verify Company Identification number or, if the employer is using an employer agent to create its E-Verify cases, a valid E-Verify Client Company Identification number, and the employer remains a participant in good standing with E-Verify, as determined by USCIS. An employer must also have an employer identification number (EIN) used for tax purposes."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the first quoted sentence says the employer is enrolled in E-Verify and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The second quoted sentence has its own must: an employer must also have an employer identification number. The quote is the whole of paragraph (f)(10)(ii)(C)(5), headed Employer qualification. The words as determined by USCIS are the regulation's. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.employer_reporting
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(6)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "unless the employer agrees, by signing the Training Plan for STEM OPT Students, Form I-983 or successor form, to report the termination or departure of an OPT student to the DSO at the student's school, if the termination or departure is prior to the end of the authorized period of OPT."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quote is the second part of a sentence, and the first part is needed to say what it states. The whole sentence begins A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section, and then the quoted words follow. The quote starts at unless because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The sentence is the first one of paragraph (f)(10)(ii)(C)(6), headed Employer reporting. The paragraph goes on to say such reporting must be made within five business days of the termination or departure, and when an employer shall consider a student to have departed; the number five is not recorded as a value in this pack. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.training_plan
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(7)(i)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "A student must fully complete an individualized Form I-983 or successor form and obtain requisite signatures from an appropriate individual in the employer's organization on the form, consistent with form instructions, before the DSO may recommend a 24-month OPT extension"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quoted words are the first part of the first sentence of paragraph (f)(10)(ii)(C)(7)(i), under the heading Training Plan for STEM OPT Students, Form I-983 or successor form. The sentence goes on: under paragraph (f)(10)(ii)(C)(2) of this section in SEVIS. The quote stops before those words because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The same paragraph says the student must submit the form to the student's DSO prior to the new DSO recommendation. Paragraphs (7)(ii) and (7)(iii) say what the training plan must identify, describe and explain; they are not recorded as rows. Paragraph (7)(iv) is the source of stem.new_plan_due_days. Form I-983 and its instructions are not saved with this pack and were not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.duties_hours_and_compensation
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(8)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The terms and conditions of a STEM practical training opportunity during the period of the 24-month OPT extension, including duties, hours, and compensation, must be commensurate with terms and conditions applicable to the employer's similarly situated U.S. workers in the area of employment."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quoted sentence is the first one of paragraph (f)(10)(ii)(C)(8), headed Duties, hours, and compensation for training. The second sentence of the paragraph is the source of stem.min_hours_per_week. The paragraph goes on to say what similarly situated U.S. workers includes and when duties, hours, and compensation are commensurate, and that the student must disclose his or her compensation on the Form I-983 or successor form; those sentences are not recorded as rows. The words speak of the period of the 24-month OPT extension. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.self_evaluation
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(9)(i)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "unless the student submits a self-evaluation of the student's progress toward the training goals described in the Form I-983 or successor form."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quote is the second part of a sentence, and the first part is needed to say what it states. The whole sentence begins A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section, and then the quoted words follow. The quote starts at unless because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The sentence is the first one of paragraph (f)(10)(ii)(C)(9)(i), under the heading Evaluation requirements and Training Plan modifications. The same paragraph is the source of stem.evaluation_interval_months and stem.evaluation_due_days. Paragraph (9)(ii), on a material change to the training plan, and paragraph (9)(iii), on what the educational institution is responsible for, are not recorded as rows. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.employer_attestation
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(10)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that:"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quoted words are the whole of the opening text of paragraph (f)(10)(ii)(C)(10), headed Additional STEM opportunity obligations. They end with a colon. The three things the employer attests follow at (10)(i), (10)(ii) and (10)(iii), recorded in the next three rows. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.employer_attests_resources
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(10)(i)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The employer has sufficient resources and personnel available and is prepared to provide appropriate training in connection with the specified opportunity at the location(s) specified in the Form I-983 or successor form;"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quoted words are the first of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(i). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.employer_attests_no_replacement
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(10)(ii)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The student on a STEM OPT extension will not replace a full- or part-time, temporary or permanent U.S. worker; and"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quoted words are the second of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(ii), with the word and that ends it in the source. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+  - id: stem.requires.employer_attests_training_goals
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(10)(iii)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "The student's opportunity assists the student in reaching his or her training goals."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the quoted words are the third of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(iii). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."

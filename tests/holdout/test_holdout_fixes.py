@@ -16,34 +16,38 @@ from types import FrameType
 from typing import Any
 
 import pytest
-from fastapi.testclient import TestClient
 
 from api.main import app, get_clock, get_f1_pack, get_settings
 from api.settings import Settings
 from engine import f1
 from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
+from tests.support.api_client import CheckedClient, as_the_screen_sends
 from tests.support.f1_pack import (
     BLOCKED,
     OPERATIVE,
     TIME_ZONE,
     answered_yes,
+    answers,
     build_pack,
     cap_gap,
     case_problems,
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
     pack_dict,
     reasons_with,
+    refuse_placeholders,
     settings_dict,
     values,
     with_changes,
     with_operative_status,
     with_regime_rows,
+    with_the_about_asked,
 )
 
 TODAY = date(2025, 3, 14)  # a Friday
@@ -86,6 +90,13 @@ CASE_D: dict[str, Any] = {
 }
 
 
+# The api tests below send CASE_C with no answer: each checks a refusal or a count of
+# periods that does not turn on an answer, and a placeholder answer is never posted
+# (tests/support/api_client.py). CASE_C raises no question: its one period is open from
+# the first day of the card.
+SENT_C: dict[str, Any] = {k: v for k, v in CASE_C.items() if k != "confirmations"}
+
+
 def run(
     case: dict[str, Any],
     today: date = TODAY,
@@ -94,7 +105,15 @@ def run(
 ) -> dict[str, Any]:
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(today, **pack_changes) if raw is None else validate_pack(raw)
-    return f1.compute_f1(f1.parse_case(case), pack, clock_on(today), settings=settings_dict())
+    clock = clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(
+            f1.parse_case(refuse_placeholders(sent), clock), pack, clock, settings=settings_dict()
+        )
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 def names_opt(output: dict[str, Any]) -> list[str]:
@@ -111,7 +130,7 @@ def client():
     app.dependency_overrides[get_settings] = lambda: Settings(
         database_url="postgresql+psycopg://duly:duly@127.0.0.1:1/duly"
     )
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
@@ -186,7 +205,7 @@ def test_parse_case_refuses_it_in_a_case_with_no_opt(sent):
     "field", ["hours_per_week", "documents_count", "cpt_full_time_days", "degree_level", "opt"]
 )
 def test_the_api_refuses_the_token_wherever_it_stands(client, field, token):
-    case = with_changes(CASE_C, employment=[job("2025-01-15", None, hours=32)])
+    case = with_changes(SENT_C, employment=[job("2025-01-15", None, hours=32)])
     if field == "hours_per_week":
         case["employment"][0][field] = "MARK"
     else:
@@ -202,8 +221,8 @@ def test_the_api_refuses_the_token_wherever_it_stands(client, field, token):
 
 def test_the_api_gives_the_same_words_for_each_place_the_number_stands(client):
     # The refusal comes before the case is checked, so it cannot turn on the contract.
-    first = with_changes(CASE_C, documents_count="MARK")
-    second = with_changes(CASE_C, documents_count="MARK", degree_level="unknown", notes=1)
+    first = with_changes(SENT_C, documents_count="MARK")
+    second = with_changes(SENT_C, documents_count="MARK", degree_level="unknown", notes=1)
     sent = [json.dumps(c).replace('"MARK"', "NaN").encode() for c in (first, second)]
     got = [client.post(URL, content=body, headers=JSON) for body in sent]
     assert [r.status_code for r in got] == [422, 422]
@@ -241,6 +260,7 @@ def long_case(first: str, last: str, program_end: str, periods: int) -> dict[str
         "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 1,
+        "cpt_full_time_days": 0,
         "opt": ead(first, first, first, last),
         "employment": [
             job(first, None if number % 2 else last, hours=number) for number in range(periods)
@@ -270,12 +290,23 @@ def test_the_work_does_not_grow_with_the_length_of_the_window():
 def test_a_long_window_with_gaps_is_counted_right():
     # OPT 2030-07-01 through 2060-06-30, seen on the last day. Two periods:
     # 2030-07-11 through 2040-07-10 at 40 hours, and 2050-01-01 on at 10 hours.
+    # A card of 30 years is longer than the 12 months of OPT: the conflict
+    # opt.card_longer_than_rule, whose open question gives null counts (specs/product-1/
+    # SPEC.md, section 1; SPEC-resolutions.md, point 4). The person answers yes, dated on
+    # the day of the case with the about asked; the verdict is for the DSO and Duly
+    # computes what it can, the counts among it.
+    long_card = long_case("2030-07-01", "2060-06-30", "2030-06-15", 0)
+    given = {**long_card["confirmations"], **answers(**{"opt.card_longer_than_rule": True})}
     case = with_changes(
-        long_case("2030-07-01", "2060-06-30", "2030-06-15", 0),
+        long_card,
+        confirmations=given,
         employment=[job("2030-07-11", "2040-07-10"), job("2050-01-01", None, hours=10)],
     )
     today = date(2060, 6, 30)
-    got = values(run(case, today=today))
+    out = run(case, today=today)
+    assert out["verdict"]["state"] == "talk_to_dso"
+    assert "opt.card_longer_than_rule" in out["verdict"]["reasons"]
+    got = values(out)
     expected = count_days(case, today, 20, 20)
     # Used: Jul 1 through Jul 10 of 2030 is 10 days, then 2040-07-11 through 2049-12-31.
     # 2040-07-11 through 2049-07-10 is 9 years with leap days in 2044 and 2048: 3,287.
@@ -298,7 +329,7 @@ def test_a_long_window_with_gaps_is_counted_right():
     ],
 )
 def test_the_api_refuses_a_far_program_end(client, field, sent):
-    response = client.post(URL, json=with_changes(CASE_C, **{field: sent}))
+    response = client.post(URL, json=with_changes(SENT_C, **{field: sent}))
     assert response.status_code == 422
     assert field in response.json()["detail"]
     assert sent not in response.text
@@ -306,7 +337,7 @@ def test_the_api_refuses_a_far_program_end(client, field, sent):
 
 @pytest.mark.parametrize(("periods", "status"), [(49, 200), (50, 200), (51, 422), (500, 422)])
 def test_the_api_takes_fifty_periods_and_no_more(client, periods, status):
-    case = with_changes(CASE_C, employment=[job("2025-01-15", None)] * periods)
+    case = with_changes(SENT_C, employment=[job("2025-01-15", None)] * periods)
     assert client.post(URL, json=case).status_code == status
 
 
@@ -377,7 +408,10 @@ def test_case_c_latest_start_under_each_regime():
 
 def test_the_api_carries_the_operative_regime_of_the_shipped_pack(client):
     regime = next(r for r in get_f1_pack().regimes if r["operative"])
-    out = client.post(URL, json=CASE_D).json()
+    # CASE_D as the screen sends it: each answer dated on the day of the case with the
+    # about the api asked (SPEC-resolutions.md, points 2, 3 and 7).
+    sent = as_the_screen_sends(client, URL, CASE_D, FixedClock(API_NOON))
+    out = client.post(URL, json=sent).json()
     found = [item for item in items(out).values() if "alternates" in item]
     assert found
     for item in found:

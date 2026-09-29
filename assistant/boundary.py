@@ -101,6 +101,125 @@ _CONCLUSION = re.compile(
     r"|\b(?:i|we)\s+(?:recommend|advise|suggest)\b",
     re.IGNORECASE,
 )
+# An instruction to the person, however it is phrased. "File this form now" tells the
+# person what to do as surely as "you should file". The only instruction Duly gives is to
+# take the question to the people whose question it is.
+_TO_THE_DSO = re.compile(
+    r"^\s*(?:ask|confirm(?: this| it)? with|take (?:this|it|the question) to|check with|"
+    r"talk to|speak (?:to|with)|write to|show (?:this|it) to)\s+"
+    r"(?:your|the|an?)\s+(?:dso|school|isss|international (?:student )?office|advisor|"
+    r"attorney|lawyer|immigration attorney)\b",
+    re.IGNORECASE,
+)
+_ACTIONS = (
+    "file",
+    "submit",
+    "apply",
+    "sign",
+    "send",
+    "mail",
+    "pay",
+    "travel",
+    "leave",
+    "stay",
+    "return",
+    "enter",
+    "re-enter",
+    "reenter",
+    "report",
+    "renew",
+    "request",
+    "register",
+    "enroll",
+    "enrol",
+    "withdraw",
+    "transfer",
+    "accept",
+    "decline",
+    "quit",
+    "resign",
+    "start",
+    "begin",
+    "stop",
+    "wait",
+    "hurry",
+    "avoid",
+    "keep",
+    "get",
+    "make",
+    "be",
+    "take",
+    "use",
+    "choose",
+    "pick",
+    "select",
+    "write",
+    "upload",
+    "book",
+    "schedule",
+    "change",
+    "update",
+    "consider",
+    "try",
+    "remember",
+    "ensure",
+    "check",
+    "confirm",
+    "contact",
+    "call",
+    "ask",
+    "tell",
+    "go",
+    "work",
+    "continue",
+    "hold",
+    "prepare",
+    "gather",
+    "collect",
+    "attach",
+    "include",
+    "answer",
+    "respond",
+    "reply",
+    "move",
+    "buy",
+    "cancel",
+)
+_IMPERATIVE = re.compile(
+    r"^\s*(?:please\s+|then\s+|next,?\s+|first,?\s+|now\s+|just\s+|simply\s+|also\s+)*"
+    r"(?:do\s+not\s+|don't\s+|never\s+|always\s+)?"
+    r"(?:" + "|".join(_ACTIONS) + r")\b(?!\s*:)",
+    re.IGNORECASE,
+)
+_IMPERSONAL_ADVICE = re.compile(
+    r"\b(?:it\s+is|it's|it\s+would\s+be|it\s+may\s+be)\s+(?:best|better|wise|wiser|safe|safer|"
+    r"safest|advisable|recommended|a\s+good\s+idea|important|necessary|risky|too\s+late|"
+    r"not\s+too\s+late|fine|ok|okay)\b"
+    r"|\b(?:there\s+is|there's)\s+no\s+(?:need|reason|rush|risk|problem)\b"
+    r"|\bno\s+need\s+to\b|\bbest\s+to\b|\bbetter\s+to\b|\bthe\s+best\s+(?:option|choice|time)\b"
+    r"|\b(?:the\s+)?(?:safest|smartest|right)\s+(?:option|choice|move|thing)\b"
+    r"|\b(?:make|be)\s+sure\b|\bas\s+soon\s+as\s+possible\b|\bright\s+away\b",
+    re.IGNORECASE,
+)
+_CLAUSE = re.compile(
+    r"(?<=[.!?;])\s+|\s+(?:and|then|but|so)\s+(?=[A-Za-z]+\s)|,\s+(?:and\s+)?then\s+"
+)
+
+
+def instructs(text: str) -> str:
+    """The part of the text that tells the person what to do, or an empty string."""
+    found = _IMPERSONAL_ADVICE.search(text)
+    if found:
+        return found.group(0).strip()
+    for clause in _CLAUSE.split(text):
+        if not clause or _TO_THE_DSO.match(clause):
+            continue
+        hit = _IMPERATIVE.match(clause)
+        if hit:
+            return " ".join(clause.split()[:4])
+    return ""
+
+
 # Citations and form names carry digits that are not values.
 _CITATION = re.compile(
     r"\b\d+\s+(?:C\.?F\.?R\.?|U\.?S\.?C\.?|FR)\s+\d[\d.]*(?:\([0-9A-Za-z]+\))*"
@@ -132,6 +251,9 @@ def validate_answer(
         m = _CONCLUSION.search(s.text)
         if m:
             problems.append(f"sentence {i}: conclusion about the user ({m.group(0).strip()})")
+        told = instructs(s.text)
+        if told:
+            problems.append(f"sentence {i}: tells the person what to do ({told})")
         if not s.source_ids:
             problems.append(f"sentence {i}: no source")
         problems.extend(

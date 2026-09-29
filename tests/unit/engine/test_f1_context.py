@@ -28,8 +28,12 @@ from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
+    CONFLICT_IDS,
+    CPT_USED,
     HELD_OPT,
     NO_EMPLOYMENT,
+    NOTHING_MORE,
+    ON_THE_DAY_IT_RUNS,
     QUESTION_IDS,
     READINGS,
     answered_yes,
@@ -41,17 +45,20 @@ from tests.support.f1_pack import (
     clock_on,
     contract_problems,
     count_days,
+    dated_on_the_day,
     ead,
     items,
     job,
     pack_dict,
     question_ids,
     reasons_with,
+    refuse_placeholders,
     rule_value,
     values,
     with_block,
     with_changes,
     with_derivation,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 9, 28)  # a Monday
@@ -99,6 +106,7 @@ STEM_ONLY: dict[str, Any] = {
     "program_end_date": "2026-05-15",
     "degree_level": "master",
     "documents_count": 2,
+    "cpt_full_time_days": 0,
     "employment": [job("2026-06-01", None)],
     "stem": ead("2026-04-01", "2026-04-20", "2026-06-01", "2028-05-31"),
     "time_zone": "UTC",
@@ -110,6 +118,7 @@ CAP_GAP_ONLY: dict[str, Any] = {
     "program_end_date": "2026-12-18",
     "degree_level": "master",
     "documents_count": 2,
+    "cpt_full_time_days": 0,
     "employment": [],
     "cap_gap": cap_gap("2026-10-01"),
     "time_zone": "UTC",
@@ -129,14 +138,25 @@ def run(
     """Compute a case. The clock stands at noon UTC on today unless one is passed."""
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(checked_on) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(f1.parse_case(case), pack, clock or clock_on(today))
+    clock = clock or clock_on(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 def in_zone(case: dict[str, Any], zone: str) -> dict[str, Any]:
     return with_changes(case, time_zone=zone)
 
 
-def answered(case: dict[str, Any], on: str = "2026-09-28", **given: bool) -> dict[str, Any]:
+def answered(
+    case: dict[str, Any], on: str | date = ON_THE_DAY_IT_RUNS, **given: bool
+) -> dict[str, Any]:
+    """The case with the answers named. SPEC-resolutions.md, point 2: by default each is
+    dated on the day the case is run, which run() puts in from its clock; point 7: each
+    carries the about of the question it answers."""
     return with_changes(case, confirmations=answers(on, **given))
 
 
@@ -300,19 +320,24 @@ def test_the_age_of_the_rules_is_counted_from_the_persons_own_day():
 
 
 def test_an_item_is_open_on_the_persons_own_day():
-    # opt.apply_window_closes is program_end_date 2026-05-15 plus 60 days: 16 to May 31,
-    # 30 to Jun 30, 14 to Jul 14. It is an open item from today through 14 days on.
-    # At 01:30 UTC on 2026-07-15 it is still July 14 in Los Angeles, and July 15 in
-    # Kolkata, the day after.
-    instant = "2026-07-15T01:30"
-    case = with_changes(CASE_A, employment=[job("2026-06-01", None)])
+    # specs/product-1/SPEC.md, section 4, and SPEC-resolutions.md, point 5: a step
+    # recorded as done is no open item, so this test uses an item whose step is never
+    # recorded. (No case the SPEC allows makes opt.apply_window_closes an open item: see
+    # tests/REPORT.json, disputes.) CASE_B's STEM card begins 2025-07-01; 12 months on is
+    # 2026-07-01, and 10 business days after it, with 2026-07-03 the observed holiday for
+    # July 4 (a Saturday), are Jul 2, 6, 7, 8, 9, 10, 13, 14, 15, 16: stem.validation_2_due
+    # is 2026-07-16. It is an open item from today through 14 days on. At 01:30 UTC on
+    # 2026-07-17 it is still July 16 in Los Angeles (7 hours behind), and July 17 in
+    # Kolkata (5 hours 30 minutes ahead), the day after.
+    instant = "2026-07-17T01:30"
     west = run(
-        in_zone(case, "America/Los_Angeles"), clock=clock_at(instant), checked_on="2026-07-14"
+        in_zone(CASE_B, "America/Los_Angeles"), clock=clock_at(instant), checked_on="2026-07-16"
     )
-    east = run(in_zone(case, "Asia/Kolkata"), clock=clock_at(instant), checked_on="2026-07-14")
-    assert values(west)["opt.apply_window_closes"] == "2026-07-14"
-    assert "opt.apply_window_closes" in west["verdict"]["reasons"]
-    assert "opt.apply_window_closes" not in east["verdict"]["reasons"]
+    east = run(in_zone(CASE_B, "Asia/Kolkata"), clock=clock_at(instant), checked_on="2026-07-16")
+    assert values(west)["stem.validation_2_due"] == "2026-07-16"
+    assert "stem.validation_2_due" in west["verdict"]["reasons"]
+    assert east["verdict"]["state"] != "cannot_tell"
+    assert "stem.validation_2_due" not in east["verdict"]["reasons"]
 
 
 def test_a_date_that_does_not_turn_on_today_is_the_same_in_every_zone():
@@ -503,7 +528,10 @@ def whole_cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
     opt_start = program_end + timedelta(days=draw(st.integers(min_value=1, max_value=60)))
     opt_end = opt_start + timedelta(days=364)
     stem_start = opt_end + timedelta(days=1)
-    today = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1000)))
+    # Every date drawn lies on or before today, so no after_today row of
+    # specs/product-1/SPEC.md, section 1 is raised (SPEC-resolutions.md, point 4). The
+    # latest is the STEM filing, opt_end - 30 = opt_start + 364 - 30 = opt_start + 334.
+    today = opt_start + timedelta(days=draw(st.integers(min_value=334, max_value=1000)))
     case = {
         "program_end_date": program_end.isoformat(),
         "degree_level": draw(st.sampled_from(["bachelor", "master", "doctorate"])),
@@ -584,8 +612,10 @@ def test_stem_without_opt_asks_whether_the_person_held_opt(opt):
 
 
 def test_the_question_names_the_inputs_that_raised_it():
+    # SPEC-resolutions.md, point 6: a question carries id, because and about.
     (question,) = run(STEM_ONLY)["questions"]
-    assert set(question) == {"id", "because"}
+    assert set(question) == {"id", "because", "about"}
+    assert isinstance(question["about"], dict)
     assert question["because"]
     for name in question["because"]:
         assert name.split(".")[0] in CASE_FIELDS, name
@@ -730,8 +760,12 @@ def test_the_window_begins_on_the_persons_own_day():
 
 def test_the_answer_yes_counts_on_an_empty_list():
     # OPT from 2026-06-01. Through 2026-08-01: 30 in June, 31 in July, 1 in August.
+    # SPEC-resolutions.md, point 2: the answer is dated on the case's day, 2026-08-01;
+    # point 3: a yes given that day covers the days through it.
     today = date(2026, 8, 1)
-    out = run(answered(NO_JOBS, no_employment_to_record=True), today=today, checked_on=today)
+    given = answered(NO_JOBS, on=today, no_employment_to_record=True)
+    assert given["confirmations"][NO_EMPLOYMENT]["on"] == "2026-08-01"
+    out = run(given, today=today, checked_on=today)
     assert out["questions"] == []
     assert unconfirmed(out) == []
     got = values(out)
@@ -770,8 +804,10 @@ def test_employment_that_is_entered_raises_no_question():
 
 
 def test_an_empty_list_with_neither_opt_nor_stem_raises_no_question():
+    # specs/product-1/SPEC.md, section 2: with no part entered the engine now asks
+    # nothing_more_to_record. This test protects that it does not ask about employment.
     out = run(with_changes(NO_JOBS, opt=None))
-    assert out["questions"] == []
+    assert NO_EMPLOYMENT not in question_ids(out)
     assert reasons_with(out, "missing:") == []
 
 
@@ -887,10 +923,13 @@ def test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict(
     case, today = drawn
     out = run(case, today=today, checked_on=today)
     assert contract_problems(out) == []
-    asked = question_ids(out)
+    # specs/product-1/SPEC.md, sections 1 and 2: the engine now asks two more questions,
+    # and one for each conflict, whose reason is conflict:<id>. Those have their own
+    # property in the product tests. This one keeps to the questions of its round.
+    asked = [asked_id for asked_id in question_ids(out) if asked_id not in CONFLICT_IDS]
     given = case.get("confirmations", {})
     assert len(asked) == len(set(asked))
-    assert set(asked) <= set(QUESTION_IDS)
+    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
     assert sorted(unconfirmed(out)) == sorted(asked)
     # A question the person has answered is not asked again.
     assert set(asked).isdisjoint(given)

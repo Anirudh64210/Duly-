@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation desktop desktop-smoke
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation register desktop desktop-smoke
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -54,6 +54,7 @@ gate-6:
 
 gate-7:
 	uv run python -m tools.factory.validate
+	uv run python -m tools.requirements.register check
 	uv run python -m tools.gates.engine_literals
 	uv run python -m tools.sources.verify rulepacks
 
@@ -98,7 +99,8 @@ factory-metrics:
 	@uv run python -m tools.factory.control metrics
 
 factory-test:
-	uv run pytest tests/unit/tools -q
+	uv run pytest tests/unit/tools -q --cov=tools/factory --cov-report=xml:.scratch/coverage/factory.xml
+	uv run diff-cover .scratch/coverage/factory.xml --include "tools/factory/*" --fail-under=80 --compare-branch=$(BASE)
 
 golden:
 	uv run python -m tools.factory.golden
@@ -122,6 +124,9 @@ desktop-smoke:
 	rm -rf .scratch/smoke && mkdir -p .scratch/smoke
 	cd desktop && npx electron . --smoke $(CURDIR)/.scratch/smoke
 	@cat .scratch/smoke/screen.json
+
+register:
+	uv run python -m tools.requirements.register build
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)

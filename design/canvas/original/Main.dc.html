@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F8F7F4;color:#1A1917;-webkit-font-smoothing:antialiased}
+a{color:#2B4EA2;text-decoration:none}a:hover{color:#22417F}
+@keyframes rise{from{transform:translateY(12px)}to{transform:none}}
+@keyframes fillw{from{width:0}}
+@keyframes breathe{0%{transform:scale(1);opacity:.5}70%{transform:scale(2.6);opacity:0}100%{transform:scale(2.6);opacity:0}}
+@keyframes drop{from{transform:translateY(-6px)}to{transform:none}}
+@keyframes calm{0%,100%{opacity:.14;transform:scale(1)}50%{opacity:.3;transform:scale(1.25)}}
+.calm{animation:calm 4.8s ease-in-out infinite}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1)}
+.d1{animation-delay:.06s}.d2{animation-delay:.16s}.d3{animation-delay:.28s}.d4{animation-delay:.42s}
+.hrow{transition:background .16s ease}
+.hrow:hover{background:#F0EEE8}
+.chip{transition:background .16s ease,border-color .16s ease,transform .12s ease}
+.chip:hover{background:#E9EEF9;border-color:#CBD6EE}
+.chip:active{transform:scale(.96)}
+.fillbar{animation:fillw 1.1s .5s cubic-bezier(.2,.7,.2,1)}
+.ring{animation:breathe 2.8s ease-out infinite}
+.chev{transition:transform .22s ease}
+.rot{transform:rotate(90deg)}
+.drop{animation:drop .28s ease-out}
+</style>
+</helmet>
+<div style="width: 1280px; height: 832px; box-sizing: border-box; display: flex; background: #F8F7F4">
+
+  <div style="width: 208px; flex-shrink: 0; box-sizing: border-box; border-right: 1px solid #ECEAE4; display: flex; flex-direction: column; gap: 2px; padding: 26px 14px">
+    <div style="padding: 0 10px; margin-bottom: 26px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em">Duly<span style="color: #2B4EA2">.</span></div>
+    <a href="Main.dc.html" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; font-weight: 600; color: #2B4EA2">Home</a>
+    <a href="Timeline.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Timeline</a>
+    <a href="Documents.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Documents</a>
+    <a href="Checklist.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Checklists</a>
+    <a href="Simulator.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Scenarios</a>
+    <a href="Updates.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Updates</a>
+    <a href="WorkBook.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">WorkBook</a>
+    <div style="flex-grow: 1"></div>
+    <a href="#case" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Your case</a>
+    <a href="#settings" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Settings</a>
+    <a href="#feedback" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Feedback</a>
+  </div>
+
+  <div style="flex-grow: 1; box-sizing: border-box; display: flex; justify-content: center; overflow: hidden">
+    <div style="width: 720px; display: flex; flex-direction: column; padding-top: 54px">
+
+      <div class="rise" style="font-size: 12px; color: #8A8780">Monday, September 28</div>
+
+      <div class="rise d1" style="margin-top: 30px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: center; gap: 9px">
+          <span style="position: relative; width: 15px; height: 15px; display: inline-block">
+            <span class="calm" style="position: absolute; top: -5px; left: -5px; width: 25px; height: 25px; border-radius: 50%; background: #2B4EA2; filter: blur(7px)"></span>
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="position: relative"><path d="M8 1.5l5.5 2.5v4c0 3.2-2.3 5.6-5.5 6.5-3.2-.9-5.5-3.3-5.5-6.5v-4z" fill="#2B4EA2"/><path d="M5.6 8.1l1.7 1.7 3.1-3.7" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em; color: #2B4EA2">ALL CLEAR</span>
+        </div>
+        <div style="font-size: 40px; font-weight: 600; line-height: 1.1; letter-spacing: -0.02em">Everything is in order.</div>
+        <div style="font-size: 15px; color: #6B6862">Nothing needs you today. Next: SEVP check-in, October 7.</div>
+      </div>
+
+      <div class="rise d2" style="margin-top: 44px; display: flex">
+        <div style="flex-grow: 1; padding-right: 32px; display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">90-DAY UNEMPLOYMENT CLOCK</div>
+          <div style="display: flex; align-items: baseline; gap: 7px">
+            <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em">12</span>
+            <span style="font-size: 13px; color: #8A8780">used · 78 left</span>
+          </div>
+          <div style="height: 3px; border-radius: 2px; background: #E8E6E0; overflow: hidden"><div class="fillbar" style="width: 13%; height: 3px; background: #2B4EA2"></div></div>
+        </div>
+        <div style="width: 1px; background: #ECEAE4"></div>
+        <div style="flex-grow: 1; padding: 0 32px; display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">THIS WEEK</div>
+          <div style="display: flex; align-items: baseline; gap: 7px">
+            <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em">14.2</span>
+            <span style="font-size: 13px; color: #8A8780">of 20 hours</span>
+          </div>
+          <div style="height: 3px; border-radius: 2px; background: #E8E6E0; overflow: hidden"><div class="fillbar" style="width: 71%; height: 3px; background: #2B4EA2"></div></div>
+        </div>
+        <div style="width: 1px; background: #ECEAE4"></div>
+        <div style="flex-grow: 1; padding-left: 32px; display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">EAD VALID UNTIL</div>
+          <div style="display: flex; align-items: baseline; gap: 9px">
+            <span style="font-size: 24px; font-weight: 600; letter-spacing: -0.01em">Feb 9, 2027</span>
+            <span style="font-size: 13px; color: #8A8780">134 days left</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rise d3" style="margin-top: 48px; display: flex; flex-direction: column">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #8A8780; padding-bottom: 8px">YOUR NEXT MOVE</div>
+
+        <div class="hrow" role="button" tabindex="0" onClick="{{tStem}}" style="cursor: pointer; padding: 16px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #ECEAE4">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">Start preparing your STEM OPT extension</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">Best filing start: Dec 12 – Jan 10</div>
+            </div>
+            <svg class="chev {{stemRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{stemOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 12px 0 4px 2px; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 13px; color: #4A4844">2 of 6 steps done. Up next: the I-983 with your supervisor.</div>
+              <a href="Checklist.dc.html" style="font-size: 13px; font-weight: 600">Open the checklist →</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="hrow" role="button" tabindex="0" onClick="{{tUpd}}" style="cursor: pointer; padding: 16px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #ECEAE4">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">One update affects you</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">RFE deadlines shortened · moderate impact, no panic</div>
+            </div>
+            <svg class="chev {{updRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{updOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 12px 0 4px 2px; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 13px; color: #4A4844">USCIS can now deny incomplete filings without asking first. Your move: file complete, the first time.</div>
+              <a href="Updates.dc.html" style="font-size: 13px; font-weight: 600">Read what it means →</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="hrow" role="button" tabindex="0" onClick="{{tNext}}" style="cursor: pointer; padding: 16px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #ECEAE4; border-bottom: 1px solid #ECEAE4">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">Tell Duly what you want to do next</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">A new job, travel, H-1B — get the plan before you move</div>
+            </div>
+            <svg class="chev {{nextRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{nextOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 12px 0 4px 2px; display: flex; gap: 8px">
+              <a href="Simulator.dc.html" class="chip" style="font-size: 13px; color: #1A1917; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 7px 14px">I'm changing jobs</a>
+              <a href="Simulator.dc.html" class="chip" style="font-size: 13px; color: #1A1917; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 7px 14px">I want to travel</a>
+              <a href="Checklist.dc.html" class="chip" style="font-size: 13px; color: #1A1917; background: #FFFFFF; border: 1px solid #E5E2DA; border-radius: 99px; padding: 7px 14px">Thinking about H-1B</a>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex-grow: 1"></div>
+      <div class="rise d4" style="padding-bottom: 24px; font-size: 12px; color: #B0ACA3">Checked today, 6:00 AM</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":832}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const open = (this.state && this.state.open) || '';
+    const t = (k) => () => this.setState({ open: open === k ? '' : k });
+    return {
+      stemOpen: open === 'stem', updOpen: open === 'upd', nextOpen: open === 'next',
+      stemRot: open === 'stem' ? 'rot' : '', updRot: open === 'upd' ? 'rot' : '', nextRot: open === 'next' ? 'rot' : '',
+      tStem: t('stem'), tUpd: t('upd'), tNext: t('next')
+    };
+  }
+}
+</script>
+</body>
+</html>

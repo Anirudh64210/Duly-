@@ -7,13 +7,16 @@ Sources, all plain files:
 - git, for commits and changed files in each lane's worktree
 """
 
+import fcntl
 import hashlib
 import json
 import os
 import re
 import subprocess
+import time
+from contextlib import ExitStack
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +55,8 @@ class Agent:
     run_id: str = ""
     cost_usd: float = 0.0
     merged: bool = False
+    kind: str = "work"  # work, or a check of the factory: health, golden, drift
+    key: str = ""
 
 
 @dataclass
@@ -72,6 +77,10 @@ class Snapshot:
     reviews: list[dict[str, Any]] = field(default_factory=list)
     ledger_problems: list[str] = field(default_factory=list)
     health: dict[str, Any] = field(default_factory=dict)
+    # One read of the registry per snapshot, so the cards, the tiles and the notices
+    # all agree on who is running.
+    registry: dict[str, Any] = field(default_factory=dict)
+    live: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -193,17 +202,67 @@ def pid_alive(pid: int) -> bool:
     return True
 
 
-def live_runs(repo: Path) -> list[dict[str, Any]]:
-    """Every run the registry holds whose process is alive, work and checks alike."""
-    try:
-        held = json.loads((repo / ".factory" / "registry.json").read_text()).get("runs", {})
-    except (OSError, json.JSONDecodeError):
-        return []
+def read_registry(repo: Path, tries: int = 50) -> dict[str, Any]:
+    """The runs the registry holds, read whole.
+
+    The runner rewrites registry.json in place under registry.lock, so a read without
+    the lock can land between the truncate and the write and find nothing. That made
+    every agent drop out of Working now for one refresh. The read takes the same lock,
+    shared, and waits a short while at most. Opening the lock file read only never
+    creates or changes it.
+    """
+    folder = repo / ".factory"
+    path, lock = folder / "registry.json", folder / "registry.lock"
+    for attempt in range(tries):
+        with ExitStack() as stack:
+            if attempt < tries - 1 and lock.exists():  # the last try reads without it
+                try:
+                    handle = stack.enter_context(lock.open("r"))
+                    fcntl.flock(handle, fcntl.LOCK_SH | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    time.sleep(0.01)
+                    continue
+                except OSError:
+                    pass
+            try:
+                text = path.read_text()
+            except OSError:
+                return {}
+        try:
+            found = json.loads(text)
+        except json.JSONDecodeError:
+            time.sleep(0.01)
+            continue
+        runs = found.get("runs", {}) if isinstance(found, dict) else {}
+        return runs if isinstance(runs, dict) else {}
+    return {}
+
+
+def ended_runs(events: list[dict[str, Any]]) -> set[str]:
+    """Runs that have written their end. The runner releases its claim a moment later."""
+    return {
+        str(e["run_id"])
+        for e in events
+        if e.get("run_id") and e.get("kind") in {"done", "failed", "blocked"}
+    }
+
+
+def live_runs(
+    repo: Path,
+    held: dict[str, Any] | None = None,
+    ended: set[str] | frozenset[str] = frozenset(),
+) -> list[dict[str, Any]]:
+    """Every run the registry holds whose process is alive, work and checks alike.
+
+    A run that has already written its end is left out: it is only tidying up.
+    """
+    if held is None:
+        held = read_registry(repo)
     out = []
     for run_id, run in held.items():
         if str(run.get("lane", "")).startswith("orchestrator"):
             continue
-        if not pid_alive(int(run.get("pid", 0))):
+        if run_id in ended or not pid_alive(int(run.get("pid", 0))):
             continue
         task = str(run.get("task", ""))
         kind = (
@@ -222,6 +281,141 @@ def live_runs(repo: Path) -> list[dict[str, Any]]:
     return sorted(out, key=lambda r: r["started_at"])
 
 
+def open_alerts(events: list[dict[str, Any]], own: set[str]) -> list[dict[str, Any]]:
+    """Alerts nobody has dealt with yet.
+
+    An alert leaves this list when someone records how it was dealt with, or when the
+    same task later finishes and passes. It always stays in the record of actions.
+    """
+    done = {e.get("handles") for e in events if e.get("handles")}
+    task_of = {e["run_id"]: e["task"] for e in events if e.get("run_id") and e.get("task")}
+    passed_at: dict[str, str] = {}
+    for e in events:
+        task = task_of.get(str(e.get("run_id") or ""))
+        if task and e.get("kind") == "done" and str(e.get("message", "")).startswith("done"):
+            passed_at[task] = str(e.get("at", ""))
+    out = []
+    for e in events:
+        if e.get("kind") != "alert" or e.get("run_id") in own or e.get("hash") in done:
+            continue
+        task = task_of.get(str(e.get("run_id") or ""))
+        if task and passed_at.get(task, "") > str(e.get("at", "")):
+            continue
+        out.append(e)
+    return out
+
+
+def read_notes(repo: Path) -> list[dict[str, Any]]:
+    """What the founder wrote to Claude in the window, each with its replies."""
+    rows = read_jsonl(repo / ".factory" / "inbox.jsonl")
+    notes = [dict(r, replies=[]) for r in rows if r.get("kind") == "note"]
+    by_id = {n["id"]: n for n in notes}
+    for row in rows:
+        if row.get("kind") == "reply" and row.get("note") in by_id:
+            note = by_id[row["note"]]
+            note["replies"].append({"at": row.get("at", ""), "text": row.get("text", "")})
+            note["state"] = "open" if row.get("keep_open") else "done"
+    for note in notes:
+        note.setdefault("state", "open")
+    return notes
+
+
+def add_note(repo: Path, text: str, now: datetime) -> dict[str, Any]:
+    text = text.strip()[:2000]
+    if not text:
+        return {}
+    folder = repo / ".factory"
+    folder.mkdir(exist_ok=True)
+    stamp = now.isoformat(timespec="seconds")
+    row = {
+        "kind": "note",
+        "id": hashlib.sha256((stamp + text).encode()).hexdigest()[:10],
+        "at": stamp,
+        "text": text,
+    }
+    with (folder / "inbox.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+    return row
+
+
+def self_check(
+    repo: Path,
+    snap: "Snapshot",
+    live: list[dict[str, Any]],
+    now: datetime,
+    held: dict[str, Any] | None = None,
+) -> list[str]:
+    """What the window itself can see is wrong or stale, said before anyone has to ask."""
+    found: list[str] = []
+    for agent in snap.agents:
+        if agent.state == "stopped" and agent.kind == "work":
+            found.append(f"{agent.lane} shows as working in the record but has no live process.")
+    if held is None:
+        held = read_registry(repo)
+    dead = [k for k, r in held.items() if not pid_alive(int(r.get("pid", 0)))]
+    if dead:
+        found.append(f"{len(dead)} claims are held by processes that have ended.")
+    stale = [h for h in health_rows(repo, snap.health) if h["state"] != "passed"]
+    if stale and not any(r["kind"] == "health" for r in live):
+        found.append(
+            f"{len(stale)} health checks are out of date or were never run. "
+            "No agent in those lanes can start until make doctor passes."
+        )
+    if snap.ledger_problems:
+        found.append("The record of actions was changed, or a line is missing.")
+    old = [
+        a for a in snap.alerts if (parse_time(a.get("at", "")) or now) < now - timedelta(hours=6)
+    ]
+    if old:
+        found.append(f"{len(old)} alerts have been open for more than six hours.")
+    trees = repo.parent / f"{repo.name}-worktrees"
+    if trees.is_dir():
+        in_use = {str(r.get("worktree", "")) for r in held.values()}
+        waiting = {str(a.worktree) for a in snap.agents if a.worktree}
+        left = [
+            p
+            for p in trees.iterdir()
+            if p.is_dir() and str(p) not in in_use and str(p) not in waiting
+        ]
+        if left:
+            found.append(
+                f"{len(left)} worktrees are left over from runs that ended. "
+                "make factory-clean removes them."
+            )
+    failing = [name for name, result in snap.gates.items() if result != "pass"]
+    if failing and not live:
+        found.append("The last checks did not all pass: " + ", ".join(failing) + ".")
+    if snap.stopped and live:
+        found.append("The factory is stopped but processes are still running.")
+    return found
+
+
+def plan_state(
+    repo: Path, events: list[dict[str, Any]], held: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Whether a plan is running now, and the orchestrator's latest word."""
+    if held is None:
+        held = read_registry(repo)
+    running = [
+        r
+        for r in held.values()
+        if str(r.get("lane", "")).startswith("orchestrator:") and pid_alive(int(r.get("pid", 0)))
+    ]
+    said = [
+        e
+        for e in events
+        if e.get("lane") == ORCHESTRATOR
+        and e.get("kind") in {"start", "step", "done", "failed", "blocked", "merge"}
+    ]
+    last = said[-1] if said else {}
+    return {
+        "running": bool(running),
+        "branch": str(running[0]["lane"]).split(":", 1)[1] if running else "",
+        "message": last.get("message", ""),
+        "at": last.get("at", ""),
+    }
+
+
 def factory_runs(events: list[dict[str, Any]]) -> set[str]:
     """Runs that test the factory itself: health checks, golden tasks, drift checks."""
     return {
@@ -231,21 +425,33 @@ def factory_runs(events: list[dict[str, Any]]) -> set[str]:
     }
 
 
-def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
-    """The latest run of each lane. A run begins at a start event."""
+def agents_from_events(
+    events: list[dict[str, Any]], live: dict[str, str] | None = None
+) -> dict[str, Agent]:
+    """The latest run of each lane, and every check of the factory that is running now.
+
+    A run begins at a start event. `live` maps the id of each running check to its kind.
+    Checks that have ended are left out: they test the factory and are not work.
+    """
     agents: dict[str, Agent] = {}
     own = factory_runs(events)
+    live = live or {}
     for event in events:
-        if event.get("run_id") and event.get("run_id") in own:
+        run = str(event.get("run_id") or "")
+        if run in own and run not in live:
             continue
         lane = event.get("lane", "")
+        if run in live:
+            lane = f"{lane}, {live[run]} check"
         if not lane or lane == ORCHESTRATOR or lane.startswith("orchestrator"):
             continue
         kind, message = event.get("kind", ""), event.get("message", "")
         at = parse_time(event.get("at", ""))
         if kind == "start" or lane not in agents:
             runs = agents[lane].runs if lane in agents else 0
-            agents[lane] = Agent(lane=lane, started_at=at, runs=runs + 1)
+            agents[lane] = Agent(
+                lane=lane, started_at=at, runs=runs + 1, kind=live.get(run, "work"), key=lane
+            )
             if kind == "start":
                 agents[lane].mission = message
         agent = agents[lane]
@@ -276,7 +482,14 @@ def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
 
 
 def running_lanes(ps_output: str) -> set[str]:
-    return set(re.findall(r"tools\.factory\.(?:agent_run|run_lane) --lane (\S+)", ps_output))
+    """Lanes the old lane runner is working in. It kept no registry and gave no run ids.
+
+    The agent runner is left out on purpose: every run of it is found through the
+    registry by its run id. Counting it here marked an old card of the same lane as
+    working whenever a health check or a golden task ran in that lane, and during the
+    moments before a new run takes its claim.
+    """
+    return set(re.findall(r"tools\.factory\.run_lane --lane (\S+)", ps_output))
 
 
 def seal(row: dict[str, Any]) -> str:
@@ -479,13 +692,19 @@ def load(
     now: datetime | None = None,
 ) -> Snapshot:
     events = read_events(repo)
-    agents = agents_from_events(events)
+    held = read_registry(repo)
+    running = live_runs(repo, held, ended_runs(events))
+    checks = {r["run_id"]: r["kind"] for r in running if r["kind"] != "work"}
+    agents = agents_from_events(events, checks)
     if ps_output is None:
         ps_output = _out(["ps", "-axo", "command"], repo)
     alive = running_lanes(ps_output)
     base = _out(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo).strip() or "main"
     for agent in agents.values():
-        agent.alive = agent.lane in alive
+        if agent.run_id:
+            agent.alive = agent.run_id in {r["run_id"] for r in running}
+        else:  # a run from before runs had ids
+            agent.alive = agent.lane in alive
         if agent.state == "working" and not agent.alive:
             agent.state = "stopped"
         agent.worktree = worktree_for(repo, agent.lane, agent.run_id)
@@ -540,9 +759,18 @@ def load(
         health = {}
     own = factory_runs(events)
     skill_dirs = [p.parent for p in (repo / ".claude" / "skills").glob("*/SKILL.md")]
-    order = {"working": 0, "blocked": 1, "failed": 1, "stopped": 1, "done": 2}
+    never = datetime.min.replace(tzinfo=UTC)
     return Snapshot(
-        agents=sorted(agents.values(), key=lambda a: (order.get(a.state, 3), a.lane)),
+        # Whoever is at work comes first, the longest at work first. Then the rest, the
+        # most recently active first.
+        agents=[
+            *sorted((a for a in agents.values() if a.alive), key=lambda a: a.started_at or never),
+            *sorted(
+                (a for a in agents.values() if not a.alive),
+                key=lambda a: a.last_at or never,
+                reverse=True,
+            ),
+        ],
         round_line=round_line,
         orchestrator=orchestrator,
         gates=gates,
@@ -560,11 +788,13 @@ def load(
             2,
         ),
         day_cap=day_cap,
-        alerts=[e for e in events if e.get("kind") == "alert" and e.get("run_id") not in own][-30:],
+        alerts=open_alerts(events, own)[-30:],
         metrics=agent_metrics(runs),
         reviews=read_jsonl(factory / "reviews.jsonl")[-20:],
         ledger_problems=ledger_problems(events),
         health=health,
+        registry=held,
+        live=running,
     )
 
 
@@ -582,7 +812,10 @@ def snapshot_json(
     snap = load(repo, ps_output=ps_output)
     return {
         "round": snap.round_line,
-        "live": live_runs(repo),
+        "plan": plan_state(repo, snap.orchestrator, snap.registry),
+        "notes": list(reversed(read_notes(repo)))[:20],
+        "notices": self_check(repo, snap, snap.live, clock.now(), snap.registry),
+        "live": snap.live,
         "stopped": snap.stopped,
         "spend": {
             "today": snap.spent_today,
@@ -624,6 +857,7 @@ def snapshot_json(
         "agents": [
             {
                 "lane": a.lane,
+                "kind": a.kind,
                 "agent": a.agent,
                 "mission": a.mission,
                 "state": a.state,

@@ -11,7 +11,7 @@ outputs:
   - REVIEW.json under reviews/, matching contracts/factory_review.schema.json
   - REPORT.json in reviews/, matching contracts/factory_report.schema.json
 tools: [Read, Write, Glob, Grep, Bash]
-model: claude-fable-5-1
+model: claude-opus-5-5
 max_turns: 120
 max_attempts: 2
 token_budget: 6000000

@@ -1,0 +1,30 @@
+name: auditor
+version: 1
+role: Checks the work against the project's own requirements and the founder's decisions after every plan. Built none of it and never edits it.
+role_file: .claude/agents/auditor.md
+lanes: [L-audit]
+inputs:
+  - docs/requirements/register.json and the SPEC's section named Covers
+  - DECISIONS.md, PRINCIPLES.md and BOUNDARY.md
+  - the repository as it stands, which it reads and runs
+outputs:
+  - changed rows under docs/requirements/parts/
+  - a written audit under docs/requirements/audits/
+  - REPORT.json in docs/requirements/, matching contracts/factory_report.schema.json
+tools: [Read, Write, Glob, Grep, Bash]
+model: claude-opus-5-5
+max_turns: 120
+max_attempts: 2
+token_budget: 6000000
+budget_usd: 20.0
+timeout_minutes: 60
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+network: []
+may_write: true
+health_check:
+  task: Write the file docs/requirements/HEALTH.txt holding the word ok, then try to write engine/probe.txt and report what happened.
+  passes_when: docs/requirements/HEALTH.txt exists and engine/probe.txt does not exist

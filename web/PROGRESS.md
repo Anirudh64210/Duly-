@@ -305,3 +305,135 @@ Also ran, outside the done command:
   test, choose a zone the runtime lists (Asia/Tokyo), or start from a mocked
   `resolvedOptions`. The server takes both names.
 - evidence: iteration 3; web/src/lib/caseForm.ts, zoneChoices; curl with Asia/Calcutta gave 200.
+
+## 2026-09-29, iteration 4: product round 1, sections 1, 2, 3, 5, 6 and 7 (run l-web-d1622b0c58)
+
+### Read
+
+web/PROGRESS.md, specs/product-1/SPEC.md, specs/product-1/SPEC-resolutions.md, CLAUDE.md,
+contracts/engine_output.schema.json, contracts/case_f1.schema.json, engine/f1.py (questions,
+`_answer`, `_facts`, `_add_next_step`, `_lists`), engine/verdict.py, api/main.py,
+design/canvas/DESIGN-SPEC.md, tools/copy_lint/lint.py, the regimes in rulepacks/f1-us.
+
+### Built
+
+- compute.ts: the parser takes `reading` on each item (required), `about` on a question, dotted
+  question ids, `upcoming` and `lists` (both required, strict). It refuses a date ahead or a list
+  that names a rule with no source, and a date ahead with alternates and no operative regime.
+  `cpt_full_time_days` is `number | null`. A confirmation carries `about`.
+- caseForm.ts (section 2): the CPT field starts empty and an empty field is sent as null, never
+  0. `answer` keeps the `about` of the question with the answer (section 3, resolution 7).
+- Section 1: each of the 13 conflicts has one line that says what does not fit and never which
+  date is wrong. The question reads "Are these the dates on your documents?", shows the values
+  from `about`, and offers "Yes, they are the dates on my documents" / "No, I will correct them".
+  A confirmed conflict (a talk_to_dso reason) reads the line plus "You answered that these are
+  the dates on your documents. What they mean is a question for your DSO."
+- Section 2: words for `nothing_more_to_record`, `full_time_cpt_used`, `missing:training`,
+  `missing:cpt_full_time_days`.
+- Section 3: every answer, first or changed, is sent with the `about` the engine gave. The
+  screen never builds an `about` of its own.
+- Section 5: a "Duly's reading" tag on the row, in the verdict line (through the item the reason
+  rests on), and on each date ahead. The CPT line says "at or over Duly's count of one year in
+  days", with the regulation's own quote and link beside it in the verdict.
+- Section 6: "What comes next" under the verdict: `upcoming` in the engine's order, then the list
+  with the SPEC's line above it, each quote with its citation and link, the first `next.` date
+  beside the list, and a question for the DSO from a template, the OPT card dates the person
+  sent, and the engine's `next.stem.*` dates. "Copy the question" uses the clipboard. Nothing is
+  sent. "What the rule says" no longer repeats rules named by `upcoming` or `lists`.
+- Section 7: the three unemployment names. A value with alternates shows one value, the one in
+  force, and under it one button line: "A rule change is blocked by a court. See what it would
+  change." for `enjoined` (other statuses: "A rule change is <words>."). Opening it shows the
+  other value, "Legal status in the rule pack: <the pack's word>" for both regimes, and the rule.
+- Styles for the new parts, from the tokens.
+
+### Choices a reviewer may want to look at
+
+- `upcoming` holds both `grace.ends` and `next.grace.ends` with the same date. The screen shows
+  both, and names the second "Grace period ends, counted from the OPT EAD end date". It drops
+  nothing the engine sent (request 7).
+- The court's order is not in the engine output, so the opened rule change shows the other
+  value, the pack's legal status word and the rule, but not the order (request 6).
+- The DSO draft says "Duly, a record keeping tool, computed these dates from my card" and marks
+  a date that rests on a reading. It asks whether the paragraph applies and what the office
+  would need. It states no conclusion.
+- Tests of mine that asserted the older behaviour were changed to the SPEC: the item names, the
+  two regimes side by side (now one value and a disclosure), and CPT 0 (now null when empty).
+
+### Ran
+
+```
+bash -c 'npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0 && npx prettier --check "web/**/*.{ts,tsx,css,html,json}" && uv run python -m tools.copy_lint.lint'
+```
+
+Printed: typecheck clean; Test Files 5 passed (5), Tests 178 passed (178); coverage statements
+96.53%, branches 92.64%; eslint clean; "All matched files use Prettier code style!"; "copy lint:
+clean". Exit code 0.
+
+Earlier runs of it: one failed eslint on four unused destructured names in a test of mine; one
+failed typecheck on a helper that duplicated one already in the file.
+
+Also ran: `npm run build -w web` (built). `compute_f1` on the real pack, FixedClock
+2026-09-29 18:00 UTC, eight cases (nothing entered, CPT null, OPT only, a filing after today,
+CPT 400, OPT and STEM with a gap, cap-gap alone with a late petition, both D41 answers given).
+All eight parsed with `engineOutputSchema` in a throwaway test, since deleted; every reason and
+every question id had words.
+
+### Not done, not verified
+
+- Not seen in a browser. jsdom tests, the real engine run, and a build only.
+- The api was not run; api/main.py on this branch still calls `parse_case(raw)` without the
+  clock (resolution 8 is L-api's).
+
+### Requests for files this lane does not own
+
+6. contracts/engine_output.schema.json and engine/f1.py: SPEC section 7 says opening the rule
+   change shows the court's order from the saved source. The output carries no source for the
+   other regime. Request: give each alternate its rule (quote, citation, url) and the order.
+7. engine/f1.py: `upcoming` holds `grace.ends` and `next.grace.ends` with the same date and
+   rules. Say whether both are meant.
+2, 3 and 5 of iteration 1 to 3 stand.
+
+## Lesson
+
+- failure: `npx prettier --write "src/**"` run from inside web/ did not read the root
+  .prettierignore and rewrote the generated web/src/lib/api-types.ts.
+- fix: run prettier from the repo root with the done command's glob, and check git status for
+  files you did not mean to touch.
+- evidence: iteration 4, `git diff --stat web/src/lib/api-types.ts` showed 442 lines; restored
+  with git checkout.
+
+## 2026-09-29, iteration 5: finish product round 1 (run l-web-a29d50ac19)
+
+### Done
+
+- `git merge lane/L-web/l-web-d1622b0c58`: merged, no conflicts (12 files under web/). git
+  printed "tests/holdout/...: Operation not permitted" because the sandbox denies reads there;
+  the merge itself completed and the tree is clean.
+- Checked that contracts/, engine/ and api/ did not change between the earlier run's base and
+  879feb4, so the earlier parser and screens still match the contract. The done command passed
+  on the merge alone: 178 tests.
+- The one open item was motion from design/canvas/DESIGN-SPEC.md. web/src/styles.css now has:
+  button press scale(0.97), row hover background over 0.16s, and disclosures (`.working`)
+  dropping in over 0.28s on the entrance curve. Only transform moves, so the content is there
+  without the animation. Everything is off under prefers-reduced-motion. No amber.
+- web/src/styles.test.ts: reads styles.css and checks those rules, the reduced motion block,
+  and that there is no amber. web/vite.config.ts: `test.css.include` for styles.css, because
+  without it vitest returns an empty string for `styles.css?raw`.
+
+### Ran
+
+The done command, as written: exit 0. Test Files 6 passed (6), Tests 183 passed (183);
+statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: clean".
+`npm run build -w web`: exit 0.
+
+### Not done, not verified
+
+- Still not seen in a browser against a live api.
+- Requests 2, 3, 5, 6 and 7 stand.
+
+## Lesson
+
+- failure: `import css from "./styles.css?raw"` gave an empty string under vitest, so four of
+  five new tests failed on ''.
+- fix: set `test.css.include` to the stylesheet in web/vite.config.ts.
+- evidence: iteration 5, `npx vitest run --root web src/styles.test.ts`, "expected '' to contain".

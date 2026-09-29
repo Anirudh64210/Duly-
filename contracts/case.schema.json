@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/case.schema.json",
+  "title": "A case, for any category",
+  "description": "What a person entered, as facts named by the category's rule pack. The engine reads the pack to know what each fact means.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "categories",
+    "time_zone",
+    "facts"
+  ],
+  "properties": {
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+$"
+      },
+      "minItems": 1,
+      "maxItems": 6,
+      "description": "The rule packs that apply, for example f1, then h1b"
+    },
+    "time_zone": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+(/[A-Za-z0-9_+-]+){1,2}$|^UTC$",
+      "maxLength": 64
+    },
+    "school": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 120,
+      "description": "The school's id in the schools register, when the person has named one"
+    },
+    "documents_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "facts": {
+      "type": "object",
+      "maxProperties": 400,
+      "propertyNames": {
+        "pattern": "^[a-z0-9_.]+$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(19[5-9][0-9]|20[0-9]{2})-[0-9]{2}-[0-9]{2}$"
+          },
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "string",
+            "maxLength": 80
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "start",
+                "end"
+              ],
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "end": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date"
+                },
+                "hours_per_week": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 168
+                },
+                "reported": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "confirmations": {
+      "$ref": "case_f1.schema.json#/properties/confirmations"
+    }
+  }
+}

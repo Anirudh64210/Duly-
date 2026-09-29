@@ -62,6 +62,7 @@ def test_every_shipped_contract_loads_and_is_complete():
         "skill-curator",
         "eval-curator",
         "red-team",
+        "auditor",
     }
     config = load_config()
     for c in contracts:
@@ -350,3 +351,80 @@ def test_judge_drift_is_a_number():
     ]
     assert drift.pick(reviews)["run_id"] == "b"
     assert drift.pick([reviews[0], reviews[2]]) is None
+
+
+SUBSCRIPTION = '{"loggedIn": true, "authMethod": "claude.ai", "subscriptionType": "max"}'
+
+
+def test_the_factory_runs_on_a_subscription_login_only():
+    from tools.factory import billing
+
+    assert billing.require_subscription(SUBSCRIPTION) == "max"
+    for status, problem in (
+        ('{"loggedIn": false}', "not logged in"),
+        ('{"loggedIn": true, "authMethod": "apiKey"}', "charged per use"),
+        ('{"loggedIn": true, "authMethod": "console"}', "charged per use"),
+        ("not json", "not logged in"),
+    ):
+        with pytest.raises(billing.BillingError, match=problem):
+            billing.require_subscription(status)
+
+
+def test_no_paid_route_reaches_an_agent(tmp_path):
+    from tools.factory import billing
+
+    base = {"PATH": "/bin", "HOME": "/h", **dict.fromkeys(billing.PAID_ROUTES, "x")}
+    assert not set(billing.PAID_ROUTES) & set(billing.strip_paid_routes(base))
+    env = sandbox.environment(base, tmp_path, tmp_path / "w", "L-api", "r-1", "true")
+    assert not set(billing.PAID_ROUTES) & set(env)
+
+
+def test_project_settings_may_not_name_a_key_or_a_helper(tmp_path):
+    import json
+
+    from tools.factory import billing
+
+    folder = tmp_path / ".claude"
+    folder.mkdir()
+    assert billing.settings_problems(tmp_path) == []
+    (folder / "settings.json").write_text(json.dumps({"hooks": {}}))
+    assert billing.settings_problems(tmp_path) == []
+    (folder / "settings.json").write_text(
+        json.dumps({"apiKeyHelper": "get-key.sh", "env": {"ANTHROPIC_API_KEY": "k", "A": "b"}})
+    )
+    assert billing.settings_problems(tmp_path) == [
+        ".claude/settings.json sets apiKeyHelper",
+        ".claude/settings.json sets ANTHROPIC_API_KEY in env",
+    ]
+
+
+def test_a_run_that_reports_a_key_is_recognised():
+    from tools.factory import billing
+
+    assert billing.key_in_use({"apiKeySource": "none"}) == ""
+    assert billing.key_in_use({}) == ""
+    assert billing.key_in_use({"apiKeySource": "ANTHROPIC_API_KEY"}) == "ANTHROPIC_API_KEY"
+
+
+def test_accepted_lessons_reach_the_agents_of_their_lane(tmp_path):
+    repo = mini.build(tmp_path)
+    lessons = repo / ".claude" / "LESSONS"
+    lessons.mkdir(parents=True, exist_ok=True)
+    (lessons / "L-content.md").write_text(
+        "# Lessons\n\n## a\n\n- What went wrong: A document number was written from memory.\n"
+        "- What fixes it: Look it up and confirm the title.\n- Evidence: x\n"
+    )
+    (lessons / "all-lanes.md").write_text(
+        "## b\n\n- What went wrong: A pipe hid the exit code.\n- What fixes it: Run it unpiped.\n"
+    )
+    (lessons / "factory-fixed.md").write_text(
+        "## c\n\n- What went wrong: The guard blocked pytest.\n- What fixes it: Fixed.\n"
+    )
+    content = memory.for_prompt("L-content", 40, 12000, repo)
+    assert "written from memory" in content
+    assert "pipe hid the exit code" in content
+    assert "guard blocked pytest" not in content
+    engine = memory.for_prompt("L-engine", 40, 12000, repo)
+    assert "written from memory" not in engine
+    assert "pipe hid the exit code" in engine
+    assert memory.for_prompt("L-content", 1, 12000, repo).count("What went wrong") == 1

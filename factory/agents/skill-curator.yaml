@@ -11,7 +11,7 @@ outputs:
   - a REPLAY.md beside each proposed skill, with the evidence
   - REPORT.json in proposals/, matching contracts/factory_report.schema.json
 tools: [Read, Edit, Write, Glob, Grep, Bash]
-model: claude-fable-5-1
+model: claude-opus-5-5
 max_turns: 120
 max_attempts: 2
 token_budget: 6000000
