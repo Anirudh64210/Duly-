@@ -13,7 +13,7 @@ from datetime import date, timedelta
 from itertools import pairwise
 from typing import Any
 
-from engine.clocks import Clock
+from engine.clocks import Clock, day_in_zone, zone_named
 from engine.dates import add_business_days, add_months, add_years
 from engine.rulepack import Rulepack, RulepackError
 from engine.settings import load_settings, whole_setting
@@ -36,6 +36,18 @@ CPT_BAR = "cpt.full_time_bar_days"
 FISCAL_YEAR_START = "capgap.fiscal_year_start_month_day"
 REPORT_EMPLOYER = "opt.report_employer_within_days"
 STEM_WINDOW_CLOSES = "stem.apply_window_closes_rule"
+STEM_FOLLOWS_OPT = "stem.requires_post_completion_opt"
+
+# SPEC-context, section 4: what Duly asks the person to confirm.
+HELD_OPT = "held_post_completion_opt"
+NO_EMPLOYMENT = "no_employment_to_record"
+CAP_GAP_ALONE = "cap_gap_without_training"
+
+# Where a question stands. The engine never fills an answer in.
+NOT_RAISED = "not_raised"
+OPEN = "open"
+YES = "yes"
+NO = "no"
 
 ONE_DAY = timedelta(days=1)
 
@@ -68,6 +80,14 @@ class CapGap:
 
 
 @dataclass(frozen=True)
+class Confirmation:
+    """The person's own answer to a question, and the day it was given."""
+
+    answer: bool
+    on: date
+
+
+@dataclass(frozen=True)
 class F1Case:
     program_end_date: date
     degree_level: str
@@ -77,6 +97,12 @@ class F1Case:
     stem: EadBlock | None
     employment: tuple[EmploymentPeriod, ...]
     cap_gap: CapGap | None
+    time_zone: str
+    confirmations: Mapping[str, Confirmation]
+
+
+# A block the person has confirmed and not yet entered: every date is still to come.
+NOT_ENTERED = EadBlock(None, None, None, None)
 
 
 def _date(raw: Any) -> date | None:
@@ -104,8 +130,10 @@ def _finite(raw: Any, name: str) -> Any:
 def parse_case(raw: dict[str, Any]) -> F1Case:
     """A case that matches contracts/case_f1.schema.json, as frozen dataclasses.
 
-    Raises ValueError for a number that is NaN, Infinity or -Infinity."""
+    Raises ValueError for a number that is NaN, Infinity or -Infinity, and for a
+    time zone that does not exist."""
     cap_gap = raw.get("cap_gap")
+    zone_named(raw["time_zone"])
     return F1Case(
         program_end_date=date.fromisoformat(raw["program_end_date"]),
         degree_level=raw["degree_level"],
@@ -130,6 +158,11 @@ def parse_case(raw: dict[str, Any]) -> F1Case:
             change_of_status=cap_gap["change_of_status"],
             status=cap_gap["status"],
         ),
+        time_zone=raw["time_zone"],
+        confirmations={
+            question: Confirmation(answer=given["answer"], on=date.fromisoformat(given["on"]))
+            for question, given in (raw.get("confirmations") or {}).items()
+        },
     )
 
 
@@ -174,9 +207,12 @@ class _Working:
         self.numbers: dict[str, int] = {}
         self.rules: dict[str, dict[str, Any]] = {}
         self.missing: list[str] = []
+        # Inputs a question covers. Until the person answers, Duly does not say they
+        # are missing: that would be a guess that the part exists.
+        self.silent: set[str] = set()
 
     def name_missing(self, name: str) -> None:
-        if name not in self.missing:
+        if name not in self.missing and name not in self.silent:
             self.missing.append(name)
 
     def setting(self, setting_id: str) -> int:
@@ -209,6 +245,10 @@ class _Working:
             raise RulepackError(f"{rule_id}: no rule in force on {self.today.isoformat()}")
         return found
 
+    def show(self, rule_id: str) -> None:
+        """A rule whose words the screen shows beside a judgement for the DSO."""
+        self._show_rule(self._rule(rule_id))
+
     def _show_rule(self, parameter: dict[str, Any]) -> None:
         source = parameter["source"]
         shown = {
@@ -223,6 +263,11 @@ class _Working:
             shown["quote"] = source["quote"]
         if "regime" in parameter:
             shown["regime"] = parameter["regime"]
+        # Verbatim or a reading, as the pack has it. A reading carries its note.
+        if "derivation" in parameter:
+            shown["derivation"] = parameter["derivation"]
+        if parameter.get("derivation") == "reading" and "note" in parameter:
+            shown["note"] = parameter["note"]
         self.rules[parameter["id"]] = shown
 
     def _alternates(
@@ -377,6 +422,11 @@ def _add_file_by(work: _Working, part: str, block: EadBlock) -> None:
     name = f"{part}.dso_recommendation_date"
     rule_id = f"{part}.file_within_days_of_recommendation"
     recommended = block.dso_recommendation_date
+    # D32: once a filing or an EAD is recorded, an absent recommendation date has
+    # stopped mattering. The item is left out and nothing is said about it.
+    later = block.i765_filed_date is not None or block.ead_start is not None
+    if recommended is None and later:
+        return
     work.add(
         f"{part}.file_by",
         "date",
@@ -387,9 +437,17 @@ def _add_file_by(work: _Working, part: str, block: EadBlock) -> None:
     )
 
 
-def _add_counts(work: _Working, case: F1Case, conflicts: tuple[str, ...]) -> None:
+def _add_counts(
+    work: _Working,
+    case: F1Case,
+    opt: EadBlock | None,
+    conflicts: tuple[str, ...],
+    listed: bool,
+) -> None:
+    """opt is the block entered, or the block the person confirmed and has not entered.
+    listed says whether the employment entered can be taken as the whole list."""
     today = work.today
-    opt, stem = case.opt, case.stem
+    stem = case.stem
     stem_start = None if stem is None else stem.ead_start
     on_stem = stem_start is not None and today >= stem_start
     limit_rule = "stem.unemployment_limit_days" if on_stem else "opt.unemployment_limit_days"
@@ -406,7 +464,8 @@ def _add_counts(work: _Working, case: F1Case, conflicts: tuple[str, ...]) -> Non
     counting_inputs = {**window, "today": today, "employment": _employment_shown(case)}
 
     # Dates that conflict give no window to count in. The conflict is in the verdict.
-    pieces = None if opt is None or conflicts else _pieces(case, opt, today)
+    # Neither does a list of employment the person has not confirmed as whole.
+    pieces = None if opt is None or conflicts or not listed else _pieces(case, opt, today)
 
     # Days used do not turn on the hours rules: a day is used when no period covers it.
     used = None if pieces is None else sum(days for _, days, hours in pieces if hours is None)
@@ -464,7 +523,7 @@ def _add_counts(work: _Working, case: F1Case, conflicts: tuple[str, ...]) -> Non
         "count",
         {"employment": _employment_shown(case)},
         (REPORT_EMPLOYER,),
-        lambda v: sum(1 for p in case.employment if not p.employer_reported),
+        lambda v: sum(1 for p in case.employment if not p.employer_reported) if listed else None,
     )
 
 
@@ -586,8 +645,18 @@ def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
     )
 
 
-def _missing_ead_dates(work: _Working, case: F1Case) -> None:
-    for part, block in (("opt", case.opt), ("stem", case.stem)):
+def _answer(case: F1Case, question: str, raised: bool) -> str:
+    """Where a question stands. An answer to a question that is not raised is not read."""
+    if not raised:
+        return NOT_RAISED
+    given = case.confirmations.get(question)
+    if given is None:
+        return OPEN
+    return YES if given.answer else NO
+
+
+def _missing_ead_dates(work: _Working, opt: EadBlock | None, stem: EadBlock | None) -> None:
+    for part, block in (("opt", opt), ("stem", stem)):
         if block is None:
             continue
         if block.ead_start is None:
@@ -655,18 +724,52 @@ def compute_f1(
     settings holds Duly's own choices in the shape of contracts/product_settings.yaml
     once parsed. None means the shipped file.
     """
-    today = clock.today()
+    today = day_in_zone(clock, case.time_zone)
     work = _Working(pack, today, load_settings() if settings is None else settings)
 
     conflicts = _conflicts(case, work.setting(OPT_START_LOOKBACK))
+
+    # Confirm, never assume. Each gap the person can close with a plain answer.
+    no_training = case.opt is None and case.stem is None
+    held = _answer(case, HELD_OPT, case.stem is not None and case.opt is None)
+    alone = _answer(case, CAP_GAP_ALONE, case.cap_gap is not None and no_training)
+    begun = case.opt is not None and case.opt.ead_start is not None and today >= case.opt.ead_start
+    empty = _answer(case, NO_EMPLOYMENT, begun and not case.employment)
+    asked = {
+        HELD_OPT: (held, ["stem", "opt"]),
+        NO_EMPLOYMENT: (empty, ["employment", "opt.ead_start"]),
+        CAP_GAP_ALONE: (alone, ["cap_gap", "opt", "stem"]),
+    }
+    questions: list[dict[str, Any]] = [
+        {"id": question, "because": because}
+        for question, (stands, because) in asked.items()
+        if stands == OPEN
+    ]
+
+    # With the answer yes the OPT block is one the person holds and has not entered.
+    opt = NOT_ENTERED if case.opt is None and YES in (held, alone) else case.opt
+    if OPEN in (held, alone) or NO in (held, alone):
+        work.silent.add("opt")
+    if alone == YES:
+        # SPEC-context, section 4: this answer names the end of OPT, and no other date.
+        work.silent.add("opt.ead_start")
+    listed = empty in (NOT_RAISED, YES)
+    if empty == NO:
+        work.name_missing("employment")
 
     _add_program_items(work, case)
     if case.opt is not None:
         _add_file_by(work, "opt", case.opt)
     # The counts are wanted as soon as anything about work after the program is entered.
     if case.opt is not None or case.stem is not None or case.cap_gap is not None or case.employment:
-        _add_counts(work, case, conflicts)
+        _add_counts(work, case, opt, conflicts, listed)
     final_end, ends = _final_end(case)
+    # Cap-gap alone, until the person says there was no training: the last end date may
+    # be the end of an OPT that is not entered, so the grace period has no date yet.
+    unknown_end: tuple[str, ...] = ()
+    if alone in (OPEN, YES):
+        unknown_end = ("opt" if alone == OPEN else "opt.ead_end",)
+        ends |= dict.fromkeys(unknown_end)
     grace = "grace.after_completion_days"
     work.add(
         "grace.ends",
@@ -674,9 +777,10 @@ def compute_f1(
         ends,
         (grace,),
         lambda v: final_end + timedelta(days=_whole(v, grace)),
+        needs=unknown_end,
     )
     if case.stem is not None:
-        _add_stem_items(work, case.opt, case.stem)
+        _add_stem_items(work, opt, case.stem)
     work.add(
         "cpt.full_time_days_used",
         "days",
@@ -687,7 +791,14 @@ def compute_f1(
     if case.cap_gap is not None:
         _add_cap_gap(work, case.cap_gap)
 
-    _missing_ead_dates(work, case)
+    _missing_ead_dates(work, opt, case.stem)
+    judgement_items = _judgement_items(work, case)
+    if held == NO:
+        # The engine states no conclusion. The words of the law go with the judgement.
+        work.show(STEM_FOLLOWS_OPT)
+        judgement_items = (*judgement_items, "stem_without_post_completion_opt")
+    if alone == NO:
+        judgement_items = (*judgement_items, "cap_gap_without_training")
     verdict = decide(
         VerdictInputs(
             documents_count=case.documents_count,
@@ -695,10 +806,12 @@ def compute_f1(
             conflicting_inputs=conflicts,
             rules_checked_on=pack.rules_checked_on,
             depends_on_litigated_rule=today > final_end,
-            judgement_items=_judgement_items(work, case),
+            judgement_items=judgement_items,
             open_items=_open_items(work),
+            open_questions=tuple(question["id"] for question in questions),
         ),
         clock,
+        today,
     )
     return {
         "verdict": {"state": verdict.state.value, "reasons": list(verdict.reasons)},
@@ -709,4 +822,6 @@ def compute_f1(
         "computed": work.computed,
         "rulepacks": [{"category": pack.category, "version": pack.version}],
         "rules": work.rules,
+        "questions": questions,
+        "today": {"date": today.isoformat(), "time_zone": case.time_zone},
     }
