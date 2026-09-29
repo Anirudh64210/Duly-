@@ -62,6 +62,7 @@ def test_a_pack_is_checked_and_can_require_plain_words_everywhere(tmp_path):
                 "value": 90,
                 "source": {"quote": QUOTE},
                 "plain": GOOD,
+                "plain_terms": [],
             },
             {"id": "opt.max_months", "value": 12, "source": {"quote": "12 months"}},
         ],
