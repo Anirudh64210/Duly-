@@ -130,6 +130,23 @@
                 }
               }
             }
+          },
+          "operative": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "regime",
+              "legal_status"
+            ],
+            "properties": {
+              "regime": {
+                "type": "string"
+              },
+              "legal_status": {
+                "type": "string"
+              }
+            },
+            "description": "Present with alternates. The regime whose value is shown as the item's value, and that regime's legal status from the pack."
           }
         }
       }
