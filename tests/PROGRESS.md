@@ -1466,3 +1466,55 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-cf34bb9271 (attempt 1): tests first for points 59 and 60
+
+### What I tried and what ran
+
+- Read SPEC-resolutions.md points 56, 59 and 60, reviews/product-1-fix5.md findings 2 and 3,
+  the contracts (case_f1, engine_output) and the shipped pack's row dates (earliest row
+  capgap.fiscal_year_start_month_day from 1982-09-13; STEM rows 2016-05-10; CPT, grace,
+  opt.max_months, opt.complete_within_months 2003-01-01; report row 2025-05-19).
+- Probed the engine on the review's cases through a scratch script under TMPDIR (removed):
+  STEM case at 2016-05-09 and the 2012 STEM case at 2014-01-15 raise RulepackError
+  stem.validation_interval_months; the OPT case with 400 CPT days at 2002-12-31 raises
+  cpt.full_time_bar_days; with CPT null it gives an output; finding 3 gives
+  periods_not_reported 1.
+- Wrote tests/unit/engine/test_f1_fix6.py (19 tests) and tests/holdout/test_holdout_fix6.py
+  (9 tests). ruff format, ruff check, mypy --strict on both: clean.
+- Run: 5 pass (the case-contract check, the check of the drawn range's working, and three
+  controls: CPT left blank at 2002-12-31, a period from the row's first day counted 1, two
+  periods from the row counted 2). 23 fail on the current engine, each for the point it
+  names: RulepackError (point 59), count 1 or 2 where null is due, needs_you where
+  talk_to_dso is due (point 60). They are expected to fail until the build round.
+- One slip of my own: the working of 1955-01-01 less 1500 days first said 1950-11-28; the
+  test caught it; the right day is 1950-11-23 (less 1461 days is 1951-01-01, 39 more), and
+  1950-10-24 with the 30 days of the recommendation. Fixed the working, not the bound.
+- Done command as written, no pipe: exit 0 ("All checks passed!", "57 files already
+  formatted").
+
+### What change to the code would make each new test fail
+
+- Point 59 output tests and both "any clock" properties: any lookup that raises when no row
+  is in force (today: whole_rule for stem.validation_interval_months and
+  cpt.full_time_bar_days). Shapes drawn: OPT only, OPT and STEM, cap-gap, full-time CPT.
+- The 2012/2010 STEM null tests: dating a validation or evaluation from a row that begins
+  after the event (2016-05-10), or omitting rule_not_in_force_on_event_day.
+- The CPT before-2003 tests: giving opt.complete_by or grace.ends a date from rows that
+  begin 2003-01-01, or no step back.
+- The before-every-row properties (clock to 1978 / 1975): any dated computed item, a count
+  of unreported periods, or a quiet verdict, while no row of the pack is in force.
+- Point 60: reading the count's rule for today or for the period's end (finding 3, the
+  2025-05-18 start ending 2026-04-30, the mixed pair, the property); giving null for a
+  period starting on 2025-05-19 or later (the controls and the property's else branch).
+- check_an_output / sound: any null alternate (point 55) or a quiet state beside
+  rule_not_in_force_on_event_day.
+
+### Not done
+
+- No reference engine was written, so the two before-every-row properties and the point 60
+  property have not been run against a correct engine; only against the current one.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
