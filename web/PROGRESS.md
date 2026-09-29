@@ -609,3 +609,30 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - Still not seen in a browser against a live api.
 - A degree level in a question's about is still shown as the code ("master").
+
+## Run l-web-201105e0d6 (attempt 1)
+
+### Tried
+
+- Point 57, review fix 4 finding 3: `letter` in `lib/drafts.ts` opens "I have a question about
+  my F-1 record." and states no status.
+- Point 57, finding 4: `reportName` in `lib/labels.ts` names `stem.new_plan_due.<n>` as "new
+  Form I-983 for employment period n", so the draft says "I did not submit my new Form I-983
+  for employment period 2." and the question and judgement line name it too. Every id the
+  engine puts in `work.reports` now has a name (validation n, 12-month, final from EAD end,
+  new plan n, concluding n); a test drafts each one.
+- Point 57, finding 7: the `hours_under_threshold` ask is built from the case: "how your office
+  reads my weeks at 15 and 40 hours a week" (distinct entered hours), or "the hours a week I
+  worked" when no period was entered. No word of comparison.
+- Point 55, finding 5 (note): `CourtLine` in `components/Result.tsx` keeps only alternates with
+  a value; with none, it shows neither the court's words, the link, nor "What the paused rule
+  would change". Test in Plain.test.tsx nulls every alternate of the court-paused sample.
+
+### Ran
+
+- The done command as written, output to a file, no pipe: exit 0. typecheck clean; 296 tests
+  passed; eslint clean; prettier clean; "copy lint: clean"; the grep found nothing.
+
+### Not done, not verified
+
+- Not seen in a browser against a live api.

@@ -460,6 +460,9 @@ export function reportName(itemId: string): string | null {
   if (itemId === "stem.final_evaluation_due_from_ead_end") return "final evaluation";
   const report = VALIDATION.exec(itemId);
   if (report) return `validation report ${report[1]}`;
+  // Point 57: every dated duty has a name, the new plan for a period included.
+  const plan = NEW_PLAN.exec(itemId);
+  if (plan) return `new Form I-983 for employment period ${plan[1]}`;
   const concluding = CONCLUDING.exec(itemId);
   if (concluding) return `final evaluation for employment period ${concluding[1]}`;
   return null;

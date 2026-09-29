@@ -1,0 +1,116 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+# Resolutions 54 to 57, from the review of fix 4. Build then reconcile.
+rounds:
+  - name: content
+    checkpoint: false
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-1/SPEC-resolutions.md point 54: rewrite, from each quote alone, the plain
+          words of cpt.full_time_months_bar, cpt.full_time_bar_days, opt.latest_start_after_days,
+          stem.validation_interval_months, grace.after_completion_days (the paused 30-day row) and
+          stem.min_hours_per_week in rulepacks/f1-us/v2026.09, fixing what reviews/product-1-fix4.md
+          findings 1 and 2 name. Keep the rule's own terms; where Duly reads a term as another, say
+          so in words. Then read every other plain text in the pack beside its quote and fix any
+          that adds, drops or changes what the quote says. In your report, for every plain text you
+          wrote or changed, give the words of the quote each sentence rests on. Run
+          python -m tools.sources.plain rulepacks --require f1. Record the changes in CHANGELOG.md.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -m tools.sources.plain rulepacks --require f1
+          && ! grep -A3 "id: cpt.full_time_bar_days" rulepacks/f1-us/v2026.09/parameters.yaml | grep -q "rules out practical training after study"'
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Write the tests, first, for specs/product-1/SPEC-resolutions.md points 55 and 56 in
+          tests/unit/engine/test_f1_fix5.py, with hidden twins in tests/holdout/test_holdout_fix5.py:
+          no item carries an alternate whose value is null (point 27's case unanswered); with a
+          clock at 2016-10-01 and at 2024-09-01, every OPT case with an employment period gives an
+          output and never an error, with the report item null and stepped back where the pack
+          holds no row on the period's end. Name every new test. They are expected to fail until
+          the build round.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null
+          && test -f tests/unit/engine/test_f1_fix5.py && test -f tests/holdout/test_holdout_fix5.py'
+  - name: build
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md points 55 and 56 in engine/. No number is
+          written in code. Older tests that collide are reconciled in the next round; list them in
+          your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_f1_fix5.py -q
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          The engine now has specs/product-1/SPEC-resolutions.md points 55 and 56, and the pack
+          has new plain words (point 54). Bring every test in tests/unit and tests/holdout in line;
+          the builder's list of collisions is in its report on its branch (git show). Write the
+          point beside each change; never loosen an assertion a point supports; escalate any
+          failure no settled point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "engine and api tests", run: "uv run pytest tests/unit/engine tests/unit/api -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: screen
+    lanes:
+      - lane: L-web
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md points 55 and 57 in web/, fixing
+          reviews/product-1-fix4.md findings 3, 4, 5 and 7: the drafted email opens "I have a
+          question about my F-1 record." and states no status; every dated duty has a name in the
+          draft, including a new Form I-983 for employment period n; the hours draft states the
+          entered hours and not Duly's comparison; the court line and "What the paused rule would
+          change" appear only where an alternate holds a value. Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint
+          && ! grep -rn "I am an F-1 student" web/src'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what this plan changed (the merges since reviews/product-1-fix4.md) against
+          specs/product-1/SPEC-resolutions.md points 54 to 57, specs/plain-1/SPEC.md, PRINCIPLES.md,
+          BOUNDARY.md and CLAUDE.md, following your role file. Read EVERY plain text in the F-1
+          pack beside its quote again, not only the changed ones, and veto any that says more,
+          less or other than its quote, or that turns a reading into the rule's words. Read every
+          DSO draft the screen can build. Send the inputs of findings 1 to 7 of
+          reviews/product-1-fix4.md through the api. Write reviews/product-1-fix5.md and
+          reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix5.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1, its fixes and specs/plain-1/SPEC.md
+          cover, as your role file describes, against specs/product-1/SPEC.md,
+          SPEC-resolutions.md and specs/plain-1/SPEC.md. Update docs/requirements/audits/product-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'

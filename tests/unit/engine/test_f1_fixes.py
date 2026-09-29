@@ -827,9 +827,16 @@ def test_operative_always_comes_from_the_pack(drawn, legal_status, two_rows):
         raw = with_regime_rows(raw, LATEST_START, operative=60, blocked=30)
     out = run(case, today=today, raw=raw)
     found = with_alternates(out)
-    assert "grace.ends" in found
-    assert ("opt.latest_start" in found) == two_rows
+    # SPEC-resolutions point 55: an item carries an alternate only where the alternate
+    # holds a value. The paused grace formula differs from the operative one only in its
+    # day count, so it is null exactly when grace.ends is null (points 17, 18, 43, 56),
+    # and then grace.ends carries no alternate.
+    assert ("grace.ends" in found) == (items(out)["grace.ends"]["value"] is not None)
+    latest = items(out).get("opt.latest_start", {}).get("value")
+    assert ("opt.latest_start" in found) == (two_rows and latest is not None)
     for item_id, item in found.items():
         assert item["operative"] == {"regime": OPERATIVE, "legal_status": legal_status}, item_id
         assert OPERATIVE not in [a["regime"] for a in item["alternates"]], item_id
+        # Point 55: no alternate without a value.
+        assert all(a["value"] is not None for a in item["alternates"]), item_id
     assert contract_problems(out) == []

@@ -196,16 +196,19 @@ function CourtLine(props: {
   unit: string;
   regimes: Regimes | undefined;
 }) {
-  const { alternates, operative, unit, regimes } = props;
+  const { operative, unit, regimes } = props;
   const [open, setOpen] = useState(false);
   const panel = useId();
+  // SPEC-resolutions point 55: a null alternate gives no second answer, so the court line
+  // and the tap appear only where an alternate holds a value.
+  const alternates = props.alternates.filter((alternate) => alternate.value !== null);
+  const [first] = alternates;
+  if (!first) return null;
   const involved = new Map<string, string>();
   if (operative && operative.legal_status !== "effective") {
     involved.set(operative.regime, operative.legal_status);
   }
   for (const alternate of alternates) involved.set(alternate.regime, alternate.legal_status);
-  const [first] = alternates;
-  if (involved.size === 0) return null;
   return (
     <div className="rule-change">
       {[...involved].map(([id, legalStatus]) => {
@@ -223,36 +226,32 @@ function CourtLine(props: {
           </div>
         );
       })}
-      {first && (
-        <>
-          <button
-            type="button"
-            className="quiet"
-            aria-expanded={open}
-            aria-controls={panel}
-            onClick={() => setOpen(!open)}
-          >
-            {changeButton(first.legal_status)}
-          </button>
-          {open && (
-            <div className="working" id={panel}>
-              <dl>
-                {alternates.map((alternate) => (
-                  <div key={alternate.regime}>
-                    <dt>
-                      {alternate.legal_status === "enjoined"
-                        ? CHANGE_VALUE
-                        : `Under the rule ${legalStatusWords(alternate.legal_status)}`}
-                    </dt>
-                    <dd>
-                      <span className="value">{formatValue(alternate.value, unit)}</span>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
-        </>
+      <button
+        type="button"
+        className="quiet"
+        aria-expanded={open}
+        aria-controls={panel}
+        onClick={() => setOpen(!open)}
+      >
+        {changeButton(first.legal_status)}
+      </button>
+      {open && (
+        <div className="working" id={panel}>
+          <dl>
+            {alternates.map((alternate) => (
+              <div key={alternate.regime}>
+                <dt>
+                  {alternate.legal_status === "enjoined"
+                    ? CHANGE_VALUE
+                    : `Under the rule ${legalStatusWords(alternate.legal_status)}`}
+                </dt>
+                <dd>
+                  <span className="value">{formatValue(alternate.value, unit)}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       )}
     </div>
   );
