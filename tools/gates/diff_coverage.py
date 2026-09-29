@@ -1,6 +1,7 @@
 """Gate 6. Changed lines must be covered: 80 percent overall, 95 in the engine."""
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -8,6 +9,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OVERALL = 80
 ENGINE = 95
+# The factory's own tests start agents inside a sandbox, and a sandbox cannot hold another,
+# so inside the jail they skip and their code would read as untested. make factory-test
+# holds the factory to the same floor where its tests can run.
+FACTORY = "tools/factory/*"
 
 
 def _repo_relative_lcov(root: Path, app: str) -> Path | None:
@@ -41,9 +46,12 @@ def main() -> int:
         print("diff coverage: a web or ops coverage report is missing. Run gate 5 first.")
         return 1
 
+    left_out = ["--exclude", FACTORY] if os.environ.get("DULY_IN_JAIL") else []
+    if left_out:
+        print(f"diff coverage: {FACTORY} is left out here; make factory-test holds it to the floor")
     # diff-cover cannot mix report formats in one run, so each format gets its own.
     runs = [
-        [str(python_report), f"--fail-under={OVERALL}"],
+        [str(python_report), f"--fail-under={OVERALL}", *left_out],
         [*(str(p) for p in web_reports), f"--fail-under={OVERALL}"],
         [str(python_report), f"--fail-under={ENGINE}", "--include", "engine/*"],
     ]

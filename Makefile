@@ -99,7 +99,8 @@ factory-metrics:
 	@uv run python -m tools.factory.control metrics
 
 factory-test:
-	uv run pytest tests/unit/tools -q
+	uv run pytest tests/unit/tools -q --cov=tools/factory --cov-report=xml:.scratch/coverage/factory.xml
+	uv run diff-cover .scratch/coverage/factory.xml --include "tools/factory/*" --fail-under=80 --compare-branch=$(BASE)
 
 golden:
 	uv run python -m tools.factory.golden
