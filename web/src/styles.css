@@ -28,7 +28,7 @@ h2 {
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 72px 16px 48px;
+  padding: 48px 16px 48px;
 }
 
 .verdict {
@@ -113,5 +113,276 @@ h2 {
 .footer {
   margin-top: 40px;
   font-size: 14px;
+  color: var(--ink-2);
+}
+
+/* The case form */
+
+.case h2 {
+  font-size: 22px;
+}
+
+.section {
+  margin: 24px 0 0;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.section legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.field input,
+.field select {
+  min-height: var(--target);
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--ground);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--target);
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.period {
+  padding: 0 0 16px;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+button {
+  min-height: var(--target);
+  padding: 0 18px;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  margin-top: 24px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--surface);
+  font-weight: 600;
+}
+
+button.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+button.quiet {
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.problems {
+  margin: 24px 0 0;
+  padding: 16px 16px 16px 32px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--accent-tint);
+}
+
+/* The result */
+
+.result {
+  margin-top: 40px;
+}
+
+.verdict[aria-busy="true"] {
+  min-height: 96px;
+}
+
+.group {
+  margin-top: 32px;
+}
+
+.group h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.item {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+}
+
+.item-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.regimes {
+  display: flex;
+  gap: 20px;
+}
+
+.regime {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.legal {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.working {
+  padding: 4px 0 20px;
+  font-size: 14px;
+}
+
+.working h4 {
+  margin: 12px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.working dl {
+  margin: 0;
+}
+
+.working dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.working dt {
+  color: var(--ink-2);
+}
+
+.working dd {
+  margin: 0;
+  text-align: right;
+}
+
+.periods {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rules {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rule {
+  padding: 12px 16px;
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.rule p {
+  margin: 0;
+}
+
+.rule-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rule-value {
+  font-weight: 600;
+}
+
+.rule-id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.rule blockquote {
+  margin: 8px 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--hairline);
+  color: var(--ink-2);
+}
+
+.rule a {
+  color: var(--accent);
+}
+
+.checked {
   color: var(--ink-2);
 }
