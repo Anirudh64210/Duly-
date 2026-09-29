@@ -1,0 +1,57 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+# Resolution 65, from the review of fix 7: two plain texts, and nothing else changes.
+rounds:
+  - name: content
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-1/SPEC-resolutions.md point 65. Rewrite ONLY the plain words of
+          stem.requires.previously_obtained_degree and of capgap.end_month_day (the row effective
+          2025-01-17) in rulepacks/f1-us/v2026.09, doing exactly what reviews/product-1-fix7.md
+          finding 1 asks. Its example words for the first ("This is for a 24-month OPT extension
+          based on a degree earned before the one for post-completion OPT. That older degree must
+          be from a U.S. educational institution that is accredited and SEVP-certified when the
+          DSO recommends the student for the extension. The degree must be in a category on the
+          STEM list at that time, and it must have been granted in the 10 years before that day.")
+          and for the second ("they last on their own only until then" in place of "they end
+          then") are the starting point: check each sentence against the quote and note, keep the
+          plain_terms, and pass the gate. Every other plain text is frozen. In your report, give
+          the words of the quote or note each sentence rests on. Record the change in CHANGELOG.md.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -m tools.sources.plain rulepacks --require f1
+          && uv run python -m tools.sources.plain_changes product-1 --allow
+          stem.requires.previously_obtained_degree#2016-05-10 capgap.end_month_day#2025-01-17'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what this plan changed (the merges since reviews/product-1-fix7.md) against
+          specs/product-1/SPEC-resolutions.md point 65, point 58, specs/plain-1/SPEC.md,
+          PRINCIPLES.md and BOUNDARY.md, following your role file. Read the two rewritten plain
+          texts beside their quotes and notes, and veto either if it drifts in meaning or is not
+          plain. Confirm with python -m tools.sources.plain_changes that no other plain text
+          changed since the commit reviews/product-1-fix7.md read. Send the cap-gap case of that
+          review through the api. Then give your decision on product round 1 as a whole, with
+          every earlier finding of reviews/product-1-fix1.md to fix7.md either closed or named.
+          Write reviews/product-1-fix8.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix8.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1, its fixes and specs/plain-1/SPEC.md
+          cover, as your role file describes, against specs/product-1/SPEC.md,
+          SPEC-resolutions.md and specs/plain-1/SPEC.md. Update docs/requirements/audits/product-1.md,
+          and report the share of the register met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'
