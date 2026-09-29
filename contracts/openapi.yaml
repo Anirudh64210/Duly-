@@ -91,6 +91,10 @@ components:
         category: { type: string }
         version: { type: string }
         parameters: { type: integer }
+        rules_checked_on:
+          type: [string, "null"]
+          format: date
+          description: The oldest checked_on among the pack's rules; null for a pack with no rules.
     Status:
       type: object
       additionalProperties: false

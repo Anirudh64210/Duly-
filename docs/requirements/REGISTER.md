@@ -2,29 +2,29 @@
 
 Every requirement in the project's own documents and in the founder's decisions, checked against the repository by agents that did not build it. A requirement is met only when a file or a test is named that proves it.
 
-Audited 2026-09-29. 2432 requirements.
+Audited 2026-09-29. 2443 requirements.
 
 | Status | Count |
 |---|---|
 | Met | 325 |
-| Partly built | 491 |
-| Not started | 1258 |
+| Partly built | 492 |
+| Not started | 1268 |
 | Deferred | 234 |
 | Overridden by a decision | 124 |
 
-Of the 2074 that the first version must hold, 325 are met: 16%.
+Of the 2085 that the first version must hold, 325 are met: 16%.
 
 ## By kind
 
 | Kind | Met | Partly built | Not started | Share met |
 |---|---|---|---|---|
-| product | 10 | 39 | 124 | 6% |
+| product | 10 | 39 | 128 | 6% |
 | engine | 60 | 60 | 39 | 38% |
 | updates | 1 | 36 | 36 | 1% |
 | security | 16 | 30 | 115 | 10% |
-| privacy | 3 | 21 | 114 | 2% |
-| legal | 30 | 67 | 91 | 16% |
-| design | 46 | 78 | 102 | 20% |
+| privacy | 3 | 21 | 116 | 2% |
+| legal | 30 | 68 | 92 | 16% |
+| design | 46 | 78 | 105 | 20% |
 | factory | 107 | 77 | 36 | 49% |
 | testing | 30 | 39 | 49 | 25% |
 | ops | 15 | 18 | 60 | 16% |
@@ -38,7 +38,7 @@ Of the 2074 that the first version must hold, 325 are met: 16%.
 |---|---|---|---|---|
 | canvas | 11 | 28 | 88 | 9% |
 | design-screens | 32 | 46 | 312 | 8% |
-| founder-decisions | 56 | 108 | 106 | 21% |
+| founder-decisions | 56 | 109 | 116 | 20% |
 | gates-factory | 97 | 73 | 39 | 46% |
 | plan-core | 42 | 58 | 138 | 18% |
 | research-backend-market | 54 | 57 | 79 | 28% |

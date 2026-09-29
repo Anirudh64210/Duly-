@@ -9130,6 +9130,116 @@
   "part": "founder-decisions"
  },
  {
+  "id": "DEC-D54-001",
+  "source": "DECISIONS.md, D54",
+  "text": "Documents are kept in one place: an encrypted vault on the student's device.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D54-002",
+  "source": "DECISIONS.md, D54",
+  "text": "The student can turn on an end-to-end encrypted backup to Duly's AWS (us-west-2), locked with a key only the student holds; Duly staff can never read it.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D54-003",
+  "source": "DECISIONS.md, D54",
+  "text": "Document files never reach a model provider.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D55-001",
+  "source": "DECISIONS.md, D55",
+  "text": "Duly recognises a document's type (I-20, EAD card, I-94, I-797 and the rest) on the device.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D55-002",
+  "source": "DECISIONS.md, D55",
+  "text": "Duly reads a document's dates, names and SEVIS ID on the device; nothing leaves the device for it.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D55-003",
+  "source": "DECISIONS.md, D55",
+  "text": "Every field read from a document is shown to the student to confirm before Duly uses it.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D56-001",
+  "source": "DECISIONS.md, D56",
+  "text": "Every rule on the screen leads with plain words, calm and short, and the exact words, citation and source are one tap away.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D56-002",
+  "source": "DECISIONS.md, D56",
+  "text": "Plain words say what a rule says in general: never about the person, never an instruction, no number the rule does not hold, calm, readable.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "tools/sources/plain.py; tests/unit/tools/test_plain.py; Makefile gate-7",
+  "note": "The checker is built and runs in gate 7; no pack carries plain words yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D56-003",
+  "source": "DECISIONS.md, D56",
+  "text": "A rule change paused by a court is described in plain words about what the court did, backed by the court's own order.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D57-001",
+  "source": "DECISIONS.md, D57",
+  "text": "The drafted DSO email is in the student's own voice and never mentions Duly.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D57-002",
+  "source": "DECISIONS.md, D57",
+  "text": "The drafted DSO email states only the student's own facts and asks; it never states a date Duly computed or a reading as the student's claim.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Decided 2026-09-29; nothing built yet.",
+  "part": "founder-decisions"
+ },
+ {
   "id": "PLAN07-001",
   "source": "07-quality-gates-and-tests.md, intro",
   "text": "Green is a conjunction of independently gameable checks, none of which the implementing agent can see or edit.",

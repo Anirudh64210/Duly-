@@ -57,6 +57,7 @@ gate-7:
 	uv run python -m tools.requirements.register check
 	uv run python -m tools.gates.engine_literals
 	uv run python -m tools.sources.verify rulepacks
+	uv run python -m tools.sources.plain rulepacks
 
 # The gates that need no network. The orchestrator runs these in the jail, where the
 # network is closed. Dependency audits need the network and run in clean CI.
