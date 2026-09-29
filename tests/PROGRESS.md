@@ -1564,3 +1564,38 @@ Planted through scratch plugins under TMPDIR, then removed:
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-c116be8637 (attempt 1): cover the three untested point 59 paths (gate 6)
+
+### What I tried and what ran
+
+- Done command before any change: ruff clean, every test passing, diff-cover exit 1:
+  "engine/f1.py (93.9%): Missing lines 402,870" (the nearest-row branch of _Working.show,
+  and the empty list of _validation_reports). The raise for an interval of 0 is an unchanged
+  line, so gate 6 does not count it; it is tested all the same, as the mission asks.
+- The mission names _validation_numbers; the function in engine/f1.py is
+  _validation_reports. Same paths, tested through compute_f1.
+- Added to tests/unit/engine/test_f1_fix6.py, each through compute_f1 with a case and a test pack:
+  - show: STEM_ONLY (the STEM case with no OPT block, its period from the STEM card's start),
+    post-completion OPT answered not held, on a test pack whose only row of
+    stem.requires_post_completion_opt starts 2026-09-30, the day after today. The row's
+    citation and quote are shown, the verdict carries rule_not_in_force_on_event_day and is
+    not the quiet state. Control: the same case on the plain test pack does not step back.
+  - no row shown: the pack leaves out stem.validation_interval_months, then
+    stem.extension_months; no stem.validation_N_due is listed and the output meets the
+    contract. Control: the plain pack lists three (24 // 6 = 4, the fourth on 2028-03-13 after
+    the card's end 2028-03-12, point 48).
+  - interval 0: raises RulepackError naming stem.validation_interval_months.
+- Done command as written, output to a file, no pipe: exit 0, "engine/f1.py (100%)".
+
+### What change to the code would make each new test fail
+
+Planted through a scratch plugin under TMPDIR, then removed; each failed as listed:
+- show with no row today shows nothing: the show test fails (no words shown).
+- show finds the nearest row without _rule, so no step back: the show test fails.
+- _validation_reports falls back to 6 and 24 when no row is shown: both leave-out tests fail.
+- _validation_reports without the check for 0: the interval 0 test fails (ZeroDivisionError).
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

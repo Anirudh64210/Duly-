@@ -17,15 +17,17 @@ Every expected date and count was worked out by hand. The working is beside it.
 """
 
 import copy
+import re
 from collections.abc import Callable
 from datetime import date, timedelta
 from typing import Any
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from engine import f1
-from engine.rulepack import Rulepack, load_all, validate_pack
+from engine.rulepack import Rulepack, RulepackError, load_all, validate_pack
 from tests.support.f1_pack import (
     CONFLICT_IDS,
     CPT_USED,
@@ -485,3 +487,87 @@ def test_point_60_a_period_that_starts_on_the_rows_first_day_is_counted() -> Non
     out = settle_with(ON_ROW, TODAY, answer_with(False), raw_pack=REPORT_FROM_2025)
     check_an_output(out)
     assert values(out)[NOT_REPORTED] == 1
+
+
+# Point 59 through the paths gate 6 found untested (specs/product-1/plan-fix6-coverage.yaml).
+# The STEM case above with no OPT block and its one period moved to the STEM card's start,
+# 2026-03-13, so no period lies outside a card. With no OPT block the engine asks whether
+# post-completion OPT was held; answered no, the words of stem.requires_post_completion_opt
+# go beside the judgement (show).
+STEM_FOLLOWS_OPT = "stem.requires_post_completion_opt"
+HELD_OPT = "held_post_completion_opt"
+STEM_ONLY: dict[str, Any] = with_changes(STEM_CASE, opt=None, employment=[job("2026-03-13", None)])
+# The test pack with the only row of stem.requires_post_completion_opt starting 2026-09-30,
+# the day after today: no row is in force today, and the nearest row is that one.
+FOLLOWS_FROM_TOMORROW = copy.deepcopy(PACK)
+for _parameter in FOLLOWS_FROM_TOMORROW["parameters"]:
+    if _parameter["id"] == STEM_FOLLOWS_OPT:
+        _parameter["effective_from"] = iso(TODAY + ONE_DAY)
+
+
+def no_opt_held(question_id: str) -> bool:
+    """Post-completion OPT not held; every other question as answer_with(False)."""
+    return False if question_id == HELD_OPT else answer_with(False)(question_id)
+
+
+def test_point_59_show_with_no_row_today_shows_the_nearest_rows_words_and_steps_back() -> None:
+    out = settle_with(STEM_ONLY, TODAY, no_opt_held, raw_pack=FOLLOWS_FROM_TOMORROW)
+    check_an_output(out)
+    row = next(p for p in FOLLOWS_FROM_TOMORROW["parameters"] if p["id"] == STEM_FOLLOWS_OPT)
+    shown = out["rules"][STEM_FOLLOWS_OPT]
+    assert shown["value"] is True
+    assert shown["citation"] == row["source"]["citation"]
+    assert shown["quote"] == row["source"]["quote"]
+    assert "stem_without_post_completion_opt" in out["verdict"]["reasons"]
+    assert NOT_IN_FORCE in out["verdict"]["reasons"]
+    assert out["verdict"]["state"] != QUIET
+
+
+def test_point_59_show_with_the_row_in_force_today_does_not_step_back() -> None:
+    # The control: the same case on the test pack, whose row begins before today.
+    out = settle_with(STEM_ONLY, TODAY, no_opt_held)
+    check_an_output(out)
+    assert STEM_FOLLOWS_OPT in out["rules"]
+    assert "stem_without_post_completion_opt" in out["verdict"]["reasons"]
+    assert NOT_IN_FORCE not in out["verdict"]["reasons"]
+
+
+VALIDATIONS = ("stem.validation_1_due", "stem.validation_2_due", "stem.validation_3_due")
+
+
+def validation_ids(out: dict[str, Any]) -> list[str]:
+    return sorted(i for i in values(out) if i.startswith("stem.validation_") and "_due" in i)
+
+
+def test_point_59_a_pack_that_holds_the_interval_gives_the_validations() -> None:
+    # The control. STEM card 2026-03-13 to 2028-03-12: 24 months // 6 = 4 reports, the
+    # fourth (2028-03-13) after the card's end and not given (point 48), so three are listed.
+    out = settle_with(STEM_CASE, TODAY, answer_with(False))
+    assert validation_ids(out) == list(VALIDATIONS)
+
+
+def test_point_59_a_pack_without_the_interval_lists_no_validation_report() -> None:
+    # stem.validation_interval_months has no row at all, so no row is shown for it and the
+    # number of reports is not known: none is listed, and the engine does not fail.
+    raw = pack_dict(TODAY, leave_out=("stem.validation_interval_months",))
+    out = settle_with(STEM_CASE, TODAY, answer_with(False), raw_pack=raw)
+    check_an_output(out)
+    assert validation_ids(out) == []
+
+
+def test_point_59_a_pack_without_the_extension_rule_lists_no_validation_report() -> None:
+    raw = pack_dict(TODAY, leave_out=("stem.extension_months",))
+    out = settle_with(STEM_CASE, TODAY, answer_with(False), raw_pack=raw)
+    check_an_output(out)
+    assert validation_ids(out) == []
+
+
+def test_point_59_an_interval_of_0_in_a_malformed_pack_raises() -> None:
+    # 24 // 0 has no answer. A pack that says 0 is malformed, and the engine says so rather
+    # than giving any number of reports.
+    raw = pack_dict(TODAY, values={("stem.validation_interval_months", ""): 0})
+    with pytest.raises(
+        RulepackError,
+        match=re.escape("stem.validation_interval_months"),
+    ):
+        run(STEM_CASE, TODAY, raw_pack=raw)
