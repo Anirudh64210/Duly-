@@ -240,3 +240,9 @@ the founder, not something the tests should bend around.
   Fix: new rows go at the end of SPEC_RULES; new values are passed by the test that needs
   them; shared tables that other files import stay as they are.
   Evidence: `503 passed` for every earlier test after the change to the pack.
+
+### Stop hook, iteration 2
+
+The stop hook failed again on `uv run pytest -q`, for the reason recorded in iteration 1:
+the new tests need an engine that round T has not built. Second time, so
+tests/ESCALATE.md is written and the lane stops. No test was weakened.
