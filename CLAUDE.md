@@ -2,7 +2,7 @@
 
 Duly: immigration record keeping for F-1, H-1B, O-1 and EB-1A. Code computes every date. Sources are cited. Nothing is advice.
 
-Read first, in this order: DECISIONS.md, BOUNDARY.md, then the SPEC for your lane. Where they disagree with duly-plan/ or workbook-handoff/, DECISIONS.md wins.
+Read first, in this order: DECISIONS.md, PRINCIPLES.md, BOUNDARY.md, then the SPEC for your lane. Where they disagree with duly-plan/ or workbook-handoff/, DECISIONS.md wins.
 
 ## Commands
 - make up / make down / make logs : full local stack (api, worker, web 5173, ops 5174, postgres, minio, mailpit 8025)
@@ -20,6 +20,8 @@ Read first, in this order: DECISIONS.md, BOUNDARY.md, then the SPEC for your lan
 - No user data goes to an outside model provider. Model clients live in assistant/providers and pipeline/models only.
 - A law update is shown to a user only when publish_blockers returns nothing: primary source, quote found, two checks, founder approval.
 - Every rule carries a primary source and one of five tags: settled, guidance, litigated, proposed, school.
+- A value in a plan or a SPEC is a claim to check against the saved source, never a fact to copy. If the law does not state a number, Duly does not have it.
+- Confirm, never assume. A gap or a conflict in a person's record becomes a question to that person, and the verdict is cannot_tell until they answer.
 - Implementation lanes never edit tests/, evals/, security/, .claude/, .github/, tools/gates/, contracts/, BOUNDARY.md, or DECISIONS.md.
 - Copy: no long dashes, no emoji, none of the words in tools/copy_lint/lint.py, buttons name outcomes.
 - Postgres only on the server. SQLCipher only inside desktop/main.
