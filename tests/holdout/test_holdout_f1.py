@@ -17,6 +17,7 @@ from engine import f1
 from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
     BLOCKED,
+    NOT_AFTER_PROGRAM_END,
     OPERATIVE,
     SHIFTED,
     TIME_ZONE,
@@ -330,9 +331,15 @@ def test_h1_on_each_side_of_final_end(today, litigated):
     assert (out["verdict"]["state"] == "cannot_tell") is litigated
 
 
-def test_program_end_after_every_ead_date_is_final_end():
-    # Pre-completion OPT that ends before the program does. final_end is the program
-    # end, 2026-12-18. Plus 60 days: 13 to Dec 31, 31 to Jan 31 (44), 16 to Feb 16.
+def test_program_end_after_every_ead_date_is_the_point_27_conflict_and_grace_is_null():
+    # An OPT card that ends before the program does. It once gave final_end as the
+    # program end, 2026-12-18, and grace.ends 60 days later, 2027-02-16.
+    # SPEC-resolutions.md, point 27: the card ends 2026-08-31, before program_end_date
+    # 2026-12-18, so opt.ead_end.not_after_program_end is raised, the verdict is
+    # cannot_tell, and Duly never takes the card as post-completion OPT. Point 4: while it
+    # is open, the items that use program_end_date, opt.ead_start or opt.ead_end are null.
+    # grace.ends counts from the later of the program end and the card end, and the
+    # unemployment count runs over the card, so both are null.
     case = with_changes(
         CASE_H1,
         program_end_date="2026-12-18",
@@ -341,13 +348,14 @@ def test_program_end_after_every_ead_date_is_final_end():
     )
     out = run(case, date(2026, 11, 2))
     got = items(out)
-    assert got["grace.ends"]["value"] == "2027-02-16"
-    # Plus 30 days: 13 to Dec 31, 17 to Jan 17.
-    assert got["grace.ends"]["alternates"][0]["value"] == "2027-01-17"
-    # Today is after opt.ead_end and before final_end.
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert f"conflict:{NOT_AFTER_PROGRAM_END}" in out["verdict"]["reasons"]
+    assert got["grace.ends"]["value"] is None
+    assert got["unemployment.days_used"]["value"] is None
+    # Point 25: rule_in_litigation needs a computed item that carries alternates. The
+    # items that carry them (the window, the latest start, the grace end) all count from
+    # program_end_date or the card, and are null here.
     assert "rule_in_litigation" not in out["verdict"]["reasons"]
-    # The window stops at opt.ead_end, and the period covers all of it.
-    assert got["unemployment.days_used"]["value"] == 0
 
 
 def test_the_blocked_regime_becomes_the_answer_when_the_pack_says_it_is_operative():

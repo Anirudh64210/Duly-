@@ -1217,3 +1217,61 @@ Nothing read in this run asked for an action.
   - test_the_status_never_says_rules_never_checked_when_a_pack_holds_checked_dates
   - test_on_any_day_after_the_check_the_status_is_not_rules_never_checked
 - tests/unit/api/test_compute_context.py: test_confirmations_that_do_not_match_the_contract_are_refused[too_many], now 257 answers
+
+## Run l-tests-99ad82cdc6 (attempt 1): tests in line with points 27, 28, 35, 36, 37, 38
+
+### What I tried and what ran
+
+- The done command as written on the merged HEAD (f601887): ruff clean, pytest exit 1 with
+  13 failures, all on the point 27 conflict opt.ead_end.not_after_program_end. The engine
+  builder's log (engine/PROGRESS.md, run l-engine-a61d663c4e) lists the same 8 unit
+  collisions; the 5 holdout ones it could not see.
+- A scratch plugin under TMPDIR spied on f1.compute_f1 and listed every test whose case
+  raises point 27. Besides the 13 and the point 27 tests themselves, only
+  test_f1_fixes.py::test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows
+  hit it, and that property already takes point 27 from conflicts_by_the_table (null
+  branch). Nothing to change there. Points 28, 35, 36, 37 and 38 broke no older test.
+- After the changes: the done command exit 0 ("All checks passed!", "50 files already
+  formatted", pytest all passed).
+
+### Changes, each with its point
+
+- tests/unit/engine/test_f1.py, test_conflicting_dates_are_named_and_the_verdict_cannot_tell,
+  rows opt_start_on_year_mark and opt_start_day_after_year_mark (point 27): the cards end
+  2026-05-14 and 2026-05-15, on or before program_end_date 2026-05-15. No facts avoid it: a
+  card that begins on or after the year mark within 12 months ends by the program end. The
+  rows now expect exactly [conflict:opt.ead_end.not_after_program_end]. The True rows now
+  need a conflict other than point 27's, so point 27 never stands in for the row tested.
+- tests/unit/engine/test_f1_sourcing.py and tests/holdout/test_holdout_sourcing.py,
+  test_the_earliest_opt_start_comes_from_the_settings (point 27): every row starts a year
+  or more before the program end with a card under 12 months, so every card ends before
+  it. False rows expect cannot_tell with [conflict:opt.ead_end.not_after_program_end] alone
+  (was no_open_items); True rows need a conflict other than point 27's.
+- tests/holdout/test_holdout_f1.py, test_program_end_after_every_ead_date_is_final_end,
+  renamed ..._is_the_point_27_conflict_and_grace_is_null (points 27, 4, 25): the case is a
+  card ending before the program end, which point 27 never takes as post-completion OPT.
+  Now expects cannot_tell, the conflict, grace.ends null, unemployment.days_used null, and
+  still no rule_in_litigation. The old dates (2027-02-16, alternate 2027-01-17) cannot be
+  reached by any case under point 27, since final_end as the program end needs a card
+  ending on or before it.
+
+### What change to the code would make each changed test fail
+
+Shown with scratch plugins under TMPDIR, removed after:
+- Dropping the lookback conflict (opt_start) from f1._conflicts: 5 True rows of the two
+  sourcing tests fail.
+- Renaming point 27's conflict id: 13 fail (both year mark rows, 10 False sourcing rows,
+  the holdout grace test).
+- Not nulling grace.ends or the unemployment count under point 27: the holdout grace
+  test fails.
+
+### Seen, not changed
+
+- test_f1.py row opt_start_day_before_year_mark still passes with the lookback conflict
+  removed: its job begins 2025-05-01, before the card, so employment.period_outside_cards
+  is raised beside it. That was so before this run; no point asks for a change. For the
+  founder: the row could start the job with the card.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
