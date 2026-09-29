@@ -55,7 +55,6 @@ def problems(root: Path = REPO_ROOT) -> list[str]:
         elif job["lane"] not in held.lanes:
             found.append(f"{where}: agent {job['agent']} has no contract for lane {job['lane']}")
     found += settings_problems(root)
-    found += settings_problems(root)
     if config["model"]["pinned"] != config["model"]["reviewer"]:
         found.append("the reviewer's model differs from the pinned model")
     return found

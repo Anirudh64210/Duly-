@@ -60,3 +60,44 @@ def test_the_shipped_register_is_whole():
     rows = json.loads((register.FOLDER / "register.json").read_text())
     assert len(rows) > 1500
     assert register.problems(rows) == []
+
+
+def test_the_register_is_built_from_its_parts_with_a_table_for_each_kind(tmp_path):
+    import json
+
+    (tmp_path / "parts").mkdir()
+    (tmp_path / "parts" / "plan.json").write_text(
+        json.dumps(
+            [
+                ROW,
+                {**ROW, "id": "PLAN01-002", "status": "not_started"},
+                {**ROW, "id": "PLAN01-003", "kind": "factory", "status": "partial"},
+                {**ROW, "id": "PLAN01-004", "kind": "unheard of", "status": "deferred"},
+            ]
+        )
+    )
+    rows = register.build(tmp_path)
+    assert [r["part"] for r in rows] == ["plan"] * 4
+    assert rows[3]["kind"] == "product"  # a kind the register does not know is product
+    assert json.loads((tmp_path / "register.json").read_text()) == rows
+    text = (tmp_path / "REGISTER.md").read_text()
+    assert "Of the 3 that the first version must hold, 1 are met: 33%." in text
+    assert "| product | 1 | 0 | 1 | 50% |" in text  # the deferred row is left out
+    assert "| factory | 0 | 1 | 0 | 0% |" in text
+    assert "| plan | 1 | 1 | 1 | 33% |" in text
+
+
+def test_the_command_checks_the_register_and_the_specs(tmp_path, monkeypatch, capsys):
+    import json
+
+    monkeypatch.setattr(register, "FOLDER", tmp_path)
+    monkeypatch.setattr(register, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr("sys.argv", ["register", "check"])
+    assert register.main() == 1
+    assert "register.json is missing" in capsys.readouterr().out
+    (tmp_path / "register.json").write_text(json.dumps([ROW, ROW]))
+    assert register.main() == 1
+    assert "1 problem(s)" in capsys.readouterr().out
+    (tmp_path / "register.json").write_text(json.dumps([ROW]))
+    assert register.main() == 0
+    assert "1 requirements, whole" in capsys.readouterr().out
