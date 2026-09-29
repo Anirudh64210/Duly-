@@ -47,6 +47,40 @@ Requests to other lanes
   that does not repeat the field's name or value, and a test for a run time contract
   failure if the founder wants the response checked on every request.
 
+## 2026-09-29, iteration 2
+
+Goal: the api part of findings 2 and 4 (specs/phase-2/SPEC-fixes.md).
+
+What was built
+- api/case_f1.py: `read_body(body)` reads the JSON with two hooks. `parse_constant` refuses
+  NaN, Infinity and -Infinity. `parse_float` refuses a number that overflows to one of
+  them, such as 1e999. Both raise `NotANumberError`. The refusal words are `NOT_A_NUMBER`,
+  which never repeat what was sent.
+- api/main.py: the compute handler is now a plain `def`, so FastAPI runs it, and the
+  engine, on a worker thread. The body is read by a small async dependency, `get_body`.
+  The number check runs while the body is parsed, so it comes before the contract check.
+
+Choices
+- The check is done in the parser and not by walking the parsed value. It then covers
+  every place in the body, fields the contract does not have included, in one pass.
+- The bounds on dates, periods and counts needed no code here. They are in
+  contracts/case_f1.schema.json, and `first_problem` already put them in plain words.
+
+What ran
+- Before: 7 failures in tests/unit/api/test_compute_fixes.py. NaN in hours_per_week
+  reached the engine and raised ValueError (a 500). Infinity in the same place was
+  refused with words about the contract and not about the number. The engine ran on the
+  event loop.
+- First try: tests green, mypy green, ruff check failed with N818 on the name
+  `NotANumber`. Renamed to `NotANumberError`.
+- Done command: green. pytest all passed, mypy "no issues found in 34 source files",
+  ruff check "All checks passed!", ruff format "8 files already formatted".
+- Copy lint: clean.
+
+Not run
+- Gates 1 to 6 (`make test`) were not run in this iteration. Only the done command and
+  the copy lint were.
+
 ## Lesson
 
 - Failure: mypy strict rejects iterating or using `in` on `ValidationError.validator_value`
@@ -54,3 +88,8 @@ Requests to other lanes
 - Fix: bind them to a local annotated as Any before use.
 - Evidence: `api/case_f1.py:47: error: Item "Unset" of "Any | Unset" has no attribute
   "__iter__"`, gone after the change; mypy reports no issues in 32 files.
+
+- Failure: ruff N818 rejects an exception class whose name does not end in Error.
+- Fix: name it with the Error suffix from the start.
+- Evidence: `N818 Exception name NotANumber should be named with an Error suffix`
+  at api/case_f1.py, gone after the rename; ruff check reports all checks passed.
