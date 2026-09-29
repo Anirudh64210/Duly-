@@ -128,3 +128,16 @@
 - Failure: a rewrite for point 54 kept the numbers and the limits but swapped a defined term for an everyday one ("U.S. workers" to "workers in the United States").
 - Fix: for each plain text, list the quote's nouns that carry a legal meaning (U.S. worker, period of admission, recognized, subject to section ...) and check that each is kept or marked as a reading.
 - Evidence: reviews/product-1-fix5.md finding 1.
+
+## 2026-09-29, run l-review-1280065922 (product round 1, fix 6)
+- Read SPEC-resolutions.md points 58 to 61, specs/plain-1/SPEC.md, reviews/product-1-fix5.md, the diff 17a53ac..d9442be (contract plain_terms, tools/sources/plain.py, engine/f1.py, drafts.ts, the pack, the tests), and all 53 rows and 2 regimes with quote, note, plain and plain_terms side by side, and the diff of every plain text against the one before the round.
+- Ran: unit suites (exit 0), holdout (exit 0), test_plain (11 passed), tools.sources.plain, sources verify, engine_literals, copy lint, mypy, ruff (all clean), web vitest on a TMPDIR copy (11 files, 299 passed).
+- Sent fix 5 findings 1 to 5 through TestClient, with clocks 2016-05-09, 2014-01-15 and 2002-12-31: all closed. Scanned nine cases answered in full over clocks 1950 to 2099 with compute_f1: no error. Point 60 edges fit at 2025-05-18/19, in either entry order.
+- Printed 20 drafts from api outputs in a scratch vitest file: no Duly, no computed date, no status; period dates in numbered reports.
+- Found: four plain texts say more or other than their quotes (cap-gap rows drop the (c)(3)(i)(B)/(C) limit and "approved"; the 2008 row shows a reading unmarked; employer_reporting moves its time limit), and five are not plain. The step-back draft leaves out the employment period. A pack lacking the validation interval gives no_open_items.
+- Wrote reviews/product-1-fix6.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a plain text that keeps every listed term can still drop a limit or move a condition, and the gate passes it.
+- Fix: diff each plain text against the text before the round and read each change for a dropped limit or a moved clause.
+- Evidence: reviews/product-1-fix6.md finding 1; three of four faults were right before the round.

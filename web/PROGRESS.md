@@ -663,3 +663,30 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - Not seen in a browser against a live api.
 - `reasonText("grace_with_cap_gap")` in `lib/labels.ts` still says "A cap-gap period is
   entered". That line is not a draft and point 61 does not name it; left as is.
+
+## Run l-web-a015baa918 (attempt 1)
+
+### Tried
+
+- Point 64, review fix 6 finding 3: in `lib/drafts.ts` the `rule_not_in_force_on_event_day`
+  ask adds the `employment` topic when the output's `employment.periods_not_reported` is null
+  (point 60 puts the period behind the step back). The draft then states each period as
+  entered ("I worked from Jun 1, 2015 to May 31, 2016, at 40 hours a week."). With the count
+  not null the draft is as before.
+- `lib/samples/period-before-rule.json`: the engine's output for the 2015 case of
+  tests/unit/engine/test_f1_fix6.py (FINDING_3, shipped pack, answered in full, 2026-09-29),
+  made by a scratch script under TMPDIR calling `settle_with`. Trimmed to the two employment
+  items and their two rules: the copy lint scans the rule quotes in samples, and the parser
+  refuses an item whose rule has no source.
+- Two tests in `drafts.test.ts` under "the draft for the step back (point 64)". With the old
+  drafts.ts the first fails.
+
+### Ran
+
+- The done command as written, output to a file, no pipe: exit 1 (copy lint on the untrimmed
+  sample), exit 1 (ZodError, an item named a rule the trimmed sample had dropped), then exit 0:
+  typecheck clean; 301 tests passed; eslint clean; prettier clean; "copy lint: clean".
+
+### Not done, not verified
+
+- Not seen in a browser against a live api.

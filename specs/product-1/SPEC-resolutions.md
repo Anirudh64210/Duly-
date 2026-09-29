@@ -103,6 +103,12 @@ From the review of fix 5 (reviews/product-1-fix5.md):
 60. `employment.periods_not_reported` reads its rule for each period's start (point 56). A period that starts before the rule's row gives null with `rule_not_in_force_on_event_day`, never a count from a rule that came later.
 61. A draft about a report that names an employment period states that period's dates as the student entered them. The cap-gap draft states the petition's requested start date as entered, and never calls it the student's cap-gap period.
 
+From the review of fix 6 (reviews/product-1-fix6.md):
+
+62. Plain words a review accepted are frozen. A later round changes only the texts a review names, following its asks, and `tools.sources.plain_changes <base> --allow <rows>` holds it to that: any other plain text or plain_terms that changes fails the round. The review of fix 6 read all 55 and named eight; the other 47 stand. The eight are rewritten as its findings 1 and 2 ask: the cap-gap rows keep the limit to the employment authorization the rule names and "approved petition", the 2008 row says "under the cap" is Duly's reading, the employer-reporting row keeps "before the authorized period of OPT ends" with the departure, each reading row ends "This is Duly's reading, not the rule's exact words.", "designee" becomes "a person the Secretary names" with its plain_terms emptied, the 60-day row says "90 days before the program end date", and the two long texts are split into short sentences, the ten years ending at the DSO's recommendation.
+63. When `whole_shown` finds no row for a rule that decides which items exist (the validation interval, the extension length), the verdict steps back with `rule_not_in_force_on_event_day`, as every other missing row does since point 59. A missing row never leaves a quiet verdict.
+64. The draft for `rule_not_in_force_on_event_day` states the employment periods as entered when a period is behind the reason (point 60), so the DSO sees the date the question is about.
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.

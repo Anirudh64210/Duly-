@@ -648,3 +648,37 @@ uv run pytest tests/unit/engine tests/unit/tools/test_plain.py -q : all passed
 
 - git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
 - No fetched page was read; no instruction was found in any data.
+
+## 2026-09-29, run l-content-70287e6b26, attempt 1 (SPEC-resolutions point 62)
+
+### What was tried
+
+Rewrote only the eight plain texts of reviews/product-1-fix6.md findings 1 and 2, following each ask. Four first drafts failed the plain check on reading grade (9.7, 10.4, 10.6, 9.7; limit 9). Grade is Flesch-Kincaid over the whole text and the rule limit is three sentences, so words and syllables were cut, not sentences added. A scratch script in TMPDIR searched variants of the cap-gap 2025 text.
+
+Found: tools/sources/plain.py splits sentences on every period, so "U.S." counts as two sentence ends. A text that keeps "U.S. educational institution" can hold only one real sentence under the three-sentence limit. stem.requires.previously_obtained_degree therefore stays one sentence; the 10 years now end on the day the DSO recommends. This is recorded as a dispute and a request.
+
+What each sentence rests on (Q = quote, N = note):
+- capgap.end_month_day#2025-01-17. S1: "an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act ... requesting a change of status ... where such petition:" (Q); the reading of that section as the yearly cap (N, preambles of 89 FR 103054 and 81 FR 13040). S2: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C) ... will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested" (Q). S3: "or until the validity start date of the approved petition, whichever is earlier" (Q).
+- capgap.end_month_day#2008-04-08. S1: "of an F-1 student who is the beneficiary of an H-1B petition and request for change of status" (Q). S2: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C) ... shall be automatically extended until October 1 of the fiscal year for which such H-1B visa is being requested" (Q). S3: "where such petition:" (Q); from 2016 "subject to section 214(g)(1)(A) of the Act", read by Duly as under the yearly H-1B cap (N).
+- stem.requires.employer_reporting. S1: "A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2)" (N) with "unless the employer agrees ... to report the termination or departure of an OPT student to the DSO at the student's school, if the termination or departure is prior to the end of the authorized period of OPT" (Q); 24-month extension from the heading of (f)(10)(ii)(C) (N). S2: "by signing the Training Plan for STEM OPT Students, Form I-983" (Q). S3: derivation reading; "the first part is needed to say what it states" (N).
+- stem.requires.self_evaluation. S1: the same first part (N) with "unless the student submits a self-evaluation" (Q). S2: "of the student's progress toward the training goals described in the Form I-983" (Q). S3: derivation reading (N).
+- stem.requires.dhs_approved_degree. S1: "Duly reads it as a requirement because of the sentence before the list" (N). S2: "The degree that is the basis for the 24-month OPT extension is a bachelor's, master's, or doctoral degree" (Q). S3: "in a field determined by the Secretary, or his or her designee, to qualify within a science, technology, engineering, or mathematics field" (Q); "the plain words say a person the Secretary names" (N).
+- opt.apply_after_days@ds_2012 (60). S1: "no later than 60 days after his or her program end date" (Q); "For post-completion OPT" and "properly file as correctly file" (N); in force today from regime ds_2012. S2: "up to 90 days prior to his or her program end date" (Q). S3: "not including a 24-month OPT extension" (N).
+- stem.extension_months. S1: "An extension will be for 24 months" (Q). S2: "for the first qualifying degree for which the student has completed all course requirements (excluding thesis or equivalent)" (Q); qualifying said as meets the STEM terms (N). S3: "including any qualifying degree as part of a dual degree program" (Q).
+- stem.requires.previously_obtained_degree. One sentence: "is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT" (Q); "must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension" (Q); "must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation" (Q); "conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension" (Q).
+
+### What ran
+
+```
+uv run python -m tools.sources.plain rulepacks --require f1 : first exit 1, "plain words: 4 problem(s)" (reading grade); after the edits exit 0
+done command (as written): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  plain changes: 8 row(s) changed, all allowed
+uv run pytest tests/unit/tools/test_plain.py -q : 11 passed
+```
+
+### Seen and not worked around
+
+- git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
+- No fetched page was read; no network was used. No instruction was found in any data.

@@ -48,6 +48,7 @@ ignore = ["S101"]
 "dashboard/*" = ["S603", "S607", "DTZ", "RUF012"]
 "tools/diff_policy/*" = ["S603", "S607"]
 "tools/copy_lint/*" = ["S603", "S607"]
+"tools/sources/*" = ["S603", "S607"]
 ".claude/hooks/*" = ["S603", "S607", "E402", "I001"]
 "tests/*" = ["S", "DTZ"]
 

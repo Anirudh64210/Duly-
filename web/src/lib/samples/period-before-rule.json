@@ -1,0 +1,91 @@
+{
+  "verdict": {
+    "state": "talk_to_dso",
+    "reasons": ["rule_not_in_force_on_event_day"]
+  },
+  "scope": {
+    "documents_count": 2,
+    "rules_checked_on": "2026-09-28"
+  },
+  "computed": [
+    {
+      "id": "employment.days_under_hours",
+      "value": 0,
+      "unit": "days",
+      "inputs": {
+        "opt.ead_start": "2015-06-01",
+        "opt.ead_end": "2016-05-31",
+        "today": "2026-09-29",
+        "employment": [
+          {
+            "start": "2015-06-01",
+            "end": "2016-05-31",
+            "hours_per_week": 40,
+            "employer_reported": false
+          }
+        ],
+        "duly_settings": ["product.opt_start_earliest_years_before_program_end"]
+      },
+      "rule_ids": ["opt.min_hours_per_week"],
+      "status": "guidance",
+      "reading": false
+    },
+    {
+      "id": "employment.periods_not_reported",
+      "value": null,
+      "unit": "count",
+      "inputs": {
+        "employment": [
+          {
+            "start": "2015-06-01",
+            "end": "2016-05-31",
+            "hours_per_week": 40,
+            "employer_reported": false
+          }
+        ]
+      },
+      "rule_ids": ["opt.report_employer_within_days"],
+      "status": "guidance",
+      "reading": false
+    }
+  ],
+  "rulepacks": [
+    {
+      "category": "f1",
+      "version": "v2026.09"
+    }
+  ],
+  "rules": {
+    "opt.min_hours_per_week": {
+      "value": 20,
+      "unit": "hours_per_week",
+      "status": "guidance",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "checked_on": "2026-09-28",
+      "quote": "Post-Completion OPT: Any portion of OPT used after the student's Program End Date. It must be at least 20 hours per week or full-time.",
+      "derivation": "verbatim",
+      "plain": "SEVP's guidance says post-completion OPT must be at least 20 hours per week or full time. This is agency guidance, not a regulation."
+    },
+    "opt.report_employer_within_days": {
+      "value": 10,
+      "unit": "days",
+      "status": "guidance",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "checked_on": "2026-09-28",
+      "quote": "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information.",
+      "derivation": "verbatim",
+      "plain": "SEVP's guidance says that while on OPT, a student must tell the DSO of any change in name, address or employment information within 10 days. This is agency guidance, not a regulation."
+    }
+  },
+  "questions": [],
+  "today": {
+    "date": "2026-09-29",
+    "time_zone": "UTC"
+  },
+  "upcoming": [],
+  "lists": [],
+  "regimes": {},
+  "answers_read": ["opt.earlier_at_this_level", "employment.1.end_reported"]
+}

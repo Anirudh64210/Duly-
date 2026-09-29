@@ -6,6 +6,7 @@ import { dsoDraft, stemDraft } from "./drafts";
 import { CASE, NEXT } from "./fixtures";
 import { formatDate } from "./labels";
 import courtPaused from "./samples/court-paused.json";
+import periodBeforeRule from "./samples/period-before-rule.json";
 
 // plain-1 section 4: every draft is in the student's voice, holds no name of the tool
 // and no computed date, and passes the checks the plain words pass.
@@ -273,5 +274,45 @@ describe("the draft for the STEM OPT step", () => {
     for (const reason of REASONS) {
       expect(dsoDraft(talk([reason]), FULL) ?? "").not.toMatch(reading);
     }
+  });
+});
+
+describe("the draft for the step back (point 64)", () => {
+  // Point 64, review fix 6 finding 3: the engine's own output for the 2015 case (program end
+  // 2015-05-15, card 2015-06-01 to 2016-05-31, one period over the card not reported,
+  // answered in full, today 2026-09-29). The period starts before the rule's row.
+  const STEP_BACK = engineOutputSchema.parse(periodBeforeRule);
+  const FROM_2015: F1Case = {
+    ...CASE,
+    program_end_date: "2015-05-15",
+    opt: {
+      dso_recommendation_date: "2015-04-01",
+      i765_filed_date: "2015-04-10",
+      ead_start: "2015-06-01",
+      ead_end: "2016-05-31",
+    },
+    employment: [
+      { start: "2015-06-01", end: "2016-05-31", hours_per_week: 40, employer_reported: false },
+    ],
+  };
+
+  it("states the employment periods when a period is behind the step back (point 64)", () => {
+    expect(STEP_BACK.verdict.reasons).toEqual(["rule_not_in_force_on_event_day"]);
+    const draft = dsoDraft(STEP_BACK, FROM_2015) ?? "";
+    expect(draft).toContain("I worked from Jun 1, 2015 to May 31, 2016, at 40 hours a week.");
+    expect(draft).toContain("My program end date is May 15, 2015.");
+    expect(draft).toContain("My OPT EAD card runs from Jun 1, 2015 to May 31, 2016.");
+    expect(draft).toContain("Could you tell me which rules apply to these dates in my case?");
+    checkDraft(draft, FROM_2015, STEP_BACK);
+  });
+
+  it("leaves the periods out of the step back when no period is behind it (point 64)", () => {
+    const counted = STEP_BACK.computed.map((item) =>
+      item.id === "employment.periods_not_reported" ? { ...item, value: 1 } : item,
+    );
+    const draft = dsoDraft({ ...STEP_BACK, computed: counted }, FROM_2015) ?? "";
+    expect(draft).toContain("Could you tell me which rules apply to these dates in my case?");
+    expect(draft).not.toContain("I worked from");
+    expect(draft).toContain("My OPT EAD card runs from Jun 1, 2015 to May 31, 2016.");
   });
 });
