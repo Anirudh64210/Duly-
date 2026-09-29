@@ -4,8 +4,13 @@ import { describe, expect, it } from "vitest";
 import { engineOutputSchema } from "./compute";
 import { CASE, CPT_OVER, NEXT, OUTPUT } from "./fixtures";
 import {
+  FACT_NOT_NAMED,
+  JUDGEMENT_NOT_NAMED,
   answerLine,
   becauseLine,
+  conflictLine,
+  conflictQuestionCopy,
+  factRule,
   formatDate,
   formatValue,
   groupOf,
@@ -204,7 +209,7 @@ describe("reasons", () => {
       "Last OPT filing day after the DSO recommendation: May 1, 2026.",
     );
     expect(reasonText("report_employer", computed)).toBe(
-      "An employment period is not marked as reported.",
+      "An employment period, or its end, is not marked as reported to your DSO. The day to report it by is SEVP guidance, not the words of the regulation.",
     );
   });
 
@@ -364,6 +369,13 @@ const FACT_IDS = [
   "stem.card_longer_than_rule",
   "stem.gap_after_opt",
   "employment.period_outside_cards",
+  "opt.i765_filed_date.before_recommendation",
+  "stem.i765_filed_date.before_recommendation",
+  "opt.i765_filed_date.after_file_by",
+  "stem.i765_filed_date.after_file_by",
+  "stem.i765_filed_date.before_window_opens",
+  "opt.i765_filed_date.after_window_closes",
+  "opt.ead_end.after_complete_by",
 ];
 
 describe("SPEC section 7: item names", () => {
@@ -377,9 +389,12 @@ describe("SPEC section 7: item names", () => {
     expect(itemName("next.stem.apply_window_opens")).toBe("STEM OPT filing window opens");
     expect(itemName("next.stem.apply_window_closes")).toBe("STEM OPT filing window closes");
     expect(itemName("next.opt.card_ends")).toBe("OPT EAD card ends");
-    expect(itemName("next.grace.ends")).toBe(
-      "Grace period ends, counted from the OPT EAD end date",
-    );
+  });
+
+  it("has no name of its own for next.grace.ends, which the engine no longer gives", () => {
+    // SPEC-resolutions point 12: upcoming holds grace.ends once.
+    expect(itemName("next.grace.ends")).toBe("Next grace ends");
+    expect(itemName("grace.ends")).toBe("Grace period ends");
   });
 
   it("says a rule change is blocked by a court only for the status enjoined", () => {
@@ -506,5 +521,129 @@ describe("SPEC section 6: the question for the DSO", () => {
       "What the regulation lists for the 24-month STEM OPT extension",
     );
     expect(listName("h1b.something")).toBe("H1b something");
+  });
+});
+
+describe("SPEC-resolutions points 11 to 24", () => {
+  const NEW_FACTS = FACT_IDS.slice(-7);
+
+  it("has a line for each new conflict that never says a filing was late or missed", () => {
+    for (const id of NEW_FACTS) {
+      const line = factLine(id) ?? "";
+      expect(line, id).not.toMatch(/\blate\b|\bmiss|wrong|should|must|\b\d+ days?\b/i);
+      expect(factRule(id), id).not.toBeNull();
+    }
+  });
+
+  it("says the complete-by date is Duly's count from the rule (point 16)", () => {
+    expect(factLine("opt.ead_end.after_complete_by")).toContain(
+      "That date is Duly's count from the months in the rule",
+    );
+    expect(factRule("opt.ead_end.after_complete_by")).toBe("opt.complete_within_months");
+  });
+
+  it("reads a confirmed new conflict as a question for the DSO", () => {
+    expect(reasonText("stem.i765_filed_date.before_window_opens")).toContain(
+      "What they mean is a question for your DSO.",
+    );
+  });
+
+  it("names the numbered items of points 20 and 22, and the OPT card count of point 19", () => {
+    expect(itemName("stem.new_plan_due.3")).toBe(
+      "New training plan (Form I-983) due for employment period 3",
+    );
+    expect(itemName("stem.concluding_evaluation_due.2")).toBe(
+      "Final evaluation due for employment period 2",
+    );
+    expect(itemName("employment.4.end_report_by")).toBe(
+      "Day to report the end of employment period 4, from SEVP guidance",
+    );
+    expect(itemName("unemployment.opt_card_days_used")).toBe(
+      "Unemployment days used inside the OPT EAD dates",
+    );
+    expect(groupOf("stem.new_plan_due.3")).toBe("STEM OPT");
+  });
+
+  it("names the values a new question holds", () => {
+    expect(inputName("employment.2.start")).toBe("Employment period 2 start date");
+    expect(inputName("employment.2.end")).toBe("Employment period 2 end date");
+    expect(inputName("stem.validation_1_due")).toBe("Validation report 1 due");
+    expect(inputName("stem.evaluation_12_month_due")).toBe("12-month evaluation due");
+  });
+
+  it("asks whether each report whose date has passed was submitted (point 21)", () => {
+    for (const [id, report] of [
+      ["stem.validation_2_due.made", "validation report 2"],
+      ["stem.evaluation_12_month_due.made", "12-month evaluation"],
+      ["stem.final_evaluation_due_from_ead_end.made", "final evaluation"],
+      ["stem.concluding_evaluation_due.1.made", "final evaluation for employment period 1"],
+    ] as const) {
+      expect(questionCopy(id)?.ask).toBe(
+        `The date for the ${report} is before today. Did you submit this report?`,
+      );
+      expect(reasonText(id.replace(/made$/, "not_made"))).toBe(
+        `You answered that you did not submit the ${report}. What that means is a question for your DSO.`,
+      );
+    }
+    expect(questionCopy("opt.file_by.made")).toBeNull();
+  });
+
+  it("asks about a new employer and the end of a period (points 20 and 22)", () => {
+    expect(questionCopy("employment.7.new_employer")?.ask).toContain(
+      "Is this period with a new employer?",
+    );
+    expect(questionCopy("employment.7.end_reported")?.ask).toContain(
+      "Has the end of this period been reported to your DSO?",
+    );
+    expect(questionCopy("employment.x.end_reported")).toBeNull();
+  });
+
+  it("shows report_employer as SEVP guidance, not the regulation's words (point 22)", () => {
+    expect(reasonText("report_employer")).toContain(
+      "is SEVP guidance, not the words of the regulation",
+    );
+  });
+
+  it("states no grace date beside an active cap-gap (point 18)", () => {
+    const line = reasonText("grace_with_cap_gap");
+    expect(line).toContain("Duly shows no grace period end date");
+    expect(line).toContain("a question for your DSO");
+  });
+
+  it("says the count and the rule for unemployment on the OPT card (point 19)", () => {
+    expect(reasonText("unemployment_opt_card_at_or_over_limit")).toBe(
+      "Unemployment days counted inside the OPT EAD dates. This is at or over the limit in the rule for the OPT period, shown below.",
+    );
+  });
+
+  it("names a legal status from one fixed list (point 13)", () => {
+    expect(legalStatusWords("enjoined")).toBe("blocked by a court");
+  });
+});
+
+describe("an id with no words is never shown as nothing", () => {
+  it("reads an unknown conflict as facts that do not fit", () => {
+    expect(reasonText("conflict:opt.some_new_fact")).toBe(FACT_NOT_NAMED);
+    expect(conflictLine("opt.some_new_fact", ["conflict:opt.some_new_fact"])).toBe(FACT_NOT_NAMED);
+    expect(conflictLine("opt.some_new_fact", [])).toBeNull();
+    expect(conflictQuestionCopy("opt.some_new_fact", ["conflict:opt.some_new_fact"])?.ask).toBe(
+      "Are these the dates on your documents?",
+    );
+    expect(conflictQuestionCopy("opt.some_new_fact", [])).toBeNull();
+  });
+
+  it("reads an unknown judgement item as something that needs an answer", () => {
+    expect(reasonText("some_new_judgement")).toBe(JUDGEMENT_NOT_NAMED);
+    expect(reasonText("rule_in_litigation")).toBe("A rule that applies here is before a court.");
+  });
+
+  it("gives every conflict id, known or not, a line with no code in it", () => {
+    fc.assert(
+      fc.property(fc.string({ minLength: 1 }), (id) => {
+        const line = reasonText(`conflict:${id}`);
+        expect(line.length).toBeGreaterThan(0);
+        expect(line).not.toContain("_");
+      }),
+    );
   });
 });
