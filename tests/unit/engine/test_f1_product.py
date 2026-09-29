@@ -37,6 +37,7 @@ from tests.support.f1_pack import (
     STEM_LIST,
     answer_as_the_screen_does,
     answers,
+    answers_with_no_about,
     build_pack,
     cap_gap,
     case_problems,
@@ -1405,7 +1406,9 @@ def test_point_7_an_answer_to_no_employment_with_no_about_is_not_an_answer(answe
     # NO_JOBS: the card begins 2026-07-10, no work. The answer is given today, so only the
     # missing about can keep the question open.
     out = review(
-        with_changes(NO_JOBS, confirmations=answers("2026-09-28", **{NO_EMPLOYMENT: answer}))
+        with_changes(
+            NO_JOBS, confirmations=answers_with_no_about("2026-09-28", **{NO_EMPLOYMENT: answer})
+        )
     )
     assert question_ids(out) == [NO_EMPLOYMENT]
     assert out["verdict"]["state"] == "cannot_tell"
@@ -1427,7 +1430,7 @@ def test_point_7_the_same_answer_with_the_about_of_the_question_is_an_answer():
 def test_point_7_the_answer_yes_to_a_conflict_with_no_about_is_not_an_answer(conflict):
     # The answer is dated on the row's own day, the day the case is run.
     today, raises, _, _ = ROWS[conflict]
-    given = answers(today.isoformat(), **{conflict: True})
+    given = answers_with_no_about(today.isoformat(), **{conflict: True})
     out = run(with_changes(raises, confirmations=given), today=today)
     assert out["verdict"]["state"] == "cannot_tell"
     assert f"conflict:{conflict}" in out["verdict"]["reasons"]
@@ -1442,7 +1445,9 @@ def test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_ans
     # IN_PROGRAM enters no opt, stem or cap_gap. Neither the yes (verdict decided on what
     # was entered) nor the no (missing:training) is read.
     out = review(
-        with_changes(IN_PROGRAM, confirmations=answers("2026-09-28", **{NOTHING_MORE: answer}))
+        with_changes(
+            IN_PROGRAM, confirmations=answers_with_no_about("2026-09-28", **{NOTHING_MORE: answer})
+        )
     )
     assert question_ids(out) == [NOTHING_MORE]
     assert out["verdict"]["state"] == "cannot_tell"
@@ -1453,7 +1458,9 @@ def test_point_7_an_answer_to_full_time_cpt_with_no_about_is_not_an_answer():
     # cpt_full_time_days left out raises full_time_cpt_used (SPEC section 2). The no,
     # given with no about, does not make the item 0.
     case = with_changes(FITS, cpt_full_time_days=None)
-    out = run(with_changes(case, confirmations=answers("2026-09-28", **{CPT_USED: False})))
+    out = run(
+        with_changes(case, confirmations=answers_with_no_about("2026-09-28", **{CPT_USED: False}))
+    )
     assert CPT_USED in question_ids(out)
     assert out["verdict"]["state"] == "cannot_tell"
     assert values(out)["cpt.full_time_days_used"] is None

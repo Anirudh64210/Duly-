@@ -31,6 +31,8 @@ from tests.support.f1_pack import (
     cap_gap,
     case_problems,
     clock_on,
+    conflicts,
+    conflicts_by_the_table,
     contract_problems,
     count_days,
     dated_on_the_day,
@@ -375,6 +377,20 @@ def largest_case() -> dict[str, Any]:
     return covered_case("1950-01-01", "2024-12-31", "2025-01-01", "2099-12-31", "1950-06-01")
 
 
+def largest_case_the_rules_allow() -> dict[str, Any]:
+    """The widest window whose cards are no longer than their rules allow, at the far end
+    of the dates contracts/case_f1.schema.json takes, with the 50 periods of
+    covered_case. specs/product-1/SPEC.md, section 1, and SPEC-resolutions.md, point 4: a
+    card longer than its rule is a conflict, and the counts are null while it is open.
+
+    OPT 2097-01-01 through 2097-12-31: opt.max_months (12) from 2097-01-01 is
+    2098-01-01, and the card ends before it. STEM 2098-01-01 through 2099-12-31:
+    stem.extension_months (24) from 2098-01-01 is 2100-01-01, and the card ends before
+    it. The STEM card begins the day after the OPT card ends, so there is no gap. The
+    program ends 2096-12-15, 17 days before the OPT card begins."""
+    return covered_case("2097-01-01", "2097-12-31", "2098-01-01", "2099-12-31", "2096-12-15")
+
+
 def engine_steps(action: Callable[[], Any]) -> int:
     """How many lines of engine code run during the action."""
     steps = 0
@@ -413,20 +429,25 @@ def test_the_largest_case_the_contract_allows_answers_in_under_one_second():
 
 
 def test_the_largest_case_is_counted_right():
-    got = values(run(largest_case(), today=LAST_DAY))
-    # Every day from 1950-01-01 through 2099-12-31 is covered by a period of 40 hours
-    # or more, so no day is used and no day is under hours.
+    out = run(largest_case_the_rules_allow(), today=LAST_DAY)
+    assert conflicts(out) == []
+    got = values(out)
+    # Every day from 2097-01-01 through 2099-12-31 is covered by periods of 1 to 50
+    # hours; the period of 50 hours is over both thresholds (20), so no day is used and
+    # no day is under hours.
     assert got["unemployment.days_used"] == 0
     assert got["employment.days_under_hours"] == 0
 
 
 def test_the_largest_window_with_no_employment_is_counted_right():
-    got = values(run(with_changes(largest_case(), employment=[]), today=LAST_DAY))
-    # 1950-01-01 through 2099-12-31, both included: 150 years of 365 days is 54,750,
-    # plus one leap day in each year that divides by 4 from 1952 through 2096
-    # ((2096 - 1952) / 4 + 1 = 37; 2000 divides by 400, so it is a leap year): 54,787.
-    assert got["unemployment.days_used"] == 54787
-    assert got["unemployment.days_remaining"] == 150 - 54787
+    out = run(with_changes(largest_case_the_rules_allow(), employment=[]), today=LAST_DAY)
+    assert conflicts(out) == []
+    got = values(out)
+    # 2097-01-01 through 2099-12-31, both included: 2097, 2098 and 2099 are not leap
+    # years (none divides by 4), so 3 x 365 = 1,095 days. The limit on a STEM card is
+    # stem.unemployment_limit_days, 150 (SPEC-resolutions.md, point 9): 150 - 1,095.
+    assert got["unemployment.days_used"] == 1095
+    assert got["unemployment.days_remaining"] == 150 - 1095
 
 
 def test_counting_does_not_walk_the_window_one_day_at_a_time():
@@ -521,14 +542,21 @@ def small_windows(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
             opt_end.isoformat(), opt_end.isoformat(), stem_start.isoformat(), last.isoformat()
         )
     today = opt_start + timedelta(days=draw(st.integers(min_value=-5, max_value=80)))
+    # Half the cases keep every period inside the cards (specs/product-1/SPEC.md,
+    # section 1, employment.period_outside_cards), so that the day-by-day comparison runs
+    # on many cases; the other half may reach outside them.
+    inside = draw(st.booleans())
     employment = []
     for _ in range(draw(st.integers(min_value=0, max_value=8))):
         start = opt_start + timedelta(days=draw(st.integers(min_value=-10, max_value=70)))
+        if inside:
+            start = min(max(start, opt_start), last)
         if draw(st.booleans()):
             start = min(start, today)
             end = None
         else:
-            end = (start + timedelta(days=draw(st.integers(min_value=0, max_value=30)))).isoformat()
+            final = start + timedelta(days=draw(st.integers(min_value=0, max_value=30)))
+            end = (min(final, last) if inside else final).isoformat()
         employment.append(job(start.isoformat(), end, hours=draw(SMALL_HOURS)))
     if employment and draw(st.booleans()):
         employment.append(dict(employment[0]))
@@ -556,8 +584,26 @@ def small_windows(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
 @given(small_windows(), st.sampled_from([None, SHIFTED]))
 def test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows(drawn, shifted):
     # SPEC-fixes, "Finding 4": count by intervals, and compare with a day-by-day count.
+    # specs/product-1/SPEC.md, section 1, and SPEC-resolutions.md, point 4: while a
+    # conflict on the dates the counts use (the card dates and the periods) is open, the
+    # counts are null. A STEM card that begins more than one day after the OPT card
+    # ends is stem.gap_after_opt; a period with days outside every card is
+    # employment.period_outside_cards. Rows on a filing or recommendation date alone
+    # touch no date the counts use, so the day-by-day count still holds beside them.
     case, today = drawn
     raw = pack_dict(today, values=shifted)
+    sure, _ = conflicts_by_the_table(
+        case, today, rule_value(raw, "opt.max_months"), rule_value(raw, "stem.extension_months")
+    )
+    on_the_counted_dates = sure - {row for row in sure if row.endswith(".after_today")}
+    if on_the_counted_dates:
+        out = run(case, today=today, values=shifted)
+        assert on_the_counted_dates <= set(conflicts(out))
+        assert out["verdict"]["state"] == "cannot_tell"
+        got = values(out)
+        assert got["unemployment.days_used"] is None
+        assert got["employment.days_under_hours"] is None
+        return
     expected = count_days(
         case,
         today,
