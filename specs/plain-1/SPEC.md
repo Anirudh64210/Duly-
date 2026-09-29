@@ -20,7 +20,8 @@ Every rule and every regime of the F-1 pack carries `plain` (contracts/rulepack.
 - use only numbers the rule's quote, note or value holds;
 - are calm: no alarm words; a rule that ends something says it "ends", and the exact words say the rest;
 - are short: at most three sentences for a rule and four for a regime, at a reading grade no higher than 9;
-- keep a reading a reading: where a rule's derivation is `reading`, the plain words say that this is how Duly reads the rule, in those words.
+- keep a reading a reading: where a rule's derivation is `reading`, the plain words say that this is how Duly reads the rule, in those words;
+- keep the rule's terms of art word for word (at most three a rule, listed in `plain_terms`), and say everything else in everyday words: no citation and no legal phrasing in plain words (specs/product-1/SPEC-resolutions.md point 58).
 
 `python -m tools.sources.plain rulepacks --require f1` checks every one of these and runs in gate 7. The reviewer reads each plain text beside its quote and vetoes any that says more, less or other than the quote.
 
