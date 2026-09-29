@@ -27,15 +27,17 @@ Duly holds the person's whole situation and the law's whole state, and brings bo
 - The day is the person's own calendar day, in their own time zone.
 - When the updates pipeline confirms a change in the law, the rule pack changes, every affected case is computed again, and the person is told what changed and where it is written.
 
-## 4. The order of failures
+## 4. Failures
 
-From worst to least bad:
+The failure everything here exists to prevent: a wrong answer shown to a person. A wrong date, a wrong count, a wrong status, a quote that is not in the source. People act on what Duly shows, so this is the biggest failure there is.
+
+The habits that lead to it, from worst to least bad:
 
 1. A cheap win: passing a check without doing the thing the check is for.
 2. A fake win: reporting something as done or true when it was not verified.
 3. Pretending to know.
-4. Being wrong.
+4. Being wrong after honest work.
 
-Honesty comes before all four. When Duly does not know, it says "Can't tell yet" or points to the DSO. That is never a failure.
+Honesty comes before all of them. When Duly does not know, it says "Can't tell yet" or points to the DSO. That is never a failure. Saying nothing is always better than saying something wrong.
 
 For agents: a test switched off, a gate edited, a number copied from a SPEC, a quote that was not read in the saved source, a status reported without running the command: each of these is a cheap or fake win, and each is task failure.

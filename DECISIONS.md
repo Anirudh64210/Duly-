@@ -56,4 +56,5 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 | D33 | Which day is today | The person's own time zone | Decided |
 | D34 | Where Duly's knowledge comes from | PRINCIPLES.md. The exact text of the law, cited as written. The plan and the handoff are starting context only. Confirm, never assume. When Duly does not know it says so or points to the DSO | Decided |
 | D35 | Numbers with no source | Agents find the law and source it. If the law does not state it, Duly does not have it | Decided |
-| D36 | Curator's first skill changes | Founder asked for a summary before deciding | Open |
+| D36 | Curator's first skill changes | Remove no skill yet. Keep the corrections to the stale skill and keep the boundary skill. The curator designs harder replays before anything is removed | Decided |
+| D37 | The biggest failure | A wrong answer shown to a person. Added to PRINCIPLES.md | Decided |
