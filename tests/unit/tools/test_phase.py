@@ -126,7 +126,8 @@ def test_a_seed_plan_becomes_a_checked_traceable_branch(tmp_path):
         line.split(": ")[1] for line in merges.splitlines() if line.startswith("Factory-Ledger")
     ]
     sealed = [row["hash"] for row in ledger.read(repo)]
-    assert len(pinned) == 3 and all(seal in sealed for seal in pinned)
+    assert len(pinned) == 3
+    assert all(seal in sealed for seal in pinned)
     assert mini.git(repo, "rev-parse", "main") != mini.git(repo, "rev-parse", "phase-x")
     assert "engine/new.py" not in mini.git(repo, "ls-tree", "-r", "--name-only", "main")
 
@@ -470,7 +471,8 @@ def test_work_reaches_the_phase_branch_only_through_a_pull_request_that_ci_passe
         ("phase-x", "work/phase-x", "merged")
     ]
     assert prs[0]["title"] == "phase-x: round B"  # round A travelled with round B
-    assert "merge(L-tests)" in prs[0]["body"] and "merge(L-engine)" in prs[0]["body"]
+    assert "merge(L-tests)" in prs[0]["body"]
+    assert "merge(L-engine)" in prs[0]["body"]
     assert "Generated with [Claude Code]" in prs[0]["body"]
 
     assert mini.git(repo, "rev-parse", "--abbrev-ref", "HEAD") == "work/phase-x"
@@ -478,7 +480,8 @@ def test_work_reaches_the_phase_branch_only_through_a_pull_request_that_ci_passe
     assert mini.git(repo, "rev-parse", "phase-x") == mini.git(repo, "rev-parse", "origin/phase-x")
     assert mini.git(repo, "rev-parse", "work/phase-x") == mini.git(repo, "rev-parse", "phase-x")
     files = mini.git(repo, "ls-tree", "-r", "--name-only", "phase-x")
-    assert "engine/new.py" in files and "tests/test_new.py" in files
+    assert "engine/new.py" in files
+    assert "tests/test_new.py" in files
     assert "engine/new.py" not in mini.git(repo, "ls-tree", "-r", "--name-only", "origin/main")
 
 
