@@ -1,0 +1,54 @@
+branch: phase-2
+spec: specs/phase-2/SPEC-sourcing.md
+rounds:
+  - name: S
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        slug: sourcing
+        mission: >
+          Find and source the rules listed under "Rules to find and source (L-content)" in
+          the SPEC addendum, and add them to rulepacks/f1-us/v2026.09/parameters.yaml with
+          saved sources and exact quotes. Read rulepacks/PROGRESS.md first; it holds what you
+          learned last time. Never record a value you could not find in a saved primary
+          source. If the law does not state a number, say so plainly in your progress log.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run pytest tests/unit/engine/test_rulepack.py -q
+          && grep -q "stem.evaluation_interval_months" rulepacks/f1-us/v2026.09/parameters.yaml
+          && grep -q "capgap.fiscal_year_start_month_day" rulepacks/f1-us/v2026.09/parameters.yaml
+          && grep -q "calendar.federal_holidays_law" rulepacks/f1-us/v2026.09/parameters.yaml'
+        max_iterations: 4
+      - lane: L-tests
+        agent: test-author
+        slug: sourcing
+        mission: >
+          Do the work under "The test pack (L-tests)" in the SPEC addendum. The engine does
+          not read the new ids yet, so the new tests cannot pass now; that is expected. Read
+          tests/PROGRESS.md first.
+        done: >-
+          bash -c 'grep -q "stem.evaluation_interval_months" tests/support/f1_pack.py
+          && grep -rq "duly_settings" tests/unit/engine tests/holdout
+          && uv run ruff check tests && uv run ruff format --check tests'
+        max_iterations: 3
+    checks:
+      - { name: "sources: every quote found", run: "uv run python -m tools.sources.verify rulepacks" }
+  - name: T
+    lanes:
+      - lane: L-engine
+        agent: builder
+        slug: sourcing
+        mission: >
+          Do the work under "The engine (L-engine)" and "Derived, not stored" in the SPEC
+          addendum. Read engine/PROGRESS.md first. The tests are your target and you cannot
+          edit them.
+        done: >-
+          bash -c 'uv run python -m tools.gates.engine_literals
+          && uv run pytest tests/unit/engine -q && uv run mypy
+          && uv run ruff check engine && uv run ruff format --check engine'
+        max_iterations: 5
+    checks:
+      - { name: "every engine number has a source", run: "uv run python -m tools.gates.engine_literals" }
+      - { name: "engine tests", run: "uv run pytest tests/unit/engine tests/unit/api -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+      - { name: "sources: every quote found", run: "uv run python -m tools.sources.verify rulepacks" }

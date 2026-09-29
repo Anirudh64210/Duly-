@@ -1,0 +1,15 @@
+# Duly's own choices. These are not law and are never shown as law.
+# Only the founder changes this file. Every entry names the decision behind it.
+settings:
+  - id: product.open_item_lookahead_days
+    value: 14
+    unit: days
+    decided_in: "duly-plan/06-email-system.md, alerts policy: a deadline enters its 14-day window"
+    meaning: How far ahead a dated item is listed as an open item.
+  - id: product.opt_start_earliest_years_before_program_end
+    value: 1
+    unit: years
+    decided_in: "specs/phase-2/SPEC.md, verdict inputs"
+    meaning: >
+      An OPT start date earlier than this is treated as a likely typing mistake
+      and reported as a conflict between inputs. It says nothing about the law.
