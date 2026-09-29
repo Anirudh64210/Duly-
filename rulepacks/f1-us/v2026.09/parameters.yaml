@@ -15,6 +15,7 @@ regimes:
       quote: "Duration of status is defined as the time during which an F-1 student is pursuing a full course of study at an educational institution certified by SEVP for attendance by foreign students, or engaging in authorized practical training following completion of studies"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    plain: "This is the rule that applies today. A student's stay lasts for the time the student is in a full course of study at a school SEVP has approved. It also covers approved practical training after study ends."
   - id: fixed_admission_2026
     legal_status: enjoined
     operative: false
@@ -26,6 +27,7 @@ regimes:
       quote: "Defendants are preliminarily enjoined from taking any further action to implement the Final Rule pending further order of this court or resolution of this proceeding on the merits."
       snapshot: sources/mad-1-26-cv-13799-doc51-order.txt
       snapshot_sha256: c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399
+    plain: "A new rule, published on July 17, 2026, would set a fixed period of admission for students. A federal court paused it on September 14, 2026, while the case goes on. The order puts off the date the new rule would start until the court orders otherwise or the case ends. The earlier rule applies today."
 parameters:
   - id: opt.apply_before_days
     value: 90
@@ -41,6 +43,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps 90 days."
+    plain: "A student may file Form I-765 for OPT up to 90 days before the program end date. The last day to file is 60 days after the program end date."
   - id: opt.apply_after_days
     value: 60
     unit: days
@@ -56,6 +59,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The SPEC listed this rule as settled with no regime. The final rule at 91 FR 44976 changes 60 to 30 in this paragraph and in (f)(11)(i)(D), so it is recorded under both regimes."
+    plain: "Under the rule in force today, the last day to file Form I-765 for OPT is 60 days after the program end date. Filing may begin up to 90 days before the program end date."
   - id: opt.apply_after_days
     value: 30
     unit: days
@@ -71,6 +75,7 @@ parameters:
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
     derivation: verbatim
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime."
+    plain: "The paused rule would move the last day to file Form I-765 for OPT to 30 days after the program end date. A court has paused this change, so it does not apply today."
   - id: opt.latest_start_after_days
     value: 60
     unit: days
@@ -86,6 +91,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which has the same sentence. Words checked in the 2026-09-14 text. The final rule at 91 FR 44976 replaces 60 with 30 in this sentence, so the rule is recorded under both regimes. The next sentence of the paragraph says employment authorization will begin on the date requested or the date the employment authorization is adjudicated, whichever is later; this row limits the date a student may request, not the date the authorization begins."
+    plain: "A student may not ask for an OPT start date more than 60 days after the program end date. The permission to work begins on the date asked for, or on the date it is approved if that is later."
   - id: opt.latest_start_after_days
     value: 30
     unit: days
@@ -101,6 +107,7 @@ parameters:
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
     derivation: verbatim
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. The preamble of that rule says DHS replaced 60 with 30 in 8 CFR 214.2(f)(11)(i)(D). A court postponed the effective date on 2026-09-14; see the regime."
+    plain: "The paused rule would allow an OPT start date no more than 30 days after the program end date. A court has paused this change, so it does not apply today."
   - id: opt.file_within_days_of_recommendation
     value: 30
     unit: days
@@ -115,6 +122,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps 30 days."
+    plain: "Once the DSO puts the OPT recommendation in SEVIS, the student must file Form I-765 within 30 days."
   - id: opt.max_months
     value: 12
     unit: months
@@ -129,6 +137,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text."
+    plain: "A student may have up to 12 months of practical training. Another 12 months may become open after a move to a higher degree level."
   - id: opt.complete_within_months
     value: 14
     unit: months
@@ -143,6 +152,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text on 2026-09-29. The quote is the whole sentence of (f)(10)(ii)(A)(3), with its exception for the 24-month extension under (f)(10)(ii)(C), so the 14 months are never shown without the exception (SPEC-resolutions point 30). The same sentence is in the 2026-09-15 text and in 81 FR 13040 (FR Doc. 2016-04828), both saved."
+    plain: "All practical training must end within a 14-month period after study is done. A 24-month STEM extension does not have to fit inside those 14 months."
   - id: opt.post_completion_definition
     value: true
     unit: flag
@@ -157,6 +167,7 @@ parameters:
       snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
     derivation: verbatim
     note: "Agency guidance, not regulation. The quote is SEVP's definition in the table of OPT types on the saved page; the next sentence says it must be at least 20 hours per week or full-time, and the row before it defines pre-completion OPT as any portion of OPT used before the student's Program End Date. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. Taking the end of the OPT card as the test of whether any post-completion OPT exists is Duly's reading (SPEC-resolutions point 27), not these words. The flag records what the guidance says. It says nothing about any one person."
+    plain: "SEVP's guidance says post-completion OPT is any OPT used after the program end date. This is agency guidance, not a regulation."
   - id: opt.unemployment_limit_days
     value: 90
     unit: days
@@ -171,6 +182,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text."
+    plain: "During post-completion OPT, a student may not have more than 90 days of unemployment in total."
   - id: stem.unemployment_limit_days
     value: 150
     unit: days
@@ -185,6 +197,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The limit for the earlier 17-month extension was a different number and is not recorded in this pack."
+    plain: "A student may not have more than 150 days of unemployment in total. This counts post-completion OPT and a 24-month STEM extension together."
   - id: stem.extension_months
     value: 24
     unit: months
@@ -199,6 +212,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    plain: "A STEM extension lasts 24 months. It is based on the first STEM degree for which the student has finished all course work."
   - id: stem.apply_before_expiry_days
     value: 90
     unit: days
@@ -213,6 +227,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    plain: "A student may file for the STEM extension up to 90 days before the current OPT work permission ends."
   - id: stem.apply_window_closes_rule
     value: true
     unit: flag
@@ -227,6 +242,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the regulation says a qualified student may apply while in a valid period of post-completion OPT, and Duly reads those words as the closing of the filing window. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text; the 2026-09-15 text has the same words, so the rule sits under no regime. The SPEC pointed to (f)(11)(i)(C). That paragraph states only the opening of the window, up to 90 days prior to the expiration date of the current OPT employment authorization, and states no closing. The closing is in the opening text of (f)(10)(ii)(C), quoted here, which begins with the words Consistent with paragraph (f)(11)(i)(C) of this section. The regulation states the closing as a condition, while in a valid period of post-completion OPT, and names no date. The preamble of 81 FR 13040 says a student may file only if the student is in a valid period of post-completion OPT at the time of filing, and that a period extended under cap-gap is a valid period. So the window can close later than the expiration date on the employment authorization document. That the window closes on that expiration date is a reading, not the words of the source."
+    plain: "The rule lets a student apply for the STEM extension while in a valid period of post-completion OPT. Duly reads this to mean the filing window closes when the OPT card ends. This is how Duly reads the rule, not its exact words."
   - id: stem.file_within_days_of_recommendation
     value: 60
     unit: days
@@ -241,6 +257,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    plain: "Once the DSO puts the STEM recommendation in SEVIS, the student must file Form I-765 within 60 days."
   - id: stem.min_hours_per_week
     value: 20
     unit: hours_per_week
@@ -255,6 +272,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    plain: "Practical training on a STEM extension may not be less than 20 hours per week. Time off under the employer's usual leave rules does not count against this."
   - id: stem.validation_interval_months
     value: 6
     unit: months
@@ -269,6 +287,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The source writes the number as the word six. The same paragraph says the requirement starts on the date the 24-month OPT extension begins."
+    plain: "On a STEM extension, a student fills in a short report every six months. The report confirms that the student's details on file have not changed."
   - id: stem.validation_due_business_days
     value: 10
     unit: business_days
@@ -283,6 +302,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    plain: "Each six-month report is due to the DSO within 10 business days of its reporting date."
   - id: stem.evaluation_due_days
     value: 10
     unit: days
@@ -297,6 +317,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    plain: "Each STEM evaluation is due no later than 10 days after its time period ends, or after the training ends."
   - id: stem.new_plan_due_days
     value: 10
     unit: days
@@ -311,6 +332,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quote is the whole sentence of paragraph (f)(10)(ii)(C)(7)(iv). The 10 days apply only under the condition the sentence begins with: a new practical training opportunity with a new employer during the 24-month OPT extension. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence."
+    plain: "If a student starts training with a new employer during the 24-month extension, a new Form I-983 is due to the DSO within 10 days. A new DSO recommendation is also needed."
   - id: cpt.full_time_months_bar
     value: 12
     unit: months
@@ -325,6 +347,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the regulation says one year or more, and the pack holds one year as 12 months. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text. The source says one year, not 12 months. The pack has no unit for years, so one year is recorded as 12 months. The source says post-completion academic training; it does not use the words optional practical training in this sentence."
+    plain: "One year or more of full-time training during study (CPT) rules out practical training after study. Duly counts one year as 12 months. This is how Duly reads the rule, not its exact words."
   - id: grace.after_completion_days
     value: 60
     unit: days
@@ -340,6 +363,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text."
+    plain: "Under the rule in force today, a student who has finished study and any approved training has 60 more days. This time is to prepare to leave the United States or to transfer."
   - id: grace.after_completion_days
     value: 30
     unit: days
@@ -355,6 +379,7 @@ parameters:
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
     derivation: verbatim
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime. The SPEC pointed to (f)(5); the paragraph in the 2026-09-15 text is (f)(5)(v)."
+    plain: "The paused rule would give 30 days to prepare to leave the United States, counted from the program end date or the end of approved OPT. A court has paused this change, so it does not apply today."
   - id: opt.min_hours_per_week
     value: 20
     unit: hours_per_week
@@ -369,6 +394,7 @@ parameters:
       snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
     derivation: verbatim
     note: "Agency guidance, not regulation. Start date from SEVP Policy Guidance 1004-03 of 2010-04-23, section 7.2.1, which says a student must work at least 20 hours per week in a qualifying position to be considered employed. Saved as sources/ice-sevp-policy-guidance-1004-03.pdf, with extracted text beside it, from https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf."
+    plain: "SEVP's guidance says post-completion OPT must be at least 20 hours per week or full time. This is agency guidance, not a regulation."
   - id: capgap.end_month_day
     value: "10-01"
     unit: date
@@ -384,6 +410,7 @@ parameters:
       snapshot_sha256: dbfc074987138fe7e80be4f0a47c6810fb03a4bb1a49ffa7e8a53a8ba35698ea
     derivation: verbatim
     note: "Closed row. Not in the SPEC table; added so the change to April 1 closes the old value. Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08. 81 FR 13040, saved as sources/fr-2016-04828.xml, also carries October 1."
+    plain: "Under the older cap-gap rule, a student's stay and the right to work ran until October 1 of the fiscal year of the H-1B request. The rule later changed to April 1."
   - id: capgap.end_month_day
     value: "04-01"
     unit: date
@@ -398,6 +425,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps April 1 and moves the paragraph to (f)(5)(vii)(A)."
+    plain: "While an H-1B change of status petition is pending, the cap-gap rule extends a student's stay and the right to work. The extension lasts until April 1 of the fiscal year asked for. It ends sooner if the approved petition starts sooner."
   - id: stem.evaluation_interval_months
     value: 12
     unit: months
@@ -412,6 +440,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text. The 2026-09-15 text has the same words. The regulation does not state a repeating interval. It names two evaluations: one within 12 months of the approved starting date on the employment authorization document, and one at the conclusion. The word annual appears in the preamble of 81 FR 13040, not in the regulation. The 12 months run from the approved starting date on the document, for each practical training opportunity."
+    plain: "Each STEM training opportunity needs a first evaluation within 12 months of the start date on the STEM work permit. It also needs a final evaluation at the end."
   - id: cpt.full_time_bar_days
     value: 365
     unit: days
@@ -426,6 +455,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the regulation says one year or more and states no number of days; 365 is Duly's count of one year in days. The number 365 appears nowhere in the source. The count is Duly's own and is not the words of the law: one year counted in days can come to a different number, for example across a leap year, and the regulation does not say how the year is counted. The status is settled because the quoted sentence is regulation in force and has the same words in the 2026-09-14 and 2026-09-15 texts; settled describes the sentence, not the count. The row was tagged school until 2026-09-29; it cites the regulation and no school's page, and no school document is saved with this pack, so it is not school policy. The sentence ends ineligible for post-completion academic training; it does not use the words optional practical training. Start date as for cpt.full_time_months_bar. Words checked again in the 2026-09-14 text on 2026-09-29."
+    plain: "One year or more of full-time training during study (CPT) rules out practical training after study. Duly counts one year as 365 days. This is how Duly reads the rule, not its exact words."
   - id: capgap.fiscal_year_start_month_day
     value: "10-01"
     unit: date
@@ -440,6 +470,7 @@ parameters:
       snapshot_sha256: c8513d7d62a8ebbafae9889d40461c3de7b0847fce597f281cbc5aac07a8da5d
     derivation: reading
     note: "Reading: the statute says the fiscal year of the Treasury begins on October 1, and Duly reads the fiscal year named in the cap-gap paragraph as that fiscal year. Start date is the date of Pub. L. 97-258, 1982-09-13, named in the source credit of the saved copy, which enacted title 31 in this form. The October 1 start is older than that. The statute speaks of the fiscal year of the Treasury. The cap-gap paragraph, 8 CFR 214.2(f)(5)(vi)(A) in the 2026-09-14 text, says fiscal year and does not define it or name a start date. That the fiscal year in the cap-gap paragraph is the one in 31 U.S.C. 1102 is a reading, not the words of either source. The saved copy of 81 FR 13040 says in a footnote that an approved change to H-1B status takes effect on October 1. The 2026-09-15 text moves the cap-gap paragraph to (f)(5)(vii)(A) and keeps the words fiscal year."
+    plain: "The federal fiscal year starts on October 1. Duly reads the fiscal year in the cap-gap rule as this one. This is how Duly reads the rule, not its exact words."
   - id: opt.report_employer_within_days
     value: 10
     unit: days
@@ -454,6 +485,7 @@ parameters:
       snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
     derivation: verbatim
     note: "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text."
+    plain: "SEVP's guidance says a student on OPT reports changes of name, address and job details to the DSO within 10 days. This is agency guidance, not a regulation."
   - id: opt.report_interruption
     value: true
     unit: flag
@@ -468,6 +500,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quote is the first sentence of paragraph (f)(12)(i), headed General. It states no number of days; the 10 days in opt.report_employer_within_days are SEVP guidance, not these words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, the earliest saved copy with these exact words. Older words with the same duty are in 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, and 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, both saved; no earlier row is recorded. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person."
+    plain: "A student on OPT must tell the DSO about any change of name or address, or any break in work, for the whole OPT period. The rule gives no number of days."
   - id: stem.reporting_required
     value: true
     unit: flag
@@ -482,6 +515,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quote is the second sentence of paragraph (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension. The sentence before it says those students have additional reporting obligations, and the reporting requirements are the ones the paragraph then lists. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence for the 24-month extension. The same sentence is in 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved, where it applies to the 17-month extension; no row is recorded for that. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person."
+    plain: "The rule says a student on a STEM extension must meet these reporting duties to keep F-1 status."
   - id: calendar.federal_holidays_law
     value: true
     unit: flag
@@ -495,7 +529,8 @@ parameters:
       snapshot: sources/usc-5-6103-2026-09-28.htm
       snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
     derivation: reading
-    note: "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays; no saved copy of the earlier list is in the pack, so no earlier row is recorded. Business days skip the days 6103(a) lists, on those days, and not observed days. Subsection (b) in the saved copy begins with the words 'For the purpose of statutes relating to pay and leave of employees', and only then moves a holiday that falls on a Saturday to the Friday before; the day off for a holiday on a Sunday is in Executive Order 11582, printed in the notes of the saved copy, which applies it in administering the provisions of law relating to pay and leave of absence. 8 CFR 214.2(f) is not a statute relating to pay and leave of employees, so Duly does not skip an observed day. The words of 6103(b) are in the note and not in the quote, which stays the list in (a). Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
+    note: "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays, recorded in the row of this id that ends 2021-06-16, read from this saved copy and its amendment note. Business days skip the days 6103(a) lists, on those days, and not observed days. Subsection (b) in the saved copy begins with the words 'For the purpose of statutes relating to pay and leave of employees', and only then moves a holiday that falls on a Saturday to the Friday before; the day off for a holiday on a Sunday is in Executive Order 11582, printed in the notes of the saved copy, which applies it in administering the provisions of law relating to pay and leave of absence. 8 CFR 214.2(f) is not a statute relating to pay and leave of employees, so Duly does not skip an observed day. The words of 6103(b) are in the note and not in the quote, which stays the list in (a). Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
+    plain: "The law lists eleven federal holidays, including Juneteenth on June 19. Duly skips these days, on the day itself, when it counts business days. This is how Duly reads the rule, not its exact words."
   - id: stem.requires_post_completion_opt
     value: true
     unit: flag
@@ -510,6 +545,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the regulation says a qualified student may apply for the extension while in a valid period of post-completion OPT, and Duly reads those words as saying the extension follows a period of post-completion OPT. The sentence is the first one of paragraph (f)(10)(ii)(C), whose heading is 24-month extension of post-completion OPT. The words are may apply while in; the regulation does not use the word only and does not say must. The preamble of 81 FR 13040 (FR Doc. 2016-04828), saved as sources/fr-2016-04828.xml, says a student may file for a STEM OPT extension only if the student is in a valid period of post-completion OPT at the time of filing; that is the agency explaining the rule, not the regulation. The same preamble says a period extended under cap-gap is a valid period. The second extension is stated with the same words, while in a valid period of post-completion OPT. The regulatory text printed in 81 FR 13040 at 8 CFR 214.16 excepted students then on a 17-month extension from this requirement; whether 8 CFR 214.16 is still in the Code was not checked and no copy is saved. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040, effective 2016-05-10, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says about who may apply. It says nothing about any one person."
+    plain: "The rule lets a student apply for the STEM extension while in a valid period of post-completion OPT. Duly reads this to mean the extension follows a period of post-completion OPT. This is how Duly reads the rule, not its exact words."
   - id: stem.requires.all_of_the_following
     value: true
     unit: flag
@@ -524,6 +560,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The sentence is the last one of the opening text of paragraph (f)(10)(ii)(C). Eleven numbered paragraphs follow it, (1) to (11). Paragraphs (1) to (10) are recorded in rows whose ids begin stem.requires. Paragraph (11), headed Site visits, is not recorded as a row: its words are DHS, at its discretion, may conduct a site visit of any employer, which states what DHS may do and states nothing to be met by the student or the employer before the extension. The opening text also says a qualified student may apply while in a valid period of post-completion OPT; that is recorded as stem.requires_post_completion_opt. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "For a STEM extension of OPT, every one of the listed requirements must be met."
   - id: stem.requires.accreditation
     value: true
     unit: flag
@@ -538,6 +575,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted sentence says the degree is from an accredited institution and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is Accreditation. The words at the time of application are the regulation's; the regulation does not say in this sentence which application. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The degree for the STEM extension is from an accredited school in the United States. The group that grants the accreditation is one the Department of Education accepts. This is how Duly reads the rule: as one of the listed requirements."
   - id: stem.requires.dhs_approved_degree
     value: true
     unit: flag
@@ -552,6 +590,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted sentence says what the degree is and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is DHS-approved degree. Paragraph (2)(i) defines the term science, technology, engineering or mathematics field, and paragraph (2)(ii) says the Secretary will maintain the STEM Designated Degree Program List; neither is recorded as a row. The list itself is not saved with this pack and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The degree for the STEM extension is a bachelor's, master's or doctoral degree. It is in a field the Secretary has named as science, technology, engineering or math. This is how Duly reads the rule: as one of the listed requirements."
   - id: stem.requires.degree_on_designated_list
     value: true
     unit: flag
@@ -566,6 +605,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted sentence is the whole of paragraph (f)(10)(ii)(C)(2)(iii). It names a point in time, the time the DSO recommends the extension in SEVIS. The STEM Designated Degree Program List is not saved with this pack and was not read; the pack does not say which degrees are on it. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The degree must be on the STEM list when the DSO recommends the extension. The full name of the list is the STEM Designated Degree Program List."
   - id: stem.requires.previously_obtained_degree
     value: true
     unit: flag
@@ -580,6 +620,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted words are the second and third sentences of paragraph (f)(10)(ii)(C)(3), headed Previously obtained STEM degree(s). They begin with If: they state what is required where the application is based upon a degree obtained before the degree that was the basis for the period of post-completion OPT. The first sentence of the paragraph says the degree that is the basis for the extension may be, but is not required to be, the degree that is the basis for the post-completion OPT period. The number 10 in the quote is a count of years; it is not recorded as a value in this pack. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "A STEM extension may rest on an earlier degree. That degree must come from an accredited, SEVP-certified school in the United States, in a field on the current STEM list. It must have been granted within the 10 years before the DSO's recommendation."
   - id: stem.requires.eligible_practical_training_opportunity
     value: true
     unit: flag
@@ -594,6 +635,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted words are the first part of the one sentence of paragraph (f)(10)(ii)(C)(4), headed Eligible practical training opportunity. The sentence goes on: which may be the previously obtained degree described in paragraph (f)(10)(ii)(C)(3) of this section. The quote stops before those words because the saved copy prints the paragraph number 3 in italics and the source check cannot match a quote across it. The regulation says directly related and gives no test for it in this paragraph; whether a training opportunity is directly related to a degree is not something this pack states. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The STEM training must be directly related to the degree it is based on."
   - id: stem.requires.employer_qualification
     value: true
     unit: flag
@@ -608,6 +650,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the first quoted sentence says the employer is enrolled in E-Verify and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The second quoted sentence has its own must: an employer must also have an employer identification number. The quote is the whole of paragraph (f)(10)(ii)(C)(5), headed Employer qualification. The words as determined by USCIS are the regulation's. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The employer is enrolled in E-Verify and in good standing with it. The employer must also have a tax number (EIN). This is how Duly reads the rule: as one of the listed requirements."
   - id: stem.requires.employer_reporting
     value: true
     unit: flag
@@ -622,6 +665,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quote is the second part of a sentence, and the first part is needed to say what it states. The whole sentence begins A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section, and then the quoted words follow. The quote starts at unless because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The sentence is the first one of paragraph (f)(10)(ii)(C)(6), headed Employer reporting. The paragraph goes on to say such reporting must be made within five business days of the termination or departure, and when an employer shall consider a student to have departed; the number five is not recorded as a value in this pack. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "A student may not be approved to work for an employer unless the employer agrees, on Form I-983, to tell the school's DSO if the student leaves or is let go early. This is how Duly reads the whole sentence, not its exact words."
   - id: stem.requires.training_plan
     value: true
     unit: flag
@@ -636,6 +680,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted words are the first part of the first sentence of paragraph (f)(10)(ii)(C)(7)(i), under the heading Training Plan for STEM OPT Students, Form I-983 or successor form. The sentence goes on: under paragraph (f)(10)(ii)(C)(2) of this section in SEVIS. The quote stops before those words because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The same paragraph says the student must submit the form to the student's DSO prior to the new DSO recommendation. Paragraphs (7)(ii) and (7)(iii) say what the training plan must identify, describe and explain; they are not recorded as rows. Paragraph (7)(iv) is the source of stem.new_plan_due_days. Form I-983 and its instructions are not saved with this pack and were not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "Before the DSO may recommend a STEM extension, the student must fully complete a Form I-983 training plan. The right person at the employer signs it."
   - id: stem.requires.duties_hours_and_compensation
     value: true
     unit: flag
@@ -650,6 +695,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted sentence is the first one of paragraph (f)(10)(ii)(C)(8), headed Duties, hours, and compensation for training. The second sentence of the paragraph is the source of stem.min_hours_per_week. The paragraph goes on to say what similarly situated U.S. workers includes and when duties, hours, and compensation are commensurate, and that the student must disclose his or her compensation on the Form I-983 or successor form; those sentences are not recorded as rows. The words speak of the period of the 24-month OPT extension. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "During a STEM extension, the pay, duties and hours of the training must be in line with those of similar workers at the employer. This means workers in the United States in the same area."
   - id: stem.requires.self_evaluation
     value: true
     unit: flag
@@ -664,6 +710,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quote is the second part of a sentence, and the first part is needed to say what it states. The whole sentence begins A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section, and then the quoted words follow. The quote starts at unless because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The sentence is the first one of paragraph (f)(10)(ii)(C)(9)(i), under the heading Evaluation requirements and Training Plan modifications. The same paragraph is the source of stem.evaluation_interval_months and stem.evaluation_due_days. Paragraph (9)(ii), on a material change to the training plan, and paragraph (9)(iii), on what the educational institution is responsible for, are not recorded as rows. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "A student may not be approved to work for an employer unless the student hands in a self-evaluation of progress toward the training goals on Form I-983. This is how Duly reads the whole sentence, not its exact words."
   - id: stem.requires.employer_attestation
     value: true
     unit: flag
@@ -678,6 +725,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted words are the whole of the opening text of paragraph (f)(10)(ii)(C)(10), headed Additional STEM opportunity obligations. They end with a colon. The three things the employer attests follow at (10)(i), (10)(ii) and (10)(iii), recorded in the next three rows. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "A student may only take part in STEM training where the employer confirms certain things. Signing Form I-983 is one way the employer does this."
   - id: stem.requires.employer_attests_resources
     value: true
     unit: flag
@@ -692,6 +740,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted words are the first of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(i). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The employer has enough resources and staff to give proper training at the places named on Form I-983. This is how Duly reads the rule: as one of the things the employer confirms."
   - id: stem.requires.employer_attests_no_replacement
     value: true
     unit: flag
@@ -706,6 +755,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted words are the second of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(ii), with the word and that ends it in the source. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The STEM student will not replace a full-time or part-time, temporary or permanent worker in the United States. This is how Duly reads the rule: as one of the things the employer confirms."
   - id: stem.requires.employer_attests_training_goals
     value: true
     unit: flag
@@ -720,3 +770,67 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted words are the third of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(iii). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
+    plain: "The training helps the student reach the training goals. This is how Duly reads the rule: as one of the things the employer confirms."
+  - id: stem.report_change_within_days
+    value: 10
+    unit: days
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(12)(ii)(A)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "Within 10 days of the change, the student must report to the student's DSO a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quote is the whole of paragraph (f)(12)(ii)(A), the first of the reporting obligations listed under (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension. The 10 days apply to those students; for post-completion OPT the regulation, (f)(12)(i), states no number of days, and opt.report_employer_within_days is SEVP guidance (SPEC-resolutions point 50). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime."
+    plain: "On a STEM extension, a student must report changes to the DSO within 10 days of the change. This covers a change of legal name, home or mailing address, employer name or address, or loss of a job."
+  - id: calendar.federal_holidays_law
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 1986-01-01
+    effective_to: 2021-06-16
+    source:
+      citation: "5 U.S.C. 6103(a), amendment note for 2021"
+      url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim"
+      checked_on: 2026-09-29
+      quote: "Pub. L. 117-17 inserted item relating to Juneteenth National Independence Day."
+      snapshot: sources/usc-5-6103-2026-09-28.htm
+      snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
+    derivation: reading
+    note: "Reading: the list of legal public holidays in force before 2021-06-17 is the list of 6103(a) in the saved copy without Juneteenth National Independence Day, June 19. Ten holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25. The saved copy holds no text of the list as it stood before; the list is read from the current list and the amendment notes. The notes say, under Amendments, 2021, Subsec. (a), that Pub. L. 117-17 inserted the Juneteenth item, and the source credit dates Pub. L. 117-17 June 17, 2021; the saved copy gives no other effective date for it, so the row ends 2021-06-16. The notes list no other amendment of subsection (a) after 1983; the 1996 and 1998 amendments are to subsections (d) and (b)(3). Start date: the 1983 amendment, Pub. L. 98-144, inserted the Birthday of Martin Luther King, Jr., and the note Effective Date of 1983 Amendment says it took effect on the first January 1 that occurs after the two-year period following the date of enactment, Nov. 2, 1983; Duly reads that day as 1986-01-01. No row is recorded for the list before that date. Business days skip these days, on those days, and not observed days, as in the row that starts 2021-06-17 (SPEC-resolutions points 24 and 40). That this list sets which days are not business days under 8 CFR 214.2(f) is a reading, as in that row."
+    plain: "Before June 17, 2021, the law listed ten federal holidays: the same list as today, without Juneteenth. Duly skips those days, on the day itself, when it counts business days before that date. This is how Duly reads the rule, not its exact words."
+  - id: capgap.october_start_condition
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2008-04-08
+    effective_to: 2016-05-09
+    source:
+      citation: "8 CFR 214.2(f)(5)(vi)(A)(2), as amended by 73 FR 18944"
+      url: "https://www.federalregister.gov/documents/full_text/xml/2008/04/08/E8-7427.xml"
+      checked_on: 2026-09-29
+      quote: "states that the employment start date for the F-1 student is October 1 of the following fiscal year."
+      snapshot: sources/fr-e8-7427.xml
+      snapshot_sha256: dbfc074987138fe7e80be4f0a47c6810fb03a4bb1a49ffa7e8a53a8ba35698ea
+    derivation: verbatim
+    note: "Closed row. The quote is the whole of (f)(5)(vi)(A)(2) as printed in 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08: the extension until October 1 in (A) reaches a petition that has been timely filed, (1), and states this start date, (2). The flag records that condition. 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved, rewrote (2) as requests an H-1B employment start date of October 1 of the following fiscal year, so this row ends 2016-05-09 and the next row carries those words to 2025-01-16. SPEC-resolutions point 40 and the mission asked for one row from this copy closed on 2025-01-16; the saved words of 2016 differ, so both are recorded. The flag records what the regulation said. It says nothing about any one person."
+    plain: "Under the older cap-gap rule, the extension to October 1 reached a petition that gave October 1 of the next fiscal year as its start date. The rule had these words from 2008 to 2016."
+  - id: capgap.october_start_condition
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    effective_to: 2025-01-16
+    source:
+      citation: "8 CFR 214.2(f)(5)(vi)(A)(2), as amended by 81 FR 13040"
+      url: "https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml"
+      checked_on: 2026-09-29
+      quote: "requests an H-1B employment start date of October 1 of the following fiscal year."
+      snapshot: sources/fr-2016-04828.xml
+      snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794
+    derivation: verbatim
+    note: "Closed row. The quote is the whole of (f)(5)(vi)(A)(2) as printed in 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10. The same paragraph (A) now names an H-1B petition subject to section 214(g)(1)(A) of the Act, and extends status and employment authorization until October 1 of the fiscal year for which such H-1B status is being requested where such petition has been timely filed, (1), and meets this condition, (2). End date: 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, says the final rule will be effective January 17, 2025, and will apply to petitions filed on or after that date, and revises (f)(5)(vi)(A): the extension runs until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier, and (2) reads requests an H-1B employment start date in the fiscal year for which such H-1B status is being requested; so this row ends 2025-01-16 (SPEC-resolutions point 40). The flag records what the regulation said. It says nothing about any one person."
+    plain: "In the older cap-gap rule, the extension to October 1 reached a petition that asked for an H-1B start date of October 1 of the next fiscal year. It was the rule until January 16, 2025."
