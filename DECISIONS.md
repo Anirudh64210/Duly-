@@ -58,3 +58,10 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 | D35 | Numbers with no source | Agents find the law and source it. If the law does not state it, Duly does not have it | Decided |
 | D36 | Curator's first skill changes | Remove no skill yet. Keep the corrections to the stale skill and keep the boundary skill. The curator designs harder replays before anything is removed | Decided |
 | D37 | The biggest failure | A wrong answer shown to a person. Added to PRINCIPLES.md | Decided |
+
+## 2026-09-29, round 5
+
+| # | Topic | Decision | Status |
+|---|---|---|---|
+| D38 | Order of work | The factory is made production grade first, against the founder's 50 item checklist, every item. Infrastructure, then the agent system, then Duly. No product agent runs until then | Decided |
+| D39 | First use of the F-1 screen | Arithmetic was right. Wording and the two-regime display were hard to read, and nothing was said about what comes next (STEM OPT). Recorded in specs/product/BACKLOG.md | Recorded |
