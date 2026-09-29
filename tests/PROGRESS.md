@@ -774,3 +774,57 @@ Nothing read in this run asked for an action.
   Fix: a scratch pytest plugin that patches engine.f1._answer to put point 7 in, run beside
   the plain run, and a helper that sends each answer with the about the output asked.
   Evidence: failures under the plugin in test_f1.py went from 29 to 0.
+
+## Iteration 8, 2026-09-29: the seven tests the engine builder named (run l-tests-0da09336d8)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC-resolutions.md, specs/product-1/SPEC.md
+sections 1 to 6, CLAUDE.md, engine/PROGRESS.md on lane/L-engine/l-engine-209410c52d,
+contracts/case_f1.schema.json (confirmations.about), contracts/engine_output.schema.json
+(questions.about), contracts/factory_report.schema.json. engine/f1.py and
+engine/verdict.py on the engine branch were read to see why a case the mission asked for
+could not raise an open item (below), not to take expected values from them.
+
+### What was done
+
+| Mission point | Change |
+|---|---|
+| 1 | tests/support/f1_pack.py: answers() and answered_yes() give each answer `about: about_asked(<question id>)`, an about naming the question, and a day: `on`, or with `clock=` the person's own day at its instant (day_of, zoneinfo apart from the engine). The default day stays ON_THE_DAY_IT_RUNS, put in as the case's day by dated_on_the_day. with_the_about_asked now fills in the values of the question for an answer whose about is about_asked(id) as well as for one with none. answers_with_no_about() is new, for the point 7 tests only (test_f1_product.py uses it in its four point 7 tests, so they still send no about). ANSWERED_ON removed (unused). test_f1_context.answered() defaults to ON_THE_DAY_IT_RUNS |
+| 2 | test_an_item_is_open_on_the_persons_own_day: no case the SPEC allows gives opt.apply_window_closes as an open item (dispute below). Moved to stem.validation_2_due on CASE_B (2026-07-16), at 01:30 UTC on 2026-07-17: open in Los Angeles (Jul 16), past in Kolkata (Jul 17); east also asserted not cannot_tell |
+| 3 | whole_cases in test_f1_context.py: today is drawn from opt_start + 334 on (the STEM filing, the latest date drawn: opt_end - 30 = opt_start + 364 - 30) |
+| 4 | test_the_question_names_the_inputs_that_raised_it expects {id, because, about}, about a mapping |
+| 5 | test_the_answer_yes_counts_on_an_empty_list dates the answer 2026-08-01, the case's day, and asserts so |
+| 6 | largest_case_the_rules_allow(): OPT 2097-01-01..2097-12-31, STEM 2098-01-01..2099-12-31, 50 periods, program end 2096-12-15. Both counting tests use it and assert no conflict. largest_case() stays the contract's widest for the timing and step tests |
+| 7 | small window property: conflicts_by_the_table decides; any row other than after_today (these touch no date the counts use) gives null counts, cannot_tell and the row among the conflicts; otherwise the day-by-day comparison as before. The generator keeps every period inside the cards in half the draws, so the comparison still runs on many cases |
+
+Working: 12 months from 2097-01-01 is 2098-01-01; 24 from 2098-01-01 is 2100-01-01. 2097,
+2098, 2099 are not leap years: 3 x 365 = 1,095 days; 150 - 1,095. stem.validation_2_due
+for CASE_B: 2025-07-01 + 12 months = 2026-07-01, then 10 business days with Jul 3 the
+observed Jul 4: Jul 2, 6, 7, 8, 9, 10, 13, 14, 15, 16.
+
+### What ran and what it printed
+
+- Done command as written: ruff check and ruff format --check pass; then `git archive
+  HEAD | tar -x` into .done-scratch fails with "Can't create '.claude/agents/...':
+  Operation not permitted" (the sandbox refuses .claude/ paths even in the scratch copy),
+  exit 1, before pytest. The same steps with .claude excluded, into TMPDIR, with the
+  working tree's tests/ over HEAD and engine/ from the engine branch:
+  - before: 7 failed (the seven named)
+  - after: tests/unit/engine 794 passed, 0 failed, exit 0
+- tests/unit/api and tests/holdout on the same engine: 38 failed before, 36 after; no
+  new failure (the two holdout empty-list tests now pass).
+- ruff check tests: All checks passed. ruff format: done after the last write.
+
+### What change to the code would make each changed test fail
+
+- small window property: an engine that drops stem.gap_after_opt (planted with a
+  scratch plugin under TMPDIR replacing engine.f1._facts): the property fails. Shown.
+- largest case tests: an engine that counts days outside the cards, or that raises
+  card_longer_than_rule on a card ending the day before its months end.
+- question keys: an engine that leaves about off a question.
+- item open on the person's day: an engine that reads the day in UTC, or that lists an
+  item on the day after it.
+- whole_cases: an engine that lets an emptied filing date change a count.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

@@ -134,7 +134,6 @@ HELD_OPT = "held_post_completion_opt"
 NO_EMPLOYMENT = "no_employment_to_record"
 CAP_GAP_ALONE = "cap_gap_without_training"
 QUESTION_IDS = (HELD_OPT, NO_EMPLOYMENT, CAP_GAP_ALONE)
-ANSWERED_ON = "2026-09-28"
 
 # specs/product-1/SPEC.md, section 2: the two questions of product round 1.
 NOTHING_MORE = "nothing_more_to_record"
@@ -366,12 +365,6 @@ def clock_at(instant: str) -> FixedClock:
     return FixedClock(datetime.fromisoformat(instant).replace(tzinfo=UTC))
 
 
-def answers(on: str = ANSWERED_ON, **given: bool) -> dict[str, Any]:
-    """The confirmations of the case contract: the person's answer to each question
-    named, and the day it was given."""
-    return {question: {"answer": answer, "on": on} for question, answer in given.items()}
-
-
 # The day of an answer given on the day the case is run, whatever day that is (the first
 # day the case contract takes, which no real answer holds). A case
 # computed on many days carries it; dated_on_the_day puts the day in before the case is
@@ -380,11 +373,59 @@ def answers(on: str = ANSWERED_ON, **given: bool) -> dict[str, Any]:
 ON_THE_DAY_IT_RUNS = "1950-01-01"
 
 
-def answered_yes(on: str = ON_THE_DAY_IT_RUNS) -> dict[str, Any]:
+def about_asked(question_id: str) -> dict[str, str]:
+    """The about of an answer written in a test before the case is run: it names the
+    question the answer is for. SPEC-resolutions.md, point 7: an answer with no about is
+    not an answer, and an answer is never taken for values it was not given for. The
+    engine reads this about as it reads any other: an answer carrying it is open until
+    with_the_about_asked puts in the values of the question as the output asked it, the
+    step the screen takes (contracts/engine_output.schema.json, questions.about)."""
+    return {"question": question_id}
+
+
+def day_of(clock: Any, time_zone: str = TIME_ZONE) -> str:
+    """The person's own day at the instant of the clock, worked with zoneinfo apart from
+    the engine. specs/phase-2/SPEC-context.md, section 2."""
+    return str(clock.now().astimezone(ZoneInfo(time_zone)).date().isoformat())
+
+
+def answers(
+    on: str | date = ON_THE_DAY_IT_RUNS,
+    *,
+    clock: Any = None,
+    time_zone: str = TIME_ZONE,
+    **given: bool,
+) -> dict[str, Any]:
+    """The confirmations of the case contract: the person's answer to each question
+    named, the day it was given, and the about naming the question it answers.
+
+    SPEC-resolutions.md, point 2: an answer is dated on or before the day the case is
+    run. With a clock, the day is the person's own day at its instant in time_zone. With
+    none, it is `on`; the default ON_THE_DAY_IT_RUNS is put in by dated_on_the_day as the
+    day of the case. Point 7: each answer carries about_asked(question)."""
+    day = day_of(clock, time_zone) if clock is not None else on
+    dated = day.isoformat() if isinstance(day, date) else day
+    return {
+        question: {"answer": answer, "on": dated, "about": about_asked(question)}
+        for question, answer in given.items()
+    }
+
+
+def answers_with_no_about(on: str | date, **given: bool) -> dict[str, Any]:
+    """Answers as a caller that leaves the about out would send them: the case that
+    SPEC-resolutions.md, point 7 says is not an answer. Only the tests of point 7 use it."""
+    dated = on.isoformat() if isinstance(on, date) else on
+    return {question: {"answer": answer, "on": dated} for question, answer in given.items()}
+
+
+def answered_yes(
+    on: str | date = ON_THE_DAY_IT_RUNS, *, clock: Any = None, time_zone: str = TIME_ZONE
+) -> dict[str, Any]:
     """Yes to every question of the round. A case written before the questions existed
     carries this, so that it still says what it said: the person held OPT, and the
-    employment entered is all there is, up to the day the case is run."""
-    return answers(on, **dict.fromkeys(QUESTION_IDS, True))
+    employment entered is all there is, up to the day the case is run. Each answer
+    carries its about and a day, as answers() gives them."""
+    return answers(on, clock=clock, time_zone=time_zone, **dict.fromkeys(QUESTION_IDS, True))
 
 
 def question_ids(output: dict[str, Any]) -> list[str]:
@@ -643,22 +684,27 @@ def conflicts_by_the_table(
 def with_the_about_asked(
     case: dict[str, Any], compute: Callable[[dict[str, Any]], dict[str, Any]]
 ) -> dict[str, Any]:
-    """The case as the screen sends it: each answer given without `about` carries the
-    about of the question it answers, as the output asked it.
+    """The case as the screen sends it: each answer given without `about`, or with
+    about_asked(question), carries the about of the question it answers, as the output
+    asked it.
 
     specs/product-1/SPEC-resolutions.md, point 7: an answer with no `about` is not an
     answer. The cases written before that point give their answers with no about; this
     is the step the screen takes for them. It answers only what is asked, in the order
     it is asked (an answer can raise another question), and gives the answer unchanged
     when its question is never asked, since an answer to a question not raised is not
-    read. An answer that already carries about is sent as it is.
+    read. An answer that carries any other about is sent as it is.
 
     compute is the engine or the api, called on a case and giving the output."""
     given = case.get("confirmations") or {}
-    pending = {name: answer for name, answer in given.items() if "about" not in answer}
+    pending = {
+        name: answer
+        for name, answer in given.items()
+        if answer.get("about", about_asked(name)) == about_asked(name)
+    }
     if not pending:
         return case
-    sent = {name: answer for name, answer in given.items() if "about" in answer}
+    sent = {name: answer for name, answer in given.items() if name not in pending}
     for _ in range(len(pending)):
         out = compute(with_changes(case, confirmations=sent))
         asked = [q for q in out["questions"] if q["id"] in pending and q["id"] not in sent]
@@ -678,7 +724,7 @@ def dated_on_the_day(case: dict[str, Any], clock: Any) -> dict[str, Any]:
     given = case.get("confirmations") or {}
     if not any(answer.get("on") == ON_THE_DAY_IT_RUNS for answer in given.values()):
         return case
-    today = clock.now().astimezone(ZoneInfo(case["time_zone"])).date().isoformat()
+    today = day_of(clock, case["time_zone"])
     dated = {
         name: {**answer, "on": today} if answer.get("on") == ON_THE_DAY_IT_RUNS else answer
         for name, answer in given.items()
