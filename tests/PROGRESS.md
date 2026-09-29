@@ -1388,3 +1388,49 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-cfe7af7fe5 (attempt 1): tests first for points 55 and 56
+
+### What I tried and what ran
+
+- Read specs/product-1/SPEC-resolutions.md points 25, 27, 40, 42, 49, 55, 56,
+  specs/product-1/plan-fix5.yaml and reviews/product-1-fix4.md notes 5 and 6.
+- A probe of today's engine reproduced both notes: point 27's case unanswered gives
+  grace.ends null with alternates [{"value": null}]; with the clock at 2016-10-01 the shipped
+  pack raises RulepackError for opt.report_employer_within_days (looked up for today by the
+  count employment.periods_not_reported). The report item is employment.<n>.end_report_by, and
+  it already steps back for an end before 2025-05-19 when today is after it.
+- Wrote tests/unit/engine/test_f1_fix5.py (18 tests) and tests/holdout/test_holdout_fix5.py
+  (12 tests), with different cases in each.
+- On today's engine: 19 fail, 11 pass (the controls and the event-day lookup that already
+  holds). With a scratch plugin under TMPDIR that strips null alternates and lets a rule with
+  no row today fall back to its earliest row (a stand-in, not the SPEC's fix): 30 pass.
+  With a second plugin that drops every alternate: test_point_55_an_alternate_with_a_value_is_kept
+  fails. Scratch folder removed.
+- The hidden property (any clock from 2009-01-01 to 2025-05-18) found a second crash:
+  opt.min_hours_per_week, whose shipped row begins 2010-04-23, is also looked up for today
+  (RulepackError on 2009-01-01). Point 56 says no clock makes the engine fail.
+- Done command as written: exit 0 ("All checks passed!", "55 files already formatted").
+
+### What change to the code would make each new test fail
+
+- Point 55: keeping an alternate whose value is null on any item (all the point 27 tests,
+  unit and hidden, and both properties); dropping an alternate that holds a value
+  (test_point_55_an_alternate_with_a_value_is_kept, the hidden ended-card test); leaving a
+  regime in regimes that no item names any more.
+- Point 56: any RulepackError for a rule with no row on today (the clock tests and the
+  properties); looking the report row up for today and not for the period's end
+  (test_point_56_an_end_the_day_before_the_row_gives_null_although_today_has_a_row and its
+  hidden twin); giving a date, or no rule_not_in_force_on_event_day, for an end before the
+  row; giving null for an end on the row's first day (the controls, 2025-05-29 and
+  2024-06-11); a state other than talk_to_dso on the shipped pack.
+
+### Seen, not changed
+
+- On the test pack the paused grace row is in force from 2000, so the verdict there may be
+  cannot_tell with rule_in_litigation, which hides report_employer from the reasons. The
+  state is pinned on the shipped pack only, as test_f1_fix4.py does.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
