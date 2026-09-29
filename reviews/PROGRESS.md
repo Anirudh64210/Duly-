@@ -153,3 +153,15 @@
 - Failure: the STEM case of fix 6 finding 4 already steps back for point 60 on the shipped pack, so dropping a row showed the step back without proving point 63 caused it.
 - Fix: send a control case whose period starts after 2025-05-19, check it is quiet on the full pack, then drop the row.
 - Evidence: the 2025-06-15 STEM case gives no_open_items on the shipped pack and rule_not_in_force_on_event_day with either row left out.
+
+## 2026-09-29, run l-review-430e7fdaf4 (product round 1, fix 8, and the round as a whole)
+- Read SPEC-resolutions.md points 58, 62 and 65, plain-1 SPEC, reviews/product-1-fix7.md and the finding lists of product-1.md to fix7.md, the diff 07f2b6a..23234a4 (two plain texts, CHANGELOG, PROGRESS, plan-fix8), tools/sources/plain.py and plain_changes.py.
+- Ran: unit suites (exit 0), holdout (exit 0), test_plain and test_plain_changes (17 passed), plain_changes 07f2b6a (the two named rows only; refuses a row not allowed, exit 1), tools.sources.plain, sources verify, engine_literals, copy lint (all clean).
+- Sent the fix 7 cap-gap case through TestClient: talk_to_dso grace_with_cap_gap, both new texts in rules, dates checked by hand. Sent an OPT-only case: grace.ends listed once (product-1 note 3 closed). /v1/status carries rules_checked_on.
+- Found: the cap-gap 2025 text passes. The degree text is faithful but one 57-word sentence. The gate scores it at 8.88 only because SENTENCE splits "U.S." into extra sentences. With "U.S." read as one word it is 23.92, and four frozen texts are 13.5 to 19.8. "field" replaces "category".
+- Wrote reviews/product-1-fix8.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a sentence splitter that cuts on every period passes long texts that hold "U.S." as short ones.
+- Fix: score each plain text again with abbreviations read as one word, and list every text the splitter cuts into a piece of two words or fewer.
+- Evidence: exactly five f1 rows are cut on "S."; stem.requires.previously_obtained_degree scores 8.88 on the gate and 23.92 when "U.S." is read as one word.
