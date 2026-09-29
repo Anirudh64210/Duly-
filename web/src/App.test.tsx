@@ -170,7 +170,9 @@ describe("the form", () => {
     enter("H-1B petition filed date", "2027-04-02");
     enter("Requested start date", "2027-10-01");
     fireEvent.change(screen.getByLabelText("Petition status"), { target: { value: "approved" } });
-    fireEvent.click(screen.getByLabelText("The petition asks for a change of status"));
+    fireEvent.change(screen.getByLabelText("Does the petition ask for a change of status?"), {
+      target: { value: "yes" },
+    });
     await computed();
     expect(posted).toEqual([
       {
@@ -239,13 +241,13 @@ describe("the result", () => {
     expect(within(row).getByText("19 days")).toBeDefined();
   });
 
-  it("tags a status only when it is not settled", async () => {
+  it("tags every status in plain words (plain-1 section 3)", async () => {
     serve({ status: 200, body: OUTPUT });
     await computed();
     const guidance = screen.getByRole("button", { name: /Days under the weekly hours rule/ });
-    expect(within(guidance).getByText("Guidance")).toBeDefined();
+    expect(within(guidance).getByText("Government guidance")).toBeDefined();
     const settled = screen.getByRole("button", { name: /Unemployment days used/ });
-    expect(settled.querySelector(".tag")).toBeNull();
+    expect(within(settled).getByText("Regulation")).toBeDefined();
   });
 
   it("shows one value, the one in force, and one line for the rule change", async () => {
@@ -254,32 +256,33 @@ describe("the result", () => {
     const row = screen.getByRole("button", { name: /Grace period ends/ });
     expect(within(row).getByText("Jul 30, 2027")).toBeDefined();
     expect(within(row).queryByText("Jun 30, 2027")).toBeNull();
-    expect(within(row).getByText("Before a court")).toBeDefined();
-    const change = screen.getByRole("button", {
-      name: "A rule change is blocked by a court. See what it would change.",
-    });
+    expect(within(row).getByText("A court paused a change")).toBeDefined();
+    // With no plain words from the output, the line names the status in plain words.
+    expect(
+      screen.getByText(
+        "A rule change is paused by a court. The value shown is the one that applies today.",
+      ),
+    ).toBeDefined();
+    const change = screen.getByRole("button", { name: "What the paused rule would change" });
     expect(change.getAttribute("aria-expanded")).toBe("false");
     expect(screen.queryByText("Jun 30, 2027")).toBeNull();
   });
 
-  it("opens the rule change: the other value, the pack's legal status, and the rule", async () => {
+  it("opens what the paused rule would change, with its value and no status code", async () => {
     serve({ status: 200, body: OUTPUT });
     await computed();
-    const change = screen.getByRole("button", {
-      name: "A rule change is blocked by a court. See what it would change.",
-    });
+    const change = screen.getByRole("button", { name: "What the paused rule would change" });
     fireEvent.click(change);
     expect(change.getAttribute("aria-expanded")).toBe("true");
     const item = change.closest("li");
     if (!item) throw new Error("no item");
     const panel = within(item);
     expect(panel.getByText("Jun 30, 2027")).toBeDefined();
-    expect(panel.getByText("Legal status in the rule pack: enjoined")).toBeDefined();
-    expect(panel.getByText("Legal status in the rule pack: effective")).toBeDefined();
-    expect(panel.getByText("60 days to prepare for departure")).toBeDefined();
+    expect(panel.getByText("Under the paused rule")).toBeDefined();
+    expect(item.textContent).not.toMatch(/enjoined|effective|operative|alternate|regime/i);
   });
 
-  it("shows the legal status the engine gave for the value in use, whatever it is", async () => {
+  it("names the legal status of the value in use when it is not simply in effect", async () => {
     const appealed = {
       ...OUTPUT,
       computed: OUTPUT.computed.map((item) =>
@@ -290,9 +293,12 @@ describe("the result", () => {
     };
     serve({ status: 200, body: appealed });
     await computed();
-    fireEvent.click(screen.getByRole("button", { name: /A rule change is blocked by a court/ }));
-    expect(screen.getByText("Legal status in the rule pack: appealed")).toBeDefined();
-    expect(screen.queryByText("Legal status in the rule pack: effective")).toBeNull();
+    expect(
+      screen.getByText(
+        "A rule change is under appeal. The value shown is the one that applies today.",
+      ),
+    ).toBeDefined();
+    expect(screen.getByRole("button", { name: "What the paused rule would change" })).toBeDefined();
   });
 
   it("shows no items when a value with alternates comes without its legal status", async () => {
@@ -899,8 +905,7 @@ describe("SPEC section 5: a reading is marked wherever it is shown", () => {
     serve({ status: 200, body: CPT_OVER });
     const verdict = sectionOf(await computeTo("A question for your DSO"));
     expect(within(verdict).getByText(/at or over Duly's count of one year in days/)).toBeDefined();
-    expect(within(verdict).getByText("Duly's reading")).toBeDefined();
-    expect(within(verdict).getByText("Words of the regulation")).toBeDefined();
+    expect(within(verdict).getAllByText("Duly's reading").length).toBeGreaterThan(0);
     expect(
       within(verdict).getByText("one year or more of full time curricular practical training"),
     ).toBeDefined();
@@ -951,9 +956,7 @@ describe("SPEC section 6: what comes next", () => {
     expect(within(next).getByText("Jul 30, 2027")).toBeDefined();
     expect(within(next).queryByText("Jun 30, 2027")).toBeNull();
     fireEvent.click(
-      within(next).getByRole("button", {
-        name: "A rule change is blocked by a court. See what it would change.",
-      }),
+      within(next).getByRole("button", { name: "What the paused rule would change" }),
     );
     expect(within(next).getByText("Jun 30, 2027")).toBeDefined();
   });
@@ -967,9 +970,7 @@ describe("SPEC section 6: what comes next", () => {
         "This is what the regulation says. Whether it applies to you is a question for your DSO.",
       ),
     ).toBeDefined();
-    expect(
-      within(next).getByText("\u201ca made up line about the training plan\u201d"),
-    ).toBeDefined();
+    expect(within(next).getByText("a made up line about the training plan")).toBeDefined();
     const link = within(next).getByRole("link", { name: "8 CFR 214.2(f)(10)(ii)(C)(7)(i)" });
     expect(link.getAttribute("href")).toContain("ecfr.gov");
     expect(within(next).getByText("STEM OPT filing window opens: Mar 2, 2027")).toBeDefined();
@@ -981,7 +982,7 @@ describe("SPEC section 6: what comes next", () => {
     expect(screen.queryByRole("heading", { name: "What the rule says" })).toBeNull();
   });
 
-  it("drafts a question for the DSO from the person's dates, which the person can copy", async () => {
+  it("drafts an email for the DSO from the person's dates, which the person can copy", async () => {
     const writeText = vi.fn(() => Promise.resolve());
     vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
     const posted = serve({ status: 200, body: NEXT });
@@ -992,8 +993,12 @@ describe("SPEC section 6: what comes next", () => {
     const draft = document.querySelector("pre.draft");
     expect(draft?.textContent).toContain("My OPT EAD card runs from Jun 1, 2026 to May 31, 2027.");
     expect(draft?.textContent).toContain("Could you tell me whether 8 CFR 214.2(f)(10)(ii)(C)");
-    expect(screen.getByText("Duly drafted it from your dates. Duly never sends it.")).toBeDefined();
-    fireEvent.click(screen.getByRole("button", { name: "Copy the question" }));
+    // plain-1 section 4: the student's voice, no name of the tool, no computed date.
+    expect(draft?.textContent).toMatch(/^Subject: /);
+    expect(draft?.textContent).toMatch(/Thank you,\n\[Your name\]$/);
+    expect(draft?.textContent).not.toMatch(/Duly/i);
+    expect(draft?.textContent).not.toContain("Mar 2, 2027");
+    fireEvent.click(screen.getByRole("button", { name: "Copy the email" }));
     expect(await screen.findByText("Copied.")).toBeDefined();
     expect(writeText).toHaveBeenCalledWith(draft?.textContent);
     // Nothing is sent anywhere but the compute path.
@@ -1005,7 +1010,7 @@ describe("SPEC section 6: what comes next", () => {
     vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
     serve({ status: 200, body: NEXT });
     await computeTo("No open items in what you've added");
-    fireEvent.click(screen.getByRole("button", { name: "Copy the question" }));
+    fireEvent.click(screen.getByRole("button", { name: "Copy the email" }));
     expect(
       await screen.findByText("The browser did not allow the copy. Select the words above."),
     ).toBeDefined();

@@ -1,0 +1,193 @@
+import { describe, expect, it } from "vitest";
+
+import { calmProblems } from "./calm";
+import { engineOutputSchema, type EngineOutput, type F1Case } from "./compute";
+import { dsoDraft, stemDraft } from "./drafts";
+import { CASE, NEXT } from "./fixtures";
+import { formatDate } from "./labels";
+import courtPaused from "./samples/court-paused.json";
+
+// plain-1 section 4: every draft is in the student's voice, holds no name of the tool
+// and no computed date, and passes the checks the plain words pass.
+
+const output = engineOutputSchema.parse(courtPaused);
+
+const FULL: F1Case = {
+  ...CASE,
+  cpt_full_time_days: 200,
+  opt: {
+    dso_recommendation_date: "2026-03-01",
+    i765_filed_date: "2026-03-10",
+    ead_start: "2026-06-01",
+    ead_end: "2027-05-31",
+  },
+  stem: {
+    dso_recommendation_date: null,
+    i765_filed_date: null,
+    ead_start: "2027-06-01",
+    ead_end: null,
+  },
+  employment: [
+    { start: "2026-06-20", end: "2026-12-31", hours_per_week: 15, employer_reported: true },
+    { start: "2027-01-10", end: null, hours_per_week: 40, employer_reported: false },
+  ],
+  cap_gap: {
+    petition_filed_on: "2027-04-01",
+    requested_start: "2027-10-01",
+    change_of_status: true,
+    status: "pending",
+  },
+};
+
+const REASONS = [
+  "hours_under_threshold",
+  "unemployment_at_or_over_limit",
+  "unemployment_opt_card_at_or_over_limit",
+  "cpt_full_time_at_or_over_bar",
+  "cap_gap_petition_not_active",
+  "grace_with_cap_gap",
+  "report_employer",
+  "stem_without_post_completion_opt",
+  "cap_gap_without_training",
+  "opt.months_at_this_level",
+  "rule_not_in_force_on_event_day",
+  "stem.validation_1_due.not_made",
+  "opt.i765_filed_date.after_file_by",
+  "employment.period_open_after_last_card",
+  "some_new_judgement",
+];
+
+function talk(reasons: string[]): EngineOutput {
+  return { ...output, verdict: { state: "talk_to_dso", reasons } };
+}
+
+/** Every date the engine computed, in the words a draft would use. */
+function computedDates(shown: EngineOutput): string[] {
+  const days = [
+    ...shown.computed.flatMap((item) => (typeof item.value === "string" ? [item.value] : [])),
+    ...shown.upcoming.map((entry) => entry.date),
+    ...shown.computed.flatMap((item) => (item.alternates ?? []).map((a) => a.value)),
+  ];
+  return days.filter((day): day is string => typeof day === "string").map(formatDate);
+}
+
+/** Every date the student entered, in the same words. */
+function enteredDates(sent: F1Case): Set<string> {
+  const found = JSON.stringify(sent).match(/\d{4}-\d{2}-\d{2}/g) ?? [];
+  return new Set(found.map(formatDate));
+}
+
+function checkDraft(draft: string, sent: F1Case, shown: EngineOutput) {
+  expect(draft).not.toMatch(/duly/i);
+  expect(calmProblems(draft)).toEqual([]);
+  expect(draft).toMatch(/^Subject: \S/);
+  expect(draft).toMatch(/\nHello,\n/);
+  expect(draft.endsWith("Thank you,\n[Your name]")).toBe(true);
+  const entered = enteredDates(sent);
+  for (const day of computedDates(shown)) {
+    if (!entered.has(day)) expect(draft).not.toContain(day);
+  }
+}
+
+describe("the draft for a talk_to_dso verdict", () => {
+  for (const reason of REASONS) {
+    it(`for ${reason}, speaks as the student and passes the checks`, () => {
+      const shown = talk([reason]);
+      const draft = dsoDraft(shown, FULL);
+      if (draft === null) throw new Error("no draft");
+      checkDraft(draft, FULL, shown);
+      expect(draft).toMatch(/Could you (tell|look)/);
+    });
+  }
+
+  it("is built from the facts behind its reasons, and only those", () => {
+    const draft = dsoDraft(talk(["cpt_full_time_at_or_over_bar"]), FULL) ?? "";
+    expect(draft).toContain("I have used 200 days of full-time CPT.");
+    expect(draft).not.toContain("EAD card");
+    const hours = dsoDraft(talk(["hours_under_threshold"]), FULL) ?? "";
+    expect(hours).toContain("I worked from Jun 20, 2026 to Dec 31, 2026, at 15 hours a week.");
+    expect(hours).toContain("I have worked since Jan 10, 2027, at 40 hours a week.");
+    expect(hours).toContain("My OPT EAD card runs from Jun 1, 2026 to May 31, 2027.");
+    expect(hours).toContain("My STEM OPT EAD card starts on Jun 1, 2027.");
+  });
+
+  it("states the student's cap-gap facts as entered", () => {
+    const draft = dsoDraft(talk(["grace_with_cap_gap"]), FULL) ?? "";
+    expect(draft).toContain(
+      "An H-1B petition for me was filed on Apr 1, 2027, with a requested start date of Oct 1, 2027.",
+    );
+    expect(draft).toContain("The petition is pending, and it asks for a change of status.");
+    const denied = dsoDraft(talk(["cap_gap_petition_not_active"]), {
+      ...FULL,
+      cap_gap: FULL.cap_gap && { ...FULL.cap_gap, status: "denied", change_of_status: false },
+    });
+    expect(denied).toContain("The petition is denied, and it does not ask for a change of status.");
+  });
+
+  it("asks each question once, whatever the number of reasons", () => {
+    const draft = dsoDraft(talk(REASONS), FULL) ?? "";
+    checkDraft(draft, FULL, talk(REASONS));
+    expect(draft.match(/Could you look at my record/g)).toHaveLength(1);
+    expect(draft).toContain("I did not submit my validation report 1.");
+    expect(draft).toContain("I am in a master's program.");
+  });
+
+  it("names a doctoral and a bachelor's program in the student's words", () => {
+    const doctoral = dsoDraft(talk(["opt.months_at_this_level"]), {
+      ...FULL,
+      degree_level: "doctorate",
+    });
+    expect(doctoral).toContain("I am in a doctoral program.");
+    const bachelor = dsoDraft(talk(["opt.months_at_this_level"]), {
+      ...FULL,
+      degree_level: "bachelor",
+    });
+    expect(bachelor).toContain("I am in a bachelor's program.");
+  });
+
+  it("leaves out a fact that was not entered, and never fills one in", () => {
+    const bare: F1Case = { ...CASE, cpt_full_time_days: null, opt: null, cap_gap: null };
+    const draft =
+      dsoDraft(talk(["cpt_full_time_at_or_over_bar", "grace_with_cap_gap"]), bare) ?? "";
+    expect(draft).not.toContain("CPT.");
+    expect(draft).not.toContain("petition for me");
+    const ends = dsoDraft(talk(["hours_under_threshold"]), {
+      ...CASE,
+      opt: {
+        dso_recommendation_date: null,
+        i765_filed_date: null,
+        ead_start: null,
+        ead_end: "2027-05-31",
+      },
+      stem: null,
+      employment: [],
+    });
+    expect(ends).toContain("My OPT EAD card ends on May 31, 2027.");
+    const none = dsoDraft(talk(["report_employer"]), { ...CASE, employment: [] }) ?? "";
+    expect(none).not.toContain("These are my dates");
+  });
+
+  it("is not drafted for any other verdict", () => {
+    expect(dsoDraft(output, FULL)).toBeNull();
+    expect(dsoDraft({ ...output, verdict: { state: "needs_you", reasons: [] } }, FULL)).toBeNull();
+  });
+});
+
+describe("the draft for the STEM OPT step", () => {
+  const next = engineOutputSchema.parse(NEXT);
+  const draft = stemDraft(CASE, "8 CFR 214.2(f)(10)(ii)(C)");
+
+  it("holds the student's own dates and no date the engine computed", () => {
+    checkDraft(draft, CASE, next);
+    expect(draft).toContain("My OPT EAD card runs from Jun 1, 2026 to May 31, 2027.");
+    expect(draft).toContain("My program end date is");
+    expect(draft).not.toContain("Mar 2, 2027");
+    expect(draft).toContain("Could you tell me whether 8 CFR 214.2(f)(10)(ii)(C) applies");
+  });
+
+  it("names no card date that was not entered", () => {
+    const bare = stemDraft({ ...CASE, opt: null }, "the regulation");
+    expect(bare).not.toContain("EAD card");
+    expect(bare).not.toContain("not entered");
+  });
+});

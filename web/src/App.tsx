@@ -2,7 +2,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { CaseForm } from "./components/CaseForm";
-import { Items, Questions, Verdict, VerdictRules, WhatComesNext } from "./components/Result";
+import {
+  DsoDraft,
+  Items,
+  Questions,
+  Verdict,
+  VerdictRules,
+  WhatComesNext,
+} from "./components/Result";
 import {
   EMPTY_CASE,
   ZONE_FIELD,
@@ -14,7 +21,8 @@ import {
   type CaseFields,
 } from "./lib/caseForm";
 import { CaseRefused, computeF1, type About, type F1Case } from "./lib/compute";
-import { fetchStatus, headline, reasonLine } from "./lib/status";
+import { formatDate } from "./lib/labels";
+import { fetchStatus, headline, reasonLine, rulesCheckedOn } from "./lib/status";
 
 function CannotTell({ lines }: { lines: readonly string[] }) {
   return (
@@ -101,13 +109,18 @@ export function App() {
       dateStyle: "medium",
       timeStyle: "short",
     });
+    const checked = rulesCheckedOn(status.data);
     verdict = (
       <section className="verdict" data-state={status.data.verdict.state}>
         <h1>{headline(status.data.verdict.state)}</h1>
         {status.data.verdict.reasons.map((reason) => (
           <p key={reason}>{reasonLine(reason)}</p>
         ))}
-        <p className="scope">Based on 0 documents you added. Server status read {asked}.</p>
+        <p className="scope">
+          Based on 0 documents you added.{" "}
+          {checked === null ? "" : `Rules checked ${formatDate(checked)}. `}Server status read{" "}
+          {asked}.
+        </p>
       </section>
     );
   }
@@ -134,6 +147,7 @@ export function App() {
               onAnswer={record}
               onWithdraw={withdraw}
             />
+            <DsoDraft output={compute.data} sent={compute.variables} />
             <WhatComesNext output={compute.data} sent={compute.variables} />
             <VerdictRules output={compute.data} />
             <Items output={compute.data} />

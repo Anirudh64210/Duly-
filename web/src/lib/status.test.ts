@@ -53,7 +53,9 @@ describe("verdict copy", () => {
 
   it("names known reasons in plain words", () => {
     expect(reasonLine("no_documents")).toBe("Nothing has been added yet.");
-    expect(reasonLine("rule_in_litigation")).toBe("A rule that applies here is before a court.");
+    expect(reasonLine("rule_in_litigation")).toBe(
+      "A court paused a change to a rule that applies here, and the two rules give different dates.",
+    );
     expect(reasonLine("missing:ead_card")).toBe("Duly needs your ead card.");
     expect(reasonLine("conflict:program_end")).toBe("Two documents disagree on program end.");
   });
