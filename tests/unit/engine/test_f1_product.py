@@ -16,6 +16,8 @@ Where the SPEC leaves a point open, the tests say which side they take, and the 
 listed in tests/PROGRESS.md under "Questions".
 """
 
+import copy
+import functools
 from datetime import date, timedelta
 from typing import Any
 
@@ -54,12 +56,14 @@ from tests.support.f1_pack import (
     question,
     question_ids,
     reasons_with,
+    refuse_placeholders,
     said,
     upcoming,
     values,
     with_block,
     with_changes,
     with_derivation,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 9, 28)  # a Monday
@@ -97,7 +101,7 @@ NEXT_IDS = (
 def parsed(case: dict[str, Any], clock: Any) -> Any:
     """Section 3: parse_case refuses an answer dated after today. SPEC-resolutions.md,
     point 8: it learns the day from the clock, passed as `parse_case(raw, clock)`."""
-    return f1.parse_case(case, clock)
+    return f1.parse_case(refuse_placeholders(case), clock)
 
 
 def run(
@@ -356,8 +360,11 @@ def test_the_answer_yes_to_another_row_leaves_this_one_open(conflict):
     today, raises, _, _ = ROWS[conflict]
     other = ROW_IDS[(ROW_IDS.index(conflict) + 1) % len(ROW_IDS)]
     # The case is run on the row's own day, the day the answer is dated: an answer dated
-    # after the day of the case is refused (SPEC-resolutions.md, point 2).
-    given = answers(today.isoformat(), **{other: True})
+    # after the day of the case is refused (SPEC-resolutions.md, point 2). The answer
+    # carries the about of the question this row raised (point 7), so only its id is
+    # wrong: an answer is read for the question it names.
+    about = question(run(raises, today=today), conflict)["about"]
+    given = {other: {"answer": True, "on": today.isoformat(), "about": about}}
     out = run(with_changes(raises, confirmations=given), today=today)
     assert out["verdict"]["state"] == "cannot_tell"
     assert conflicts(out) == [conflict]
@@ -843,16 +850,18 @@ def test_today_for_the_day_of_an_answer_is_the_persons_own_day():
     # 2026-09-29 in Kolkata. An answer dated 2026-09-29 is after today in the first
     # zone and is today in the second.
     early = clock_at("2026-09-29T01:30")
-    case = with_changes(NO_JOBS, confirmations=answers("2026-09-29", **{NO_EMPLOYMENT: True}))
+    # The about is the one the question carries (SPEC-resolutions.md, point 7).
+    case = given_on(NO_JOBS, "2026-09-29")
     with pytest.raises(ValueError):  # noqa: PT011
         parsed(with_changes(case, time_zone="America/Los_Angeles"), early)
     parsed(with_changes(case, time_zone="Asia/Kolkata"), early)
 
 
-@pytest.mark.parametrize("on", ["2026-07-11", "2026-09-27", "1950-01-01"])
+@pytest.mark.parametrize("on", ["2026-07-11", "2026-09-27", "1950-01-02"])
 def test_review_5_an_answer_given_before_today_leaves_the_days_since_open(on):
-    # 2026-07-11 is the second day of the card. 2026-09-27 is yesterday. 1950-01-01 is
-    # before the card began. None covers 2026-09-28.
+    # 2026-07-11 is the second day of the card. 2026-09-27 is yesterday. 1950-01-02 is
+    # before the card began (1950-01-01, the first day the contract takes, is the marker
+    # ON_THE_DAY_IT_RUNS, which refuse_placeholders turns away). None covers 2026-09-28.
     out = review(given_on(NO_JOBS, on))
     assert question_ids(out) == [NO_EMPLOYMENT]
     assert out["verdict"]["state"] == "cannot_tell"
@@ -937,11 +946,28 @@ def test_no_employment_to_record_covers_the_days_through_the_day_it_was_given(
         assert values(out)["unemployment.days_used"] == since_start + 1
 
 
+@functools.cache
+def row_about(question_id: str) -> dict[str, Any]:
+    """The about of the question a row of section 1 raises, on the row's own case."""
+    today, raises, _, _ = ROWS[question_id]
+    about: dict[str, Any] = question(run(raises, today=today), question_id)["about"]
+    return about
+
+
 @settings(max_examples=100, deadline=None)
 @given(after=st.integers(min_value=-400, max_value=400), question_id=st.sampled_from(ROW_IDS))
 def test_an_answer_is_refused_when_and_only_when_it_is_dated_after_today(after, question_id):
     on = TODAY + timedelta(days=after)
-    case = with_changes(FITS, confirmations=answers(on.isoformat(), **{question_id: True}))
+    # The answer carries the about its question carries where its row raises it
+    # (SPEC-resolutions.md, point 7), so that nothing but the day is out of place.
+    given = {
+        question_id: {
+            "answer": True,
+            "on": on.isoformat(),
+            "about": copy.deepcopy(row_about(question_id)),
+        }
+    }
+    case = with_changes(FITS, confirmations=given)
     if after > 0:
         with pytest.raises(ValueError):  # noqa: PT011
             parsed(case, clock_on(TODAY))
@@ -1341,6 +1367,9 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
     # cannot_tell; and no case gives no_open_items unless every part is either entered
     # or answered for.
     case, today = drawn
+    # SPEC-resolutions.md, point 7: each answer is sent with the about of the question
+    # the output asks; an answer to a question not asked is left out.
+    case = with_the_about_asked(case, lambda sent: run(sent, today=today))
     out = run(case, today=today)
     state = out["verdict"]["state"]
     asked = question_ids(out)

@@ -42,11 +42,13 @@ from tests.support.f1_pack import (
     question,
     question_ids,
     reasons_with,
+    refuse_placeholders,
     said,
     upcoming,
     values,
     with_block,
     with_changes,
+    with_the_about_asked,
 )
 
 TODAY = date(2027, 3, 10)  # a Wednesday
@@ -71,8 +73,8 @@ def parsed(case: dict[str, Any], clock: Any) -> Any:
     """Section 3: parse_case has to learn the day. Where it takes a second argument, it
     is given the clock."""
     if len(inspect.signature(f1.parse_case).parameters) >= 2:
-        return f1.parse_case(case, clock)
-    return f1.parse_case(case)
+        return f1.parse_case(refuse_placeholders(case), clock)
+    return f1.parse_case(refuse_placeholders(case))
 
 
 def run(
@@ -385,7 +387,9 @@ def test_the_same_answer_a_day_later_is_open_again():
 
 
 def test_an_answer_dated_tomorrow_is_refused():
-    case = with_changes(IDLE, confirmations=answers(TOMORROW, **{NO_EMPLOYMENT: True}))
+    # The answer carries the about of the question (SPEC-resolutions.md, point 7), so
+    # that nothing but its day is out of place.
+    case = answer_as_the_screen_does(IDLE, run(IDLE), TOMORROW, **{NO_EMPLOYMENT: True})
     assert case_problems(case) == []
     with pytest.raises(ValueError):  # noqa: PT011
         parsed(case, clock_on(TODAY))
@@ -527,6 +531,9 @@ def records(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
 @given(records())
 def test_a_record_that_does_not_fit_is_never_quiet(drawn):
     case, today = drawn
+    # SPEC-resolutions.md, point 7: each answer is sent with the about of the question
+    # the output asks; an answer to a question not asked is left out.
+    case = with_the_about_asked(case, lambda sent: run(sent, today=today))
     out = run(case, today=today)
     state = out["verdict"]["state"]
     answered_for = case.get("confirmations", {})

@@ -16,14 +16,15 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import pytest
-from fastapi.testclient import TestClient
 
 from api.main import app, get_clock, get_settings
 from api.settings import Settings
 from engine.clocks import FixedClock
+from tests.support.api_client import CheckedClient, as_the_screen_sends
 from tests.support.f1_pack import (
+    NO_EMPLOYMENT,
     TIME_ZONE,
-    answered_yes,
+    answers,
     contract_problems,
     ead,
     items,
@@ -35,13 +36,15 @@ from tests.support.f1_pack import (
 URL = "/v1/compute/f1"
 UNREACHABLE = "postgresql+psycopg://duly:duly@127.0.0.1:1/duly"
 TODAY = date(2026, 9, 28)
+CLOCK = FixedClock(datetime(2026, 9, 28, 12, 0, tzinfo=UTC))
 
 # Values chosen so that each is easy to spot in a log: no other part of the stack
-# produces these strings.
+# produces these strings. GOOD raises no question (an open period from 2026-07-03 and
+# the days before it inside the card), so it carries no answer: a placeholder answer
+# never reaches the api (tests/support/api_client.py).
 GOOD: dict[str, Any] = {
     "program_end_date": "2026-05-17",
     "time_zone": TIME_ZONE,
-    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 7919,
     "cpt_full_time_days": 213,
@@ -66,12 +69,10 @@ BAD_MARK = "mark_q7f3kz"
 
 @pytest.fixture
 def client():
-    app.dependency_overrides[get_clock] = lambda: FixedClock(
-        datetime(2026, 9, 28, 12, 0, tzinfo=UTC)
-    )
+    app.dependency_overrides[get_clock] = lambda: CLOCK
     # The database address leads nowhere. The route stores nothing, so it never notices.
     app.dependency_overrides[get_settings] = lambda: Settings(database_url=UNREACHABLE)
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
@@ -95,6 +96,9 @@ def test_a_good_case_returns_the_engine_output(client):
         "rules",
         "questions",
         "today",
+        # specs/product-1/SPEC.md, section 3: the product output adds these two.
+        "upcoming",
+        "lists",
     }
     assert body["scope"]["documents_count"] == 7919
     assert [p["category"] for p in body["rulepacks"]] == ["f1"]
@@ -205,11 +209,21 @@ def test_the_injected_clock_decides_today(client):
 
 def test_nothing_is_kept_between_requests(client):
     first = client.post(URL, json=GOOD).json()
-    other = client.post(URL, json=with_changes(GOOD, documents_count=1, employment=[])).json()
+    # No employment: the question no_employment_to_record is raised. The answer yes is
+    # given on 2026-09-28, the day of the case, so it covers every day through it, with
+    # the about the api asked (SPEC-resolutions.md, points 2, 3 and 7).
+    idle = with_changes(
+        GOOD, documents_count=1, employment=[], confirmations=answers(**{NO_EMPLOYMENT: True})
+    )
+    sent = as_the_screen_sends(client, URL, idle, CLOCK)
+    assert sent["confirmations"][NO_EMPLOYMENT]["on"] == "2026-09-28"
+    other = client.post(URL, json=sent).json()
     again = client.post(URL, json=GOOD).json()
     assert again == first
     assert other["scope"]["documents_count"] == 1
-    # Window of 119 days with no employment.
+    assert other["questions"] == []
+    # Window of 119 days with no employment: 2026-06-02 through 2026-09-28 is 29 days of
+    # June, 31 of July, 31 of August and 28 of September.
     assert items(other)["unemployment.days_used"]["value"] == 119
 
 

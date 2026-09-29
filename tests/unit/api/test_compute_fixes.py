@@ -14,11 +14,11 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 import pytest
-from fastapi.testclient import TestClient
 
 from api.main import app, get_clock, get_f1_pack, get_settings
 from api.settings import Settings
 from engine.clocks import FixedClock
+from tests.support.api_client import CheckedClient, as_the_screen_sends
 from tests.support.f1_pack import (
     TIME_ZONE,
     answered_yes,
@@ -28,6 +28,7 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    question,
     with_block,
     with_changes,
 )
@@ -40,7 +41,6 @@ JSON = {"content-type": "application/json"}
 GOOD: dict[str, Any] = {
     "program_end_date": "2026-05-17",
     "time_zone": TIME_ZONE,
-    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 7919,
     "cpt_full_time_days": 213,
@@ -81,7 +81,7 @@ def client():
     app.dependency_overrides[get_clock] = lambda: FixedClock(NOON)
     # The database address leads nowhere. The route stores nothing, so it never notices.
     app.dependency_overrides[get_settings] = lambda: Settings(database_url=UNREACHABLE)
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
@@ -121,7 +121,14 @@ def test_the_reviewers_stem_without_opt_cannot_tell(client):
 
 
 def test_the_reviewers_stem_without_opt_with_the_answer_yes_names_opt(client):
-    answer = ',"confirmations":{"held_post_completion_opt":{"answer":true,"on":"2026-09-28"}}}'
+    # The answer yes, given on 2026-09-28 with the about of the question the api asked:
+    # an answer with no about is not an answer (SPEC-resolutions.md, point 7).
+    asked = client.post(URL, content=(REVIEWERS_BODY + "}").encode(), headers=JSON).json()
+    about = json.dumps(question(asked, "held_post_completion_opt")["about"])
+    answer = (
+        ',"confirmations":{"held_post_completion_opt":'
+        f'{{"answer":true,"on":"2026-09-28","about":{about}}}}}}}'
+    )
     response = client.post(URL, content=(REVIEWERS_BODY + answer).encode(), headers=JSON)
     assert response.status_code == 200
     out = response.json()
@@ -131,9 +138,12 @@ def test_the_reviewers_stem_without_opt_with_the_answer_yes_names_opt(client):
 
 
 def test_cap_gap_with_neither_opt_nor_stem_cannot_tell(client):
-    # GOOD carries the answer yes to the question this raises.
-    case = with_changes(GOOD, opt=None, employment=[], cap_gap=cap_gap("2026-10-01"))
-    response = client.post(URL, json=case)
+    # The answer yes to each question this raises, given on the day of the case with the
+    # about the api asked (SPEC-resolutions.md, points 2, 3 and 7).
+    case = with_changes(
+        GOOD, opt=None, employment=[], cap_gap=cap_gap("2026-10-01"), confirmations=answered_yes()
+    )
+    response = client.post(URL, json=as_the_screen_sends(client, URL, case, FixedClock(NOON)))
     assert response.status_code == 200
     out = response.json()
     assert out["verdict"]["state"] == "cannot_tell"
@@ -314,11 +324,12 @@ def largest_case() -> dict[str, Any]:
 
 
 def test_the_largest_case_the_contract_allows_answers_in_under_one_second(client):
-    app.dependency_overrides[get_clock] = lambda: FixedClock(
-        datetime(2099, 12, 31, 12, 0, tzinfo=UTC)
-    )
-    case = largest_case()
-    assert case_problems(case) == []
+    clock = FixedClock(datetime(2099, 12, 31, 12, 0, tzinfo=UTC))
+    app.dependency_overrides[get_clock] = lambda: clock
+    assert case_problems(largest_case()) == []
+    # Each answer is dated 2099-12-31, the day of the case, with the about the api asked
+    # (SPEC-resolutions.md, points 2, 3 and 7). Only the request after this is timed.
+    case = as_the_screen_sends(client, URL, largest_case(), clock)
     # The first request loads the pack. The time taken is that of a request after it.
     assert client.post(URL, json=GOOD).status_code == 200
     started = time.perf_counter()

@@ -24,12 +24,12 @@ from fastapi.testclient import TestClient
 from api.main import app, get_clock, get_settings
 from api.settings import Settings
 from engine.clocks import FixedClock
+from tests.support.api_client import CheckedClient
 from tests.support.f1_pack import (
     CPT_USED,
     NO_EMPLOYMENT,
     NOTHING_MORE,
     answer_as_the_screen_does,
-    answers,
     cap_gap,
     case_problems,
     conflicts,
@@ -103,7 +103,7 @@ def client():
     app.dependency_overrides[get_clock] = lambda: FixedClock(INSTANT)
     # The database address leads nowhere. The route stores nothing, so it never notices.
     app.dependency_overrides[get_settings] = lambda: Settings(database_url=UNREACHABLE)
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
@@ -307,7 +307,10 @@ def test_each_question_in_the_response_carries_about(client):
 
 @pytest.mark.parametrize("on", [FAR_DAY, "2026-09-29"])
 def test_review_5_an_answer_dated_after_today_is_refused_in_plain_words(client, on):
-    case = with_changes(NO_JOBS, confirmations=answers(on, **{NO_EMPLOYMENT: True}))
+    # The answer carries the about the api asked (SPEC-resolutions.md, point 7), so that
+    # nothing but its day is out of place.
+    asked = computed(client, NO_JOBS)
+    case = answer_as_the_screen_does(NO_JOBS, asked, on, **{NO_EMPLOYMENT: True})
     assert case_problems(case) == []
     response = client.post(URL, json=case)
     refused_in_plain_words(response)
@@ -316,7 +319,8 @@ def test_review_5_an_answer_dated_after_today_is_refused_in_plain_words(client, 
 
 
 def test_nothing_from_a_refused_answer_is_logged(client, caplog, capsys):
-    case = with_changes(NO_JOBS, confirmations=answers(FAR_DAY, **{NO_EMPLOYMENT: True}))
+    asked = computed(client, NO_JOBS)
+    case = answer_as_the_screen_does(NO_JOBS, asked, FAR_DAY, **{NO_EMPLOYMENT: True})
     with caplog.at_level(logging.DEBUG):
         assert client.post(URL, json=case).status_code == 422
     written = capsys.readouterr()
@@ -328,15 +332,15 @@ def test_nothing_from_a_refused_answer_is_logged(client, caplog, capsys):
 def test_an_answer_dated_tomorrow_in_utc_is_today_for_a_person_further_east(client):
     # The instant is 2026-09-28 18:00 UTC. In Pacific/Kiritimati, 14 hours ahead, it is
     # 08:00 on 2026-09-29, so an answer dated 2026-09-29 is dated today.
-    case = with_changes(
-        NO_JOBS,
-        time_zone="Pacific/Kiritimati",
-        confirmations=answers("2026-09-29", **{NO_EMPLOYMENT: True}),
-    )
+    east = with_changes(NO_JOBS, time_zone="Pacific/Kiritimati")
+    asked = computed(client, east)
+    case = answer_as_the_screen_does(east, asked, "2026-09-29", **{NO_EMPLOYMENT: True})
     assert client.post(URL, json=case).status_code == 200
 
 
-@pytest.mark.parametrize("on", ["2026-07-11", "1950-01-01"])
+# 1950-01-02: long before the card; 1950-01-01 is the marker ON_THE_DAY_IT_RUNS, which
+# CheckedClient refuses to post.
+@pytest.mark.parametrize("on", ["2026-07-11", "1950-01-02"])
 def test_review_5_an_answer_given_before_today_leaves_the_question_open(client, on):
     asked = computed(client, NO_JOBS)
     case = answer_as_the_screen_does(NO_JOBS, asked, on, **{NO_EMPLOYMENT: True})

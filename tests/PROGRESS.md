@@ -828,3 +828,70 @@ observed Jul 4: Jul 2, 6, 7, 8, 9, 10, 13, 14, 15, 16.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Iteration 9, 2026-09-29: api and holdout tests in line with the resolutions (run l-tests-2591450738)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC-resolutions.md, specs/product-1/SPEC.md
+sections 1 to 6, specs/phase-2/SPEC.md (missing_inputs), contracts/engine_output.schema.json
+(questions.about), contracts/factory_report.schema.json, api/REPORT.json disputes on
+lane/L-api/l-api-b92dbaa4da (api/ESCALATE.md is not on that branch: `git show` says the path
+does not exist). The api branch was laid over a scratch copy under TMPDIR, never merged.
+
+### What was done
+
+| Mission point | Change |
+|---|---|
+| Guard | tests/support/f1_pack.py: refuse_placeholders(case) raises PlaceholderAnswerError (an Exception, not a ValueError, so that a test expecting the engine's refusal cannot pass on the marker) when an answer is dated ON_THE_DAY_IT_RUNS or carries an about of the form {"question": id}. with_the_about_asked now leaves out an answer whose question is never asked, rather than sending the placeholder. Every run helper that calls parse_case with a clock (5 engine files, 5 holdout files) passes its case through the guard. tests/support/api_client.py (new): CheckedClient, a TestClient whose post refuses a placeholder in `json=` or in `content=` before anything is sent, and as_the_screen_sends(client, url, case, clock), the screen's step against the api. Every api fixture (tests/unit/api, holdout context and fixes) uses CheckedClient |
+| Refusal test | tests/unit/support/test_placeholders.py (new): the two markers are refused; the error is no ValueError; real answers pass unchanged; a run helper refuses before parse_case is called; CheckedClient refuses before the api reads its clock; a body that is not JSON is still posted; the screen step gives an answer on the person's own day with the question's about, which the api takes (81 days); an ast scan finds every helper that calls parse_case(x, clock) without refuse_placeholders; a scan finds any TestClient(app ... in the api and holdout files |
+| api callers | test_compute.py and test_compute_fixes.py: GOOD carries no answer (it raises no question). test_nothing_is_kept_between_requests answers no_employment_to_record through as_the_screen_sends (2026-09-28, the case day); test_cap_gap_with_neither_opt_nor_stem gives answered_yes() through it; the reviewer's body now carries the about the api asked; the largest case goes through it before the timed request. test_compute_context.computed() goes through as_the_screen_sends. test_compute_product: the refusal tests carry the asked about, so only their day is out of place |
+| Key set | test_a_good_case_returns_the_engine_output adds upcoming and lists (SPEC.md section 3 of product-1) |
+| Engine callers the guard found | test_f1_product.py: the yes to another row carries this row's about (only the id is wrong); the person's-own-day test uses given_on; the after-today property carries the row's about (row_about, cached); the quiet-verdict property goes through with_the_about_asked. test_holdout_product.py: the same for its tomorrow test and its property. 1950-01-01 as a real answer day (engine and api review 5 tests) became 1950-01-02: 1950-01-01 is the marker |
+| Point 4 in hidden cases | CAP_GAP_ALONE_CASE filed 2026-03-02 (was 2026-04-01, after TODAY 2026-03-09). test_capgap filed on H1_TODAY 2024-03-01 (the default 2026-04-02 was after it). holdout_f1 cases(): STEM recommendation and filing are min(date, today); periods start on or after the OPT start and end on or before the last card day. holdout_sourcing CASE_D petition filed 2026-10-05 (was 2027-04-05, after TODAY 2026-11-02). The long 30-year OPT window (holdout_fixes) is a card_longer_than_rule conflict: the person answers yes, and the test asserts talk_to_dso naming it, then the same counts |
+| Extension reports | test_there_is_one_report_for_each_interval_in_the_extension was null because the STEM card of 24 months is longer than an extension of interval x reports months: card_longer_than_rule, point 4. The case now has a card as long as the extension (with_extension_of), the expectation unchanged. The same for the eight-month test |
+| Lookahead | see Disputes: moved onto stem.evaluation_12_month_due with the interval at 3 months (2026-11-11), today varied; the property too |
+| Earliest OPT start | opt_card_from(start): no STEM, a 12-month card from the start, filed before it, one period from its first day, run 30 days in. The rows keep their expectations |
+| Evaluation property | CASE_C moved whole (moved()) so that STEM begins on the drawn start and no gap after OPT opens |
+
+Working: 8 months from 2026-08-01 is 2027-04-01, so the card ends 2027-03-31. Evaluation with
+the interval 3: 2026-08-01 + 3 months = 2026-11-01, plus 10 days = 2026-11-11; 2026-10-12 + 30
+= 19 days to Oct 31 and 11 to Nov 11. OPT 2026-06-02 through 2026-09-28: 29 + 31 + 31 + 28 =
+119. 2026-07-10 through 2026-09-28: 22 + 31 + 28 = 81. The long window: 10 + 3,287 + 174 =
+3,471 used, 3,652 + 182 = 3,834 under hours (as the test already worked).
+
+### What ran and what it printed
+
+- Before, HEAD tests over the api branch (scratch copy under TMPDIR, .claude left out because
+  the sandbox refuses to write .claude/ even in a scratch folder): 34 failed (11 api, 23
+  holdout). The done command as written fails the same way as in iteration 8: tar "Can't
+  create '.claude/agents/...': Operation not permitted", exit 1, before pytest.
+- With the guard alone: 17 more tests failed with PlaceholderAnswerError (test_f1_product.py
+  and test_holdout_product.py sent answers() straight to the engine), then 53 in all.
+- After: tests/unit (without tools) and tests/holdout, exit 0, no failure.
+- ruff check tests: All checks passed. ruff format --check tests: 42 files already formatted.
+
+### What change would make each new or changed test fail (planted in a scratch copy)
+
+- CheckedClient.post without refuse_placeholders: test_the_checked_client_refuses_... fails. Shown.
+- PlaceholderAnswerError a ValueError: test_the_refusal_is_not_the_refusal_the_engine_gives fails. Shown.
+- holdout_f1 run() calling parse_case(sent, clock): test_every_run_helper_passes_... fails. Shown.
+- The guard not checking the about: test_a_case_whose_about_names_the_question_is_refused fails. Shown.
+- The api tests: an api that keeps an answer between requests, or takes an answer with no about
+  (the answer would then be read in test_nothing_is_kept_... and the count would differ).
+- The lookahead rows: an engine that opens an item one day too early or too late (2026-11-05
+  with 5, 2026-11-12 with 5, 2026-10-11 with 30).
+- The extension reports: an engine that gives more or fewer reports than the extension holds.
+
+### Disputes
+
+- test_the_lookahead_comes_from_the_settings: the mission says to give it a case with no STEM
+  filing. That is not enough: SPEC section 4 marks stem.file_by done when stem.i765_filed_date
+  or stem.ead_start is recorded, and a STEM block without stem.ead_start is a missing input
+  (phase-2 SPEC, missing_inputs), so the verdict is cannot_tell and never needs_you with
+  stem.file_by. Probed: no filing and the card gives no_open_items; no filing and no card
+  gives cannot_tell (missing:stem.ead_start, missing:stem.ead_end). The test and its property
+  were moved to stem.evaluation_12_month_due, as the engine round moved its lookahead tests to
+  stem.validation_2_due. The founder may prefer another item.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

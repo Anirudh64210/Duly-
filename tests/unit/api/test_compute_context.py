@@ -20,6 +20,7 @@ from fastapi.testclient import TestClient
 from api.main import app, get_clock, get_settings
 from api.settings import Settings
 from engine.clocks import FixedClock
+from tests.support.api_client import CheckedClient, as_the_screen_sends
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
     HELD_OPT,
@@ -86,12 +87,16 @@ def client():
     app.dependency_overrides[get_clock] = lambda: FixedClock(EARLY)
     # The database address leads nowhere. The route stores nothing, so it never notices.
     app.dependency_overrides[get_settings] = lambda: Settings(database_url=UNREACHABLE)
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
 def computed(client: TestClient, case: dict[str, Any]) -> dict[str, Any]:
-    response = client.post(URL, json=case)
+    """The output for the case as the screen sends it: each answer made with answers()
+    is dated on the person's own day at EARLY and carries the about the api asked
+    (SPEC-resolutions.md, points 2, 3 and 7)."""
+    sent = as_the_screen_sends(client, URL, case, FixedClock(EARLY))
+    response = client.post(URL, json=sent)
     assert response.status_code == 200, response.text
     out: dict[str, Any] = response.json()
     assert contract_problems(out) == []

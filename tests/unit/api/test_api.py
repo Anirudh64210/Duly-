@@ -1,12 +1,12 @@
 from datetime import UTC, datetime
 
 import pytest
-from fastapi.testclient import TestClient
 
 from api.main import app, get_clock, get_settings
 from api.ops_guard import caller_allowed
 from api.settings import Settings
 from engine.clocks import FixedClock
+from tests.support.api_client import CheckedClient
 
 UNREACHABLE = "postgresql+psycopg://duly:duly@127.0.0.1:1/duly"
 
@@ -19,7 +19,7 @@ def client():
     app.dependency_overrides[get_settings] = lambda: Settings(
         database_url=UNREACHABLE, ops_ip_allowlist="203.0.113.0/24"
     )
-    yield TestClient(app, client=("203.0.113.7", 50000))
+    yield CheckedClient(app, client=("203.0.113.7", 50000))
     app.dependency_overrides.clear()
 
 
@@ -50,7 +50,7 @@ def test_ops_refuses_any_other_address():
         database_url=UNREACHABLE, ops_ip_allowlist="203.0.113.0/24"
     )
     try:
-        outsider = TestClient(app, client=("198.51.100.9", 50000))
+        outsider = CheckedClient(app, client=("198.51.100.9", 50000))
         assert outsider.get("/ops/v1/status").status_code == 403
     finally:
         app.dependency_overrides.clear()
