@@ -27,6 +27,8 @@ from tests.support.f1_pack import (
     OPERATIVE,
     SHIFTED,
     STATUS_ORDER,
+    TIME_ZONE,
+    answered_yes,
     build_pack,
     cap_gap,
     case_problems,
@@ -65,6 +67,8 @@ def run(
 # Case A: post-completion OPT, no STEM, no cap-gap.
 CASE_A: dict[str, Any] = {
     "program_end_date": "2026-05-15",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 3,
     "cpt_full_time_days": 0,
@@ -77,6 +81,8 @@ CASE_A: dict[str, Any] = {
 # Case B: OPT followed by the STEM extension, with a cap-gap petition.
 CASE_B: dict[str, Any] = {
     "program_end_date": "2024-05-10",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 5,
     "cpt_full_time_days": 100,
@@ -166,10 +172,11 @@ def test_parse_case_cannot_be_changed_afterwards():
 
 
 def test_parse_case_fills_what_the_contract_lets_a_case_leave_out():
-    # The contract requires four fields. cpt_full_time_days defaults to 0 there.
+    # The contract requires five fields. cpt_full_time_days defaults to 0 there.
     case = f1.parse_case(
         {
             "program_end_date": "2026-05-15",
+            "time_zone": TIME_ZONE,
             "degree_level": "bachelor",
             "documents_count": 1,
             "employment": [],
@@ -859,9 +866,12 @@ def test_missing_stem_ead_end_gives_null_for_the_final_evaluation():
 
 
 def test_a_missing_recommendation_date_gives_a_null_file_by():
-    got = items(run(with_block(CASE_A, "opt", dso_recommendation_date=None)))
+    # specs/phase-2/SPEC-context.md, section 3: the date is needed only while neither a
+    # filing date nor an EAD start is recorded. The cases here record neither.
+    nothing = ead(None, None, None, None)
+    got = items(run(with_changes(CASE_A, opt=nothing)))
     assert got["opt.file_by"]["value"] is None
-    stem = items(run(with_block(CASE_B, "stem", dso_recommendation_date=None)))
+    stem = items(run(with_changes(CASE_B, stem=nothing)))
     assert stem["stem.file_by"]["value"] is None
     assert stem["opt.file_by"]["value"] == "2024-03-31"
 
@@ -1174,6 +1184,8 @@ def counting_cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         employment.append(draw(periods(opt_start, today)))
     case = {
         "program_end_date": program_end.isoformat(),
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": draw(st.sampled_from(["bachelor", "master", "doctorate"])),
         "documents_count": draw(st.integers(min_value=1, max_value=20)),
         "cpt_full_time_days": draw(st.integers(min_value=0, max_value=400)),

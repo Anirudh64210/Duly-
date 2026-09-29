@@ -93,7 +93,35 @@ SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
     ("calendar.federal_holidays_law", True, "flag", "settled", "", "5 U.S.C. 6103(a)"),
     ("opt.latest_start_after_days", 60, "days", "settled", "", "8 CFR 214.2(f)(11)(i)(D)"),
     ("stem.apply_window_closes_rule", True, "flag", "settled", "", "8 CFR 214.2(f)(11)(i)(C)"),
+    (
+        "stem.requires_post_completion_opt",
+        True,
+        "flag",
+        "settled",
+        "",
+        "8 CFR 214.2(f)(10)(ii)(C)",
+    ),
 )
+
+# specs/phase-2/SPEC-context.md, section 1: every rule is verbatim or a reading, and a
+# reading carries a note. The rules named here are readings in the test pack; every
+# other rule is verbatim. The notes are placeholders, as the quotes are.
+READINGS: dict[str, str] = {
+    rule_id: f"placeholder note on how {rule_id} was read in a test pack"
+    for rule_id in ("opt.max_months", "cpt.full_time_months_bar", "cpt.full_time_bar_days")
+}
+
+# specs/phase-2/SPEC-context.md, section 2: the case carries the person's own time zone.
+# A case built before that section keeps the day it always had: the clock of clock_on
+# stands at noon UTC, and the zone is UTC.
+TIME_ZONE = "UTC"
+
+# specs/phase-2/SPEC-context.md, section 4: the three questions of this round.
+HELD_OPT = "held_post_completion_opt"
+NO_EMPLOYMENT = "no_employment_to_record"
+CAP_GAP_ALONE = "cap_gap_without_training"
+QUESTION_IDS = (HELD_OPT, NO_EMPLOYMENT, CAP_GAP_ALONE)
+ANSWERED_ON = "2026-09-28"
 
 # specs/phase-2/SPEC-sourcing.md, "Duly's own choices": id, value, unit. The values are
 # those of contracts/product_settings.yaml, written here so that a test never depends on
@@ -163,7 +191,10 @@ def pack_dict(
             "status": (statuses or {}).get(rule_id, status),
             "effective_from": EFFECTIVE_FROM,
             "source": source(rule_id, citation, checked),
+            "derivation": "reading" if rule_id in READINGS else "verbatim",
         }
+        if rule_id in READINGS:
+            parameter["note"] = READINGS[rule_id]
         if regime:
             parameter["regime"] = regime
         parameters.append(parameter)
@@ -224,6 +255,22 @@ def with_regime_rows(
     return changed
 
 
+def with_derivation(
+    raw_pack: dict[str, Any], rule_id: str, derivation: str, note: str | None = None
+) -> dict[str, Any]:
+    """A deep copy of the raw pack where every row of one rule has another derivation.
+    A note of None leaves the rule without one."""
+    changed = copy.deepcopy(raw_pack)
+    for parameter in changed["parameters"]:
+        if parameter["id"] != rule_id:
+            continue
+        parameter["derivation"] = derivation
+        parameter.pop("note", None)
+        if note is not None:
+            parameter["note"] = note
+    return changed
+
+
 def settings_dict(values: dict[str, int] | None = None) -> dict[str, Any]:
     """Test settings in the shape of contracts/product_settings.yaml once parsed.
 
@@ -278,6 +325,28 @@ def weakest(statuses: list[str]) -> str:
 
 def clock_on(day: date) -> FixedClock:
     return FixedClock(datetime(day.year, day.month, day.day, 12, 0, tzinfo=UTC))
+
+
+def clock_at(instant: str) -> FixedClock:
+    """A clock that stands at an instant written in UTC, such as 2026-09-29T01:30."""
+    return FixedClock(datetime.fromisoformat(instant).replace(tzinfo=UTC))
+
+
+def answers(on: str = ANSWERED_ON, **given: bool) -> dict[str, Any]:
+    """The confirmations of the case contract: the person's answer to each question
+    named, and the day it was given."""
+    return {question: {"answer": answer, "on": on} for question, answer in given.items()}
+
+
+def answered_yes(on: str = ANSWERED_ON) -> dict[str, Any]:
+    """Yes to every question of the round. A case written before the questions existed
+    carries this, so that it still says what it said: the person held OPT, and the
+    employment entered is all there is."""
+    return answers(on, **dict.fromkeys(QUESTION_IDS, True))
+
+
+def question_ids(output: dict[str, Any]) -> list[str]:
+    return [question["id"] for question in output["questions"]]
 
 
 def iso(day: date | None) -> str | None:

@@ -358,3 +358,168 @@ round passes. No test was weakened, skipped, or marked as expected to fail.
   Fix: a test on the shipped pack uses the clock of the unit api tests, 2026-09-28. A
   test that needs another day builds its pack in code.
   Evidence: tests/holdout/test_holdout_fixes.py, the `client` fixture.
+
+## Iteration 4, 2026-09-29: the context round
+
+Spec: specs/phase-2/SPEC-context.md, sections 2 to 5. Read first: PRINCIPLES.md,
+DECISIONS.md D32 to D35, BOUNDARY.md, and the contracts as changed on this branch.
+
+### What was written
+
+| File | What it covers |
+|---|---|
+| tests/support/f1_pack.py | `derivation` on every rule of the test pack, and a `note` on the three marked as readings (READINGS). The new flag stem.requires_post_completion_opt at the end of SPEC_RULES. TIME_ZONE, the three question ids, `answers`, `answered_yes`, `question_ids`, `clock_at`, `with_derivation` |
+| tests/unit/engine/test_f1_context.py | Section 2: the SPEC's own test, 16 instants and zones by hand with both sides of midnight and the end of daylight time, a clock whose today() raises, the age of the rules and an open item on the person's day, known and unknown zones in parse_case, a property over any instant and zone. Section 3: every row of the table for OPT and for STEM, and a property. Section 4: each question unanswered, answered yes, answered no, the first day of the window, the general property. Section 5: derivation and note from the pack, changed by the test to show they are read from the pack |
+| tests/unit/api/test_compute_context.py | The day and the zone through the api, a missing zone, four zones that do not exist, eleven values that are not zones, nothing of the refused zone in the words or the log, each question and each answer through the api, 17 bad confirmations, derivation on the shipped pack |
+| tests/holdout/test_holdout_context.py | The hidden second set for all four sections, with other cases, instants, zones and numbers, and the start of daylight time |
+| tests/unit/engine/test_f1.py, test_f1_sourcing.py, test_f1_fixes.py, tests/unit/api/test_compute.py, test_compute_fixes.py | Every case carries `time_zone`, and the answer yes to the three questions. See "Changes to existing tests" |
+| tests/holdout/test_holdout_f1.py, test_holdout_fixes.py, test_holdout_sourcing.py | The same, by a script, without opening them. Two tests taken out by name. See "Hidden tests" |
+
+### What ran and what it printed
+
+- The done command: exit 0. `ruff check tests`: All checks passed. `ruff format --check
+  tests`: 29 files already formatted.
+- `uv run pytest tests/unit tests/holdout` on the engine and api as they are:
+  `254 failed, 919 passed`. Expected: rounds G2 and G3 have not run. In the older unit
+  files 58 tests fail: 56 on the line `contract_problems(out) == []`, because the output
+  contract now requires `questions` and `today`, and the 2 this round changed (items 3
+  and 4 under "Changes to existing tests"). The older hidden files fail 20, run with the
+  traceback off. test_rulepack.py, test_verdict.py and tests/unit/tools: `99 passed`.
+- Satisfiability check, as in earlier iterations. A throwaway copy of engine/f1.py in a
+  folder that git ignores, changed to follow the SPEC, loaded with `PYTEST_PLUGINS`. The
+  scratch api turned the ValueError into a 422 and gave the shipped pack, in memory, a
+  derivation on each rule and the new flag. Result over tests/unit and tests/holdout:
+  `1173 passed`. The folder was deleted before the commit.
+- Planted faults in the scratch copy, each run over both folders:
+  - today read in UTC: 34 failed.
+  - a fixed offset for each zone, no daylight time: 4 failed.
+  - an unknown zone raising KeyError where the SPEC says ValueError: 20 failed.
+  - the recommendation date still blocking: 16 failed.
+  - file_by left out even while the date still matters: 5 failed.
+  - STEM without OPT taken as yes without asking: 12 failed.
+  - an empty employment list counted without asking: 15 failed.
+  - the employment question raised one day late: 5 failed.
+  - the answer no without the paragraph on who may apply: 4 failed.
+  - derivation not shown: 11 failed.
+  - every rule shown as verbatim: 6 failed.
+  - the age of the rules counted from the clock's day: 2 failed.
+- The check found one mistake of mine: cap-gap alone with the answer no gave cannot_tell,
+  because the program had ended and the grace period turns on the rule in litigation. The
+  case now ends its program after the day of the test.
+
+### Changes to existing tests
+
+No assertion was loosened. Each change follows a line of the SPEC.
+
+1. Every case gained `"time_zone": "UTC"`. The clock of `clock_on` stands at noon UTC, so
+   every day in the older tests is the day it was.
+2. Every case except the two "only the required fields" cases gained the answer yes to
+   all three questions (`answered_yes()`). A case written before the questions existed
+   then says what it said: the person held OPT, and the employment entered is whole.
+   With yes, STEM without OPT still gives `missing:opt...`, which is what the tests of
+   finding 1 require. This rests on question 36 below.
+3. tests/unit/api/test_compute.py: the keys of the response include `questions` and
+   `today`. `no_time_zone` joined the bad cases.
+4. tests/unit/api/test_compute_fixes.py: the reviewer's body, sent without an answer, now
+   expects `unconfirmed:held_post_completion_opt`. A second test sends it with the
+   answer yes and expects `missing:opt`, as before.
+5. tests/unit/engine/test_f1.py, `test_a_missing_recommendation_date_gives_a_null_file_by`:
+   the cases now record neither a filing date nor an EAD, so the date still matters.
+6. tests/unit/engine/test_f1_fixes.py: the two recommendation dates left GAPS. Under D32
+   a recommendation date blocks only when the block has no filing date and no EAD start,
+   and a block without an EAD start is a gap of its own.
+
+### Hidden tests and the instruction not to read them
+
+I did not open the older hidden files. What I did to them, blind:
+
+- A script put `time_zone` and `answered_yes()` after each `"program_end_date":` line of
+  a case. It printed counts only: 3, 4 and 2 cases, the same as the count of such lines.
+- Against the reference, two older hidden tests still failed, both in
+  test_holdout_fixes.py. I took them out by name with a script that reads the syntax
+  tree, 57 lines, and ruff removed the imports left unused. Their replacements are at the
+  end of test_holdout_context.py:
+  - `test_a_null_date_that_an_item_needs_never_gets_the_quiet_verdict`. Under D32 a null
+    recommendation date beside a recorded EAD is no longer a reason. Replaced by
+    `test_a_null_ead_date_never_gets_the_quiet_verdict`, and by the section 3 tests.
+  - `test_the_api_reads_the_clock_off_the_event_loop`. I believe it watched `today()`,
+    which the engine may no longer call. Replaced by
+    `test_the_api_reads_the_instant_off_the_event_loop`, which watches `now()` too.
+- This is a removal of tests I have not read. It needs a look by someone who may read
+  the folder. The commit before this round holds both tests as they were.
+
+### Requests for files this lane does not own
+
+- The zones are read from the system's zone files. The project does not list `tzdata`.
+  On this machine (macOS) every zone in the tests is found. In a small Linux image with
+  no zone files, `zoneinfo` finds no zone at all, and every case would be refused.
+  Whoever owns pyproject.toml and the api image: add `tzdata`, or install the system
+  package. I did not add a dependency.
+- .claude/lanes/L-tests.yaml still has `test: uv run pytest -q`, which cannot pass in
+  round G1, for the reason recorded in iterations 1 to 3.
+
+### Questions (continued; the tests take the side stated)
+
+34. Section 3, a recommendation date that is present when the filing or the EAD is
+    recorded. "When an input has stopped mattering, the item that needed it is left out"
+    can be read two ways: file_by is left out whenever a filing or an EAD is recorded, or
+    only when the recommendation date is absent as well. The new tests require the item
+    to be left out when the date is absent, and say nothing new about the other case.
+    The older tests, the hidden golden cases among them, still require file_by with its
+    date when the recommendation date is present, so the suite as a whole holds the
+    engine to the second reading. Under it, a file_by inside the look-ahead is still an
+    open item after the filing is recorded. If the founder means the first reading,
+    these change: the golden cases, the look-ahead tests that use opt.file_by, and
+    their hidden twins, which need someone who may read them.
+35. While held_post_completion_opt is open, is OPT named as missing? The tests say no:
+    no reason starts with `missing:opt` until the person answers yes. PRINCIPLES.md, 2.
+    The same for cap_gap_without_training.
+36. An answer to a question that is not raised. The tests require that it changes
+    nothing, whether yes or no. An answer stays in the case after the record changes.
+37. The answer no to held_post_completion_opt, and the counts. The tests require that any
+    count shown is null, and that OPT is not named as missing. They do not say whether
+    stem.apply_window_opens is shown.
+38. While no_employment_to_record is open, or answered no, the tests require that any
+    count shown is null. "Counting goes ahead" is said of the answer yes alone.
+39. STEM without OPT and an empty employment list. The window's first day is not known,
+    so "the counting window has begun" cannot be decided. The tests require the OPT
+    question and do not say whether the employment question is asked as well.
+40. `because`. The tests require text, each entry starting with the name of a case field
+    (opt, stem, employment, cap_gap), and one entry that names the part the question is
+    about. They do not fix the list.
+41. The age of the rules, the litigated check and the open items are counted from the
+    person's own day. This follows from "the engine never calls clock.today()". decide()
+    in engine/verdict.py reads clock.today() today; tests/unit/engine/test_verdict.py
+    still passes a clock to decide() and was not changed.
+42. A zone in other letters, such as america/los_angeles. macOS finds it and Linux does
+    not. Not tested.
+43. An answer dated after today, or an id the engine does not know. Not tested.
+44. A rule with status school. Section 1 asks for a derivation on the other four
+    statuses. The test pack marks every rule, the school rule too. The api tests on the
+    shipped pack require a derivation only on the four.
+45. A verbatim rule that carries a note in the pack. Not tested.
+46. The words of the 422 for an unknown zone. The tests require text that names
+    `time_zone` and does not repeat the value sent.
+
+### Stop hook
+
+The lane test is `uv run pytest -q`. It cannot pass in this round. The done command for
+the round passes. No test was switched off, skipped, or marked as expected to fail.
+
+## Lesson
+
+- Failure: a case meant to reach talk_to_dso gave cannot_tell. The program had ended
+  before the day of the test, so the grace period, a rule in litigation, stood in the way.
+  Fix: a test of talk_to_dso, needs_you or no_open_items first rules out every reason
+  for cannot_tell: documents, the age of the rules, and a day after the last end date.
+  Evidence: tests/unit/engine/test_f1_context.py, CAP_GAP_ONLY, program_end_date
+  2026-12-18.
+- Failure: none seen, but close. `uv run pytest -q -q` prints no summary line, and a
+  planted fault run looked empty.
+  Fix: pyproject.toml already passes -q. Do not pass it again when the count matters.
+  Evidence: the first planted fault run of this iteration printed twelve empty lines.
+- Failure: a contract change that adds a required field to the output turns every older
+  `contract_problems(out) == []` red, which hides what else an older test says.
+  Fix: judge the older tests against a reference that follows the new contract, never
+  against the engine as it is.
+  Evidence: 254 failed on the engine as it is, 0 on the reference.

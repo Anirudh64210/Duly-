@@ -17,6 +17,8 @@ from hypothesis import strategies as st
 from engine import f1
 from tests.support.f1_pack import (
     SPEC_SETTINGS,
+    TIME_ZONE,
+    answered_yes,
     build_pack,
     cap_gap,
     case_problems,
@@ -71,6 +73,8 @@ def run(
 # Nothing is open on 2026-11-02.
 CASE_C: dict[str, Any] = {
     "program_end_date": "2025-05-16",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 2,
     "cpt_full_time_days": 40,
@@ -83,6 +87,8 @@ CASE_C: dict[str, Any] = {
 # Case D: post-completion OPT only, with one employer not reported and a petition.
 CASE_D: dict[str, Any] = {
     "program_end_date": "2026-08-14",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "bachelor",
     "documents_count": 1,
     "cpt_full_time_days": 0,
