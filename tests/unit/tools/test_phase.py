@@ -594,3 +594,29 @@ def test_a_plan_must_end_with_an_audit(tmp_path):
     rounds.append({"name": "Z", "lanes": [job("L-audit", "auditor", "true")]})
     path.write_text(yaml.safe_dump({"branch": "phase-x", "spec": "README.md", "rounds": rounds}))
     assert phase.load_plan(path, repo)["rounds"][-1]["name"] == "Z"
+
+
+def test_a_remote_step_is_tried_again_only_while_it_fails_transiently(monkeypatch):
+    monkeypatch.setenv("DULY_RETRY_SECONDS", "0,0,0")
+    denied = (128, "git@github.com: Permission denied (publickey).")
+
+    def replies(*answers):
+        calls = []
+
+        def call():
+            calls.append(1)
+            return answers[min(len(calls), len(answers)) - 1]
+
+        return call, calls
+
+    call, calls = replies(denied, (0, "pushed"))
+    assert phase._remote(call) == (0, "pushed")
+    assert len(calls) == 2
+
+    call, calls = replies((1, "! [rejected] stale info"))  # not transient: reported at once
+    assert phase._remote(call) == (1, "! [rejected] stale info")
+    assert len(calls) == 1
+
+    call, calls = replies(denied)  # still refused after every wait: reported
+    assert phase._remote(call) == denied
+    assert len(calls) == 4
