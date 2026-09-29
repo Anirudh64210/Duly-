@@ -41,6 +41,7 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
+    periods_answered,
     reasons_with,
     refuse_placeholders,
     rule_statuses,
@@ -340,7 +341,12 @@ def test_case_a_under_a_pack_with_other_numbers():
 
 
 def test_case_b_has_every_item_once():
-    assert set(items(run(CASE_B))) == ALL_IDS
+    # SPEC-resolutions.md, point 20: CASE_B's first period ends 2025-12-31, on the STEM
+    # card (2025-07-01 through 2027-06-30) and before it ends, so its concluding evaluation
+    # joins the items: 2025-12-31 plus 10 days is 2026-01-10.
+    got = items(run(periods_answered(CASE_B)))
+    assert set(got) == ALL_IDS | {"stem.concluding_evaluation_due.1"}
+    assert got["stem.concluding_evaluation_due.1"]["value"] == "2026-01-10"
 
 
 def test_case_b_opt_values():
@@ -413,7 +419,11 @@ def test_case_b_counts_and_grace():
 
 
 def test_case_b_verdict_names_the_unreported_employer():
-    out = run(CASE_B)
+    # SPEC-resolutions.md, points 20, 21 and 22: the first period's end is reported, the
+    # second is not with a new employer, and each report dated before 2026-09-28
+    # (validations 1 and 2, the 12-month evaluation, the concluding evaluation of period 1)
+    # was made. The test is about the unreported employer.
+    out = run(periods_answered(CASE_B))
     # Nothing blocks and no judgement item applies: cpt 100 is under 365, days remaining
     # 140, no day under hours, and the petition is pending with a change of status.
     # No item whose id ends in _due, file_by, or window_closes falls from 2026-09-28
@@ -1003,7 +1013,9 @@ def test_stem_start_on_or_before_opt_end_is_the_conflict_named_stem_start(stem_s
         employment=[job("2024-07-01", None)],
         cap_gap=None,
     )
-    out = run(case)
+    # SPEC-resolutions.md, point 21: validation 1 (2026-01-15 at the latest) has passed on
+    # 2026-09-28; it was made. The test is about the conflict.
+    out = run(periods_answered(case))
     if conflict:
         assert out["verdict"]["state"] == "cannot_tell"
         assert "conflict:stem_start" in out["verdict"]["reasons"]
@@ -1121,7 +1133,9 @@ def test_every_judgement_item_that_applies_is_named():
         employment=[job("2026-06-01", "2026-06-10", hours=10)],
         cap_gap=cap_gap("2027-06-01", status="denied"),
     )
-    out = run(case)
+    # SPEC-resolutions.md, point 22: the period's end of 2026-06-10 was reported, so it
+    # asks nothing and adds no report_employer. The test is about the judgement items.
+    out = run(periods_answered(case))
     got = values(out)
     # Jun 1 through Jun 10 under hours: 10 days. The other 110 window days are uncovered.
     assert got["employment.days_under_hours"] == 10
@@ -1193,7 +1207,9 @@ def test_file_by_is_no_open_item_once_the_filing_is_recorded(recommended, file_b
 )
 def test_a_dated_item_from_today_through_14_days_on_is_an_open_item(today, open_item):
     case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
-    out = run(case, today=today)
+    # SPEC-resolutions.md, point 21: validation 1 (2026-01-15) has passed on each day
+    # here, and validation 2 on 2026-07-16; each passed report was made.
+    out = run(periods_answered(case), today=today)
     assert values(out)["stem.validation_2_due"] == "2026-07-15"
     if open_item:
         assert out["verdict"]["state"] == "needs_you"
@@ -1218,7 +1234,8 @@ def test_a_validation_report_due_soon_is_an_open_item():
     # Case B on 2026-07-06. stem.validation_2_due is 2026-07-15, nine days on.
     # stem.evaluation_12_month_due is 2026-07-11, five days on.
     case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
-    out = run(case, today=date(2026, 7, 6))
+    # SPEC-resolutions.md, point 21: validation 1 (2026-01-15) has passed; it was made.
+    out = run(periods_answered(case), today=date(2026, 7, 6))
     assert out["verdict"]["state"] == "needs_you"
     assert set(out["verdict"]["reasons"]) == {
         "stem.validation_2_due",
@@ -1232,7 +1249,8 @@ def test_unreported_employer_and_a_dated_item_are_both_named():
     # The dated item is a report, since a filing step is done once the card is recorded
     # (SPEC section 4).
     case = with_changes(CASE_B, employment=[job("2024-07-01", None, reported=False)], cap_gap=None)
-    out = run(case, today=date(2026, 7, 6))
+    # SPEC-resolutions.md, point 21: validation 1 (2026-01-15) has passed; it was made.
+    out = run(periods_answered(case), today=date(2026, 7, 6))
     assert out["verdict"]["state"] == "needs_you"
     assert set(out["verdict"]["reasons"]) == {
         "report_employer",
@@ -1460,8 +1478,26 @@ def test_no_date_appears_that_the_pack_and_the_inputs_cannot_produce(drawn, shif
     assert got["employment.periods_not_reported"]["value"] == sum(
         1 for p in case["employment"] if not p["employer_reported"]
     )
+    # SPEC-resolutions.md, point 20: a period on the STEM card whose end is recorded
+    # before the card ends has a concluding evaluation, its end plus
+    # stem.evaluation_due_days. The drawn case leaves new_employer unanswered, so no
+    # stem.new_plan_due.<n> is given.
+    concluding = set()
+    if case["stem"] is not None:
+        stem_start = date.fromisoformat(case["stem"]["ead_start"])
+        stem_end = date.fromisoformat(case["stem"]["ead_end"])
+        for number, period in enumerate(case["employment"], start=1):
+            end = None if period["end"] is None else date.fromisoformat(period["end"])
+            start = date.fromisoformat(period["start"])
+            if end is None or end < start or not stem_start <= end < stem_end:
+                continue
+            item_id = f"stem.concluding_evaluation_due.{number}"
+            concluding.add(item_id)
+            days = rule_value(pack_dict(today, values=shifted), "stem.evaluation_due_days")
+            assert got[item_id]["value"] == (end + timedelta(days=days)).isoformat()
+            assert got[item_id]["reading"] is True
     # Every item the engine returns is one the SPEC names.
-    assert set(got) <= ALL_IDS
+    assert set(got) <= ALL_IDS | concluding
 
 
 @settings(max_examples=100, deadline=None)

@@ -40,6 +40,7 @@ from tests.support.f1_pack import (
     items,
     job,
     pack_dict,
+    periods_answered,
     reasons_with,
     refuse_placeholders,
     settings_dict,
@@ -304,10 +305,14 @@ def test_a_long_window_with_gaps_is_counted_right():
         **long_card["confirmations"],
         **answers(**{"opt.card_longer_than_rule": True, "opt.ead_end.after_complete_by": True}),
     }
-    case = with_changes(
-        long_card,
-        confirmations=given,
-        employment=[job("2030-07-11", "2040-07-10"), job("2050-01-01", None, hours=10)],
+    # SPEC-resolutions.md, point 22: the end of the first period, 2040-07-10, was reported
+    # (periods_answered). The test is about the counts.
+    case = periods_answered(
+        with_changes(
+            long_card,
+            confirmations=given,
+            employment=[job("2030-07-11", "2040-07-10"), job("2050-01-01", None, hours=10)],
+        )
     )
     today = date(2060, 6, 30)
     out = run(case, today=today)

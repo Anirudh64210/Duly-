@@ -39,6 +39,8 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     reasons_with,
@@ -83,7 +85,13 @@ def run(
     assert case_problems(case) == [], "the test case itself must match the case contract"
     pack = build_pack(today) if raw_pack is None else validate_pack(raw_pack)
     clock = clock_on(today)
-    return f1.compute_f1(parsed(case, clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(parsed(sent, clock), pack, clock)
+
+    # SPEC-resolutions.md, points 20 to 22: a case whose period and report questions are
+    # answered with periods_answered is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def answered(case: dict[str, Any], today: date = TODAY, **given_answers: bool) -> dict[str, Any]:
@@ -124,16 +132,22 @@ STEM_AHEAD: dict[str, Any] = with_changes(
 )
 
 # The STEM card is in hand. 24 months from 2026-02-01 is 2028-02-01.
-STEM_NOW: dict[str, Any] = with_changes(
-    CARD,
-    program_end_date="2024-12-20",
-    opt=ead("2024-11-01", "2024-11-10", "2025-02-01", "2026-01-31"),
-    stem=ead("2025-11-10", "2025-11-20", "2026-02-01", "2028-01-31"),
-    employment=[job("2025-02-01", None)],
+# SPEC-resolutions.md, point 21: the reports dated before 2027-03-10 were made
+# (periods_answered); the rows of the table are about the dates of the cards.
+STEM_NOW: dict[str, Any] = periods_answered(
+    with_changes(
+        CARD,
+        program_end_date="2024-12-20",
+        opt=ead("2024-11-01", "2024-11-10", "2025-02-01", "2026-01-31"),
+        stem=ead("2025-11-10", "2025-11-20", "2026-02-01", "2028-01-31"),
+        employment=[job("2025-02-01", None)],
+    )
 )
 
-TWO_JOBS: dict[str, Any] = with_changes(
-    STEM_NOW, employment=[job("2025-02-01", "2026-01-31"), job("2026-02-02", None)]
+# Points 20 to 22 (periods_answered): the first end was reported, the second period is not
+# with a new employer, and the reports were made.
+TWO_JOBS: dict[str, Any] = periods_answered(
+    with_changes(STEM_NOW, employment=[job("2025-02-01", "2026-01-31"), job("2026-02-02", None)])
 )
 
 PETITION: dict[str, Any] = with_changes(
@@ -239,9 +253,18 @@ ROWS: dict[str, tuple[dict[str, Any], dict[str, Any], set[str]]] = {
         {"2026-01-31", "2026-02-02"},
     ),
     # The only card begins 2026-06-15. A closed period that begins the day before.
+    # SPEC-resolutions.md, point 22: the end of 2026-12-31 was reported (periods_answered).
     "employment.period_outside_cards": (
-        with_changes(CARD, employment=[job("2026-06-14", "2026-12-31"), job("2027-01-01", None)]),
-        with_changes(CARD, employment=[job("2026-06-15", "2026-12-31"), job("2027-01-01", None)]),
+        periods_answered(
+            with_changes(
+                CARD, employment=[job("2026-06-14", "2026-12-31"), job("2027-01-01", None)]
+            )
+        ),
+        periods_answered(
+            with_changes(
+                CARD, employment=[job("2026-06-15", "2026-12-31"), job("2027-01-01", None)]
+            )
+        ),
         {"2026-06-14"},
     ),
 }
@@ -330,10 +353,14 @@ def test_days_between_the_cards_are_outside_the_count():
     # through January 31 is 5 days inside the OPT card. The second begins 2026-02-14:
     # February 11 through February 13 is 3 days inside the STEM card. 5 + 3 = 8.
     # With the ten days between the cards it would be 18.
-    case = with_changes(
-        STEM_NOW,
-        stem=ead("2025-11-10", "2025-11-20", "2026-02-11", "2028-02-10"),
-        employment=[job("2025-02-01", "2026-01-26"), job("2026-02-14", None)],
+    # SPEC-resolutions.md, points 20 to 22 (periods_answered): the first end was reported,
+    # the second period is not with a new employer, and the reports were made.
+    case = periods_answered(
+        with_changes(
+            STEM_NOW,
+            stem=ead("2025-11-10", "2025-11-20", "2026-02-11", "2028-02-10"),
+            employment=[job("2025-02-01", "2026-01-26"), job("2026-02-14", None)],
+        )
     )
     open_still = run(case)
     assert conflicts(open_still) == ["stem.gap_after_opt"]

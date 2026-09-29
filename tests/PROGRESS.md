@@ -1048,3 +1048,57 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-ff9a7c4ceb (attempt 1): tests in line with points 20, 21, 22 and 25
+
+### What was done
+
+- The engine of l-engine-ac276e806b (merged at a5aab67) asks employment.<n>.new_employer,
+  employment.<n>.end_reported and <item>.made. The builder's engine/REPORT.json is ignored by
+  git and its worktree is gone, so the list of collisions was taken from the done command:
+  69 failures in 11 files, every one an unanswered question of points 20 to 22 or the new
+  item stem.concluding_evaluation_due.<n>. No failure was left that no point explains.
+- tests/support/f1_pack.py: periods_answered(case) answers the questions of points 20 to 22
+  for a test about something else (not a new employer, the end reported, each passed report
+  made), as placeholders that dated_on_the_day and with_the_about_asked make real. Also
+  is_period_or_report_question, period_question, made_question, placeholders_made_real.
+- Cases answered with periods_answered, point beside each: test_f1.py (CASE_B verdict,
+  stem_start, judgement items, lookahead and validation tests), test_f1_context.py (CASE_B,
+  STEM_ONLY, SEPTEMBER; answered() keeps the case's answers), test_f1_product.py (STEM_NOW,
+  TWO_JOBS, FOUR_MONTHS, HOLE; run() makes placeholders real), test_f1_sourcing.py (two
+  lookahead tests), api test_compute_context.py (STEM_ONLY; GOOD in the no-gap test),
+  holdout context (STEM_ALONE, CAP_GAP_ALONE_CASE, the api zone test through
+  as_the_screen_sends), holdout f1 (CASE_H1, CASE_H2), holdout fixes (long window),
+  holdout product (STEM_NOW, TWO_JOBS, the period_outside_cards rows, the cards test),
+  holdout sourcing (lookahead).
+- Expected, not answered, where the test is about the output (point 20):
+  test_case_b_has_every_item_once now expects stem.concluding_evaluation_due.1 = 2025-12-31
+  plus 10 = 2026-01-10; the date property works each concluding evaluation by hand (end plus
+  stem.evaluation_due_days, reading true). The two gap properties (unit and holdout context)
+  set the new questions apart as they set conflicts apart, and now assert each is unconfirmed
+  and the verdict cannot_tell. The product property allows them next to the table.
+- Holdout test_the_order_of_the_employment_periods_does_not_matter compares the dates of the
+  items numbered by period as a sorted list: the number follows the case's order (point 20).
+
+### What ran
+
+- Done command before: exit 1, 69 failed. After: exit 0 (ruff: All checks passed; 47 files
+  already formatted; pytest all passed).
+
+### What change to the code would make each new test fail
+
+- Concluding evaluation one day late (scratch plugin on engine.f1._days_after): fails
+  test_case_b_has_every_item_once and the date property. Shown.
+- A passed report answered yes not marked done (scratch plugin clearing work.done): fails the
+  test_f1.py tests that expect no open item. Shown. Scratch folder removed.
+- The gap properties fail if a new question is asked but not listed as unconfirmed, or if
+  the verdict is anything but cannot_tell while one is open.
+
+### Disputes
+
+- None new. The order test's comparison now ignores the period number of per-period items;
+  point 20 numbers by period and does not say the number is independent of order.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

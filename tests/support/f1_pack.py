@@ -833,3 +833,92 @@ def dated_on_the_day(case: dict[str, Any], clock: Any) -> dict[str, Any]:
         for name, answer in given.items()
     }
     return with_changes(case, confirmations=dated)
+
+
+# specs/product-1/SPEC-resolutions.md, points 20, 21 and 22: the questions of an
+# employment period and of a STEM report whose date has passed. Periods are numbered as
+# the case lists them, from 1.
+NEW_EMPLOYER = "new_employer"
+END_REPORTED = "end_reported"
+MADE = "made"
+STEM_REPORTS = ("stem.evaluation_12_month_due", "stem.final_evaluation_due_from_ead_end")
+
+
+def period_question(number: int, name: str) -> str:
+    """employment.<n>.new_employer (point 20) or employment.<n>.end_reported (point 22)."""
+    return f"employment.{number}.{name}"
+
+
+def made_question(item_id: str) -> str:
+    """<item id>.made (point 21)."""
+    return f"{item_id}.{MADE}"
+
+
+def _report_ids(case: dict[str, Any]) -> list[str]:
+    """Every STEM report item the engine can date for this case: the validations of the
+    card (one each six months of it, and one more to spare), the two evaluations, and a
+    concluding evaluation for each period. An answer to a question not asked is left out
+    by with_the_about_asked, so naming one too many costs nothing."""
+    card = _card(case.get("stem"))
+    validations = 0
+    if card is not None and card[1] >= card[0]:
+        months = (card[1].year - card[0].year) * 12 + card[1].month - card[0].month
+        validations = months // 6 + 2
+    periods = len(case.get("employment") or [])
+    return [
+        *(f"stem.validation_{n}_due" for n in range(1, validations + 1)),
+        *STEM_REPORTS,
+        *(f"stem.concluding_evaluation_due.{n}" for n in range(1, periods + 1)),
+    ]
+
+
+def periods_answered(
+    case: dict[str, Any],
+    *,
+    new_employer: bool = False,
+    end_reported: bool = True,
+    made: bool = True,
+) -> dict[str, Any]:
+    """The case with the questions of points 20, 21 and 22 answered, for a test about
+    something else: each period is not with a new employer, its end has been reported,
+    and each STEM report whose date has passed was made. So answered, the case says what
+    it said before those points: no stem.new_plan_due.<n>, no report_employer for an end,
+    no <item>.not_made. Answers are dated ON_THE_DAY_IT_RUNS and carry about_asked, which
+    the run helpers replace (dated_on_the_day, with_the_about_asked). An answer already
+    in the case is kept."""
+    periods = range(1, len(case.get("employment") or []) + 1)
+    given: dict[str, bool] = {}
+    for number in periods:
+        given[period_question(number, NEW_EMPLOYER)] = new_employer
+        given[period_question(number, END_REPORTED)] = end_reported
+    for item_id in _report_ids(case):
+        given[made_question(item_id)] = made
+    confirmations = {**answers(**given), **copy.deepcopy(case.get("confirmations") or {})}
+    return with_changes(case, confirmations=confirmations)
+
+
+def is_period_or_report_question(question_id: str) -> bool:
+    """Whether the id is a question of points 20, 21 or 22: employment.<n>.new_employer,
+    employment.<n>.end_reported, or <item id>.made."""
+    parts = question_id.split(".")
+    if len(parts) == 3 and parts[0] == "employment" and parts[1].isdigit():
+        return parts[2] in (NEW_EMPLOYER, END_REPORTED)
+    return len(parts) >= 2 and parts[-1] == MADE and parts[0] == "stem"
+
+
+def placeholders_made_real(
+    case: dict[str, Any], clock: Any, compute: Callable[[dict[str, Any]], dict[str, Any]]
+) -> dict[str, Any]:
+    """The case as the screen sends it, when it holds a placeholder answer (a day of
+    ON_THE_DAY_IT_RUNS or an about of about_asked, as periods_answered writes them):
+    dated_on_the_day, then with_the_about_asked. A case with no placeholder is returned as
+    it is, so an answer a test leaves with no about stays with none (SPEC-resolutions.md,
+    point 7)."""
+    given = case.get("confirmations") or {}
+    marked = any(
+        answer.get("on") == ON_THE_DAY_IT_RUNS or answer.get("about") == about_asked(name)
+        for name, answer in given.items()
+    )
+    if not marked:
+        return case
+    return with_the_about_asked(dated_on_the_day(case, clock), compute)

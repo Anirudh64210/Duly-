@@ -30,6 +30,7 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
+    periods_answered,
     reasons_with,
     refuse_placeholders,
     rule_statuses,
@@ -355,7 +356,11 @@ SHORT_INTERVAL = {EVALUATION_INTERVAL: 3}
     ],
 )
 def test_the_lookahead_comes_from_the_settings(ahead, today, open_item):
-    out = run(CASE_C, today=today, rules=SHORT_INTERVAL, chosen={LOOKAHEAD: ahead})
+    # SPEC-resolutions.md, point 21: on 2026-11-12 the evaluation of 2026-11-11 has passed,
+    # and each report dated before the day of the run was made (periods_answered). The
+    # test is about the lookahead.
+    case = periods_answered(CASE_C)
+    out = run(case, today=today, rules=SHORT_INTERVAL, chosen={LOOKAHEAD: ahead})
     assert values(out)["stem.evaluation_12_month_due"] == EVALUATION_DUE.isoformat()
     if open_item:
         assert out["verdict"] == {
