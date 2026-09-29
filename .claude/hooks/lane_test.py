@@ -2,7 +2,6 @@
 """Stop. A lane's turn cannot end while its own tests fail."""
 
 import os
-import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -30,6 +29,7 @@ target = os.environ.get("DULY_DONE", "").strip() or lane.test
 if not target:
     sys.exit(0)
 
-done = subprocess.run(shlex.split(target), cwd=root, capture_output=True, text=True, check=False)
+# The target may join commands with && or pipes, so it goes through a shell.
+done = subprocess.run(["bash", "-c", target], cwd=root, capture_output=True, text=True, check=False)
 if done.returncode:
     block(f"Lane test failed: {target}\n" + (done.stdout + done.stderr)[-2500:])

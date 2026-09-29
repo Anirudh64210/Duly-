@@ -1,0 +1,98 @@
+# Factory runbook
+
+How the agent factory is run, stopped, checked and repaired. The rules behind it are in PRINCIPLES.md and factory/config.yaml. The audit against the founder's checklist is in docs/factory/CHECKLIST.md.
+
+## Every day
+
+| To do this | Run |
+|---|---|
+| See what the agents are doing | `make watch` |
+| Stop everything now | `make stop`, or the Stop button in the Factory window |
+| Allow runs again | `make resume` |
+| See what is running, what was spent, whether the record is intact | `make status` |
+| Run a plan | `uv run python -m tools.factory.phase specs/<phase>/plan.yaml` |
+| Resume a plan after a stop | add `--from-round <name>` |
+| Run a round's checks again without its agents | add `--checks-only <name>` |
+| Remove worktrees no run holds | `make factory-clean` |
+
+## Before a change to the factory
+
+A change to a contract, a role file, a skill, the sandbox, the runner, or the pinned model:
+
+1. `make golden` and note the result.
+2. Make the change on a branch.
+3. `make factory-test` and `make test`.
+4. `make doctor`. Every agent must pass its health check again, because the check is tied to the exact contract, sandbox and runner it was earned with.
+5. `make golden` again. The pass rate must be at or above `gates.golden_pass_rate`.
+6. The founder merges.
+
+## What is enforced by what
+
+| Rule | Enforced by |
+|---|---|
+| An agent writes only in its own worktree, and there only in its lane's paths | The operating system sandbox (seatbelt on macOS, bubblewrap on Linux), set for each run by tools/factory/sandbox.py |
+| An agent cannot read the founder's keys | The same sandbox: `denyRead` on the list in sandbox.py |
+| The network is closed | The same sandbox: deny by default, with the hosts in the agent's contract allowed |
+| An agent cannot move `main` or the phase branch, change git config, or add a git hook | The same sandbox: `denyWrite` on those paths, and a check of protected state after every attempt |
+| An agent cannot start another agent | The Agent and Task tools are denied, the network refuses the model's host, and the keys are unreadable |
+| An agent's word is not trusted | The orchestrator runs the done command itself, in the jail, and compares the report with what git shows |
+| Code an agent wrote runs with no network and no keys | tools/factory/jail.py, for every done command and every check |
+| Limits on turns, time, tokens and cost | The agent's contract, enforced by the runner, which ends the process |
+| Nothing lands on a protected branch | tools/factory/phase.py refuses a plan whose branch is protected |
+| Dependencies, CI, guardrails, skills and contracts need the founder | phase.py holds any such change and does not merge it |
+
+## When the factory cannot finish a task
+
+In this order. Each step is written to the ledger and raises an alert.
+
+1. An attempt is not accepted (the done command fails, the report is refused, a file outside the lane changed). The agent is told why and tries again, up to `max_attempts` in its contract.
+2. The same failure appears twice. The run ends as escalated. The worktree and branch are kept.
+3. A limit is reached (time, stall, repeated action, tokens, cost). The process is ended, the failure is added to the memory of past failures, and the next attempt is told.
+4. The agent itself escalates, with status `escalated` in its report and the reason under disputes or requests.
+5. The round stops. Nothing later in the plan runs. The founder is notified.
+6. The founder reads the run in the Factory window, decides, and either fixes the SPEC or the factory and resumes with `--from-round`, or parks the task in specs/product/BACKLOG.md.
+
+## Undoing
+
+Every lane lands as one merge commit. To undo one lane:
+
+```
+git revert -m 1 <merge commit>
+```
+
+The merge commit names its run (`Factory-Run`), its sessions (`Factory-Trace`) and the seal of the ledger at that moment (`Factory-Ledger`).
+
+## The record of actions
+
+`.factory/events.jsonl` is append only. Each line holds the seal of the line before it, so a changed, removed or reordered line shows in `make status`. Each merge pins the seal in the repository's history.
+
+For any merge, the full trace is:
+
+| What | Where |
+|---|---|
+| Every action, with its time | `.factory/events.jsonl`, lines with that `run_id` |
+| The raw stream from the agent, with secrets taken out | `.factory/runs/<run_id>/stream.jsonl` |
+| The sandbox settings the run was given | `.factory/runs/<run_id>/settings.json` |
+| The session as Claude Code kept it | `~/.claude/projects/`, under the worktree's path, by session id |
+| Spans in the OpenTelemetry shape | `.factory/otel/traces.jsonl` |
+
+## Every week
+
+`make weekly` writes docs/factory/reviews/<year>-W<week>.md: every run that failed or escalated, and a sample of those that passed, with five questions for each. The founder reads the traces, answers, and writes what changes. Then `make drift` has the reviewer score an earlier review again, to check the judge against itself.
+
+## Definition of done, by kind of task
+
+An agent cannot declare itself done. Done is a command in the plan, run by the orchestrator.
+
+| Kind of task | Done when |
+|---|---|
+| Build (builder) | The lane's tests pass, types and lint are clean, and every number has a source |
+| Tests (test-author) | The tests are written, lint clean, and named in the report. In a round where tests come first they are not expected to pass yet |
+| Rules (rulepack-drafter) | Every quote is found in its saved source, every value is verbatim or a marked reading, and the pack loads |
+| Review (reviewer) | The review and its scores are written, the scores match the schema, and the decision follows from the scores |
+| Skills (skill-curator) | Each proposal has a replay with evidence. Never merged by the factory |
+| Any plan | Every round's checks pass, the hidden tests pass, and the reviewer approves |
+
+## Reproducing a run
+
+The model is pinned in factory/config.yaml and in each contract, and a run on any other model is refused. Dependencies are pinned by uv.lock and package-lock.json. Each run starts from a recorded commit (`Factory-Base`). A model's output is not repeatable in itself, which is why the checks, and not the agent's words, decide.

@@ -122,6 +122,11 @@ def test_a_seed_plan_becomes_a_checked_traceable_branch(tmp_path):
     merges = mini.git(repo, "log", "--merges", "--format=%s%n%b")
     assert merges.count("Factory-Run: ") == 3
     assert "Factory-Trace: fake-session-1" in merges
+    pinned = [
+        line.split(": ")[1] for line in merges.splitlines() if line.startswith("Factory-Ledger")
+    ]
+    sealed = [row["hash"] for row in ledger.read(repo)]
+    assert len(pinned) == 3 and all(seal in sealed for seal in pinned)
     assert mini.git(repo, "rev-parse", "main") != mini.git(repo, "rev-parse", "phase-x")
     assert "engine/new.py" not in mini.git(repo, "ls-tree", "-r", "--name-only", "main")
 

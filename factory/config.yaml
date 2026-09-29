@@ -24,6 +24,7 @@ budgets:
 gates:
   diff_coverage_percent: 80
   engine_diff_coverage_percent: 95
+  mutation_score_min: 0.8        # share of small wrong changes to the engine the tests must catch
   golden_pass_rate: 1.0          # share of golden factory tasks that must pass
   reviewer_rubric_min: 4         # each rubric line is scored 1 to 5; any line below this is a veto
   reviewer_rubric_mean_min: 4.3

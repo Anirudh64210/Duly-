@@ -151,7 +151,8 @@ def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, A
     message = (
         f"merge({lane.name}): {len(files)} files\n\nFactory-Run: {out['run_id']}\n"
         f"Factory-Task: {out['task']}\nFactory-Agent: {out['agent']}\n"
-        f"Factory-Trace: {', '.join(out['sessions'])}\n\n{TRAILER}"
+        f"Factory-Trace: {', '.join(out['sessions'])}\n"
+        f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}"
     )
     if plan["merge"] == "pr":
         ok = _land_by_pr(repo, base, branch, lane.name, out, message)

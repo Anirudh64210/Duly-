@@ -81,6 +81,12 @@ def append(
     return row
 
 
+def head(cwd: Path | None = None) -> str:
+    """The seal of the newest line. Written into each merge, so that the record of actions
+    up to that merge is pinned by the repository's own history."""
+    return _last_hash(ledger_path(cwd))
+
+
 def read(cwd: Path | None = None) -> list[dict[str, Any]]:
     path = ledger_path(cwd)
     if not path.exists():

@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -102,6 +102,9 @@ drift:
 
 weekly:
 	@uv run python -m tools.factory.weekly
+
+mutation:
+	uv run python -m tools.gates.mutation $(FILES)
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)
