@@ -318,3 +318,68 @@ parameters:
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     note: "Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps April 1 and moves the paragraph to (f)(5)(vii)(A)."
+  - id: stem.evaluation_interval_months
+    value: 12
+    unit: months
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(9)(i)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-28
+      quote: "All STEM practical training opportunities require an initial evaluation within 12 months of the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application, and a concluding evaluation."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text. The 2026-09-15 text has the same words. The regulation does not state a repeating interval. It names two evaluations: one within 12 months of the approved starting date on the employment authorization document, and one at the conclusion. The word annual appears in the preamble of 81 FR 13040, not in the regulation. The 12 months run from the approved starting date on the document, for each practical training opportunity."
+  - id: cpt.full_time_bar_days
+    value: 365
+    unit: days
+    status: school
+    effective_from: 2003-01-01
+    source:
+      citation: "8 CFR 214.2(f)(10)(i)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-28
+      quote: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    note: "The regulation says one year or more. It states no number of days, and 365 appears nowhere in the source. The count in days is how schools apply the rule, so the value is tagged school and is not the words of the law. A school may count differently, for example across a leap year. The regulation is quoted to show what the law does say. Start date as for cpt.full_time_months_bar. The 2026-09-15 text has the same words."
+  - id: capgap.fiscal_year_start_month_day
+    value: "10-01"
+    unit: date
+    status: settled
+    effective_from: 1982-09-13
+    source:
+      citation: "31 U.S.C. 1102"
+      url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title31-section1102&num=0&edition=prelim"
+      checked_on: 2026-09-28
+      quote: "The fiscal year of the Treasury begins on October 1 of each year and ends on September 30 of the following year."
+      snapshot: sources/usc-31-1102-2026-09-28.htm
+      snapshot_sha256: c8513d7d62a8ebbafae9889d40461c3de7b0847fce597f281cbc5aac07a8da5d
+    note: "Start date is the date of Pub. L. 97-258, 1982-09-13, named in the source credit of the saved copy, which enacted title 31 in this form. The October 1 start is older than that. The statute speaks of the fiscal year of the Treasury. The cap-gap paragraph, 8 CFR 214.2(f)(5)(vi)(A) in the 2026-09-14 text, says fiscal year and does not define it or name a start date. That the fiscal year in the cap-gap paragraph is the one in 31 U.S.C. 1102 is a reading, not the words of either source. The saved copy of 81 FR 13040 says in a footnote that an approved change to H-1B status takes effect on October 1. The 2026-09-15 text moves the cap-gap paragraph to (f)(5)(vii)(A) and keeps the words fiscal year."
+  - id: opt.report_employer_within_days
+    value: 10
+    unit: days
+    status: guidance
+    effective_from: 2025-05-19
+    source:
+      citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
+      url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+      checked_on: 2026-09-28
+      quote: "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information."
+      snapshot: sources/sits-f1-opt-2026-09-28.html
+      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+    note: "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text."
+  - id: calendar.federal_holidays_law
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2021-06-17
+    source:
+      citation: "5 U.S.C. 6103(a)"
+      url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim"
+      checked_on: 2026-09-28
+      quote: "The following are legal public holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Juneteenth National Independence Day, June 19. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25."
+      snapshot: sources/usc-5-6103-2026-09-28.htm
+      snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
+    note: "Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays; no saved copy of the earlier list is in the pack, so no earlier row is recorded. Subsection (b) moves a holiday that falls on a Saturday to the Friday before, for pay and leave of federal employees; it is not quoted here. Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
