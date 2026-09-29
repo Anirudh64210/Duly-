@@ -24,6 +24,7 @@ from engine import f1
 from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
     BLOCKED,
+    NOT_AFTER_PROGRAM_END,
     OPERATIVE,
     SHIFTED,
     STATUS_ORDER,
@@ -52,6 +53,10 @@ from tests.support.f1_pack import (
     with_changes,
     with_the_about_asked,
 )
+
+# SPEC-resolutions.md, point 27: the reason the OPT card ending on or before
+# program_end_date gives.
+POINT_27 = f"conflict:{NOT_AFTER_PROGRAM_END}"
 
 TODAY = date(2026, 9, 28)  # a Monday
 
@@ -936,7 +941,7 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
                 with_block(CASE_A, "opt", ead_end="2026-06-01"),
                 employment=[job("2026-06-01", None)],
             ),
-            False,
+            [],
         ),
         # An employment period that ends the day before it starts.
         (with_changes(CASE_A, employment=[job("2026-07-01", "2026-06-30")]), True),
@@ -945,7 +950,7 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
             with_changes(
                 CASE_A, employment=[job("2026-06-01", None), job("2026-07-01", "2026-07-01")]
             ),
-            False,
+            [],
         ),
         # program_end_date 2026-05-15 minus 1 year is 2025-05-15.
         # opt.ead_start the day before it.
@@ -961,23 +966,29 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
         # (SPEC-resolutions.md, point 4): filed 2025-03-10, before the card; the card
         # ends 2026-05-14, inside 12 months of 2025-05-15 (2026-05-15); work begins on
         # the first day of the card and is still open.
+        # SPEC-resolutions.md, point 27: the card ends 2026-05-14, the day before
+        # program_end_date 2026-05-15, so opt.ead_end.not_after_program_end is raised and
+        # is the only conflict. No facts avoid it: a card that begins on the year mark
+        # and runs at most 12 months (opt.card_longer_than_rule) ends by 2026-05-15, on
+        # or before the program end. The year mark row itself is not raised.
         (
             with_changes(
                 CASE_A,
                 opt=ead("2025-03-02", "2025-03-10", "2025-05-15", "2026-05-14"),
                 employment=[job("2025-05-15", None)],
             ),
-            False,
+            [POINT_27],
         ),
         # The day after. 12 months from 2025-05-16 is 2026-05-16; the card ends the day
-        # before.
+        # before. Point 27: the card ends 2026-05-15, on program_end_date, so
+        # opt.ead_end.not_after_program_end is the only conflict raised.
         (
             with_changes(
                 CASE_A,
                 opt=ead("2025-03-02", "2025-03-10", "2025-05-16", "2026-05-15"),
                 employment=[job("2025-05-16", None)],
             ),
-            False,
+            [POINT_27],
         ),
     ],
     ids=[
@@ -991,12 +1002,15 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
     ],
 )
 def test_conflicting_dates_are_named_and_the_verdict_cannot_tell(case, conflict):
+    # conflict is True when the row tested is raised, or else the exact list of conflicts
+    # the case raises. With True, a conflict other than point 27's must be raised, so that
+    # point 27 alone never stands in for the row tested.
     out = run(case)
-    if conflict:
+    if conflict is True:
         assert out["verdict"]["state"] == "cannot_tell"
-        assert reasons_with(out, "conflict:")
+        assert [r for r in reasons_with(out, "conflict:") if r != POINT_27]
     else:
-        assert reasons_with(out, "conflict:") == []
+        assert reasons_with(out, "conflict:") == conflict
 
 
 @pytest.mark.parametrize(
