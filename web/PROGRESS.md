@@ -480,3 +480,48 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   quotes hold "ineligible", "qualify", "compliance".
 - fix: trim a saved sample to the items and rules the test reads.
 - evidence: iteration 6, scoped lint gave 46 findings, all in web/src/lib/samples, then 0.
+
+## 2026-09-29, iteration 7: SPEC-resolutions points 27 (words), 29, 31 to 34, 35 (screen) (run l-web-0d41ff17d4)
+
+### Done
+
+- Point 27: a line for `opt.ead_end.not_after_program_end` beside the other conflicts. It says
+  the card ends on or before the program end date, that the guidance defines post-completion
+  OPT by that date, and that taking the EAD end date as the test is Duly's reading. It names no
+  wrong date. `factRule` shows `opt.post_completion_definition` beside the question.
+- Point 29: an answer among an item's inputs (`{answer, on}`) reads "You answered No on Sep 29,
+  2026"; `cpt.full_time_days_used` with `full_time_cpt_used` among its inputs is named
+  "Full-time CPT days (your answer)" (`computedName`), in the item row and the verdict line.
+- Point 31: `opt.latest_start` is "Latest start date a student may request".
+- Point 32: each date under What comes next is a button that opens its rules (value, words,
+  citation, link, and for a reading the note under "Duly's reading").
+- Point 33: web/src/lib/answers.ts reads each about key against the facts entered (blocks as
+  true or null, block fields, employment.<n>.start/end, top fields, the employment list) and,
+  for an item key, against the output. `keepFitting` runs on every form change, so an answer
+  whose about no longer matches is removed. The answers section lists only answers that fit
+  the case sent and the output; others appear under "Answers Duly did not read" with Remove.
+  An answered conflict's line is said in the present tense only while the verdict holds the
+  conflict (`<id>` or `conflict:<id>`); otherwise "When Duly asked this, some of the dates
+  entered did not fit together."
+- Point 34: `employment.<n>.start`/`end` in an about show as one row, "Employment period n",
+  "Jun 2, 2025 to Jul 1, 2026"; an end the question lacks comes from the case sent.
+- Point 35 (screen): the landing line says "Server status read <time>", not "Checked".
+- Tests: new web/src/lib/answers.test.ts, and blocks in labels, caseForm, Result and App tests.
+  Existing App tests that answered a fixture's question now enter the facts that question was
+  asked about (STEM on for ASKING, OPT dates for CONFLICT), since point 33 drops an answer
+  that does not fit them. The labels modal test exempts `opt.latest_start` (point 31 names the
+  rule's subject, a student, never the person) and pins its name.
+
+### Ran
+
+- The done command as written: exit 1. typecheck clean; 8 files, 242 tests passed;
+  statements 96.87%, branches 92.82%; eslint clean; prettier clean; then `uv run python -m
+  tools.copy_lint.lint` raised PermissionError on tests/holdout/.gitkeep (the sandbox denies
+  reads there), as in iteration 6.
+- The same linter with tests/holdout left out (scratch wrapper of `_candidates` under
+  TMPDIR): 0 findings.
+
+### Not done, not verified
+
+- Not seen in a browser against a live api. No engine sample for the point 27 conflict.
+- Showing the rules' own date on the landing needs a status contract field (point 35).

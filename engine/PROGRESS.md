@@ -743,3 +743,41 @@ engine/ESCALATE.md written. Status stays escalated. Nothing else changed.
   (2026-09-28) joins them. Verdict cannot_tell both days.
 
 Status: done.
+
+## Run l-engine-a61d663c4e (attempt 1): points 27, 28, 36 and 37
+
+### What was built (engine/f1.py)
+
+- Point 27: `_window_facts` raises `opt.ead_end.not_after_program_end` when the OPT card
+  end is on or before `program_end_date`; about holds program_end_date, opt.ead_start and
+  opt.ead_end, so point 4 nulls the items that use them. `opt.post_completion_definition`
+  is shown in `rules` when the pack holds it. While it is open, no OPT step is marked done
+  and `_add_next_step` and `_lists` are skipped. A yes goes to the judgement items as every
+  conflict does.
+- Point 28: `_Working.add` takes `on`, the day of the event a rule is measured from. The
+  rule is looked up with `Rulepack.value(id, on)` under the operative regimes. With no row
+  in force that day the item is null, carries no alternates, and the verdict carries
+  `rule_not_in_force_on_event_day`. Used for opt.apply_window_opens, opt.apply_window_closes,
+  opt.latest_start (on program_end_date) and grace.ends (on the last end). The point 15
+  conflict also reads opt.apply_after_days on the program end.
+- Point 36: `stem.new_plan_due.<n>` joins `work.reports`, so `_passed_reports` asks
+  `<id>.made`. The concluding evaluation was already there.
+- Point 37: already held (the point 16 conflict's about holds program_end_date); its tests
+  passed before any change.
+
+### What ran
+
+- Target tests before the change: 19 failed (points 27, 28, 36). After: all passed.
+- Done command as written, no pipe, output to a file: exit 0. "engine literals: every
+  number has a source", mypy "no issues found in 56 source files", ruff "All checks
+  passed!", "8 files already formatted".
+- tests/unit/engine and tests/unit/api on the worktree and on a git archive of HEAD under
+  TMPDIR: 11 failures now, 23 at HEAD. 8 fail now that passed at HEAD, all on the point 27
+  conflict (cards that end on or before the program end): test_f1_sourcing.py
+  test_the_earliest_opt_start_comes_from_the_settings (6 params), test_f1.py
+  test_conflicting_dates_are_named_and_the_verdict_cannot_tell[opt_start_on_year_mark,
+  opt_start_day_after_year_mark].
+- Shipped pack by hand on A_WEEK_BEFORE: cannot_tell with the conflict, the rule shown as
+  guidance; DAY_AFTER: no_open_items.
+
+Status: done.

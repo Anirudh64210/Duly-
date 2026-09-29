@@ -16,6 +16,7 @@ from hypothesis import strategies as st
 
 from engine import f1
 from tests.support.f1_pack import (
+    NOT_AFTER_PROGRAM_END,
     SPEC_SETTINGS,
     TIME_ZONE,
     answered_yes,
@@ -48,6 +49,9 @@ TODAY = date(2026, 11, 2)  # a Monday
 
 LOOKAHEAD = "product.open_item_lookahead_days"
 LOOKBACK = "product.opt_start_earliest_years_before_program_end"
+# SPEC-resolutions.md, point 27: the reason an OPT card ending on or before
+# program_end_date gives.
+POINT_27 = f"conflict:{NOT_AFTER_PROGRAM_END}"
 SETTING_IDS = {setting_id for setting_id, _, _ in SPEC_SETTINGS}
 
 EVALUATION_INTERVAL = "stem.evaluation_interval_months"
@@ -407,14 +411,21 @@ def opt_card_from(opt_start: str) -> dict[str, Any]:
     ],
 )
 def test_the_earliest_opt_start_comes_from_the_settings(years, opt_start, conflict):
+    # SPEC-resolutions.md, point 27: every row starts on or before 2024-05-16, and the
+    # card is 12 months less a day, so it ends on or before 2025-05-15, the day before
+    # program_end_date 2025-05-16. opt.ead_end.not_after_program_end is raised on every
+    # row, and no facts avoid it: a start a year or more before the program end, with a
+    # card no longer than 12 months, ends on or before it. So a row without the lookback
+    # conflict expects point 27's conflict alone, and a row with it expects a conflict
+    # other than point 27's.
     case = opt_card_from(opt_start)
     today = date.fromisoformat(opt_start) + timedelta(days=30)
     out = run(case, today=today, chosen={LOOKBACK: years})
     if conflict:
         assert out["verdict"]["state"] == "cannot_tell"
-        assert reasons_with(out, "conflict:")
+        assert [r for r in reasons_with(out, "conflict:") if r != POINT_27]
     else:
-        assert out["verdict"] == {"state": "no_open_items", "reasons": []}
+        assert out["verdict"] == {"state": "cannot_tell", "reasons": [POINT_27]}
 
 
 def test_no_settings_means_the_shipped_file():

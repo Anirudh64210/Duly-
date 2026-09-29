@@ -137,12 +137,26 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(A)(3)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
-      quote: "A student must complete all practical training within a 14-month period following the completion of study"
+      checked_on: 2026-09-29
+      quote: "A student must complete all practical training within a 14-month period following the completion of study, except that a 24-month extension pursuant to paragraph (f)(10)(ii)(C) of this section does not need to be completed within such 14-month period."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
-    note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text. The same sentence excepts the 24-month extension under (f)(10)(ii)(C)."
+    note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text on 2026-09-29. The quote is the whole sentence of (f)(10)(ii)(A)(3), with its exception for the 24-month extension under (f)(10)(ii)(C), so the 14 months are never shown without the exception (SPEC-resolutions point 30). The same sentence is in the 2026-09-15 text and in 81 FR 13040 (FR Doc. 2016-04828), both saved."
+  - id: opt.post_completion_definition
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2025-05-19
+    source:
+      citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
+      url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+      checked_on: 2026-09-29
+      quote: "Post-Completion OPT: Any portion of OPT used after the student's Program End Date."
+      snapshot: sources/sits-f1-opt-2026-09-28.html
+      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+    derivation: verbatim
+    note: "Agency guidance, not regulation. The quote is SEVP's definition in the table of OPT types on the saved page; the next sentence says it must be at least 20 hours per week or full-time, and the row before it defines pre-completion OPT as any portion of OPT used before the student's Program End Date. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. Taking the end of the OPT card as the test of whether any post-completion OPT exists is Duly's reading (SPEC-resolutions point 27), not these words. The flag records what the guidance says. It says nothing about any one person."
   - id: opt.unemployment_limit_days
     value: 90
     unit: days

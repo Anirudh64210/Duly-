@@ -459,3 +459,29 @@ uv run python -m tools.copy_lint.lint <scratch copy of HEAD under TMPDIR with th
 ### Seen and not worked around
 
 - The copy lint run from the repo root lists tests/holdout/.gitkeep through git ls-files and stops on the sandbox's refusal. Ran it on a scratch copy instead. The lint itself is outside this lane.
+
+## 2026-09-29, run l-content-1888b1f574, attempt 1: resolutions 27 and 30
+
+### What I did
+
+1. Read this log, specs/product-1/SPEC-resolutions.md points 27 and 30, CLAUDE.md.
+2. Looked for both sentences with the source check's own plain() in every saved copy. The whole sentence of (f)(10)(ii)(A)(3) is found once in the 2026-09-14 text, once in the 2026-09-15 text and once in 81 FR 13040. The cross reference (f)(10)(ii)(C) has no italic number, so the full sentence matches. SEVP's definition is found once in sits-f1-opt-2026-09-28.html.
+3. opt.complete_within_months: quote is now the whole sentence with its exception. Value 14, settled, verbatim, start date unchanged. checked_on 2026-09-29.
+4. Added opt.post_completion_definition, flag, guidance, verbatim, start 2025-05-19 (the page's last updated date). The note says taking the card end as the test is Duly's reading.
+5. CHANGELOG.md entry added. No network was used.
+
+### What ran
+
+```
+done command (as written in the contract)
+  sources: 4 pack(s) checked, every quote found
+  exit 0
+uv run pytest tests/unit/engine/test_rulepack.py -q
+  19 passed
+uv run python -m tools.copy_lint.lint <scratch copy of HEAD with the two changed files, tests/holdout left out>
+  copy lint: clean, exit 0
+```
+
+### Seen and not worked around
+
+- A python heredoc run from the pack folder printed "Operation not permitted" for tests/holdout/.gitkeep and README.md (from git diff --stat walking the tree). I read nothing there.

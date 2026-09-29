@@ -22,6 +22,7 @@ from hypothesis import strategies as st
 
 from engine import f1
 from tests.support.f1_pack import (
+    NOT_AFTER_PROGRAM_END,
     SPEC_SETTINGS,
     TIME_ZONE,
     answered_yes,
@@ -57,6 +58,9 @@ TODAY = date(2026, 9, 28)  # a Monday
 LOOKAHEAD = "product.open_item_lookahead_days"
 LOOKBACK = "product.opt_start_earliest_years_before_program_end"
 SETTING_IDS = {setting_id for setting_id, _, _ in SPEC_SETTINGS}
+# SPEC-resolutions.md, point 27: the reason an OPT card ending on or before
+# program_end_date gives.
+POINT_27 = f"conflict:{NOT_AFTER_PROGRAM_END}"
 
 EVALUATION_INTERVAL = "stem.evaluation_interval_months"
 CPT_BAR = "cpt.full_time_bar_days"
@@ -504,6 +508,13 @@ def test_the_earliest_opt_start_comes_from_the_settings(years, opt_start, confli
     # beside the one tested (SPEC-resolutions.md, point 4): recommended 60 and filed 30
     # days before the card, the card 364 days long (inside 12 months), work from its
     # first day.
+    # SPEC-resolutions.md, point 27: every row starts on or before 2025-05-15, so the card
+    # ends on or before 2025-05-15 plus 364 days, 2026-05-14, the day before
+    # program_end_date 2026-05-15. opt.ead_end.not_after_program_end is raised on every
+    # row. No facts avoid it: a start a year or more before the program end, with a card
+    # no longer than 12 months (opt.card_longer_than_rule), ends on or before it. So a
+    # row without the lookback conflict expects point 27's conflict alone, and a row with
+    # it expects a conflict other than point 27's.
     start = date.fromisoformat(opt_start)
     card = ead(
         iso(start - timedelta(days=60)),
@@ -515,10 +526,10 @@ def test_the_earliest_opt_start_comes_from_the_settings(years, opt_start, confli
     out = run(case, today=start + timedelta(days=30), chosen={LOOKBACK: years})
     if conflict:
         assert out["verdict"]["state"] == "cannot_tell"
-        assert reasons_with(out, "conflict:")
+        assert [r for r in reasons_with(out, "conflict:") if r != POINT_27]
     else:
-        assert reasons_with(out, "conflict:") == []
-        assert out["verdict"] == {"state": "no_open_items", "reasons": []}
+        assert reasons_with(out, "conflict:") == [POINT_27]
+        assert out["verdict"] == {"state": "cannot_tell", "reasons": [POINT_27]}
 
 
 # Duly's own choices: how they are passed and how they are shown

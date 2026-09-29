@@ -6,6 +6,8 @@ import {
   addPeriod,
   answer,
   buildCase,
+  enteredFacts,
+  keepFitting,
   removePeriod,
   reportedZone,
   withdrawAnswer,
@@ -286,5 +288,45 @@ describe("an answer and what it was given for", () => {
       answer: false,
       on: "2026-09-28",
     });
+  });
+});
+
+describe("SPEC-resolutions point 33: an answer goes when the facts it was given for change", () => {
+  const withOpt: CaseFields = {
+    ...filled,
+    opt_on: true,
+    opt: { ...EMPTY_CASE.opt, i765_filed_date: "2026-10-10", ead_start: "2026-06-01" },
+  };
+  const confirmed = answer(withOpt, "opt.i765_filed_date.after_card", true, "2026-09-29", {
+    "opt.i765_filed_date": "2026-10-10",
+    "opt.ead_start": "2026-06-01",
+  });
+
+  it("keeps the answer while the dates stand, and when another field changes", () => {
+    const changed = keepFitting({ ...confirmed, program_end_date: "2026-05-16" });
+    expect(Object.keys(changed.confirmations)).toEqual(["opt.i765_filed_date.after_card"]);
+  });
+
+  it("removes the answer when one of its dates changes", () => {
+    const changed = keepFitting({
+      ...confirmed,
+      opt: { ...confirmed.opt, ead_start: "2026-06-02" },
+    });
+    expect(changed.confirmations).toEqual({});
+  });
+
+  it("removes the answer when the block it was about is taken out", () => {
+    expect(keepFitting({ ...confirmed, opt_on: false }).confirmations).toEqual({});
+  });
+
+  it("removes the answer while a date is only half typed", () => {
+    const changed = keepFitting({ ...confirmed, opt: { ...confirmed.opt, ead_start: "2026-06" } });
+    expect(changed.confirmations).toEqual({});
+  });
+
+  it("reads the facts as typed, even when they are not yet a case", () => {
+    const facts = enteredFacts({ ...EMPTY_CASE, cpt_full_time_days: "" });
+    expect(facts.cpt_full_time_days).toBeNull();
+    expect(facts.opt).toBeNull();
   });
 });

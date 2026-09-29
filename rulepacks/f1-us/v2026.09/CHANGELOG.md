@@ -80,3 +80,8 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - Point 21: added stem.reporting_required, true, flag, settled, verbatim, from 8 CFR 214.2(f)(12)(ii): Compliance with these reporting requirements is required to maintain F-1 status.
 - Point 24, calendar.federal_holidays_law: the note now says that business days skip the days 6103(a) lists, on those days, and not observed days, and gives the words of 6103(b) that limit observed days to statutes relating to pay and leave of employees. Value, status, quote and derivation did not change.
 - No rule was removed. No new source was fetched. Every new quote was found once in the saved 2026-09-14 text, once in the 2026-09-15 text and once in 81 FR 13040. The words of 6103(b) were found once in the saved usc-5-6103 copy.
+
+### 2026-09-29, lane L-content, resolutions 27 and 30, drafted for founder review
+
+- opt.complete_within_months: the quote is now the whole sentence of 8 CFR 214.2(f)(10)(ii)(A)(3), with "except that a 24-month extension pursuant to paragraph (f)(10)(ii)(C) of this section does not need to be completed within such 14-month period". Value 14, settled and verbatim did not change. Resolution 30.
+- Added opt.post_completion_definition, a flag, guidance, from Study in the States: "Post-Completion OPT: Any portion of OPT used after the student's Program End Date." Resolution 27. Taking the card end as the test is Duly's reading, said in the note.

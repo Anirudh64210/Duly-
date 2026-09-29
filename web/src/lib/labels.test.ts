@@ -8,6 +8,10 @@ import {
   JUDGEMENT_NOT_NAMED,
   answerLine,
   becauseLine,
+  computedName,
+  givenLine,
+  periodDay,
+  periodSpan,
   conflictLine,
   conflictQuestionCopy,
   factRule,
@@ -70,7 +74,16 @@ describe("item names", () => {
   });
 
   it("states what the item is, never what it means", () => {
-    for (const id of SPEC_ITEMS) expect(itemName(id)).not.toMatch(SIDE_B);
+    // SPEC-resolutions point 31 names this item by the rule's own subject, a student,
+    // never the person: the modal test of BOUNDARY.md is about the user as the subject.
+    for (const id of SPEC_ITEMS.filter((item) => item !== "opt.latest_start")) {
+      expect(itemName(id)).not.toMatch(SIDE_B);
+    }
+    expect(itemName("opt.latest_start")).not.toMatch(/\b(you|your)\b/i);
+  });
+
+  it("names the latest start by the date a student may request (SPEC-resolutions point 31)", () => {
+    expect(itemName("opt.latest_start")).toBe("Latest start date a student may request");
   });
 
   it("groups the items the way the SPEC lists them", () => {
@@ -645,5 +658,54 @@ describe("an id with no words is never shown as nothing", () => {
         expect(line).not.toContain("_");
       }),
     );
+  });
+});
+
+describe("SPEC-resolutions point 27: an OPT card that ends on or before the program end", () => {
+  const id = "opt.ead_end.not_after_program_end";
+
+  it("says what does not fit, never which date is wrong, and asks the one conflict question", () => {
+    const line = factLine(id) ?? "";
+    expect(line).toMatch(/^The OPT EAD end date is on or before the program end date/);
+    expect(line).toContain("Duly's reading");
+    expect(line).not.toMatch(/wrong|mistake|late|error/i);
+    expect(questionCopy(id)?.ask).toBe("Are these the dates on your documents?");
+    expect(reasonText(`conflict:${id}`)).toBe(line);
+  });
+
+  it("shows the guidance it is checked against beside the question", () => {
+    expect(factRule(id)).toBe("opt.post_completion_definition");
+  });
+});
+
+describe("SPEC-resolutions point 29: an answer among an item's inputs", () => {
+  it("is the person's answer and its day", () => {
+    expect(givenLine(false, "2026-09-29")).toBe("You answered No on Sep 29, 2026");
+    expect(givenLine(true, "2026-09-28")).toBe("You answered Yes on Sep 28, 2026");
+  });
+
+  it("names the CPT days from the answer as the person's answer", () => {
+    const answered = {
+      id: "cpt.full_time_days_used",
+      inputs: { cpt_full_time_days: null, full_time_cpt_used: { answer: false, on: "2026-09-29" } },
+    };
+    expect(computedName(answered)).toBe("Full-time CPT days (your answer)");
+    expect(computedName({ id: "cpt.full_time_days_used", inputs: { cpt_full_time_days: 3 } })).toBe(
+      "Full-time CPT days entered",
+    );
+  });
+});
+
+describe("SPEC-resolutions point 34: an employment period as its start and end", () => {
+  it("reads the number and the side of a period date", () => {
+    expect(periodDay("employment.2.end")).toEqual({ period: 2, side: "end" });
+    expect(periodDay("employment.10.start")).toEqual({ period: 10, side: "start" });
+    expect(periodDay("stem.ead_start")).toBeNull();
+  });
+
+  it("shows the start and the end", () => {
+    expect(periodSpan("2025-12-01", "2026-06-30")).toBe("Dec 1, 2025 to Jun 30, 2026");
+    expect(periodSpan("2025-12-01", null)).toBe("Dec 1, 2025, no end date entered");
+    expect(periodSpan("2025-12-01", undefined)).toBe("Starts Dec 1, 2025");
   });
 });
