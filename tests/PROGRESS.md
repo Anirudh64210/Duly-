@@ -1434,3 +1434,35 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-d80f1677a6 (attempt 1): bring the tests in line with points 54, 55 and 56
+
+### What I tried and what ran
+
+- Read the builder's report (git show 4fd54a4, engine/PROGRESS.md): one collision named,
+  test_f1_fixes.py::test_operative_always_comes_from_the_pack, a point 55 collision.
+- Done command before the change: ruff clean, 55 files formatted, pytest exit 1 with that one
+  failure only. Falsifying draw: pending cap gap, STEM after OPT, clock 2024-01-02; grace.ends
+  is null (points 17, 18, 43, 56 give null before the regime is applied), so the paused
+  alternate is null too and point 55 drops it.
+- Change (each line cites point 55): grace.ends is among the items with alternates exactly
+  when grace.ends has a value (the paused grace formula differs only in its day count);
+  opt.latest_start is there exactly when the pack has two rows and the item has a value;
+  every alternate carried holds a value. Not loosened: both lines stay equalities, and a new
+  assertion is added.
+- Point 54: no test in tests/unit or tests/holdout pins the rewritten plain texts; the done
+  suite and tests/unit/tools/test_plain.py pass on the new pack.
+- The changed property with hypothesis seeds 1 to 5: all pass.
+- Done command as written, no pipe: exit 0 ("All checks passed!", "55 files already
+  formatted", every test passing).
+
+### What change to the code would make the changed test fail
+
+- Carrying an alternate whose value is null on grace.ends (planted through a scratch plugin
+  under TMPDIR that gives a null grace.ends an alternate with value null: the property failed
+  on its first draw; scratch folder removed).
+- Dropping the alternate from a grace.ends or opt.latest_start that has a value.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
