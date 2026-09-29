@@ -74,3 +74,8 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 | D41 | A student with no OPT, STEM OPT or cap-gap entered | Duly asks first. No quiet verdict until the person has said there is nothing more to record | Decided |
 | D42 | Next work | The product backlog through the factory, then a desktop window (Electron) the founder can test on this Mac. Quality, accuracy and safety first, for the build and for Duly's liability | Decided |
 | D43 | Model | If the pinned model's limit is reached, the factory's agents move to claude-opus-5-5 | Decided |
+| D44 | The first 22 lessons | All kept. 12 are filed by lane for agents to learn from; 10 are records of faults in the factory that were fixed | Decided |
+| D45 | Billing | Agents run on the subscription login only. Paid credits are never used | Decided |
+| D46 | Dated tags on main | Every change to main is tagged on GitHub | Decided |
+| D47 | What Duly is | A platform where any student logs in, sees where they stand, what comes next, and the latest verified changes in the law, for every case and every category. OPT and STEM OPT were an example. Every SPEC says what share of the whole it covers | Decided |
+| D48 | Order of work | Product round 1 finishes. Then the path model, so that the engine holds no scenario of its own. Then the desktop window, showing it. Then the updates pipeline. Then breadth, pack by pack, every rule sourced | Decided by the founder lane under D42; the founder may change it |

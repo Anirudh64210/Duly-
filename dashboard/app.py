@@ -35,6 +35,10 @@ class Bridge:
     def agent(self, lane: str) -> dict[str, Any]:
         return data.agent_json(self._repo, str(lane))
 
+    def note(self, text: str) -> dict[str, Any]:
+        """The founder writes to Claude. Claude is told as soon as the note is saved."""
+        return data.add_note(self._repo, str(text), data.clock.now())
+
     def stop(self) -> bool:
         """The kill switch. Ends every agent and lets nothing start."""
         return self._control("stop")

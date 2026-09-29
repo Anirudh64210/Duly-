@@ -319,3 +319,33 @@ def test_the_founders_work_on_another_branch_does_not_fail_a_run(tmp_path, monke
     ]
     _, out = play(tmp_path, monkeypatch, [elsewhere])
     assert out.status == "done", out.reason
+
+
+def test_a_run_that_reports_a_key_in_use_is_ended_at_once(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    path = tmp_path / "keyed.json"
+    # The stand-in cannot add fields to its first event, so the event is given raw.
+    first = json.dumps(
+        {
+            "type": "system",
+            "subtype": "init",
+            "session_id": "s",
+            "model": mini.MODEL,
+            "apiKeySource": "ANTHROPIC_API_KEY",
+        }
+    )
+    keyed = [{"raw": first}, {"write": "engine/new.py"}, {"sleep": 30}]
+    _, out = play(tmp_path, monkeypatch, [keyed], repo=repo)
+    assert out.status == "refused"
+    assert "key in use" in out.reason
+    assert out.seconds < 20
+    assert any(row.get("alert") == "guardrail" for row in ledger.read(repo))
+    assert path.exists() is False
+
+
+def test_project_settings_that_name_a_key_refuse_the_run(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    (repo / ".claude" / "settings.json").write_text('{"apiKeyHelper": "get-key.sh"}')
+    _, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])], repo=repo)
+    assert out.status == "refused"
+    assert "apiKeyHelper" in out.reason

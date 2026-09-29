@@ -23,7 +23,7 @@ import yaml
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane, violations
-from tools.factory import alerts, jail, ledger, registry, sandbox, worktree
+from tools.factory import alerts, billing, jail, ledger, registry, sandbox, worktree
 from tools.factory.config import load_config, review_problems
 from tools.factory.paths import REPO_ROOT, main_repo, state_dir
 
@@ -419,6 +419,13 @@ def main() -> int:
     if head != branch:
         print(f"check out {plan['branch']} first")
         return 1
+    if not os.environ.get("DULY_CLAUDE_BIN"):
+        try:
+            plan_name = billing.require_subscription()
+        except billing.BillingError as err:
+            print(f"refused: {err}")
+            return 1
+        print(f"Running on the {plan_name} subscription login. No key is in use.", flush=True)
     try:
         registry.claim(
             f"orchestrator-{os.getpid()}",
