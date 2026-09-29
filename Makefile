@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo factory
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -63,6 +63,9 @@ e2e:
 
 attack:
 	@echo "The attack profile arrives in Phase 10." && exit 1
+
+factory:
+	uv run python -m tools.factory.server
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)

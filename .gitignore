@@ -17,3 +17,8 @@ dist/
 .hypothesis/
 coverage/
 **/coverage/
+.factory/
+.lane
+node_modules
+PROMPT.md
+.factory-server.log

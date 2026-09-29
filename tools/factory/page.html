@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Duly factory</title>
+    <style>
+      :root { --ground: #f8f7f4; --surface: #fff; --ink: #1a1917; --ink-2: #6b6862; --line: #eceae4;
+        --accent: #2b4ea2; --tint: #e9eef9; --amber: #b45309; --red: #a1271e; --green: #1b7a57; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--ground); color: var(--ink);
+        font: 15px/1.45 system-ui, sans-serif; }
+      header { display: flex; justify-content: space-between; align-items: baseline;
+        padding: 20px 28px 8px; }
+      h1 { font-size: 20px; margin: 0; letter-spacing: -0.02em; }
+      h2 { font-size: 13px; margin: 0 0 10px; color: var(--ink-2); font-weight: 600; }
+      .muted { color: var(--ink-2); }
+      .mono { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+      main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 20px;
+        padding: 12px 28px 40px; }
+      section { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+        padding: 16px 18px; }
+      .lanes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+      .lane { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+      .lane[data-state="working"] { border-color: var(--accent); background: var(--tint); }
+      .lane[data-state="blocked"], .lane[data-state="failed"] { border-color: var(--red); }
+      .lane[data-state="done"] { border-color: var(--green); }
+      .lane header { padding: 0; margin-bottom: 6px; }
+      .lane b { font-size: 15px; }
+      .pill { font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--line);
+        background: var(--surface); }
+      .lane p { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; }
+      .stack { display: grid; gap: 20px; align-content: start; }
+      ol, ul { list-style: none; margin: 0; padding: 0; }
+      .events li { display: grid; grid-template-columns: 64px 96px 1fr; gap: 10px; padding: 6px 0;
+        border-top: 1px solid var(--line); font-size: 13px; }
+      .events li:first-child { border-top: 0; }
+      .events span:last-child { overflow-wrap: anywhere; }
+      .k-blocked, .k-failed { color: var(--red); }
+      .k-done { color: var(--green); }
+      .k-lesson { color: var(--amber); }
+      .rows li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0;
+        border-top: 1px solid var(--line); font-size: 13px; }
+      .rows li:first-child { border-top: 0; }
+      @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Duly factory</h1>
+      <span class="muted mono" id="head"></span>
+    </header>
+    <main>
+      <div class="stack">
+        <section>
+          <h2>Lanes</h2>
+          <div class="lanes" id="lanes"></div>
+        </section>
+        <section>
+          <h2>What the agents are doing, newest first</h2>
+          <ol class="events" id="events"></ol>
+        </section>
+      </div>
+      <div class="stack">
+        <section>
+          <h2>Gates, last run</h2>
+          <ul class="rows" id="gates"></ul>
+        </section>
+        <section>
+          <h2>Lessons waiting for review</h2>
+          <ul class="rows" id="proposals"></ul>
+        </section>
+        <section>
+          <h2>Skills</h2>
+          <ul class="rows" id="skills"></ul>
+        </section>
+      </div>
+    </main>
+    <script>
+      const el = (tag, text, cls) => {
+        const node = document.createElement(tag);
+        if (text !== undefined) node.textContent = text;
+        if (cls) node.className = cls;
+        return node;
+      };
+      const fill = (id, nodes, empty) => {
+        const host = document.getElementById(id);
+        host.replaceChildren(...(nodes.length ? nodes : [el("li", empty, "muted")]));
+      };
+      const time = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      function draw(state) {
+        document.getElementById("head").textContent = state.head;
+
+        const order = { working: 0, blocked: 1, failed: 1, done: 2, idle: 3 };
+        const lanes = [...state.lanes].sort((a, b) => (order[a.state] ?? 3) - (order[b.state] ?? 3));
+        document.getElementById("lanes").replaceChildren(...lanes.map((lane) => {
+          const card = el("div", undefined, "lane");
+          card.dataset.state = lane.state;
+          const top = el("header");
+          top.append(el("b", lane.name), el("span", lane.state, "pill"));
+          card.append(top);
+          card.append(el("p", lane.owned.join(", "), "muted mono"));
+          if (lane.last) card.append(el("p", lane.last.message));
+          const facts = [];
+          if (lane.worktree) facts.push(lane.commits_ahead + " commits, " + lane.files_changed + " files");
+          if (lane.agents.length) facts.push(lane.agents.join(", "));
+          if (lane.review === "high") facts.push("founder review");
+          if (facts.length) card.append(el("p", facts.join(" . "), "muted"));
+          return card;
+        }));
+
+        fill("events", state.events.map((e) => {
+          const row = el("li");
+          row.append(el("span", time(e.at), "muted mono"), el("span", e.lane, "mono"),
+            el("span", e.message, "k-" + e.kind));
+          return row;
+        }), "Nothing yet.");
+
+        const gates = Object.entries(state.gates.results || {});
+        fill("gates", gates.map(([name, result]) => {
+          const row = el("li");
+          row.append(el("span", name), el("span", result, result === "pass" ? "k-done" : "k-failed"));
+          return row;
+        }), "Not run yet.");
+
+        fill("proposals", state.lessons.proposals.map((name) => el("li", name)), "None.");
+        fill("skills", state.skills.map((s) => {
+          const row = el("li");
+          row.append(el("span", s.name), el("span", s.verified, "muted"));
+          return row;
+        }), "None.");
+      }
+
+      async function tick() {
+        try {
+          const response = await fetch("/state.json", { cache: "no-store" });
+          draw(await response.json());
+        } catch {
+          document.getElementById("head").textContent = "dashboard server is not running";
+        }
+      }
+      tick();
+      setInterval(tick, 2000);
+    </script>
+  </body>
+</html>
