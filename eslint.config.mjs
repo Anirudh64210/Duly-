@@ -12,6 +12,7 @@ export default tseslint.config(
       "**/api-types.ts",
       ".venv/**",
       "workbook-handoff/**",
+      "design/canvas/**", // the founder's canvas, kept verbatim; its viewer is not product code
       "docs/**",
       ".scratch/**",
     ],
