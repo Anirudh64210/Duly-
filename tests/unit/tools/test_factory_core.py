@@ -403,3 +403,27 @@ def test_a_run_that_reports_a_key_is_recognised():
     assert billing.key_in_use({"apiKeySource": "none"}) == ""
     assert billing.key_in_use({}) == ""
     assert billing.key_in_use({"apiKeySource": "ANTHROPIC_API_KEY"}) == "ANTHROPIC_API_KEY"
+
+
+def test_accepted_lessons_reach_the_agents_of_their_lane(tmp_path):
+    repo = mini.build(tmp_path)
+    lessons = repo / ".claude" / "LESSONS"
+    lessons.mkdir(parents=True, exist_ok=True)
+    (lessons / "L-content.md").write_text(
+        "# Lessons\n\n## a\n\n- What went wrong: A document number was written from memory.\n"
+        "- What fixes it: Look it up and confirm the title.\n- Evidence: x\n"
+    )
+    (lessons / "all-lanes.md").write_text(
+        "## b\n\n- What went wrong: A pipe hid the exit code.\n- What fixes it: Run it unpiped.\n"
+    )
+    (lessons / "factory-fixed.md").write_text(
+        "## c\n\n- What went wrong: The guard blocked pytest.\n- What fixes it: Fixed.\n"
+    )
+    content = memory.for_prompt("L-content", 40, 12000, repo)
+    assert "written from memory" in content
+    assert "pipe hid the exit code" in content
+    assert "guard blocked pytest" not in content
+    engine = memory.for_prompt("L-engine", 40, 12000, repo)
+    assert "written from memory" not in engine
+    assert "pipe hid the exit code" in engine
+    assert memory.for_prompt("L-content", 1, 12000, repo).count("What went wrong") == 1

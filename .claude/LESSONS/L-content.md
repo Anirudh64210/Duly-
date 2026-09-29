@@ -1,6 +1,6 @@
 # Lessons for L-content
 
-Proposed filing, 2026-09-29. Not in force until the founder accepts it.
+Accepted by the founder on 2026-09-29 (DECISIONS.md D44).
 
 ## 2026-09-28-compare-point-in-time-texts-before-settled
 

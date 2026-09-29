@@ -1,6 +1,6 @@
 # Faults in the factory that were fixed
 
-Proposed filing, 2026-09-29. Not in force until the founder accepts it.
+Accepted by the founder on 2026-09-29 (DECISIONS.md D44).
 
 These are kept as a record. Each was fixed in the factory itself, so no agent needs to be told.
 

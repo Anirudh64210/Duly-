@@ -1,6 +1,6 @@
 # Lessons for L-web
 
-Proposed filing, 2026-09-29. Not in force until the founder accepts it.
+Accepted by the founder on 2026-09-29 (DECISIONS.md D44).
 
 ## 2026-09-28-openapi-bare-object-types
 
