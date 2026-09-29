@@ -98,7 +98,14 @@ def _summary(name: str, tool_input: dict[str, Any], root: Path) -> str:
 
 
 def iterate(
-    lane: str, agent: str, prompt: str, root: Path, tools: list[str], max_turns: int, model: str
+    lane: str,
+    agent: str,
+    prompt: str,
+    root: Path,
+    tools: list[str],
+    max_turns: int,
+    model: str,
+    done: str = "",
 ) -> int:
     cmd = [
         "claude",
@@ -118,6 +125,7 @@ def iterate(
         cmd += ["--model", model]
     env = dict(os.environ)
     env["DULY_LANE"] = lane
+    env["DULY_DONE"] = done
     env["UV_PROJECT_ENVIRONMENT"] = str(REPO_ROOT / ".venv")
     env.pop("CLAUDECODE", None)
     with subprocess.Popen(
@@ -191,7 +199,7 @@ def main() -> int:
         if code == 0 and i > 1:
             break
         append(args.lane, args.agent, "step", f"iteration {i} of {args.max_iterations}", REPO_ROOT)
-        iterate(args.lane, args.agent, prompt, root, tools, args.max_turns, args.model)
+        iterate(args.lane, args.agent, prompt, root, tools, args.max_turns, args.model, args.done)
 
     code, out = _run(shlex.split(args.done), root, env)
     if code == 0:

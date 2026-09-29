@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Stop. A lane's turn cannot end while its own tests fail."""
 
+import os
 import shlex
 import subprocess
 import sys
@@ -23,9 +24,12 @@ try:
     lane = load_lane(name, root)
 except LaneError as err:
     block(str(err))
-if not lane.test:
+# A round can set its own finish line. When tests are written before the code they
+# test, the lane's usual test cannot pass yet, and the round's done command is the target.
+target = os.environ.get("DULY_DONE", "").strip() or lane.test
+if not target:
     sys.exit(0)
 
-done = subprocess.run(shlex.split(lane.test), cwd=root, capture_output=True, text=True, check=False)
+done = subprocess.run(shlex.split(target), cwd=root, capture_output=True, text=True, check=False)
 if done.returncode:
-    block(f"Lane test failed: {lane.test}\n" + (done.stdout + done.stderr)[-2500:])
+    block(f"Lane test failed: {target}\n" + (done.stdout + done.stderr)[-2500:])
