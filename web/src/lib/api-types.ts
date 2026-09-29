@@ -100,6 +100,11 @@ export interface components {
             category: string;
             version: string;
             parameters: number;
+            /**
+             * Format: date
+             * @description The oldest checked_on among the pack's rules; null for a pack with no rules.
+             */
+            rules_checked_on?: string | null;
         };
         Status: {
             /** @enum {string} */

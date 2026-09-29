@@ -1,0 +1,232 @@
+{
+  "verdict": {
+    "state": "cannot_tell",
+    "reasons": ["unconfirmed:nothing_more_to_record"]
+  },
+  "scope": {
+    "documents_count": 1,
+    "rules_checked_on": "2026-09-28"
+  },
+  "computed": [
+    {
+      "id": "opt.apply_window_opens",
+      "value": "2026-09-16",
+      "unit": "date",
+      "inputs": {
+        "program_end_date": "2026-12-15"
+      },
+      "rule_ids": ["opt.apply_before_days"],
+      "status": "settled",
+      "reading": false
+    },
+    {
+      "id": "opt.apply_window_closes",
+      "value": "2027-02-13",
+      "unit": "date",
+      "inputs": {
+        "program_end_date": "2026-12-15",
+        "duly_settings": ["product.open_item_lookahead_days"]
+      },
+      "rule_ids": ["opt.apply_after_days"],
+      "status": "litigated",
+      "reading": false,
+      "alternates": [
+        {
+          "regime": "fixed_admission_2026",
+          "legal_status": "enjoined",
+          "value": "2027-01-14"
+        }
+      ],
+      "operative": {
+        "regime": "ds_2012",
+        "legal_status": "effective"
+      }
+    },
+    {
+      "id": "grace.ends",
+      "value": "2027-02-13",
+      "unit": "date",
+      "inputs": {
+        "program_end_date": "2026-12-15"
+      },
+      "rule_ids": ["grace.after_completion_days"],
+      "status": "litigated",
+      "reading": false,
+      "alternates": [
+        {
+          "regime": "fixed_admission_2026",
+          "legal_status": "enjoined",
+          "value": "2027-01-14"
+        }
+      ],
+      "operative": {
+        "regime": "ds_2012",
+        "legal_status": "effective"
+      }
+    }
+  ],
+  "rulepacks": [
+    {
+      "category": "f1",
+      "version": "v2026.09"
+    }
+  ],
+  "rules": {
+    "opt.apply_before_days": {
+      "value": 90,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(11)(i)(B)(2)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date",
+      "derivation": "verbatim",
+      "plain": "A student may file Form I-765 for OPT up to 90 days before the program end date. The last day to file is 60 days after the program end date."
+    },
+    "opt.apply_after_days": {
+      "value": 60,
+      "unit": "days",
+      "status": "litigated",
+      "citation": "8 CFR 214.2(f)(11)(i)(B)(2), text of 2026-09-14",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date",
+      "regime": "ds_2012",
+      "derivation": "verbatim",
+      "plain": "Under the rule in force today, the last day to file Form I-765 for OPT is 60 days after the program end date. Filing may begin up to 90 days before the program end date."
+    },
+    "opt.latest_start_after_days": {
+      "value": 60,
+      "unit": "days",
+      "status": "litigated",
+      "citation": "8 CFR 214.2(f)(11)(i)(D), text of 2026-09-14",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "A student may not request a start date that is more than 60 days after the student's program end date.",
+      "regime": "ds_2012",
+      "derivation": "verbatim",
+      "plain": "A student may not ask for an OPT start date more than 60 days after the program end date. The permission to work begins on the date asked for, or on the date it is approved if that is later."
+    },
+    "opt.complete_within_months": {
+      "value": 14,
+      "unit": "months",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(A)(3)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-29",
+      "quote": "A student must complete all practical training within a 14-month period following the completion of study, except that a 24-month extension pursuant to paragraph (f)(10)(ii)(C) of this section does not need to be completed within such 14-month period.",
+      "derivation": "verbatim",
+      "plain": "All practical training must end within a 14-month period after study is done. A 24-month STEM extension does not have to fit inside those 14 months."
+    },
+    "grace.after_completion_days": {
+      "value": 60,
+      "unit": "days",
+      "status": "litigated",
+      "citation": "8 CFR 214.2(f)(5)(iv), text of 2026-09-14",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "will be allowed an additional 60-day period to prepare for departure from the United States or to transfer in accordance with paragraph (f)(8) of this section",
+      "regime": "ds_2012",
+      "derivation": "verbatim",
+      "plain": "Under the rule in force today, a student who has finished study and any approved training has 60 more days. This time is to prepare to leave the United States or to transfer."
+    }
+  },
+  "questions": [
+    {
+      "id": "nothing_more_to_record",
+      "because": ["opt", "stem", "cap_gap"],
+      "about": {
+        "opt": null,
+        "stem": null,
+        "cap_gap": null
+      }
+    }
+  ],
+  "today": {
+    "date": "2026-09-29",
+    "time_zone": "America/New_York"
+  },
+  "upcoming": [
+    {
+      "id": "opt.apply_window_closes",
+      "date": "2027-02-13",
+      "rule_ids": ["opt.apply_after_days"],
+      "status": "litigated",
+      "reading": false,
+      "alternates": [
+        {
+          "regime": "fixed_admission_2026",
+          "legal_status": "enjoined",
+          "value": "2027-01-14"
+        }
+      ],
+      "operative": {
+        "regime": "ds_2012",
+        "legal_status": "effective"
+      }
+    },
+    {
+      "id": "opt.latest_start",
+      "date": "2027-02-13",
+      "rule_ids": ["opt.latest_start_after_days"],
+      "status": "litigated",
+      "reading": false,
+      "alternates": [
+        {
+          "regime": "fixed_admission_2026",
+          "legal_status": "enjoined",
+          "value": "2027-01-14"
+        }
+      ],
+      "operative": {
+        "regime": "ds_2012",
+        "legal_status": "effective"
+      }
+    },
+    {
+      "id": "grace.ends",
+      "date": "2027-02-13",
+      "rule_ids": ["grace.after_completion_days"],
+      "status": "litigated",
+      "reading": false,
+      "alternates": [
+        {
+          "regime": "fixed_admission_2026",
+          "legal_status": "enjoined",
+          "value": "2027-01-14"
+        }
+      ],
+      "operative": {
+        "regime": "ds_2012",
+        "legal_status": "effective"
+      }
+    },
+    {
+      "id": "opt.complete_by",
+      "date": "2028-02-15",
+      "rule_ids": ["opt.complete_within_months"],
+      "status": "settled",
+      "reading": false
+    }
+  ],
+  "lists": [],
+  "regimes": {
+    "ds_2012": {
+      "legal_status": "effective",
+      "operative": true,
+      "citation": "8 CFR 214.2(f)(5)(i), text of 2026-09-14",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "plain": "This is the rule that applies today. A student's stay lasts for the time the student is in a full course of study at a school SEVP has approved. It also covers approved practical training after study ends."
+    },
+    "fixed_admission_2026": {
+      "legal_status": "enjoined",
+      "operative": false,
+      "citation": "Preliminary Injunction Order Postponing Effective Date of Final Rule, No. 1:26-cv-13799 (D. Mass. Sept. 14, 2026), ECF No. 51",
+      "url": "https://www.courtlistener.com/docket/74661796/51/presidents-alliance-on-higher-education-and-immigration-v-united-states/",
+      "checked_on": "2026-09-28",
+      "plain": "A new rule, published on July 17, 2026, would set a fixed period of admission for students. A federal court paused it on September 14, 2026, while the case goes on. The order puts off the date the new rule would start until the court orders otherwise or the case ends. The earlier rule applies today."
+    }
+  },
+  "answers_read": []
+}

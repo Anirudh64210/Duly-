@@ -9,12 +9,16 @@ import type {
   Confirmations,
   EngineOutput,
   F1Case,
+  Regimes,
   ShownRule,
   Upcoming,
 } from "../lib/compute";
 import { answerFits } from "../lib/answers";
+import { dsoDraft, stemDraft } from "../lib/drafts";
 import {
   ANSWER_NOT_SHOWN,
+  CHANGE_VALUE,
+  EXACT_BUTTON,
   GROUPS,
   LIST_LINE,
   NEXT_HEADING,
@@ -23,12 +27,14 @@ import {
   READING_TAG,
   SOURCE_WORDS,
   VERBATIM_LINE,
+  PLAIN_HEADING,
   answerLine,
   becauseLine,
+  changeButton,
+  changeLine,
   computedName,
   conflictLine,
   conflictQuestionCopy,
-  dsoQuestion,
   factLine,
   factRule,
   formatDate,
@@ -37,16 +43,18 @@ import {
   groupOf,
   inputName,
   itemName,
+  legalStatusWords,
   listName,
+  needsAnswer,
   periodDay,
   periodSpan,
   questionCopy,
   reasonItem,
   reasonText,
-  regimeLine,
   scopeLine,
   settingName,
   showsAbout,
+  sourceLink,
   statusTag,
   todayLine,
 } from "../lib/labels";
@@ -102,20 +110,11 @@ function InputValue({ value }: { value: unknown }) {
   return <>This entry could not be shown.</>;
 }
 
-function RuleCard({ id, rule }: { id: string; rule: ShownRule }) {
-  const tag = statusTag(rule.status);
+/** The exact words of a rule: the quote, how the value was read, the citation and the day. */
+function ExactWords({ rule }: { rule: ShownRule }) {
   const reading = rule.derivation === "reading";
   return (
-    <li className="rule">
-      <p className="rule-head">
-        {/* A flag has no value to read: the rule is its words. */}
-        {rule.unit !== "flag" && (
-          <span className="rule-value">{formatValue(rule.value, rule.unit)}</span>
-        )}
-        <span className="rule-id">{id}</span>
-        {tag && <span className="tag">{tag}</span>}
-        {reading && <span className="tag">{READING_TAG}</span>}
-      </p>
+    <>
       {rule.quote && (
         <figure className="quote">
           <figcaption>{SOURCE_WORDS}</figcaption>
@@ -135,86 +134,145 @@ function RuleCard({ id, rule }: { id: string; rule: ShownRule }) {
         </a>
       </p>
       <p className="checked">Checked {formatDate(rule.checked_on)}.</p>
+    </>
+  );
+}
+
+/**
+ * plain-1 section 2: a rule shows its plain words first, and the exact words one tap
+ * away. A rule with no plain words shows its exact words as they are.
+ */
+function RuleCard({ id, rule }: { id: string; rule: ShownRule }) {
+  const [open, setOpen] = useState(false);
+  const panel = useId();
+  const reading = rule.derivation === "reading";
+  return (
+    <li className="rule">
+      <p className="rule-head">
+        {/* A flag has no value to read: the rule is its words. */}
+        {rule.unit !== "flag" && (
+          <span className="rule-value">{formatValue(rule.value, rule.unit)}</span>
+        )}
+        <span className="rule-id">{id}</span>
+        <span className="tag">{statusTag(rule.status)}</span>
+        {reading && <span className="tag">{READING_TAG}</span>}
+      </p>
+      {rule.plain ? (
+        <>
+          <div className="plain">
+            <p className="plain-label">{PLAIN_HEADING}</p>
+            <p>{rule.plain}</p>
+          </div>
+          <button
+            type="button"
+            className="quiet"
+            aria-expanded={open}
+            aria-controls={panel}
+            onClick={() => setOpen(!open)}
+          >
+            {EXACT_BUTTON}
+          </button>
+          {open && (
+            <div className="exact" id={panel}>
+              <ExactWords rule={rule} />
+            </div>
+          )}
+        </>
+      ) : (
+        <ExactWords rule={rule} />
+      )}
     </li>
   );
 }
 
 /**
- * SPEC section 7: a value with a rule change beside it shows the value in force, and
- * one line that opens the other value, its legal status as the pack gives it, and the
- * rule. The screen holds no legal status of its own.
+ * plain-1 section 3: a value that depends on a rule that is not simply in effect shows
+ * what is true today first, with that rule's plain words and a link to its source. What
+ * the other rule would change is one tap away. The legal status code is never shown.
  */
-function RuleChange(props: {
+function CourtLine(props: {
   alternates: readonly Alternate[];
   operative: { regime: string; legal_status: string } | undefined;
   unit: string;
-  ruleIds: readonly string[];
-  rules: EngineOutput["rules"];
+  regimes: Regimes | undefined;
 }) {
-  const { alternates, operative, unit, ruleIds, rules } = props;
+  const { alternates, operative, unit, regimes } = props;
   const [open, setOpen] = useState(false);
   const panel = useId();
+  const involved = new Map<string, string>();
+  if (operative && operative.legal_status !== "effective") {
+    involved.set(operative.regime, operative.legal_status);
+  }
+  for (const alternate of alternates) involved.set(alternate.regime, alternate.legal_status);
   const [first] = alternates;
-  if (first === undefined) return null;
+  if (involved.size === 0) return null;
   return (
     <div className="rule-change">
-      <button
-        type="button"
-        className="quiet"
-        aria-expanded={open}
-        aria-controls={panel}
-        onClick={() => setOpen(!open)}
-      >
-        {regimeLine(first.legal_status)}
-      </button>
-      {open && (
-        <div className="working" id={panel}>
-          <dl>
-            {alternates.map((alternate) => (
-              <div key={alternate.regime}>
-                <dt>Under the rule change</dt>
-                <dd>
-                  <span className="value">{formatValue(alternate.value, unit)}</span>
-                  <span className="legal">
-                    Legal status in the rule pack: {alternate.legal_status}
-                  </span>
-                </dd>
-              </div>
-            ))}
-            {operative && (
-              <div>
-                <dt>The value shown</dt>
-                <dd>
-                  <span className="legal">
-                    Legal status in the rule pack: {operative.legal_status}
-                  </span>
-                </dd>
-              </div>
+      {[...involved].map(([id, legalStatus]) => {
+        const regime = regimes?.[id];
+        return (
+          <div className="court" key={id}>
+            <p>{regime?.plain ?? changeLine(legalStatus)}</p>
+            {regime && (
+              <p>
+                <a href={regime.url} target="_blank" rel="noreferrer">
+                  {sourceLink(legalStatus)}
+                </a>
+              </p>
             )}
-          </dl>
-          <ul className="rules">
-            {ruleIds.map((id) => {
-              const rule = rules[id];
-              return rule ? <RuleCard key={id} id={id} rule={rule} /> : null;
-            })}
-          </ul>
-        </div>
+          </div>
+        );
+      })}
+      {first && (
+        <>
+          <button
+            type="button"
+            className="quiet"
+            aria-expanded={open}
+            aria-controls={panel}
+            onClick={() => setOpen(!open)}
+          >
+            {changeButton(first.legal_status)}
+          </button>
+          {open && (
+            <div className="working" id={panel}>
+              <dl>
+                {alternates.map((alternate) => (
+                  <div key={alternate.regime}>
+                    <dt>
+                      {alternate.legal_status === "enjoined"
+                        ? CHANGE_VALUE
+                        : `Under the rule ${legalStatusWords(alternate.legal_status)}`}
+                    </dt>
+                    <dd>
+                      <span className="value">{formatValue(alternate.value, unit)}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
 function Marks({ status, reading }: { status: string; reading: boolean }) {
-  const tag = statusTag(status);
   return (
     <>
-      {tag && <span className="tag">{tag}</span>}
+      <span className="tag">{statusTag(status)}</span>
       {reading && <span className="tag reading-tag">{READING_TAG}</span>}
     </>
   );
 }
 
-function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rules"] }) {
+function ItemRow(props: {
+  item: ComputedItem;
+  rules: EngineOutput["rules"];
+  regimes: Regimes | undefined;
+}) {
+  const { item, rules, regimes } = props;
   const [open, setOpen] = useState(false);
   const panel = useId();
 
@@ -233,12 +291,11 @@ function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rul
         </span>
         <span className="value">{formatValue(item.value, item.unit)}</span>
       </button>
-      <RuleChange
+      <CourtLine
         alternates={item.alternates ?? []}
         operative={item.operative}
         unit={item.unit}
-        ruleIds={item.rule_ids}
-        rules={rules}
+        regimes={regimes}
       />
       {open && (
         <div className="working" id={panel}>
@@ -279,7 +336,12 @@ export function Verdict(props: { output: EngineOutput; onChangeZone: () => void 
   const { verdict, scope, computed, today, rules } = props.output;
   // Two reasons may read the same. Each line is shown once.
   const lines = new Map<string, { reading: boolean; beside: string | undefined }>();
-  for (const reason of verdict.reasons) {
+  // plain-1 section 5: what is known and settled first, then what needs an answer.
+  const ordered = [
+    ...verdict.reasons.filter((reason) => !needsAnswer(reason)),
+    ...verdict.reasons.filter(needsAnswer),
+  ];
+  for (const reason of ordered) {
     const text = reasonText(reason, computed);
     const reading = reasonItem(reason, computed)?.reading ?? false;
     const beside = COUNT_BESIDE.get(reason);
@@ -305,16 +367,10 @@ export function Verdict(props: { output: EngineOutput; onChangeZone: () => void 
                 </>
               )}
             </p>
-            {beside !== undefined && rule?.quote && (
-              <figure className="quote">
-                <figcaption>Words of the regulation</figcaption>
-                <blockquote>{rule.quote}</blockquote>
-                <p>
-                  <a href={rule.url} target="_blank" rel="noreferrer">
-                    {rule.citation}
-                  </a>
-                </p>
-              </figure>
+            {beside !== undefined && rule && (
+              <ul className="rules">
+                <RuleCard id={beside} rule={rule} />
+              </ul>
             )}
           </div>
         );
@@ -384,8 +440,12 @@ export function Questions(props: {
   const reasons = output.verdict.reasons;
   // SPEC-resolutions point 33: an answer given for values that are not the ones the
   // engine read is never shown as standing.
-  const fits = ([, given]: [string, Confirmation]) =>
-    entered === undefined ? given.about !== undefined : answerFits(given, entered, output);
+  // Point 46: where the engine names the answers it read, only those stand.
+  const read = output.answers_read;
+  const fits = ([id, given]: [string, Confirmation]) => {
+    if (read !== undefined) return read.includes(id);
+    return entered === undefined ? given.about !== undefined : answerFits(given, entered, output);
+  };
   const sentOnly = Object.entries(sent).filter(([id]) => !open.has(id));
   const answered = sentOnly.filter(fits);
   const unread = sentOnly.filter((entry) => !fits(entry));
@@ -494,7 +554,7 @@ export function Questions(props: {
       )}
       {unread.length > 0 && (
         <section className="questions" aria-labelledby="questions-unread">
-          <h3 id="questions-unread">Answers Duly did not read</h3>
+          <h3 id="questions-unread">Answers not used for the facts entered now</h3>
           <p>{UNREAD_LINE}</p>
           <ul>
             {unread.map(([id]) => (
@@ -520,7 +580,7 @@ export function Questions(props: {
 }
 
 const UNREAD_LINE =
-  "These answers were given for dates that are not the ones entered now, so Duly did not read them.";
+  "Duly did not use these answers for the facts entered now. They are not shown as your answers.";
 
 /**
  * The line of a conflict the person answered. It is said in the present tense only
@@ -567,13 +627,39 @@ export function Items({ output }: { output: EngineOutput }) {
             <h3>{group}</h3>
             <ul className="items">
               {items.map((item) => (
-                <ItemRow key={item.id} item={item} rules={output.rules} />
+                <ItemRow key={item.id} item={item} rules={output.rules} regimes={output.regimes} />
               ))}
             </ul>
           </section>
         );
       })}
     </>
+  );
+}
+
+const DRAFT_LINE =
+  "Duly drafted it from the dates you entered, in your words. It holds no date Duly computed. Duly never sends it.";
+
+function DraftBlock({ draft }: { draft: string }) {
+  return (
+    <>
+      <h4>An email you can send to your DSO</h4>
+      <p>{DRAFT_LINE}</p>
+      <pre className="draft">{draft}</pre>
+      <CopyButton text={draft} />
+    </>
+  );
+}
+
+/** plain-1 section 4: the draft for a talk_to_dso verdict. */
+export function DsoDraft(props: { output: EngineOutput; sent: F1Case }) {
+  const draft = dsoDraft(props.output, props.sent);
+  if (draft === null) return null;
+  return (
+    <section className="group" aria-labelledby="draft-heading">
+      <h3 id="draft-heading">Your question for your DSO</h3>
+      <DraftBlock draft={draft} />
+    </section>
   );
 }
 
@@ -588,7 +674,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <p>
       <button type="button" onClick={copy}>
-        Copy the question
+        Copy the email
       </button>{" "}
       {copied === true && <span role="status">Copied.</span>}
       {copied === false && (
@@ -602,7 +688,12 @@ function CopyButton({ text }: { text: string }) {
  * SPEC-resolutions point 32: a date ahead opens to its rules, with the value, the words,
  * the citation and the link, and for a reading the pack's note marked as Duly's reading.
  */
-function UpcomingRow({ entry, rules }: { entry: Upcoming; rules: EngineOutput["rules"] }) {
+function UpcomingRow(props: {
+  entry: Upcoming;
+  rules: EngineOutput["rules"];
+  regimes: Regimes | undefined;
+}) {
+  const { entry, rules, regimes } = props;
   const [open, setOpen] = useState(false);
   const panel = useId();
   return (
@@ -620,12 +711,11 @@ function UpcomingRow({ entry, rules }: { entry: Upcoming; rules: EngineOutput["r
         </span>
         <span className="value">{formatDate(entry.date)}</span>
       </button>
-      <RuleChange
+      <CourtLine
         alternates={entry.alternates ?? []}
         operative={entry.operative}
         unit="date"
-        ruleIds={entry.rule_ids}
-        rules={rules}
+        regimes={regimes}
       />
       {open && (
         <div className="working" id={panel}>
@@ -656,7 +746,12 @@ export function WhatComesNext(props: { output: EngineOutput; sent: F1Case }) {
       {upcoming.length > 0 && (
         <ol className="items upcoming">
           {upcoming.map((entry) => (
-            <UpcomingRow key={entry.id} entry={entry} rules={rules} />
+            <UpcomingRow
+              key={entry.id}
+              entry={entry}
+              rules={rules}
+              regimes={props.output.regimes}
+            />
           ))}
         </ol>
       )}
@@ -666,7 +761,7 @@ export function WhatComesNext(props: { output: EngineOutput; sent: F1Case }) {
           return rule ? [{ id, rule }] : [];
         });
         const citation = shown[0]?.rule.citation ?? "the regulation";
-        const draft = dsoQuestion(props.sent.opt, upcoming, citation);
+        const draft = stemDraft(props.sent, citation);
         return (
           <div className="list" key={list.id}>
             <h4>{listName(list.id)}</h4>
@@ -676,22 +771,12 @@ export function WhatComesNext(props: { output: EngineOutput; sent: F1Case }) {
               </p>
             )}
             <p className="list-line">{LIST_LINE}</p>
-            <ol className="listed">
+            <ol className="listed rules">
               {shown.map(({ id, rule }) => (
-                <li key={id}>
-                  {rule.quote && <blockquote>&ldquo;{rule.quote}&rdquo;</blockquote>}
-                  <p>
-                    <a href={rule.url} target="_blank" rel="noreferrer">
-                      {rule.citation}
-                    </a>
-                  </p>
-                </li>
+                <RuleCard key={id} id={id} rule={rule} />
               ))}
             </ol>
-            <h4>A question you can send to your DSO</h4>
-            <p>Duly drafted it from your dates. Duly never sends it.</p>
-            <pre className="draft">{draft}</pre>
-            <CopyButton text={draft} />
+            <DraftBlock draft={draft} />
           </div>
         );
       })}
