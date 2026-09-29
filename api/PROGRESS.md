@@ -130,3 +130,42 @@ Seen, not changed
   the contract is refused with the general words "this does not match the contract",
   after the place of the problem. The tests accept this. Words for each of those checks
   could be added to `_in_words` later.
+
+## 2026-09-29, run l-api-b92dbaa4da (product round 1)
+
+Goal: specs/product-1/SPEC.md section 3 and SPEC-resolutions.md point 8. The api passes
+its clock to `parse_case`, and an answer dated after today becomes a 422 in plain words.
+
+What was built
+- api/main.py: `parse_case(raw, clock)`. A ValueError from it becomes a 422 with
+  `NOT_YET`. The contract, the numbers and the zone are checked before, so what is left
+  is an answer dated after the person's own day. The engine's words are not shown.
+  `compute_f1` is outside the catch, so a later ValueError of the engine stays a 500.
+- api/case_f1.py: `NOT_YET`, words that name the field and never the date sent.
+
+What ran
+- Before: 14 failures in tests/unit/api. 3 in test_compute_product.py (answer after
+  today not refused, 200 instead of 422), 11 in older files.
+- After: the 3 pass. 11 remain, all from the engine output under points 3 and 7, which
+  the api passes through as it is. mypy "no issues found in 56 source files", ruff check
+  "All checks passed!", ruff format "8 files already formatted", copy lint clean.
+- Done command: exit 1, from the 11 tests only.
+
+Disputes (tests I cannot edit; the resolutions say they are wrong)
+- Point 7 and 3: the older tests send answers with about {"question": id} and the
+  marker day 1950-01-01 without the step the screen takes (with_the_about_asked,
+  dated_on_the_day), or with no about at all. The engine keeps the question open.
+- test_compute.py::test_a_good_case_returns_the_engine_output asks for the exact key set
+  of the phase-2 output; the product contract adds upcoming and lists.
+
+Stop hook: the same 11 failures a second time. Status escalated, api/ESCALATE.md written.
+
+## Run l-api-bfb5b9b276 (attempt 1)
+- git merge --no-edit lane/L-api/l-api-b92dbaa4da: merged, 4 files (api/PROGRESS.md,
+  api/REPORT.json, api/case_f1.py, api/main.py). Git warned it could not open
+  tests/holdout/ (the sandbox denies reads there); the merge itself went through.
+- Done command, run as written with no pipe: all tests in tests/unit/api pass, mypy
+  "Success: no issues found in 56 source files", ruff check "All checks passed!",
+  ruff format "8 files already formatted". Exit 0.
+- No code change needed in api/ this run; the 11 disputed tests were fixed by L-tests
+  (commit ae3c878) and now pass against the merged api.

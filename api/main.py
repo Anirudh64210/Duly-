@@ -4,7 +4,14 @@ from typing import Annotated, Any
 from fastapi import Depends, FastAPI, HTTPException, Request
 from sqlalchemy.engine import Engine
 
-from api.case_f1 import NOT_A_NUMBER, NOT_JSON, NotANumberError, first_problem, read_body
+from api.case_f1 import (
+    NOT_A_NUMBER,
+    NOT_JSON,
+    NOT_YET,
+    NotANumberError,
+    first_problem,
+    read_body,
+)
 from api.db import database_reachable, make_engine
 from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
@@ -96,7 +103,14 @@ def compute_f1_case(
     problem = first_problem(raw)
     if problem is not None:
         raise HTTPException(status_code=422, detail=problem)
-    return compute_f1(parse_case(raw), pack, clock)
+    try:
+        case = parse_case(raw, clock)
+    except ValueError:
+        # The contract, the numbers and the zone are checked above, so what is left is an
+        # answer dated after the person's own day. The engine's words are not shown: they
+        # name what was sent.
+        raise HTTPException(status_code=422, detail=NOT_YET) from None
+    return compute_f1(case, pack, clock)
 
 
 @app.get("/ops/v1/status")
