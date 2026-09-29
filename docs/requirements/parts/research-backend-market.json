@@ -1,0 +1,2036 @@
+[
+ {
+  "id": "RBACK-001",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Ship one API process and one worker process sharing a single codebase (FastAPI-shaped monolith plus worker).",
+  "kind": "ops",
+  "status": "met",
+  "evidence": "api/main.py; api/worker.py; infra/docker-compose.yml",
+  "note": "The api and worker services run from the same image and code; the worker only sends a heartbeat so far."
+ },
+ {
+  "id": "RBACK-002",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "One multi-stage Dockerfile per process, built as OCI images.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "infra/Dockerfile.api",
+  "note": "The API Dockerfile has a single stage and is shared by the api and worker services, so it is not multi-stage or one per process."
+ },
+ {
+  "id": "RBACK-003",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "Postgres locally, never SQLite; the same backing services in dev, CI and production.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "infra/docker-compose.yml",
+  "note": "Compose runs postgres:16, but CI starts no Postgres and no test touches a real database."
+ },
+ {
+  "id": "RBACK-004",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "Row-level security keyed on current_setting('app.tenant_id') on every tenant-scoped table, with FORCE ROW LEVEL SECURITY so table owners cannot bypass it.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No tables, migrations or RLS policies exist; api/db.py only checks the connection."
+ },
+ {
+  "id": "RBACK-005",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "RLS doubles as the mechanical enforcement of the three-zone privacy boundary inside the database.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no schema, so no zone is enforced in the database."
+ },
+ {
+  "id": "RBACK-006",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "MinIO provides S3-compatible object storage in the compose stack, with no LocalStack.",
+  "kind": "ops",
+  "status": "met",
+  "evidence": "infra/docker-compose.yml",
+  "note": "MinIO (Chainguard image) is in compose and LocalStack is absent."
+ },
+ {
+  "id": "RBACK-007",
+  "source": "Duly backend and agent factory.md, intro",
+  "text": "One compose file, identical between the founder's laptop, CI and the deployed environment.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "infra/docker-compose.yml; .github/workflows/ci.yml",
+  "note": "Compose is used locally only; CI runs the gates on the runner without compose and there is no deployment."
+ },
+ {
+  "id": "RBACK-008",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Deploy the same images to a container PaaS (Railway or Render) with managed Postgres.",
+  "kind": "ops",
+  "status": "superseded",
+  "evidence": "D16; D27",
+  "note": "The founder chose AWS us-west-2 and Bedrock for v0, not Railway or Render."
+ },
+ {
+  "id": "RBACK-009",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "Kubernetes later means writing manifests for the same images, with no application changes.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "cutlines.md, Redis Temporal Kubernetes row",
+  "note": "The cutlines hold Kubernetes back until measured triggers."
+ },
+ {
+  "id": "RBACK-010",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Six components behind one API: rule-pack store, timeline engine, audit log, narration service, ingestion pipeline, app API.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/rulepack.py; engine/f1.py; assistant/boundary.py; pipeline/graph.py; api/main.py",
+  "note": "The store, engine and a narration validator exist; the audit log is missing and ingestion and the app API are stubs."
+ },
+ {
+  "id": "RBACK-011",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Rule-pack store of versioned, effective-dated parameters, each with a citation and a saved source snapshot.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/rulepack.py; rulepacks/f1-us/v2026.09/parameters.yaml; rulepacks/f1-us/v2026.09/sources/; tests/unit/engine/test_rulepack.py; tools/sources/verify.py",
+  "note": "Parameters carry effective dates, citations and saved sources, and gate 7 checks every quote."
+ },
+ {
+  "id": "RBACK-012",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Rule-pack releases are reviewable diffs between versions.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/CHANGELOG.md",
+  "note": "There is a changelog but only one version per pack and no tool that renders a release diff."
+ },
+ {
+  "id": "RBACK-013",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Timeline engine is pure functions with no I/O and an injected clock, and is the only place date arithmetic exists.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/clocks.py; engine/dates.py; engine/f1.py; tools/gates/engine_literals.py; tests/unit/engine/test_clocks.py",
+  "note": "The engine takes a Clock and a pack; CLAUDE.md and the engine-literals gate keep dates in engine/."
+ },
+ {
+  "id": "RBACK-014",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Append-only audit log in Postgres written on every render: case-snapshot hash, rule-pack version, engine output, model and prompt version, final text.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No audit table exists and /v1/compute/f1 is stateless."
+ },
+ {
+  "id": "RBACK-015",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ6 inferences",
+  "text": "Immutable record of every deadline displayed to a user and the rule version it came from.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing records what a user was shown."
+ },
+ {
+  "id": "RBACK-016",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Narration service is a thin gateway making schema-constrained LLM calls.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "assistant/providers.py",
+  "note": "The provider interface exists but every provider is NotWired; no model call is made."
+ },
+ {
+  "id": "RBACK-017",
+  "source": "Duly backend and agent factory.md, Phase 2",
+  "text": "No-new-facts validator: extract every date and number from the narration and reject any absent from engine output.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py",
+  "note": "test_number_the_engine_did_not_produce_is_rejected and test_a_wrong_value_next_to_a_citation_is_still_caught prove it."
+ },
+ {
+  "id": "RBACK-018",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Narration resolves citations: every sentence cites a known source.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py",
+  "note": "test_sentence_without_source_is_rejected and test_unknown_source_is_rejected cover it."
+ },
+ {
+  "id": "RBACK-019",
+  "source": "Duly backend and agent factory.md, Phase 2",
+  "text": "OUT_OF_SCOPE abstention: personal or out-of-scope questions are declined rather than answered.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py; evals/boundary/pairs.jsonl",
+  "note": "Personal questions always step back to the DSO draft in the eval set."
+ },
+ {
+  "id": "RBACK-020",
+  "source": "Duly backend and agent factory.md, Phase 2",
+  "text": "A prompt-injection CI suite for the narration service (OWASP LLM01).",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "evals/boundary holds no injection cases."
+ },
+ {
+  "id": "RBACK-021",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "Output sanitization of model output before it reaches users (OWASP LLM05).",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "assistant/boundary.py",
+  "note": "The validator rejects unsourced values and personal conclusions, but there is no markup or link sanitization."
+ },
+ {
+  "id": "RBACK-022",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "Per-tenant token budgets and rate or spend limits on the model endpoint (OWASP LLM10).",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No tenant, budget or rate limit exists on the product side."
+ },
+ {
+  "id": "RBACK-023",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ5 inferences",
+  "text": "Log every prompt and response with tenant ID and model version to an append-only table.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No model is wired and no audit table exists."
+ },
+ {
+  "id": "RBACK-024",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Ingestion polls the Federal Register API as a job.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml; pipeline/graph.py",
+  "note": "The host is on the allowlist and the stage graph exists, but no poller or job runs."
+ },
+ {
+  "id": "RBACK-025",
+  "source": "Duly backend and agent factory.md, Phase 3",
+  "text": "USCIS change detection with a GovDelivery fallback.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "www.uscis.gov is listed as a source but no detection code exists."
+ },
+ {
+  "id": "RBACK-026",
+  "source": "Duly backend and agent factory.md, Phase 3",
+  "text": "CourtListener webhooks feed the ingestion pipeline.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "courtlistener is listed and a docket was saved by hand, but no webhook receiver exists."
+ },
+ {
+  "id": "RBACK-027",
+  "source": "Duly backend and agent factory.md, Phase 3",
+  "text": "A human review queue UI for update and rule-pack diffs before anything is published.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "pipeline/graph.py; tests/unit/pipeline/test_graph.py",
+  "note": "publish_blockers holds any update without ops approval, but ops/src/App.tsx has no review queue."
+ },
+ {
+  "id": "RBACK-028",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Rule-pack changes are attorney-gated.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "D14; D22; D28",
+  "note": "No attorney is retained; founder or ops approval is the final pass and attorneys come after validation."
+ },
+ {
+  "id": "RBACK-029",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "App API holds accounts.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "api/main.py has no account endpoints."
+ },
+ {
+  "id": "RBACK-030",
+  "source": "Duly backend and agent factory.md, Phase 4",
+  "text": "Consent event log.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent storage exists."
+ },
+ {
+  "id": "RBACK-031",
+  "source": "Duly backend and agent factory.md, Phase 4",
+  "text": "Unbundled opt-in consent flows.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent screens exist in web/src."
+ },
+ {
+  "id": "RBACK-032",
+  "source": "Duly backend and agent factory.md, Phase 4",
+  "text": "Rights plumbing: export and delete with SLA tracking, and crypto-shred deletion.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing stores user data yet, so nothing can be exported or shredded."
+ },
+ {
+  "id": "RBACK-033",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Checklist and WorkBook sync endpoints in the app API.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "A bridge contract exists but no endpoint."
+ },
+ {
+  "id": "RBACK-034",
+  "source": "Duly backend and agent factory.md, Phase 5",
+  "text": "WorkBook client sync protocol for the record-keeping layer.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Only the bridge schema exists."
+ },
+ {
+  "id": "RBACK-035",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "The job queue is Postgres itself using FOR UPDATE SKIP LOCKED.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "api/worker.py",
+  "note": "The worker docstring says jobs arrive with the jobs table; no queue table exists."
+ },
+ {
+  "id": "RBACK-036",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "No Redis, Temporal or LocalStack at launch.",
+  "kind": "ops",
+  "status": "met",
+  "evidence": "infra/docker-compose.yml; pyproject.toml",
+  "note": "None of them is in compose or the dependencies."
+ },
+ {
+  "id": "RBACK-037",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ6 inferences",
+  "text": "All webhook, notification and model-call jobs are idempotent with idempotency keys, since the queue retries.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No jobs exist."
+ },
+ {
+  "id": "RBACK-038",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "Environment config validated at boot by pydantic-settings, so config divergence fails at startup.",
+  "kind": "ops",
+  "status": "met",
+  "evidence": "api/settings.py; tests/unit/api/test_api.py",
+  "note": "test_bad_allowlist_stops_boot and test_unknown_environment_stops_boot prove it."
+ },
+ {
+  "id": "RBACK-039",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "docker compose up brings up api, worker, Postgres with migrations applied and RLS policies active, and MinIO.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "infra/docker-compose.yml; Makefile",
+  "note": "make up starts the services but there are no migrations or RLS policies."
+ },
+ {
+  "id": "RBACK-040",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "Product services emit structured JSON logs with request ID and tenant ID through an OpenTelemetry console exporter, the same as production.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "api/worker.py",
+  "note": "The worker uses plain logging.basicConfig; OpenTelemetry exists only for factory runs."
+ },
+ {
+  "id": "RBACK-041",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "One compose file with profiles dev, test and e2e.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "infra/docker-compose.yml; Makefile",
+  "note": "Compose has no profiles and make e2e exits with a stub; D49 records the change from the plan for the founder."
+ },
+ {
+  "id": "RBACK-042",
+  "source": "Duly backend and agent factory.md, Three stack decisions",
+  "text": "CI builds each image once, and every downstream gate and the deploy use that exact digest.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": ".github/workflows/ci.yml",
+  "note": "CI builds no image."
+ },
+ {
+  "id": "RBACK-043",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "Feature flags live in a Postgres flags table, not a flag SaaS.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No flags table exists."
+ },
+ {
+  "id": "RBACK-044",
+  "source": "Duly backend and agent factory.md, The backend is one stack",
+  "text": "Three data zones designed into the schema from table one: on-device documents, client-side-encrypted cloud account data, minimized parameters to the model.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no schema yet."
+ },
+ {
+  "id": "RBACK-045",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "Mobile client-side encryption beyond a stub interface is out of the prototype's scope.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "cutlines.md, Full on-device vault encryption on web row",
+  "note": "Cut to later by design."
+ },
+ {
+  "id": "RBACK-046",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "No automatic form preparation.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py",
+  "note": "Requests to fill or prepare USCIS or SEVP forms step back."
+ },
+ {
+  "id": "RBACK-047",
+  "source": "Duly backend and agent factory.md, prod-shaped local",
+  "text": "No performance-budget gates until real baselines exist.",
+  "kind": "testing",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Deliberately deferred by the report itself."
+ },
+ {
+  "id": "RBACK-048",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ1 inferences",
+  "text": "Store times in UTC and convert at the edge; the person's day is computed in their own time zone.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/clocks.py; D33",
+  "note": "The engine takes the person's day, but nothing is stored yet."
+ },
+ {
+  "id": "RBACK-049",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ1 inferences",
+  "text": "Run migrations in CI against a fresh Postgres before tests.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No migrations and no Postgres in CI."
+ },
+ {
+  "id": "RBACK-050",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ1 inferences",
+  "text": "Seed data is generated by the same factories the tests use.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "Makefile",
+  "note": "make seed prints that there is nothing to seed."
+ },
+ {
+  "id": "RBACK-051",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ1 inferences",
+  "text": "Pinned base images, lockfiles and an .env.example.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "uv.lock; package-lock.json; infra/docker-compose.yml",
+  "note": "Lockfiles exist, but MinIO and Mailpit use the latest tag and there is no .env.example."
+ },
+ {
+  "id": "RBACK-052",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "A PRR-lite checklist rides the PR template; agents fill it and the founder verifies it.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no .github/pull_request_template.md."
+ },
+ {
+  "id": "RBACK-053",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "PRR-lite: an alert exists for each new failure mode, such as deadline-computation errors and ingestion staleness.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Alerts exist for the factory only, not for the product."
+ },
+ {
+  "id": "RBACK-054",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "PRR-lite: a runbook stub per feature, such as how to re-run ingestion and how to correct a wrong deadline for a user.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "docs/factory/RUNBOOK.md",
+  "note": "The only runbook covers the factory."
+ },
+ {
+  "id": "RBACK-055",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "PRR-lite: a monthly backup-restore rehearsal into a scratch database.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No backups exist."
+ },
+ {
+  "id": "RBACK-056",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "PRR-lite: rate limits per user and per IP on API and model endpoints.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "api/main.py has no rate limiting."
+ },
+ {
+  "id": "RBACK-057",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "PRR-lite: every migration is reversible or has a documented forward fix.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No migrations exist."
+ },
+ {
+  "id": "RBACK-058",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "PRR-lite: every feature is verified on staging built from the same image.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no staging environment."
+ },
+ {
+  "id": "RBACK-059",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "Post-merge safety is deploy on green plus a PaaS rollback to the previous image.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no deployment."
+ },
+ {
+  "id": "RBACK-060",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "Revert first, debug later: a one-command git revert for any agent change.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "docs/factory/RUNBOOK.md; tests/unit/tools/test_phase.py",
+  "note": "Each lane lands as one merge commit, and test_a_seed_plan_becomes_a_checked_traceable_branch reverts one."
+ },
+ {
+  "id": "RBACK-061",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "A single monorepo with engine, rulepacks, narration, ingestion, api, contracts, tests and .claude directories.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "engine/; rulepacks/; assistant/; pipeline/; api/; contracts/; tests/; .claude/",
+  "note": "Narration lives in assistant/ and ingestion in pipeline/."
+ },
+ {
+  "id": "RBACK-062",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "One agent = one module = one worktree = one PR.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/worktree.py; tools/factory/registry.py; tests/unit/tools/test_phase.py",
+  "note": "Each lane has its own worktree and merge commit, but a pull request carries a whole round of lanes."
+ },
+ {
+  "id": "RBACK-063",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "Interface contracts (Pydantic types, OpenAPI schema, engine output schema) are committed to main first so parallel slices code against a frozen boundary.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "contracts/openapi.yaml; contracts/engine_output.schema.json; CLAUDE.md; factory/config.yaml",
+  "note": "Contract changes land first and alone and need the founder."
+ },
+ {
+  "id": "RBACK-064",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "A CODEOWNERS-style scope file per lane makes file ownership mechanical.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/; tools/diff_policy/check.py; tests/unit/tools/test_diff_policy.py",
+  "note": "Each lane YAML lists its owned paths and gate 3 enforces them."
+ },
+ {
+  "id": "RBACK-065",
+  "source": "notes/Duly backend and agent factory/multiagent_coding_practice.md, KQ3",
+  "text": "A task-claiming registry prevents two agents claiming the same task or files.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/registry.py; tests/unit/tools/test_factory_core.py",
+  "note": "test_a_lane_or_a_task_can_be_claimed_once proves it."
+ },
+ {
+  "id": "RBACK-066",
+  "source": "notes/Duly backend and agent factory/multiagent_coding_practice.md, KQ3",
+  "text": "Sequential merging with early conflict detection.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/phase.py; tests/unit/tools/test_phase.py",
+  "note": "test_a_merge_conflict_is_reported_and_leaves_the_branch_clean covers it."
+ },
+ {
+  "id": "RBACK-067",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "Each worktree gets its own compose stack through project-name namespacing and dynamic port mapping.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "infra/docker-compose.yml",
+  "note": "Compose takes DULY_PROJECT and port variables, but nothing sets them per worktree."
+ },
+ {
+  "id": "RBACK-068",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "Lane context persists in files: SPEC.md written first, a progress log appended each iteration, and git history.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "specs/product-1/SPEC.md; api/PROGRESS.md; engine/PROGRESS.md; CLAUDE.md",
+  "note": "Every lane has a SPEC and a progress log."
+ },
+ {
+  "id": "RBACK-069",
+  "source": "Duly backend and agent factory.md, Worktrees, ownership",
+  "text": "A SPEC names the files and interfaces involved and ends with a verification step.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "specs/product-1/SPEC.md; specs/product-1/plan.yaml",
+  "note": "Each plan round has a done command the orchestrator runs."
+ },
+ {
+  "id": "RBACK-070",
+  "source": "Duly backend and agent factory.md, How many lanes",
+  "text": "One high-attention lane plus 2 to 4 low-attention lanes; when in doubt, fewer lanes with stronger gates.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml",
+  "note": "max_parallel_agents is 4, but lanes carry no attention class."
+ },
+ {
+  "id": "RBACK-071",
+  "source": "Duly backend and agent factory.md, How many lanes",
+  "text": "The high-attention lane holds doctrine-critical work (engine semantics, RLS, migrations, audit log, consent) and the founder reads every diff.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml",
+  "note": "The founder approves every merge to main, but there is no rule that marks paths as high-attention."
+ },
+ {
+  "id": "RBACK-072",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "A planner session with the founder produces SPEC.md and freezes contracts on main.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/lanes/founder.yaml; specs/",
+  "note": "The founder lane writes SPECs and plans."
+ },
+ {
+  "id": "RBACK-073",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "Implementer Ralph loops: precise done definition, one small change per iteration, mandatory gates, and a 20 to 50 iteration cap.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "loops/ralph.sh; tools/factory/agent_run.py",
+  "note": "ralph.sh caps at 50 with a DONE_CMD, but it calls claude -p directly, outside the factory's sandbox and contract."
+ },
+ {
+  "id": "RBACK-074",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "A reviewer agent runs in a fresh context on every change, scoped to correctness only.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/agents/reviewer.md; factory/agents/reviewer.yaml; tests/unit/tools/test_factory_core.py",
+  "note": "The reviewer starts with no memory and its scope is whether the work is right."
+ },
+ {
+  "id": "RBACK-075",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "A test-author agent is a separate role in a separate lane.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/agents/test-author.yaml; .claude/lanes/L-tests.yaml",
+  "note": "Builders cannot edit tests."
+ },
+ {
+  "id": "RBACK-076",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "PostToolUse hooks run ruff and mypy after every edit.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/hooks/lint_touched.py; .claude/settings.json",
+  "note": "The hook runs ruff check, ruff format and eslint, but not mypy or tsc."
+ },
+ {
+  "id": "RBACK-077",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "A PreToolUse hook blocks writes outside the lane's paths and to tests/holdout, migrations and CI config.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/hooks/guard_paths.py; tools/diff_policy/check.py",
+  "note": "Lane, holdout and CI paths are blocked; there is no migrations path in the protected list."
+ },
+ {
+  "id": "RBACK-078",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "A Stop hook blocks the turn from ending until the lane's test command passes.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/hooks/lane_test.py; .claude/settings.json",
+  "note": "The Stop hook runs the lane test or the round's done command."
+ },
+ {
+  "id": "RBACK-079",
+  "source": "Duly backend and agent factory.md, agent roles",
+  "text": "Experimental agent teams are skipped; no unbounded sub-agents.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml; tests/unit/tools/test_factory_core.py",
+  "note": "max_subagent_depth is 0 and a config that allows sub-agents is refused."
+ },
+ {
+  "id": "RBACK-080",
+  "source": "notes/Duly backend and agent factory/multiagent_coding_practice.md, KQ3",
+  "text": "Lead agent gives each agent explicit objectives, output formats and boundaries.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "specs/product-1/plan.yaml; contracts/factory_report.schema.json; contracts/factory_agent.schema.json",
+  "note": "Each lane gets a mission, a done command and a report schema."
+ },
+ {
+  "id": "RBACK-081",
+  "source": "notes/Duly backend and agent factory/production_quality_gates.md, KQ4",
+  "text": "Ephemeral per-task execution environment destroyed after each run.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/worktree.py; tools/factory/sandbox.py; tools/factory/jail.py",
+  "note": "Worktrees are removed after merge; the walls are an OS sandbox, not a container (CHECKLIST 6.5)."
+ },
+ {
+  "id": "RBACK-082",
+  "source": "notes/Duly backend and agent factory/multiagent_coding_practice.md, KQ5",
+  "text": "Per-agent budget caps enforced in tooling.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml; tools/factory/budget.py; tests/unit/tools/test_factory_core.py",
+  "note": "test_the_cap_for_the_day_refuses_a_run proves the daily cap."
+ },
+ {
+  "id": "RBACK-083",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "The scoring harness runs in CI in a context the implementer cannot read or write.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/factory/sandbox.py; tools/diff_policy/check.py",
+  "note": "Agents cannot write the gates, but they can read the Makefile, the gate scripts and ci.yml."
+ },
+ {
+  "id": "RBACK-084",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "A hidden holdout suite in tests/holdout is excluded from every agent context.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/factory/sandbox.py; tools/factory/agent_run.py; tests/unit/tools/test_agent_run.py",
+  "note": "test_hidden_tests_are_not_in_a_builders_worktree proves builders cannot see it."
+ },
+ {
+  "id": "RBACK-085",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "The holdout suite is rotated periodically so lessons files cannot memorize it.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "tests/holdout/README.md",
+  "note": "The README says monthly, but no rotation mechanism or record exists."
+ },
+ {
+  "id": "RBACK-086",
+  "source": "Duly backend and agent factory.md, gate table row 10",
+  "text": "Holdout tests run in an isolated CI job in the merge queue.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "specs/product-1/plan.yaml",
+  "note": "The orchestrator runs them as a round check; .github/workflows/ci.yml never runs tests/holdout."
+ },
+ {
+  "id": "RBACK-087",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "A mechanical CI diff rule: implementation PRs may not modify or delete tests, holdout paths, CI config or hooks.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/diff_policy/check.py; tests/unit/tools/test_diff_policy.py; tools/gates/prove.py",
+  "note": "Gate 3 fails such a diff and make prove-gates plants one."
+ },
+ {
+  "id": "RBACK-088",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "Test changes ship only through the separate test-author lane with founder review.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": ".claude/lanes/L-tests.yaml; factory/config.yaml",
+  "note": "Only L-tests owns tests/, but there is no separate founder review step for test diffs."
+ },
+ {
+  "id": "RBACK-089",
+  "source": "Duly backend and agent factory.md, gate table row 1",
+  "text": "Gate 1: ruff with zero warnings, run on every push and as a hook.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "Makefile; .github/workflows/ci.yml; .claude/hooks/lint_touched.py",
+  "note": "Gate 1 runs ruff, eslint with max-warnings 0, prettier and the copy lint."
+ },
+ {
+  "id": "RBACK-090",
+  "source": "Duly backend and agent factory.md, gate table row 2",
+  "text": "Gate 2: mypy --strict with no untyped defs in engine/.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "pyproject.toml; Makefile; .github/workflows/ci.yml",
+  "note": "mypy strict covers engine, api, assistant, pipeline and tools."
+ },
+ {
+  "id": "RBACK-091",
+  "source": "Duly backend and agent factory.md, gate table row 4",
+  "text": "Gate 4: gitleaks, semgrep with OWASP and p/python rulesets (high severity blocks), and pip-audit.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "Makefile; security/semgrep/duly.yml",
+  "note": "Semgrep runs only the project's own rules, not the OWASP or p/python rulesets."
+ },
+ {
+  "id": "RBACK-092",
+  "source": "Duly backend and agent factory.md, gate table row 5",
+  "text": "Gate 5: pytest plus Hypothesis on all date and deadline math, with the clock injected and frozen.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/unit/engine/test_dates.py; tests/unit/engine/test_f1.py; tests/unit/engine/test_verdict.py",
+  "note": "Many property tests exist, but not every date function has one."
+ },
+ {
+  "id": "RBACK-093",
+  "source": "Duly backend and agent factory.md, gate table row 5",
+  "text": "Property invariant: the grace period always ends after the program end.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/unit/engine/test_f1.py",
+  "note": "Example tests check grace.ends; no property states the invariant."
+ },
+ {
+  "id": "RBACK-094",
+  "source": "Duly backend and agent factory.md, gate table row 5",
+  "text": "Property invariant: pack version N-1 reproduces archived answers byte for byte.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There are no archived answers and one pack version."
+ },
+ {
+  "id": "RBACK-095",
+  "source": "Duly backend and agent factory.md, gate table row 6",
+  "text": "Gate 6: at least 80 percent diff coverage on changed lines, ratcheting higher in engine/.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tools/gates/diff_coverage.py; factory/config.yaml",
+  "note": "80 percent, and 95 in the engine."
+ },
+ {
+  "id": "RBACK-096",
+  "source": "Duly backend and agent factory.md, gate table row 7",
+  "text": "Integration gate: Testcontainers with real Postgres and migrations applied fresh.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The repository's gate 7 checks factory files and sources instead."
+ },
+ {
+  "id": "RBACK-097",
+  "source": "Duly backend and agent factory.md, gate table row 7",
+  "text": "RLS test: connect as the app role, set the tenant, assert cross-tenant reads return zero rows.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No RLS exists."
+ },
+ {
+  "id": "RBACK-098",
+  "source": "Duly backend and agent factory.md, gate table row 7",
+  "text": "Policy-coverage check that every tenant-scoped table has an RLS policy.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No tables exist."
+ },
+ {
+  "id": "RBACK-099",
+  "source": "Duly backend and agent factory.md, gate table row 8",
+  "text": "Contract gate: Schemathesis against the FastAPI OpenAPI spec.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "contracts/openapi.yaml",
+  "note": "The spec exists but Schemathesis is not a dependency."
+ },
+ {
+  "id": "RBACK-100",
+  "source": "Duly backend and agent factory.md, gate table row 9",
+  "text": "E2E gate: Playwright against the full compose stack using the same image digest.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "Makefile",
+  "note": "make e2e is a stub that exits 1."
+ },
+ {
+  "id": "RBACK-101",
+  "source": "Duly backend and agent factory.md, gate table row 11",
+  "text": "Mutation audit: incremental on changed files, no new surviving mutants in engine/, sampled elsewhere, in the merge queue or nightly.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tools/gates/mutation.py; factory/config.yaml",
+  "note": "A mutation tool with a 0.8 score floor runs on request only, not on changed files or on a schedule."
+ },
+ {
+  "id": "RBACK-102",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "Rising coverage with a flat mutation score is tracked as the canary for a lane gaming tests.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No history of coverage against mutation score is kept."
+ },
+ {
+  "id": "RBACK-103",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "Fail-fast gate ordering: cheapest and most deterministic first, expensive tiers later.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": ".github/workflows/ci.yml",
+  "note": "Gates run in order in one job; there are no separate tiers."
+ },
+ {
+  "id": "RBACK-104",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "A GitHub merge queue re-verifies the combination of green PRs before they land.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No merge queue; branch protection is parked under D40."
+ },
+ {
+  "id": "RBACK-105",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "Branch protection: all checks required, one human review via CODEOWNERS on auth, RLS, migrations and engine paths, no direct pushes to main.",
+  "kind": "security",
+  "status": "superseded",
+  "evidence": "D40",
+  "note": "The founder left GitHub branch protection as it is for now."
+ },
+ {
+  "id": "RBACK-106",
+  "source": "Duly backend and agent factory.md, Build order",
+  "text": "CI cost control: path-filtered jobs, concurrency-group cancellation, layer caching, expensive gates only in merge queue and nightly.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": ".github/workflows/ci.yml",
+  "note": "CI has an npm cache only; no path filters, concurrency groups or schedule."
+ },
+ {
+  "id": "RBACK-107",
+  "source": "Duly backend and agent factory.md, Green is a conjunction",
+  "text": "A reviewer-agent veto sits alongside the executable checks, never in place of them.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/phase.py; tests/unit/tools/test_phase.py",
+  "note": "test_a_veto_stops_the_plan proves the veto; the checks still run."
+ },
+ {
+  "id": "RBACK-108",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "No model instance that wrote code is ever the sole scorer of that code; the reward is only the external gate conjunction.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/agent_run.py; tests/unit/tools/test_phase.py",
+  "note": "The orchestrator runs the done command itself (test_the_orchestrator_runs_the_done_command_itself)."
+ },
+ {
+  "id": "RBACK-109",
+  "source": "notes/Duly backend and agent factory/self_improving_loops.md, KQ5 inferences",
+  "text": "Weight nothing continuously that an agent can farm; gates are pass or fail.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml",
+  "note": "All gates are thresholds, not scores to maximize."
+ },
+ {
+  "id": "RBACK-110",
+  "source": "notes/Duly backend and agent factory/self_improving_loops.md, KQ6 inferences",
+  "text": "The verifier uses a different model, or at least a different context and prompt, from the generator.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/agents/reviewer.md; factory/agents/reviewer.yaml",
+  "note": "Same model, but a fresh context and its own role file."
+ },
+ {
+  "id": "RBACK-111",
+  "source": "notes/Duly backend and agent factory/self_improving_loops.md, KQ2 inferences",
+  "text": "Patch discovered exploits in the environment rather than only penalizing the agent.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/LESSONS/factory-fixed.md",
+  "note": "Factory faults are fixed in the factory and recorded."
+ },
+ {
+  "id": "RBACK-112",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "An implementer iterates only while each attempt yields new execution information, and escalates when two consecutive attempts fail the same way.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/agent_run.py; tests/unit/tools/test_phase.py",
+  "note": "The same failure twice ends the run as escalated (test_an_agent_can_escalate_and_is_not_asked_again)."
+ },
+ {
+  "id": "RBACK-113",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "Escalate when the only available signal is self-judgment.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/agent_run.py; docs/factory/RUNBOOK.md",
+  "note": "An agent cannot declare itself done; only the orchestrator's run of the done command counts."
+ },
+ {
+  "id": "RBACK-114",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "A retry budget of about three rounds per failure.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml",
+  "note": "max_retries_per_task is 3."
+ },
+ {
+  "id": "RBACK-115",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "Escalation order: re-plan in a fresh context first, then a stronger model or the reviewer, then the founder.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "docs/factory/RUNBOOK.md",
+  "note": "The factory goes straight from repeated failure to the founder, with no re-plan or stronger-model step."
+ },
+ {
+  "id": "RBACK-116",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "Stop-hook gates and iteration caps handle kitchen-sink sessions, victory without verification and infinite exploration.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml; .claude/hooks/lane_test.py; tests/unit/tools/test_agent_run.py",
+  "note": "Loop, stall and time limits end runs (test_the_same_action_over_and_over_is_stopped)."
+ },
+ {
+  "id": "RBACK-117",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "CLAUDE.md stays short: commands, conventions that differ from defaults, and gotchas.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "CLAUDE.md",
+  "note": "It is short and holds commands, hard rules and conventions."
+ },
+ {
+  "id": "RBACK-118",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "Skills hold domain workflows: adding an effective-dated parameter with a citation, writing a clock-injected property test, running the compose e2e profile.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/skills/add-effective-dated-parameter/SKILL.md; .claude/skills/write-clock-injected-property-test/SKILL.md",
+  "note": "The first two exist; there is no e2e profile skill because there is no e2e profile."
+ },
+ {
+  "id": "RBACK-119",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "A LESSONS file per module accumulates verified post-mortems.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": ".claude/LESSONS/L-engine.md; .claude/LESSONS/L-api.md; .claude/LESSONS/README.md",
+  "note": "One lessons file per lane plus all-lanes.md."
+ },
+ {
+  "id": "RBACK-120",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "A lesson or skill is admitted only after it has worked against real execution at least once.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/skills/*/REPLAY.md; tools/factory/agent_run.py",
+  "note": "Skills carry replays, but lessons written in an agent's own report go into the failure memory for the next agent with no check."
+ },
+ {
+  "id": "RBACK-121",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "Every lesson carries provenance: the commit and the failure that produced it.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/LESSONS/README.md; tools/factory/memory.py",
+  "note": "The proposal shape asks for a commit; memory rows keep failure, evidence and source, but no commit."
+ },
+ {
+  "id": "RBACK-122",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "Lessons expire for re-verification when the code they reference changes.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing ties a lesson to code or expires it."
+ },
+ {
+  "id": "RBACK-123",
+  "source": "Duly backend and agent factory.md, Debugging on fresh signal",
+  "text": "A weekly founder-reviewed consolidation PR; nothing enters the persistent layer without the same review as code.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/LESSONS/README.md; tools/factory/phase.py; tools/factory/weekly.py",
+  "note": ".claude/LESSONS changes are held for the founder, but failure memory in .factory/ bypasses that review."
+ },
+ {
+  "id": "RBACK-124",
+  "source": "notes/Duly backend and agent factory/self_improving_loops.md, KQ4 inferences",
+  "text": "Lesson retrieval is scoped per subsystem, not one global log.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/memory.py",
+  "note": "An agent gets its lane's lessons and all-lanes.md, capped in size."
+ },
+ {
+  "id": "RBACK-125",
+  "source": "Duly backend and agent factory.md, What is proven",
+  "text": "All .claude/ changes stay behind founder review.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/factory/phase.py; tests/unit/tools/test_phase.py",
+  "note": "test_work_kept_for_the_founder_is_not_merged proves it."
+ },
+ {
+  "id": "RBACK-126",
+  "source": "Duly backend and agent factory.md, Build order Phase 0",
+  "text": "Phase 0 skeleton: monorepo, contracts/, compose stack, Dockerfiles, CI with gates 1 to 6, hooks, CLAUDE.md, holdout scaffolding.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "contracts/; infra/; .github/workflows/ci.yml; .claude/settings.json; CLAUDE.md; tests/holdout/",
+  "note": "All present."
+ },
+ {
+  "id": "RBACK-127",
+  "source": "Duly backend and agent factory.md, Build order Phase 1",
+  "text": "Phase 1 first: rule-pack store, engine and audit log, with a golden suite, property suite and differential oracle.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/; rulepacks/; tests/unit/engine/",
+  "note": "Store, engine and property suite exist; the audit log and the oracle do not."
+ },
+ {
+  "id": "RBACK-128",
+  "source": "Duly backend and agent factory.md, Build order Phase 1",
+  "text": "A differential oracle checks the engine against an independent implementation.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No oracle exists."
+ },
+ {
+  "id": "RBACK-129",
+  "source": "Duly backend and agent factory.md, Conclusion",
+  "text": "Instrument each lane's merge rate from week one.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/control.py; tests/unit/tools/test_factory_core.py",
+  "note": "Metrics give success rate, retries, cost and time per agent, but not merge rate."
+ },
+ {
+  "id": "RBACK-130",
+  "source": "Duly backend and agent factory.md, Conclusion",
+  "text": "Instrument each lane's rework rate.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Rework is not measured."
+ },
+ {
+  "id": "RBACK-131",
+  "source": "Duly backend and agent factory.md, Conclusion",
+  "text": "Keep a gate-failure taxonomy per lane.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Failures are recorded as text, not grouped by gate."
+ },
+ {
+  "id": "RBACK-132",
+  "source": "Duly backend and agent factory.md, Conclusion",
+  "text": "Every factory number (three retries, four lanes, 80 percent coverage) is a starting prior to be replaced by Duly's own data.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml; tools/factory/weekly.py",
+  "note": "The numbers are in one config file, but no review ties them to measured data."
+ },
+ {
+  "id": "RBACK-133",
+  "source": "Duly backend and agent factory.md, cost",
+  "text": "Budget the steady state at about 1,000 to 1,500 USD a month.",
+  "kind": "ops",
+  "status": "superseded",
+  "evidence": "D45",
+  "note": "Agents run on the subscription login only, with no paid credits."
+ },
+ {
+  "id": "RBACK-134",
+  "source": "Duly backend and agent factory.md, Conclusion",
+  "text": "The human lane, the attorney gate and the holdout suite are never automated away.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "factory/config.yaml; tests/holdout/; D28",
+  "note": "The founder gate and holdout exist; the attorney gate waits until after validation."
+ },
+ {
+  "id": "RMKT-001",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "The free tier holds deadline timelines.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "engine/f1.py; web/src/components/Result.tsx; api/main.py",
+  "note": "OPT and STEM OPT timelines are computed and shown; other categories and a free tier with accounts do not exist."
+ },
+ {
+  "id": "RMKT-002",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "The free tier holds an unemployment-day counter.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "engine/f1.py; web/src/lib/labels.ts; tests/unit/engine/test_f1.py",
+  "note": "The engine counts days used and remaining against the limit, with property tests."
+ },
+ {
+  "id": "RMKT-003",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "The free tier holds a policy digest.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "pipeline/graph.py; tests/unit/pipeline/test_graph.py",
+  "note": "The publish rule exists; no digest is produced or shown."
+ },
+ {
+  "id": "RMKT-004",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "The free tier holds a basic document vault with a small document cap.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No vault exists."
+ },
+ {
+  "id": "RMKT-005",
+  "source": "Duly market and pricing validation.md, pillar scorecard",
+  "text": "A versioned document vault with I-20 chains across transfers and programs.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No vault or document versioning exists."
+ },
+ {
+  "id": "RMKT-006",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q4",
+  "text": "The vault holds the attorney-advised preservation set: I-20s, EADs, OPT receipts, employer letters, paystubs, SEVP Portal screenshots and ISS correspondence.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document storage exists."
+ },
+ {
+  "id": "RMKT-007",
+  "source": "Duly market and pricing validation.md, pillar scorecard",
+  "text": "WorkBook keeps work records automatically as evidence for STEM OPT reporting and RFE or audit defense.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "WorkBook is not built in this repository."
+ },
+ {
+  "id": "RMKT-008",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q5 inferences",
+  "text": "Longitudinal employment evidence usable for later H-1B and green card filings.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No employment record store exists."
+ },
+ {
+  "id": "RMKT-009",
+  "source": "Duly market and pricing validation.md, pillar scorecard",
+  "text": "Personalized checklists with citations, built from the person's own I-20, CPT and OPT history.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "engine/f1.py; rulepacks/f1-us/v2026.09/parameters.yaml",
+  "note": "Open items cite the rule, but they come from entered dates, not a document history."
+ },
+ {
+  "id": "RMKT-010",
+  "source": "Duly market and pricing validation.md, pillar scorecard",
+  "text": "An export-to-attorney evidence file: complete, versioned, timestamped, in an attorney's hands within 24 hours.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export exists."
+ },
+ {
+  "id": "RMKT-011",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "AI scenario answers give general rule explanations plus confirm with your DSO or an attorney, never individualized directives.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py; BOUNDARY.md",
+  "note": "The line is enforced in code and evals, but no model is wired."
+ },
+ {
+  "id": "RMKT-012",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "Never select, prepare or auto-fill immigration forms, or advise how to answer form questions.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py",
+  "note": "Form selection and drafting requests step back."
+ },
+ {
+  "id": "RMKT-013",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "Three-layer disclaimer: informational only, no attorney-client relationship, and an explicit acknowledgment that the user is not receiving legal advice.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.tsx",
+  "note": "One line says records and computations, not legal advice; there is no attorney-client statement or acknowledgment."
+ },
+ {
+  "id": "RMKT-014",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, KQ1",
+  "text": "A clear, conspicuous statement that Duly is not a substitute for the advice of an attorney (Texas self-help software carve-out).",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.tsx",
+  "note": "The footer points to a DSO or attorney but does not say it is not a substitute."
+ },
+ {
+  "id": "RMKT-015",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "Never claim the AI performs like a lawyer or is attorney-validated without documented attorney QA.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+  "note": "The copy lint forbids like a lawyer, AI lawyer and similar phrases in gate 1."
+ },
+ {
+  "id": "RMKT-016",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, must do",
+  "text": "Substantiate every AI and security claim before making it.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no process or record of substantiation."
+ },
+ {
+  "id": "RMKT-017",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, KQ3 inferences",
+  "text": "Label the assistant as AI in the product, persistently.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "D6",
+  "note": "No assistant screen exists; D6 is open and covers exports only."
+ },
+ {
+  "id": "RMKT-018",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "Get opt-in consent before processing immigration-status data (CCPA AB 947, Texas TDPSA).",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent flow exists."
+ },
+ {
+  "id": "RMKT-019",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, must not do",
+  "text": "Never sell or share immigration-status data.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No privacy policy states it."
+ },
+ {
+  "id": "RMKT-020",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "Scope trust claims exactly: documents stay on the device; questions to the assistant are processed in the cloud; no zero-knowledge claim covers them.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "D13; D27",
+  "note": "No trust copy exists yet."
+ },
+ {
+  "id": "RMKT-021",
+  "source": "Duly market and pricing validation.md, legal section",
+  "text": "Do not claim the AI provider retains nothing until a zero-data-retention agreement is in place.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "D27; D28",
+  "note": "No check in the copy lint or docs holds this rule."
+ },
+ {
+  "id": "RMKT-022",
+  "source": "Duly market and pricing validation.md, policy risk",
+  "text": "A public government-request policy is a first-order product requirement.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such policy exists."
+ },
+ {
+  "id": "RMKT-023",
+  "source": "Duly market and pricing validation.md, policy risk",
+  "text": "An on-device architecture for the vault is a first-order product requirement.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "cutlines.md",
+  "note": "The v0 vault is planned in Electron with SQLCipher and not built."
+ },
+ {
+  "id": "RMKT-024",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, KQ4 inferences",
+  "text": "A plain-language security page: encryption at rest and in transit, on-device vault, provider no-training citations.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No security page exists."
+ },
+ {
+  "id": "RMKT-025",
+  "source": "Duly market and pricing validation.md, intro",
+  "text": "Sell ready in 24 hours; never promise protection or prevention.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The copy lint forbids protects your status and guarantee; the 24-hour evidence file is not built."
+ },
+ {
+  "id": "RMKT-026",
+  "source": "Duly market and pricing validation.md, pricing section",
+  "text": "Position Duly as a legal and compliance product, never as a student app.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No public site or marketing copy exists."
+ },
+ {
+  "id": "RMKT-027",
+  "source": "Duly market and pricing validation.md, policy risk",
+  "text": "Cover the whole F-1 to H-1B lifecycle, not OPT alone, and follow users into H-1B tracking.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "rulepacks/h1b-us/v2026.09/parameters.yaml; rulepacks/o1-us/v2026.09/parameters.yaml; D12; D47",
+  "note": "The H-1B, O-1 and EB-1A packs exist but hold no parameters."
+ },
+ {
+  "id": "RMKT-028",
+  "source": "Duly market and pricing validation.md, policy risk",
+  "text": "Track the D/S final rule deadlines: fixed admission end, 30-day grace, extension-of-stay filing, unlawful presence from expiry.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml; engine/f1.py",
+  "note": "The rule is carried as a non-operative regime (enjoined, per D1); admission-end and extension-of-stay dates are not computed."
+ },
+ {
+  "id": "RMKT-029",
+  "source": "Duly market and pricing validation.md, policy risk",
+  "text": "Show the legal status of pending changes (the proposed OPT fee, H.R. 2315) as they move.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "engine/f1.py; pipeline/graph.py; D1",
+  "note": "Regime status is shown for rules in the pack; neither proposal is tracked."
+ },
+ {
+  "id": "RMKT-030",
+  "source": "Duly market and pricing validation.md, pain section",
+  "text": "Track the STEM OPT I-983 6/18-month validation and 12/24-month evaluation cadence.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py; rulepacks/f1-us/v2026.09/parameters.yaml; tests/unit/engine/test_f1.py",
+  "note": "Validation and evaluation due dates are computed from sourced parameters."
+ },
+ {
+  "id": "RMKT-031",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q1",
+  "text": "Surface the SEVP Portal employer-update deadline.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py; rulepacks/f1-us/v2026.09/parameters.yaml",
+  "note": "opt.report_employer_within_days drives an item in the engine."
+ },
+ {
+  "id": "RMKT-032",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q1",
+  "text": "Help students catch I-94 errors and point to correction steps.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No I-94 handling exists."
+ },
+ {
+  "id": "RMKT-033",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "A travel-readiness check (absences, documents to carry).",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No travel feature exists."
+ },
+ {
+  "id": "RMKT-034",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "Support the OPT filing moment: the filing window and the documents needed.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "engine/f1.py",
+  "note": "Filing windows are computed; no document checklist exists."
+ },
+ {
+  "id": "RMKT-035",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "Fear-moment packages: OPT Filing Pack 49 USD, RFE/Audit Evidence Pack 99 USD, Travel-Readiness Check 29 USD.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8; D18",
+  "note": "Pricing is parked."
+ },
+ {
+  "id": "RMKT-036",
+  "source": "Duly market and pricing validation.md, pricing table",
+  "text": "Duly Pro at 79 USD a year, anchored at 7.99 USD a month, sold annually at about 17 percent off.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8",
+  "note": "Pricing is parked."
+ },
+ {
+  "id": "RMKT-037",
+  "source": "Duly market and pricing validation.md, pricing section",
+  "text": "Skip an attorney-bundled tier at launch; treat it as the year-two upsell.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "cutlines.md, Attorney marketplace row; D28",
+  "note": "Attorney work comes after validation."
+ },
+ {
+  "id": "RMKT-038",
+  "source": "Duly market and pricing validation.md, billing section",
+  "text": "A 14-day money-back guarantee.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8; D18",
+  "note": "Billing is set up later."
+ },
+ {
+  "id": "RMKT-039",
+  "source": "Duly market and pricing validation.md, pricing section",
+  "text": "An opt-out 14-day trial capturing a card during OPT filing season.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8; D18",
+  "note": "Billing is set up later."
+ },
+ {
+  "id": "RMKT-040",
+  "source": "Duly market and pricing validation.md, billing section",
+  "text": "Web billing, web-first signup with mobile login, to avoid app-store commissions.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D18; cutlines.md, Mobile apps row",
+  "note": "Stripe is set up later and mobile comes after paid web validation."
+ },
+ {
+  "id": "RMKT-041",
+  "source": "Duly market and pricing validation.md, billing section",
+  "text": "California ARL compliance: express unbundled consent kept 3 years, direct online cancel link, annual renewal reminders, notice before trial conversion and price changes.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "D18; cutlines.md, Payments row",
+  "note": "Billing is set up later."
+ },
+ {
+  "id": "RMKT-042",
+  "source": "Duly market and pricing validation.md, billing section",
+  "text": "ROSCA and state auto-renewal compliance: clear disclosure, express consent, simple cancellation.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "D18",
+  "note": "Billing is set up later."
+ },
+ {
+  "id": "RMKT-043",
+  "source": "notes/Duly market and pricing validation/payment_psychology.md, KQ2 inferences",
+  "text": "Pro-rata or full refunds when a subscription becomes useless mid-term.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8; D18",
+  "note": "Pricing and billing are parked."
+ },
+ {
+  "id": "RMKT-044",
+  "source": "Duly market and pricing validation.md, pricing section",
+  "text": "A B2B2C university channel on the Sprintax school-code or Interstride institutional model.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "cutlines.md, University portal and DSO share row",
+  "note": "Comes after validation."
+ },
+ {
+  "id": "RMKT-045",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Channel: Indian-student WhatsApp and Telegram cohort groups, timed to the admission and OPT calendar.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No channel work is recorded."
+ },
+ {
+  "id": "RMKT-046",
+  "source": "notes/Duly market and pricing validation/market_demand_channels.md, KQ3",
+  "text": "Channel: exclusive partnerships with student organizations.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No channel work is recorded."
+ },
+ {
+  "id": "RMKT-047",
+  "source": "Duly market and pricing validation.md, pillar scorecard",
+  "text": "Channel: the free calculator as an SEO acquisition funnel.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No public site exists."
+ },
+ {
+  "id": "RMKT-048",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Channel: DSO and ISS endorsement, with the positioning record keeping, not legal advice.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "BOUNDARY.md; web/src/App.tsx; D5",
+  "note": "The positioning is in the product; no DSO has been approached."
+ },
+ {
+  "id": "RMKT-049",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Experiment 1: a fake-door pricing test with a real checkout page that ends in a waitlist.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8",
+  "note": "Pricing is parked."
+ },
+ {
+  "id": "RMKT-050",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Experiment 2: 20 user interviews in the WhatsApp and Telegram cohort groups.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No interview record exists."
+ },
+ {
+  "id": "RMKT-051",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Experiment 3: a concierge RFE and Evidence Pack sold by hand at 99 USD to 10 students.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8",
+  "note": "Pricing is parked."
+ },
+ {
+  "id": "RMKT-052",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Experiment 4: logged-in Reddit research on r/f1visa and r/USCIS.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No record exists."
+ },
+ {
+  "id": "RMKT-053",
+  "source": "Duly market and pricing validation.md, validation experiments",
+  "text": "Experiment 5: three DSO or ISS conversations on the record-keeping positioning.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No record exists."
+ },
+ {
+  "id": "RMKT-054",
+  "source": "Duly market and pricing validation.md, conclusion",
+  "text": "Validate with concierge revenue in weeks instead of building backend for months.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D38; D42; D48",
+  "note": "The founder chose to make the factory production grade first, then build the product."
+ },
+ {
+  "id": "RMKT-055",
+  "source": "notes/Duly market and pricing validation/competitor_pricing.md, KQ3 inferences",
+  "text": "Clear the competitor trust bar: fresh official data, transparent pricing, privacy-respecting storage.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "watch/sources.yaml; engine/verdict.py",
+  "note": "Only primary sources are allowed; pricing is parked and storage is not built."
+ },
+ {
+  "id": "RMKT-056",
+  "source": "notes/Duly market and pricing validation/competitor_pricing.md, KQ3",
+  "text": "Never show stale data: rules carry a last-checked date and stale rules stop a quiet verdict.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
+  "note": "Rules older than 7 days make the verdict cannot_tell."
+ },
+ {
+  "id": "RMKT-057",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q6 inferences",
+  "text": "Duly complements the DSO: personal decisions go to the DSO with a drafted question.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py; web/src/lib/labels.ts; D5; D23",
+  "note": "The screen names DSO questions; the drafted email needs the model, which is not wired."
+ },
+ {
+  "id": "RMKT-058",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q2",
+  "text": "Deadline alerts by email ahead of each due date.",
+  "kind": "email",
+  "status": "not_started",
+  "evidence": "contracts/emails.md",
+  "note": "Email templates are placeholders for Phase 7."
+ },
+ {
+  "id": "RMKT-059",
+  "source": "Duly market and pricing validation.md, pillar scorecard",
+  "text": "Impact-scored policy updates: each change tagged to the students it affects.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "pipeline/graph.py",
+  "note": "tag_categories is a named stage with no logic."
+ },
+ {
+  "id": "RMKT-060",
+  "source": "notes/Duly market and pricing validation/competitor_pricing.md, KQ1",
+  "text": "Avoid reputationally loaded naming such as ImmigrationOS.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "README.md; D19",
+  "note": "The product is named Duly."
+ },
+ {
+  "id": "RMKT-061",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, KQ3 inferences",
+  "text": "Re-check whether the Colorado ADMT Act applies once the Colorado AG issues rules.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No follow-up is recorded."
+ },
+ {
+  "id": "RMKT-062",
+  "source": "notes/Duly market and pricing validation/legal_trust_constraints.md, KQ1 gaps",
+  "text": "Do a state-by-state unauthorized-practice pass before launch messaging is final.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "D14",
+  "note": "No counsel is retained."
+ },
+ {
+  "id": "RMKT-063",
+  "source": "notes/Duly market and pricing validation/pain_evidence.md, Q4",
+  "text": "Documents reachable on the person's own device when traveling inside the US.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "cutlines.md, Mobile apps row",
+  "note": "No vault exists on any device."
+ },
+ {
+  "id": "RMKT-064",
+  "source": "Duly market and pricing validation.md, policy risk",
+  "text": "Keep burn low.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "D45; factory/config.yaml",
+  "note": "Agents run on the subscription and daily budgets are capped."
+ },
+ {
+  "id": "RCUT-001",
+  "source": "cutlines.md, Payments",
+  "text": "Payments (Stripe web checkout, California ARL consent flow, 14-day refunds) enter at Phase 11 to 12, after the founder self-test.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "D18",
+  "note": "Stripe is confirmed and set up later."
+ },
+ {
+  "id": "RCUT-002",
+  "source": "cutlines.md, Payments",
+  "text": "Pricing fixed at 79 USD a year and 29 to 99 USD packs.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8",
+  "note": "Pricing is parked."
+ },
+ {
+  "id": "RCUT-003",
+  "source": "cutlines.md, USCIS live case polling",
+  "text": "USCIS live case polling waits for a post-v0 experiment (USCIS Torch API, else a careful checker with backoff behind a flag).",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-004",
+  "source": "cutlines.md, USCIS live case polling",
+  "text": "v0 ships manual receipt entry with the poll job stubbed.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Neither receipt entry nor a stub job exists."
+ },
+ {
+  "id": "RCUT-005",
+  "source": "cutlines.md, WorkBook source connectors",
+  "text": "WorkBook source connectors (Calendar, Meet, GitHub, Slack) enter at Phase 12 behind flags, with contract tests specced.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-006",
+  "source": "cutlines.md, WorkBook source connectors",
+  "text": "Register the OAuth apps during Phase 3 to 4, because Google verification is the long pole.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No registration is recorded."
+ },
+ {
+  "id": "RCUT-007",
+  "source": "cutlines.md, Full on-device vault encryption on web",
+  "text": "Web vault encryption waits on the key-recovery decision.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-008",
+  "source": "cutlines.md, Full on-device vault encryption on web",
+  "text": "The v0 vault is Electron with SQLCipher and the keychain.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "desktop/src/about.ts",
+  "note": "The desktop app has an About module and no vault."
+ },
+ {
+  "id": "RCUT-009",
+  "source": "cutlines.md, Push notifications",
+  "text": "Push notifications wait for mobile apps.",
+  "kind": "email",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-010",
+  "source": "cutlines.md, Push notifications",
+  "text": "A weekly brief and threshold alerts sent through SES carry notifications in v0.",
+  "kind": "email",
+  "status": "partial",
+  "evidence": "api/settings.py; contracts/emails.md; infra/docker-compose.yml",
+  "note": "Sender addresses are configured and Mailpit runs locally; no template, job or SES exists."
+ },
+ {
+  "id": "RCUT-011",
+  "source": "cutlines.md, Slack daily post",
+  "text": "The WorkBook Slack daily post waits until after Phase 12 and a founder design.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-012",
+  "source": "cutlines.md, Mobile apps",
+  "text": "Mobile apps come after paid web validation.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-013",
+  "source": "cutlines.md, Multi-role cases",
+  "text": "Multi-role cases wait until a real user needs them; the schema allows a list.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "contracts/case_f1.schema.json",
+  "note": "The case schema holds no role list yet."
+ },
+ {
+  "id": "RCUT-014",
+  "source": "cutlines.md, University portal and DSO share",
+  "text": "The university portal and DSO share come after validation and reuse export links.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-015",
+  "source": "cutlines.md, University portal and DSO share",
+  "text": "The first step toward the DSO channel is three DSO conversations, not code.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No conversation is recorded."
+ },
+ {
+  "id": "RCUT-016",
+  "source": "cutlines.md, Attorney marketplace and consults",
+  "text": "The attorney marketplace and consults are a year-two tier.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "D28",
+  "note": "Attorneys come after validation."
+ },
+ {
+  "id": "RCUT-017",
+  "source": "cutlines.md, Gmail source",
+  "text": "Gmail stays out as a source unless a security assessment is ever justified.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Nothing reads Gmail."
+ },
+ {
+  "id": "RCUT-018",
+  "source": "cutlines.md, WorkBook cloud backup",
+  "text": "WorkBook cloud backup comes after v0, opt-in, end-to-end encrypted with the user's passphrase.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-019",
+  "source": "cutlines.md, Redis, Temporal, Kubernetes",
+  "text": "No Redis, Temporal or Kubernetes until measured triggers; a Postgres queue on ECS suffices.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "infra/docker-compose.yml; D16",
+  "note": "None of the three is used, but the Postgres queue is not built."
+ },
+ {
+  "id": "RCUT-020",
+  "source": "cutlines.md, Redis, Temporal, Kubernetes",
+  "text": "The migration triggers are documented in the backend plan.",
+  "kind": "ops",
+  "status": "partial",
+  "evidence": "docs/research/founder/Duly backend and agent factory.md",
+  "note": "Only the research report names them; no ops document or alert watches for them."
+ },
+ {
+  "id": "RCUT-021",
+  "source": "cutlines.md, Redis, Temporal, Kubernetes",
+  "text": "Terraform makes a later Kubernetes move a manifests job.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "infra/",
+  "note": "There is no Terraform."
+ },
+ {
+  "id": "RCUT-022",
+  "source": "cutlines.md, SOC 2",
+  "text": "SOC 2 waits until the university channel demands it.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-023",
+  "source": "cutlines.md, SOC 2",
+  "text": "A VDP, a security page and a pen test cover v0 scrutiny.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "Only a threat model exists."
+ },
+ {
+  "id": "RCUT-024",
+  "source": "cutlines.md, Monthly AI narrative",
+  "text": "The WorkBook monthly AI narrative waits until after Phase 12.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Cut by design."
+ },
+ {
+  "id": "RCUT-025",
+  "source": "cutlines.md, operating note 1",
+  "text": "Nothing on the cut list blocks the founder self-test.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "Makefile; specs/desktop-1/SPEC.md",
+  "note": "make desktop runs the F-1 screen with none of the cut items."
+ },
+ {
+  "id": "RCUT-026",
+  "source": "cutlines.md, operating note 2",
+  "text": "The Duly domain and SES warmup start around Phase 3.",
+  "kind": "email",
+  "status": "superseded",
+  "evidence": "D15",
+  "note": "The domain is parked."
+ },
+ {
+  "id": "RCUT-027",
+  "source": "cutlines.md, operating note 3",
+  "text": "Three items are decisions, not code: the DSO channel, the attorney structure and mobile timing.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "D14; D28",
+  "note": "The attorney question has a direction; the DSO channel and mobile timing are undecided."
+ },
+ {
+  "id": "RCUT-028",
+  "source": "cutlines.md, intro",
+  "text": "The factory never builds cut items speculatively; each enters only on its trigger.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml",
+  "note": "No billing, Redis, connector or mobile code exists, and new dependencies need the founder."
+ }
+]
