@@ -35,7 +35,10 @@ from tests.support.f1_pack import (
     items,
     job,
     months_later,
+    no_earlier_opt,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     reasons_with,
@@ -80,7 +83,13 @@ def run(
     assert case_problems(case) == [], "the test case itself must match the case contract"
     clock = clock_on(today)
     pack = build_pack(today) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 39: a case whose opt.earlier_at_this_level is answered
+    # with no_earlier_opt is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def answered(case: dict[str, Any], today: date, **given_answers: bool) -> dict[str, Any]:
@@ -115,6 +124,9 @@ FITS: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+FITS = no_earlier_opt(FITS)
 
 # The STEM card begins 2026-10-16, after the days these tests run on, so that no report
 # date of the card has passed (point 21 asks about a passed one). The OPT card ends
@@ -718,12 +730,17 @@ def with_blocked_from(raw: dict[str, Any], rule_id: str, effective_from: str) ->
 # 91 FR 44976 took effect on 2026-09-15.
 BLOCKED_FROM = "2026-09-15"
 
-# OPT 2023-06-01 to 2024-05-31. Program end 2023-05-15. Work from 2023-06-01 on.
-CLOSED_2024: dict[str, Any] = with_changes(
-    FITS,
-    program_end_date="2023-05-15",
-    opt=ead("2023-03-01", "2023-03-10", "2023-06-01", "2024-05-31"),
-    employment=[job("2023-06-01", None)],
+# OPT 2023-06-01 to 2024-05-31. Program end 2023-05-15. Work from 2023-06-01 to the
+# card's last day: SPEC-resolutions.md, points 43 and 52, a period still open after the
+# card would raise employment.period_open_after_last_card and null grace.ends, so the
+# case closes it and says its end was reported (point 22, periods_answered).
+CLOSED_2024: dict[str, Any] = periods_answered(
+    with_changes(
+        FITS,
+        program_end_date="2023-05-15",
+        opt=ead("2023-03-01", "2023-03-10", "2023-06-01", "2024-05-31"),
+        employment=[job("2023-06-01", "2024-05-31")],
+    )
 )
 
 

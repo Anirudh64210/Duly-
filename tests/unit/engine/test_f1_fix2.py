@@ -24,6 +24,7 @@ from engine.rulepack import Rulepack, load_all, validate_pack
 from tests.support.f1_pack import (
     BLOCKED,
     NOT_AFTER_PROGRAM_END,
+    OPEN_AFTER_LAST_CARD,
     POST_COMPLETION_RULE,
     STEM_LIST,
     answer_as_the_screen_does,
@@ -35,7 +36,10 @@ from tests.support.f1_pack import (
     items,
     job,
     months_later,
+    no_earlier_opt,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     refuse_placeholders,
@@ -76,7 +80,13 @@ def run(
     clock = clock_on(today)
     if pack is None:
         pack = validate_pack(pack_dict(today) if raw_pack is None else raw_pack)
-    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 39: a case whose opt.earlier_at_this_level is answered
+    # with no_earlier_opt is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def answered(case: dict[str, Any], today: date = TODAY, **given_answers: bool) -> dict[str, Any]:
@@ -101,17 +111,20 @@ PROGRAM_END = date(2026, 12, 15)
 
 
 def card_to(ead_end: date) -> dict[str, Any]:
-    return {
-        "program_end_date": iso(PROGRAM_END),
-        "degree_level": "master",
-        "documents_count": 2,
-        "cpt_full_time_days": 0,
-        "opt": ead("2026-09-01", "2026-09-05", "2026-09-10", iso(ead_end)),
-        "stem": None,
-        "employment": [job("2026-09-10", None)],
-        "cap_gap": None,
-        "time_zone": "UTC",
-    }
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level answered no (no_earlier_opt).
+    return no_earlier_opt(
+        {
+            "program_end_date": iso(PROGRAM_END),
+            "degree_level": "master",
+            "documents_count": 2,
+            "cpt_full_time_days": 0,
+            "opt": ead("2026-09-01", "2026-09-05", "2026-09-10", iso(ead_end)),
+            "stem": None,
+            "employment": [job("2026-09-10", None)],
+            "cap_gap": None,
+            "time_zone": "UTC",
+        }
+    )
 
 
 A_WEEK_BEFORE = card_to(PROGRAM_END - timedelta(days=7))
@@ -233,9 +246,11 @@ def test_point_27_the_case_of_the_sweep():
         "cap_gap": None,
         "time_zone": "UTC",
     }
-    out = run(case)
+    out = run(no_earlier_opt(case))
     assert out["verdict"]["state"] == "cannot_tell"
-    assert conflicts(out) == [NOT_AFTER_PROGRAM_END]
+    # SPEC-resolutions.md, point 43: the work is still open while today (2026-09-29) is
+    # after the card's end (2026-06-08), so the sweep's case raises that conflict too.
+    assert sorted(conflicts(out)) == sorted([NOT_AFTER_PROGRAM_END, OPEN_AFTER_LAST_CARD])
     assert [entry for entry in upcoming(out) if entry.startswith("next.")] == []
 
 
@@ -257,17 +272,20 @@ def test_point_27_raised_when_and_only_when_the_card_ends_on_or_before_the_progr
 # not longer than its own rule). opt.apply_window_opens is 90 days before 2025-09-15: 15
 # days reach Aug 31, 31 more Jul 31, 31 more Jun 30, 13 more 2025-06-17.
 def complete_case(ead_end: date) -> dict[str, Any]:
-    return {
-        "program_end_date": "2025-09-15",
-        "degree_level": "master",
-        "documents_count": 2,
-        "cpt_full_time_days": 0,
-        "opt": ead("2025-08-01", "2025-08-10", "2025-11-20", iso(ead_end)),
-        "stem": None,
-        "employment": [job("2025-11-20", None)],
-        "cap_gap": None,
-        "time_zone": "UTC",
-    }
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level answered no (no_earlier_opt).
+    return no_earlier_opt(
+        {
+            "program_end_date": "2025-09-15",
+            "degree_level": "master",
+            "documents_count": 2,
+            "cpt_full_time_days": 0,
+            "opt": ead("2025-08-01", "2025-08-10", "2025-11-20", iso(ead_end)),
+            "stem": None,
+            "employment": [job("2025-11-20", None)],
+            "cap_gap": None,
+            "time_zone": "UTC",
+        }
+    )
 
 
 COMPLETE_BY = months_later(date(2025, 9, 15), COMPLETE_MONTHS)
@@ -342,6 +360,9 @@ ENDED_BEFORE: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+ENDED_BEFORE = no_earlier_opt(ENDED_BEFORE)
 
 # The program ended 2026-09-20, after the blocked rows took effect. Recommended 2026-09-01,
 # filed 2026-09-05, card 2026-09-25 to 2027-09-24 (12 months from 2026-09-25 is
@@ -404,12 +425,16 @@ def test_point_28_a_program_that_ended_after_the_blocked_rows_gets_their_dates()
 def grace_case(card_end: date) -> dict[str, Any]:
     # Program end 2025-09-01, card from 2025-09-21 (12 months on is 2026-09-21, so a card
     # to 2026-09-20 is not longer than its rule; 14 months from the program end is
-    # 2026-11-01). The period stays open past the card.
-    return with_changes(
-        ENDED_BEFORE,
-        program_end_date="2025-09-01",
-        opt=ead("2025-08-01", "2025-08-10", "2025-09-21", iso(card_end)),
-        employment=[job("2025-09-21", None)],
+    # 2026-11-01). The period ends with the card: SPEC-resolutions.md, points 43 and 52,
+    # one still open after the card would be a conflict and null grace.ends. Its end was
+    # reported (point 22, periods_answered).
+    return periods_answered(
+        with_changes(
+            ENDED_BEFORE,
+            program_end_date="2025-09-01",
+            opt=ead("2025-08-01", "2025-08-10", "2025-09-21", iso(card_end)),
+            employment=[job("2025-09-21", iso(card_end))],
+        )
     )
 
 
@@ -462,17 +487,20 @@ def test_point_28_the_shipped_pack_gives_a_program_that_ended_in_2024_its_dates(
 # STEM card begins 2026-07-01; 10 days on is 2026-07-11. The first validation is
 # 2026-09-28, so no other report date has passed in July.
 def stem_on(employment: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
-        "program_end_date": "2025-01-15",
-        "degree_level": "master",
-        "documents_count": 2,
-        "cpt_full_time_days": 0,
-        "opt": ead("2024-12-01", "2024-12-10", "2025-03-14", "2026-03-13"),
-        "stem": ead("2026-01-10", "2026-01-20", "2026-03-14", "2028-03-13"),
-        "employment": employment,
-        "cap_gap": None,
-        "time_zone": "UTC",
-    }
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level answered no (no_earlier_opt).
+    return no_earlier_opt(
+        {
+            "program_end_date": "2025-01-15",
+            "degree_level": "master",
+            "documents_count": 2,
+            "cpt_full_time_days": 0,
+            "opt": ead("2024-12-01", "2024-12-10", "2025-03-14", "2026-03-13"),
+            "stem": ead("2026-01-10", "2026-01-20", "2026-03-14", "2028-03-13"),
+            "employment": employment,
+            "cap_gap": None,
+            "time_zone": "UTC",
+        }
+    )
 
 
 FIRST_JOB = job("2025-03-14", None)

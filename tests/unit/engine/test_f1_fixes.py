@@ -597,7 +597,10 @@ def test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows(drawn, 
     # conflict on the dates the counts use (the card dates and the periods) is open, the
     # counts are null. A STEM card that begins more than one day after the OPT card
     # ends is stem.gap_after_opt; a period with days outside every card is
-    # employment.period_outside_cards. Rows on a filing or recommendation date alone
+    # employment.period_outside_cards; SPEC-resolutions.md, point 43, a period open while
+    # today is after the last card's end is employment.period_open_after_last_card, whose
+    # about holds the period's start and the last card's end (conflicts_by_the_table
+    # holds that row). Rows on a filing or recommendation date alone
     # touch no date the counts use, so the day-by-day count still holds beside them.
     case, today = drawn
     raw = pack_dict(today, values=shifted)

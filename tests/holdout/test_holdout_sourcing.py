@@ -34,6 +34,7 @@ from tests.support.f1_pack import (
     periods_answered,
     reasons_with,
     refuse_placeholders,
+    row_in_force,
     rule_statuses,
     settings_dict,
     settings_named,
@@ -146,6 +147,12 @@ def validation_ids(output: dict[str, Any]) -> set[str]:
     return {i for i in items(output) if i.startswith("stem.validation_") and i.endswith("_due")}
 
 
+def dated_validations(output: dict[str, Any]) -> set[str]:
+    """The validation items that hold a date. SPEC-resolutions.md, point 48: none is
+    dated after the STEM card's end; left out or null, the point does not settle which."""
+    return {i for i in validation_ids(output) if items(output)[i]["value"] is not None}
+
+
 def test_case_c_is_quiet_under_the_test_settings():
     out = run(CASE_C)
     assert out["verdict"] == {"state": "no_open_items", "reasons": []}
@@ -157,7 +164,8 @@ def test_each_new_rule_is_named_and_shown_as_the_pack_has_it(rule_id):
     raw = pack_dict(TODAY)
     out = run(with_changes(CASE_C, cap_gap=cap_gap("2027-10-01")))
     assert [i for i in items(out).values() if rule_id in i["rule_ids"]], rule_id
-    source = next(p for p in raw["parameters"] if p["id"] == rule_id)
+    # SPEC-resolutions.md, point 53: the row in force on the day of the case.
+    source = row_in_force(raw, rule_id, TODAY)
     shown = out["rules"][rule_id]
     assert shown["value"] == source["value"]
     assert type(shown["value"]) is type(source["value"])
@@ -206,7 +214,8 @@ def test_the_evaluation_date_moves_with_the_interval(months, expected):
 def test_six_reports_four_months_apart():
     # 24 divided by 4.
     out = run(CASE_C, rules={"stem.validation_interval_months": 4})
-    assert validation_ids(out) == {f"stem.validation_{n}_due" for n in range(1, 7)}
+    # Six reports; the sixth falls after the card (below), so five are dated.
+    assert dated_validations(out) == {f"stem.validation_{n}_due" for n in range(1, 6)}
     got = values(out)
     # 2026-08-01 plus 4 months is Tuesday 2026-12-01. Dec 2 (1), 3 (2), 4 (3), 7 (4),
     # 8 (5), 9 (6), 10 (7), 11 (8), 14 (9), 15 (10).
@@ -224,8 +233,9 @@ def test_six_reports_four_months_apart():
     # 10 (6), 11 (7), 12 (8), 13 (9), 14 (10).
     assert got["stem.validation_5_due"] == "2028-04-14"
     # Plus 24 months is Tuesday 2028-08-01. Aug 2 (1), 3 (2), 4 (3), 7 (4), 8 (5), 9 (6),
-    # 10 (7), 11 (8), 14 (9), 15 (10).
-    assert got["stem.validation_6_due"] == "2028-08-15"
+    # 10 (7), 11 (8), 14 (9), 15 (10). 2028-08-15 is after the card ends on 2028-07-31:
+    # SPEC-resolutions.md, point 48, not dated.
+    assert got.get("stem.validation_6_due") is None
     assert contract_problems(out) == []
 
 
@@ -233,9 +243,12 @@ def with_extension_of(months: int) -> dict[str, Any]:
     """CASE_C with a STEM card as long as an extension of the given months: from
     2026-08-01 through the day before its months end. A card longer than the rule is a
     conflict whose dates give nulls (specs/product-1/SPEC.md, section 1;
-    SPEC-resolutions.md, points 4 and 10)."""
+    SPEC-resolutions.md, points 4 and 10). The one period ends with the card: point 43,
+    a period still open after a card that ended before TODAY is a conflict whose dates
+    give nulls. Its end was reported (point 22, periods_answered)."""
     last = months_later(date(2026, 8, 1), months) - timedelta(days=1)
-    return with_block(CASE_C, "stem", ead_end=last.isoformat())
+    case = with_block(CASE_C, "stem", ead_end=last.isoformat())
+    return periods_answered(with_changes(case, employment=[job("2025-08-01", last.isoformat())]))
 
 
 def test_two_reports_when_the_extension_is_eight_months_and_the_interval_four():
@@ -244,14 +257,20 @@ def test_two_reports_when_the_extension_is_eight_months_and_the_interval_four():
     case = with_extension_of(8)
     assert case["stem"]["ead_end"] == "2027-03-31"
     out = run(case, rules=rules)
-    assert validation_ids(out) == {"stem.validation_1_due", "stem.validation_2_due"}
-    assert values(out)["stem.validation_2_due"] == "2027-04-15"
+    # Two reports. The second, 2027-04-15 (Thursday 2027-04-01 plus ten business days),
+    # is after the card ends on 2027-03-31: SPEC-resolutions.md, point 48, not dated. The
+    # first: 2026-12-01 plus ten business days is 2026-12-15.
+    assert dated_validations(out) == {"stem.validation_1_due"}
+    assert values(out)["stem.validation_1_due"] == "2026-12-15"
+    assert values(out).get("stem.validation_2_due") is None
 
 
 def test_one_report_when_the_interval_is_the_whole_extension():
     out = run(CASE_C, rules={"stem.validation_interval_months": 24})
-    assert validation_ids(out) == {"stem.validation_1_due"}
-    assert values(out)["stem.validation_1_due"] == "2028-08-15"
+    # One report, 2028-08-15, after the card ends on 2028-07-31: SPEC-resolutions.md,
+    # point 48, not dated.
+    assert dated_validations(out) == set()
+    assert values(out).get("stem.validation_1_due") is None
 
 
 def test_every_business_day_item_names_the_holiday_law():
@@ -500,7 +519,12 @@ def test_the_evaluation_is_due_the_interval_and_the_days_after_the_start(months,
     assert case["stem"]["ead_start"] == start.isoformat()
     out = run(case, rules={EVALUATION_INTERVAL: months})
     expected = months_later(start, months) + timedelta(days=10)
-    assert values(out)["stem.evaluation_12_month_due"] == expected.isoformat()
+    card_end = date.fromisoformat(case["stem"]["ead_end"])
+    # SPEC-resolutions.md, point 48: an evaluation is dated only within the card.
+    if expected <= card_end:
+        assert values(out)["stem.evaluation_12_month_due"] == expected.isoformat()
+    else:
+        assert values(out).get("stem.evaluation_12_month_due") is None
 
 
 @settings(max_examples=100, deadline=None)
@@ -514,9 +538,13 @@ def test_there_is_one_report_for_each_interval_in_the_extension(interval, report
         "stem.extension_months": interval * reports,
     }
     out = run(with_extension_of(interval * reports), rules=rules)
-    assert validation_ids(out) == {f"stem.validation_{n}_due" for n in range(1, reports + 1)}
+    # SPEC-resolutions.md, point 48: the last report is reached the day after the card
+    # ends, so it is not dated; each earlier one is reached at least 28 days before that
+    # day and due at most 21 days later, inside the card.
+    assert dated_validations(out) == {f"stem.validation_{n}_due" for n in range(1, reports)}
     got = values(out)
-    for n in range(1, reports + 1):
+    assert got.get(f"stem.validation_{reports}_due") is None
+    for n in range(1, reports):
         reached = months_later(date(2026, 8, 1), interval * n)
         due = date.fromisoformat(got[f"stem.validation_{n}_due"])
         # Counted from a Sunday, ten business days end on the Friday 12 days on.

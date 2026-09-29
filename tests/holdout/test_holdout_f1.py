@@ -168,9 +168,10 @@ def test_case_h2_dates():
     # Plus 18 months: Sunday 2027-02-28. Mar 1 (1), 2 (2), 3 (3), 4 (4), 5 (5), 8 (6),
     # 9 (7), 10 (8), 11 (9), 12 (10).
     assert got["stem.validation_3_due"] == "2027-03-12"
-    # Plus 24 months: Monday 2027-08-30. Aug 31 (1), Sep 1 (2), 2 (3), 3 (4), Monday
-    # Sep 6 is Labor Day, 7 (5), 8 (6), 9 (7), 10 (8), 13 (9), 14 (10).
-    assert got["stem.validation_4_due"] == "2027-09-14"
+    # Plus 24 months: Monday 2027-08-30, the day after the card ends on 2027-08-29.
+    # SPEC-resolutions.md, point 48: validation reporting "ends when ... the 24-month OPT
+    # extension concludes" (8 CFR 214.2(f)(12)(ii)(B)), so no validation 4 is dated.
+    assert got.get("stem.validation_4_due") is None
     # 2026-08-30 plus 10 days: 1 to Aug 31, 9 to Sep 9.
     assert got["stem.evaluation_12_month_due"] == "2026-09-09"
     # stem.ead_end 2027-08-29 plus 10 days: 2 to Aug 31, 8 to Sep 8.
@@ -326,7 +327,10 @@ def test_h1_unemployment_on_each_side_of_the_limit(today, state, reasons):
     ],
 )
 def test_h1_on_each_side_of_final_end(today, litigated):
-    out = run(with_changes(CASE_H1, employment=[job("2024-01-08", None)]), today)
+    # SPEC-resolutions.md, points 43 and 52: work still open after the card would be a
+    # conflict and null grace.ends, so the period ends with the card on 2025-01-07. Its
+    # end was reported (CASE_H1's answer to employment.1.end_reported, point 22).
+    out = run(with_changes(CASE_H1, employment=[job("2024-01-08", "2025-01-07")]), today)
     assert ("rule_in_litigation" in out["verdict"]["reasons"]) is litigated
     assert (out["verdict"]["state"] == "cannot_tell") is litigated
 
@@ -386,8 +390,10 @@ def cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
     # specs/product-1/SPEC.md, section 1, and SPEC-resolutions.md, points 2 and 4: a
     # recommendation or a filing dated after today, and a day of work outside the cards,
     # are conflicts whose dates give nulls. The facts drawn here fit: each date entered is
-    # on or before today, and each period lies inside the cards (an open one may run on
-    # past the last card).
+    # on or before today, and each period lies inside the cards. SPEC-resolutions.md,
+    # point 43: a period open while today is after the last card's end is a conflict, so
+    # an open one is drawn only while today is before that day (and so is the day after
+    # today, which test_one_more_day_adds_at_most_one_day also runs).
     stem = None
     last_card_day = opt_end
     # SPEC-resolutions.md, points 11 and 14: the STEM filing lies inside its window
@@ -409,7 +415,10 @@ def cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
     for _ in range(draw(st.integers(min_value=0, max_value=4))):
         start = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1100)))
         start = min(start, today, last_card_day)
-        length = draw(st.one_of(st.none(), st.integers(min_value=0, max_value=500)))
+        lengths = st.integers(min_value=0, max_value=500)
+        if today < last_card_day:
+            lengths = st.one_of(st.none(), lengths)
+        length = draw(lengths)
         end = (
             None
             if length is None

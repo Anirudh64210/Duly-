@@ -143,6 +143,15 @@ QUESTION_IDS = (HELD_OPT, NO_EMPLOYMENT, CAP_GAP_ALONE)
 NOTHING_MORE = "nothing_more_to_record"
 CPT_USED = "full_time_cpt_used"
 
+# specs/product-1/SPEC-resolutions.md, point 39: the question raised whenever an OPT card
+# is entered. A case about something else answers it no, which holds the card alone to
+# opt.max_months as before the point; only a test about point 39 expects it asked.
+EARLIER = "opt.earlier_at_this_level"
+
+# specs/product-1/SPEC-resolutions.md, point 43: the conflict of a period open while
+# today is after the last card's end (and after capgap.ends while a cap-gap is active).
+OPEN_AFTER_LAST_CARD = "employment.period_open_after_last_card"
+
 # specs/product-1/SPEC.md, section 1: the table of facts that do not fit, in its order.
 CONFLICT_IDS = (
     "opt.i765_filed_date.after_today",
@@ -206,6 +215,46 @@ def source(rule_id: str, citation: str, checked_on: str) -> dict[str, Any]:
     }
 
 
+# specs/product-1/SPEC-resolutions.md, point 53: the day a holiday joins the list comes
+# from the pack's rows of calendar.federal_holidays_law, "the row from 2021-06-17 holds
+# Juneteenth; the row to 2021-06-16 does not". Pub. L. 117-17 inserted Juneteenth and took
+# effect 2021-06-17. The test pack holds both rows, as the shipped pack does, so that a
+# count across June 19 before 2021-06-17 is not left to a list the pack does not hold
+# (point 40). The later row quotes the item as 5 U.S.C. 6103(a) writes it.
+HOLIDAYS_LAW = "calendar.federal_holidays_law"
+JUNETEENTH_FROM = "2021-06-17"
+BEFORE_JUNETEENTH_TO = "2021-06-16"
+JUNETEENTH_ITEM = "Juneteenth National Independence Day, June 19."
+
+
+def _holidays_from_juneteenth(earlier: dict[str, Any]) -> dict[str, Any]:
+    """The row of the holiday list from 2021-06-17; the earlier row is closed the day
+    before and keeps its placeholder words, which name no Juneteenth."""
+    earlier["effective_to"] = BEFORE_JUNETEENTH_TO
+    later = copy.deepcopy(earlier)
+    del later["effective_to"]
+    later["effective_from"] = JUNETEENTH_FROM
+    later["source"]["quote"] = f"placeholder words for {HOLIDAYS_LAW}: {JUNETEENTH_ITEM}"
+    return later
+
+
+def row_in_force(
+    raw_pack: dict[str, Any], rule_id: str, day: str | date, regime: str = ""
+) -> dict[str, Any]:
+    """The row of a rule in force on the day, as a raw pack holds it: effective_from on or
+    before the day and effective_to, if any, on or after it. Point 53 gives the test pack
+    two rows of calendar.federal_holidays_law; every other rule has one."""
+    on = day.isoformat() if isinstance(day, date) else day
+    return next(
+        p
+        for p in raw_pack["parameters"]
+        if p["id"] == rule_id
+        and p.get("regime", "") == regime
+        and str(p["effective_from"]) <= on
+        and (p.get("effective_to") is None or on <= str(p["effective_to"]))
+    )
+
+
 def pack_dict(
     checked_on: str | date = "2026-09-28",
     values: dict[tuple[str, str], int | str] | None = None,
@@ -235,6 +284,8 @@ def pack_dict(
         if regime:
             parameter["regime"] = regime
         parameters.append(parameter)
+        if rule_id == HOLIDAYS_LAW:
+            parameters.append(_holidays_from_juneteenth(parameter))
     return {
         "category": "f1",
         "jurisdiction": "us",
@@ -443,8 +494,14 @@ def answered_yes(
     """Yes to every question of the round. A case written before the questions existed
     carries this, so that it still says what it said: the person held OPT, and the
     employment entered is all there is, up to the day the case is run. Each answer
-    carries its about and a day, as answers() gives them."""
-    return answers(on, clock=clock, time_zone=time_zone, **dict.fromkeys(QUESTION_IDS, True))
+    carries its about and a day, as answers() gives them.
+
+    SPEC-resolutions.md, point 39: opt.earlier_at_this_level is answered no (no earlier
+    OPT at this degree level), so the card alone is held to opt.max_months, as the case
+    was before the point. An answer to a question never raised is left out by
+    with_the_about_asked, so a case with no OPT card is unchanged."""
+    given = {**dict.fromkeys(QUESTION_IDS, True), EARLIER: False}
+    return answers(on, clock=clock, time_zone=time_zone, **given)
 
 
 def question_ids(output: dict[str, Any]) -> list[str]:
@@ -683,11 +740,15 @@ def conflicts_by_the_table(
 
     Returns the ids that the table raises for certain, and the ids the SPEC leaves
     open. SPEC-resolutions.md, point 10, settled the one open point: a card whose last
-    day is the day its months end is not a conflict. Nothing is left open, so the second
-    set is empty; it is kept so that the callers read the same.
+    day is the day its months end is not a conflict. The second set is empty but for the
+    one case of point 43 below.
 
     SPEC-resolutions.md, points 11, 14, 15 and 16 add seven rows (WINDOW_CONFLICT_IDS),
     and point 27 one more (NOT_AFTER_PROGRAM_END).
+    Point 43 adds OPEN_AFTER_LAST_CARD: a period open while today is after the last
+    card's end. With a cap-gap petition entered it is left open (the second set), since
+    the point then turns on whether the petition is active and on capgap.ends, which this
+    table does not work out.
     Their days are read from raw_pack (the test pack of 2026-09-28 unless one is passed),
     never written here. Each is raised only when both of its dates are entered.
     """
@@ -774,6 +835,8 @@ def conflicts_by_the_table(
                     sure.add("employment.period_outside_cards")
                     break
                 day += timedelta(days=1)
+            if is_open and today > last_end:
+                (unsure if gap else sure).add(OPEN_AFTER_LAST_CARD)
     return sure, unsure
 
 
@@ -911,7 +974,8 @@ def periods_answered(
 ) -> dict[str, Any]:
     """The case with the questions of points 20, 21 and 22 answered, for a test about
     something else: each period is not with a new employer, its end has been reported,
-    and each STEM report whose date has passed was made. So answered, the case says what
+    each STEM report whose date has passed was made, and no OPT was used earlier at this
+    degree level (point 39). So answered, the case says what
     it said before those points: no stem.new_plan_due.<n>, no report_employer for an end,
     no <item>.not_made. Answers are dated ON_THE_DAY_IT_RUNS and carry about_asked, which
     the run helpers replace (dated_on_the_day, with_the_about_asked). An answer already
@@ -923,8 +987,42 @@ def periods_answered(
         given[period_question(number, END_REPORTED)] = end_reported
     for item_id in _report_ids(case):
         given[made_question(item_id)] = made
+    # Point 39: no earlier OPT at this degree level, as answered_yes gives it.
+    given[EARLIER] = False
     confirmations = {**answers(**given), **copy.deepcopy(case.get("confirmations") or {})}
     return with_changes(case, confirmations=confirmations)
+
+
+def no_earlier_opt(case: dict[str, Any]) -> dict[str, Any]:
+    """The case with opt.earlier_at_this_level answered no, for a test about something
+    else (SPEC-resolutions.md, point 39: no, the card alone is held to opt.max_months, as
+    before the point). The answer is dated ON_THE_DAY_IT_RUNS and carries about_asked,
+    which the run helpers replace; an answer already in the case is kept, and a case with
+    no OPT card never reads it (with_the_about_asked leaves it out)."""
+    confirmations = {
+        **answers(**{EARLIER: False}),
+        **copy.deepcopy(case.get("confirmations") or {}),
+    }
+    return with_changes(case, confirmations=confirmations)
+
+
+def no_earlier_opt_on(case: dict[str, Any], on: str) -> dict[str, Any]:
+    """The case with opt.earlier_at_this_level answered no on the day `on`, for a caller
+    that posts the case as it is (the api's CheckedClient refuses a placeholder). The
+    about is the case's own values: SPEC-resolutions.md, point 39, "with about holding
+    degree_level, opt.ead_start and opt.ead_end". A case with no whole OPT card, or one
+    that already answers the question, is returned as it is."""
+    opt = case.get("opt") or {}
+    given = case.get("confirmations") or {}
+    if not (opt.get("ead_start") and opt.get("ead_end")) or EARLIER in given:
+        return case
+    about = {
+        "degree_level": case.get("degree_level"),
+        "opt.ead_start": opt["ead_start"],
+        "opt.ead_end": opt["ead_end"],
+    }
+    answer = {"answer": False, "on": on, "about": about}
+    return with_changes(case, confirmations={**copy.deepcopy(given), EARLIER: answer})
 
 
 def is_period_or_report_question(question_id: str) -> bool:

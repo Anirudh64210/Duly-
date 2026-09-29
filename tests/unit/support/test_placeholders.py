@@ -31,6 +31,7 @@ from tests.support.f1_pack import (
     build_pack,
     clock_on,
     ead,
+    no_earlier_opt,
     question,
     refuse_placeholders,
     with_changes,
@@ -142,7 +143,11 @@ def test_the_checked_client_posts_a_body_that_is_not_json(client):
 
 
 def test_the_screen_step_gives_a_real_answer_that_is_taken(client):
-    placeholder = with_changes(NO_JOBS, confirmations=answers(**{NO_EMPLOYMENT: True}))
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level is answered no beside it,
+    # with a placeholder too, so both are made real by the screen step.
+    placeholder = no_earlier_opt(
+        with_changes(NO_JOBS, confirmations=answers(**{NO_EMPLOYMENT: True}))
+    )
     sent = as_the_screen_sends(client, URL, placeholder, FixedClock(INSTANT))
     answer = sent["confirmations"][NO_EMPLOYMENT]
     # The person's own day in Los Angeles at 18:00 UTC on 2026-09-28 is 2026-09-28.

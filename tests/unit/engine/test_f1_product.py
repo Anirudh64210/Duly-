@@ -31,6 +31,7 @@ from tests.support.f1_pack import (
     BLOCKED,
     CONFLICT_IDS,
     CPT_USED,
+    EARLIER,
     LISTED_RULES,
     NO_EMPLOYMENT,
     NOTHING_MORE,
@@ -54,6 +55,7 @@ from tests.support.f1_pack import (
     items,
     job,
     months_later,
+    no_earlier_opt,
     pack_dict,
     periods_answered,
     placeholders_made_real,
@@ -159,6 +161,9 @@ FITS: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+FITS = no_earlier_opt(FITS)
 
 # The OPT card begins after 2026-09-28, so a filing dated the day after today is still
 # before the card. No employment: the window has not begun.
@@ -426,6 +431,9 @@ def test_the_answer_yes_states_nothing_about_what_the_dates_mean(conflict):
         "today",
         "upcoming",
         "verdict",
+        # contracts/engine_output.schema.json (plain-1 and SPEC-resolutions.md, point 46).
+        "regimes",
+        "answers_read",
     }
 
 
@@ -498,11 +506,13 @@ def test_the_months_of_a_card_come_from_the_pack():
     assert conflicts(run(safe, raw_pack=shorter)) == ["stem.card_longer_than_rule"]
 
 
-def test_an_open_period_may_run_past_the_end_of_the_last_card():
-    # Section 1, the last row: "other than days after the last card ends while the
-    # period is open". The card ends on 2026-10-31. Today is 2026-11-05.
+def test_an_open_period_past_the_end_of_the_last_card_is_its_own_conflict():
+    # Section 1, the last row, said "other than days after the last card ends while the
+    # period is open". SPEC-resolutions.md, point 43 replaces those words for such a
+    # period: it raises employment.period_open_after_last_card, and not
+    # period_outside_cards. The card ends on 2026-10-31. Today is 2026-11-05.
     out = run(FITS, today=date(2026, 11, 5))
-    assert conflicts(out) == []
+    assert conflicts(out) == ["employment.period_open_after_last_card"]
     assert set(question_ids(out)).isdisjoint(CONFLICT_IDS)
 
 
@@ -802,11 +812,14 @@ def test_cpt_days_not_entered_asks_whether_full_time_cpt_was_used(shape):
 def test_parse_case_keeps_cpt_days_that_were_not_entered_as_not_entered():
     # contracts/case_f1.schema.json: "Absent or null means nothing was entered. It is
     # never taken as zero."
-    absent = {k: v for k, v in FITS.items() if k != "cpt_full_time_days"}
+    # No answer is needed to parse a case: FITS is parsed without its placeholder answer
+    # to point 39, which only the run helpers make real.
+    bare = with_changes(FITS, confirmations={})
+    absent = {k: v for k, v in bare.items() if k != "cpt_full_time_days"}
     assert parsed(absent, clock_on(TODAY)).cpt_full_time_days is None
-    null = with_changes(FITS, cpt_full_time_days=None)
+    null = with_changes(bare, cpt_full_time_days=None)
     assert parsed(null, clock_on(TODAY)).cpt_full_time_days is None
-    assert parsed(FITS, clock_on(TODAY)).cpt_full_time_days == 0
+    assert parsed(bare, clock_on(TODAY)).cpt_full_time_days == 0
 
 
 def test_the_answer_no_makes_the_cpt_days_zero_as_the_persons_own_statement():
@@ -857,9 +870,21 @@ NO_JOBS: dict[str, Any] = with_changes(
 )
 
 
+def no_earlier_opt_today(case: dict[str, Any]) -> dict[str, Any]:
+    """The case with opt.earlier_at_this_level answered no on 2026-09-28, the reviewer's
+    day, with the about of the case's own card (SPEC-resolutions.md, point 39). A real
+    answer, not the placeholder of no_earlier_opt, so that the case can be parsed as it
+    is and an answer with no about in it stays with none (point 7)."""
+    given = {k: v for k, v in (case.get("confirmations") or {}).items() if k != EARLIER}
+    bare = with_changes(case, confirmations=given)
+    return answer_as_the_screen_does(bare, review(bare), "2026-09-28", **{EARLIER: False})
+
+
 def given_on(case: dict[str, Any], on: str, asked_of: dict[str, Any] | None = None) -> Any:
     """The answer yes to no_employment_to_record, dated on, with the about of the
-    question as the engine raised it for asked_of."""
+    question as the engine raised it for asked_of. Point 39's question is answered no
+    today for the case's own card (no_earlier_opt_today)."""
+    case = no_earlier_opt_today(case)
     asked = review(asked_of or case)
     return answer_as_the_screen_does(case, asked, on, **{NO_EMPLOYMENT: True})
 
@@ -1345,7 +1370,10 @@ def test_the_engine_says_nothing_on_whether_the_person_may_apply():
 
 # The properties of "The tests"
 
-ALL_QUESTIONS = (*QUESTION_IDS, NOTHING_MORE, CPT_USED)
+# SPEC-resolutions.md, point 43: a period open while today is after the last card's end.
+OPEN_AFTER_LAST = "employment.period_open_after_last_card"
+# SPEC-resolutions.md, point 39: opt.earlier_at_this_level joins the questions.
+ALL_QUESTIONS = (*QUESTION_IDS, NOTHING_MORE, CPT_USED, EARLIER)
 
 
 @st.composite
@@ -1432,8 +1460,9 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
     assert len(asked) == len(set(asked))
     # SPEC-resolutions.md, points 11, 14, 15 and 16: seven rows joined the table.
     # Points 20, 21 and 22: the questions of a period and of a passed report.
+    # Point 43: the conflict employment.period_open_after_last_card.
     assert {q for q in asked if not is_period_or_report_question(q)} <= (
-        set(ALL_QUESTIONS) | set(CONFLICT_IDS) | set(WINDOW_CONFLICT_IDS)
+        set(ALL_QUESTIONS) | set(CONFLICT_IDS) | set(WINDOW_CONFLICT_IDS) | {OPEN_AFTER_LAST}
     )
     if asked or conflicts(out) or unconfirmed(out) or reasons_with(out, "missing:"):
         assert state == "cannot_tell"
@@ -1465,6 +1494,10 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
         assert not petition or opt or stem
         if opt and not case["employment"] and today >= date.fromisoformat(opt["ead_start"]):
             assert answered[NO_EMPLOYMENT]["answer"] is True
+        # Point 39: an OPT card is quiet only once the person said no earlier OPT at this
+        # degree level; yes is for the DSO.
+        if opt and opt["ead_start"] and opt["ead_end"]:
+            assert answered[EARLIER]["answer"] is False
 
     # Section 6 and section 4, for every record.
     dates = [entry["date"] for entry in out["upcoming"]]
@@ -1495,11 +1528,11 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
 def test_point_7_an_answer_to_no_employment_with_no_about_is_not_an_answer(answer):
     # NO_JOBS: the card begins 2026-07-10, no work. The answer is given today, so only the
     # missing about can keep the question open.
-    out = review(
-        with_changes(
-            NO_JOBS, confirmations=answers_with_no_about("2026-09-28", **{NO_EMPLOYMENT: answer})
-        )
-    )
+    # Point 39's question is answered no, with its about, so only the missing about of
+    # this answer is under test.
+    earlier = no_earlier_opt_today(NO_JOBS)["confirmations"]
+    no_about = answers_with_no_about("2026-09-28", **{NO_EMPLOYMENT: answer})
+    out = review(with_changes(NO_JOBS, confirmations={**earlier, **no_about}))
     assert question_ids(out) == [NO_EMPLOYMENT]
     assert out["verdict"]["state"] == "cannot_tell"
     assert unconfirmed(out) == [NO_EMPLOYMENT]
