@@ -1346,3 +1346,45 @@ an OPT card; the contract test of the cases; no regime named, no regimes).
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-e8d3ac30bb (attempt 2): older tests brought in line with points 39, 40, 42, 43, 46, 48 to 53
+
+### What I tried and what ran
+
+- Attempt 1 of this run changed 21 files under tests/ but wrote no REPORT.json and no
+  entry here. This attempt reviewed that diff rather than redoing it.
+- tests/support/f1_pack.py: EARLIER (opt.earlier_at_this_level) answered no in the
+  ordinary-answer helpers (answered_yes, the confirmations helper, no_earlier_opt,
+  no_earlier_opt_on for api cases posted as they are), point 39; OPEN_AFTER_LAST_CARD in
+  the conflict table, point 43; the test pack now holds both rows of
+  calendar.federal_holidays_law (to 2021-06-16 without Juneteenth, from 2021-06-17 with it)
+  and row_in_force picks the row for a day, point 53.
+- Older tests: validations and evaluations dated after the STEM card now expected null,
+  point 48; open periods after the last card expect the new conflict, point 43; the
+  cannot_tell verdict of test_not_knowing_wins_over_a_judgement_item lists the blocker then
+  the judgement item, point 51; tests that pin the output's keys add regimes and
+  answers_read, point 46 and plain-1; tests about something else answer point 39 no. Each
+  change names its point in a comment (129 citations in the diff).
+- Checked the diff for loosening: no skip, xfail or deleted assertion. Where an assertion
+  moved from a value to None it is point 48 (the date falls after the card); the one
+  `.get` comparison (test_the_evaluation_interval_and_the_validation_interval_are_two_rules)
+  compares validation 4 as not dated in both, point 48.
+- Done command as written: exit 0 ("All checks passed!", "53 files already formatted",
+  every test passing).
+- Fault planted through a scratch plugin under TMPDIR (compute_f1 wrapped to reverse the
+  reasons and drop answers_read): test_not_knowing_wins_over_a_judgement_item and the two
+  point 46 holdout tests fail. Scratch folder removed.
+
+### What change to the code would make the changed tests fail
+
+- Point 39: not raising opt.earlier_at_this_level, or reading no as anything but the card
+  alone held to opt.max_months (the helpers' cases would then gain an open question).
+- Point 43: raising period_outside_cards, or nothing, for an open period after the last card.
+- Point 48: dating a validation or evaluation after the card end.
+- Point 51: listing a judgement item before a blocker (shown by the planted fault).
+- Point 53: taking Juneteenth from a date in code rather than the pack's rows.
+- Point 46: leaving answers_read or regimes out of the output (shown by the planted fault).
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

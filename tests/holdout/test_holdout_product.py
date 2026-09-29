@@ -38,6 +38,7 @@ from tests.support.f1_pack import (
     items,
     job,
     months_later,
+    no_earlier_opt,
     pack_dict,
     periods_answered,
     placeholders_made_real,
@@ -113,6 +114,9 @@ CARD: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+CARD = no_earlier_opt(CARD)
 
 # The OPT card begins after 2027-03-10. 12 months from 2027-04-05 is 2028-04-05.
 AHEAD: dict[str, Any] = with_changes(
@@ -450,7 +454,10 @@ def test_the_same_answer_a_day_later_is_open_again():
 def test_an_answer_dated_tomorrow_is_refused():
     # The answer carries the about of the question (SPEC-resolutions.md, point 7), so
     # that nothing but its day is out of place.
-    case = answer_as_the_screen_does(IDLE, run(IDLE), TOMORROW, **{NO_EMPLOYMENT: True})
+    # The case is parsed, not computed, so it is sent without the placeholder answer to
+    # point 39 that only the run helper makes real.
+    bare = with_changes(IDLE, confirmations={})
+    case = answer_as_the_screen_does(bare, run(bare), TOMORROW, **{NO_EMPLOYMENT: True})
     assert case_problems(case) == []
     with pytest.raises(ValueError):  # noqa: PT011
         parsed(case, clock_on(TODAY))

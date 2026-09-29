@@ -23,6 +23,8 @@ from tests.support.f1_pack import (
     BLOCKED,
     CONFLICT_IDS,
     CPT_USED,
+    HOLIDAYS_LAW,
+    JUNETEENTH_FROM,
     NOT_AFTER_PROGRAM_END,
     OPERATIVE,
     STEM_LIST,
@@ -643,7 +645,17 @@ def test_point_40_a_2023_report_skips_june_19():
 def test_point_40_a_count_before_the_pack_holds_a_holiday_list_steps_back():
     # A pack whose holiday list takes effect 2021-06-17 holds no list for June 2020, so the
     # report date whose count crosses those days is null, with the step back.
-    raw = from_day(PACK, "calendar.", "2021-06-17")
+    # Point 53: the test pack holds both rows of the list; this copy keeps only the row
+    # from 2021-06-17.
+    raw = copy.deepcopy(PACK)
+    raw["parameters"] = [
+        p
+        for p in raw["parameters"]
+        if not (p["id"] == HOLIDAYS_LAW and p["effective_from"] < JUNETEENTH_FROM)
+    ]
+    assert [p["effective_from"] for p in raw["parameters"] if p["id"] == HOLIDAYS_LAW] == [
+        JUNETEENTH_FROM
+    ]
     _, out = settle(stem_case(date(2019, 12, 12)), raw_pack=raw)
     assert values(out)["stem.validation_1_due"] is None
     assert NOT_IN_FORCE in out["verdict"]["reasons"]

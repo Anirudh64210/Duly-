@@ -29,6 +29,7 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    no_earlier_opt,
     with_block,
     with_changes,
 )
@@ -99,6 +100,10 @@ def test_a_good_case_returns_the_engine_output(client):
         # specs/product-1/SPEC.md, section 3: the product output adds these two.
         "upcoming",
         "lists",
+        # contracts/engine_output.schema.json (plain-1 and SPEC-resolutions.md, point 46):
+        # the regimes the items name, and the answers the engine read.
+        "regimes",
+        "answers_read",
     }
     assert body["scope"]["documents_count"] == 7919
     assert [p["category"] for p in body["rulepacks"]] == ["f1"]
@@ -161,7 +166,10 @@ def test_a_full_case_validates_against_the_output_contract(client):
     body = response.json()
     assert contract_problems(body) == []
     got = items(body)
-    assert "stem.validation_4_due" in got
+    # SPEC-resolutions.md, point 48: validation 4 (2027-07-01 plus ten business days) falls
+    # after the card ends on 2027-06-30 and is not dated; validation 3 stands for the
+    # STEM items.
+    assert got["stem.validation_3_due"]["value"] is not None
     assert "capgap.ends" in got
 
 
@@ -212,8 +220,11 @@ def test_nothing_is_kept_between_requests(client):
     # No employment: the question no_employment_to_record is raised. The answer yes is
     # given on 2026-09-28, the day of the case, so it covers every day through it, with
     # the about the api asked (SPEC-resolutions.md, points 2, 3 and 7).
-    idle = with_changes(
-        GOOD, documents_count=1, employment=[], confirmations=answers(**{NO_EMPLOYMENT: True})
+    # Point 39: opt.earlier_at_this_level is answered no beside it (no_earlier_opt).
+    idle = no_earlier_opt(
+        with_changes(
+            GOOD, documents_count=1, employment=[], confirmations=answers(**{NO_EMPLOYMENT: True})
+        )
     )
     sent = as_the_screen_sends(client, URL, idle, CLOCK)
     assert sent["confirmations"][NO_EMPLOYMENT]["on"] == "2026-09-28"
