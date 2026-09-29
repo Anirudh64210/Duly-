@@ -350,3 +350,56 @@ def test_judge_drift_is_a_number():
     ]
     assert drift.pick(reviews)["run_id"] == "b"
     assert drift.pick([reviews[0], reviews[2]]) is None
+
+
+SUBSCRIPTION = '{"loggedIn": true, "authMethod": "claude.ai", "subscriptionType": "max"}'
+
+
+def test_the_factory_runs_on_a_subscription_login_only():
+    from tools.factory import billing
+
+    assert billing.require_subscription(SUBSCRIPTION) == "max"
+    for status, problem in (
+        ('{"loggedIn": false}', "not logged in"),
+        ('{"loggedIn": true, "authMethod": "apiKey"}', "charged per use"),
+        ('{"loggedIn": true, "authMethod": "console"}', "charged per use"),
+        ("not json", "not logged in"),
+    ):
+        with pytest.raises(billing.BillingError, match=problem):
+            billing.require_subscription(status)
+
+
+def test_no_paid_route_reaches_an_agent(tmp_path):
+    from tools.factory import billing
+
+    base = {"PATH": "/bin", "HOME": "/h", **dict.fromkeys(billing.PAID_ROUTES, "x")}
+    assert not set(billing.PAID_ROUTES) & set(billing.strip_paid_routes(base))
+    env = sandbox.environment(base, tmp_path, tmp_path / "w", "L-api", "r-1", "true")
+    assert not set(billing.PAID_ROUTES) & set(env)
+
+
+def test_project_settings_may_not_name_a_key_or_a_helper(tmp_path):
+    import json
+
+    from tools.factory import billing
+
+    folder = tmp_path / ".claude"
+    folder.mkdir()
+    assert billing.settings_problems(tmp_path) == []
+    (folder / "settings.json").write_text(json.dumps({"hooks": {}}))
+    assert billing.settings_problems(tmp_path) == []
+    (folder / "settings.json").write_text(
+        json.dumps({"apiKeyHelper": "get-key.sh", "env": {"ANTHROPIC_API_KEY": "k", "A": "b"}})
+    )
+    assert billing.settings_problems(tmp_path) == [
+        ".claude/settings.json sets apiKeyHelper",
+        ".claude/settings.json sets ANTHROPIC_API_KEY in env",
+    ]
+
+
+def test_a_run_that_reports_a_key_is_recognised():
+    from tools.factory import billing
+
+    assert billing.key_in_use({"apiKeySource": "none"}) == ""
+    assert billing.key_in_use({}) == ""
+    assert billing.key_in_use({"apiKeySource": "ANTHROPIC_API_KEY"}) == "ANTHROPIC_API_KEY"

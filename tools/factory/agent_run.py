@@ -30,6 +30,7 @@ from engine.clocks import Clock, SystemClock
 from tools.diff_policy.check import Lane, load_lane, violations
 from tools.factory import (
     alerts,
+    billing,
     budget,
     health,
     jail,
@@ -242,6 +243,11 @@ def watch(
         if kind == "system" and event.get("subtype") == "init":
             out.session = str(event.get("session_id", ""))
             out.model = str(event.get("model", ""))
+            paid = billing.key_in_use(event)
+            if paid:
+                out.ended, out.detail = "billing", f"the run reports a key in use ({paid})"
+                _kill(proc)
+                return out
             if not out.model.startswith(contract.model):
                 out.ended, out.detail = "model", f"ran on {out.model}, pinned {contract.model}"
                 _kill(proc)
@@ -419,6 +425,16 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         return finish("refused", f"agent {task.agent} has no contract for lane {task.lane}")
     if not jail.available():
         return finish("refused", "no sandbox on this machine")
+    if not os.environ.get("DULY_CLAUDE_BIN"):  # the stand-in used in tests has no login
+        try:
+            billing.require_subscription()
+        except billing.BillingError as err:
+            alerts.notify("guardrail", str(err), task.lane, task.run_id, repo)
+            return finish("refused", str(err))
+    paid = billing.settings_problems(repo)
+    if paid:
+        alerts.notify("guardrail", paid[0], task.lane, task.run_id, repo)
+        return finish("refused", f"{paid[0]}. Agents run on the subscription login only.")
     if (
         config["limits"].get("require_health_check", True)
         and not task.task.startswith("health/")
@@ -635,6 +651,9 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             )
         if result.ended == "stopped":
             return finish("stopped", result.detail)
+        if result.ended == "billing":
+            alerts.notify("guardrail", result.detail, task.lane, task.run_id, repo)
+            return finish("refused", result.detail + ". Agents run on the subscription login only.")
         if result.ended == "model":
             alerts.notify("model", result.detail, task.lane, task.run_id, repo)
             return finish("refused", result.detail)

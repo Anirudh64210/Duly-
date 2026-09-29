@@ -10,14 +10,13 @@ metrics   success rate, retries, cost and time for each agent
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane
-from tools.factory import agent_run, budget, health, ledger, registry, telemetry, worktree
+from tools.factory import agent_run, billing, budget, health, ledger, registry, telemetry, worktree
 from tools.factory.config import all_contracts, load_config
 from tools.factory.paths import main_repo, worktrees_dir
 
@@ -48,14 +47,12 @@ def status(repo: Path) -> int:
         print(f"  {run_id}  {run['lane']}  {run['agent']}  since {run['started_at']}")
     spent = budget.spent_today(clock, repo)
     cap = float(config["budgets"]["per_day_usd"])
-    charged = bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
-    if charged:
-        print(f"Charged today: {spent:.2f} of {cap:.2f} USD in API credits")
-    else:
-        print(
-            f"Usage today: {spent / cap:.0%} of the factory's daily limit. "
-            "No API key is set, so nothing is charged."
-        )
+    try:
+        plan = billing.require_subscription()
+        print(f"Login: {plan} subscription. Agents can run on nothing else, so nothing is charged.")
+    except billing.BillingError as err:
+        print(f"Login: REFUSED. {err}")
+    print(f"Safety cap used today: {spent / cap:.0%}")
     problems = ledger.verify(repo)
     print("Ledger: intact" if not problems else f"Ledger: {len(problems)} problems")
     for problem in problems[:5]:

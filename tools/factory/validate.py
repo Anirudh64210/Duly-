@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 
 from tools.diff_policy.check import LaneError, load_lane
+from tools.factory.billing import settings_problems
 from tools.factory.config import ConfigError, all_contracts, load_config
 from tools.factory.paths import REPO_ROOT
 from tools.factory.phase import PlanError, load_plan
@@ -53,6 +54,8 @@ def problems(root: Path = REPO_ROOT) -> list[str]:
             found.append(f"{where}: no contract for agent {job['agent']}")
         elif job["lane"] not in held.lanes:
             found.append(f"{where}: agent {job['agent']} has no contract for lane {job['lane']}")
+    found += settings_problems(root)
+    found += settings_problems(root)
     if config["model"]["pinned"] != config["model"]["reviewer"]:
         found.append("the reviewer's model differs from the pinned model")
     return found
