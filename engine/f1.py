@@ -261,6 +261,10 @@ class _Working:
         """The operative value of a rule that decides which items there are."""
         return _whole({rule_id: self._rule(rule_id)["value"]}, rule_id)
 
+    def value_of(self, rule_id: str) -> Any:
+        """The operative value of a rule in force today."""
+        return self._rule(rule_id)["value"]
+
     def holds(self, rule_id: str) -> bool:
         """Whether the pack has the rule in force today."""
         return self.pack.value(rule_id, self.today) is not None
@@ -310,9 +314,11 @@ class _Working:
         self.rules[parameter["id"]] = shown
 
     def _alternates(
-        self, rule_ids: tuple[str, ...], formula: Callable[[Values], Value]
+        self, rule_ids: tuple[str, ...], formula: Callable[[Values], Value], value: Value
     ) -> list[dict[str, Any]]:
-        """The value under each regime that is not operative and holds one of the rules."""
+        """The value under each regime that is not operative and holds one of the rules.
+        An item dated before a regime's own row took effect carries no alternate for that
+        regime (SPEC-resolutions point 23): such a rule does not reach back."""
         found = []
         for regime in self.pack.regimes:
             if regime["operative"]:
@@ -320,7 +326,12 @@ class _Working:
             under = {r: self.pack.value(r, self.today, regime=regime["id"]) for r in rule_ids}
             if any(p is None for p in under.values()):
                 continue
-            if not any(p is not None and p.get("regime") == regime["id"] for p in under.values()):
+            own = [p for p in under.values() if p is not None and p.get("regime") == regime["id"]]
+            if not own:
+                continue
+            if isinstance(value, date) and any(
+                value.isoformat() < p["effective_from"] for p in own
+            ):
                 continue
             values = {r: p["value"] for r, p in under.items() if p is not None}
             found.append(
@@ -406,7 +417,7 @@ class _Working:
             settings = (*settings, LOOKAHEAD)
         if settings:
             item["inputs"]["duly_settings"] = list(settings)
-        alternates = self._alternates(rule_ids, guarded)
+        alternates = self._alternates(rule_ids, guarded, value)
         if alternates:
             item["alternates"] = alternates
             item["operative"] = self._operative(parameters)
@@ -603,6 +614,29 @@ def _add_counts(
         needs=tuple(window),
         settings=checked,
     )
+    if stem is not None and opt is not None:
+        # SPEC-resolutions point 19: the days of the OPT card stay held to its own limit.
+        card_end = opt.ead_end
+        opt_rule = "opt.unemployment_limit_days"
+        card_used = (
+            None
+            if pieces is None or card_end is None
+            else sum(days for begin, days, hours in pieces if hours is None and begin <= card_end)
+        )
+        work.add(
+            "unemployment.opt_card_days_used",
+            "days",
+            {
+                "opt.ead_start": opt.ead_start,
+                "opt.ead_end": card_end,
+                "today": today,
+                "employment": _employment_shown(case),
+            },
+            (opt_rule,),
+            lambda v: card_used,
+            needs=("opt.ead_start", "opt.ead_end"),
+            settings=checked,
+        )
     work.add(
         "employment.days_under_hours",
         "days",
@@ -713,9 +747,13 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
     )
 
 
-def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
+def _cap_gap_active(cap_gap: CapGap) -> bool:
+    return cap_gap.status in CAP_GAP_ACTIVE and cap_gap.change_of_status
+
+
+def _cap_gap_ends(cap_gap: CapGap) -> Callable[[Values], Value]:
     requested = cap_gap.requested_start
-    active = cap_gap.status in CAP_GAP_ACTIVE and cap_gap.change_of_status
+    active = _cap_gap_active(cap_gap)
 
     def formula(v: Values) -> Value:
         if not active:
@@ -726,17 +764,43 @@ def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
         later = (requested.month, requested.day) >= _month_day(v, FISCAL_YEAR_START)
         return min(requested, date(requested.year + (1 if later else 0), month, day))
 
+    return formula
+
+
+CAP_GAP_RULES = ("capgap.end_month_day", FISCAL_YEAR_START)
+
+
+def _cap_gap_inputs(cap_gap: CapGap) -> dict[str, Any]:
+    return {
+        "cap_gap.requested_start": cap_gap.requested_start,
+        "cap_gap.status": cap_gap.status,
+        "cap_gap.change_of_status": cap_gap.change_of_status,
+    }
+
+
+def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
     work.add(
         "capgap.ends",
         "date",
-        {
-            "cap_gap.requested_start": requested,
-            "cap_gap.status": cap_gap.status,
-            "cap_gap.change_of_status": cap_gap.change_of_status,
-        },
-        ("capgap.end_month_day", FISCAL_YEAR_START),
-        formula,
+        _cap_gap_inputs(cap_gap),
+        CAP_GAP_RULES,
+        _cap_gap_ends(cap_gap),
     )
+
+
+def _cap_gap_past_cards(work: _Working, case: F1Case) -> bool:
+    """SPEC-resolutions point 18: an active cap-gap petition whose end is after the last
+    card end, or whose end cannot be known while its dates are in a conflict."""
+    gap = case.cap_gap
+    if gap is None or not _cap_gap_active(gap):
+        return False
+    card_ends = [block.ead_end for block in (case.opt, case.stem) if block and block.ead_end]
+    if not card_ends:
+        return False
+    if any(name in work.conflicted for name in _cap_gap_inputs(gap)):
+        return True
+    ends = _cap_gap_ends(gap)({r: work.value_of(r) for r in CAP_GAP_RULES})
+    return isinstance(ends, date) and ends > max(card_ends)
 
 
 def _answer(
@@ -861,6 +925,78 @@ def _facts(case: F1Case, work: _Working) -> list[Fact]:
                 outside.append({"start": period.start.isoformat(), "end": _shown(period.end)})
         if outside:
             note("employment.period_outside_cards", {"employment": outside, **shown_cards})
+    found.extend(_window_facts(case, work))
+    return found
+
+
+def _window_facts(case: F1Case, work: _Working) -> list[Fact]:
+    """SPEC-resolutions points 11, 14, 15 and 16: a date entered against the window the
+    regulation gives it. Each day count is the rule's value in the pack. Each row names
+    its rule and says nothing of what the dates mean."""
+    found: list[Fact] = []
+
+    def note(fact_id: str, rule_id: str, about: dict[str, date]) -> None:
+        work.show(rule_id)
+        found.append(Fact(fact_id, {name: _shown(value) for name, value in about.items()}))
+
+    for part, block in (("opt", case.opt), ("stem", case.stem)):
+        if block is None:
+            continue
+        recommended, filed = block.dso_recommendation_date, block.i765_filed_date
+        rule_id = f"{part}.file_within_days_of_recommendation"
+        if recommended is None or filed is None or not work.holds(rule_id):
+            continue
+        about = {f"{part}.dso_recommendation_date": recommended, f"{part}.i765_filed_date": filed}
+        if filed < recommended:
+            note(f"{part}.i765_filed_date.before_recommendation", rule_id, about)
+        elif filed > recommended + timedelta(days=work.whole_rule(rule_id)):
+            note(f"{part}.i765_filed_date.after_file_by", rule_id, about)
+
+    opt, stem = case.opt, case.stem
+    before = "stem.apply_before_expiry_days"
+    if (
+        opt is not None
+        and stem is not None
+        and opt.ead_end is not None
+        and stem.i765_filed_date is not None
+        and work.holds(before)
+        and stem.i765_filed_date < opt.ead_end - timedelta(days=work.whole_rule(before))
+    ):
+        note(
+            "stem.i765_filed_date.before_window_opens",
+            before,
+            {"opt.ead_end": opt.ead_end, "stem.i765_filed_date": stem.i765_filed_date},
+        )
+    if opt is None:
+        return found
+    end = case.program_end_date
+    # The operative value only; the other regime's value stays on the window items.
+    after = "opt.apply_after_days"
+    filed = opt.i765_filed_date
+    if (
+        filed is not None
+        and work.holds(after)
+        and filed > end + timedelta(days=work.whole_rule(after))
+    ):
+        note(
+            "opt.i765_filed_date.after_window_closes",
+            after,
+            {"program_end_date": end, "opt.i765_filed_date": filed},
+        )
+    # Taking the card end as the end of training is Duly's reading; the rule shown
+    # beside the question carries the pack's derivation.
+    within = "opt.complete_within_months"
+    card_end = opt.ead_end
+    if (
+        card_end is not None
+        and work.holds(within)
+        and card_end > add_months(end, work.whole_rule(within))
+    ):
+        note(
+            "opt.ead_end.after_complete_by",
+            within,
+            {"program_end_date": end, "opt.ead_end": card_end},
+        )
     return found
 
 
@@ -911,6 +1047,16 @@ def _judgement_items(work: _Working, case: F1Case, cpt_days: int | None) -> tupl
         found.append("cpt_full_time_at_or_over_bar")
     if case.cap_gap is not None and "capgap.ends" not in work.dated:
         found.append("cap_gap_petition_not_active")
+    stem = case.stem
+    card_used = work.numbers.get("unemployment.opt_card_days_used")
+    if (
+        stem is not None
+        and stem.ead_start is not None
+        and stem.ead_end is not None
+        and card_used is not None
+        and card_used >= work.whole_rule("opt.unemployment_limit_days")
+    ):
+        found.append("unemployment_opt_card_at_or_over_limit")
     return tuple(found)
 
 
@@ -927,15 +1073,10 @@ def _open_items(work: _Working) -> tuple[str, ...]:
     return tuple(found)
 
 
-def _add_next_step(
-    work: _Working,
-    opt: EadBlock,
-    ends: dict[str, Any],
-    grace_ends: Callable[[Values], Value],
-) -> None:
+def _add_next_step(work: _Working, opt: EadBlock) -> None:
     """specs/product-1/SPEC.md, section 6: with OPT entered and no STEM entered, the
     dates of the step that the rules place next, from the OPT card. These are dates and
-    nothing more."""
+    nothing more. The grace date is grace.ends, listed once (SPEC-resolutions point 12)."""
     card_end = opt.ead_end
     inputs = {"opt.ead_end": card_end}
     before = "stem.apply_before_expiry_days"
@@ -949,7 +1090,6 @@ def _add_next_step(
         "next.stem.apply_window_closes", inputs, (STEM_WINDOW_CLOSES,), lambda v: card_end
     )
     work.add_ahead("next.opt.card_ends", inputs, (CARD_MONTHS["opt"],), lambda v: card_end)
-    work.add_ahead("next.grace.ends", ends, ("grace.after_completion_days",), grace_ends)
 
 
 def _lists(work: _Working) -> list[dict[str, Any]]:
@@ -1052,9 +1192,16 @@ def compute_f1(
     if alone in (OPEN, YES):
         unknown_end = ("opt" if alone == OPEN else "opt.ead_end",)
         ends |= dict.fromkeys(unknown_end)
+    # SPEC-resolutions point 17: an entered card with no end gives no grace date.
+    card_ends = tuple(name for name in ("opt.ead_end", "stem.ead_end") if name in ends)
+    unknown_end += tuple(name for name in card_ends if ends[name] is None)
     grace = "grace.after_completion_days"
+    past_cards = _cap_gap_past_cards(work, case)
 
     def grace_ends(v: Values) -> Value:
+        # Point 18: status runs on to the cap-gap end; what follows is for the DSO.
+        if past_cards:
+            return None
         return final_end + timedelta(days=_whole(v, grace))
 
     work.add("grace.ends", "date", ends, (grace,), grace_ends, needs=unknown_end)
@@ -1062,7 +1209,7 @@ def compute_f1(
         _add_stem_items(work, opt, case.stem)
     lists: list[dict[str, Any]] = []
     if case.opt is not None and case.stem is None:
-        _add_next_step(work, case.opt, ends, grace_ends)
+        _add_next_step(work, case.opt)
         lists = _lists(work)
 
     # Full-time CPT. Days that were not entered are never taken as zero: the zero is
@@ -1097,6 +1244,8 @@ def compute_f1(
         judgement_items = (*judgement_items, "stem_without_post_completion_opt")
     if alone == NO:
         judgement_items = (*judgement_items, "cap_gap_without_training")
+    if past_cards and "capgap.ends" in work.dated:
+        judgement_items = (*judgement_items, "grace_with_cap_gap")
     verdict = decide(
         VerdictInputs(
             documents_count=case.documents_count,
