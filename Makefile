@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -52,8 +52,13 @@ gate-5:
 gate-6:
 	uv run python -m tools.gates.diff_coverage --base $(BASE)
 
-test: gate-1 gate-2 gate-3 gate-4 gate-5 gate-6
-	@echo "gates 1 to 6: green"
+gate-7:
+	uv run python -m tools.factory.validate
+	uv run python -m tools.gates.engine_literals
+	uv run python -m tools.sources.verify rulepacks
+
+test: gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7
+	@echo "gates 1 to 7: green"
 
 prove-gates:
 	uv run python -m tools.gates.prove
@@ -88,6 +93,15 @@ factory-metrics:
 
 factory-test:
 	uv run pytest tests/unit/tools -q
+
+golden:
+	uv run python -m tools.factory.golden
+
+drift:
+	uv run python -m tools.factory.drift
+
+weekly:
+	@uv run python -m tools.factory.weekly
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)

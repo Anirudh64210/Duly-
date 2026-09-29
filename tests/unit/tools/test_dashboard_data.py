@@ -198,3 +198,103 @@ def test_spans_and_counts_read_well():
     assert data.span(None, start) == ""
     assert [data.short_count(n) for n in (12, 4_200, 2_600_000)] == ["12", "4k", "2.6M"]
     assert data.parse_time("never") is None
+
+
+def test_a_changed_line_breaks_the_ledger_seal():
+    rows = []
+    prev = "0" * 64
+    for n in range(3):
+        row = {"at": T0, "lane": "L-api", "kind": "step", "message": f"step {n}", "prev": prev}
+        row["hash"] = data.seal(row)
+        prev = row["hash"]
+        rows.append(row)
+    assert data.ledger_problems([{"lane": "old", "message": "unsealed"}, *rows]) == []
+    rows[1]["message"] = "rewritten"
+    assert data.ledger_problems(rows) == ["line 2: contents do not match their seal"]
+    rows[1]["message"] = "step 1"
+    assert data.ledger_problems([rows[0], rows[2]]) == [
+        "line 2: does not follow the line before it"
+    ]
+    assert "unsealed line" in data.ledger_problems([rows[0], {"message": "slipped in"}])[0]
+
+
+def test_runs_cards_follow_run_ids_costs_and_merges():
+    agents = data.agents_from_events(
+        [
+            {**ev("L-api", "start", "m"), "run_id": "l-api-1"},
+            {**ev("L-api", "cost", "attempt 1 ended"), "run_id": "l-api-1", "cost_usd": 1.5},
+            {**ev("L-api", "alert", "loop: x", agent="orchestrator"), "run_id": "l-api-1"},
+            {**ev("L-api", "done", "done: passes"), "run_id": "l-api-1"},
+            {**ev("L-api", "merge", "merged 2 files", agent="orchestrator"), "run_id": "l-api-1"},
+            {**ev("L-web", "start", "health"), "task": "health/builder/L-web"},
+            ev("orchestrator:phase-2", "start", "x"),
+        ]
+    )
+    assert list(agents) == ["L-api"]
+    api = agents["L-api"]
+    assert (api.run_id, api.cost_usd, api.merged, api.state, api.agent) == (
+        "l-api-1",
+        1.5,
+        True,
+        "done",
+        "builder",
+    )
+
+
+def test_snapshot_carries_spend_alerts_metrics_and_the_stop_state(tmp_path):
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    (repo / "factory").mkdir()
+    (repo / "factory" / "config.yaml").write_text("budgets:\n  per_day_usd: 250.0\n")
+    (repo / ".factory" / "STOP").write_text("{}")
+    runs = [
+        {
+            "agent": "builder",
+            "status": "done",
+            "attempts": 1,
+            "cost_usd": 4.0,
+            "seconds": 360,
+            "ended_at": "2026-09-29T07:00:00+00:00",
+            "task": "p/A/L-api",
+        },
+        {
+            "agent": "builder",
+            "status": "failed",
+            "attempts": 3,
+            "cost_usd": 6.0,
+            "seconds": 840,
+            "ended_at": "2026-09-28T07:00:00+00:00",
+            "task": "p/A/L-web",
+        },
+        {
+            "agent": "builder",
+            "status": "done",
+            "attempts": 1,
+            "cost_usd": 0.3,
+            "seconds": 20,
+            "ended_at": "2026-09-29T07:00:00+00:00",
+            "task": "health/builder/L-api",
+        },
+    ]
+    (repo / ".factory" / "metrics.jsonl").write_text("\n".join(json.dumps(r) for r in runs))
+    (repo / ".factory" / "events.jsonl").write_text(
+        json.dumps({**ev("L-api", "alert", "budget: used up"), "alert": "budget"}) + "\n"
+    )
+    now = datetime(2026, 9, 29, 9, 0, tzinfo=UTC)
+    snap = data.load(repo, with_tokens=False, ps_output="", now=now)
+    assert snap.stopped is True
+    assert (snap.spent_today, snap.day_cap) == (4.3, 250.0)
+    assert snap.metrics == {
+        "builder": {
+            "runs": 2,
+            "success_rate": 0.5,
+            "mean_attempts": 2.0,
+            "mean_cost_usd": 5.0,
+            "mean_minutes": 10.0,
+        }
+    }
+    assert snap.alerts[0]["alert"] == "budget"
+    main = data.snapshot_json(repo, ps_output="")
+    assert main["stopped"] is True
+    assert main["alerts"][0]["kind"] == "budget"
+    assert main["ledger"]["intact"] is True

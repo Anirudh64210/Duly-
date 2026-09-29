@@ -168,7 +168,7 @@ def test_writes_outside_the_lane_are_never_accepted(tmp_path, monkeypatch):
         {"report": "engine", "files": ["engine/new.py", "tests/cheat.py"]},
         {"result": {}},
     ]
-    repo, out = play(tmp_path, monkeypatch, [strays, strays])
+    _repo, out = play(tmp_path, monkeypatch, [strays, strays])
     assert out.status == "escalated"
     assert "files outside the lane changed: tests/cheat.py" in out.reason
     assert out.head_commit == ""

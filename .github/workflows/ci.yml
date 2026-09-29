@@ -6,6 +6,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # A pull request is compared with the branch it targets. A push is compared with main.
+  BASE: ${{ github.base_ref || 'main' }}
+  DULY_NO_NOTIFY: "1"
+
 jobs:
   gates:
     runs-on: ubuntu-latest
@@ -15,7 +20,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Make the base branch available
-        run: git fetch origin main:main || true
+        run: |
+          git fetch origin main:main || true
+          git fetch origin "$BASE:$BASE" || true
       - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-node@v4
         with:
@@ -32,10 +39,12 @@ jobs:
       - name: Gate 2, types
         run: make gate-2
       - name: Gate 3, diff policy
-        run: make gate-3
+        run: make gate-3 BASE="$BASE"
       - name: Gate 4, security
         run: make gate-4
       - name: Gate 5, unit and property tests
         run: make gate-5
+      - name: Gate 7, the factory's own files, sourced numbers and quotes
+        run: make gate-7
       - name: Gate 6, diff coverage
-        run: make gate-6
+        run: make gate-6 BASE="$BASE"

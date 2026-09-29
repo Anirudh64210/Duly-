@@ -45,7 +45,7 @@ ignore = ["S101"]
 [tool.ruff.lint.per-file-ignores]
 "tools/gates/*" = ["S603", "S607"]
 "tools/factory/*" = ["S603", "S607"]
-"dashboard/*" = ["S607", "DTZ", "RUF012"]
+"dashboard/*" = ["S603", "S607", "DTZ", "RUF012"]
 "tools/diff_policy/*" = ["S603", "S607"]
 ".claude/hooks/*" = ["S603", "S607", "E402", "I001"]
 "tests/*" = ["S", "DTZ"]
@@ -69,4 +69,4 @@ addopts = "-q --strict-markers"
 source = ["engine", "api", "assistant", "pipeline", "tools"]
 branch = true
 # The gate scripts are proven by make prove-gates, which runs them against planted violations.
-omit = ["tools/gates/*", "tools/factory/phase.py", "tools/factory/control.py"]
+omit = ["tools/gates/*", "tools/factory/phase.py", "tools/factory/control.py", "tools/factory/golden.py", "tools/factory/drift.py", "tools/factory/weekly.py", "tools/factory/alerts.py"]

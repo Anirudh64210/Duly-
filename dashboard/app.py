@@ -10,6 +10,7 @@ window's own bridge.
 Run:  make watch        (or: uv run --script dashboard/app.py [repo])
 """
 
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,23 @@ class Bridge:
 
     def agent(self, lane: str) -> dict[str, Any]:
         return data.agent_json(self._repo, str(lane))
+
+    def stop(self) -> bool:
+        """The kill switch. Ends every agent and lets nothing start."""
+        return self._control("stop")
+
+    def resume(self) -> bool:
+        return self._control("resume")
+
+    def _control(self, command: str) -> bool:
+        done = subprocess.run(
+            ["uv", "run", "python", "-m", "tools.factory.control", command],
+            cwd=self._repo,
+            check=False,
+            capture_output=True,
+            timeout=60,
+        )
+        return done.returncode == 0
 
     def get_theme(self) -> str:
         return data.read_theme(self._repo)

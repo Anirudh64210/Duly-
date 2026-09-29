@@ -7,6 +7,7 @@ Sources, all plain files:
 - git, for commits and changed files in each lane's worktree
 """
 
+import hashlib
 import json
 import re
 import subprocess
@@ -42,6 +43,9 @@ class Agent:
     tokens_in: int = 0
     tokens_out: int = 0
     runs: int = 0
+    run_id: str = ""
+    cost_usd: float = 0.0
+    merged: bool = False
 
 
 @dataclass
@@ -54,6 +58,14 @@ class Snapshot:
     skills: int = 0
     skills_replayed: int = 0
     head: str = ""
+    stopped: bool = False
+    spent_today: float = 0.0
+    day_cap: float = 0.0
+    alerts: list[dict[str, Any]] = field(default_factory=list)
+    metrics: dict[str, dict[str, float]] = field(default_factory=dict)
+    reviews: list[dict[str, Any]] = field(default_factory=list)
+    ledger_problems: list[str] = field(default_factory=list)
+    health: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -88,9 +100,11 @@ def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
     agents: dict[str, Agent] = {}
     for event in events:
         lane = event.get("lane", "")
-        if not lane or lane == ORCHESTRATOR:
+        if not lane or lane == ORCHESTRATOR or lane.startswith("orchestrator"):
             continue
         kind, message = event.get("kind", ""), event.get("message", "")
+        if str(event.get("task", "")).startswith("health/"):
+            continue
         at = parse_time(event.get("at", ""))
         if kind == "start" or lane not in agents:
             runs = agents[lane].runs if lane in agents else 0
@@ -98,7 +112,17 @@ def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
             if kind == "start":
                 agents[lane].mission = message
         agent = agents[lane]
-        agent.agent = event.get("agent", agent.agent)
+        agent.run_id = event.get("run_id") or agent.run_id
+        if kind == "alert":
+            continue
+        if kind == "cost":
+            agent.cost_usd += float(event.get("cost_usd") or 0.0)
+            continue
+        if kind == "merge":
+            agent.merged = True
+            continue
+        if event.get("agent") not in {None, "orchestrator"}:
+            agent.agent = event["agent"]
         agent.last_at = at
         if kind in {"done", "failed", "blocked"}:
             agent.state, agent.ended_at, agent.last_action = kind, at, message
@@ -107,7 +131,7 @@ def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
         found = re.match(r"iteration (\d+) of (\d+)$", message)
         if found:
             agent.iteration = f"{found.group(1)}/{found.group(2)}"
-        elif kind in {"step", "test"} and not message.startswith("iteration ended"):
+        elif kind in {"step", "test"} and not message.startswith(("iteration ended", "attempt ")):
             agent.actions += 1
             agent.tests_run += kind == "test"
             agent.last_action = message
@@ -115,22 +139,84 @@ def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
 
 
 def running_lanes(ps_output: str) -> set[str]:
-    return set(re.findall(r"tools\.factory\.run_lane --lane (\S+)", ps_output))
+    return set(re.findall(r"tools\.factory\.(?:agent_run|run_lane) --lane (\S+)", ps_output))
+
+
+def seal(row: dict[str, Any]) -> str:
+    body = json.dumps({k: v for k, v in row.items() if k != "hash"}, sort_keys=True)
+    return hashlib.sha256(body.encode()).hexdigest()
+
+
+def ledger_problems(events: list[dict[str, Any]]) -> list[str]:
+    """Lines of the ledger that were changed, removed or put out of order."""
+    problems: list[str] = []
+    prev = None
+    for number, row in enumerate(events, start=1):
+        if "hash" not in row:
+            if prev is not None:
+                problems.append(f"line {number}: unsealed line after sealed lines")
+            continue
+        if row["hash"] != seal(row):
+            problems.append(f"line {number}: contents do not match their seal")
+        if prev is not None and row.get("prev") != prev:
+            problems.append(f"line {number}: does not follow the line before it")
+        prev = row["hash"]
+    return problems
+
+
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return rows
+
+
+def agent_metrics(runs: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
+    by_agent: dict[str, list[dict[str, Any]]] = {}
+    for run in runs:
+        if str(run.get("task", "")).startswith("health/"):
+            continue
+        by_agent.setdefault(run.get("agent", "?"), []).append(run)
+    out = {}
+    for agent, rows in sorted(by_agent.items()):
+        n = len(rows)
+        out[agent] = {
+            "runs": n,
+            "success_rate": round(sum(r.get("status") == "done" for r in rows) / n, 2),
+            "mean_attempts": round(sum(r.get("attempts", 0) for r in rows) / n, 1),
+            "mean_cost_usd": round(sum(r.get("cost_usd", 0.0) for r in rows) / n, 2),
+            "mean_minutes": round(sum(r.get("seconds", 0) for r in rows) / n / 60, 1),
+        }
+    return out
 
 
 def _out(cmd: list[str], cwd: Path) -> str:
     try:
-        done = subprocess.run(  # noqa: S603
-            cmd, cwd=cwd, check=False, capture_output=True, text=True, timeout=10
-        )
+        done = subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.TimeoutExpired):
         return ""
     return done.stdout if done.returncode == 0 else ""
 
 
-def worktree_for(repo: Path, lane: str) -> Path | None:
+def worktree_for(repo: Path, lane: str, run_id: str = "") -> Path | None:
+    if run_id:
+        path = repo.parent / f"{repo.name}-worktrees" / run_id
+        if path.is_dir():
+            return path
     path = repo.parent / f"{repo.name}-{lane}"
     return path if path.is_dir() else None
+
+
+def worktree_name(repo: Path, lane: str, run_id: str = "") -> Path:
+    """Where the worktree is or was. Session logs are filed under this path."""
+    if run_id:
+        return repo.parent / f"{repo.name}-worktrees" / run_id
+    return repo.parent / f"{repo.name}-{lane}"
 
 
 def count_lessons(text: str) -> int:
@@ -249,7 +335,12 @@ def changes(repo: Path, agent: Agent) -> str:
     )
 
 
-def load(repo: Path, with_tokens: bool = True, ps_output: str | None = None) -> Snapshot:
+def load(
+    repo: Path,
+    with_tokens: bool = True,
+    ps_output: str | None = None,
+    now: datetime | None = None,
+) -> Snapshot:
     events = read_events(repo)
     agents = agents_from_events(events)
     if ps_output is None:
@@ -260,8 +351,13 @@ def load(repo: Path, with_tokens: bool = True, ps_output: str | None = None) -> 
         agent.alive = agent.lane in alive
         if agent.state == "working" and not agent.alive:
             agent.state = "stopped"
-        agent.worktree = worktree_for(repo, agent.lane)
+        agent.worktree = worktree_for(repo, agent.lane, agent.run_id)
         if agent.worktree is None:
+            if with_tokens and agent.run_id:
+                gone = worktree_name(repo, agent.lane, agent.run_id)
+                _, agent.tokens_in, agent.tokens_out = transcript(
+                    session_files(gone, agent.started_at)
+                )
             continue
         ahead = _out(["git", "rev-list", "--count", f"{base}..HEAD"], agent.worktree).strip()
         agent.commits = int(ahead) if ahead.isdigit() else 0
@@ -289,6 +385,22 @@ def load(repo: Path, with_tokens: bool = True, ps_output: str | None = None) -> 
             gates = json.loads(gates_file.read_text()).get("results", {})
         except json.JSONDecodeError:
             gates = {}
+    factory = repo / ".factory"
+    runs = read_jsonl(factory / "metrics.jsonl")
+    today = (now or datetime.now().astimezone()).date().isoformat()
+    day_cap = 0.0
+    found = re.search(
+        r"(?m)^\s*per_day_usd:\s*([0-9.]+)",
+        (repo / "factory" / "config.yaml").read_text()
+        if (repo / "factory" / "config.yaml").exists()
+        else "",
+    )
+    if found:
+        day_cap = float(found.group(1))
+    try:
+        health = json.loads((factory / "health.json").read_text())
+    except (OSError, json.JSONDecodeError):
+        health = {}
     skill_dirs = [p.parent for p in (repo / ".claude" / "skills").glob("*/SKILL.md")]
     order = {"working": 0, "blocked": 1, "failed": 1, "stopped": 1, "done": 2}
     return Snapshot(
@@ -300,6 +412,21 @@ def load(repo: Path, with_tokens: bool = True, ps_output: str | None = None) -> 
         skills=len(skill_dirs),
         skills_replayed=len([d for d in skill_dirs if (d / "REPLAY.md").exists()]),
         head=_out(["git", "log", "-1", "--format=%h %s"], repo).strip(),
+        stopped=(factory / "STOP").exists(),
+        spent_today=round(
+            sum(
+                float(r.get("cost_usd", 0.0))
+                for r in runs
+                if str(r.get("ended_at", "")).startswith(today)
+            ),
+            2,
+        ),
+        day_cap=day_cap,
+        alerts=[e for e in events if e.get("kind") == "alert"][-30:],
+        metrics=agent_metrics(runs),
+        reviews=read_jsonl(factory / "reviews.jsonl")[-20:],
+        ledger_problems=ledger_problems(events),
+        health=health,
     )
 
 
@@ -312,6 +439,21 @@ def snapshot_json(repo: Path, ps_output: str | None = None) -> dict[str, Any]:
     snap = load(repo, ps_output=ps_output)
     return {
         "round": snap.round_line,
+        "stopped": snap.stopped,
+        "spend": {"today": snap.spent_today, "cap": snap.day_cap},
+        "alerts": [
+            {
+                "at": e.get("at", ""),
+                "kind": e.get("alert", ""),
+                "lane": e.get("lane", ""),
+                "message": e.get("message", ""),
+            }
+            for e in reversed(snap.alerts)
+        ],
+        "metrics": snap.metrics,
+        "reviews": snap.reviews,
+        "ledger": {"intact": not snap.ledger_problems, "problems": snap.ledger_problems[:5]},
+        "health": snap.health,
         "head": snap.head,
         "gates": snap.gates,
         "learning": {
@@ -350,6 +492,9 @@ def snapshot_json(repo: Path, ps_output: str | None = None) -> dict[str, Any]:
                 "tokens_out": a.tokens_out,
                 "last_action": a.last_action,
                 "runs": a.runs,
+                "run_id": a.run_id,
+                "cost_usd": round(a.cost_usd, 2),
+                "merged": a.merged,
             }
             for a in snap.agents
         ],
@@ -389,7 +534,8 @@ def agent_json(
     agent = next((a for a in snap.agents if a.lane == lane), None)
     if agent is None:
         return {"found": False}
-    files = session_files(agent.worktree, agent.started_at) if agent.worktree else []
+    where = agent.worktree or worktree_name(repo, lane, agent.run_id)
+    files = session_files(where, agent.started_at)
     lines, _, _ = transcript(files)
     events = [e for e in read_events(repo) if e.get("lane") == lane]
     return {

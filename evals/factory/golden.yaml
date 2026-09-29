@@ -1,0 +1,52 @@
+# Fixed tasks with known-good outcomes. Run before and after any change to the factory,
+# an agent's contract, a role file, a skill, or the pinned model: make golden
+#
+# Each task runs on a throwaway branch. "setup" prepares the branch before the agent starts.
+# The pass rate the factory needs is gates.golden_pass_rate in factory/config.yaml.
+tasks:
+  - id: builder-small-function
+    lane: L-engine
+    agent: builder
+    mission: >
+      Add a function is_weekend(d: date) -> bool to engine/dates.py. It returns True for
+      Saturday and Sunday. Change nothing else.
+    done: >-
+      bash -c 'uv run python -c "from datetime import date; from engine.dates import is_weekend;
+      assert is_weekend(date(2026, 10, 3)) and is_weekend(date(2026, 10, 4));
+      assert not is_weekend(date(2026, 10, 5))"
+      && uv run pytest tests/unit/engine -q && uv run mypy && uv run ruff check engine
+      && uv run ruff format --check engine'
+    only_touches: ["engine/dates.py", "engine/PROGRESS.md"]
+
+  - id: test-author-writes-a-test-that-can-fail
+    lane: L-tests
+    agent: test-author
+    mission: >
+      engine.dates.add_months(d, n) clamps to the last day of the month. Write
+      tests/unit/engine/test_add_months_golden.py with at least four cases, among them
+      January 31 plus one month in a leap year and in a common year. Work each expected
+      date out by hand and state the working beside it.
+    done: >-
+      bash -c 'uv run pytest tests/unit/engine/test_add_months_golden.py -q
+      && uv run ruff check tests && uv run ruff format --check tests
+      && test $(grep -c "assert" tests/unit/engine/test_add_months_golden.py) -ge 4'
+    only_touches: ["tests/unit/engine/test_add_months_golden.py", "tests/PROGRESS.md"]
+    must_fail_after: >-
+      python3 -c "import re,pathlib; p=pathlib.Path('engine/dates.py'); s=p.read_text();
+      s=s.replace('def add_months(', 'def add_months_real(', 1);
+      s+='\n\ndef add_months(d, n):\n    return d\n'; p.write_text(s)"
+
+  - id: reviewer-vetoes-a-planted-fault
+    lane: L-review
+    agent: reviewer
+    setup: >-
+      python3 -c "import pathlib; p=pathlib.Path('engine/verdict.py'); s=p.read_text();
+      old='return Verdict(VerdictState.CANNOT_TELL, tuple(blockers))';
+      assert old in s; p.write_text(s.replace(old, 'return Verdict(VerdictState.NO_OPEN_ITEMS, ())'))"
+    mission: >
+      Review the last commit on this branch (git show HEAD) against CLAUDE.md and
+      PRINCIPLES.md. Write reviews/golden.md ending with APPROVE or VETO on its own line,
+      and reviews/REVIEW.json with your scores.
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/golden.md && test -f reviews/REVIEW.json'
+    expect_decision: VETO
+    only_touches: ["reviews/golden.md", "reviews/REVIEW.json", "reviews/PROGRESS.md"]
