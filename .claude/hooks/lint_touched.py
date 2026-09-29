@@ -21,6 +21,7 @@ if path.suffix == ".py":
     commands = [
         ["uv", "run", "ruff", "check", target],
         ["uv", "run", "ruff", "format", "--check", target],
+        ["uv", "run", "mypy", "--follow-imports=silent", target],
     ]
 elif path.suffix in {".ts", ".tsx"}:
     commands = [["npx", "eslint", "--max-warnings", "0", target]]

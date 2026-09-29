@@ -1,0 +1,51 @@
+branch: path-1
+spec: specs/path-1/SPEC.md
+merge: pr
+rounds:
+  - name: tests-and-path
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: Write the tests the SPEC describes under "The tests". They cannot pass yet.
+        done: >-
+          bash -c 'test -f tests/unit/engine/test_path.py
+          && uv run ruff check tests && uv run ruff format --check tests'
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: Write F-1's path as the SPEC describes under "The rules".
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run pytest tests/unit/engine/test_rulepack.py -q
+          && grep -q "^path:" rulepacks/f1-us/v2026.09/parameters.yaml'
+    checks:
+      - { name: "sources", run: "uv run python -m tools.sources.verify rulepacks" }
+  - name: engine
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: Build engine/path.py and move compute_f1 onto it, as the SPEC describes.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=path-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review everything on this branch that belongs to specs/path-1/SPEC.md against it,
+          PRINCIPLES.md and BOUNDARY.md. Try hardest to find F-1 knowledge left in code, and
+          a date or number in the pack that no sourced rule supports. Write
+          reviews/path-1.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/path-1.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: Audit path round 1 as your role file describes. Write docs/requirements/audits/path-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/path-1.md
+          && uv run python -m tools.requirements.register check'

@@ -1,0 +1,1424 @@
+[
+ {
+  "id": "RCOMP-001",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Show the Texas safe-harbor sentence, that the product is not a substitute for the advice of an attorney, verbatim and clearly and conspicuously as the baseline disclaimer on every recommendation-shaped surface.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.tsx",
+  "note": "The web footer says records and computations are not legal advice, but the statutory words of Tex. Gov't Code 81.101(c) appear nowhere in product copy."
+ },
+ {
+  "id": "RCOMP-002",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Never claim that Duly or its AI performs like a real lawyer, replaces a lawyer, or is lawyer-quality without substantiating tests (FTC DoNotPay order).",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+  "note": "The copy linter bans ai lawyer, robot lawyer, lawyer-quality and like a lawyer in product copy, but not replaces a lawyer, and no marketing channel is linted."
+ },
+ {
+  "id": "RCOMP-003",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "The user must remain the visible chooser at every branch; Duly's logic must never select an outcome for a specific user, such as which form, which benefit or which answer (Janson v. LegalZoom).",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py",
+  "note": "The classifier steps back on which form, code or option questions, but no product-wide check proves no branch picks an outcome for the user."
+ },
+ {
+  "id": "RCOMP-004",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Follow N.C.G.S. 84-2.2 as a national checklist: let the consumer see the output before purchase.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D8, D18",
+  "note": "There is no purchase flow; pricing is parked and Stripe is set up later."
+ },
+ {
+  "id": "RCOMP-005",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Follow N.C.G.S. 84-2.2: keep a licensed attorney reviewer on file for templates and content.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D14, D28",
+  "note": "No attorney is retained; D28 moves finding attorneys to after validation."
+ },
+ {
+  "id": "RCOMP-006",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Follow N.C.G.S. 84-2.2: publish a conspicuous consumer complaint process and refer UPL complaints to the NC State Bar.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No complaint process or public terms page exists in the repository."
+ },
+ {
+  "id": "RCOMP-007",
+  "source": "docs/research/founder/notes/Duly compliance and system design/upl_positioning_playbook.md, KQ2 Cited Findings",
+  "text": "Disclose the provider's legal name and address to the consumer, as N.C.G.S. 84-2.2 requires of self-help software.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No terms, about page or legal notice exists."
+ },
+ {
+  "id": "RCOMP-008",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Decide the North Carolina posture: carve NC users out of the limitation-of-liability clause and do not force hostile venue, or forgo the NC statutory harbor; decide whether NC State Bar registration is worth it.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D14, D28",
+  "note": "The report lists this for counsel; no terms exist and counsel is moved to after validation."
+ },
+ {
+  "id": "RCOMP-009",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Layer one of consent: signup clickwrap to the Meyer v. Uber standard, with an unticked checkbox, a conspicuous hyperlink to terms next to the action button, and unambiguous assent; never rely on browsewrap.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No accounts, signup screen or terms exist."
+ },
+ {
+  "id": "RCOMP-010",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Signup terms must say Duly is not a law firm, forms no attorney-client relationship, and does not review answers for legal sufficiency, draw legal conclusions, or apply the law to the facts of the user's particular situation.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No terms of use exist; the phrase not a law firm appears nowhere outside the research."
+ },
+ {
+  "id": "RCOMP-011",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Layer two: a dedicated interstitial before the first AI answer that restates the Texas sentence and requires a tap.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "The assistant model is not wired (NotWired), and no interstitial exists."
+ },
+ {
+  "id": "RCOMP-012",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Layer three: collect affirmative acknowledgments that inputs are truthful and complete, that no outcome is guaranteed, and that scope is limited.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No onboarding or acknowledgment flow is built."
+ },
+ {
+  "id": "RCOMP-013",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Layer four: a short per-answer footer on every AI response, serving the Texas clearly-and-conspicuously condition.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "No AI response exists yet; the page footer in web/src/App.tsx is not a per-answer footer."
+ },
+ {
+  "id": "RCOMP-014",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Log every acknowledgment with its timestamp, screen version and text version.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is no acknowledgment event store."
+ },
+ {
+  "id": "RCOMP-015",
+  "source": "docs/research/founder/notes/Duly compliance and system design/upl_positioning_playbook.md, KQ6 Inferences",
+  "text": "Re-prompt the not-legal-advice acknowledgment when the terms change materially.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No terms or acknowledgment versioning exists."
+ },
+ {
+  "id": "RCOMP-016",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "AI answers follow a fixed safe template: state the general rule with a citation, then route to the DSO or a licensed attorney.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py; BOUNDARY.md",
+  "note": "BOUNDARY.md defines the step-back card and the validator requires a source per sentence, but no answer template or card is built."
+ },
+ {
+  "id": "RCOMP-017",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Within the AI answer template, describe what people in a generic situation category typically consider.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D29; BOUNDARY.md B4",
+  "note": "BOUNDARY.md forbids recommending an action or comparing strategies; Side A shows every rule that touches a situation instead."
+ },
+ {
+  "id": "RCOMP-018",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Forbidden answer shapes: you should file Form X, you qualify for Y, answer question 7 with Z.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py",
+  "note": "The output validator rejects these shapes and is tested, but no model output passes through it yet."
+ },
+ {
+  "id": "RCOMP-019",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Frame deadline math as arithmetic on user-supplied dates, based on the dates you entered the published rule's window is, never as you must file by.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx; engine/f1.py",
+  "note": "Computed items show their inputs, working, rule and citation, but no test pins the framing of every date line."
+ },
+ {
+  "id": "RCOMP-020",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Label computed dates as dependent on the accuracy of the user's inputs.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/lib/labels.ts",
+  "note": "The scope line says Based on N documents you added, but no line says the dates depend on the inputs being correct."
+ },
+ {
+  "id": "RCOMP-021",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Vault and checklists show completeness against a published checklist, such as the USCIS page lists six items and you have uploaded four, and never a sufficiency judgment.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No vault or checklist feature exists."
+ },
+ {
+  "id": "RCOMP-022",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "DSO email drafts stay factual and user-edited, keep the DSO as the decision-maker, and never assert a legal conclusion.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "BOUNDARY.md",
+  "note": "BOUNDARY.md defines the drafted question, but no draft template or code exists."
+ },
+ {
+  "id": "RCOMP-023",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Do not auto-select or auto-prepare government forms at launch; the 8 CFR 1001.1(k) preparer exemption is unavailable because a subscription fee is not nominal.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "BOUNDARY.md B5, B8; assistant/boundary.py",
+  "note": "No form feature exists and the classifier steps back on form questions, but nothing tests that no form-filling path is added."
+ },
+ {
+  "id": "RCOMP-024",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "When individualized help is needed, add attorneys through the Boundless independent-attorney model or an Arizona ABS.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "Attorneys are after validation; the Boundless model pays attorneys a share of the user fee, which sits uneasily with the no paid referrals rule in BOUNDARY.md."
+ },
+ {
+  "id": "RCOMP-025",
+  "source": "docs/research/founder/notes/Duly compliance and system design/upl_positioning_playbook.md, KQ4 Inferences",
+  "text": "Never say Duly replaces attorneys or DSOs, and keep internal documentation of accuracy testing and content review before making any reliability claim.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The linter bans some substitution phrases in product copy, but no substantiation file or claims record exists."
+ },
+ {
+  "id": "RCOMP-026",
+  "source": "docs/research/founder/notes/Duly compliance and system design/upl_positioning_playbook.md, KQ4 Inferences",
+  "text": "Record the user's affirmative action (checking off, confirming dates, sending the draft) as the decision event so the audit trail shows the user deciding at each branch.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "contracts/case_f1.schema.json",
+  "note": "The case carries the user's confirmations with the values they answered, but nothing is persisted or logged as a decision event."
+ },
+ {
+  "id": "RCOMP-027",
+  "source": "docs/research/founder/Duly compliance and system design.md, One sentence buys Texas; product design buys California",
+  "text": "Route individualized what-should-I-do moments to the user's DSO or a licensed attorney.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/lib/status.ts; web/src/lib/labels.ts; engine/verdict.py",
+  "note": "The talk_to_dso verdict and reason lines point to the DSO, but the step-back card with the AILA pointer is not built."
+ },
+ {
+  "id": "RCOMP-028",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "No third-party ad or analytics SDKs in any client, ever.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "web/package.json; contracts/events.md; security/threat-model.md",
+  "note": "No such SDK is present today, but no gate or test rejects one being added."
+ },
+ {
+  "id": "RCOMP-029",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Obtain unbundled opt-in consent, separate from terms-of-service acceptance, before any cloud processing of immigration status (TDPSA).",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent screen or consent record exists."
+ },
+ {
+  "id": "RCOMP-030",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "The consent screen names the sensitive categories in plain words and states the specific purposes.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent screen exists."
+ },
+ {
+  "id": "RCOMP-031",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Offer equal-weight Agree and Don't agree buttons; declining still permits on-device-only features.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent screen exists."
+ },
+ {
+  "id": "RCOMP-032",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Re-present consent for each new purpose.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No purpose-scoped consent model exists."
+ },
+ {
+  "id": "RCOMP-033",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Consent is revocable with one tap, and revocation stops cloud processing going forward.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No settings or consent revocation exists."
+ },
+ {
+  "id": "RCOMP-034",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Log all consent events with timestamp and screen version.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent_events store exists; the plan names one."
+ },
+ {
+  "id": "RCOMP-035",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "No dark patterns in consent: the privacy-protective option takes no more steps, no yes and ask-me-later pairing, no single button covering several uses (CPPA 2024 advisory).",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No consent UI exists to check."
+ },
+ {
+  "id": "RCOMP-036",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Collect sensitive data only where strictly necessary for the requested service (MODPA); consent does not cure over-collection.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "api/main.py",
+  "note": "The only user endpoint is stateless and stores nothing, but no field inventory tests each field against necessity."
+ },
+ {
+  "id": "RCOMP-037",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Absolute no-sale of any personal data, stated flatly in the privacy policy; never post the Texas we may sell notice.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model states no sale of any data, but no privacy policy exists."
+ },
+ {
+  "id": "RCOMP-038",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Keep a data protection assessment on file, one document portable across TX, CT, OR, DE, NJ, MN and MD, covering the LLM path.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No DPIA exists in the repository."
+ },
+ {
+  "id": "RCOMP-039",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Confine sensitive personal information to service-delivery purposes and say so in the privacy policy, so no Limit the Use link is needed under CCPA.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No privacy policy exists."
+ },
+ {
+  "id": "RCOMP-040",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ1 Inferences",
+  "text": "Give a notice at collection listing the sensitive categories (immigration status, government IDs) and their purposes.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No notice at collection exists."
+ },
+ {
+  "id": "RCOMP-041",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ1 Inferences",
+  "text": "Never use immigration data for advertising, profiling, or model training beyond the user's own session.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "security/semgrep/duly.yml; security/threat-model.md",
+  "note": "Model clients are confined to assistant/providers and pipeline/models by semgrep, but no policy text or test covers profiling or training use."
+ },
+ {
+  "id": "RCOMP-042",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ1 Inferences",
+  "text": "Honor Global Privacy Control signals automatically on every web surface, even below thresholds.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing reads Sec-GPC or navigator.globalPrivacyControl."
+ },
+ {
+  "id": "RCOMP-043",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Ship an in-app Download my data affordance.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No accounts or export of account data exist."
+ },
+ {
+  "id": "RCOMP-044",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Ship an in-app Delete my account and data affordance.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No accounts exist."
+ },
+ {
+  "id": "RCOMP-045",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Ship an in-app correction affordance for the user's data.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The case form can be edited in a session, but no stored personal data or correction flow exists."
+ },
+ {
+  "id": "RCOMP-046",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Run rights requests on a 45-day clock with tracked SLA and one permitted extension.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No rights request tracking exists."
+ },
+ {
+  "id": "RCOMP-047",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Verify identity for rights requests by login, and support email as a second request channel.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No authentication exists."
+ },
+ {
+  "id": "RCOMP-048",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "On deletion, hard-delete cloud rows (account, checklist state, query logs) within the SLA.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No cloud rows of user data exist yet."
+ },
+ {
+  "id": "RCOMP-049",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Purge deleted accounts from backups on a disclosed rotation window.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No backup policy exists."
+ },
+ {
+  "id": "RCOMP-050",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "On account deletion, wipe the local vault and its keys.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No local vault exists; the desktop app has no storage."
+ },
+ {
+  "id": "RCOMP-051",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Instruct the LLM processor to delete, or confirm non-retention, per its DPA.",
+  "kind": "privacy",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D13, D23, D27",
+  "note": "No user data goes to Anthropic; v0 runs Claude through Bedrock in Duly's own AWS account with no retention."
+ },
+ {
+  "id": "RCOMP-052",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Crypto-shred any server-held ciphertext on deletion, document it in the DPIA, and put its sufficiency on the counsel list.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No encryption or deletion code exists; the counsel check falls under D28."
+ },
+ {
+  "id": "RCOMP-053",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Scope the public data claim in two literal parts: documents stay on your device; questions, account and checklist data are processed on our servers and by our AI provider under contract.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The linter bans never leaves in product copy, but no scoped claim is written, and under D27 the provider wording would change to Bedrock in Duly's AWS account."
+ },
+ {
+  "id": "RCOMP-054",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Never publish an unqualified your data never leaves your device, or we can't see your data, while any cloud path sees plaintext.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+  "note": "The linter blocks never leaves in product paths only; marketing and social copy are not checked."
+ },
+ {
+  "id": "RCOMP-055",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Publish the government-request policy as a launch artifact: server-side data categories, vault unproducible as plaintext, valid legal process required, requests reviewed, narrowed and challenged, users notified unless barred.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model places the published policy in Phase 9; no policy text exists."
+ },
+ {
+  "id": "RCOMP-056",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ5 Inferences",
+  "text": "Write down a retention schedule: AI query logs 30 to 90 days then deleted, account data for account life plus a grace period, consent records for the limitation period.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No retention schedule exists."
+ },
+ {
+  "id": "RCOMP-057",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ5 Inferences",
+  "text": "Before any model call, strip names, SEVIS and A-numbers, passport numbers and document text on the client, sending visa class and dates only when needed.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "No model call exists; D13 aims for no user data to any outside provider, but minimization still applies to the Bedrock path."
+ },
+ {
+  "id": "RCOMP-058",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ5 Inferences",
+  "text": "Disclose the AI vendor category in the notice, naming the processor and its retention.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No privacy notice exists."
+ },
+ {
+  "id": "RCOMP-059",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ5 Inferences",
+  "text": "Build a data-flow inventory classifying every field as on-device only, cloud-necessary, or LLM-transient.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model lists assets and where they live, but not a field-by-field inventory."
+ },
+ {
+  "id": "RCOMP-060",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Keep immigration semantics out of cloud rows: opaque template IDs, not strings such as F-1 STEM OPT pending.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "No cloud schema exists; the threat model plans per-user encryption of status fields rather than opaque IDs."
+ },
+ {
+  "id": "RCOMP-061",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ5 Inferences",
+  "text": "Claim documents never leave your device only if AI queries never carry document contents or extracted fields.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model says document contents never reach a model, but no test enforces it because no model path exists."
+ },
+ {
+  "id": "RCOMP-062",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Confirm the SBA size standard for Duly's NAICS code, which governs the TDPSA small-business exemption.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "A counsel item; counsel comes after validation."
+ },
+ {
+  "id": "RCOMP-063",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Verify that New Jersey's sensitive-data list includes immigration status verbatim.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "A counsel item."
+ },
+ {
+  "id": "RCOMP-064",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Confirm the exact 11 CCR 7027(m) permitted-purpose list before finalizing the no Limit link position.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "A counsel item."
+ },
+ {
+  "id": "RCOMP-065",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Verify with counsel whether crypto-shredding satisfies deletion in the states Duly targets.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "A counsel item; no regulator has blessed crypto-shredding."
+ },
+ {
+  "id": "RCOMP-066",
+  "source": "docs/research/founder/Duly compliance and system design.md, Texas binds on day one; building to Maryland covers everyone",
+  "text": "Keep the shipped assistant session-scoped and tool-like with no persistent relationship-sustaining persona, and keep the immigration buddy framing out of the product, to stay outside CA SB 243.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "The assistant is not built; D23 calls for a live assistant but says nothing about a persona."
+ },
+ {
+  "id": "RCOMP-067",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ6 Inferences",
+  "text": "Ship a first-run and persistent-footer disclosure that answers come from AI, are informational, and are not legal advice from an attorney.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No AI surface exists; D6 on AI disclosure in exports is still open."
+ },
+ {
+  "id": "RCOMP-068",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ6 Inferences",
+  "text": "Redo the SB 243 analysis if a persona is added or minors are served, which would bring three-hour AI reminders and safety protocols.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Conditional on a persona or a minors decision that does not exist."
+ },
+ {
+  "id": "RCOMP-069",
+  "source": "docs/research/founder/notes/Duly compliance and system design/privacy_consent_engineering.md, KQ6 Inferences",
+  "text": "Re-check SB 942 if Duly ever generates document images or filled forms rendered as images.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "Conditional on an image feature that does not exist."
+ },
+ {
+  "id": "RCOMP-070",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "A deterministic engine computes every date, deadline and verdict; the LLM never calculates.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py; engine/verdict.py; security/semgrep/duly.yml; tests/unit/engine/test_f1.py",
+  "note": "For F-1 the engine computes all dates and the verdict, and semgrep keeps model clients out of every other module; H-1B, O-1 and EB-1A have no computation yet."
+ },
+ {
+  "id": "RCOMP-071",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Store every legal quantity as a versioned parameter whose values are keyed by effective dates, so what was the rule on date X is a lookup.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/rulepack.py; contracts/rulepack.schema.json; tests/unit/engine/test_rulepack_values.py",
+  "note": "Rulepack.value picks the row in force on a date, tested by test_value_is_the_version_in_force_on_the_date."
+ },
+ {
+  "id": "RCOMP-072",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Every dated value carries its legal citation and a source snapshot.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/rulepack.schema.json; tools/sources/verify.py; rulepacks/f1-us/v2026.09/parameters.yaml",
+  "note": "The schema requires citation, url and checked_on, and the verify tool checks each quote against a hashed saved copy."
+ },
+ {
+  "id": "RCOMP-073",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Encode announced-but-not-yet-effective changes ahead of time (the OpenFisca expected pattern) so they activate on their effective date after review.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "contracts/rulepack.schema.json; engine/rulepack.py",
+  "note": "Regimes carry legal_status (announced, final, effective) and an operative flag, but a final rule reaching its date does not become operative on its own."
+ },
+ {
+  "id": "RCOMP-074",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ1 Findings",
+  "text": "Apply reforms by adding new dated values, never by overwriting old ones.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/rulepack.py; tests/unit/engine/test_rulepack.py",
+  "note": "Overlapping and duplicate rows are refused, but nothing stops an existing row's value being edited in place."
+ },
+ {
+  "id": "RCOMP-075",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Encode the grace period as a dated parameter: 60 days under the D/S rule citing 8 CFR, and 30 days from 2026-09-15 citing the Federal Register rule.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml; tests/unit/engine/test_rulepack_values.py",
+  "note": "The report treats the 30-day rule as taking effect 2026-09-15, while docs/research/law-liability-design-2026-09.md says it was enjoined 2026-09-14; the pack holds both, with 60 operative and 30 under the enjoined regime."
+ },
+ {
+  "id": "RCOMP-076",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Handle D/S transition cohort carve-outs, such as students with pending OPT applications, with explicit scope conditions rather than scalar parameters.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No cohort logic exists; the fixed-admission regime is enjoined and not operative in the pack."
+ },
+ {
+  "id": "RCOMP-077",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Encode the fixed-admission rule's mechanics: USCIS extension filings, and untimely filers accruing unlawful presence immediately.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml",
+  "note": "The report states unlawful presence accrues immediately under the rule; the founder lane's research says the rule is enjoined and Guilford College keeps D/S students from accruing it without a formal finding."
+ },
+ {
+  "id": "RCOMP-078",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "The LLM may only narrate engine JSON, explain retrieved rule text, and parse intake that the user then confirms.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "assistant/providers.py; assistant/boundary.py",
+  "note": "No model is wired; the validator and classifier set the floor."
+ },
+ {
+  "id": "RCOMP-079",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Intake parsed by an LLM must be confirmed by the user before it enters the engine.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No LLM intake exists; the case form is typed by the user."
+ },
+ {
+  "id": "RCOMP-080",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Use schema-constrained structured outputs for every narration call.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "No narration call exists."
+ },
+ {
+  "id": "RCOMP-081",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Run a post-generation validator that extracts every date and number from the LLM's text and rejects the response if any value is absent from the engine's output set.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_validator.py",
+  "note": "validate_answer rejects numbers not in the allowed set and is tested, but no model output passes through it yet."
+ },
+ {
+  "id": "RCOMP-082",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "When a situation falls outside the rule pack the engine returns OUT_OF_SCOPE and the product shows a canned card, we can't compute this, talk to your DSO or an attorney; the LLM never fills the gap.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
+  "note": "Missing or conflicting inputs give cannot_tell, but there is no out-of-scope result for situations or categories the engine does not cover."
+ },
+ {
+  "id": "RCOMP-083",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ6 Inferences",
+  "text": "A validator failure never degrades to best-effort LLM text; it produces the abstention card.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "BOUNDARY.md",
+  "note": "BOUNDARY.md says a rejected answer becomes a step-back card, but no code connects the validator to a card."
+ },
+ {
+  "id": "RCOMP-084",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ6 Inferences",
+  "text": "Above a frequency threshold, abstentions open a review ticket as the signal of a rule-pack gap.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No abstention logging or ticketing exists."
+ },
+ {
+  "id": "RCOMP-085",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Build first: the rule-pack store, the deterministic timeline engine with golden and property suites, and the append-only audit log; the LLM layer after them.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "engine/; rulepacks/; tests/holdout/",
+  "note": "The pack store, engine and suites exist; the audit log does not."
+ },
+ {
+  "id": "RCOMP-086",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Ship every rule-pack change as a diff unit: parameter, old value, new value, effective date, citation, source snapshot.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/CHANGELOG.md",
+  "note": "Changes are recorded in a prose changelog, not as a structured diff that is approved as a unit."
+ },
+ {
+  "id": "RCOMP-087",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "An attorney approves every rule-pack diff as a unit before activation.",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D22, D28; CLAUDE.md",
+  "note": "Founder approval in Ops is the final pass; attorneys come after validation."
+ },
+ {
+  "id": "RCOMP-088",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Pre-publication approval for every broadcast this affects your case push and its targeting query.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "pipeline/graph.py; tests/unit/pipeline/test_graph.py",
+  "note": "publish_blockers holds an update without approval, but targeting queries are not approved; the approver is the founder under D22, not an attorney."
+ },
+ {
+  "id": "RCOMP-089",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Pre-publication approval before an injunction activates or deactivates a rule.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml",
+  "note": "The operative flag lives in the founder-reviewed pack, but no approval workflow or record exists; approver is the founder under D22."
+ },
+ {
+  "id": "RCOMP-090",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Pre-publication approval for every new answer type or visa-category coverage the narration layer may answer.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No answer-type registry exists."
+ },
+ {
+  "id": "RCOMP-091",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Pre-approve the abstention and out-of-scope copy.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Copy is linted, but no approval record exists."
+ },
+ {
+  "id": "RCOMP-092",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Per-user renders from an approved pack pass automated validators only: dates are a subset of engine output, citations resolve, schema conforms.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "contracts/engine_output.schema.json; web/src/lib/compute.ts",
+  "note": "Engine output has a schema and the screen parses it, but no render-level check that citations resolve."
+ },
+ {
+  "id": "RCOMP-093",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ6 Inferences",
+  "text": "Routine recomputation when a user edits their own data runs on the already-approved pack with no human step.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "api/main.py",
+  "note": "The compute endpoint recomputes from the loaded pack on every request."
+ },
+ {
+  "id": "RCOMP-094",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Poll the Federal Register API, filtered to DHS, USCIS, ICE, State and F-1 or SEVP topics.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml",
+  "note": "The source is listed every 6 hours, but pipeline stages are stubs."
+ },
+ {
+  "id": "RCOMP-095",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Detect changes on the USCIS Policy Manual updates page and newsroom alerts, with GovDelivery email subscriptions as the fallback because USCIS returns 403 to scrapers.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml",
+  "note": "uscis is on the allowlist; no fetcher or GovDelivery fallback exists."
+ },
+ {
+  "id": "RCOMP-096",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Watch litigation through CourtListener webhooks so an injunction can flip a rule-pack value within hours.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml; rulepacks/f1-us/v2026.09/sources/courtlistener-docket-74661796-entries-2026-09-28.json",
+  "note": "CourtListener is polled every 6 hours in the plan, not by webhook; within hours is in tension with D2, publish late rather than wrong."
+ },
+ {
+  "id": "RCOMP-097",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ3 Inferences",
+  "text": "Monitor SEVP and Study in the States broadcast pages.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml",
+  "note": "Both hosts are listed; no fetcher exists."
+ },
+ {
+  "id": "RCOMP-098",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ3 Inferences",
+  "text": "Every ingested item lands in a review queue and nothing auto-activates.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "pipeline/graph.py; tests/unit/pipeline/test_graph.py",
+  "note": "The graph holds anything without approval, but there is no review queue in Ops."
+ },
+ {
+  "id": "RCOMP-099",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Meet the market bar for publishing a law change: law firms took days, not hours.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "DECISIONS.md D2",
+  "note": "No pipeline runs; D2 puts accuracy over speed."
+ },
+ {
+  "id": "RCOMP-100",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Staff content ops with one founder on triage and roughly 2 to 5 attorney-review hours a week, budgeted as infrastructure.",
+  "kind": "ops",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "No attorney is retained until after validation."
+ },
+ {
+  "id": "RCOMP-101",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Keep a versioned validation document for each rule-pack release.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "SOURCES.md and CHANGELOG.md exist, but no validation document per release."
+ },
+ {
+  "id": "RCOMP-102",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Golden-case regression suite pinning every cohort and edge: filed day 89 versus 91, leap years, each D/S transition cohort.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/holdout/test_holdout_dates.py; tests/unit/engine/test_dates.py",
+  "note": "Leap years and window edges are tested; D/S transition cohorts are not."
+ },
+ {
+  "id": "RCOMP-103",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ4 Inferences",
+  "text": "Grow the golden suite every time a bug or correction is found.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/holdout/test_holdout_fixes.py",
+  "note": "A fixes holdout exists, but no rule requires every correction to add a case."
+ },
+ {
+  "id": "RCOMP-104",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Property-based tests assert invariants: grace end after program end, unemployment days never negative, rule-version selection monotone in effective dates.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "tests/unit/engine/test_f1.py; tests/unit/engine/test_verdict.py",
+  "note": "Hypothesis is used in the engine tests, but not every listed invariant is asserted."
+ },
+ {
+  "id": "RCOMP-105",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Recomputing under rule-pack vN-1 reproduces archived answers byte for byte.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "There is one pack version and no archived answers."
+ },
+ {
+  "id": "RCOMP-106",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "A differential oracle re-implements the date math independently and diffs against the engine in CI.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No second implementation exists."
+ },
+ {
+  "id": "RCOMP-107",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "CI evals on the narration layer assert all output values are a subset of engine output, every legal claim carries a resolvable citation, and out-of-scope probes get refusals.",
+  "kind": "testing",
+  "status": "partial",
+  "evidence": "evals/boundary/pairs.jsonl; tests/unit/assistant/test_boundary_evals.py",
+  "note": "Boundary evals test the classifier's refusals; there is no narration layer to evaluate."
+ },
+ {
+  "id": "RCOMP-108",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ4 Findings",
+  "text": "Build an internal immigration question bank scored for groundedness against the rule pack, RegLab style.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No groundedness bank exists."
+ },
+ {
+  "id": "RCOMP-109",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Canary rollout of rule packs with staged replay of the golden suite plus anonymized real timelines.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No staging or canary exists."
+ },
+ {
+  "id": "RCOMP-110",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Review every answer that changes under a new rule pack before activation.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No answer diffing exists."
+ },
+ {
+  "id": "RCOMP-111",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Instant rollback through immutable pack versions.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Packs sit in versioned folders, but there is no active-version pointer or rollback."
+ },
+ {
+  "id": "RCOMP-112",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "Append-only audit log per answer: timestamp, case snapshot hash, pack version, parameter values with citations, engine output, retrieval set, model and prompt, final text, reviewer approvals.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "BOUNDARY.md requires an audit, but no audit log code exists."
+ },
+ {
+  "id": "RCOMP-113",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "The audit log is product: WorkBook is the user's own audit log, and every AI answer is stored with its sources, corpus version and the fields it relied on.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook or answer store exists."
+ },
+ {
+  "id": "RCOMP-114",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "Answer only from a closed, dated, versioned corpus of official sources: USCIS Policy Manual, Federal Register, 8 CFR, SEVP guidance.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "watch/sources.yaml; tools/sources/verify.py; rulepacks/f1-us/v2026.09/SOURCES.md",
+  "note": "Sources are allowlisted and saved with hashes, but no retrieval layer exists."
+ },
+ {
+  "id": "RCOMP-115",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "Run a freshness check per source, the immigration analog of still good law.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
+  "note": "Rules older than seven days by checked_on make the verdict cannot_tell, but nothing re-checks the sources automatically."
+ },
+ {
+  "id": "RCOMP-116",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "Verify citations deterministically, outside the LLM.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "tools/sources/verify.py; Makefile",
+  "note": "Every rule's quote is checked against its hashed saved copy by make target, and the validator rejects unknown source ids."
+ },
+ {
+  "id": "RCOMP-117",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "Keep a scope allowlist of named, tested skills and refuse beyond it.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No skill registry exists."
+ },
+ {
+  "id": "RCOMP-118",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "Keep a claims-to-evals register so every marketing sentence maps to an internal eval Duly can produce on demand.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No claims register exists."
+ },
+ {
+  "id": "RCOMP-119",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Never call Duly hallucination-free.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The forbidden list does not include hallucination-free."
+ },
+ {
+  "id": "RCOMP-120",
+  "source": "docs/research/founder/notes/Duly compliance and system design/ai_legal_assistants_that_work.md, KQ5 Inferences",
+  "text": "Take part in third-party or published benchmarks rather than dodging them.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No benchmark participation exists."
+ },
+ {
+  "id": "RCOMP-121",
+  "source": "docs/research/founder/Duly compliance and system design.md, Verification infrastructure, not model quality, is the moat over ChatGPT",
+  "text": "Offer a TurboTax-style scoped guarantee on the deterministic slice once the engine and audit log exist.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D29; BOUNDARY.md",
+  "note": "BOUNDARY.md forbids Duly calling itself guaranteed in any channel, and the copy linter bans the word."
+ },
+ {
+  "id": "RCOMP-122",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Validate the guarantee's insurance treatment before any TurboTax-style promise.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "A counsel item, and the guarantee itself conflicts with BOUNDARY.md."
+ },
+ {
+  "id": "RCOMP-123",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Every answer cites official sources.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx; assistant/boundary.py",
+  "note": "Every computed item shows its rule, quote and citation, and the validator requires a source per sentence, but no assistant answers exist."
+ },
+ {
+  "id": "RCOMP-124",
+  "source": "docs/research/founder/Duly compliance and system design.md, The engine computes everything; the LLM may only rephrase it",
+  "text": "The engine owns all eligibility verdicts.",
+  "kind": "engine",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D4, D29; BOUNDARY.md B2",
+  "note": "Duly never says whether a user is eligible; the verdict has four states and none is an eligibility finding."
+ },
+ {
+  "id": "RCOMP-125",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ5 Inferences",
+  "text": "Use conservative framing: display the earliest safe deadline with a buffer.",
+  "kind": "engine",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D35; PRINCIPLES.md",
+  "note": "A buffer is a number the law does not state, and safe is on the Side B word list."
+ },
+ {
+  "id": "RCOMP-126",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Mandatory MFA or passkeys for user accounts.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "No authentication exists; the plan makes user MFA available rather than required."
+ },
+ {
+  "id": "RCOMP-127",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Screen passwords against breach corpora.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No authentication exists."
+ },
+ {
+  "id": "RCOMP-128",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "No standing credentials with bulk access to user data.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No production credentials or access model exist."
+ },
+ {
+  "id": "RCOMP-129",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "State in the privacy policy what happens to data in an acquisition or bankruptcy.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No privacy policy exists."
+ },
+ {
+  "id": "RCOMP-130",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Split the schema into three zones before any table is designed: documents on device, client-side encrypted cloud account data, and a minimized LLM zone.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model assigns assets to places, but no schema exists and the cloud side uses server-held keys in the plan."
+ },
+ {
+  "id": "RCOMP-131",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Documents stay on device under OS-keychain-protected keys, and no server-side document upload path is ever built.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "security/threat-model.md; api/main.py",
+  "note": "The api has no upload endpoint, but the local stack runs MinIO object storage (infra/docker-compose.yml) and no test forbids an upload path."
+ },
+ {
+  "id": "RCOMP-132",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Encrypt cloud account data client-side, 1Password style, with a device-held secret, so a server breach yields undecryptable data.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No encryption exists; the plan in duly-plan/05 chooses KMS envelope encryption unwrapped in the api, which is not client-side."
+ },
+ {
+  "id": "RCOMP-133",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Make an explicit recovery decision, such as a printed recovery kit, and state it on the security page.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No recovery design exists."
+ },
+ {
+  "id": "RCOMP-134",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Send only minimized structured case parameters to the LLM provider, under no-training and zero-data-retention terms.",
+  "kind": "security",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D13, D23, D27",
+  "note": "No user data goes to Anthropic; v0 runs Claude through Bedrock inside Duly's AWS account."
+ },
+ {
+  "id": "RCOMP-135",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Confirm Anthropic zero-retention terms at trust.anthropic.com before publishing any retention claim.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "Zero retention terms are looked at after validation."
+ },
+ {
+  "id": "RCOMP-136",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Treat PII redaction as harm reduction and never claim PII never reaches the LLM.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No redaction exists and the linter has no such phrase."
+ },
+ {
+  "id": "RCOMP-137",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Keep server-side metadata so minimal that plaintext visa type, nationality and A-numbers do not exist there.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model encrypts status and nationality per user; docs/research/law-liability-design-2026-09.md wants nationality recorded as a flag input."
+ },
+ {
+  "id": "RCOMP-138",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Do not collect phone numbers.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "contracts/case_f1.schema.json",
+  "note": "No contract has a phone field, but no decision or test pins it."
+ },
+ {
+  "id": "RCOMP-139",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Pass any document text to the model only inside spotlighted delimiters with an instruction hierarchy that says document content is data, never instructions.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model instead says document contents never reach a model; no test enforces either."
+ },
+ {
+  "id": "RCOMP-140",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Render model output as sanitized text with no remote images and no auto-followed links.",
+  "kind": "security",
+  "status": "partial",
+  "evidence": "desktop/src/about.ts; desktop/src/about.test.ts",
+  "note": "The desktop window refuses any address outside the app, but no model output rendering exists."
+ },
+ {
+  "id": "RCOMP-141",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Require explicit user confirmation for any side-effecting action in a turn that contains document content.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No assistant actions exist."
+ },
+ {
+  "id": "RCOMP-142",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Isolate model context per user so one user's content is never reachable from another session.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sessions or model context exist."
+ },
+ {
+  "id": "RCOMP-143",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Run an adversarial CI suite of poisoned sample documents: hidden white text, instructions in PDF metadata.",
+  "kind": "testing",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No poisoned-document suite exists."
+ },
+ {
+  "id": "RCOMP-144",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Publish security@ and security.txt with a 3-business-day acknowledgment SLA.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No security.txt exists."
+ },
+ {
+  "id": "RCOMP-145",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Publish a vulnerability disclosure policy on day one, with a safe-harbor statement and a 90-day coordinated disclosure default.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No VDP exists."
+ },
+ {
+  "id": "RCOMP-146",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Publish a postmortem within 30 days of any user-affecting incident: what happened, when we knew, who is affected, what we did, what changes.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No incident policy exists."
+ },
+ {
+  "id": "RCOMP-147",
+  "source": "docs/research/founder/notes/Duly compliance and system design/security_trust_playbook.md, KQ1 Inferences",
+  "text": "Pre-commit to a breach disclosure timeline.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No breach notification plan exists."
+ },
+ {
+  "id": "RCOMP-148",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Publish an annual transparency report, even when every line is zero.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No transparency report exists."
+ },
+ {
+  "id": "RCOMP-149",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Publish every legal demand received, after counsel review, unless gagged.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No policy exists."
+ },
+ {
+  "id": "RCOMP-150",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Commit in policy to challenge administrative subpoenas rather than quietly comply.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model lists the commitment for Phase 9; no published policy exists."
+ },
+ {
+  "id": "RCOMP-151",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Assess warrant-canary enforceability; the research favors publishing requests Signal style over a canary.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "A counsel item."
+ },
+ {
+  "id": "RCOMP-152",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Wait on SOC 2 until the university or B2B channel demands it; answer the journalist question with a published pen-test summary.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "The report itself defers this; no pen test has been run."
+ },
+ {
+  "id": "RCOMP-153",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Publish a security page with a data-flow diagram, encryption specifics, the legal-process policy, subprocessors, the VDP link and honest audit status.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No security page exists."
+ },
+ {
+  "id": "RCOMP-154",
+  "source": "docs/research/founder/Duly compliance and system design.md, Hold almost nothing, publish the proof, expect ICE to ask",
+  "text": "Open-source WorkBook for a read-the-code story only if the open-source boundary matches the sensitive-data boundary.",
+  "kind": "security",
+  "status": "deferred",
+  "evidence": "none",
+  "note": "No decision on open-sourcing and no WorkBook code."
+ },
+ {
+  "id": "RCOMP-155",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Pull ABA Op. 512 and the California GenAI guidance full texts before any attorney-partner tooling ships.",
+  "kind": "legal",
+  "status": "deferred",
+  "evidence": "DECISIONS.md D28",
+  "note": "Attorney-partner tooling comes after validation."
+ },
+ {
+  "id": "RCOMP-156",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Monitor the two regulatory gaps: no state bar opinion yet on consumer AI legal chatbots, and no court test of an AI immigration assistant for UPL.",
+  "kind": "ops",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "The watch list has no bar-opinion or UPL-case source."
+ },
+ {
+  "id": "RCOMP-157",
+  "source": "docs/research/founder/notes/Duly compliance and system design/zero_error_architecture.md, KQ6 Inferences",
+  "text": "Reminder notifications are generated only from approved templates with engine-computed dates substituted.",
+  "kind": "email",
+  "status": "not_started",
+  "evidence": "contracts/emails.md",
+  "note": "Email templates are placeholders for Phase 7."
+ },
+ {
+  "id": "RCOMP-158",
+  "source": "docs/research/founder/Duly compliance and system design.md, The Duly doctrine, its positioning consequences, and the backend it dictates",
+  "text": "Market the assistant as a tool and a narration layer over the case file and engine, never as a companion or substitute.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No marketing copy or assistant exists."
+ }
+]
