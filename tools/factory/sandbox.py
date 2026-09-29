@@ -187,6 +187,7 @@ def environment(
         "TMPDIR",
         "CLAUDE_CONFIG_DIR",
         "CLAUDE_CODE_OAUTH_TOKEN",
+        "FAKE_AGENT_SCENARIO",  # the factory's own tests
     }
     env = {k: v for k, v in base.items() if k in keep}
     env.update(

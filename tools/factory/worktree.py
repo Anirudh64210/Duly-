@@ -61,19 +61,11 @@ def hide(tree: Tree, rel: str) -> None:
 
 def commit_all(tree: Tree, message: str, author: str) -> str:
     """The orchestrator commits an agent's work. The agent never writes to the repository."""
-    git(
-        [
-            "add",
-            "-A",
-            "--",
-            ".",
-            ":!.lane",
-            ":!node_modules",
-            ":!**/REPORT.json",
-            ":!**/HEALTH.txt",
-        ],
-        tree.path,
-    )
+    git(["add", "-A"], tree.path)
+    staged_now = git(["diff", "--cached", "--name-only"], tree.path).split()
+    never = [f for f in staged_now if f.endswith(("REPORT.json", "HEALTH.txt")) or f == ".lane"]
+    if never:
+        git(["reset", "-q", "--", *never], tree.path)
     staged = git(["diff", "--cached", "--name-only"], tree.path).split()
     if not staged:
         return ""
