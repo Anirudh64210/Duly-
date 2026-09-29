@@ -1,0 +1,1597 @@
+{
+ "how_to_use": "Meaning problems found by three lenses over all 55 plain texts, and proposed rewrites with two verifiers' verdicts. The issues are a checklist of meaning to fix. Do not copy a rewrite as it stands: 14 of 51 put back citations or legal phrasing, which specs/product-1/SPEC-resolutions.md point 58 refuses. Terms here were listed too widely (195); keep at most three terms of art per rule, as point 58 defines them.",
+ "flagged": [
+  {
+   "id": "ds_2012",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Duration of status', 'F-1 student', 'pursuing a full course of study', 'educational institution certified by SEVP for attendance by foreign students', 'authorized practical training', 'following completion of studies'. Kept: 'Duration of status', 'F-1 student', 'full course of study', 'authorized practical training'.",
+    "[terms] Changed: 'an educational institution certified by SEVP for attendance by foreign students' became 'a school SEVP has certified for foreign students'. 'educational institution' is swapped for 'school', and 'for attendance by' is dropped.",
+    "[terms] Advisory: 'following completion of studies' became 'after study is completed'. This is close, but 'completion of studies' is the regulation's trigger phrase.",
+    "[terms] Advisory: 'This is the rule that applies today.' rests on the court order cited by fixed_admission_2026, not on this regime's quote or note. The note says only 'the rule in force before 91 FR 44976'. SPEC plain-1 section 1 allows a status line for a regime.",
+    "[scope] Minor, term: the quote's \"an educational institution certified by SEVP for attendance by foreign students\" becomes \"a school SEVP has certified for foreign students\". \"educational institution\" is swapped for \"school\" and \"attendance by\" is dropped. The scope does not change.",
+    "[scope] Note: \"This is the rule that applies today.\" is not in the quote. It rests on the regime's status and on plain-1 section 1, which requires a regime to say its status today, so it is not vetoed.",
+    "[reading] [term, minor] 'an educational institution certified by SEVP for attendance by foreign students' becomes 'a school SEVP has certified for foreign students'. 'educational institution' is swapped for 'school'. The meaning is kept and the review passed this regime, but it is the same kind of swap the review vetoed in stem.requires.previously_obtained_degree."
+   ]
+  },
+  {
+   "id": "fixed_admission_2026",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Defendants', 'preliminarily enjoined', 'taking any further action to implement the Final Rule', 'pending further order of this court', 'resolution of this proceeding on the merits'. From the note: paragraph 3 'postpones the effective date under 5 U.S.C. 705'.",
+    "[terms] Dropped: 'resolution of this proceeding on the merits' became 'the case ends'. 'on the merits' is lost, and a case can end without a resolution on the merits.",
+    "[terms] Meaning: in the quote, the time limit ('pending further order of this court or resolution of this proceeding on the merits') belongs to paragraph 4's bar on 'taking any further action to implement the Final Rule'. The plain words hang it on paragraph 3's postponement: 'The order puts off the date the new rule would start until the court orders otherwise or the case ends'. Neither the quote nor the note says paragraph 3 carries that limit.",
+    "[terms] Added: 'would set a fixed period of admission for students' is in neither the quote nor the note. The note names the rule only as 91 FR 44976 / FR Doc. 2026-14439. 'period of admission' is the final rule's term, but nothing in this entry grounds it or 'fixed'.",
+    "[terms] Advisory: 'preliminarily enjoined' became 'paused'. SPEC plain-1 sections 1 and 3 require that word, so this is not a fault. The preliminary nature survives only in 'while the case goes on'.",
+    "[scope] Blocking, added from outside the entry: \"would set a fixed period of admission for students\" is not in the quote (paragraph 4) or in the note, which names the rule only by citation. It comes from the order's paragraph 1(a), which the entry does not hold. That paragraph gives the rule's title as \"Establishing a Fixed Time Period of Admission and an Extension of Stay Procedure for Nonimmigrant Academic Students, Exchange Visitors, and Representatives of Foreign Information Media\". So the plain words also narrow the rule to \"students\" (it covers exchange visitors and foreign information media too), drop \"Time\" from \"Fixed Time Period of Admission\", and leave out the extension of stay procedure. Fix: put the title words in the note and keep them word for word.",
+    "[scope] Drops a limit: \"resolution of this proceeding on the merits\" becomes \"the case ends\", so \"on the merits\" is dropped.",
+    "[scope] The third sentence, \"The order puts off the date the new rule would start\", restates paragraph 3. The note names that paragraph but its words are not quoted. What the quote itself says (\"Defendants are preliminarily enjoined from taking any further action to implement the Final Rule\") appears only as \"paused it\", so the injunction on the defendants is never stated.",
+    "[reading] [regime/order says less] The quote is paragraph 4 of the order: 'Defendants are preliminarily enjoined from taking any further action to implement the Final Rule'. The plain words never say that the government (DHS, ICE) is barred from taking further steps to carry out the rule. Their one sentence on what the order does, 'The order puts off the date the new rule would start', renders paragraph 3 (the postponement), which only the note describes and the quote does not hold. Either say that the order also stops the government from taking further steps to carry out the rule, or quote paragraph 3 too.",
+    "[reading] [regime/order says more] 'until the court orders otherwise or the case ends' is wider than 'pending further order of this court or resolution of this proceeding on the merits'. Dropping 'on the merits' lets the pause read as lasting until every part of the case is over, for example through an appeal after a merits ruling, which the order does not say. Something like 'until the court orders otherwise or decides the case' would keep the limit.",
+    "[reading] [adds, minor] 'would set a fixed period of admission for students' rests on the rule's title in paragraph 1(a) of the order ('Establishing a Fixed Time Period of Admission ...'). That title is in neither the quote nor the note, so the note should carry it."
+   ]
+  },
+  {
+   "id": "opt.apply_before_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'properly file', 'Form I-765 or successor form', 'program end date'. Kept: 'Form I-765', 'program end date'.",
+    "[terms] Dropped: 'may properly file' became 'may file', and 'The last day to file' drops it too. 'properly file' carries USCIS's proper-filing meaning (complete, signed, with fee), and 'properly' is lost.",
+    "[terms] Dropped (low): 'or successor form'.",
+    "[terms] Added (low): 'for OPT' is not in the quote.",
+    "[terms] Advisory (meaning, outside the term lens): this row is settled with no regime, yet its second sentence states the 60-day close as flat fact ('The last day to file is 60 days after the program end date'). That number is litigated, and under the paused rule it is 30 (opt.apply_after_days).",
+    "[scope] Blocking, added and overbroad: \"Form I-765 for OPT\". The quote does not say \"OPT\". In the saved 2026-09-14 text the paragraph limits this window to \"For post-completion OPT, not including a 24-month OPT extension\", and pre-completion OPT has a different window in (B)(1). \"for OPT\" states the 90-days-before and 60-days-after window for all OPT.",
+    "[scope] Drops a condition: the quote says \"may properly file\" and the plain words say \"may file\", so \"properly\" is gone.",
+    "[scope] Minor: \"or successor form\" is dropped.",
+    "[scope] Note: the second sentence states the 60 days with no qualifier on a settled, regime-free row. The 60 is the value the paused rule changes to 30 (rows opt.apply_after_days), and the sibling row marks it \"Under the rule in force today\".",
+    "[reading] [scope/adds] 'Form I-765 for OPT' adds 'for OPT' from outside the quote and makes the rule wider than its paragraph. (f)(11)(i)(B)(2) opens 'For post-completion OPT, not including a 24-month OPT extension', and pre-completion OPT ((B)(1)) and the 24-month extension ((C)) have other filing windows. The plain words should say 'post-completion OPT', with the paragraph's opening words in the quote or note.",
+    "[reading] [regime] 'The last day to file is 60 days after the program end date.' puts the litigated 60 days in a settled row that has no regime, without 'under the rule in force today'. The paused rule turns this same 60 into 30 (opt.apply_after_days under fixed_admission_2026), so a litigated number is shown here as settled. Drop the sentence, since the 60 has its own rows, or qualify it as the rule in force today."
+   ]
+  },
+  {
+   "id": "opt.apply_after_days",
+   "regime": "ds_2012",
+   "issues": [
+    "[terms] Terms of art: 'properly file', 'Form I-765 or successor form', 'program end date'. Kept: 'Form I-765', 'program end date'.",
+    "[terms] Dropped: 'properly file' became 'the last day to file' and 'Filing may begin'. 'properly' is lost.",
+    "[terms] Dropped (low): 'or successor form'. Added (low): 'for OPT' is not in the quote.",
+    "[scope] Blocking, added and overbroad: \"Form I-765 for OPT\". The quote does not say \"OPT\". The source paragraph limits the window to \"For post-completion OPT, not including a 24-month OPT extension\", and pre-completion OPT has a different window.",
+    "[scope] Drops a condition: \"may properly file\" becomes \"Filing may begin\" and \"the last day to file\", so \"properly\" is gone.",
+    "[scope] Minor: \"or successor form\" is dropped.",
+    "[reading] [scope/adds] 'Form I-765 for OPT' adds 'for OPT' and makes the rule wider than its paragraph. (f)(11)(i)(B)(2) opens 'For post-completion OPT, not including a 24-month OPT extension', and the 60-day limit does not reach pre-completion OPT or the STEM extension. Say 'post-completion OPT'."
+   ]
+  },
+  {
+   "id": "opt.apply_after_days",
+   "regime": "fixed_admission_2026",
+   "issues": [
+    "[terms] Terms of art: 'properly file', 'Form I-765 or successor form', 'program end date'. Kept: 'Form I-765', 'program end date'.",
+    "[terms] Dropped: 'may properly file ... no later than 30 days after' became 'the last day to file ... 30 days after'. 'properly' is lost.",
+    "[terms] Dropped (low): 'or successor form'. Added (low): 'for OPT' is not in the quote.",
+    "[scope] Blocking, added and overbroad: \"Form I-765 for OPT\". The quote does not say \"OPT\". The source paragraph is limited to post-completion OPT, not including a 24-month OPT extension.",
+    "[scope] Drops a condition: \"may properly file\" is rendered without \"properly\".",
+    "[scope] Minor: \"or successor form\" is dropped. \"would move\" (a change from 60) rests on the sibling row's note, not on this entry's quote or note.",
+    "[reading] [scope/adds] 'Form I-765 for OPT' again. The paused text of (f)(11)(i)(B)(2) also opens 'For post-completion OPT, not including a 24-month OPT extension', so the plain words should say 'post-completion OPT'. The paused-rule framing ('The paused rule would move ... A court has paused this change, so it does not apply today') is correct."
+   ]
+  },
+  {
+   "id": "opt.latest_start_after_days",
+   "regime": "ds_2012",
+   "issues": [
+    "[terms] Terms of art: 'request a start date', 'program end date'. Both are kept. 'OPT start date' rests on the note ('the start date is the start date of OPT employment', heading 'Start of OPT employment'), and 'request' is kept as the note requires."
+   ]
+  },
+  {
+   "id": "opt.latest_start_after_days",
+   "regime": "fixed_admission_2026",
+   "issues": [
+    "[terms] Terms of art: 'request a start date', 'program end date'. Both are kept. 'OPT start date' rests on the note's heading 'Start of OPT employment'."
+   ]
+  },
+  {
+   "id": "opt.file_within_days_of_recommendation",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Form I-765 or successor form', 'USCIS', 'DSO', 'recommendation for OPT', 'SEVIS record'. Kept: 'Form I-765', 'USCIS', 'DSO', 'OPT recommendation'.",
+    "[terms] Advisory: 'or successor form' is dropped, and 'into his or her SEVIS record' became 'in SEVIS'.",
+    "[terms] Advisory: 'The student must also file' became 'The student must file'. Dropping 'also' loses the tie to the 90/60-day window in the same paragraph.",
+    "[scope] Minor: \"or successor form\" is dropped. \"into his or her SEVIS record\" becomes \"in SEVIS\"."
+   ]
+  },
+  {
+   "id": "opt.max_months",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'authorized', 'practical training', 'becomes eligible for', 'higher educational level'. Kept: 'authorized 12 months of practical training'.",
+    "[terms] Changed: 'becomes eligible for another 12 months of practical training' became 'may get another 12 months'. Eligibility is not receipt, and 'practical training' is dropped from the second sentence.",
+    "[terms] Changed: 'when they change to a higher educational level' became 'on a move to a higher level of study'. 'higher educational level' is the regulation's term.",
+    "[scope] Minor, term: \"becomes eligible for another 12 months of practical training when they change to a higher educational level\" becomes \"may get another 12 months on a move to a higher level of study\". \"higher educational level\" becomes \"higher level of study\", and \"becomes eligible for\" becomes \"may get\".",
+    "[reading] [term, minor] 'becomes eligible for another 12 months of practical training when they change to a higher educational level' becomes 'may get another 12 months on a move to a higher level of study'. The rule's phrase 'higher educational level' is swapped out and should be kept. The meaning is kept."
+   ]
+  },
+  {
+   "id": "opt.complete_within_months",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'complete all practical training', '14-month period', 'following the completion of study', '24-month extension pursuant to paragraph (f)(10)(ii)(C)'. Kept: 'practical training', '14-month period', '24-month'.",
+    "[terms] Changed: 'following the completion of study' became 'after study is done'. 'completion of study' is the regulation's trigger phrase.",
+    "[terms] Changed/Added: 'a 24-month extension pursuant to paragraph (f)(10)(ii)(C) of this section' became 'A 24-month STEM extension'. 'STEM' is in neither the quote nor the note, and the cross-reference that names the extension is dropped.",
+    "[terms] Low: 'A student must complete all practical training' became 'All practical training must end'.",
+    "[scope] Minor, added: \"STEM\" in \"A 24-month STEM extension\". The quote says \"a 24-month extension pursuant to paragraph (f)(10)(ii)(C)\", and neither the quote nor this note says STEM. It is accurate by that paragraph's heading. The exception is kept."
+   ]
+  },
+  {
+   "id": "opt.post_completion_definition",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Post-Completion OPT', 'Program End Date'. Both are kept, and the guidance is labelled as guidance.",
+    "[terms] Advisory: 'Any portion of OPT used' became 'any OPT used'. 'portion of' is dropped."
+   ]
+  },
+  {
+   "id": "opt.unemployment_limit_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'accrue an aggregate of', 'days of unemployment', 'any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)'. Kept: 'post-completion OPT', 'unemployment'.",
+    "[terms] Dropped: 'during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)' became 'During post-completion OPT'. The cross-reference limits the 90 days to the (c)(3)(i)(B) period. Without it, 'post-completion OPT' can be read to include the 24-month extension, which the regulation calls an 'extension of post-completion OPT' and which has its own 150-day limit.",
+    "[terms] Changed (low): 'accrue an aggregate of more than 90 days' became 'have more than 90 days ... in total'.",
+    "[scope] Minor: \"during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)\" becomes \"During post-completion OPT\". The cross-reference is dropped, but the class does not change."
+   ]
+  },
+  {
+   "id": "stem.unemployment_limit_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'accrue an aggregate of', 'days of unemployment', 'total OPT period', 'post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)', 'subsequent 24-month extension period'. Kept: 'post-completion OPT', 'unemployment', '24-month'.",
+    "[terms] Meaning: the quote starts at 'may not accrue' and has no subject. The plain words supply 'A student', so 'A student may not have more than 150 days of unemployment in total' reads as a limit on every student, beside the 90-day rule. In the regulation the subject is students granted a 24-month OPT extension. The quote needs widening to include the subject, as was done for other rows.",
+    "[terms] Dropped: 'during a total OPT period' (a term of art).",
+    "[terms] Changed: 'any subsequent 24-month extension period' became 'a 24-month STEM extension'. 'subsequent' and 'period' are dropped, and 'STEM' is in neither the quote nor the note.",
+    "[terms] Dropped: the cross-reference 'described in 8 CFR 274a.12(c)(3)(i)(B)'.",
+    "[scope] Blocking, added subject broader than the rule: the plain words begin \"A student may not have more than 150 days of unemployment in total\". The quote has no subject, and in the saved text the sentence's subject is \"Students granted a 24-month OPT extension under paragraph (f)(10)(ii)(C)\". Read alone, the first sentence gives 150 days to any student, while a student on post-completion OPT only is held to 90.",
+    "[scope] Minor: \"any subsequent 24-month extension period\" becomes \"a 24-month STEM extension\". \"subsequent\" is dropped and \"STEM\" is added, which is not in the quote or note.",
+    "[reading] [plainness/scope, minor] Read on its own, 'A student may not have more than 150 days of unemployment in total' gives every student 150 days, beside the 90-day limit in opt.unemployment_limit_days. The quote starts at 'may not accrue' and leaves out the regulation's subject, 'Students granted a 24-month OPT extension'. The second sentence implies it. Widening the quote to take in the subject, and saying 'a student granted a 24-month extension' in the first sentence, would stop a student on OPT alone from reading 150 as their limit."
+   ]
+  },
+  {
+   "id": "stem.extension_months",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'extension', '24 months', 'first qualifying degree', 'completed all course requirements'. Kept: '24 months', 'course requirements'.",
+    "[terms] Changed: 'the first qualifying degree' became 'the first degree that meets the rule's terms'. 'qualifying degree' is the regulation's term.",
+    "[terms] Changed: 'has completed all course requirements' became 'has done all course requirements'.",
+    "[terms] Meaning: 'An extension will be for 24 months for the first qualifying degree' sets the length of the extension for the first qualifying degree. The plain words say 'It rests on the first degree', which makes the first degree the basis of every extension. The quote does not say that.",
+    "[terms] Added: 'STEM' in 'A STEM extension' is in neither the quote nor the note.",
+    "[scope] Minor, added: \"A STEM extension\". The quote says \"An extension\".",
+    "[scope] Quote-level, not a plain-vs-quote fault: the quote stops before the rest of the sentence in the saved 2026-09-14 text, \"(excluding thesis or equivalent), including any qualifying degree as part of a dual degree program, subject to the requirement in paragraph (f)(10)(ii)(C)(3)...\". So \"has done all course requirements\" in the plain words loses the thesis exclusion and the (C)(3) limit that the source places on the same sentence.",
+    "[reading] [plainness/term] 'It rests on the first degree that meets the rule's terms for which the student has done all course requirements' is still legalese: the stacked clauses are hard to follow. It also replaces the rule's term 'first qualifying degree' with 'the first degree that meets the rule's terms', which does not tell a student anything. Keep 'qualifying degree'.",
+    "[reading] [drops limit] The quote stops at 'completed all course requirements'. In the regulation the same sentence goes on '(excluding thesis or equivalent), including any qualifying degree as part of a dual degree program, subject to the requirement in paragraph (f)(10)(ii)(C)(3)'. So 'has done all course requirements' drops the thesis exclusion that the rule attaches to those very words, and a student with only a thesis left would read the rule wrongly. Widen the quote and keep the exclusion.",
+    "[reading] [says more, minor] 'A STEM extension is for 24 months. It rests on the first degree ...' can be read as saying that every STEM extension rests on the first qualifying degree. The regulation's next sentence provides a second 24-month extension for another qualifying degree at a higher degree level."
+   ]
+  },
+  {
+   "id": "stem.apply_before_expiry_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'expiration date', 'current OPT employment authorization'. Kept: 'current OPT'.",
+    "[terms] Changed: 'the student's current OPT employment authorization' became 'the current OPT work permission'. 'employment authorization' is the regulation's term.",
+    "[terms] Changed (low): 'the expiration date of' became 'ends'.",
+    "[terms] Added (low): 'may file for the STEM extension'. The quote names neither filing nor the STEM extension, and the note gives no grounds for either.",
+    "[scope] Blocking, added from outside the quote and broader than the source: the quote is only the fragment \"up to 90 days prior to the expiration date of the student's current OPT employment authorization\". \"A student may file for the STEM extension\" is not in the quote or the note. In the saved text the subject is \"A student meeting the eligibility requirements for a 24-month OPT extension\", filing \"with the required fee and supporting documents\". The plain words supply a subject without that eligibility limit.",
+    "[scope] Minor, term: \"current OPT employment authorization\" becomes \"current OPT work permission\".",
+    "[reading] [term, minor] 'the student's current OPT employment authorization' becomes 'the current OPT work permission'. 'employment authorization' is the rule's term. The meaning is kept."
+   ]
+  },
+  {
+   "id": "stem.apply_window_closes_rule",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'qualified student', 'apply for an extension of OPT', 'valid period of post-completion OPT', 'authorized under 8 CFR 274a.12(c)(3)(i)(B)'. Kept: 'valid period of post-completion OPT'. The reading is labelled.",
+    "[terms] Dropped: 'a qualified student' became 'a student'. The word that limits who may apply is lost.",
+    "[terms] Changed: 'an extension of OPT' became 'the STEM extension'.",
+    "[terms] Dropped: 'authorized under 8 CFR 274a.12(c)(3)(i)(B)'.",
+    "[terms] Advisory: the reading says 'when the OPT card ends'. The note states the reading as the expiration date on the 'employment authorization document', and 'OPT card' is not the note's term.",
+    "[scope] Blocking, drops a limit: the quote's \"a qualified student may apply\" becomes \"The rule lets a student apply\", so \"qualified\" is gone.",
+    "[scope] Minor: \"an extension of OPT\" becomes \"the STEM extension\", and \"authorized under 8 CFR 274a.12(c)(3)(i)(B)\" is dropped. The reading about the window closing is marked as Duly's.",
+    "[reading] [drops limit] The quote says 'a qualified student may apply'. The plain words say 'The rule lets a student apply', dropping 'qualified', so the rule's own words appear as a wider permission than they give.",
+    "[reading] [reading, incomplete] The reading 'the filing window closes when the OPT card ends' is correctly marked as Duly's. But the note records that the 81 FR 13040 preamble treats a period extended under cap-gap as a valid period, 'So the window can close later than the expiration date on the employment authorization document.' The plain words state the reading flatly, so a student in a cap-gap period sees a closing day that the note itself says may not hold."
+   ]
+  },
+  {
+   "id": "stem.file_within_days_of_recommendation",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'The student seeking such 24-month OPT extension', 'properly file', 'Form I-765 or successor form', 'USCIS', 'DSO', 'recommendation for the OPT extension', 'SEVIS record'. Kept: 'Form I-765', 'USCIS', 'DSO'.",
+    "[terms] Dropped: 'must properly file' became 'must file'. 'properly' is lost.",
+    "[terms] Dropped: 'The student seeking such 24-month OPT extension' became 'The student'. The first sentence no longer says which filing it is about, and only 'STEM recommendation' in the second sentence hints at it.",
+    "[terms] Changed: 'the recommendation for the OPT extension' became 'the STEM recommendation'. 'STEM' is not in the quote.",
+    "[terms] Low: 'or successor form' is dropped, and 'his or her SEVIS record' became 'SEVIS'.",
+    "[scope] Drops a condition: the quote's \"must properly file\" becomes \"must file\", so \"properly\" is gone.",
+    "[scope] Drops the subject's limit: the quote's \"The student seeking such 24-month OPT extension\" becomes \"The student\" in the first sentence. The limit survives only indirectly through \"the STEM recommendation\" in the second sentence. \"recommendation for the OPT extension\" becomes \"STEM recommendation\".",
+    "[scope] Minor: \"or successor form\" is dropped.",
+    "[reading] [term, minor] 'the recommendation for the OPT extension' becomes 'the STEM recommendation', a phrase the rule does not use. The meaning is kept."
+   ]
+  },
+  {
+   "id": "stem.min_hours_per_week",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'engage in practical training', '20 hours per week', 'leave-related policies', 'similarly situated U.S. workers', 'in the area of employment'. Kept: 'Practical training', '20 hours', 'similarly situated'.",
+    "[terms] Changed (vetoed in the earlier review and still present): 'similarly situated U.S. workers' became 'similarly situated workers in the United States'.",
+    "[terms] Changed: 'in the area of employment' became 'in the area of work'.",
+    "[terms] Changed: 'leave-related policies applicable to' became 'the leave rules for'. A policy is not a rule.",
+    "[scope] Blocking, term swap that changes the class: the quote's \"the employer's similarly situated U.S. workers\" becomes \"the employer's similarly situated workers in the United States\". This is the swap reviews/product-1-fix5.md finding 1 vetoed, and it is still present.",
+    "[scope] Term: \"in the area of employment\" becomes \"in the area of work\", and \"leave-related policies applicable to\" becomes \"the leave rules for\".",
+    "[scope] OK: \"on a 24-month extension\" rests on the note's heading.",
+    "[reading] [term] 'the employer's similarly situated U.S. workers' becomes 'the employer's similarly situated workers in the United States'. This is a vetoed swap: a U.S. worker is not the same class as a worker in the United States.",
+    "[reading] [term] 'in the area of employment' becomes 'in the area of work'. stem.requires.duties_hours_and_compensation keeps 'area of employment'."
+   ]
+  },
+  {
+   "id": "stem.validation_interval_months",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'validation report', 'the information required by paragraph (f)(12)(ii)(A)', 'every six months'. From the note heading: 'approved 24-month OPT extension'. Kept: 'validation report', 'every six months', '(f)(12)(ii)(A)'.",
+    "[terms] Advisory: 'the information required by paragraph (f)(12)(ii)(A)' became 'the details named in (f)(12)(ii)(A)'. 'required' carries meaning.",
+    "[terms] Advisory: 'approved 24-month OPT extension' (from the note) became 'approved 24-month extension'. 'OPT' is dropped.",
+    "[reading] [plainness] 'The report confirms that the details named in (f)(12)(ii)(A) have not changed' leaves a bare paragraph number in the plain words, and an average student cannot tell what those details are. (f)(12)(ii)(A) lists legal name, residential or mailing address, employer name, employer address and loss of employment (the quote of stem.report_change_within_days). If the note records that, the plain words can name them, for example 'the student's name, address, employer and job details have not changed'."
+   ]
+  },
+  {
+   "id": "stem.validation_due_business_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'validation report', 'DSO', '10 business days', 'reporting date'. All are kept."
+   ]
+  },
+  {
+   "id": "stem.evaluation_due_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'is responsible for ensuring', '12-month evaluation', 'final evaluation', 'conclusion of the reporting period', 'practical training opportunity', 'respectively'. Kept: '12-month evaluation', 'final evaluation', 'reporting period'. The 'respectively' pairing is kept correctly.",
+    "[terms] Changed: 'conclusion of his or her practical training opportunity' became 'after the training ends'. 'practical training opportunity' is dropped.",
+    "[terms] Meaning (low): 'The DSO must get ...' (twice) puts the 'must' on the DSO. In the quote the duty is the student's ('responsible for ensuring the DSO receives'). The third sentence restores this, but the first two read as a duty of the DSO.",
+    "[scope] Changes the scope of the final-evaluation deadline: the quote's \"conclusion of his or her practical training opportunity\" becomes \"after the training ends\". A practical training opportunity is one opportunity (for example with one employer). \"the training ends\" can be read as the end of all training or the extension, which is a different trigger for the 10 days. The term \"practical training opportunity\" is dropped.",
+    "[scope] Minor: \"The DSO must get ...\" twice casts the duty onto the DSO. The quote says \"The student is responsible for ensuring the DSO receives\", and the third sentence only partly repairs this.",
+    "[reading] [plainness/term, minor] Opening with 'The DSO must get' can read as a duty on the DSO until the third sentence; the rule says 'The student is responsible for ensuring the DSO receives'. Leading with the student's responsibility would read more clearly. Also, 'conclusion of his or her practical training opportunity' becomes 'the training ends'."
+   ]
+  },
+  {
+   "id": "stem.new_plan_due_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'initiates a new practical training opportunity with a new employer', '24-month OPT extension', 'submit', 'Form I-983 or successor form', 'new DSO recommendation'. Kept: 'new employer', 'Form I-983', 'DSO', 'new DSO recommendation'.",
+    "[terms] Changed: 'a new practical training opportunity' became 'training', and 'within 10 days of beginning the new practical training opportunity' became 'within 10 days of starting'.",
+    "[terms] Changed: 'his or her 24-month OPT extension' became 'the 24-month extension'. 'OPT' is dropped.",
+    "[terms] Meaning: the quote's condition 'If a student initiates ...' became a permission, 'A student may begin training with a new employer'. The quote grants no permission; the note says the 10 days apply only under that condition.",
+    "[terms] Low: 'or successor form' is dropped, and 'submit' became 'give'.",
+    "[scope] Blocking, added: \"A student may begin training with a new employer during the 24-month extension.\" states a permission. The quote begins \"If a student initiates ...\" and states only a condition. This was noted in reviews/product-1-fix5.md and is still present.",
+    "[scope] Term: \"a new practical training opportunity with a new employer\" becomes \"training with a new employer\", which drops \"practical\" and \"opportunity\".",
+    "[scope] Minor: \"or successor form\" is dropped.",
+    "[reading] [adds] 'A student may begin training with a new employer during the 24-month extension.' turns the quote's condition ('If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension') into a statement that a student 'may' do so. That reads as a permission the quoted sentence does not give. Keep it a condition, for example 'If a student starts a new practical training opportunity with a new employer during the 24-month OPT extension, the student must give a new Form I-983 to the DSO within 10 days of starting.'",
+    "[reading] [term, minor] 'new practical training opportunity' becomes 'training'."
+   ]
+  },
+  {
+   "id": "cpt.full_time_months_bar",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'have received', 'one year or more', 'full time curricular practical training', 'ineligible for', 'post-completion academic training'. Kept: 'one year or more', 'curricular practical training', 'post-completion academic training'. The reading is labelled.",
+    "[terms] Changed: 'are ineligible for post-completion academic training' became 'cannot have post-completion academic training'. 'ineligible' is the regulation's eligibility term.",
+    "[terms] Reading wording: the plain words say 'Duly reads that term as OPT after study', but the note states the reading as 'OPT after the program end date'.",
+    "[terms] Low: 'have received' became 'has had'. Advisory: '(CPT)' is an abbreviation that is not in the quote."
+   ]
+  },
+  {
+   "id": "grace.after_completion_days",
+   "regime": "ds_2012",
+   "issues": [
+    "[terms] Terms of art: 'F-1 student', 'completed a course of study', 'authorized practical training following completion of studies', 'additional 60-day period', 'prepare for departure from the United States', 'transfer in accordance with paragraph (f)(8)'. Kept: 'F-1 student', 'course of study', 'the United States', 'transfer'.",
+    "[terms] Changed: 'any authorized practical training following completion of studies' became 'any approved training after it'. 'authorized' became 'approved' and 'practical training' became 'training', the same kind of swap the review vetoed for the CPT rows.",
+    "[terms] Dropped: 'or to transfer in accordance with paragraph (f)(8) of this section' became 'or to transfer'. The limit on how the transfer is made is lost.",
+    "[terms] Low: 'has completed' became 'has finished', 'will be allowed an additional 60-day period' became 'gets 60 more days', and 'prepare for departure from' became 'prepare to leave'.",
+    "[scope] Drops a limit: \"or to transfer in accordance with paragraph (f)(8) of this section\" becomes \"or to transfer\", so the condition on the transfer is gone.",
+    "[scope] Term swap that broadens: \"any authorized practical training following completion of studies\" becomes \"any approved training after it\". \"practical training\", the rule's term, becomes plain \"training\", and \"authorized\" becomes \"approved\".",
+    "[reading] [term] 'any authorized practical training following completion of studies' becomes 'any approved training after it'. 'authorized practical training' is the rule's term (the ds_2012 regime's own plain words keep it), and 'approved training' is wider, since not all training is practical training.",
+    "[reading] [drops limit, minor] 'or to transfer in accordance with paragraph (f)(8) of this section' becomes 'or to transfer', dropping the limit to a transfer under (f)(8)."
+   ]
+  },
+  {
+   "id": "grace.after_completion_days",
+   "regime": "fixed_admission_2026",
+   "issues": [
+    "[terms] Terms of art: 'F-1 student', 'completed a course of study', 'authorized practical training', 'additional 30-day period', 'program end date', '4 year maximum period of admission', 'approved employment authorization for post-completion OPT or STEM OPT', 'as applicable', 'departure from the United States', 'otherwise seek to maintain lawful status'. Kept: 'program end date', 'lawful status', 'STEM OPT'.",
+    "[terms] Changed (vetoed in the earlier review and still present): 'the 4 year maximum period of admission' became 'the 4 year maximum stay'.",
+    "[terms] Changed: 'any authorized practical training' became 'any approved training'.",
+    "[terms] Changed: 'the end date of the approved employment authorization for post-completion OPT or STEM OPT' became 'the end of the OPT or STEM OPT work permit'. 'employment authorization' became 'work permit', and 'approved' and 'post-completion' are dropped.",
+    "[terms] Changed: 'An F-1 student who has completed a course of study' became 'a student done with study'. 'F-1' and 'course of study' are dropped.",
+    "[terms] Changed: 'prepare for departure from the United States' became 'get ready to leave the country'. 'the United States' becomes the ambiguous 'the country'.",
+    "[terms] Changed: 'or to otherwise seek to maintain lawful status' became 'or to seek to keep lawful status'. 'maintain' became 'keep', and 'otherwise' is dropped.",
+    "[terms] Low: 'as applicable' became 'as fits the case'.",
+    "[scope] Blocking, term swap: \"the 4 year maximum period of admission\" becomes \"the 4 year maximum stay\". This was vetoed in reviews/product-1-fix5.md and is still present.",
+    "[scope] Drops a limit: \"the end date of the approved employment authorization for post-completion OPT or STEM OPT\" becomes \"the end of the OPT or STEM OPT work permit\". \"post-completion\" is dropped, which widens it to any OPT, and \"approved employment authorization\" becomes \"work permit\".",
+    "[scope] Drops the subject's limit: \"An F-1 student who has completed a course of study\" becomes \"a student done with study\", so \"F-1\" is dropped.",
+    "[scope] Term swap: \"any authorized practical training\" becomes \"any approved training\", so \"practical\" is dropped.",
+    "[scope] Minor: \"to otherwise seek to maintain lawful status\" loses \"otherwise\", and \"departure from the United States\" becomes \"leave the country\".",
+    "[reading] [term] 'the 4 year maximum period of admission' becomes 'the 4 year maximum stay'. This is a vetoed swap, and the paused regime's own plain words use 'period of admission'.",
+    "[reading] [term] 'any authorized practical training' becomes 'any approved training'.",
+    "[reading] [term/scope] 'the end date of the approved employment authorization for post-completion OPT or STEM OPT' becomes 'the end of the OPT or STEM OPT work permit', which drops 'post-completion' and swaps 'employment authorization' for 'work permit'."
+   ]
+  },
+  {
+   "id": "opt.min_hours_per_week",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Post-Completion OPT', '20 hours per week', 'full-time'. All are kept, and the guidance is labelled as guidance."
+   ]
+  },
+  {
+   "id": "capgap.end_month_day",
+   "regime": null,
+   "issues": [
+    "[terms] Row: value 10-01, the closed row from the 73 FR 18944 text. Terms of art: 'duration of status', 'employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C)', 'beneficiary of an H-1B petition and request for change of status', 'automatically extended', 'October 1 of the fiscal year', 'H-1B visa'. Kept: 'duration of status', 'F-1 student', 'October 1 of the fiscal year', 'H-1B visa'.",
+    "[terms] Changed: 'any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C)' became 'the work permission the rule named'. 'employment authorization' is the regulation's term.",
+    "[terms] Dropped: 'shall be automatically extended' became 'had the duration of status extended'. 'automatically' is lost; it means no application is needed.",
+    "[terms] Changed: 'who is the beneficiary of an H-1B petition and request for change of status' became 'with an H-1B petition to change status'. 'beneficiary' is dropped, and the separate 'request for change of status' is merged away.",
+    "[terms] Added (low): 'cap-gap' is in neither the quote nor the note.",
+    "[terms] Row: value 04-01, from 89 FR 103054 (effective 2025-01-17). Terms of art: 'duration of status', 'employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C)', 'beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act', 'requesting a change of status', 'automatically extended', 'April 1 of the fiscal year for which such H-1B status is being requested', 'validity start date of the approved petition', 'whichever is earlier'. Kept: 'duration of status', 'F-1 student', 'April 1 of the fiscal year', 'approved petition'.",
+    "[terms] Dropped (vetoed in the earlier review and still present): 'subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A))'. The plain words reach any H-1B change-of-status petition; the quote reaches only a cap-subject one.",
+    "[terms] Changed: 'any employment authorization granted under ...' became 'named work permission'.",
+    "[terms] Dropped: 'will be automatically extended' became 'extends'. 'automatically' is lost.",
+    "[terms] Changed: 'the fiscal year for which such H-1B status is being requested' became 'the fiscal year asked for'. 'H-1B status' is dropped, so it no longer says what was asked for.",
+    "[terms] Changed: 'until the validity start date of the approved petition' became 'until the approved petition starts'.",
+    "[terms] Dropped: 'beneficiary'. Added (low): 'cap-gap' is not in the quote.",
+    "[scope] Row identification: value 10-01, the row from 2008-04-08 to 2025-01-16 (parameters.yaml), quoting 73 FR 18944.",
+    "[scope] Blocking, the scope is overstated for part of the row: the row runs to 2025-01-16, but from 2016-05-10 the saved 81 FR 13040 text of (f)(5)(vi)(A) limits the October 1 extension to \"an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A))\" and says \"H-1B status\", not \"H-1B visa\". The plain words \"an F-1 student with an H-1B petition to change status\" follow the 2008 quote, so for 2016-05-10 to 2025-01-16 they drop the cap-subject limit. This is the same fault fix5 vetoed on the April 1 row. The note's \"81 FR 13040 ... also carries October 1\" hides that change. The row should be split, or the quote and plain words should carry the limit for the 2016 to 2025 period.",
+    "[scope] Drops: \"shall be automatically extended\" loses \"automatically\". \"any employment authorization granted under ... (B) and (C)\" becomes \"with the work permission the rule named\", which does not clearly say the work permission was extended too.",
+    "[scope] Row identification: value 04-01, the row from 2025-01-17.",
+    "[scope] Blocking, drops a limit: the quote limits the extension to \"an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A))\". The plain words say \"an F-1 student with an H-1B petition to change status\", with no cap-subject limit. The closing \"if the petition meets the terms the rule lists\" points to the conditions after the colon, not to this one. This was vetoed in reviews/product-1-fix5.md and is still present.",
+    "[scope] Minor: \"automatically\" is dropped. \"the fiscal year for which such H-1B status is being requested\" becomes \"the fiscal year asked for\".",
+    "[reading] (Row: value \"10-01\", closed, 73 FR 18944 text.) [drops] 'shall be automatically extended' becomes 'had the duration of status extended'. The word 'automatically', which is what the rule means for a student, is dropped.",
+    "[reading] [plainness/term] 'any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C)' becomes 'with the work permission the rule named'. That tells a student nothing about which permission, and it swaps out 'employment authorization'. The first sentence ('had the duration of status extended, with the work permission the rule named') is also awkward, and the text sits at the grade limit (9.0).",
+    "[reading] [adds, minor] 'cap-gap' is in neither the quote nor the note. It is the common name, but no source in the row uses it.",
+    "[reading] (Row: value \"04-01\", from 2025-01-17, 89 FR 103054.) [drops limit] The quote limits the extension to 'an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A))'. 'an F-1 student with an H-1B petition to change status' drops that limit and says more than the quote. 'It holds if the petition meets the terms the rule lists' points to the conditions after the colon, not to this one.",
+    "[reading] [drops] 'will be automatically extended' becomes 'extends', and 'automatically' is dropped.",
+    "[reading] [plainness/term] 'named work permission' stands for 'any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C)'. It is vague to a student and swaps out 'employment authorization'."
+   ]
+  },
+  {
+   "id": "stem.evaluation_interval_months",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'STEM practical training opportunities', 'initial evaluation', 'approved starting date', 'employment authorization document', '24-month OPT extension application', 'concluding evaluation'. Kept: 'STEM', '12 months'.",
+    "[terms] Changed: 'All STEM practical training opportunities' became 'Each STEM training opportunity'. 'practical' is dropped.",
+    "[terms] Changed: 'the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application' became 'the start date on the STEM work permit'. 'approved starting date' became 'start date', 'employment authorization document' became 'work permit', and '24-month OPT extension application' became 'STEM'.",
+    "[terms] Changed: 'an initial evaluation' became 'a first evaluation', and 'a concluding evaluation' became 'a final one'.",
+    "[scope] Minor, term: \"STEM practical training opportunities\" becomes \"STEM training opportunity\", so \"practical\" is dropped. \"the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application\" becomes \"the start date on the STEM work permit\", so \"approved\" is dropped and \"employment authorization document\" becomes \"work permit\".",
+    "[reading] [term, minor] 'the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application' becomes 'the start date on the STEM work permit', and 'initial' and 'concluding' become 'first' and 'final'. The meaning is kept. The plain words correctly state no repeating interval."
+   ]
+  },
+  {
+   "id": "cpt.full_time_bar_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'have received', 'one year or more', 'full time curricular practical training', 'ineligible for', 'post-completion academic training'. Kept: 'one year or more', 'curricular practical training', 'post-completion academic training'. The reading (365 days) is labelled.",
+    "[terms] Changed: 'are ineligible for post-completion academic training' became 'cannot have post-completion academic training'. 'ineligible' is the regulation's eligibility term.",
+    "[terms] Reading wording: the plain words say 'Duly reads that term as OPT after study', but the note states the reading as 'OPT after the program end date'.",
+    "[terms] Low: 'have received' became 'has had'. Advisory: '(CPT)' is an abbreviation that is not in the quote."
+   ]
+  },
+  {
+   "id": "capgap.fiscal_year_start_month_day",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'fiscal year of the Treasury'. It is kept. The reading is labelled, and 'cap-gap rule' rests on the note's 'cap-gap paragraph'."
+   ]
+  },
+  {
+   "id": "opt.report_employer_within_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'While on OPT', 'report to the DSO', 'within 10 days', 'name or address', 'employment information'. Kept: 'while on OPT', 'report', 'DSO', 'within 10 days', 'name', 'address'. The guidance is labelled as guidance.",
+    "[terms] Changed: 'employment information' became 'job details'. 'employment' is the OPT term (OPT employment need not be a paid job), and 'job' narrows it.",
+    "[scope] Minor, term: \"employment information\" becomes \"job details\".",
+    "[reading] [term, minor] 'employment information' becomes 'job details'. The meaning is kept, and the words are correctly marked as agency guidance."
+   ]
+  },
+  {
+   "id": "opt.report_interruption",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'F-1 student', 'granted employment authorization by USCIS to engage in optional practical training', 'is required to report', 'change of name or address', 'interruption of such employment', 'for the duration of the optional practical training'. Kept: 'change of name or address', 'DSO'.",
+    "[terms] Changed: 'interruption of such employment' became 'any break in work'.",
+    "[terms] Changed: 'is required to report ... to the DSO' became 'must tell the DSO'. 'report' is the regulation's duty word ('reporting requirements').",
+    "[terms] Changed: 'An F-1 student who is granted employment authorization by USCIS to engage in optional practical training' became 'A student on OPT'. 'F-1' and the USCIS grant of employment authorization that triggers the duty are dropped.",
+    "[terms] Low: 'for the duration of the optional practical training' became 'for the whole OPT period'.",
+    "[scope] Minor: \"An F-1 student who is granted employment authorization by USCIS to engage in optional practical training\" becomes \"A student on OPT\", so \"F-1\" and \"granted employment authorization by USCIS\" are dropped. \"interruption of such employment\" becomes \"any break in work\". \"The rule gives no number of days\" rests on the note and is true of the quote."
+   ]
+  },
+  {
+   "id": "stem.reporting_required",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Compliance', 'these reporting requirements', 'maintain F-1 status'. From the note heading: 'students with an approved 24-month OPT extension'. Kept: 'F-1 status'.",
+    "[terms] Changed: 'is required to maintain F-1 status' became 'to keep F-1 status'. 'maintain status' is the regulation's term.",
+    "[terms] Changed: 'these reporting requirements' became 'these reporting duties'.",
+    "[terms] Changed: 'students with an approved 24-month OPT extension' (from the note) became 'a student on a STEM extension'. 'approved' and '24-month OPT' are dropped.",
+    "[terms] Advisory: 'these' points at nothing in the plain text.",
+    "[scope] Minor: \"these reporting duties\" has nothing it refers back to in the plain words. The quote's \"these\" refers to the list in (f)(12)(ii), which the plain words do not name. \"on a STEM extension\" rests on the note's heading.",
+    "[reading] [plainness] In 'must meet these reporting duties', nothing in the plain words tells a student which duties 'these' are. The note says they are the ones (f)(12)(ii) lists for students with an approved 24-month OPT extension, so say that, for example 'A student with an approved 24-month OPT extension has more reporting duties, which the rule lists. The rule says meeting them is required to keep F-1 status.'",
+    "[reading] [term, minor] 'reporting requirements' becomes 'reporting duties'."
+   ]
+  },
+  {
+   "id": "calendar.federal_holidays_law",
+   "regime": null,
+   "issues": [
+    "[terms] Row: the list in force from 2021-06-17, eleven holidays. Terms of art: 'legal public holidays', 'Juneteenth National Independence Day'. 'legal public holidays' is kept, and the reading is labelled.",
+    "[terms] Advisory: 'Juneteenth National Independence Day, June 19' became 'Juneteenth on June 19', a shortened statutory name.",
+    "[terms] Row: the list in force before 2021-06-17, ten holidays. Terms of art: 'Pub. L. 117-17', 'Juneteenth National Independence Day'; from the note, 'legal public holidays'. 'legal public holidays' is kept, and the reading is labelled.",
+    "[terms] Advisory: 'without Juneteenth' shortens 'Juneteenth National Independence Day'.",
+    "[scope] Row identification (not a fault): the row from 2021-06-17, eleven holidays, quoting 5 U.S.C. 6103(a).",
+    "[scope] Row identification: the row from 1986-01-01 to 2021-06-16, ten holidays, quoting the amendment note for Pub. L. 117-17.",
+    "[scope] Drops a time limit: \"Before June 17, 2021, the law listed ten legal public holidays\" and \"when it counts business days before that date\" have no lower bound. The note says the Birthday of Martin Luther King, Jr. took effect on 1986-01-01 and that no row is recorded before that date, so the ten-holiday list holds only from 1986-01-01 to 2021-06-16.",
+    "[scope] Minor: \"Juneteenth National Independence Day\" becomes \"Juneteenth\".",
+    "[reading] (Row: eleven holidays, from 2021-06-17.) [plainness, minor] 'on the day itself' does not tell a student what it rules out: the weekday on which a weekend holiday is observed, which the note says Duly does not skip. Nothing says why a holiday list matters either (the F-1 rule counts some deadlines in business days and does not define them). The reading is correctly marked as Duly's.",
+    "[reading] (Row: ten holidays, ends 2021-06-16.) [reading shown as the law's words] 'Before June 17, 2021, the law listed ten legal public holidays: the same list as today, without Juneteenth.' begins 'the law listed' and so presents as the law's own content what the note calls a reading. The note says 'The saved copy holds no text of the list as it stood before; the list is read from the current list and the amendment notes', and the June 17, 2021 cut-off comes from the date of Pub. L. 117-17 because 'the saved copy gives no other effective date'. The closing mark follows the sentence about skipping days, so it reads as covering only that sentence. The quote itself says only that Pub. L. 117-17 inserted the Juneteenth item.",
+    "[reading] [says more] 'Before June 17, 2021' has no lower bound. The note says this ten-holiday list starts on 1986-01-01, when Martin Luther King, Jr.'s Birthday took effect ('Duly reads that day as 1986-01-01'), and that no row covers earlier dates. So 'before June 17, 2021, ... ten' is wrong for dates before 1986. Say 'From January 1, 1986 to June 16, 2021'."
+   ]
+  },
+  {
+   "id": "stem.requires_post_completion_opt",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'Consistent with paragraph (f)(11)(i)(C)', 'qualified student', 'apply for an extension of OPT', 'valid period of post-completion OPT', 'authorized under 8 CFR 274a.12(c)(3)(i)(B)'. Kept: 'valid period of post-completion OPT'. The reading is labelled.",
+    "[terms] Dropped: 'a qualified student' became 'a student'.",
+    "[terms] Changed: 'an extension of OPT' became 'the STEM extension'.",
+    "[terms] Dropped: 'authorized under 8 CFR 274a.12(c)(3)(i)(B)'.",
+    "[scope] Blocking, drops a limit: the quote's \"a qualified student may apply\" becomes \"The rule lets a student apply\", so \"qualified\" is gone.",
+    "[scope] Minor: \"Consistent with paragraph (f)(11)(i)(C) of this section\" and \"authorized under 8 CFR 274a.12(c)(3)(i)(B)\" are dropped, and \"an extension of OPT\" becomes \"the STEM extension\".",
+    "[reading] [drops limit] The quote says 'a qualified student may apply for an extension of OPT'. 'The rule lets a student apply for the STEM extension' drops 'qualified', so the rule's own words appear as a wider permission than they give. The reading is correctly marked."
+   ]
+  },
+  {
+   "id": "stem.requires.all_of_the_following",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'to qualify for', 'an extension of post-completion OPT based upon a STEM degree', 'all of the following requirements must be met'. Kept: 'requirements must be met'.",
+    "[terms] Changed: 'an extension of post-completion OPT based upon a STEM degree' became 'a STEM extension of OPT'. 'post-completion' and 'based upon a STEM degree' are dropped.",
+    "[terms] Low: 'In order to qualify for' is dropped.",
+    "[scope] Minor, term: \"In order to qualify for an extension of post-completion OPT based upon a STEM degree\" becomes \"For a STEM extension of OPT\". \"post-completion\" and \"based upon a STEM degree\" are dropped, but the scope does not change."
+   ]
+  },
+  {
+   "id": "stem.requires.accreditation",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'the basis for the 24-month OPT extension', 'U.S. educational institution', 'accredited', 'accrediting agency', 'recognized by the Department of Education', 'at the time of application'. Kept: 'accredited', 'Department of Education', 'at the time of application'. The reading is labelled.",
+    "[terms] Changed (vetoed in the earlier review and still present): 'a U.S. educational institution' became 'a school in the United States'.",
+    "[terms] Changed (vetoed in the earlier review and still present): 'recognized by the Department of Education' became 'the Department of Education accepts'.",
+    "[terms] Changed: 'an accrediting agency' became 'A group'.",
+    "[terms] Changed: 'The degree that is the basis for the 24-month OPT extension' became 'The degree for the STEM extension'.",
+    "[terms] Meaning: the plain words tie 'at the time of application' to the Department's acceptance of the group. The quote can also attach it to 'accredited', and the note says the regulation does not say which application. The plain words settle an ambiguity the quote leaves open.",
+    "[scope] Blocking, term: \"a U.S. educational institution\" becomes \"a school in the United States\". Fix5 asked for \"U.S. educational institution\" to be kept.",
+    "[scope] Blocking, term: \"recognized by the Department of Education\" becomes \"the Department of Education accepts\", and \"an accrediting agency\" becomes \"A group\".",
+    "[scope] Blocking, moves a time limit: the quote's \"at the time of application\" is attached only to the recognition (\"accepts at the time of application\"), and \"has accredited it\" is left with no time. This settles the quote's open reading one way without marking it as Duly's reading, and the reading mark covers only \"as one of the listed requirements\". Vetoed in fix5 and still present.",
+    "[reading] [term] 'from a U.S. educational institution' becomes 'from a school in the United States' (vetoed).",
+    "[reading] [term] 'an accrediting agency recognized by the Department of Education' becomes 'A group the Department of Education accepts' (vetoed: 'recognized').",
+    "[reading] [reading shown as the rule's words] 'A group the Department of Education accepts at the time of application has accredited it' ties 'at the time of application' to the recognition and leaves the accreditation with no time. The quote puts those words at the end of the sentence and leaves open what they limit. The plain words settle that open question one way, and the reading mark ('as one of the listed requirements') does not cover it.",
+    "[reading] [plainness, minor] Both sentences state as plain fact ('The degree for the STEM extension is from a school ...') something the rule only lists. Read first, they sound like a statement about a student's own degree. Put the reading first, for example 'Duly reads this as one of the listed requirements: the degree ...'."
+   ]
+  },
+  {
+   "id": "stem.requires.dhs_approved_degree",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'the basis for the 24-month OPT extension', 'bachelor's, master's, or doctoral degree', 'determined by the Secretary, or his or her designee', 'to qualify within a science, technology, engineering, or mathematics field'. Kept: 'bachelor's, master's or doctoral degree', 'the Secretary'. The reading is labelled.",
+    "[terms] Changed: 'or his or her designee' became 'or a person the Secretary names'. The note chose this wording, but 'designee' is the regulation's term.",
+    "[terms] Changed: 'determined ... to qualify within a science, technology, engineering, or mathematics field' became 'has found its field to be a STEM field'. 'determined' became 'found', and the term the note says (2)(i) defines became 'STEM field'.",
+    "[terms] Changed: 'the basis for the 24-month OPT extension' became 'for the STEM extension'.",
+    "[reading] [plainness, minor] Both sentences are bare statements of fact ('The degree for the STEM extension is a bachelor's, master's or doctoral degree.'), and the reading comes only at the end, so read first they sound like a statement about a student's degree. 'The Secretary' is also not identified for a student. The note gives the paragraph heading 'DHS-approved degree', which could ground 'the Secretary of Homeland Security'."
+   ]
+  },
+  {
+   "id": "stem.requires.degree_on_designated_list",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'DSO recommends', '24-month OPT extension', 'in SEVIS', 'the degree that is the basis for the application for the OPT extension', 'contained within a category', 'STEM Designated Degree Program List'. Kept: 'DSO recommends', 'in SEVIS', 'category', 'STEM Designated Degree Program List'.",
+    "[terms] Changed: 'recommends a 24-month OPT extension under this paragraph (f)(10)(ii)(C)' became 'recommends the extension'. The plain words never say which extension.",
+    "[terms] Changed: 'the degree that is the basis for the application for the OPT extension' became 'the degree'.",
+    "[scope] Minor: \"the degree that is the basis for the application for the OPT extension\" becomes \"the degree\", so the words saying which degree are dropped."
+   ]
+  },
+  {
+   "id": "stem.requires.previously_obtained_degree",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'application for a 24-month OPT extension', 'degree obtained previous to', 'the period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)', 'conferred', 'U.S. educational institution', 'accredited and SEVP-certified', 'DSO recommends', 'degree program category included on the current STEM Designated Degree Program List', 'within the 10 years preceding'. Kept: 'accredited and SEVP-certified', 'current', '10 years', the timing at the DSO recommendation.",
+    "[terms] Dropped (vetoed in the earlier review and still present): 'from a U.S. educational institution' became 'that degree's school'. 'U.S.' is dropped.",
+    "[terms] Changed: 'the period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)' became 'OPT after study'.",
+    "[terms] Changed: 'must be in a degree program category included on the current STEM Designated Degree Program List' became 'must be in a field on the current STEM list'. 'degree program category' became 'field'.",
+    "[terms] Changed: 'must have been conferred' became 'must have been granted'.",
+    "[terms] Changed: '24-month OPT extension' became 'STEM extension' and 'the extension'.",
+    "[scope] Blocking, drops a limit: \"conferred from a U.S. educational institution that is accredited and SEVP-certified\" becomes \"that degree's school must be accredited and SEVP-certified\". \"U.S.\" is dropped and \"educational institution\" becomes \"school\". Vetoed in fix5 and still present.",
+    "[scope] Term swap without a reading mark: \"the degree that provided the basis for the period of post-completion OPT\" becomes \"the one used for OPT after study\". \"post-completion OPT\" is the rule's term, and \"OPT after study\" is the phrase the pack uses for Duly's reading of \"post-completion academic training\".",
+    "[scope] Adds a permission: \"A STEM extension may rest on an earlier degree\". The quote begins \"If an application ... is based upon a degree obtained previous to ...\" and states a condition. The permission comes from the paragraph's first sentence, which is in the note but not the quote.",
+    "[scope] Term: \"in a degree program category included on the current STEM Designated Degree Program List\" becomes \"in a field on the current STEM list\", so \"degree program category\" becomes \"field\".",
+    "[reading] [term] 'conferred from a U.S. educational institution that is accredited and SEVP-certified' becomes 'that degree's school must be accredited and SEVP-certified', which drops 'U.S.' and 'educational institution' (vetoed).",
+    "[reading] [term] 'a degree program category included on the current STEM Designated Degree Program List' becomes 'a field on the current STEM list'. The swap of 'category' for 'field' matters because stem.requires.degree_on_designated_list keeps 'category'.",
+    "[reading] [term/reading] 'the degree that provided the basis for the period of post-completion OPT' becomes 'the one used for OPT after study'. 'OPT after study' is the phrase Duly uses for its own reading of 'post-completion academic training' in the CPT rows. Here the rule's own term is 'post-completion OPT' and should be kept, so that Duly's phrasing is not shown as the rule's."
+   ]
+  },
+  {
+   "id": "stem.requires.eligible_practical_training_opportunity",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'STEM practical training opportunity', 'the basis for the 24-month OPT extension', 'directly related', 'the degree that qualifies the student for such extension'. Kept: 'directly related'.",
+    "[terms] Changed: 'The STEM practical training opportunity that is the basis for the 24-month OPT extension' became 'The STEM training'. 'practical', 'opportunity' and the basis clause are dropped.",
+    "[terms] Meaning: 'the degree that qualifies the student for such extension' became 'the degree it is based on'. In the quote the extension rests on the training opportunity, and the opportunity must relate to the degree that qualifies the student. The plain words say the training is based on a degree, which the quote does not say.",
+    "[scope] Blocking, says something other than the quote: \"directly related to the degree that qualifies the student for such extension\" becomes \"directly related to the degree it is based on\". The quote makes the opportunity the basis for the extension and names the degree that qualifies the student. The plain words say the training is based on the degree, which the quote does not say.",
+    "[scope] Term: \"The STEM practical training opportunity that is the basis for the 24-month OPT extension\" becomes \"The STEM training\", so \"practical\", \"opportunity\" and \"that is the basis for the 24-month OPT extension\" are dropped.",
+    "[reading] [minor] 'the degree that qualifies the student for such extension' becomes 'the degree it is based on', where 'it' is the training. The rule ties the training to the degree that qualifies the student for the extension, not to a degree the training is based on. 'practical training opportunity' also becomes 'training'."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_qualification",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'enrolled in E-Verify', 'E-Verify Company Identification number', 'employer agent', 'E-Verify Client Company Identification number', 'participant in good standing with E-Verify', 'as determined by USCIS', 'employer identification number (EIN) used for tax purposes'. Kept: 'enrolled in E-Verify', 'good standing', 'USCIS', 'EIN'.",
+    "[terms] Changed: 'a valid E-Verify Company Identification number or, if the employer is using an employer agent to create its E-Verify cases, a valid E-Verify Client Company Identification number' became 'a valid ID number from E-Verify'. Both named numbers and the employer-agent condition are dropped.",
+    "[terms] Changed: 'an employer identification number (EIN) used for tax purposes' became 'a tax number (EIN)'.",
+    "[terms] Low: 'remains a participant in good standing' became 'stays in good standing'.",
+    "[terms] Advisory: the EIN sentence has its own 'must' and is verbatim, per the note. The plain words fold it under 'This is how Duly reads the rule'.",
+    "[scope] Drops a condition: \"as evidenced by either a valid E-Verify Company Identification number or, if the employer is using an employer agent to create its E-Verify cases, a valid E-Verify Client Company Identification number\" becomes \"shown by a valid ID number from E-Verify\". The condition on the employer agent and the choice between the two named numbers are dropped, so any E-Verify ID number would do.",
+    "[scope] Term swap: \"an employer identification number (EIN) used for tax purposes\" becomes \"a tax number (EIN)\".",
+    "[reading] [reading, minor] The second quoted sentence has its own 'must' ('An employer must also have an employer identification number (EIN)'), so it is the rule's own requirement and not a reading. The closing mark 'This is how Duly reads the rule: as one of the listed requirements' covers it anyway.",
+    "[reading] [term, minor] 'a valid E-Verify Company Identification number or ... a valid E-Verify Client Company Identification number' becomes 'a valid ID number from E-Verify', which drops the employer-agent case. 'employer identification number (EIN) used for tax purposes' becomes 'a tax number (EIN)'.",
+    "[reading] [plainness, minor] 'The employer is enrolled in E-Verify' is stated first as plain fact, so it sounds like a statement about a student's employer until the reading mark at the end."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_reporting",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art (the quote and the note's lead-in): 'authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2)', 'Training Plan for STEM OPT Students, Form I-983 or successor form', 'report', 'termination or departure', 'DSO at the student's school', 'prior to the end of the authorized period of OPT'. Kept: 'employer agrees', 'Form I-983', 'DSO'. The reading is labelled.",
+    "[terms] Changed: 'may not be authorized for employment with an employer' became 'may not be approved to work for an employer'.",
+    "[terms] Changed: 'the termination or departure of an OPT student' became 'if the student leaves or is let go'. The same paragraph gives 'departure' a meaning, per the note. 'termination' cannot be kept word for word because the gate's alarm list blocks 'terminat\\w*'. This conflict needs a decision, for example a 'Duly reads this as' line.",
+    "[terms] Changed: 'prior to the end of the authorized period of OPT' became 'before OPT ends'. 'authorized period of' is dropped.",
+    "[terms] Changed: 'to report ... to the DSO' became 'to tell the school's DSO'.",
+    "[terms] Dropped: 'Training Plan for STEM OPT Students' and 'or successor form'.",
+    "[scope] Blocking, drops a limit: the sentence (given in the note) reads \"A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section unless ...\". The plain words \"A student may not be approved to work for an employer unless ...\" drop \"pursuant to paragraph (f)(10)(ii)(C)(2)\", so the bar reaches any work for any employer, not only employment under the STEM extension.",
+    "[scope] Term: \"authorized for employment\" becomes \"approved to work\". \"prior to the end of the authorized period of OPT\" becomes \"before OPT ends\", so \"authorized period of\" is dropped.",
+    "[scope] Minor: \"Training Plan for STEM OPT Students, Form I-983 or successor form\" becomes \"Form I-983\".",
+    "[reading] [drops limit] The note gives the whole sentence as 'A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section unless ...'. 'A student may not be approved to work for an employer unless ...' drops 'pursuant to paragraph (f)(10)(ii)(C)(2)', the STEM extension scope, so it reads as a condition on any work for any employer. Say 'approved to work for an employer on a 24-month OPT extension'.",
+    "[reading] [reading mark unclear] A student has seen no 'sentence', so 'This is how Duly reads the whole sentence.' does not say which part is Duly's. The only reading the note records is that the plain words join the quote to the first half of the regulation's sentence, and that first half is itself the regulation's own words. Say plainly that the first part comes from the words just before the quote, or use the pack's standard 'This is how Duly reads the rule, not its exact words.'"
+   ]
+  },
+  {
+   "id": "stem.requires.training_plan",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'fully complete', 'individualized Form I-983 or successor form', 'obtain requisite signatures', 'appropriate individual in the employer's organization', 'consistent with form instructions', 'before the DSO may recommend a 24-month OPT extension'. Kept: 'fully complete', 'Form I-983', 'before the DSO may recommend', 'instructions'.",
+    "[terms] Changed: 'recommend a 24-month OPT extension' became 'recommend a STEM extension'.",
+    "[terms] Changed: 'obtain requisite signatures from an appropriate individual in the employer's organization' became 'get it signed by the right person at the employer'.",
+    "[terms] Low: 'an individualized Form I-983' became 'a Form I-983 made for the student', and 'or successor form' is dropped.",
+    "[scope] Minor: \"consistent with form instructions\" is attached only to the signatures (\"as the form's instructions say\"), while in the quote it can also govern completing the form. \"or successor form\" is dropped."
+   ]
+  },
+  {
+   "id": "stem.requires.duties_hours_and_compensation",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'terms and conditions', 'STEM practical training opportunity', 'period of the 24-month OPT extension', 'duties, hours, and compensation', 'commensurate with', 'similarly situated U.S. workers in the area of employment'. Kept: '24-month OPT extension', 'duties, hours', 'similarly situated U.S. workers in the area of employment'.",
+    "[terms] Changed: 'must be commensurate with' became 'must be in line with'. The note says the paragraph goes on to say when these are commensurate, so it is a defined test.",
+    "[terms] Changed: 'compensation' became 'pay'. 'compensation' is the word in the paragraph's heading.",
+    "[terms] Changed: 'a STEM practical training opportunity' became 'STEM training'.",
+    "[terms] Changed: 'The terms and conditions ... applicable to' became 'the terms ... those of'. 'conditions' is dropped.",
+    "[scope] Minor: \"The terms and conditions of a STEM practical training opportunity\" becomes \"the terms of STEM training\", so \"and conditions\", \"practical\" and \"opportunity\" are dropped. \"U.S. workers in the area of employment\" is kept."
+   ]
+  },
+  {
+   "id": "stem.requires.self_evaluation",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art (the quote and the note's lead-in): 'authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2)', 'submits a self-evaluation', 'progress toward the training goals', 'described in the Form I-983 or successor form'. Kept: 'self-evaluation', 'progress toward the training goals', 'Form I-983'. The reading is labelled.",
+    "[terms] Changed: 'may not be authorized for employment with an employer' became 'may not be approved to work for an employer'.",
+    "[terms] Low: 'submits' became 'hands in', and 'training goals described in the Form I-983 or successor form' became 'training goals on Form I-983'.",
+    "[scope] Blocking, drops a limit: the sentence (given in the note) reads \"A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section unless ...\". The plain words \"A student may not be approved to work for an employer unless ...\" drop \"pursuant to paragraph (f)(10)(ii)(C)(2)\", so the bar reaches any work for any employer.",
+    "[scope] Term: \"authorized for employment\" becomes \"approved to work\".",
+    "[reading] [drops limit] The note gives the whole sentence as 'A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section unless the student submits a self-evaluation ...'. 'A student may not be approved to work for an employer unless ...' drops the STEM extension scope ('pursuant to paragraph (f)(10)(ii)(C)(2)'), so it reads as a bar on any work for any employer.",
+    "[reading] [reading mark unclear] 'This is how Duly reads the whole sentence, not its exact words.' refers to a sentence the student has not seen and does not say which part is Duly's. The first half is the regulation's own words from the note, not a reading. The mark also differs from the one on stem.requires.employer_reporting ('This is how Duly reads the whole sentence.')."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attestation",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'participate in a STEM practical training opportunity', 'the employer attests', 'including by signing the Form I-983 or successor form'. Kept: 'employer attests', 'including signing Form I-983'.",
+    "[terms] Changed: 'a STEM practical training opportunity' became 'STEM training'.",
+    "[terms] Low: 'participate in' became 'take part in', and 'or successor form' is dropped.",
+    "[scope] Minor, term: \"a STEM practical training opportunity\" becomes \"STEM training\", so \"practical\" and \"opportunity\" are dropped.",
+    "[reading] [plainness, minor] 'the things listed next' points to a list that the plain words do not show when they appear alone. The note says there are three ((10)(i) to (iii)), so 'the three things the rule lists' would stand on its own. 'The employer attests in ways that include signing Form I-983' is awkward. 'attests' is correctly kept but not explained."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attests_resources",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'sufficient resources and personnel available', 'is prepared to provide appropriate training', 'in connection with the specified opportunity', 'location(s) specified in the Form I-983 or successor form'. Kept: 'resources', 'training', 'Form I-983'. The reading is labelled.",
+    "[terms] Dropped: 'in connection with the specified opportunity', which limits the training to the opportunity on the form.",
+    "[terms] Changed: 'is prepared to provide appropriate training' became 'to give proper training'. The quote attests readiness ('is prepared to'); the plain words fold this into having resources. 'appropriate' became 'proper'.",
+    "[terms] Low: 'sufficient ... personnel' became 'enough ... staff', and 'or successor form' is dropped.",
+    "[scope] Drops a limit: \"appropriate training in connection with the specified opportunity at the location(s) specified\" becomes \"proper training at the places named\", so \"in connection with the specified opportunity\" is gone.",
+    "[scope] Drops part of what is attested: \"has sufficient resources and personnel available and is prepared to provide\" becomes \"has enough resources and staff to give\", so \"is prepared to provide\" is folded away.",
+    "[reading] [plainness, minor] 'The employer has enough resources and staff ...' is stated first as plain fact, so until the reading mark it sounds like a statement about a student's employer. Putting the reading first would be clearer, for example 'Duly reads this as one of the things the employer attests: that it has enough resources and staff ...'."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attests_no_replacement",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'student on a STEM OPT extension', 'full- or part-time, temporary or permanent U.S. worker'. Kept: 'full-time or part-time, temporary or permanent', 'replace'. The reading is labelled.",
+    "[terms] Changed (vetoed in the earlier review and still present): 'U.S. worker' became 'worker in the United States'.",
+    "[terms] Changed: 'The student on a STEM OPT extension' became 'The STEM student'.",
+    "[scope] Blocking, term swap that changes the class: \"U.S. worker\" becomes \"worker in the United States\". Vetoed in reviews/product-1-fix5.md and still present.",
+    "[scope] Changes the subject: \"The student on a STEM OPT extension\" becomes \"The STEM student\", which can be read as any student in a STEM field.",
+    "[reading] [term] 'will not replace a full- or part-time, temporary or permanent U.S. worker' becomes '... permanent worker in the United States'. This is a vetoed swap: a U.S. worker and a worker in the United States are not the same class.",
+    "[reading] [plainness, minor] The first sentence is a bare statement of fact about 'The STEM student', and the attestation appears only in the reading mark after it."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attests_training_goals",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'The student's opportunity' (the STEM practical training opportunity named in the lead-in), 'assists ... in reaching', 'training goals'. Kept: 'training goals'. The reading is labelled.",
+    "[terms] Changed: 'The student's opportunity' became 'The training'.",
+    "[terms] Low: 'assists the student in reaching his or her training goals' became 'helps the student reach the training goals'.",
+    "[scope] Minor, term: \"The student's opportunity\" becomes \"The training\".",
+    "[reading] [plainness, minor] 'The training helps the student reach the training goals.' is a bare claim that reads as a statement about a student's own training. Only the next sentence says it is something the employer attests, and nothing says the goals are the ones in Form I-983. For example: 'Duly reads this as one of the things the employer attests: that the training helps the student reach the training goals.'"
+   ]
+  },
+  {
+   "id": "stem.report_change_within_days",
+   "regime": null,
+   "issues": [
+    "[terms] Terms of art: 'report to the student's DSO', 'legal name', 'residential or mailing address', 'employer name, employer address', 'loss of employment'. From the note heading: 'approved 24-month OPT extension'. Kept: 'report', 'DSO', 'within 10 days of the change', 'legal name', 'mailing address', 'employer name'.",
+    "[terms] Changed: 'loss of employment' became 'loss of a job'. 'employment' is the OPT term, and 'job' narrows it.",
+    "[terms] Changed (low): 'residential or mailing address' became 'home or mailing address'.",
+    "[terms] Changed: 'students with an approved 24-month OPT extension' (from the note) became 'On a STEM extension'."
+   ]
+  },
+  {
+   "id": "capgap.october_start_condition",
+   "regime": null,
+   "issues": [
+    "[terms] Row: the 73 FR 18944 text, 2008 to 2016. Terms of art: 'states that', 'employment start date for the F-1 student', 'October 1 of the following fiscal year'. Kept: 'October 1', 'fiscal year'.",
+    "[terms] Changed: 'the employment start date for the F-1 student is October 1' became 'gave October 1 ... as its start date'. The date now reads as the petition's start date, and 'employment' and 'F-1 student' are dropped.",
+    "[terms] Added (low): 'cap-gap' is in neither the quote nor the note.",
+    "[terms] Row: the 81 FR 13040 text, 2016-05-10 to 2025-01-16. Terms of art: 'requests', 'H-1B employment start date', 'October 1 of the following fiscal year'. Kept: 'H-1B', 'October 1', 'fiscal year'.",
+    "[terms] Changed: 'an H-1B employment start date' became 'an H-1B start date'. 'employment' is dropped.",
+    "[terms] Added (low): 'cap-gap' is not in the quote.",
+    "[scope] Row identification: the row from 2008-04-08 to 2016-05-09, quoting 73 FR 18944.",
+    "[scope] Presents one condition as enough: \"the extension to October 1 reached a petition that gave October 1 of the next fiscal year as its start date\" takes the extension from the note but leaves out the other condition the note names, (1) \"Has been timely filed\". Read alone, a petition stating that date seems enough.",
+    "[scope] Term: \"states that the employment start date for the F-1 student is October 1\" becomes \"gave October 1 ... as its start date\", so \"employment\" and \"for the F-1 student\" are dropped.",
+    "[scope] Row identification: the row from 2016-05-10 to 2025-01-16, quoting 81 FR 13040.",
+    "[scope] Blocking, drops a limit: \"the extension to October 1 reached a petition that asked for ...\" takes the extension from the note but leaves out the note's limit that paragraph (A) names \"an H-1B petition subject to section 214(g)(1)(A) of the Act\". This is the same cap-subject limit fix5 required on capgap.end_month_day. It also leaves out condition (1) \"Has been timely filed\".",
+    "[scope] Term: \"requests an H-1B employment start date\" becomes \"asked for an H-1B start date\", so \"employment\" is dropped.",
+    "[scope] Drops a scope limit from the note: \"It was the rule until January 16, 2025\" leaves out that 89 FR 103054 \"will apply to petitions filed on or after that date\".",
+    "[reading] (Row: 73 FR 18944 words, 2008 to 2016.) [plainness] 'the extension to October 1 reached a petition that ...' is legal shorthand. 'reached' is not plain, and the plain words never say what was extended (duration of status and employment authorization).",
+    "[reading] [plainness] 'The rule had these words from 2008 to 2016' points to 'these words', but the exact words are one tap away and the student has not seen them. Say 'This was the rule from 2008 to 2016.'",
+    "[reading] [scope, minor] The quote is condition (2) only. The note says the extension also needed a timely filed petition, condition (1). 'reached a petition that gave October 1 ...' reads as if this start date alone decided the matter; 'one condition was that the petition gave ...' keeps it a condition.",
+    "[reading] (Row: 81 FR 13040 words, until 2025-01-16.) [plainness] 'the extension to October 1 reached a petition that asked for ...' is legal shorthand. 'reached' is not plain, and the plain words never say what was extended or that it was one condition among others.",
+    "[reading] [term, minor] 'an H-1B employment start date' becomes 'an H-1B start date'.",
+    "[reading] [scope, minor] 'It was the rule until January 16, 2025' is true of the text. But the note records that the April 1 rule applies only to petitions filed on or after 2025-01-17, and point 40 reads a petition filed earlier with the October 1 row. A student with such a petition could take this to mean the row no longer applies to them."
+   ]
+  }
+ ],
+ "rewrites": [
+  {
+   "id": "ds_2012",
+   "kind": "regime",
+   "regime": null,
+   "plain_terms": [],
+   "rewrite": "This is the rule that applies today. In it, duration of status is the time an F-1 student is pursuing a full course of study. The course is at an educational institution certified by SEVP for attendance by foreign students. It is also the time spent in authorized practical training following completion of studies.",
+   "why": "Restores the rule's words 'educational institution certified by SEVP for attendance by foreign students' (was 'a school SEVP has certified for foreign students') and 'following completion of studies' (was 'after study is completed'). The status line stays: plain-1 section 1 asks a regime to say its status today, and it rests on this regime being in effect while the paused order stands. Regime: the gate checks no terms.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'duration of status', 'full course of study', 'educational institution certified by SEVP for attendance by foreign students' and 'authorized practical training following completion of studies'. The status line is what plain-1 section 1 asks a regime to say. Adds nothing. terms_complete is true because the list does not apply here: regimes have additionalProperties:false and no plain_terms field in contracts/rulepack.schema.json, so [] is the only value allowed.",
+    "faithful: Entry 0. Matches the quote: duration of status, full course of study, educational institution certified by SEVP for attendance by foreign students, and authorized practical training following completion of studies are all kept. 'Applies today' is supported by the effective status and the note. Regimes have no plain_terms in contracts/rulepack.schema.json, so terms do not apply here. Gate passes (grade 8.9, 4 sentences)."
+   ]
+  },
+  {
+   "id": "fixed_admission_2026",
+   "kind": "regime",
+   "regime": null,
+   "plain_terms": [],
+   "rewrite": "A new final rule was published on July 17, 2026. On September 14, 2026, a federal court paused it while the case goes on, and put off the date it would start. The order says the defendants, such as the Department of Homeland Security, may take no further action to implement it until the court orders otherwise or rules on the merits of the case. The earlier rule applies today.",
+   "why": "Removes 'would set a fixed period of admission for students': it is in neither the quote nor the note, and it narrowed the rule's title. Now states the quoted paragraph 4: the defendants may take no further action to implement the rule. The note's case name grounds the Department of Homeland Security. The time limit stays with paragraph 4 and keeps 'on the merits' (was 'the case ends'). The postponement in paragraph 3, which only the note gives, is stated with no time limit. 'preliminarily enjoined' stays 'paused', as plain-1 sections 1 and 3 require. Plain-1 section 1 also asks the text to say what the rule would change. That needs the note to carry the order's paragraph 1(a) title word for word: 'Establishing a Fixed Time Period of Admission and an Extension of Stay Procedure for Nonimmigrant Academic Students, Exchange Visitors, and Representatives of Foreign Information Media'. The saved order (sources/mad-1-26-cv-13799-doc51-order.txt) shows that paragraph 3 carries the same time limit, and the note could record that too.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Matches paragraph 4 of the saved order (doc51): 'no further action to implement', with the limit 'pending further order ... or resolution ... on the merits' kept. 'Put off the date it would start' is paragraph 3, which the note grounds. DHS as a defendant is grounded in the note's case caption and in the order's paragraph 1(b). 'Paused' for 'preliminarily enjoined' is what plain-1 section 3 requires. It falls short of plain-1 section 1 in one way: it does not say what the new rule would change, because the note lacks the rule's title. The fix is to add the title from paragraph 1(a) to the note. That is a spec gap, not a meaning error. terms_complete: regimes can hold no plain_terms (schema).",
+    "faithful: Entry 1. Faithful to the order and the note: published 2026-07-17, paused on 2026-09-14 pending the case, effective date postponed (para 3 per the note), no further action to implement until further order or a ruling on the merits. DHS is a named defendant in the caption, so 'such as' is supported. Earlier rule applies today. Not a meaning error but a spec gap: plain-1 SPEC section 1 wants a regime to say what the new rule would change. The rewrite leaves that out because neither the quote nor the note states it, so the fix is to widen the note or quote, not the plain words. Regimes have no plain_terms. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.apply_before_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "properly file",
+    "Form I-765 or successor form",
+    "program end date"
+   ],
+   "rewrite": "A student may properly file Form I-765 or successor form up to 90 days prior to the program end date. The same words also set a last day to file after the program end date.",
+   "why": "Keeps 'properly file' and 'or successor form', and removes 'for OPT', which is not in the quote. The paragraph's own scope, 'For post-completion OPT, not including a 24-month OPT extension' (saved 2026-09-14 text), is in neither the quote nor the note. Widen the quote, or add those words to the note, and the plain words can then say 'post-completion OPT'. The 60-day close is litigated: the paused rule makes it 30, recorded under opt.apply_after_days under both regimes. So on this settled row the second sentence says the close exists and does not show 60 as settled.",
+   "verified": false,
+   "verifier_notes": [
+    "faithful: First sentence is the quote's own words. The second says the quote also sets a last day, without the 60. This is deliberate: the row sits under no regime, and the paused rule makes it 30. The limit is signposted, not dropped, and the exact words one tap away show 60. Adds nothing.",
+    "NOT faithful: Entry 2. The first sentence is faithful. The second, 'The same words also set a last day to file after the program end date', says there is a limit but drops its value: the quote says 'no later than 60 days after his or her program end date'. So it says less than the quote, and 'The same words' is meta-talk a student cannot follow without tapping. Fix: state the quote's 60 days, as the 2026-09-14 text does. Terms held. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.apply_after_days",
+   "kind": "rule",
+   "regime": "ds_2012",
+   "plain_terms": [
+    "properly file",
+    "Form I-765 or successor form",
+    "program end date"
+   ],
+   "rewrite": "Under the rule in force today, a student may properly file Form I-765 or successor form no later than 60 days after the program end date. The earliest day to file is 90 days prior to the program end date.",
+   "why": "Keeps 'properly file' and 'or successor form', and removes 'for OPT', which is not in the quote. As with opt.apply_before_days, 'For post-completion OPT, not including a 24-month OPT extension' needs to be in the quote or note before the plain words can name the kind of OPT.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: States 60 and 90 as the quote gives them. 'Earliest day to file is 90 days prior' matches 'up to 90 days prior'. The regime framing is correct.",
+    "faithful: Entry 3. Faithful: 60 days after, and 90 days prior as the earliest day, which is equivalent to 'up to 90 days prior'. 'Under the rule in force today' matches the regime. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.apply_after_days",
+   "kind": "rule",
+   "regime": "fixed_admission_2026",
+   "plain_terms": [
+    "properly file",
+    "Form I-765 or successor form",
+    "program end date"
+   ],
+   "rewrite": "Under the paused rule, a student could properly file Form I-765 or successor form no later than 30 days after the program end date. The earliest day to file would be 90 days prior to the program end date. A court has paused this rule, so it does not apply today.",
+   "why": "Keeps 'properly file' and 'or successor form', and removes 'for OPT' (not in the quote). Removes 'would move', which rested on the sibling row's note, and states only this quote's own 90 and 30. The paused-rule framing is unchanged.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The conditional 'could'/'would' fits a rule that is not operative. The 30 and 90 are this quote's own numbers. 'A court has paused this rule, so it does not apply today' rests on the note.",
+    "faithful: Entry 4. Faithful to the 2026-09-15 text: 30 days after, 90 prior. 'A court has paused this rule, so it does not apply today' comes from the note (Not operative, date postponed). Gate passes."
+   ]
+  },
+  {
+   "id": "opt.file_within_days_of_recommendation",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "must also file",
+    "Form I-765 or successor form",
+    "USCIS",
+    "DSO",
+    "recommendation for OPT",
+    "SEVIS record"
+   ],
+   "rewrite": "The student must also file Form I-765 or successor form with USCIS within 30 days. The days count from the date the DSO enters the recommendation for OPT into the student's SEVIS record.",
+   "why": "Restores 'or successor form', 'also', 'enters the recommendation for OPT' and 'SEVIS record' (was 'puts the OPT recommendation in SEVIS').",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps every element of the quote: 'must also file', 'or successor form', 'with USCIS', 30 days, 'enters the recommendation for OPT', 'SEVIS record'.",
+    "faithful: Entry 7. Faithful. Every term is kept, and the 30 days count from the date the DSO enters the recommendation for OPT into the SEVIS record. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.max_months",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "authorized 12 months of practical training",
+    "another 12 months of practical training",
+    "higher educational level"
+   ],
+   "rewrite": "A student may be authorized 12 months of practical training. The student can be authorized for another 12 months of practical training. That is on a change to a higher educational level.",
+   "why": "Restores 'higher educational level' and 'practical training' in the second clause. 'becomes eligible for' cannot be kept: the gate blocks 'qualif*' and 'eligib*' (copy_lint FORBIDDEN_PHRASES and boundary _CONCLUSION), so the rule's own word cannot appear. 'can be authorized for' follows the rule's own first clause and says eligibility, not receipt (was 'may get').",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: 'becomes eligible for' is rewritten as 'can be authorized for' because the gate blocks 'eligib*' (boundary _CONCLUSION and copy_lint FORBIDDEN_PHRASES). In this sentence the two mean the same, and the condition ('on a change to a higher educational level') stays attached. It cannot be listed in plain_terms. Minor: 'That is on a change ...' is awkward English; 'This follows a change to a higher educational level' reads better. Whether a gate-blocked term may be paraphrased is the founder decision the drafter flagged.",
+    "faithful: Entry 8. Faithful in meaning. 'becomes eligible for another 12 months' becomes 'can be authorized for another 12 months'. That change is forced: assistant/boundary.py _CONCLUSION bars 'eligible', so the term cannot be kept or listed in plain_terms. The gloss is accurate and the higher-educational-level condition is kept. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.complete_within_months",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "complete all practical training",
+    "14-month period",
+    "following the completion of study",
+    "24-month extension",
+    "(f)(10)(ii)(C)"
+   ],
+   "rewrite": "A student must complete all practical training within a 14-month period following the completion of study. There is one exception. A 24-month extension under paragraph (f)(10)(ii)(C) does not need to be completed within that 14-month period.",
+   "why": "Restores 'A student must complete all practical training' and 'following the completion of study', and restores the cross-reference that names the extension. Removes 'STEM', which is in neither the quote nor the note. The exception stays next to the 14 months.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps the 14-month limit, 'following the completion of study', and the exception for the 24-month extension under (f)(10)(ii)(C) right beside it. 'Under' for 'pursuant to' is fine.",
+    "faithful: Entry 9. Faithful. The 14-month period following the completion of study appears together with its one exception, the 24-month extension under (f)(10)(ii)(C). Gate passes."
+   ]
+  },
+  {
+   "id": "opt.post_completion_definition",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "Post-Completion OPT",
+    "portion of OPT",
+    "Program End Date"
+   ],
+   "rewrite": "SEVP's guidance says post-completion OPT is any portion of OPT used after the student's program end date. This is agency guidance, not a regulation.",
+   "why": "Restores 'portion of'. It stays labelled as guidance.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The guidance's own definition, labelled as guidance. The term check is case-insensitive, so 'post-completion OPT' matches.",
+    "faithful: Entry 10. Faithful to the SEVP definition and labelled as agency guidance. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.unemployment_limit_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "accrue an aggregate of",
+    "days of unemployment",
+    "post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)"
+   ],
+   "rewrite": "During any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B), a student may not accrue an aggregate of more than 90 days of unemployment. The days are added up over the whole period.",
+   "why": "Restores the cross-reference that limits the 90 days to the (c)(3)(i)(B) period, so the words cannot be read to reach the 24-month extension. Keeps 'accrue an aggregate of', and the second sentence says in plain words what 'aggregate' means.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'accrue an aggregate of' and the (c)(3)(i)(B) limit. 'The days are added up over the whole period' is a correct plain gloss of 'aggregate ... during any ... period' and adds nothing new.",
+    "faithful: Entry 11. Faithful, and the scope 'post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)' is kept. 'The days are added up over the whole period' is an accurate plain gloss of 'aggregate ... during any ... period'. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.unemployment_limit_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "accrue an aggregate of",
+    "days of unemployment",
+    "total OPT period",
+    "post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)",
+    "subsequent 24-month extension period"
+   ],
+   "rewrite": "Duly reads this as the limit for a 24-month extension: a student may not accrue an aggregate of more than 150 days of unemployment during a total OPT period. It takes in any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B) and any subsequent 24-month extension period.",
+   "why": "The quote has no subject, so the text no longer opens with a bare 'A student' next to the 90-day rule. Who the limit covers is marked as Duly's reading. It rests on the quote's 'subsequent 24-month extension period' and on the note's line about the earlier 17-month extension. Restores 'total OPT period', 'subsequent ... period' and the cross-reference, and removes 'STEM'. Recommended: widen the quote to its subject, 'Students granted a 24-month OPT extension under paragraph (f)(10)(ii)(C)(2) of this section' (saved 2026-09-14 text). The subject is then the rule's own words and the reading mark can go.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The quote has no subject, so saying who it covers is rightly marked as Duly's reading. That reading rests on the quote ('any subsequent 24-month extension period') and on the note's 17-month line. Keeps 'total OPT period', 'including', the cross-reference and 'subsequent'. The row's derivation is 'verbatim' while the plain words carry a reading mark. Widen the quote to its subject ('Students granted a 24-month OPT extension ...') so the mark can go.",
+    "faithful: Entry 12. The quote is a fragment with no subject. The rewrite marks 'the limit for a 24-month extension' as Duly's reading, which is correct: the regulation's subject is students granted a 24-month OPT extension, so a reading is not shown as the rule's words. All terms are kept. Caveat: the row's derivation is verbatim and its note does not record this reading, so the note should record it or the 'exact words' tap has no reading behind it. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.extension_months",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "24 months",
+    "completed all course requirements"
+   ],
+   "rewrite": "An extension will be for 24 months for the first degree that meets the rule's terms and for which the student has completed all course requirements. That is how Duly reads the rule's own word for such a degree.",
+   "why": "The sentence now sets the length for the first degree and no longer says every extension 'rests on' it. Removes 'STEM' and restores 'completed' (was 'done'). 'first qualifying degree' cannot be kept: the gate blocks 'qualif*' and 'eligib*' (copy_lint FORBIDDEN_PHRASES and boundary _CONCLUSION), so the rule's own word cannot appear. It is written as 'meets the rule's terms' and marked as Duly's reading. This needs a founder decision: let the gate accept 'qualif*' inside a kept term. The quote itself is short: in the saved text the sentence goes on '(excluding thesis or equivalent), including any qualifying degree as part of a dual degree program, subject to the requirement in paragraph (f)(10)(ii)(C)(3)'. Widen the quote so the plain words can keep the thesis exclusion.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: 'first qualifying degree' cannot be kept because the gate blocks 'qualif*'. 'first degree that meets the rule's terms' means the same and is marked as Duly's reading. The second sentence is unclear to a student: 'the rule's own word for such a degree' refers to a word the text never shows. This needs the founder decision the drafter flagged (let the gate accept a kept term). A quote defect, not the rewrite's: the quote stops before '(excluding thesis or equivalent)', which limits 'all course requirements'. Widen it.",
+    "faithful: Entry 13. The gate bars 'qualifying' (_CONCLUSION matches qualif\\w+), so 'first qualifying degree' cannot be kept. The rewrite glosses it as 'first degree that meets the rule's terms' and marks the gloss as Duly's reading. The meaning is kept. The marker 'the rule's own word for such a degree' refers to a word the student never sees, which is clumsy but not wrong. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.apply_before_expiry_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "90 days prior to",
+    "expiration date",
+    "current OPT employment authorization"
+   ],
+   "rewrite": "These words set a time: up to 90 days prior to the expiration date of the student's current OPT employment authorization. Duly reads this as the earliest time a student who meets the terms for an OPT extension may file for one. The quoted words do not name the filing or who may make it.",
+   "why": "Restores 'employment authorization' (was 'work permission'). The quote is a fragment, so the filing, and who may file, are marked as Duly's reading and keep the eligibility limit. Before, 'A student may file for the STEM extension' was stated as the rule. '24-month' cannot be written: 24 is not in this entry's quote, note or value (gate number check). Recommended: widen the quote to the saved sentence, 'A student meeting the eligibility requirements for a 24-month OPT extension under paragraph (f)(10)(ii)(C) of this section may request an extension of employment authorization by filing Form I-765 or successor form, with the required fee and supporting documents, up to 90 days prior to ...'. The reading mark can then go.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: The quote is only a time phrase. The rewrite adds, as Duly's reading, that it is when 'a student who meets the terms for an OPT extension may file for one'. Neither the quote nor the note backs that reading. The derivation is 'verbatim' and the note records no reading, so the note shown one tap away would not show it (plain-1 section 2; point 54: nothing from outside the quote). Fix: widen the quote to the whole (f)(11)(i)(C) sentence, as the drafter recommends, or record the reading in the note and set derivation to reading. The meta sentence 'The quoted words do not name the filing ...' is accurate but not calm, plain help.",
+    "faithful: Entry 14. The fragment is kept word for word. The reading, the earliest time to file for the extension, is marked as Duly's and matches engine/f1.py (stem.apply_window_opens = opt.ead_end minus these days). The rewrite also says the quote names no filing or filer, which is honest. Caveat: the derivation is verbatim and the note records no reading, so add it to the note. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.apply_window_closes_rule",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "apply for an extension of OPT",
+    "valid period of post-completion OPT",
+    "authorized under 8 CFR 274a.12(c)(3)(i)(B)"
+   ],
+   "rewrite": "A student who meets the rule's terms may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B). Duly reads this to mean the window ends on the end date shown on the employment authorization document, or later if cap-gap extends it.",
+   "why": "Restores the limit on who may apply and the cross-reference, and restores 'an extension of OPT' (was 'the STEM extension'). 'qualified' cannot be kept: the gate blocks 'qualif*' and 'eligib*' (copy_lint FORBIDDEN_PHRASES and boundary _CONCLUSION), so the rule's own word cannot appear. 'who meets the rule's terms' keeps the limit (founder decision as for stem.extension_months). The reading now uses the note's own term, 'employment authorization document' (was 'OPT card'). It carries the note's caveat that a period extended under cap-gap counts, so the window can close later.",
+   "verified": false,
+   "verifier_notes": [
+    "faithful: 'qualified student' is written as 'a student who meets the rule's terms' because the gate blocks 'qualif*'. It means the same and keeps the limit on who may apply. The reading matches the note: the window closes on the employment authorization document's end date, and can close later under cap-gap per the preamble. Minor: 'the window' has no antecedent; write 'the window to apply'. Unlike stem.extension_months, this paraphrase carries no reading mark; the two texts should treat it the same way.",
+    "NOT faithful: Entry 15. The reading 'the window ends on the end date shown on the employment authorization document, or later if cap-gap extends it' is presented as Duly's reading, but Duly does not compute the cap-gap part. engine/f1.py sets stem.apply_window_closes (and next.stem.apply_window_closes) to opt.ead_end with no cap-gap. The note gives the cap-gap point as the 81 FR 13040 preamble's explanation, and records Duly's reading as closing on the EAD expiration date. So the plain words describe a reading that differs from the date Duly shows, and they bring in preamble content. Fix: 'Duly reads this to mean the window closes on the end date of the OPT employment authorization document.' Also, 'a qualified student' becomes 'a student who meets the rule's terms' without a reading marker. That is forced by the gate's ban on qualif\\w+ and accurate, but entry 13 marks the same gloss. 'the window' also has no antecedent. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.file_within_days_of_recommendation",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "24-month OPT extension",
+    "properly file",
+    "Form I-765 or successor form",
+    "USCIS",
+    "DSO",
+    "recommendation for the OPT extension",
+    "SEVIS record"
+   ],
+   "rewrite": "A student seeking a 24-month OPT extension must properly file Form I-765 or successor form with USCIS. The filing is due within 60 days. The days count from the date the DSO enters the recommendation for the OPT extension into the student's SEVIS record.",
+   "why": "Restores the subject 'seeking a 24-month OPT extension', 'properly', 'or successor form', 'recommendation for the OPT extension' (was 'STEM recommendation') and 'SEVIS record'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'seeking a 24-month OPT extension', 'properly file', 'or successor form', 'with USCIS', 60 days, and 'enters the recommendation for the OPT extension into ... SEVIS record'.",
+    "faithful: Entry 16. Faithful: properly file Form I-765 or successor form with USCIS within 60 days, counted from the date the DSO enters the recommendation for the OPT extension into the SEVIS record. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.min_hours_per_week",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "engage in practical training",
+    "20 hours per week",
+    "leave-related policies",
+    "similarly situated U.S. workers in the area of employment"
+   ],
+   "rewrite": "On a 24-month extension, a student may not engage in practical training for less than 20 hours per week, not counting time off taken under the leave-related policies for the employer's similarly situated U.S. workers in the area of employment.",
+   "why": "Undoes the vetoed swap: restores 'similarly situated U.S. workers'. Restores 'in the area of employment' (was 'area of work') and 'leave-related policies' (was 'leave rules'). 'On a 24-month extension' rests on the note's heading. The text is one sentence because the gate's SENTENCE pattern ends a sentence at every period, so 'U.S.' counts as two extra sentences and '274a.12' as one, and a rule may have only three.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'similarly situated U.S. workers in the area of employment', 'leave-related policies' and the 20-hour floor. The time-off exclusion stays limited to leave-related policies. 'On a 24-month extension' comes from the heading in the note. 'Under ... for' in place of 'consistent with ... applicable to' keeps the meaning.",
+    "faithful: Entry 17. Faithful. 'On a 24-month extension' comes from the paragraph heading, as the note records. The time-off exclusion is limited to time off taken under the leave-related policies for the employer's similarly situated U.S. workers in the area of employment. 'consistent with' becomes 'under' and 'applicable to' becomes 'for', which are acceptable. Gate passes; its sentence counter splits on 'U.S.' but stays within 3."
+   ]
+  },
+  {
+   "id": "stem.validation_interval_months",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "validation report",
+    "information required by paragraph (f)(12)(ii)(A)",
+    "every six months"
+   ],
+   "rewrite": "A student with an approved 24-month OPT extension must complete a validation report every six months. The report confirms that some facts have not changed. Those facts are the information required by paragraph (f)(12)(ii)(A).",
+   "why": "Restores 'the information required by' (was 'the details named in') and 'OPT' from the note's heading. The paragraph number stays, because this note does not say what (f)(12)(ii)(A) requires. Recommended: record in the note that (f)(12)(ii)(A) lists legal name, residential or mailing address, employer name, employer address and loss of employment. The plain words can then name them.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'validation report', 'every six months' and 'the information required by paragraph (f)(12)(ii)(A)'. 'Approved 24-month OPT extension' comes from the heading in the note. Adds nothing.",
+    "faithful: Entry 18. Faithful. The scope (approved 24-month OPT extension) comes from the heading in the note, and 'every six months' and the (f)(12)(ii)(A) information are kept. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.evaluation_due_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "is responsible for ensuring the DSO receives",
+    "12-month evaluation",
+    "final evaluation",
+    "reporting period",
+    "practical training opportunity"
+   ],
+   "rewrite": "The student is responsible for ensuring the DSO receives the 12-month evaluation and the final evaluation. The 12-month one is due no more than 10 days past the end of the reporting period. The final one is due no more than 10 days past the end of the practical training opportunity.",
+   "why": "Leads with the student's duty, and no longer reads 'The DSO must get' as a duty on the DSO. Restores 'practical training opportunity' (was 'the training ends'), so the final evaluation's trigger is the end of one opportunity. The 'respectively' pairing is kept.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps the student's responsibility 'for ensuring the DSO receives', and the 'respectively' pairing: the 12-month evaluation goes with the reporting period, the final evaluation with the end of the practical training opportunity. 'Due no more than 10 days past the end' matches 'no later than 10 days following the conclusion'.",
+    "faithful: Entry 20. Faithful. The 'respectively' pairing is kept correctly: the 12-month evaluation goes with the end of the reporting period, the final one with the end of the practical training opportunity. Keeping 'is responsible for ensuring the DSO receives' preserves who the duty sits with. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.new_plan_due_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "new practical training opportunity with a new employer",
+    "24-month OPT extension",
+    "Form I-983 or successor form",
+    "new DSO recommendation"
+   ],
+   "rewrite": "This rule is for a student who starts a new practical training opportunity with a new employer during the 24-month OPT extension. Within 10 days of starting, the student must submit a new Form I-983 or successor form to the DSO. The student must then obtain a new DSO recommendation.",
+   "why": "The quote's condition stays a condition. Before, 'A student may begin training with a new employer' read as a permission. Restores 'new practical training opportunity', '24-month OPT extension', 'submit' and 'or successor form'. 'initiates' is written as 'starts'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The condition stays a condition ('This rule is for a student who starts a new practical training opportunity with a new employer during the 24-month OPT extension'). Keeps 10 days from starting, 'submit a new Form I-983 or successor form', and 'then obtain a new DSO recommendation'.",
+    "faithful: Entry 21. Faithful. The condition (new practical training opportunity with a new employer during the 24-month OPT extension) is kept, as are the 10 days from beginning, the new Form I-983 or successor form, and then a new DSO recommendation. Gate passes."
+   ]
+  },
+  {
+   "id": "cpt.full_time_months_bar",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "received one year or more of full time curricular practical training",
+    "post-completion academic training"
+   ],
+   "rewrite": "The rule says a student who has received one year or more of full time curricular practical training cannot have post-completion academic training. Duly reads that term as OPT after the program end date, and one year as 12 months. This is how Duly reads the rule, not its exact words.",
+   "why": "The reading now uses the note's own words, 'OPT after the program end date' (was 'OPT after study'). Restores 'received' (was 'had') and removes '(CPT)', which is not in the quote. 'ineligible for' cannot be kept: the gate blocks 'qualif*' and 'eligib*' (copy_lint FORBIDDEN_PHRASES and boundary _CONCLUSION), so the rule's own word cannot appear; it stays 'cannot have'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'received one year or more of full time curricular practical training' and 'post-completion academic training'. The reading (OPT after the program end date; one year as 12 months) uses the note's own words and is marked. 'Ineligible for' becomes 'cannot have' because the gate blocks 'ineligible'. It means the same and is covered by 'not its exact words'.",
+    "faithful: Entry 22. Faithful. Both terms of art are kept, and the readings (OPT after the program end date, one year as 12 months) are marked as Duly's, as in the note. 'are ineligible for' becomes 'cannot have', which is forced because the gate bars 'ineligible'. The gloss is accurate. Gate passes."
+   ]
+  },
+  {
+   "id": "grace.after_completion_days",
+   "kind": "rule",
+   "regime": "ds_2012",
+   "plain_terms": [
+    "F-1 student",
+    "completed a course of study",
+    "authorized practical training following completion of studies",
+    "the United States",
+    "(f)(8)"
+   ],
+   "rewrite": "Under the rule in force today, an F-1 student who has completed a course of study gets 60 more days. Any authorized practical training following completion of studies must be done first. The 60 days are to prepare to depart from the United States or to transfer under (f)(8).",
+   "why": "Restores 'authorized practical training following completion of studies' (was 'any approved training after it', the swap the review flagged). Restores the transfer limit 'under (f)(8)' and 'completed'. To stay within grade 9, 'will be allowed an additional 60-day period' is written as '60 more days' and 'prepare for departure from' as 'prepare to depart from'. The reviews rated both of these low.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: The split changes the rule's shape. In the quote, completing 'any authorized practical training following completion of studies' is part of who gets the 60 days. The rewrite first gives 60 days to any F-1 student who has completed a course of study, then adds 'Any authorized practical training ... must be done first'. That 'must' is a duty the quote does not state, and the first sentence is too broad on its own. The split is not forced. This passes the full gate at grade 8.88 with the same plain_terms: 'This is for an F-1 student who has completed a course of study and any authorized practical training following completion of studies. The rule in force today gives 60 more days. They are to prepare to depart from the United States or to transfer under (f)(8).'",
+    "NOT faithful, terms incomplete: Entry 23. The quote gives the period to a student 'who has completed a course of study and any authorized practical training following completion of studies'. The rewrite splits that condition. Sentence 1 attaches the 60 days to course completion alone. Sentence 2 turns the rest into an obligation the quote does not contain: 'Any authorized practical training ... must be done first.' It also replaces the rule's 'completed' with 'done'. Fix: one subject clause, 'an F-1 student who has completed a course of study and any authorized practical training following completion of studies gets 60 more days'. Terms: 'transfer', a term of art under (f)(8), is kept in the text but missing from plain_terms. Gate passes."
+   ]
+  },
+  {
+   "id": "grace.after_completion_days",
+   "kind": "rule",
+   "regime": "fixed_admission_2026",
+   "plain_terms": [
+    "F-1 student",
+    "completed a course of study",
+    "authorized practical training",
+    "program end date",
+    "4 year maximum period of admission",
+    "lawful status"
+   ],
+   "rewrite": "The paused rule would give an F-1 student who completed a course of study and any authorized practical training 30 more days. They would count from the program end date, the 4 year maximum period of admission, or when post-completion or STEM OPT ends. They are to leave the United States or seek to keep lawful status.",
+   "why": "Undoes the vetoed swap: restores '4 year maximum period of admission' (was 'stay'). Restores 'F-1', 'completed a course of study', 'authorized practical training', 'post-completion' (dropping it widened the start to any OPT) and 'the United States' (was 'the country'). To reach grade 9, some wording is plainer. 'additional 30-day period' is written as '30 more days'. 'the end date of the approved employment authorization for post-completion OPT or STEM OPT' is written as 'when post-completion or STEM OPT ends'. 'departure' is written as 'leave', 'otherwise seek to maintain' as 'seek to keep', and 'as applicable' is dropped. With every phrase kept, the best three-sentence text found scores grade 12.3 or more. 'The paused rule' carries the court line.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: Five defects. (1) 'or when post-completion or STEM OPT ends' replaces 'the end date of the approved employment authorization for post-completion OPT or STEM OPT'. The rule's trigger is the authorization's end date, not whenever OPT or the work ends. (2) 'as applicable' is dropped, so it no longer says the period runs from the one date that applies. (3) 'to prepare for departure from the United States' becomes 'They are to leave the United States'. That drops 'prepare for' and reads as a directive to leave. (4) 'maintain' becomes 'keep' and 'otherwise' is dropped. (5) The third sentence loses the conditional mood a paused rule needs. plain_terms lacks 'end date of the approved employment authorization', 'post-completion OPT or STEM OPT', 'as applicable', 'prepare for departure' and 'maintain lawful status'. The drafter reports no three-sentence text that keeps these reaches grade 9, so this needs a founder decision on grade or sentence count for this row.",
+    "NOT faithful, terms incomplete: Entry 24. Four departures from the quote. (1) 'the end date of the approved employment authorization for post-completion OPT or STEM OPT' becomes 'when post-completion or STEM OPT ends'; the authorization's end date is not the same as when OPT ends. (2) 'as applicable' is dropped, so the three start dates read as interchangeable. (3) 'to prepare for departure from the United States' becomes 'to leave the United States'; the period is to prepare for departure, not to leave. (4) 'otherwise seek to maintain lawful status' becomes 'seek to keep lawful status', which is minor. Missing from plain_terms: 'end date of the approved employment authorization', 'as applicable', 'prepare for departure', 'maintain lawful status'. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.min_hours_per_week",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "Post-Completion OPT",
+    "20 hours per week",
+    "full-time"
+   ],
+   "rewrite": "SEVP's guidance says post-completion OPT must be at least 20 hours per week or full-time. This is agency guidance, not a regulation.",
+   "why": "Only 'full time' changes back to the guidance's own 'full-time'. It stays labelled as guidance.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The guidance's words: 'at least 20 hours per week or full-time', labelled as guidance.",
+    "faithful: Entry 25. Faithful to the SEVP guidance and labelled as guidance. Gate passes."
+   ]
+  },
+  {
+   "id": "capgap.end_month_day",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "duration of status",
+    "employment authorization",
+    "F-1 student",
+    "beneficiary of an H-1B petition",
+    "request for change of status",
+    "automatically extended",
+    "October 1 of the fiscal year",
+    "H-1B visa"
+   ],
+   "rewrite": "Under the 2008 words, an F-1 student who was the beneficiary of an H-1B petition and of a request for change of status had the duration of status automatically extended. So was any employment authorization the rule names. Both ran until October 1 of the fiscal year for which the H-1B visa was being requested, if the petition met the conditions the rule lists next.",
+   "why": "Row with value 10-01. Restores 'beneficiary', 'request for change of status', 'automatically' and 'employment authorization' (was 'the work permission the rule named'). Removes 'cap-gap', which is in neither the quote nor the note. 'and of a request' is used because the gate reads the quote's own 'and request for' as an instruction. The cross-reference is written 'the rule names', as the 04-01 row's note does, and this note should carry the same line. GATE FAILS ON GRADE ONLY. No three-sentence text keeps these limits at grade 9. Even after dropping 'beneficiary' the best scores 10.4. This needs a founder decision: a higher grade or more sentences for this row, or a split. Separately, the row runs to 2025-01-16, but from 2016-05-10 the saved 81 FR 13040 text limits the extension to 'an H-1B petition subject to section 214(g)(1)(A) of the Act' and says 'H-1B status'. Split the row at 2016-05-10, as capgap.october_start_condition already is. 'Under the 2008 words' dates these words without claiming they ran to 2025.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: This is the 10-01 row (73 FR 18944). The meaning is faithful: it keeps beneficiary, request for change of status, 'automatically extended', October 1 of the fiscal year, 'H-1B visa' and the 'conditions the rule lists next'. 'The employment authorization the rule names' stands in for the (c)(3)(i)(B) and (C) cross-reference. Marked false because it cannot ship: gate reading grade 12.1 (max 9), and 366 characters against the schema's 320 maxLength for a parameter's plain. Needs a founder decision (grade or length for this row, or a split). This row's note should also carry the 04-01 row's line about 'the employment authorization the rule names'.",
+    "NOT faithful: This is the 04-01 row (89 FR 103054). The meaning is faithful and close to the quote: it restores 'subject to section 214(g)(1)(A) of the Act', 'automatically extended', April 1 of the fiscal year for which such H-1B status is being requested, 'validity start date of the approved petition' and 'whichever is earlier'. Marked false because it cannot ship: gate grade 14.6 (max 9), and 474 characters against the schema's 320 maxLength. Needs a founder decision.",
+    "NOT faithful: Entry 26 (October 1, 73 FR 18944 words). The meaning is faithful: the 2008 words, duration of status and the named employment authorization automatically extended to October 1 of the fiscal year for which the H-1B visa was requested, subject to the conditions that follow. But the real gate fails it: reading grade 12.1, the limit is 9. It cannot ship until it is shortened.",
+    "NOT faithful: Entry 27 (April 1). The meaning is faithful, near word for word, with the 214(g)(1)(A) scope, 'whichever is earlier' and the conditions that follow. But the real gate fails it: reading grade 14.6, the limit is 9. As written it is not plain words, and it cannot ship until it is simplified."
+   ]
+  },
+  {
+   "id": "capgap.end_month_day",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "duration of status",
+    "employment authorization",
+    "F-1 student",
+    "beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act",
+    "requesting a change of status",
+    "automatically extended",
+    "April 1 of the fiscal year for which such H-1B status is being requested",
+    "validity start date of the approved petition",
+    "whichever is earlier"
+   ],
+   "rewrite": "This covers an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act requesting a change of status. The duration of status and any employment authorization the rule names are automatically extended until April 1 of the fiscal year for which such H-1B status is being requested, or until the validity start date of the approved petition, whichever is earlier. This holds where the petition meets the conditions the rule lists next.",
+   "why": "Row with value 04-01. Undoes the vetoed drop: restores 'subject to section 214(g)(1)(A) of the Act'. Restores 'automatically', 'beneficiary', 'employment authorization' (the note's own 'the employment authorization the rule names'), 'such H-1B status is being requested' and 'validity start date of the approved petition'. Removes 'cap-gap'. GATE FAILS ON GRADE ONLY. No three-sentence text keeps these limits at grade 9. The most compact version that keeps the cap-subject limit and 'automatically', and drops 'beneficiary' and 'validity', still scores 11.7. Any passing text must drop the limit the review vetoed. This needs a founder decision: a higher grade or more sentences for this row. The row is in outputs today.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: This is the 10-01 row (73 FR 18944). The meaning is faithful: it keeps beneficiary, request for change of status, 'automatically extended', October 1 of the fiscal year, 'H-1B visa' and the 'conditions the rule lists next'. 'The employment authorization the rule names' stands in for the (c)(3)(i)(B) and (C) cross-reference. Marked false because it cannot ship: gate reading grade 12.1 (max 9), and 366 characters against the schema's 320 maxLength for a parameter's plain. Needs a founder decision (grade or length for this row, or a split). This row's note should also carry the 04-01 row's line about 'the employment authorization the rule names'.",
+    "NOT faithful: This is the 04-01 row (89 FR 103054). The meaning is faithful and close to the quote: it restores 'subject to section 214(g)(1)(A) of the Act', 'automatically extended', April 1 of the fiscal year for which such H-1B status is being requested, 'validity start date of the approved petition' and 'whichever is earlier'. Marked false because it cannot ship: gate grade 14.6 (max 9), and 474 characters against the schema's 320 maxLength. Needs a founder decision.",
+    "NOT faithful: Entry 26 (October 1, 73 FR 18944 words). The meaning is faithful: the 2008 words, duration of status and the named employment authorization automatically extended to October 1 of the fiscal year for which the H-1B visa was requested, subject to the conditions that follow. But the real gate fails it: reading grade 12.1, the limit is 9. It cannot ship until it is shortened.",
+    "NOT faithful: Entry 27 (April 1). The meaning is faithful, near word for word, with the 214(g)(1)(A) scope, 'whichever is earlier' and the conditions that follow. But the real gate fails it: reading grade 14.6, the limit is 9. As written it is not plain words, and it cannot ship until it is simplified."
+   ]
+  },
+  {
+   "id": "stem.evaluation_interval_months",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "STEM practical training opportunities",
+    "initial evaluation",
+    "approved starting date",
+    "24-month OPT extension"
+   ],
+   "rewrite": "All STEM practical training opportunities need an initial evaluation and a concluding one. The initial one is due within 12 months of the approved starting date. That date is the one on the document that was granted for the student's 24-month OPT extension.",
+   "why": "Restores 'practical', 'initial', 'concluding', 'approved starting date' and '24-month OPT extension' (was 'STEM work permit'). 'employment authorization document' is written as 'the document', as the note itself does ('the approved starting date on the document'). With the full term the text scores grade 9.5. It still states no repeating interval.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: 'The approved starting date on the employment authorization document' becomes 'the one on the document that was granted for the student's 24-month OPT extension'. That drops the term of art 'employment authorization document'. 'The document' is ambiguous: an approval notice or an I-20 also carries dates for the extension. This is like the vetoed drop of 'U.S.'. plain_terms should hold 'employment authorization document' (and 'concluding evaluation'). The drafter reports grade 9.5 with the full term, and variants tested here scored 9.95 to 12.2, so this needs a founder call.",
+    "NOT faithful, terms incomplete: Entry 28. 'the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application' becomes 'the one on the document that was granted for the student's 24-month OPT extension'. The term of art 'employment authorization document' is reduced to 'the document', and 'application' is dropped. That is the same kind of vaguer substitution that was vetoed for 'stay' in place of 'period of admission'. The initial and concluding evaluations and the 12 months are otherwise correct. plain_terms lacks 'employment authorization document' and 'concluding evaluation'. Gate passes."
+   ]
+  },
+  {
+   "id": "cpt.full_time_bar_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "received one year or more of full time curricular practical training",
+    "post-completion academic training"
+   ],
+   "rewrite": "The rule says a student who has received one year or more of full time curricular practical training cannot have post-completion academic training. Duly reads that term as OPT after the program end date, and one year as 365 days. This is how Duly reads the rule, not its exact words.",
+   "why": "Same fixes as cpt.full_time_months_bar: the reading uses the note's words, 'received' is restored and '(CPT)' is removed. 'ineligible' is blocked by the gate, so it stays 'cannot have'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Same as cpt.full_time_months_bar. The reading (OPT after the program end date; one year as 365 days) is the note's and is marked. 'Ineligible' becomes 'cannot have' because the gate blocks it; the meaning is the same.",
+    "faithful: Entry 29. Same as entry 22, with one year read as 365 days. The note records that as Duly's count, and the rewrite marks it as a reading. 'cannot have' replaces 'ineligible', which the gate bars, and is accurate. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.report_employer_within_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "While on OPT",
+    "report to the DSO within 10 days",
+    "name or address",
+    "employment information"
+   ],
+   "rewrite": "SEVP's guidance says that while on OPT, the student must report to the DSO within 10 days. This covers any changes in name or address, and employment information. It is agency guidance, not a regulation.",
+   "why": "Restores 'employment information' (was 'job details', which is narrower) and the guidance's 'name or address'. It stays labelled as guidance.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'while on OPT', 'report to the DSO within 10 days', 'name or address' and 'employment information' (not the narrower 'job details'). Labelled as guidance.",
+    "faithful: Entry 31. Faithful to the SEVP sentence, and it keeps the quote's own ambiguity ('name or address, and employment information'). Labelled as agency guidance. Gate passes."
+   ]
+  },
+  {
+   "id": "opt.report_interruption",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "F-1 student",
+    "granted employment authorization by USCIS",
+    "optional practical training",
+    "report",
+    "change of name or address",
+    "interruption of such employment"
+   ],
+   "rewrite": "An F-1 student who is granted employment authorization by USCIS for optional practical training must report to the DSO. The report is on any change of name or address, or interruption of such employment, for all the time the training lasts. The rule sets no number of days for this.",
+   "why": "Restores the trigger 'F-1 student who is granted employment authorization by USCIS', 'report' (was 'tell'), and 'interruption of such employment' (was 'any break in work'). To stay within grade 9, 'is required to report' is written 'must report' and 'for the duration of the optional practical training' is written 'for all the time the training lasts'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps the trigger (F-1 student granted employment authorization by USCIS for optional practical training), 'report', 'change of name or address, or interruption of such employment', and the duration. 'The rule sets no number of days' rests on the note.",
+    "faithful: Entry 32. Faithful: report to the DSO any change of name or address, or interruption of such employment, for the duration of the OPT. 'The rule sets no number of days' comes from the note. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.reporting_required",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "reporting requirements",
+    "required to maintain F-1 status"
+   ],
+   "rewrite": "A student with an approved 24-month OPT extension has more reporting duties. The rule lists them. It says meeting these reporting requirements is required to maintain F-1 status.",
+   "why": "'these' now has something to point to: the note's heading ('Additional reporting obligations for students with an approved 24-month OPT extension'). Restores 'reporting requirements', 'maintain' (was 'keep') and 'approved 24-month OPT'. 'Compliance' is blocked by the gate (copy_lint forbidden phrase), so it is written 'meeting'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: 'Compliance with' becomes 'meeting' because the gate blocks 'compliance'; the meaning is the same. 'These' gets its antecedent from the heading in the note (approved 24-month OPT extension). Keeps 'reporting requirements' and 'required to maintain F-1 status'.",
+    "faithful: Entry 33. Faithful. The scope (approved 24-month OPT extension, additional reporting obligations listed next) comes from the heading and preceding sentence given in the note. 'required to maintain F-1 status' is kept. Gate passes."
+   ]
+  },
+  {
+   "id": "calendar.federal_holidays_law",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "legal public holidays",
+    "Juneteenth National Independence Day"
+   ],
+   "rewrite": "The law lists eleven legal public holidays, including Juneteenth National Independence Day, June 19. This is how Duly reads the rule: these are the days that are not business days under 8 CFR 214.2(f), each on its own date and not on a day observed in its place.",
+   "why": "Row with eleven holidays, from 2021-06-17. Restores the statutory name 'Juneteenth National Independence Day'. The reading now says why the list matters (business days under 8 CFR 214.2(f), from the note) and what 'the day itself' rules out: the observed day.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: This is the row with eleven holidays, from 2021-06-17. Keeps 'legal public holidays' and the statutory name 'Juneteenth National Independence Day, June 19'. The reading (not business days under 8 CFR 214.2(f); each on its own date, not an observed day) is the note's and is marked.",
+    "faithful: This is the amendment-note row, ending 2021-06-16. The first sentence is the quote ('inserted the item for Juneteenth National Independence Day'), with the date from the note's source credit. The ten-holiday list and the 1986-01-01 lower bound are the note's reading and are marked. 'Duly skips those days on their own dates' matches the note (not observed days). At 320 characters it is exactly at the schema limit.",
+    "faithful: Entry 34 (current list). Faithful: eleven legal public holidays including Juneteenth National Independence Day, June 19. The business-days reading, on the day itself and not on observed days, is marked as Duly's and matches the note. Gate passes.",
+    "faithful: Entry 52 (amendment note, list before 2021-06-17). Faithful to the quote and the note: Pub. L. 117-17 of June 17, 2021 inserted Juneteenth. The ten-holiday list for 1986-01-01 to 2021-06-16 and the business-day use are marked as Duly's reading, as in the note. Every number is in the note. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires_post_completion_opt",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "Consistent with paragraph (f)(11)(i)(C)",
+    "apply for an extension of OPT",
+    "valid period of post-completion OPT",
+    "authorized under 8 CFR 274a.12(c)(3)(i)(B)"
+   ],
+   "rewrite": "Consistent with paragraph (f)(11)(i)(C), a student who meets the rule's terms may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B). This is how Duly reads the rule: the extension follows a period of post-completion OPT.",
+   "why": "Restores the limit on who may apply, 'an extension of OPT' (was 'the STEM extension'), the cross-reference and 'Consistent with paragraph (f)(11)(i)(C)'. 'qualified' cannot be kept: the gate blocks 'qualif*' and 'eligib*' (copy_lint FORBIDDEN_PHRASES and boundary _CONCLUSION), so the rule's own word cannot appear. It is written 'who meets the rule's terms', which needs the same founder decision as stem.apply_window_closes_rule.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'Consistent with paragraph (f)(11)(i)(C)', 'apply for an extension of OPT', 'valid period of post-completion OPT' and the cross-reference. 'Qualified student' becomes 'a student who meets the rule's terms' because the gate blocks it; the meaning is the same. The reading ('the extension follows a period of post-completion OPT') is the note's, word for word, and is marked.",
+    "faithful: Entry 35. Faithful. The reading (the extension follows a period of post-completion OPT) is marked, as in the note. 'a qualified student' becomes 'a student who meets the rule's terms'. That is forced by the gate's ban on qualif\\w+ and accurate, but it is unmarked, while entry 13 marks the same gloss; the founder may want these handled the same way. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.all_of_the_following",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "extension of post-completion OPT based upon a STEM degree",
+    "all of the following requirements must be met"
+   ],
+   "rewrite": "The rule lists the requirements for an extension of post-completion OPT based upon a STEM degree. All of the following requirements must be met.",
+   "why": "Restores 'extension of post-completion OPT based upon a STEM degree' (was 'a STEM extension of OPT'). 'In order to qualify for' is blocked by the gate ('qualif*'), so the first sentence says what the rule lists.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: 'In order to qualify for' becomes 'the requirements for' because the gate blocks 'qualif*'; the meaning is the same. Keeps 'extension of post-completion OPT based upon a STEM degree' and 'all of the following requirements must be met'.",
+    "faithful: Entry 36. Faithful. 'In order to qualify for' becomes 'the requirements for', which is forced by the gate and keeps the meaning. Both terms are kept. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.accreditation",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "the basis for the 24-month OPT extension",
+    "U.S. educational institution",
+    "accredited by an accrediting agency recognized by the Department of Education at the time of application"
+   ],
+   "rewrite": "Duly reads this as one of the things that must be met. The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution. It is accredited by an accrediting agency recognized by the Department of Education at the time of application.",
+   "why": "Undoes the vetoed swaps: restores 'U.S. educational institution' and 'recognized'. Restores 'accrediting agency' (was 'A group') and 'the basis for the 24-month OPT extension'. 'at the time of application' stays at the end, where the quote puts it, so the quote's open reading is not settled. The reading comes first. GATE FAILS ON SENTENCE COUNT (grade 7.6): the gate's SENTENCE pattern ends a sentence at every period, so 'U.S.' counts as two extra sentences and '274a.12' as one, so this text counts as five. With 'U.S.' kept, a one-sentence text passes the count but not the grade: 9.98 with 'accrediting agency', and 9.09 at best even with 'accrediting' dropped. If the gate counted 'U.S.' as one word, this text would have 3 sentences at grade 10.1. No text found keeps 'U.S. educational institution' and passes the gate in either form. This needs a founder decision: a small grade allowance for this row, or 'an educational institution in the United States', a phrase the review vetoed for this row.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: Restores the vetoed swaps ('U.S. educational institution', 'recognized') and keeps 'at the time of application' where the quote has it. Two defects. (1) Gate fail: the SENTENCE pattern splits 'U.S.', so this counts as 5 sentences (max 3), and 'That institution ...' in place of 'It' still counts 5. (2) In 'It is accredited by ...', 'It' most naturally points back to 'The degree', the subject of the sentence before. The quote makes the institution the accredited thing. Use 'That institution is accredited ...'. Needs the founder decision on how the gate counts 'U.S.' or a grade allowance.",
+    "NOT faithful: Entry 37. The real gate fails it: SENTENCE splits on 'U.S.', so it counts 5 sentences against a limit of 3. The meaning also slips. After 'The degree ... is from a U.S. educational institution.', the next sentence 'It is accredited by ...' most naturally makes the degree accredited, but the quote accredits the institution. Fix: one sentence, 'The degree ... is from a U.S. educational institution accredited by an accrediting agency recognized by the Department of Education at the time of application', with the reading marker kept. Terms held."
+   ]
+  },
+  {
+   "id": "stem.requires.dhs_approved_degree",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "the basis for the 24-month OPT extension",
+    "bachelor's, master's, or doctoral degree",
+    "the Secretary, or his or her designee",
+    "science, technology, engineering, or mathematics field"
+   ],
+   "rewrite": "Duly reads this as one of the things that must be met. The degree that is the basis for the 24-month OPT extension is a bachelor's, master's, or doctoral degree. Its field is one the Secretary, or his or her designee, has found to be within a science, technology, engineering, or mathematics field.",
+   "why": "The reading comes first, so the text is not first read as a statement about a student's own degree. Restores 'designee', the defined phrase 'science, technology, engineering, or mathematics field' (was 'STEM field') and 'the basis for the 24-month OPT extension'. 'to qualify within' is blocked by the gate ('qualif*'), so it is written 'to be within'. 'determined' is written 'found' to stay within grade 9. The note's last line ('the plain words say a person the Secretary names') must be updated.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: Keeps 'designee', the defined STEM-field phrase and the basis phrase. 'To qualify within' becomes 'to be within', which the gate forces and is fine. But 'determined by the Secretary' becomes 'has found'. That trades the regulation's word for an official determination for an everyday verb, the same kind of swap as the vetoed 'accepts' for 'recognized'. plain_terms lacks 'determined'. Keeping 'determined' scored 9.32 to 9.56 in the variants tried here, so this needs a founder call. Separately, the note's last line ('the plain words say a person the Secretary names') no longer matches the text and must change.",
+    "NOT faithful, terms incomplete: Entry 38. 'in a field determined by the Secretary, or his or her designee, to qualify within' becomes 'one the Secretary, or his or her designee, has found to be within'. Dropping 'qualify' is forced by the gate. Replacing 'determined' with 'found' is not forced: it swaps the regulation's word for the Secretary's formal act for a near-synonym, like the vetoed 'accepts' for 'recognized'. Fix: 'has determined to be within'. plain_terms should hold 'determined by the Secretary'. The reading marker is correct. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.degree_on_designated_list",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "DSO recommends a 24-month OPT extension",
+    "in SEVIS",
+    "the degree that is the basis for the application for the OPT extension",
+    "category on the STEM Designated Degree Program List"
+   ],
+   "rewrite": "This rule looks at the time the DSO recommends a 24-month OPT extension in SEVIS. At that time, the degree must be in a category on the STEM Designated Degree Program List. It is the degree that is the basis for the application for the OPT extension.",
+   "why": "Now says which extension ('a 24-month OPT extension') and which degree ('the basis for the application for the OPT extension'), both from the quote.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps the point in time (when the DSO recommends a 24-month OPT extension in SEVIS), 'must be ... in a category on the STEM Designated Degree Program List', and which degree. Dropping 'under this paragraph (f)(10)(ii)(C)' changes nothing, since that paragraph is the 24-month extension.",
+    "faithful: Entry 39. Faithful. The point in time (when the DSO recommends in SEVIS), the degree that is the basis for the application, and the category on the STEM Designated Degree Program List are all kept. Dropping 'under this paragraph (f)(10)(ii)(C)' is harmless. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.previously_obtained_degree",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "24-month OPT extension",
+    "degree obtained previous to",
+    "the period of post-completion OPT",
+    "conferred from a U.S. educational institution that is accredited and SEVP-certified",
+    "degree program category",
+    "current STEM Designated Degree Program List",
+    "within the 10 years preceding"
+   ],
+   "rewrite": "This rule is for a 24-month OPT extension based upon a degree obtained previous to the degree for the period of post-completion OPT. That earlier degree must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the DSO recommends the student for the extension. It must also be in a degree program category on the current STEM Designated Degree Program List at that time, and have been conferred within the 10 years preceding the DSO's recommendation.",
+   "why": "Undoes the vetoed drop: restores 'U.S. educational institution'. Restores 'conferred', 'degree program category' (was 'field'), the full list name and 'the period of post-completion OPT' (was 'OPT after study', the phrase Duly uses for its CPT reading). The quote's condition ('If ...') stays a condition, where before it read as a permission. Each time limit stays with the words it limits: the institution's status and the list both at the DSO recommendation, and the 10 years before it. GATE FAILS ON SENTENCE COUNT AND GRADE: the gate's SENTENCE pattern ends a sentence at every period, so 'U.S.' counts as two extra sentences and '274a.12' as one, so this text counts as five (grade 10.5). One real sentence cannot hold these limits at grade 9. If the gate counted 'U.S.' as one word, the best three-sentence text found would score 12.5. With 'U.S.' kept, no text passes. The founder decision is the same as for stem.requires.accreditation, and this row may need more sentences.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: The meaning is faithful: the 'If' condition, 'conferred from a U.S. educational institution that is accredited and SEVP-certified' at the DSO recommendation, the current STEM Designated Degree Program List at that time, and 'within the 10 years preceding'. It drops the cross-reference 'authorized under 8 CFR 274a.12(c)(3)(i)(B)', a minor loss. Marked false because it cannot ship: the gate counts 5 sentences (max 3) and grade 10.5 (max 9), and it is 503 characters against the schema's 320 maxLength. Needs a founder decision (more sentences, a length allowance, or a split).",
+    "NOT faithful, terms incomplete: Entry 40. The real gate fails it: 5 sentences counted (the splitter breaks on 'U.S.'), limit 3, and reading grade 10.5, limit 9. The meaning mostly holds (accredited and SEVP-certified at the time of the DSO recommendation, current list, 10 years preceding). But 'the degree that provided the basis for the period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)' is cut to 'the degree for the period of post-completion OPT', which drops 'provided the basis for' and the 274a.12 scope that other rows keep in plain_terms."
+   ]
+  },
+  {
+   "id": "stem.requires.eligible_practical_training_opportunity",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "STEM practical training opportunity that is the basis for the 24-month OPT extension",
+    "directly related to"
+   ],
+   "rewrite": "The rule looks at the STEM practical training opportunity that is the basis for the 24-month OPT extension. It must be directly related to a degree. That is the degree through which the student meets the terms for the extension.",
+   "why": "Fixes the meaning: the opportunity is the basis for the extension and must relate to the degree that qualifies the student. It no longer says the training is 'based on' a degree. Restores 'practical training opportunity that is the basis for the 24-month OPT extension'. 'qualifies' is blocked by the gate, so it is written 'meets the terms for' (founder decision as for stem.extension_months).",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'STEM practical training opportunity that is the basis for the 24-month OPT extension' and 'directly related to'. 'The degree that qualifies the student for such extension' becomes 'the degree through which the student meets the terms for the extension' because the gate blocks 'qualif*'; the meaning is the same. Minor: 'directly related to a degree' is indefinite until the next sentence narrows it.",
+    "faithful: Entry 41. Faithful. 'the degree that qualifies the student for such extension' becomes 'the degree through which the student meets the terms for the extension'. That is forced by the gate's ban on qualif\\w+ and accurate, though unmarked (compare entry 13). 'directly related to' is kept. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_qualification",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "enrolled in E-Verify",
+    "good standing",
+    "employer agent",
+    "EIN",
+    "used for tax purposes"
+   ],
+   "rewrite": "Duly reads this as one of the things to be met: the employer is enrolled in E-Verify and stays in good standing, as USCIS decides. The proof is a valid E-Verify Company ID number, or a Client Company ID number if it uses an employer agent. It must have an EIN used for tax purposes.",
+   "why": "Restores the two named numbers and the employer-agent condition, which before read as 'any E-Verify ID number'. 'Identification' is written 'ID': with the full names the text scores grade 11.3. The reading mark covers only the E-Verify sentence. The EIN sentence keeps its own 'must' and stands as the rule's words. To stay within grade 9, 'employer identification number (EIN)' is written 'EIN', 'as determined by USCIS' as 'as USCIS decides', 'The student's employer' as 'the employer' (9.04 otherwise), and 'to create its E-Verify cases' is dropped.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: It drops limits in three places. (1) 'valid' is dropped before the Client Company number: 'a valid E-Verify Company ID number, or a Client Company ID number'. (2) The condition 'using an employer agent to create its E-Verify cases' is cut to 'if it uses an employer agent', which widens it. (3) In 'It must have an EIN ...', 'It' follows 'The proof is ...' and so has no clear antecedent (the quote says 'An employer'). Also 'as determined by USCIS' becomes 'as USCIS decides', and 'employer identification number' is reduced to 'EIN'. plain_terms should hold 'valid E-Verify Client Company Identification number', 'to create its E-Verify cases', 'as determined by USCIS' and 'employer identification number'. A fix that restores 'valid' and the agent condition tested at grade 10.2 in three sentences, so this may need a founder call.",
+    "NOT faithful, terms incomplete: Entry 42. Drops limits. (1) 'if the employer is using an employer agent to create its E-Verify cases' becomes 'if it uses an employer agent', losing the purpose that narrows the condition. (2) 'a valid E-Verify Client Company Identification number' becomes 'a Client Company ID number', losing 'valid' and 'E-Verify'. (3) 'remains a participant in good standing with E-Verify, as determined by USCIS' becomes 'stays in good standing, as USCIS decides': good standing with what is lost, and 'determined' becomes 'decides'. (4) 'Company Identification number' becomes 'Company ID number'. The reading marker is correct. plain_terms lacks 'E-Verify Company Identification number', 'E-Verify Client Company Identification number', 'to create its E-Verify cases', 'participant in good standing with E-Verify', 'as determined by USCIS'. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_reporting",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "Form I-983",
+    "DSO at the student's school",
+    "departure",
+    "authorized period of OPT"
+   ],
+   "rewrite": "A student may not be authorized for employment under (f)(10)(ii)(C)(2) unless the student's employer agrees, by signing Form I-983, to report to the DSO at the student's school. It covers the student's departure, or the student being let go, before the authorized period of OPT ends. This is how Duly reads the rule.",
+   "why": "Restores the STEM scope 'under (f)(10)(ii)(C)(2)', 'authorized for employment' (was 'approved to work'), 'report', 'departure' and 'authorized period of OPT'. The reading mark is now the pack's plain form. 'termination' is blocked by the gate's alarm list ('terminat*'), so it is written 'the student being let go'. This needs a founder decision. To stay within grade 9, 'Training Plan for STEM OPT Students' and 'or successor form' are dropped and 'with an employer' is folded into 'the student's employer'.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: Keeps the (C)(2) scope, 'authorized for employment', 'report', 'DSO at the student's school', 'departure', the before-end-of-'authorized period of OPT' limit, and the reading mark. 'Termination' becomes 'the student being let go' because the gate's alarm list blocks 'terminat*'; the meaning is the same. The defect is that 'Form I-983 or successor form' is cut to 'Form I-983', which narrows the form the employer signs. Elsewhere the drafter restores that term as meaningful. plain_terms should list 'Form I-983 or successor form'. Keeping it scored 9.21 to 9.45 in the variants tried here, so this needs a founder call or an accepted exception.",
+    "NOT faithful, terms incomplete: Entry 43. 'Form I-983 or successor form' is cut to 'Form I-983', which narrows the quote's scope; every other row keeps 'or successor form'. 'termination' becomes 'being let go'; that is forced because the gate's ALARM list bars terminat\\w*, and the gloss is acceptable. The first part of the sentence, from the note, is marked as Duly's reading. plain_terms holds 'Form I-983' rather than the quote's 'Form I-983 or successor form'. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.training_plan",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "fully complete",
+    "Form I-983",
+    "requisite signatures",
+    "appropriate",
+    "employer's organization",
+    "before the DSO may recommend a 24-month OPT extension"
+   ],
+   "rewrite": "Before the DSO may recommend a 24-month OPT extension, a student must fully complete a Form I-983 for that student. The student must also get requisite signatures on it from an appropriate person in the employer's organization. This is to be done as the form instructions say.",
+   "why": "Restores '24-month OPT extension' (was 'STEM extension'), 'requisite signatures', 'appropriate' and 'employer's organization' (was 'the right person at the employer'). The last sentence's 'This' covers both steps, so the instruction clause is no longer tied to the signatures alone. To stay within grade 9, 'individualized' is written 'for that student', 'obtain' as 'get' and 'individual' as 'person', and 'or successor form' is dropped.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: Keeps 'fully complete', 'requisite signatures', 'appropriate', 'employer's organization', 'consistent with form instructions' (applied to both steps) and 'before the DSO may recommend a 24-month OPT extension'. 'For that student' is an acceptable plain form of 'individualized'. The defect is that 'Form I-983 or successor form' is cut to 'Form I-983', which says less than the quote. plain_terms should list 'Form I-983 or successor form'. Keeping it scored 9.32 to 9.33 in the variants tried here, so this needs a founder call.",
+    "NOT faithful, terms incomplete: Entry 44. 'an individualized Form I-983 or successor form' becomes 'a Form I-983 for that student', dropping 'or successor form', which narrows the scope. 'individualized' is glossed. Otherwise faithful: before the DSO may recommend, requisite signatures from an appropriate person in the employer's organization, per the form instructions. plain_terms should hold 'Form I-983 or successor form' and 'individualized'. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.duties_hours_and_compensation",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "terms and conditions",
+    "STEM practical training opportunity",
+    "24-month OPT extension",
+    "commensurate with",
+    "similarly situated U.S. workers in the area of employment"
+   ],
+   "rewrite": "On the 24-month OPT extension, the terms and conditions of a STEM practical training opportunity, such as duties, hours, and pay, must be commensurate with those of the employer's similarly situated U.S. workers in the area of employment.",
+   "why": "Restores 'terms and conditions', 'STEM practical training opportunity' and 'commensurate with', the paragraph's defined test (was 'in line with'). 'compensation' stays 'pay': the gate's SENTENCE pattern ends a sentence at every period, so 'U.S.' counts as two extra sentences and '274a.12' as one, so the text must be one sentence, and with 'compensation' the best one-sentence text scores 9.9.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful, terms incomplete: Restores 'terms and conditions', 'STEM practical training opportunity', 'commensurate with' and 'similarly situated U.S. workers in the area of employment'. But 'compensation' becomes 'pay', a narrower word: compensation covers more than wages, and the paragraph goes on to use 'compensation' as its test. This is like the narrowing swaps already undone ('loss of a job', 'job details'). plain_terms should hold 'compensation'. The drafter reports grade 9.9 with it, and 9.75 was tested here, so this needs a founder call.",
+    "NOT faithful, terms incomplete: Entry 45. 'compensation' becomes 'pay'. Compensation is the regulation's term of art, also in the paragraph heading and the I-983 disclosure, and it is broader than pay. Otherwise faithful, with 'commensurate with' and 'similarly situated U.S. workers in the area of employment' kept. plain_terms lacks 'duties, hours, and compensation'. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.self_evaluation",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "submits a self-evaluation",
+    "progress toward the training goals described in the Form I-983 or successor form"
+   ],
+   "rewrite": "A student may not be authorized for employment with an employer under paragraph (f)(10)(ii)(C)(2) unless the student submits a self-evaluation. It must show progress toward the training goals described in the Form I-983 or successor form. This is how Duly reads the rule.",
+   "why": "Restores the STEM scope 'under paragraph (f)(10)(ii)(C)(2)' from the note's lead-in (was a bar on any work for any employer), 'authorized for employment', 'submits' and 'or successor form'. The reading mark is now the pack's plain form, the same as stem.requires.employer_reporting.",
+   "verified": false,
+   "verifier_notes": [
+    "NOT faithful: 'Submits a self-evaluation of the student's progress toward the training goals' becomes 'submits a self-evaluation. It must show progress toward the training goals ...'. That adds a 'must' and turns an evaluation of progress into a requirement to show progress, which the quote does not say. This passes the full gate at grade 8.84: 'A student may not be authorized for employment with an employer under paragraph (f)(10)(ii)(C)(2) unless the student submits a self-evaluation. It is of the student's progress toward the training goals described in the Form I-983 or successor form. This is how Duly reads the rule.'",
+    "NOT faithful, terms incomplete: Entry 46. The quote requires 'a self-evaluation of the student's progress toward the training goals'. The rewrite says 'a self-evaluation. It must show progress toward the training goals ...', which adds a requirement that the evaluation show progress was made, where the quote only requires an evaluation of progress. Fix: 'unless the student submits a self-evaluation of the student's progress toward the training goals described in the Form I-983 or successor form'. plain_terms should hold 'self-evaluation of the student's progress' as one term. The reading marker for the first part of the sentence, taken from the note, is correct. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attestation",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "may only participate in a STEM practical training opportunity",
+    "the employer attests",
+    "including by signing the Form I-983 or successor form"
+   ],
+   "rewrite": "A student may only participate in a STEM practical training opportunity in which the employer attests to three things. The rule lists them next. The employer attests, including by signing the Form I-983 or successor form.",
+   "why": "Restores 'participate in a STEM practical training opportunity' and 'or successor form'. The text now says 'three things', from the note, so it stands on its own without 'the things listed next'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'may only participate in a STEM practical training opportunity', 'the employer attests' and 'including by signing the Form I-983 or successor form'. 'Three things' and 'the rule lists them next' rest on the note.",
+    "faithful: Entry 47. Faithful. 'three things' comes from the note ((10)(i) to (iii)), and all terms are kept. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attests_resources",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "resources",
+    "is prepared to provide appropriate training in connection with the specified opportunity",
+    "Form I-983 or successor form"
+   ],
+   "rewrite": "Duly reads this as one of the things the employer attests. The employer has enough resources and staff on hand. It is prepared to provide appropriate training in connection with the specified opportunity at the places named in the Form I-983 or successor form.",
+   "why": "The reading comes first. Restores 'is prepared to provide appropriate training in connection with the specified opportunity', which puts back the dropped limit and the readiness. 'sufficient ... personnel available' stays 'enough ... staff on hand' (rated low) to stay within grade 9.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The reading mark comes first. Keeps 'is prepared to provide appropriate training in connection with the specified opportunity' and 'Form I-983 or successor form'. 'Sufficient resources and personnel available' becomes 'enough resources and staff on hand', plain synonyms with no change of scope. 'At the places named in' for 'at the location(s) specified in' is fine.",
+    "faithful: Entry 48. Faithful. sufficient becomes enough, personnel becomes staff, available becomes on hand, and location(s) specified becomes places named; none is a term of art. The reading marker is correct. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attests_no_replacement",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "student on a STEM OPT extension",
+    "full- or part-time, temporary or permanent U.S. worker"
+   ],
+   "rewrite": "This is how Duly reads the rule, as one of the things the employer attests: the student on a STEM OPT extension will not replace a full- or part-time, temporary or permanent U.S. worker.",
+   "why": "Undoes the vetoed swap: restores 'U.S. worker'. Restores 'student on a STEM OPT extension' (was 'The STEM student'). The reading comes first. The text is one sentence because the gate's SENTENCE pattern ends a sentence at every period, so 'U.S.' counts as two extra sentences and '274a.12' as one.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The quote word for word after the reading mark, with 'U.S. worker' and 'student on a STEM OPT extension' restored.",
+    "faithful: Entry 49. Word for word with the reading marker. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.requires.employer_attests_training_goals",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "student's opportunity assists the student in reaching",
+    "training goals"
+   ],
+   "rewrite": "Duly reads this as one of the things the employer attests. The employer attests that the student's opportunity assists the student in reaching the student's training goals.",
+   "why": "The reading comes first, and the text is no longer a bare claim about a student's training. Restores 'The student's opportunity' (was 'The training') and 'assists ... in reaching'.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: The reading mark, then the quote's words: 'the student's opportunity assists the student in reaching the student's training goals'.",
+    "faithful: Entry 50. Faithful, with the reading marker. Gate passes."
+   ]
+  },
+  {
+   "id": "stem.report_change_within_days",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "report",
+    "within 10 days of the change",
+    "legal name",
+    "residential or mailing address",
+    "employer name, employer address",
+    "loss of employment"
+   ],
+   "rewrite": "A student with an approved 24-month OPT extension must report some changes to the student's DSO. These are a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment. Each report is due within 10 days of the change.",
+   "why": "Restores 'loss of employment' (was 'loss of a job', which is narrower), 'residential' and 'approved 24-month OPT extension' from the note's heading (was 'On a STEM extension').",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: Keeps 'legal name', 'residential or mailing address', 'employer name, employer address', 'and/or loss of employment', and 'within 10 days of the change'. The approved 24-month OPT extension scope comes from the heading in the note.",
+    "faithful: Entry 51. Faithful. The scope comes from the heading in the note, the full list of changes including 'and/or' is kept, and each report is due within 10 days of the change. Gate passes."
+   ]
+  },
+  {
+   "id": "calendar.federal_holidays_law",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "Juneteenth National Independence Day"
+   ],
+   "rewrite": "A law of June 17, 2021, Public Law 117-17, inserted the item for Juneteenth National Independence Day. This is how Duly reads the rule: from January 1, 1986 to June 16, 2021, the legal public holidays were the other ten on today's list. Duly skips those days on their own dates when it counts business days in that time.",
+   "why": "Row with ten holidays, ending 2021-06-16. The first sentence is now only what the quote says. The ten-holiday list is marked as Duly's reading (the note says it is read from the current list and the amendment notes), and it has the lower bound 1986-01-01 from the note. It is 'Public Law 117-17' because the gate counts each period in 'Pub. L.' as a sentence.",
+   "verified": true,
+   "verifier_notes": [
+    "faithful: This is the row with eleven holidays, from 2021-06-17. Keeps 'legal public holidays' and the statutory name 'Juneteenth National Independence Day, June 19'. The reading (not business days under 8 CFR 214.2(f); each on its own date, not an observed day) is the note's and is marked.",
+    "faithful: This is the amendment-note row, ending 2021-06-16. The first sentence is the quote ('inserted the item for Juneteenth National Independence Day'), with the date from the note's source credit. The ten-holiday list and the 1986-01-01 lower bound are the note's reading and are marked. 'Duly skips those days on their own dates' matches the note (not observed days). At 320 characters it is exactly at the schema limit.",
+    "faithful: Entry 34 (current list). Faithful: eleven legal public holidays including Juneteenth National Independence Day, June 19. The business-days reading, on the day itself and not on observed days, is marked as Duly's and matches the note. Gate passes.",
+    "faithful: Entry 52 (amendment note, list before 2021-06-17). Faithful to the quote and the note: Pub. L. 117-17 of June 17, 2021 inserted Juneteenth. The ten-holiday list for 1986-01-01 to 2021-06-16 and the business-day use are marked as Duly's reading, as in the note. Every number is in the note. Gate passes."
+   ]
+  },
+  {
+   "id": "capgap.october_start_condition",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "states that the employment start date for the F-1 student is October 1 of the following fiscal year"
+   ],
+   "rewrite": "From 2008 to 2016, the rule's extension to October 1 had two conditions for the petition. One was that it had been timely filed. The other was that it states that the employment start date for the F-1 student is October 1 of the following fiscal year.",
+   "why": "Row with the 73 FR 18944 text. The quote is now kept word for word, and condition (1), 'timely filed', comes from the note, so this condition is not shown as enough on its own. Removes 'reached' and 'these words'. Removes 'cap-gap', which is in neither the quote nor the note. The note does not say what the extension covers (duration of status and employment authorization), so the text does not either. The note could add it.",
+   "verified": false,
+   "verifier_notes": [
+    "faithful: This is the 73 FR 18944 row, 2008 to 2016. Condition (2) is word for word, and condition (1), 'timely filed', comes from the note, so (2) is not shown as enough on its own. 'Two conditions' matches the note's (1) and (2).",
+    "faithful: This is the 81 FR 13040 row, 2016 to 2025-01-16. Condition (2) is word for word. The cap-subject limit, condition (1) and the change for petitions filed from January 17, 2025 all come from the note. The context sentence is loose but not wrong: it says the rule 'extended status' where the note says status and employment authorization, and it does not name the F-1 student. 'Filed on time' stands for the note's 'timely filed', which the 2008 row keeps. Consider matching the 2008 row, with 'the rule's extension to October 1' and 'timely filed'. The variants tried here scored 9.55 or more.",
+    "faithful: Entry 53 (73 FR 18944 words). Faithful. The quote's condition (2) is kept word for word. Condition (1), timely filed, and the 2008 to 2016 span come from the note. Gate passes.",
+    "NOT faithful: Entry 54 (81 FR 13040 words). Condition (2) is kept word for word, and the 2025-01-17 change matches the note. But the context sentence is off. (1) 'the rule extended status to October 1 for an H-1B petition' makes 'status' read as the petition's. It is the F-1 student's duration of status, and the note says employment authorization is extended too, which is dropped. (2) 'timely filed', the rule's term, which entry 53 keeps, becomes 'filed on time'. Fix, for example: 'From 2016, the rule extended an F-1 student's status and employment authorization to October 1 where the H-1B petition subject to section 214(g)(1)(A) of the Act had been timely filed and ...'. Gate passes."
+   ]
+  },
+  {
+   "id": "capgap.october_start_condition",
+   "kind": "rule",
+   "regime": null,
+   "plain_terms": [
+    "requests an H-1B employment start date of October 1 of the following fiscal year"
+   ],
+   "rewrite": "From 2016, the rule extended status to October 1 for an H-1B petition subject to section 214(g)(1)(A) of the Act that was filed on time. It also had to be one that requests an H-1B employment start date of October 1 of the following fiscal year. This changed for petitions filed from January 17, 2025.",
+   "why": "Row with the 81 FR 13040 text. Adds the note's cap-subject limit ('subject to section 214(g)(1)(A) of the Act') and condition (1). Keeps the quote word for word, restoring 'employment'. Says the change applies to petitions filed from 2025-01-17, as the note records, so a petition filed earlier is not read out of this row. The note says status and employment authorization; 'and employment authorization' is left out to stay within grade 9. Removes 'cap-gap' and 'reached'.",
+   "verified": false,
+   "verifier_notes": [
+    "faithful: This is the 73 FR 18944 row, 2008 to 2016. Condition (2) is word for word, and condition (1), 'timely filed', comes from the note, so (2) is not shown as enough on its own. 'Two conditions' matches the note's (1) and (2).",
+    "faithful: This is the 81 FR 13040 row, 2016 to 2025-01-16. Condition (2) is word for word. The cap-subject limit, condition (1) and the change for petitions filed from January 17, 2025 all come from the note. The context sentence is loose but not wrong: it says the rule 'extended status' where the note says status and employment authorization, and it does not name the F-1 student. 'Filed on time' stands for the note's 'timely filed', which the 2008 row keeps. Consider matching the 2008 row, with 'the rule's extension to October 1' and 'timely filed'. The variants tried here scored 9.55 or more.",
+    "faithful: Entry 53 (73 FR 18944 words). Faithful. The quote's condition (2) is kept word for word. Condition (1), timely filed, and the 2008 to 2016 span come from the note. Gate passes.",
+    "NOT faithful: Entry 54 (81 FR 13040 words). Condition (2) is kept word for word, and the 2025-01-17 change matches the note. But the context sentence is off. (1) 'the rule extended status to October 1 for an H-1B petition' makes 'status' read as the petition's. It is the F-1 student's duration of status, and the note says employment authorization is extended too, which is dropped. (2) 'timely filed', the rule's term, which entry 53 keeps, becomes 'filed on time'. Fix, for example: 'From 2016, the rule extended an F-1 student's status and employment authorization to October 1 where the H-1B petition subject to section 214(g)(1)(A) of the Act had been timely filed and ...'. Gate passes."
+   ]
+  }
+ ]
+}
