@@ -6,9 +6,11 @@ duly_settings in its inputs. The engine reports dates and counts. It never says 
 they mean for the user.
 """
 
+import math
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import date, timedelta
+from itertools import pairwise
 from typing import Any
 
 from engine.clocks import Clock
@@ -20,7 +22,8 @@ from engine.verdict import VerdictInputs, decide
 # SPEC, "Rules of the house": from strongest to weakest.
 STATUS_ORDER = ("settled", "guidance", "school", "litigated", "proposed")
 
-OPEN_ITEM_ENDINGS = ("_due", "file_by", "window_closes")
+# The final evaluation kept its place among the open items when its name changed.
+OPEN_ITEM_ENDINGS = ("_due", "_due_from_ead_end", "file_by", "window_closes")
 CAP_GAP_ACTIVE = ("pending", "approved")
 
 # Duly's own choices, in contracts/product_settings.yaml.
@@ -32,6 +35,9 @@ HOLIDAYS_LAW = "calendar.federal_holidays_law"
 CPT_BAR = "cpt.full_time_bar_days"
 FISCAL_YEAR_START = "capgap.fiscal_year_start_month_day"
 REPORT_EMPLOYER = "opt.report_employer_within_days"
+STEM_WINDOW_CLOSES = "stem.apply_window_closes_rule"
+
+ONE_DAY = timedelta(days=1)
 
 Value = date | int | None
 Values = Mapping[str, Any]
@@ -88,24 +94,33 @@ def _ead_block(raw: Any) -> EadBlock | None:
     )
 
 
+def _finite(raw: Any, name: str) -> Any:
+    """NaN and the infinities pass every comparison in the contract, so they stop here."""
+    if isinstance(raw, float) and not math.isfinite(raw):
+        raise ValueError(f"{name}: the value sent is not a number")
+    return raw
+
+
 def parse_case(raw: dict[str, Any]) -> F1Case:
-    """A case that matches contracts/case_f1.schema.json, as frozen dataclasses."""
+    """A case that matches contracts/case_f1.schema.json, as frozen dataclasses.
+
+    Raises ValueError for a number that is NaN, Infinity or -Infinity."""
     cap_gap = raw.get("cap_gap")
     return F1Case(
         program_end_date=date.fromisoformat(raw["program_end_date"]),
         degree_level=raw["degree_level"],
-        documents_count=raw["documents_count"],
-        cpt_full_time_days=raw.get("cpt_full_time_days", 0),
+        documents_count=_finite(raw["documents_count"], "documents_count"),
+        cpt_full_time_days=_finite(raw.get("cpt_full_time_days", 0), "cpt_full_time_days"),
         opt=_ead_block(raw.get("opt")),
         stem=_ead_block(raw.get("stem")),
         employment=tuple(
             EmploymentPeriod(
                 start=date.fromisoformat(p["start"]),
                 end=_date(p["end"]),
-                hours_per_week=p["hours_per_week"],
+                hours_per_week=_finite(p["hours_per_week"], f"employment_{number}_hours_per_week"),
                 employer_reported=p["employer_reported"],
             )
-            for p in raw["employment"]
+            for number, p in enumerate(raw["employment"], start=1)
         ),
         cap_gap=None
         if cap_gap is None
@@ -170,6 +185,23 @@ class _Working:
     def whole_rule(self, rule_id: str) -> int:
         """The operative value of a rule that decides which items there are."""
         return _whole({rule_id: self._rule(rule_id)["value"]}, rule_id)
+
+    def holds(self, rule_id: str) -> bool:
+        """Whether the pack has the rule in force today."""
+        return self.pack.value(rule_id, self.today) is not None
+
+    def _operative(self, parameters: list[dict[str, Any]]) -> dict[str, Any]:
+        """The regime whose value the item shows, with its legal status from the pack."""
+        named = {p["regime"] for p in parameters if "regime" in p}
+        held = [
+            regime
+            for regime in self.pack.regimes
+            if regime["operative"] and (not named or regime["id"] in named)
+        ]
+        if len(held) != 1:
+            rules = ", ".join(p["id"] for p in parameters)
+            raise RulepackError(f"{rules}: the engine needs one operative regime for the value")
+        return {"regime": held[0]["id"], "legal_status": held[0]["legal_status"]}
 
     def _rule(self, rule_id: str) -> dict[str, Any]:
         found = self.pack.value(rule_id, self.today)
@@ -256,6 +288,7 @@ class _Working:
         alternates = self._alternates(rule_ids, guarded)
         if alternates:
             item["alternates"] = alternates
+            item["operative"] = self._operative(parameters)
         self.computed.append(item)
         if isinstance(value, date):
             self.dated[item_id] = value
@@ -263,32 +296,40 @@ class _Working:
             self.numbers[item_id] = value
 
 
-def _count_days(
-    case: F1Case, opt: EadBlock, today: date, opt_min: float, stem_min: float
-) -> tuple[int, int] | None:
-    """Days used and days under hours, or None when the window cannot be known."""
+Piece = tuple[date, int, float | None]
+
+
+def _pieces(case: F1Case, opt: EadBlock, today: date) -> list[Piece] | None:
+    """The counting window cut into pieces within which nothing changes: the first day
+    of the piece, its length in days, and the most hours among the periods that cover
+    it, None when no period does. None when the window cannot be known.
+
+    The work grows with the number of periods, never with the length of the window."""
     blocks = [opt] if case.stem is None else [opt, case.stem]
-    ends = [block.ead_end for block in blocks]
+    ends = [block.ead_end for block in blocks if block.ead_end is not None]
     stem_start = None if case.stem is None else case.stem.ead_start
-    if opt.ead_start is None or None in ends or (case.stem is not None and stem_start is None):
+    first = opt.ead_start
+    if first is None or len(ends) < len(blocks) or (case.stem is not None and stem_start is None):
         return None
-    last = min(today, max(end for end in ends if end is not None))
-    used = 0
-    under = 0
-    day = opt.ead_start
-    while day <= last:
-        threshold = stem_min if stem_start is not None and day >= stem_start else opt_min
-        hours = [
-            p.hours_per_week
-            for p in case.employment
-            if p.start <= day <= (today if p.end is None else p.end)
-        ]
-        if not hours:
-            used += 1
-        elif max(hours) < threshold:
-            under += 1
-        day += timedelta(days=1)
-    return used, under
+    last = min(today, max(ends))
+    if last < first:
+        return []
+    periods = [
+        (p.start, today if p.end is None else p.end, p.hours_per_week) for p in case.employment
+    ]
+    cuts = {first, last + ONE_DAY}
+    if stem_start is not None and first < stem_start <= last:
+        cuts.add(stem_start)
+    for start, end, _ in periods:
+        if first < start <= last:
+            cuts.add(start)
+        if first <= end < last:
+            cuts.add(end + ONE_DAY)
+    found: list[Piece] = []
+    for begin, after in pairwise(sorted(cuts)):
+        hours = [h for start, end, h in periods if start <= begin <= end]
+        found.append((begin, (after - begin).days, max(hours, default=None)))
+    return found
 
 
 def _employment_shown(case: F1Case) -> list[dict[str, Any]]:
@@ -313,14 +354,16 @@ def _add_program_items(work: _Working, case: F1Case) -> None:
         ("opt.apply_before_days",),
         lambda v: end - timedelta(days=_whole(v, "opt.apply_before_days")),
     )
-    for item_id in ("opt.apply_window_closes", "opt.latest_start"):
-        work.add(
-            item_id,
-            "date",
-            inputs,
-            ("opt.apply_after_days",),
-            lambda v: end + timedelta(days=_whole(v, "opt.apply_after_days")),
-        )
+
+    def days_after(rule_id: str) -> Callable[[Values], Value]:
+        return lambda v: end + timedelta(days=_whole(v, rule_id))
+
+    # The filing window and the start date each have a paragraph of their own.
+    for item_id, rule_id in (
+        ("opt.apply_window_closes", "opt.apply_after_days"),
+        ("opt.latest_start", "opt.latest_start_after_days"),
+    ):
+        work.add(item_id, "date", inputs, (rule_id,), days_after(rule_id))
     work.add(
         "opt.complete_by",
         "date",
@@ -344,35 +387,46 @@ def _add_file_by(work: _Working, part: str, block: EadBlock) -> None:
     )
 
 
-def _add_counts(work: _Working, case: F1Case, opt: EadBlock) -> None:
+def _add_counts(work: _Working, case: F1Case, conflicts: tuple[str, ...]) -> None:
     today = work.today
-    stem = case.stem
-    on_stem = stem is not None and stem.ead_start is not None and today >= stem.ead_start
+    opt, stem = case.opt, case.stem
+    stem_start = None if stem is None else stem.ead_start
+    on_stem = stem_start is not None and today >= stem_start
     limit_rule = "stem.unemployment_limit_days" if on_stem else "opt.unemployment_limit_days"
     hours_rules: tuple[str, ...] = ("opt.min_hours_per_week",)
-    window: dict[str, Any] = {"opt.ead_start": opt.ead_start, "opt.ead_end": opt.ead_end}
+    # Without the OPT block the window has no first day, and the block itself is named.
+    window: dict[str, Any] = (
+        {"opt": None}
+        if opt is None
+        else {"opt.ead_start": opt.ead_start, "opt.ead_end": opt.ead_end}
+    )
     if stem is not None:
         hours_rules = (*hours_rules, "stem.min_hours_per_week")
         window |= {"stem.ead_start": stem.ead_start, "stem.ead_end": stem.ead_end}
     counting_inputs = {**window, "today": today, "employment": _employment_shown(case)}
 
-    def counts(v: Values) -> tuple[int, int] | None:
-        opt_min = _number(v, "opt.min_hours_per_week")
-        stem_min = _number(v, "stem.min_hours_per_week") if stem is not None else opt_min
-        return _count_days(case, opt, today, opt_min, stem_min)
+    # Dates that conflict give no window to count in. The conflict is in the verdict.
+    pieces = None if opt is None or conflicts else _pieces(case, opt, today)
 
     # Days used do not turn on the hours rules: a day is used when no period covers it.
-    found = _count_days(case, opt, today, 0, 0)
-    used = None if found is None else found[0]
+    used = None if pieces is None else sum(days for _, days, hours in pieces if hours is None)
 
     def under_hours(v: Values) -> int | None:
-        counted = counts(v)
-        return None if counted is None else counted[1]
+        if pieces is None:
+            return None
+        opt_min = _number(v, "opt.min_hours_per_week")
+        stem_min = _number(v, "stem.min_hours_per_week") if stem is not None else opt_min
+        return sum(
+            days
+            for begin, days, hours in pieces
+            if hours is not None
+            and hours < (stem_min if stem_start is not None and begin >= stem_start else opt_min)
+        )
 
     work.add(
         "unemployment.limit",
         "days",
-        {"stem.ead_start": None if stem is None else stem.ead_start, "today": today},
+        {"stem.ead_start": stem_start, "today": today},
         (limit_rule,),
         lambda v: _whole(v, limit_rule),
     )
@@ -433,24 +487,28 @@ def _validation_reports(work: _Working, extension: str, interval: str) -> Iterat
 
 
 def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> None:
-    if opt is not None:
-        opt_end = opt.ead_end
-        before = "stem.apply_before_expiry_days"
-        work.add(
-            "stem.apply_window_opens",
-            "date",
-            {"opt.ead_end": opt_end},
-            (before,),
-            lambda v: None if opt_end is None else opt_end - timedelta(days=_whole(v, before)),
-            needs=("opt.ead_end",),
-        )
+    # The window is set by the end of OPT. Without the OPT block the block is named.
+    opt_end = None if opt is None else opt.ead_end
+    needed = "opt" if opt is None else "opt.ead_end"
+    before = "stem.apply_before_expiry_days"
+    work.add(
+        "stem.apply_window_opens",
+        "date",
+        {needed: opt_end},
+        (before,),
+        lambda v: None if opt_end is None else opt_end - timedelta(days=_whole(v, before)),
+        needs=(needed,),
+    )
+    # A pack whose source does not state the closing leaves the rule out, and the item
+    # is left out with it.
+    if work.holds(STEM_WINDOW_CLOSES):
         work.add(
             "stem.apply_window_closes",
             "date",
-            {"opt.ead_end": opt_end},
-            (before,),
+            {needed: opt_end},
+            (STEM_WINDOW_CLOSES,),
             lambda v: opt_end,
-            needs=("opt.ead_end",),
+            needs=(needed,),
         )
     _add_file_by(work, "stem", stem)
 
@@ -493,7 +551,7 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
         needs=("stem.ead_start",),
     )
     work.add(
-        "stem.final_evaluation_due",
+        "stem.final_evaluation_due_from_ead_end",
         "date",
         {"stem.ead_end": end},
         (due,),
@@ -600,10 +658,14 @@ def compute_f1(
     today = clock.today()
     work = _Working(pack, today, load_settings() if settings is None else settings)
 
+    conflicts = _conflicts(case, work.setting(OPT_START_LOOKBACK))
+
     _add_program_items(work, case)
     if case.opt is not None:
         _add_file_by(work, "opt", case.opt)
-        _add_counts(work, case, case.opt)
+    # The counts are wanted as soon as anything about work after the program is entered.
+    if case.opt is not None or case.stem is not None or case.cap_gap is not None or case.employment:
+        _add_counts(work, case, conflicts)
     final_end, ends = _final_end(case)
     grace = "grace.after_completion_days"
     work.add(
@@ -630,7 +692,7 @@ def compute_f1(
         VerdictInputs(
             documents_count=case.documents_count,
             missing_inputs=tuple(work.missing),
-            conflicting_inputs=_conflicts(case, work.setting(OPT_START_LOOKBACK)),
+            conflicting_inputs=conflicts,
             rules_checked_on=pack.rules_checked_on,
             depends_on_litigated_rule=today > final_end,
             judgement_items=_judgement_items(work, case),

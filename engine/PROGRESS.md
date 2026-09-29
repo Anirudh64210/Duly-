@@ -207,3 +207,94 @@ More readings:
   Fix: read pytest's own exit code (`${pipestatus[1]}` in zsh). Exit 5 means nothing
   was collected.
   Evidence: "pytest exit 5" in this worktree.
+
+## Iteration 3, 2026-09-29: answers to the phase 2 review
+
+Work for findings 1, 2, 4, 5 and 7 in specs/phase-2/SPEC-fixes.md. Only engine/f1.py
+changed.
+
+### What was written
+
+| Finding | What changed in engine/f1.py |
+|---|---|
+| 1 | The counts are added when any of opt, stem, cap_gap, or an employment period is entered. With no OPT block their value is null, their inputs hold `opt: null`, and `opt` is named as missing. The STEM filing window items are shown the same way when OPT is absent |
+| 2 | `parse_case` raises ValueError for NaN, Infinity and -Infinity in documents_count, cpt_full_time_days, and hours_per_week of any period |
+| 4 | `_pieces` cuts the window where a period starts, the day after one ends, and at stem.ead_start, and counts whole pieces. No loop over days is left. When the inputs conflict the counts are null and nothing is counted |
+| 5 | opt.latest_start reads opt.latest_start_after_days. stem.apply_window_closes names stem.apply_window_closes_rule and is left out when the pack has no such rule in force. stem.final_evaluation_due is now stem.final_evaluation_due_from_ead_end |
+| 7 | Every item with `alternates` carries `operative`: the regime id and its legal_status as the pack has them |
+
+### What ran and what it printed
+
+- Before: 57 failed in tests/unit/engine (47 in test_f1_fixes.py, 7 in test_f1.py, 3 in
+  test_f1_sourcing.py). The gate, mypy and ruff passed.
+- After, the done command, run as written with no pipe: pytest exit 0, every engine test
+  passed, `engine literals: every number has a source`, mypy `no issues found in 34
+  source files`, ruff check passed, 8 files already formatted, exit 0.
+- `uv run python -m tools.copy_lint.lint` : copy lint: clean.
+- Shipped pack by hand, clock at 2026-09-28. The reviewer's case from "Dates checked by
+  hand": all thirteen values as in the review, days_used 42. opt.latest_start names
+  opt.latest_start_after_days and shows the alternate 2024-06-16. The three items with
+  alternates carry `operative` ds_2012, effective. The reviewer's input for finding 1:
+  verdict cannot_tell, reasons `missing:opt`, the three counts null, stem.file_by
+  2026-05-31, grace.ends 2028-07-30.
+- `uv run pytest tests/unit -q`: 7 failed, all in tests/unit/api/test_compute_fixes.py.
+  They wait for L-api. See the requests below.
+- Not run: the hidden tests. `uv run pytest tests/holdout -q --tb=no` collected nothing
+  in this worktree (exit 5). I did not open the directory.
+
+### Test disputes
+
+None.
+
+### Decisions where the SPEC is open
+
+Numbers follow the questions in tests/PROGRESS.md.
+
+| # | Question | What the engine does | Why |
+|---|---|---|---|
+| 25 | What a missing OPT block is called | `opt`, once. The dates inside it are not named one by one | The SPEC says `missing_inputs` names `opt` |
+| 26 | Counts when OPT is absent | Shown, with a null value | The reviewer noted that no count item came back. A null with the input named says why |
+| 27 | Counts when the inputs conflict | Shown, with a null value. Nothing is named as missing; the conflict is in the verdict | A count over dates that conflict is not an item the engine can give |
+| 28 | The renamed item as an open item | Still an open item inside the look-ahead. `_due_from_ead_end` is in OPEN_ITEM_ENDINGS, and the item lists product.open_item_lookahead_days | The rename changed a name. Dropping the item from the open items would make the verdict quieter, which no line of the SPEC asks for |
+| 29 | stem.apply_window_closes_rule set to false | Nothing changes. The flag is cited, not read as a switch. A pack without the rule in force leaves the item out | Same reading as question 20 |
+| 30 | Dates outside 1950 through 2099, or a 51st period, in `parse_case` | Not refused. The SPEC asks this of the api | The engine no longer walks days, so a wide window costs nothing. A last day of 9999-12-31 with a clock on that day would still overflow |
+| 32 | `operative` on an item without alternates | Absent | The contract says "present with alternates" |
+
+More readings:
+
+- Employment entered with no OPT, no STEM and no cap-gap names `opt` as missing. The
+  SPEC names only the STEM and cap-gap cases. The general rule covers this one: the
+  counts would need the OPT dates. A case with none of the four has nothing missing.
+- Which regime is `operative` for an item. The regimes named on the operative rows of
+  the item's rules. When no row names a regime, the operative regimes of the pack. If
+  that is not exactly one regime the engine raises RulepackError, since the contract
+  holds one.
+- An employment period whose end is before its start covers no day, as in the day by
+  day count.
+
+### Requests for files this lane does not own
+
+- api/ (L-api): `parse_case` now raises ValueError for NaN and the infinities. Until the
+  api refuses them at the door, that error reaches the handler. The 7 failures in
+  tests/unit/api/test_compute_fixes.py are this and the event loop.
+- web/ (L-web): the item id stem.final_evaluation_due is now
+  stem.final_evaluation_due_from_ead_end, and items with alternates carry `operative`.
+  Counts and the STEM filing window can be null with `opt` among the inputs.
+- specs/phase-2/SPEC-fixes.md: questions 27 and 28, and employment entered with no OPT,
+  each need a line.
+- tests/ (L-tests): no test covers question 28 (the final evaluation inside the
+  look-ahead), a pack with two operative regimes, or employment with no OPT.
+
+## Lesson
+
+- Failure: mypy printed "Cannot infer type of lambda" for a lambda in a loop that bound
+  the loop variable as a default argument.
+  Fix: a small function that takes the rule id and returns the formula.
+  Evidence: engine/f1.py, `days_after` in `_add_program_items`; mypy then printed "no
+  issues found in 34 source files".
+- Failure: none seen, but close. Renaming an item whose id ended in `_due` would have
+  taken it out of the open items without any test failing.
+  Fix: when an item id changes, read OPEN_ITEM_ENDINGS and every other place that reads
+  the id by its ending.
+  Evidence: no test in tests/unit/engine fails with `_due_from_ead_end` removed from
+  OPEN_ITEM_ENDINGS; question 28 in tests/PROGRESS.md.
