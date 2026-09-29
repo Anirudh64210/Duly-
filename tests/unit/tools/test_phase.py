@@ -386,7 +386,9 @@ def test_two_orchestrators_cannot_share_a_branch(tmp_path):
         repo,
         pid=os.getpid(),
     )
-    done = orchestrate(repo, {"DULY_NO_NOTIFY": "1"})
+    # The stand-in agent, so the claim is what refuses and not the login check: CI runs
+    # on a machine with no Claude login.
+    done = orchestrate(repo, {"DULY_NO_NOTIFY": "1", **mini.scenario(tmp_path, [])})
     assert done.returncode == 1
     assert "already claimed" in done.stdout
 
