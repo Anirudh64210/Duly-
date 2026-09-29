@@ -51,7 +51,14 @@ def plan_file(repo: Path, rounds: list[dict], **extra) -> Path:
     path = repo / "plan.yaml"
     path.write_text(
         yaml.safe_dump(
-            {"branch": "phase-x", "spec": "README.md", "merge": "local", "rounds": rounds, **extra}
+            {
+                "branch": "phase-x",
+                "spec": "README.md",
+                "merge": "local",
+                "audited": False,
+                "rounds": rounds,
+                **extra,
+            }
         )
     )
     mini.git(repo, "checkout", "-q", "phase-x")
@@ -359,7 +366,7 @@ def test_a_merge_conflict_is_reported_and_leaves_the_branch_clean(tmp_path, monk
 )
 def test_a_bad_plan_is_refused(tmp_path, change, problem):
     repo = mini.build(tmp_path)
-    plan = {"branch": "phase-x", "spec": "README.md", "rounds": [], **change}
+    plan = {"branch": "phase-x", "spec": "README.md", "audited": False, "rounds": [], **change}
     path = tmp_path / "p.yaml"
     path.write_text(yaml.safe_dump(plan))
     with pytest.raises(phase.PlanError, match=problem):
@@ -501,3 +508,15 @@ def test_nothing_reaches_the_phase_branch_when_ci_fails(tmp_path):
     assert mini.git(repo, "rev-parse", "phase-x") == before
     assert any("clean CI did not pass" in row["message"] for row in ledger.read(repo))
     assert (repo / "engine" / "new.py").exists()  # the work waits on the working branch
+
+
+def test_a_plan_must_end_with_an_audit(tmp_path):
+    repo = mini.build(tmp_path)
+    rounds = [{"name": "A", "lanes": [job("L-engine", "builder", "true")]}]
+    path = tmp_path / "p.yaml"
+    path.write_text(yaml.safe_dump({"branch": "phase-x", "spec": "README.md", "rounds": rounds}))
+    with pytest.raises(phase.PlanError, match="no audit"):
+        phase.load_plan(path, repo)
+    rounds.append({"name": "Z", "lanes": [job("L-audit", "auditor", "true")]})
+    path.write_text(yaml.safe_dump({"branch": "phase-x", "spec": "README.md", "rounds": rounds}))
+    assert phase.load_plan(path, repo)["rounds"][-1]["name"] == "Z"

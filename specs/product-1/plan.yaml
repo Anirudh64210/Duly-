@@ -79,3 +79,18 @@ rounds:
           reviews/product-1.md and reviews/REVIEW.json.
         done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1.md && test -f reviews/REVIEW.json'
     checks: []
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit product round 1 as your role file describes. The SPEC is
+          specs/product-1/SPEC.md. It was written before SPECs had to name what they cover,
+          so find the rows of the register it touches yourself: the verdict, questions and
+          conflicts, what comes next, readings, and the founder's notes B1 to B7 and D41.
+          Write docs/requirements/audits/product-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register build
+          && uv run python -m tools.requirements.register check'
+    checks: []

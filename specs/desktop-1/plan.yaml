@@ -1,6 +1,7 @@
 branch: desktop-1
 spec: specs/desktop-1/SPEC.md
 merge: pr
+audited: false   # written before every plan had to end with an audit
 rounds:
   - name: shell
     lanes:
