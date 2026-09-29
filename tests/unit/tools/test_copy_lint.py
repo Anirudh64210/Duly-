@@ -1,3 +1,5 @@
+import subprocess
+
 from tools.copy_lint.lint import lint
 
 LONG_DASH = chr(0x2014)
@@ -68,3 +70,18 @@ def test_research_notes_and_prototype_are_skipped(tmp_path):
     write(tmp_path, "docs/research/notes/a.md", f"quoted {LONG_DASH} source\n")
     write(tmp_path, "workbook-handoff/prototype/p.html", f"<p>{LONG_DASH}</p>\n")
     assert lint(tmp_path) == []
+
+
+def test_what_git_ignores_is_not_read_so_a_second_run_finds_what_the_first_did(tmp_path):
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    write(tmp_path, "desktop/.gitignore", "coverage\n")
+    write(tmp_path, "desktop/coverage/lcov-report/prettify.js", "var sealed = 1;\n")
+    write(tmp_path, "desktop/src/a.tsx", f"<p>{LONG_DASH}</p>\n")  # untracked, not ignored
+    assert rules(tmp_path) == {("desktop/src/a.tsx", "dash")}
+
+
+def test_a_folder_inside_a_repository_is_walked_whole(tmp_path):
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    write(tmp_path, ".gitignore", "scratch\n")
+    write(tmp_path, "scratch/copy/web/src/a.tsx", f"<p>{LONG_DASH}</p>\n")
+    assert rules(tmp_path / "scratch" / "copy") == {("web/src/a.tsx", "dash")}
