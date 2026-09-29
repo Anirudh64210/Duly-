@@ -42,3 +42,11 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 
 - Added opt.latest_start_after_days, 60 days under ds_2012 and 30 days under fixed_admission_2026, litigated, from 8 CFR 214.2(f)(11)(i)(D).
 - Added stem.apply_window_closes_rule, true, settled, from the opening text of 8 CFR 214.2(f)(10)(ii)(C). Paragraph (f)(11)(i)(C) states the opening of the window and no closing. The source states a condition and names no date.
+
+### 2026-09-29, lane L-content, context round, drafted for founder review
+
+- Every rule now carries derivation. Each quote was read again in its saved source before it was marked. No value and no quote changed.
+- Verbatim, 25 rows: every row not named below.
+- Reading, 5 rows, each with a note that begins with how the value was read: cpt.full_time_months_bar, cpt.full_time_bar_days, stem.apply_window_closes_rule, capgap.fiscal_year_start_month_day, calendar.federal_holidays_law.
+- Added stem.requires_post_completion_opt, true, flag, settled, a reading, from the first sentence of 8 CFR 214.2(f)(10)(ii)(C). The words are may apply while in a valid period of post-completion OPT; the regulation does not use the word only.
+- No rule was removed. No new source was fetched.

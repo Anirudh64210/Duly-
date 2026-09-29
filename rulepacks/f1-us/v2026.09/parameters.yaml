@@ -39,6 +39,7 @@ parameters:
       quote: "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps 90 days."
   - id: opt.apply_after_days
     value: 60
@@ -53,6 +54,7 @@ parameters:
       quote: "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The SPEC listed this rule as settled with no regime. The final rule at 91 FR 44976 changes 60 to 30 in this paragraph and in (f)(11)(i)(D), so it is recorded under both regimes."
   - id: opt.apply_after_days
     value: 30
@@ -67,6 +69,7 @@ parameters:
       quote: "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 30 days after his or her program end date"
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
+    derivation: verbatim
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime."
   - id: opt.latest_start_after_days
     value: 60
@@ -81,6 +84,7 @@ parameters:
       quote: "A student may not request a start date that is more than 60 days after the student's program end date."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which has the same sentence. Words checked in the 2026-09-14 text. The final rule at 91 FR 44976 replaces 60 with 30 in this sentence, so the rule is recorded under both regimes. The next sentence of the paragraph says employment authorization will begin on the date requested or the date the employment authorization is adjudicated, whichever is later; this row limits the date a student may request, not the date the authorization begins."
   - id: opt.latest_start_after_days
     value: 30
@@ -95,6 +99,7 @@ parameters:
       quote: "A student may not request a start date that is more than 30 days after the student's program end date."
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
+    derivation: verbatim
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. The preamble of that rule says DHS replaced 60 with 30 in 8 CFR 214.2(f)(11)(i)(D). A court postponed the effective date on 2026-09-14; see the regime."
   - id: opt.file_within_days_of_recommendation
     value: 30
@@ -108,6 +113,7 @@ parameters:
       quote: "The student must also file his or her Form I-765 or successor form with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps 30 days."
   - id: opt.max_months
     value: 12
@@ -121,6 +127,7 @@ parameters:
       quote: "A student may be authorized 12 months of practical training, and becomes eligible for another 12 months of practical training when they change to a higher educational level."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text."
   - id: opt.complete_within_months
     value: 14
@@ -134,6 +141,7 @@ parameters:
       quote: "A student must complete all practical training within a 14-month period following the completion of study"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text. The same sentence excepts the 24-month extension under (f)(10)(ii)(C)."
   - id: opt.unemployment_limit_days
     value: 90
@@ -147,6 +155,7 @@ parameters:
       quote: "Students may not accrue an aggregate of more than 90 days of unemployment during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text."
   - id: stem.unemployment_limit_days
     value: 150
@@ -160,6 +169,7 @@ parameters:
       quote: "may not accrue an aggregate of more than 150 days of unemployment during a total OPT period, including any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B) and any subsequent 24-month extension period"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The limit for the earlier 17-month extension was a different number and is not recorded in this pack."
   - id: stem.extension_months
     value: 24
@@ -173,6 +183,7 @@ parameters:
       quote: "An extension will be for 24 months for the first qualifying degree for which the student has completed all course requirements"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: stem.apply_before_expiry_days
     value: 90
@@ -186,6 +197,7 @@ parameters:
       quote: "up to 90 days prior to the expiration date of the student's current OPT employment authorization"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: stem.apply_window_closes_rule
     value: true
@@ -199,7 +211,8 @@ parameters:
       quote: "a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
-    note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text; the 2026-09-15 text has the same words, so the rule sits under no regime. The SPEC pointed to (f)(11)(i)(C). That paragraph states only the opening of the window, up to 90 days prior to the expiration date of the current OPT employment authorization, and states no closing. The closing is in the opening text of (f)(10)(ii)(C), quoted here, which begins with the words Consistent with paragraph (f)(11)(i)(C) of this section. The regulation states the closing as a condition, while in a valid period of post-completion OPT, and names no date. The preamble of 81 FR 13040 says a student may file only if the student is in a valid period of post-completion OPT at the time of filing, and that a period extended under cap-gap is a valid period. So the window can close later than the expiration date on the employment authorization document. That the window closes on that expiration date is a reading, not the words of the source."
+    derivation: reading
+    note: "Reading: the regulation says a qualified student may apply while in a valid period of post-completion OPT, and Duly reads those words as the closing of the filing window. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text; the 2026-09-15 text has the same words, so the rule sits under no regime. The SPEC pointed to (f)(11)(i)(C). That paragraph states only the opening of the window, up to 90 days prior to the expiration date of the current OPT employment authorization, and states no closing. The closing is in the opening text of (f)(10)(ii)(C), quoted here, which begins with the words Consistent with paragraph (f)(11)(i)(C) of this section. The regulation states the closing as a condition, while in a valid period of post-completion OPT, and names no date. The preamble of 81 FR 13040 says a student may file only if the student is in a valid period of post-completion OPT at the time of filing, and that a period extended under cap-gap is a valid period. So the window can close later than the expiration date on the employment authorization document. That the window closes on that expiration date is a reading, not the words of the source."
   - id: stem.file_within_days_of_recommendation
     value: 60
     unit: days
@@ -212,6 +225,7 @@ parameters:
       quote: "The student seeking such 24-month OPT extension must properly file his or her Form I-765 or successor form with USCIS within 60 days of the date the DSO enters the recommendation for the OPT extension into his or her SEVIS record."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: stem.min_hours_per_week
     value: 20
@@ -225,6 +239,7 @@ parameters:
       quote: "A student may not engage in practical training for less than 20 hours per week, excluding time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: stem.validation_interval_months
     value: 6
@@ -238,6 +253,7 @@ parameters:
       quote: "The student must complete a validation report, confirming that the information required by paragraph (f)(12)(ii)(A) of this section has not changed, every six months."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The source writes the number as the word six. The same paragraph says the requirement starts on the date the 24-month OPT extension begins."
   - id: stem.validation_due_business_days
     value: 10
@@ -251,6 +267,7 @@ parameters:
       quote: "The validation report is due to the student's DSO within 10 business days of each reporting date."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: stem.evaluation_due_days
     value: 10
@@ -264,6 +281,7 @@ parameters:
       quote: "no later than 10 days following the conclusion of the reporting period or conclusion of his or her practical training opportunity, respectively"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: stem.new_plan_due_days
     value: 10
@@ -277,6 +295,7 @@ parameters:
       quote: "the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
   - id: cpt.full_time_months_bar
     value: 12
@@ -290,7 +309,8 @@ parameters:
       quote: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
-    note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text. The source says one year, not 12 months. The pack has no unit for years, so one year is recorded as 12 months. The source says post-completion academic training; it does not use the words optional practical training in this sentence."
+    derivation: reading
+    note: "Reading: the regulation says one year or more, and the pack holds one year as 12 months. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text. The source says one year, not 12 months. The pack has no unit for years, so one year is recorded as 12 months. The source says post-completion academic training; it does not use the words optional practical training in this sentence."
   - id: grace.after_completion_days
     value: 60
     unit: days
@@ -304,6 +324,7 @@ parameters:
       quote: "will be allowed an additional 60-day period to prepare for departure from the United States or to transfer in accordance with paragraph (f)(8) of this section"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text."
   - id: grace.after_completion_days
     value: 30
@@ -318,6 +339,7 @@ parameters:
       quote: "An F-1 student who has completed a course of study and any authorized practical training will be allowed an additional 30-day period from the program end date or the 4 year maximum period of admission, or the end date of the approved employment authorization for post-completion OPT or STEM OPT, as applicable, to prepare for departure from the United States"
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
+    derivation: verbatim
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime. The SPEC pointed to (f)(5); the paragraph in the 2026-09-15 text is (f)(5)(v)."
   - id: opt.min_hours_per_week
     value: 20
@@ -331,6 +353,7 @@ parameters:
       quote: "Post-Completion OPT: Any portion of OPT used after the student's Program End Date. It must be at least 20 hours per week or full-time."
       snapshot: sources/sits-f1-opt-2026-09-28.html
       snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+    derivation: verbatim
     note: "Agency guidance, not regulation. Start date from SEVP Policy Guidance 1004-03 of 2010-04-23, section 7.2.1, which says a student must work at least 20 hours per week in a qualifying position to be considered employed. Saved as sources/ice-sevp-policy-guidance-1004-03.pdf, with extracted text beside it, from https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf."
   - id: capgap.end_month_day
     value: "10-01"
@@ -345,6 +368,7 @@ parameters:
       quote: "shall be automatically extended until October 1 of the fiscal year for which such H-1B visa is being requested"
       snapshot: sources/fr-e8-7427.xml
       snapshot_sha256: dbfc074987138fe7e80be4f0a47c6810fb03a4bb1a49ffa7e8a53a8ba35698ea
+    derivation: verbatim
     note: "Closed row. Not in the SPEC table; added so the change to April 1 closes the old value. Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08. 81 FR 13040, saved as sources/fr-2016-04828.xml, also carries October 1."
   - id: capgap.end_month_day
     value: "04-01"
@@ -358,6 +382,7 @@ parameters:
       quote: "will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps April 1 and moves the paragraph to (f)(5)(vii)(A)."
   - id: stem.evaluation_interval_months
     value: 12
@@ -371,6 +396,7 @@ parameters:
       quote: "All STEM practical training opportunities require an initial evaluation within 12 months of the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application, and a concluding evaluation."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text. The 2026-09-15 text has the same words. The regulation does not state a repeating interval. It names two evaluations: one within 12 months of the approved starting date on the employment authorization document, and one at the conclusion. The word annual appears in the preamble of 81 FR 13040, not in the regulation. The 12 months run from the approved starting date on the document, for each practical training opportunity."
   - id: cpt.full_time_bar_days
     value: 365
@@ -384,7 +410,8 @@ parameters:
       quote: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
-    note: "The regulation says one year or more. It states no number of days, and 365 appears nowhere in the source. The count in days is how schools apply the rule, so the value is tagged school and is not the words of the law. A school may count differently, for example across a leap year. The regulation is quoted to show what the law does say. Start date as for cpt.full_time_months_bar. The 2026-09-15 text has the same words."
+    derivation: reading
+    note: "Reading: the regulation says one year or more and states no number of days; 365 is one year counted in days, the way a school may count it. The regulation says one year or more. It states no number of days, and 365 appears nowhere in the source. The count in days is how schools apply the rule, so the value is tagged school and is not the words of the law. A school may count differently, for example across a leap year. The regulation is quoted to show what the law does say. Start date as for cpt.full_time_months_bar. The 2026-09-15 text has the same words."
   - id: capgap.fiscal_year_start_month_day
     value: "10-01"
     unit: date
@@ -397,7 +424,8 @@ parameters:
       quote: "The fiscal year of the Treasury begins on October 1 of each year and ends on September 30 of the following year."
       snapshot: sources/usc-31-1102-2026-09-28.htm
       snapshot_sha256: c8513d7d62a8ebbafae9889d40461c3de7b0847fce597f281cbc5aac07a8da5d
-    note: "Start date is the date of Pub. L. 97-258, 1982-09-13, named in the source credit of the saved copy, which enacted title 31 in this form. The October 1 start is older than that. The statute speaks of the fiscal year of the Treasury. The cap-gap paragraph, 8 CFR 214.2(f)(5)(vi)(A) in the 2026-09-14 text, says fiscal year and does not define it or name a start date. That the fiscal year in the cap-gap paragraph is the one in 31 U.S.C. 1102 is a reading, not the words of either source. The saved copy of 81 FR 13040 says in a footnote that an approved change to H-1B status takes effect on October 1. The 2026-09-15 text moves the cap-gap paragraph to (f)(5)(vii)(A) and keeps the words fiscal year."
+    derivation: reading
+    note: "Reading: the statute says the fiscal year of the Treasury begins on October 1, and Duly reads the fiscal year named in the cap-gap paragraph as that fiscal year. Start date is the date of Pub. L. 97-258, 1982-09-13, named in the source credit of the saved copy, which enacted title 31 in this form. The October 1 start is older than that. The statute speaks of the fiscal year of the Treasury. The cap-gap paragraph, 8 CFR 214.2(f)(5)(vi)(A) in the 2026-09-14 text, says fiscal year and does not define it or name a start date. That the fiscal year in the cap-gap paragraph is the one in 31 U.S.C. 1102 is a reading, not the words of either source. The saved copy of 81 FR 13040 says in a footnote that an approved change to H-1B status takes effect on October 1. The 2026-09-15 text moves the cap-gap paragraph to (f)(5)(vii)(A) and keeps the words fiscal year."
   - id: opt.report_employer_within_days
     value: 10
     unit: days
@@ -410,6 +438,7 @@ parameters:
       quote: "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information."
       snapshot: sources/sits-f1-opt-2026-09-28.html
       snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+    derivation: verbatim
     note: "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text."
   - id: calendar.federal_holidays_law
     value: true
@@ -423,4 +452,19 @@ parameters:
       quote: "The following are legal public holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Juneteenth National Independence Day, June 19. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25."
       snapshot: sources/usc-5-6103-2026-09-28.htm
       snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
-    note: "Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays; no saved copy of the earlier list is in the pack, so no earlier row is recorded. Subsection (b) moves a holiday that falls on a Saturday to the Friday before, for pay and leave of federal employees; it is not quoted here. Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
+    derivation: reading
+    note: "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays; no saved copy of the earlier list is in the pack, so no earlier row is recorded. Subsection (b) moves a holiday that falls on a Saturday to the Friday before, for pay and leave of federal employees; it is not quoted here. Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
+  - id: stem.requires_post_completion_opt
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "Consistent with paragraph (f)(11)(i)(C) of this section, a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading: the regulation says a qualified student may apply for the extension while in a valid period of post-completion OPT, and Duly reads those words as saying the extension follows a period of post-completion OPT. The sentence is the first one of paragraph (f)(10)(ii)(C), whose heading is 24-month extension of post-completion OPT. The words are may apply while in; the regulation does not use the word only and does not say must. The preamble of 81 FR 13040 (FR Doc. 2016-04828), saved as sources/fr-2016-04828.xml, says a student may file for a STEM OPT extension only if the student is in a valid period of post-completion OPT at the time of filing; that is the agency explaining the rule, not the regulation. The same preamble says a period extended under cap-gap is a valid period. The second extension is stated with the same words, while in a valid period of post-completion OPT. The regulatory text printed in 81 FR 13040 at 8 CFR 214.16 excepted students then on a 17-month extension from this requirement; whether 8 CFR 214.16 is still in the Code was not checked and no copy is saved. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040, effective 2016-05-10, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says about who may apply. It says nothing about any one person."
