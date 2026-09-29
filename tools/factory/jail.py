@@ -93,7 +93,8 @@ def run(
             "--die-with-parent",
         ]
         for path in writable:
-            argv += ["--bind", str(path), str(path)]
+            if path.exists():  # a bind needs its source; a missing folder has nothing to guard
+                argv += ["--bind", str(path), str(path)]
         for item in unreadable:
             real = os.path.realpath(os.path.expanduser(item))
             if os.path.isdir(real):
