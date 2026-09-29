@@ -291,12 +291,12 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
-      quote: "the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO"
+      checked_on: 2026-09-29
+      quote: "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
-    note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+    note: "The quote is the whole sentence of paragraph (f)(10)(ii)(C)(7)(iv). The 10 days apply only under the condition the sentence begins with: a new practical training opportunity with a new employer during the 24-month OPT extension. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence."
   - id: cpt.full_time_months_bar
     value: 12
     unit: months
@@ -440,6 +440,34 @@ parameters:
       snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
     derivation: verbatim
     note: "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text."
+  - id: opt.report_interruption
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(12)(i)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "An F-1 student who is granted employment authorization by USCIS to engage in optional practical training is required to report any change of name or address, or interruption of such employment to the DSO for the duration of the optional practical training."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quote is the first sentence of paragraph (f)(12)(i), headed General. It states no number of days; the 10 days in opt.report_employer_within_days are SEVP guidance, not these words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, the earliest saved copy with these exact words. Older words with the same duty are in 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, and 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, both saved; no earlier row is recorded. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person."
+  - id: stem.reporting_required
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(12)(ii)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-29
+      quote: "Compliance with these reporting requirements is required to maintain F-1 status."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quote is the second sentence of paragraph (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension. The sentence before it says those students have additional reporting obligations, and the reporting requirements are the ones the paragraph then lists. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence for the 24-month extension. The same sentence is in 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved, where it applies to the 17-month extension; no row is recorded for that. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person."
   - id: calendar.federal_holidays_law
     value: true
     unit: flag
@@ -453,7 +481,7 @@ parameters:
       snapshot: sources/usc-5-6103-2026-09-28.htm
       snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
     derivation: reading
-    note: "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays; no saved copy of the earlier list is in the pack, so no earlier row is recorded. Subsection (b) moves a holiday that falls on a Saturday to the Friday before, for pay and leave of federal employees; it is not quoted here. Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
+    note: "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays; no saved copy of the earlier list is in the pack, so no earlier row is recorded. Business days skip the days 6103(a) lists, on those days, and not observed days. Subsection (b) in the saved copy begins with the words 'For the purpose of statutes relating to pay and leave of employees', and only then moves a holiday that falls on a Saturday to the Friday before; the day off for a holiday on a Sunday is in Executive Order 11582, printed in the notes of the saved copy, which applies it in administering the provisions of law relating to pay and leave of absence. 8 CFR 214.2(f) is not a statute relating to pay and leave of employees, so Duly does not skip an observed day. The words of 6103(b) are in the note and not in the quote, which stays the list in (a). Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
   - id: stem.requires_post_completion_opt
     value: true
     unit: flag
