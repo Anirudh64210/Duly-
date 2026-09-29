@@ -301,6 +301,86 @@ def load(repo: Path, with_tokens: bool = True) -> Snapshot:
     )
 
 
+def _iso(at: datetime | None) -> str:
+    return at.isoformat() if at else ""
+
+
+def snapshot_json(repo: Path) -> dict[str, Any]:
+    """Everything the main view shows, as plain values."""
+    snap = load(repo)
+    return {
+        "round": snap.round_line,
+        "head": snap.head,
+        "gates": snap.gates,
+        "learning": {
+            "lessons": sum(a.lessons for a in snap.agents),
+            "proposals": snap.proposals,
+            "skills": snap.skills,
+            "skills_replayed": snap.skills_replayed,
+        },
+        "totals": {
+            "running": len([a for a in snap.agents if a.alive]),
+            "lanes": len(snap.agents),
+            "actions": sum(a.actions for a in snap.agents),
+            "tokens_in": sum(a.tokens_in for a in snap.agents),
+            "tokens_out": sum(a.tokens_out for a in snap.agents),
+            "first_start": _iso(
+                min((a.started_at for a in snap.agents if a.started_at), default=None)
+            ),
+        },
+        "agents": [
+            {
+                "lane": a.lane,
+                "agent": a.agent,
+                "mission": a.mission,
+                "state": a.state,
+                "alive": a.alive,
+                "started_at": _iso(a.started_at),
+                "ended_at": _iso(a.ended_at or (None if a.alive else a.last_at)),
+                "iteration": a.iteration,
+                "actions": a.actions,
+                "tests_run": a.tests_run,
+                "commits": a.commits,
+                "files_changed": a.files_changed,
+                "uncommitted": a.uncommitted,
+                "lessons": a.lessons,
+                "tokens_in": a.tokens_in,
+                "tokens_out": a.tokens_out,
+                "last_action": a.last_action,
+                "runs": a.runs,
+            }
+            for a in snap.agents
+        ],
+        "orchestrator": [
+            {"at": e.get("at", ""), "kind": e.get("kind", ""), "message": e.get("message", "")}
+            for e in snap.orchestrator[-60:]
+        ],
+    }
+
+
+def agent_json(repo: Path, lane: str, limit: int = 500) -> dict[str, Any]:
+    """Everything the agent view shows: trace, activity, progress log, changes."""
+    snap = load(repo, with_tokens=False)
+    agent = next((a for a in snap.agents if a.lane == lane), None)
+    if agent is None:
+        return {"found": False}
+    files = session_files(agent.worktree, agent.started_at) if agent.worktree else []
+    lines, _, _ = transcript(files)
+    events = [e for e in read_events(repo) if e.get("lane") == lane]
+    return {
+        "found": True,
+        "lane": lane,
+        "trace_total": len(lines),
+        "trace": [{"at": _iso(x.at), "kind": x.kind, "text": x.text} for x in lines[-limit:]],
+        "activity": [
+            {"at": e.get("at", ""), "kind": e.get("kind", ""), "message": e.get("message", "")}
+            for e in events[-limit:]
+        ],
+        "progress": progress_text(agent.worktree) if agent.worktree else "",
+        "changes": changes(repo, agent),
+    }
+
+
 def span(start: datetime | None, end: datetime | None) -> str:
     if start is None or end is None:
         return ""

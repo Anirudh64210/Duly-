@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo factory watch watch-window
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 ops-block-demo watch
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -64,15 +64,9 @@ e2e:
 attack:
 	@echo "The attack profile arrives in Phase 10." && exit 1
 
-factory:
-	uv run python -m tools.factory.server
-
 watch:
-	uv run --script dashboard/watch.py
-
-watch-window:
-	osascript -e 'tell application "Terminal" to do script "cd $(CURDIR) && make watch"' \
-	  -e 'tell application "Terminal" to activate'
+	@(nohup uv run --script dashboard/app.py >/dev/null 2>&1 &)
+	@echo "Factory window is opening."
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)

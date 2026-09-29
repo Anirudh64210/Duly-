@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Factory</title>
+    <style>
+      :root {
+        --ground: #f8f7f4;
+        --surface: #ffffff;
+        --sunken: #f1efea;
+        --ink: #1a1917;
+        --ink-2: #5d5a55;
+        --ink-3: #8b8882;
+        --line: #e6e3dc;
+        --accent: #2b4ea2;
+        --accent-tint: #e9eef9;
+        --track: #e3e1da;
+        --good: #0ca30c;
+        --warning: #fab219;
+        --critical: #d03b3b;
+        --shadow: 0 1px 2px rgba(26, 25, 23, 0.04), 0 8px 24px rgba(26, 25, 23, 0.05);
+        --mono: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ground: #141413;
+          --surface: #1d1d1b;
+          --sunken: #181817;
+          --ink: #f4f3ef;
+          --ink-2: #b9b7ae;
+          --ink-3: #85837c;
+          --line: #2c2b28;
+          --accent: #8fa8ea;
+          --accent-tint: #222a40;
+          --track: #33322f;
+          --shadow: none;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0; background: var(--ground); color: var(--ink);
+        font: 14px/1.45 -apple-system, "SF Pro Text", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased; user-select: none; cursor: default;
+      }
+      button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .mono { font-family: var(--mono); font-size: 12.5px; }
+      .num { font-variant-numeric: tabular-nums; }
+      .muted { color: var(--ink-2); }
+      .hidden { display: none !important; }
+
+      /* main view */
+      #main { height: 100%; overflow: auto; padding: 28px 32px 40px; }
+      .top { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+      h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+      .round { color: var(--ink-2); margin-top: 2px; }
+      .head { color: var(--ink-3); text-align: right; max-width: 46%; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap; }
+
+      .tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+      .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+        padding: 14px 16px; box-shadow: var(--shadow); }
+      .tile .label { color: var(--ink-2); font-size: 12.5px; }
+      .tile .value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 2px; }
+      .tile .sub { color: var(--ink-3); font-size: 12.5px; margin-top: 1px; min-height: 18px; }
+
+      .columns { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; margin-top: 24px;
+        align-items: start; }
+      h2 { font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin: 0 0 10px; }
+
+      .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+      .card { display: block; width: 100%; text-align: left; background: var(--surface);
+        border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow);
+        transition: transform 0.18s ease, border-color 0.18s ease; }
+      .card:hover { transform: translateY(-1px); border-color: var(--ink-3); }
+      .card[data-state="working"] { border-color: var(--accent); }
+      .card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .lane { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+      .role { color: var(--ink-2); font-size: 12.5px; }
+      .time { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-top: 12px; }
+      .time small { font-size: 12.5px; font-weight: 400; color: var(--ink-2); margin-left: 6px; }
+
+      .state { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px;
+        border-radius: 99px; background: var(--sunken); font-size: 12.5px; color: var(--ink); }
+      .state svg { width: 12px; height: 12px; flex: none; }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+      @media (prefers-reduced-motion: no-preference) {
+        .dot.live { animation: breathe 2.4s ease-in-out infinite; }
+      }
+      @keyframes breathe { 50% { opacity: 0.35; } }
+
+      .meter { display: flex; gap: 2px; margin-top: 12px; }
+      .meter i { flex: 1; height: 6px; border-radius: 3px; background: var(--track); }
+      .meter i.on { background: var(--accent); }
+      .meter-label { display: flex; justify-content: space-between; color: var(--ink-2);
+        font-size: 12.5px; margin-top: 5px; }
+
+      .facts { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 14px;
+        padding-top: 12px; border-top: 1px solid var(--line); }
+      .fact b { display: block; font-size: 15px; font-weight: 600; }
+      .fact span { color: var(--ink-2); font-size: 11.5px; }
+      .now { margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: var(--sunken);
+        color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .empty { color: var(--ink-2); padding: 28px; text-align: center; background: var(--surface);
+        border: 1px dashed var(--line); border-radius: 16px; }
+
+      .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+        padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+      .rows { list-style: none; margin: 0; padding: 0; }
+      .rows li { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        padding: 7px 0; border-top: 1px solid var(--line); }
+      .rows li:first-child { border-top: 0; padding-top: 0; }
+      .rows li:last-child { padding-bottom: 0; }
+      .rows b { font-weight: 600; }
+      .timeline { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow: auto; }
+      .timeline li { display: grid; grid-template-columns: 44px 1fr; gap: 8px; padding: 5px 0;
+        font-size: 12.5px; }
+      .timeline time { color: var(--ink-3); }
+
+      /* agent view */
+      #detail { height: 100%; display: flex; flex-direction: column; }
+      .bar { padding: 22px 32px 0; }
+      .back { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2);
+        padding: 6px 10px 6px 6px; margin-left: -6px; border-radius: 8px; }
+      .back:hover { background: var(--sunken); color: var(--ink); }
+      .back svg { width: 14px; height: 14px; }
+      .title { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+      .mission { color: var(--ink-2); margin-top: 6px; max-width: 900px;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .strip { display: flex; gap: 28px; margin-top: 14px; }
+      .strip b { display: block; font-size: 17px; font-weight: 600; }
+      .strip span { color: var(--ink-2); font-size: 12.5px; }
+      .tabs { display: flex; align-items: center; gap: 4px; margin-top: 18px; padding: 0 32px;
+        border-bottom: 1px solid var(--line); }
+      .tab { padding: 9px 12px; color: var(--ink-2); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+      .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+      .tab .count { color: var(--ink-3); font-weight: 400; margin-left: 5px; }
+      .follow { margin-left: auto; color: var(--ink-2); display: inline-flex; align-items: center; gap: 8px;
+        padding: 6px 0; }
+      .switch { width: 30px; height: 18px; border-radius: 99px; background: var(--track); position: relative;
+        transition: background 0.18s ease; }
+      .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+        border-radius: 50%; background: var(--surface); transition: left 0.18s ease; }
+      .follow[aria-pressed="true"] .switch { background: var(--accent); }
+      .follow[aria-pressed="true"] .switch::after { left: 14px; }
+      .pane { flex: 1; overflow: auto; padding: 18px 32px 40px; user-select: text; cursor: auto; }
+
+      .entry { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 6px 0; }
+      .entry time { color: var(--ink-3); padding-top: 2px; }
+      .say { white-space: pre-wrap; line-height: 1.55; max-width: 860px; }
+      .tool { background: var(--accent-tint); border-radius: 8px; padding: 7px 10px;
+        white-space: pre-wrap; word-break: break-word; max-width: 980px; }
+      .tool-name { color: var(--ink-2); font-family: inherit; font-size: 11.5px; display: block;
+        margin-bottom: 2px; }
+      details { max-width: 980px; }
+      summary { color: var(--ink-2); cursor: pointer; font-size: 12.5px; list-style: none; }
+      summary::-webkit-details-marker { display: none; }
+      summary::before { content: ""; display: inline-block; width: 0; height: 0; margin-right: 7px;
+        border-left: 5px solid var(--ink-3); border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent; transition: transform 0.15s ease; }
+      details[open] summary::before { transform: rotate(90deg); }
+      summary .flag { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); margin-left: 8px; }
+      summary .flag svg { width: 12px; height: 12px; }
+      pre { margin: 6px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--sunken);
+        border: 1px solid var(--line); overflow: auto; max-height: 360px; white-space: pre-wrap;
+        word-break: break-word; font: 12px/1.5 var(--mono); color: var(--ink-2); }
+      .prompt pre { max-height: 240px; }
+      .doc { white-space: pre-wrap; max-width: 900px; line-height: 1.6; }
+      .doc.mono { font-size: 12.5px; }
+      .act { display: grid; grid-template-columns: 64px 90px 1fr; gap: 12px; padding: 6px 0;
+        border-top: 1px solid var(--line); }
+      .act:first-child { border-top: 0; }
+      .act time { color: var(--ink-3); }
+      .act .what { word-break: break-word; }
+      .note { color: var(--ink-3); font-size: 12.5px; padding-bottom: 10px; }
+
+      @media (max-width: 1080px) {
+        .columns { grid-template-columns: 1fr; }
+        .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main">
+      <div class="top">
+        <div>
+          <h1>Factory</h1>
+          <div class="round" id="round"></div>
+        </div>
+        <div class="head mono" id="head"></div>
+      </div>
+      <div class="tiles" id="tiles"></div>
+      <div class="columns">
+        <section>
+          <h2>Agents</h2>
+          <div class="cards" id="cards"></div>
+        </section>
+        <aside>
+          <div class="panel">
+            <h2>Learning</h2>
+            <ul class="rows" id="learning"></ul>
+          </div>
+          <div class="panel">
+            <h2>Checks, last run</h2>
+            <ul class="rows" id="gates"></ul>
+          </div>
+          <div class="panel">
+            <h2>Orchestrator</h2>
+            <ol class="timeline" id="timeline"></ol>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="detail" class="hidden">
+      <div class="bar">
+        <button class="back" id="back">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5" /></svg>
+          All agents
+        </button>
+        <div class="title">
+          <h1 id="d-lane"></h1>
+          <span id="d-state"></span>
+          <span class="muted" id="d-role"></span>
+        </div>
+        <div class="mission" id="d-mission"></div>
+        <div class="strip" id="d-strip"></div>
+      </div>
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="tab" role="tab" data-tab="trace">Trace</button>
+        <button class="tab" role="tab" data-tab="activity">Activity</button>
+        <button class="tab" role="tab" data-tab="progress">Progress log</button>
+        <button class="tab" role="tab" data-tab="changes">Changes</button>
+        <button class="follow" id="follow" aria-pressed="true">Follow <span class="switch"></span></button>
+      </div>
+      <div class="pane" id="pane"></div>
+    </div>
+
+    <script>
+      const ICONS = {
+        done: '<path d="M3 8.5 6.5 12 13 4.5"/>',
+        failed: '<path d="M4 4l8 8M12 4l-8 8"/>',
+        blocked: '<path d="M8 3v6M8 12v.5"/>',
+        stopped: '<path d="M5 4v8M11 4v8"/>',
+      };
+      const STATE = {
+        working: { label: "Working" },
+        done: { label: "Done", color: "var(--good)" },
+        failed: { label: "Failed", color: "var(--critical)" },
+        blocked: { label: "Blocked", color: "var(--critical)" },
+        stopped: { label: "Stopped", color: "var(--warning)" },
+        idle: { label: "Idle" },
+      };
+
+      const $ = (id) => document.getElementById(id);
+      function el(tag, cls, text) {
+        const node = document.createElement(tag);
+        if (cls) node.className = cls;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+      function icon(name, color) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 16 16");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", color);
+        svg.setAttribute("stroke-width", "2.2");
+        svg.setAttribute("stroke-linecap", "round");
+        svg.setAttribute("stroke-linejoin", "round");
+        svg.innerHTML = ICONS[name];
+        return svg;
+      }
+      function statePill(agent) {
+        const spec = STATE[agent.state] || STATE.idle;
+        const pill = el("span", "state");
+        if (agent.state === "working") pill.append(el("span", "dot" + (agent.alive ? " live" : "")));
+        else if (ICONS[agent.state]) pill.append(icon(agent.state, spec.color));
+        pill.append(spec.label);
+        return pill;
+      }
+      function span(startIso, endIso) {
+        if (!startIso) return "";
+        const end = endIso ? new Date(endIso) : new Date();
+        let s = Math.max(0, Math.floor((end - new Date(startIso)) / 1000));
+        const h = Math.floor(s / 3600);
+        s -= h * 3600;
+        const m = Math.floor(s / 60);
+        s -= m * 60;
+        const two = (n) => String(n).padStart(2, "0");
+        return h ? h + "h " + two(m) + "m" : m + "m " + two(s) + "s";
+      }
+      function count(n) {
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+        if (n >= 1e3) return Math.round(n / 1e3) + "k";
+        return String(n);
+      }
+      const clock = (iso) =>
+        iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "";
+      const short = (iso) =>
+        iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
+
+      let bridge = null;
+      let snapshot = null;
+      let open = null; // lane shown in the agent view
+      let tab = "trace";
+      let follow = true;
+      let detail = null;
+      let drawnKey = "";
+
+      function tile(label, value, sub) {
+        const node = el("div", "tile");
+        node.append(el("div", "label", label), el("div", "value num", value), el("div", "sub", sub || ""));
+        return node;
+      }
+
+      function drawMain() {
+        const s = snapshot;
+        $("round").textContent = s.round || "No round has started.";
+        $("head").textContent = s.head;
+        const t = s.totals;
+        $("tiles").replaceChildren(
+          tile("Running now", String(t.running), "of " + t.lanes + " lanes used"),
+          tile("Time", span(t.first_start) || "0m 00s", "since the first agent started"),
+          tile("Actions", count(t.actions), "files read, written, commands run"),
+          tile("Tokens", count(t.tokens_in + t.tokens_out), count(t.tokens_out) + " written by agents"),
+          tile("Lessons", String(s.learning.lessons), s.learning.proposals + " waiting for review"),
+        );
+
+        const cards = s.agents.map((a) => {
+          const card = el("button", "card");
+          card.dataset.state = a.state;
+          card.addEventListener("click", () => openAgent(a.lane));
+          const top = el("div", "card-top");
+          const name = el("div");
+          name.append(el("div", "lane", a.lane), el("div", "role", a.agent));
+          top.append(name, statePill(a));
+          card.append(top);
+
+          const time = el("div", "time num", span(a.started_at, a.ended_at));
+          time.append(el("small", "", a.alive ? "running" : "total"));
+          card.append(time);
+
+          const [done, of] = (a.iteration || "0/0").split("/").map(Number);
+          if (of) {
+            const meter = el("div", "meter");
+            meter.setAttribute("role", "img");
+            meter.setAttribute("aria-label", "Attempt " + done + " of up to " + of);
+            for (let i = 1; i <= of; i++) meter.append(el("i", i <= done ? "on" : ""));
+            const label = el("div", "meter-label");
+            label.append(el("span", "", "Attempt " + done + " of up to " + of));
+            if (a.runs > 1) label.append(el("span", "", "run " + a.runs));
+            card.append(meter, label);
+          }
+
+          const facts = el("div", "facts");
+          for (const [value, label] of [
+            [a.actions, "actions"], [a.tests_run, "test runs"], [a.commits, "commits"],
+            [a.files_changed + a.uncommitted, "files"], [a.lessons, "lessons"],
+          ]) {
+            const fact = el("div", "fact");
+            fact.append(el("b", "num", String(value)), el("span", "", label));
+            facts.append(fact);
+          }
+          card.append(facts);
+          if (a.last_action) {
+            const now = el("div", "now mono", a.last_action);
+            now.title = a.last_action;
+            card.append(now);
+          }
+          return card;
+        });
+        $("cards").replaceChildren(...(cards.length ? cards : [el("div", "empty", "No agent has run yet.")]));
+
+        const row = (label, value) => {
+          const li = el("li");
+          li.append(el("span", "", label), el("b", "num", String(value)));
+          return li;
+        };
+        $("learning").replaceChildren(
+          row("Lessons written by agents", s.learning.lessons),
+          row("Waiting for your review", s.learning.proposals),
+          row("Skills", s.learning.skills),
+          row("Skills proven by replay", s.learning.skills_replayed),
+        );
+
+        const gates = Object.entries(s.gates).map(([name, result]) => {
+          const li = el("li");
+          const pass = result === "pass";
+          const pill = el("span", "state");
+          pill.append(icon(pass ? "done" : "failed", pass ? "var(--good)" : "var(--critical)"), pass ? "Pass" : "Fail");
+          li.append(el("span", "", name), pill);
+          return li;
+        });
+        $("gates").replaceChildren(...(gates.length ? gates : [el("li", "muted", "No checks have run yet.")]));
+
+        const lines = [...s.orchestrator].reverse().map((e) => {
+          const li = el("li");
+          li.append(el("time", "mono", short(e.at)), el("span", "", e.message));
+          return li;
+        });
+        $("timeline").replaceChildren(...(lines.length ? lines : [el("li", "muted", "Nothing yet.")]));
+      }
+
+      function traceEntry(line) {
+        const row = el("div", "entry");
+        row.append(el("time", "mono", clock(line.at)));
+        if (line.kind === "say") {
+          row.append(el("div", "say", line.text));
+        } else if (line.kind === "tool") {
+          const box = el("div", "tool mono");
+          const isCommand = line.text.startsWith("$ ");
+          const space = line.text.indexOf(" ");
+          box.append(el("span", "tool-name", isCommand ? "Command" : line.text.slice(0, space)));
+          box.append(isCommand ? line.text.slice(2) : line.text.slice(space + 1));
+          row.append(box);
+        } else {
+          const box = document.createElement("details");
+          const rows = line.text.split("\n").length;
+          const summary = el("summary", "", line.kind === "prompt" ? "Instructions given to the agent" : "Output, " + rows + (rows === 1 ? " line" : " lines"));
+          if (line.kind === "error") {
+            const flag = el("span", "flag");
+            flag.append(icon("failed", "var(--critical)"), "Error or blocked");
+            summary.append(flag);
+            box.open = true;
+          }
+          box.append(summary, el("pre", "", line.text));
+          if (line.kind === "prompt") box.className = "prompt";
+          row.append(box);
+        }
+        return row;
+      }
+
+      function drawDetail() {
+        const a = snapshot.agents.find((x) => x.lane === open);
+        if (!a) return closeAgent();
+        $("d-lane").textContent = a.lane;
+        $("d-role").textContent = a.agent;
+        $("d-state").replaceChildren(statePill(a));
+        $("d-mission").textContent = a.mission;
+        $("d-mission").title = a.mission;
+        const strip = [
+          [span(a.started_at, a.ended_at), a.alive ? "running" : "total time"],
+          [a.iteration ? a.iteration.replace("/", " of ") : "0", "attempt"],
+          [a.actions, "actions"], [a.tests_run, "test runs"], [a.commits, "commits"],
+          [a.files_changed + a.uncommitted, "files changed"], [a.lessons, "lessons"],
+          [count(a.tokens_in + a.tokens_out), "tokens"],
+        ].map(([value, label]) => {
+          const box = el("div");
+          box.append(el("b", "num", String(value)), el("span", "", label));
+          return box;
+        });
+        $("d-strip").replaceChildren(...strip);
+
+        for (const button of document.querySelectorAll(".tab")) {
+          button.setAttribute("aria-selected", String(button.dataset.tab === tab));
+        }
+        $("follow").setAttribute("aria-pressed", String(follow));
+        if (!detail || !detail.found) return;
+
+        const key = [open, tab, detail.trace_total, detail.activity.length, detail.progress.length, detail.changes.length].join("|");
+        if (key === drawnKey) return;
+        drawnKey = key;
+        const pane = $("pane");
+        const nodes = [];
+        if (tab === "trace") {
+          if (detail.trace_total > detail.trace.length) {
+            nodes.push(el("div", "note", "Showing the latest " + detail.trace.length + " of " + detail.trace_total + " entries."));
+          }
+          nodes.push(...detail.trace.map(traceEntry));
+          if (!detail.trace.length) nodes.push(el("div", "muted", "No session log found for this agent yet."));
+        } else if (tab === "activity") {
+          for (const e of detail.activity) {
+            const row = el("div", "act");
+            row.append(el("time", "mono", clock(e.at)), el("span", "muted", e.kind), el("span", "what mono", e.message));
+            nodes.push(row);
+          }
+        } else if (tab === "progress") {
+          nodes.push(el("div", "doc", detail.progress || "This agent has not written a progress log yet."));
+        } else {
+          nodes.push(el("div", "doc mono", detail.changes));
+        }
+        pane.replaceChildren(...nodes);
+        if (follow && (tab === "trace" || tab === "activity")) pane.scrollTop = pane.scrollHeight;
+      }
+
+      async function openAgent(lane) {
+        open = lane;
+        detail = null;
+        drawnKey = "";
+        $("pane").replaceChildren(el("div", "muted", "Loading."));
+        $("main").classList.add("hidden");
+        $("detail").classList.remove("hidden");
+        drawDetail();
+        await refreshDetail();
+      }
+      function closeAgent() {
+        open = null;
+        $("detail").classList.add("hidden");
+        $("main").classList.remove("hidden");
+      }
+      async function refreshDetail() {
+        if (!open || !bridge) return;
+        const lane = open;
+        const next = await bridge.agent(lane);
+        if (open !== lane) return;
+        detail = next;
+        drawDetail();
+      }
+      async function refresh() {
+        if (!bridge) return;
+        try {
+          snapshot = await bridge.snapshot();
+          if (open) { drawDetail(); await refreshDetail(); } else drawMain();
+        } catch (error) {
+          $("round").textContent = "Could not read the factory folder: " + error;
+        }
+      }
+
+      $("back").addEventListener("click", closeAgent);
+      $("follow").addEventListener("click", () => { follow = !follow; drawnKey = ""; drawDetail(); });
+      $("tabs").addEventListener("click", (event) => {
+        const button = event.target.closest(".tab");
+        if (button) { tab = button.dataset.tab; drawnKey = ""; drawDetail(); }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && open) closeAgent();
+        const order = ["trace", "activity", "progress", "changes"];
+        if (open && order[Number(event.key) - 1]) { tab = order[Number(event.key) - 1]; drawnKey = ""; drawDetail(); }
+      });
+      $("pane").addEventListener("wheel", () => {
+        const pane = $("pane");
+        const atEnd = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 40;
+        if (!atEnd && follow) { follow = false; $("follow").setAttribute("aria-pressed", "false"); }
+      }, { passive: true });
+
+      function start() {
+        bridge = window.pywebview.api;
+        refresh();
+        setInterval(refresh, 2000);
+        setInterval(() => { if (snapshot && !open) drawMain(); }, 1000);
+      }
+      if (window.pywebview && window.pywebview.api) start();
+      else window.addEventListener("pywebviewready", start, { once: true });
+    </script>
+  </body>
+</html>

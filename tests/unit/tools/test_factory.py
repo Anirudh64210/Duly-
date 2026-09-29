@@ -4,7 +4,8 @@ import subprocess
 
 import pytest
 
-from tools.factory import log, state
+from dashboard import factory_data
+from tools.factory import log
 from tools.sources import verify
 
 
@@ -28,7 +29,7 @@ def repo(tmp_path):
 def test_events_are_appended_and_read_back(repo):
     log.append("L-web", "builder", "start", "build the screen", repo)
     log.append("L-web", "builder", "step", "  writes web/src/App.tsx  ", repo)
-    rows = state.read_events(repo)
+    rows = factory_data.read_events(repo)
     assert [r["kind"] for r in rows] == ["start", "step"]
     assert rows[1]["message"] == "writes web/src/App.tsx"
     assert log.factory_dir(repo) == repo / ".factory"
@@ -36,34 +37,14 @@ def test_events_are_appended_and_read_back(repo):
 
 def test_long_messages_are_cut(repo):
     log.append("L-web", "builder", "step", "x" * 900, repo)
-    assert len(state.read_events(repo)[0]["message"]) == 500
+    assert len(factory_data.read_events(repo)[0]["message"]) == 500
 
 
 def test_broken_lines_are_skipped(repo):
     log.append("L-web", "builder", "step", "one", repo)
     with (repo / ".factory" / "events.jsonl").open("a") as handle:
         handle.write("not json\n")
-    assert len(state.read_events(repo)) == 1
-
-
-def test_snapshot_shows_lanes_skills_lessons_and_gates(repo):
-    assert state.snapshot(repo)["lanes"][0]["state"] == "idle"
-    log.append("L-web", "builder", "start", "m", repo)
-    (repo / ".factory" / "gates.json").write_text(json.dumps({"results": {"types": "pass"}}))
-    snap = state.snapshot(repo)
-    assert snap["lanes"][0]["state"] == "working"
-    assert snap["lanes"][0]["agents"] == ["builder"]
-    assert snap["skills"] == [{"name": "one", "verified": "not replayed yet"}]
-    assert snap["lessons"]["proposals"] == ["a.md"]
-    assert snap["gates"]["results"] == {"types": "pass"}
-    log.append("L-web", "builder", "done", "done", repo)
-    assert state.snapshot(repo)["lanes"][0]["state"] == "done"
-
-
-def test_unreadable_gates_file_is_empty(repo):
-    (repo / ".factory").mkdir()
-    (repo / ".factory" / "gates.json").write_text("{")
-    assert state.gates(repo) == {}
+    assert len(factory_data.read_events(repo)) == 1
 
 
 PAGE = "<p>may not exceed  <i>90 days</i> of &ldquo;unemployment&rdquo;</p>"

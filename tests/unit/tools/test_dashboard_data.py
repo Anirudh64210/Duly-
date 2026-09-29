@@ -160,6 +160,21 @@ def test_load_reads_events_gates_and_lessons(tmp_path):
     assert api.worktree == tree
     assert "Not yet committed" in data.changes(repo, api)
 
+    main = data.snapshot_json(repo)
+    assert json.loads(json.dumps(main)) == main  # plain values only
+    assert main["totals"]["running"] == 0
+    assert main["totals"]["first_start"].startswith("2026-09-29T06:00")
+    assert main["learning"] == {"lessons": 1, "proposals": 1, "skills": 1, "skills_replayed": 1}
+    assert main["agents"][0]["lane"] == "L-api"
+    assert main["orchestrator"][0]["message"] == "round A: L-api"
+
+    detail = data.agent_json(repo, "L-api")
+    assert json.loads(json.dumps(detail)) == detail
+    assert [e["message"] for e in detail["activity"]] == ["m", "reads api/main.py"]
+    assert "## Lesson" in detail["progress"]
+    assert detail["trace"] == []
+    assert data.agent_json(repo, "L-nope") == {"found": False}
+
 
 def test_changes_without_a_worktree():
     assert "No worktree" in data.changes(data.CLAUDE_PROJECTS, data.Agent(lane="L-x"))
