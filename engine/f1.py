@@ -1,32 +1,37 @@
 """The F-1 engine: dates and counts from the dates a user entered.
 
-Every rule value comes from the pack by id. The numbers written in this file are
-definitions from specs/phase-2/SPEC.md (how many reports, which look-ahead), not rule
-values. The engine reports dates and counts. It never says what they mean for the user.
+Every number has a source. A number that is law comes from the pack by id. A number
+that is Duly's own choice comes from the settings by id, and the item lists the id under
+duly_settings in its inputs. The engine reports dates and counts. It never says what
+they mean for the user.
 """
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any
 
 from engine.clocks import Clock
-from engine.dates import add_business_days, add_months
+from engine.dates import add_business_days, add_months, add_years
 from engine.rulepack import Rulepack, RulepackError
+from engine.settings import load_settings, whole_setting
 from engine.verdict import VerdictInputs, decide
 
 # SPEC, "Rules of the house": from strongest to weakest.
 STATUS_ORDER = ("settled", "guidance", "school", "litigated", "proposed")
 
-# SPEC, "Computed items" and "Verdict inputs".
-VALIDATION_REPORTS = 4
-EVALUATION_AFTER_MONTHS = 12
-OPT_START_LOOKBACK_MONTHS = 12
-CPT_BAR_DAYS = 365
-OPEN_ITEM_DAYS_AHEAD = 14
 OPEN_ITEM_ENDINGS = ("_due", "file_by", "window_closes")
-NEXT_FISCAL_YEAR_FROM_MONTH = 10
 CAP_GAP_ACTIVE = ("pending", "approved")
+
+# Duly's own choices, in contracts/product_settings.yaml.
+LOOKAHEAD = "product.open_item_lookahead_days"
+OPT_START_LOOKBACK = "product.opt_start_earliest_years_before_program_end"
+
+# Rules that are law without being the value of one item.
+HOLIDAYS_LAW = "calendar.federal_holidays_law"
+CPT_BAR = "cpt.full_time_bar_days"
+FISCAL_YEAR_START = "capgap.fiscal_year_start_month_day"
+REPORT_EMPLOYER = "opt.report_employer_within_days"
 
 Value = date | int | None
 Values = Mapping[str, Any]
@@ -145,9 +150,10 @@ def _month_day(values: Values, rule_id: str) -> tuple[int, int]:
 class _Working:
     """Collects the computed items, the rules they used, and the inputs found missing."""
 
-    def __init__(self, pack: Rulepack, today: date) -> None:
+    def __init__(self, pack: Rulepack, today: date, settings: Mapping[str, Any]) -> None:
         self.pack = pack
         self.today = today
+        self.settings = settings
         self.computed: list[dict[str, Any]] = []
         self.dated: dict[str, date] = {}
         self.numbers: dict[str, int] = {}
@@ -157,6 +163,13 @@ class _Working:
     def name_missing(self, name: str) -> None:
         if name not in self.missing:
             self.missing.append(name)
+
+    def setting(self, setting_id: str) -> int:
+        return whole_setting(self.settings, setting_id)
+
+    def whole_rule(self, rule_id: str) -> int:
+        """The operative value of a rule that decides which items there are."""
+        return _whole({rule_id: self._rule(rule_id)["value"]}, rule_id)
 
     def _rule(self, rule_id: str) -> dict[str, Any]:
         found = self.pack.value(rule_id, self.today)
@@ -211,9 +224,11 @@ class _Working:
         rule_ids: tuple[str, ...],
         formula: Callable[[Values], Value],
         needs: tuple[str, ...] = (),
+        settings: tuple[str, ...] = (),
     ) -> None:
         """One computed item. needs names the inputs the formula cannot do without: if
-        one is missing the value is null and the input is named, never guessed."""
+        one is missing the value is null and the input is named, never guessed. settings
+        names Duly's own choices that were used on the item's inputs."""
         parameters = [self._rule(rule_id) for rule_id in rule_ids]
         for parameter in parameters:
             self._show_rule(parameter)
@@ -233,6 +248,11 @@ class _Working:
             "rule_ids": list(rule_ids),
             "status": max((p["status"] for p in parameters), key=STATUS_ORDER.index),
         }
+        # The look-ahead decides whether a dated item of this kind is an open item.
+        if isinstance(value, date) and item_id.endswith(OPEN_ITEM_ENDINGS):
+            settings = (*settings, LOOKAHEAD)
+        if settings:
+            item["inputs"]["duly_settings"] = list(settings)
         alternates = self._alternates(rule_ids, guarded)
         if alternates:
             item["alternates"] = alternates
@@ -356,6 +376,8 @@ def _add_counts(work: _Working, case: F1Case, opt: EadBlock) -> None:
         (limit_rule,),
         lambda v: _whole(v, limit_rule),
     )
+    # opt.ead_start is checked against the earliest start Duly takes as entered right.
+    checked = (OPT_START_LOOKBACK,)
     work.add(
         "unemployment.days_used",
         "days",
@@ -363,6 +385,7 @@ def _add_counts(work: _Working, case: F1Case, opt: EadBlock) -> None:
         (limit_rule,),
         lambda v: used,
         needs=tuple(window),
+        settings=checked,
     )
     work.add(
         "unemployment.days_remaining",
@@ -371,6 +394,7 @@ def _add_counts(work: _Working, case: F1Case, opt: EadBlock) -> None:
         (limit_rule,),
         lambda v: None if used is None else _whole(v, limit_rule) - used,
         needs=tuple(window),
+        settings=checked,
     )
     work.add(
         "employment.days_under_hours",
@@ -379,12 +403,13 @@ def _add_counts(work: _Working, case: F1Case, opt: EadBlock) -> None:
         hours_rules,
         under_hours,
         needs=tuple(window),
+        settings=checked,
     )
     work.add(
         "employment.periods_not_reported",
         "count",
         {"employment": _employment_shown(case)},
-        (limit_rule,),
+        (REPORT_EMPLOYER,),
         lambda v: sum(1 for p in case.employment if not p.employer_reported),
     )
 
@@ -396,6 +421,15 @@ def _final_end(case: F1Case) -> tuple[date, dict[str, Any]]:
     if case.stem is not None:
         inputs["stem.ead_end"] = case.stem.ead_end
     return max(day for day in inputs.values() if day is not None), inputs
+
+
+def _validation_reports(work: _Working, extension: str, interval: str) -> Iterator[int]:
+    """The number of each validation report: one for each whole interval in the
+    extension. The count is derived from the two rules and written nowhere."""
+    months = work.whole_rule(interval)
+    if months <= 0:
+        raise RulepackError(f"{interval}: the engine needs a number over zero")
+    return iter(range(1, work.whole_rule(extension) // months + 1))
 
 
 def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> None:
@@ -422,8 +456,10 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
 
     start = stem.ead_start
     end = stem.ead_end
+    extension = "stem.extension_months"
     interval = "stem.validation_interval_months"
     within = "stem.validation_due_business_days"
+    every = "stem.evaluation_interval_months"
     due = "stem.evaluation_due_days"
 
     def validation_due(report: int) -> Callable[[Values], Value]:
@@ -435,12 +471,12 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
 
         return formula
 
-    for report in range(1, VALIDATION_REPORTS + 1):
+    for report in _validation_reports(work, extension, interval):
         work.add(
             f"stem.validation_{report}_due",
             "date",
             {"stem.ead_start": start},
-            (interval, within),
+            (interval, within, extension, HOLIDAYS_LAW),
             validation_due(report),
             needs=("stem.ead_start",),
         )
@@ -448,11 +484,11 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
         "stem.evaluation_12_month_due",
         "date",
         {"stem.ead_start": start},
-        (due,),
+        (every, due),
         lambda v: (
             None
             if start is None
-            else add_months(start, EVALUATION_AFTER_MONTHS) + timedelta(days=_whole(v, due))
+            else add_months(start, _whole(v, every)) + timedelta(days=_whole(v, due))
         ),
         needs=("stem.ead_start",),
     )
@@ -474,7 +510,9 @@ def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
         if not active:
             return None
         month, day = _month_day(v, "capgap.end_month_day")
-        later = requested.month >= NEXT_FISCAL_YEAR_FROM_MONTH
+        # A start on or after the first day of the fiscal year is in the fiscal year
+        # whose end date falls in the next calendar year.
+        later = (requested.month, requested.day) >= _month_day(v, FISCAL_YEAR_START)
         return min(requested, date(requested.year + (1 if later else 0), month, day))
 
     work.add(
@@ -485,7 +523,7 @@ def _add_cap_gap(work: _Working, cap_gap: CapGap) -> None:
             "cap_gap.status": cap_gap.status,
             "cap_gap.change_of_status": cap_gap.change_of_status,
         },
-        ("capgap.end_month_day",),
+        ("capgap.end_month_day", FISCAL_YEAR_START),
         formula,
     )
 
@@ -500,7 +538,7 @@ def _missing_ead_dates(work: _Working, case: F1Case) -> None:
             work.name_missing(f"{part}.ead_end")
 
 
-def _conflicts(case: F1Case) -> tuple[str, ...]:
+def _conflicts(case: F1Case, earliest_years: int) -> tuple[str, ...]:
     found = []
     opt, stem = case.opt, case.stem
     for part, block in (("opt", opt), ("stem", stem)):
@@ -512,7 +550,7 @@ def _conflicts(case: F1Case) -> tuple[str, ...]:
         if period.end is not None and period.end < period.start:
             found.append(f"employment_{number}_end")
     if opt is not None and opt.ead_start is not None:
-        earliest = add_months(case.program_end_date, -OPT_START_LOOKBACK_MONTHS)
+        earliest = add_years(case.program_end_date, -earliest_years)
         if opt.ead_start < earliest:
             found.append("opt_start")
     if (
@@ -533,7 +571,7 @@ def _judgement_items(work: _Working, case: F1Case) -> tuple[str, ...]:
     remaining = work.numbers.get("unemployment.days_remaining")
     if remaining is not None and remaining <= 0:
         found.append("unemployment_at_or_over_limit")
-    if case.cpt_full_time_days >= CPT_BAR_DAYS:
+    if case.cpt_full_time_days >= work.whole_rule(CPT_BAR):
         found.append("cpt_full_time_at_or_over_bar")
     if case.cap_gap is not None and "capgap.ends" not in work.dated:
         found.append("cap_gap_petition_not_active")
@@ -544,17 +582,23 @@ def _open_items(work: _Working) -> tuple[str, ...]:
     found = []
     if work.numbers.get("employment.periods_not_reported", 0) > 0:
         found.append("report_employer")
-    horizon = work.today + timedelta(days=OPEN_ITEM_DAYS_AHEAD)
+    horizon = work.today + timedelta(days=work.setting(LOOKAHEAD))
     for item_id, day in work.dated.items():
         if item_id.endswith(OPEN_ITEM_ENDINGS) and work.today <= day <= horizon:
             found.append(item_id)
     return tuple(found)
 
 
-def compute_f1(case: F1Case, pack: Rulepack, clock: Clock) -> dict[str, Any]:
-    """Every F-1 date and count for the case, in the shape of the engine output contract."""
+def compute_f1(
+    case: F1Case, pack: Rulepack, clock: Clock, *, settings: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Every F-1 date and count for the case, in the shape of the engine output contract.
+
+    settings holds Duly's own choices in the shape of contracts/product_settings.yaml
+    once parsed. None means the shipped file.
+    """
     today = clock.today()
-    work = _Working(pack, today)
+    work = _Working(pack, today, load_settings() if settings is None else settings)
 
     _add_program_items(work, case)
     if case.opt is not None:
@@ -575,7 +619,7 @@ def compute_f1(case: F1Case, pack: Rulepack, clock: Clock) -> dict[str, Any]:
         "cpt.full_time_days_used",
         "days",
         {"cpt_full_time_days": case.cpt_full_time_days},
-        ("cpt.full_time_months_bar",),
+        ("cpt.full_time_months_bar", CPT_BAR),
         lambda v: case.cpt_full_time_days,
     )
     if case.cap_gap is not None:
@@ -586,7 +630,7 @@ def compute_f1(case: F1Case, pack: Rulepack, clock: Clock) -> dict[str, Any]:
         VerdictInputs(
             documents_count=case.documents_count,
             missing_inputs=tuple(work.missing),
-            conflicting_inputs=_conflicts(case),
+            conflicting_inputs=_conflicts(case, work.setting(OPT_START_LOOKBACK)),
             rules_checked_on=pack.rules_checked_on,
             depends_on_litigated_rule=today > final_end,
             judgement_items=_judgement_items(work, case),
