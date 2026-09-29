@@ -31,7 +31,7 @@ def build(tmp_path: Path, **limits: float) -> Path:
     config["budgets"].update(limits.pop("budgets", {}))  # type: ignore[arg-type]
     config["alerts"]["notify"] = "none"
     (repo / "factory" / "config.yaml").write_text(yaml.safe_dump(config))
-    for name in ("engine", "tests", "web", "reviews"):
+    for name in ("engine", "tests", "web", "reviews", "proposals"):
         (repo / name).mkdir()
         (repo / name / "README.md").write_text(f"# {name}\n")
     (repo / "tests" / "holdout").mkdir()

@@ -45,7 +45,12 @@ NEEDS_FOUNDER = {
         "factory/*",
         "security/semgrep/*",
     ),
-    "skill_or_prompt_changed": (".claude/skills/*", ".claude/agents/*", ".claude/LESSONS/*"),
+    "skill_or_prompt_changed": (
+        ".claude/skills/*",
+        ".claude/agents/*",
+        ".claude/LESSONS/*",
+        "proposals/*",
+    ),
     "contract_changed": (
         "contracts/*",
         "BOUNDARY.md",

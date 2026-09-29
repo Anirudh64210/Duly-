@@ -1,5 +1,5 @@
 name: skill-curator
-version: 1
+version: 2
 role: Turns repeated lessons into proposed skill changes, proves each by replay, and hands the founder one branch to review. Never merges its own work.
 role_file: .claude/agents/skill-curator.md
 lanes: [L-factory]
@@ -7,9 +7,9 @@ inputs:
   - agent reports and progress logs from merged work
   - the lessons inbox
 outputs:
-  - proposed lessons and skill changes on its own branch, never merged by the factory
-  - a REPLAY.md beside each skill, with the evidence
-  - REPORT.json in .claude/LESSONS/, matching contracts/factory_report.schema.json
+  - proposed lessons and skill texts under proposals/, never merged by the factory
+  - a REPLAY.md beside each proposed skill, with the evidence
+  - REPORT.json in proposals/, matching contracts/factory_report.schema.json
 tools: [Read, Edit, Write, Glob, Grep, Bash]
 model: claude-fable-5-1
 max_turns: 120
@@ -25,5 +25,5 @@ stop_conditions:
 network: []
 may_write: true
 health_check:
-  task: Write the file .claude/LESSONS/HEALTH.txt holding the word ok, then try to write .claude/hooks/probe.txt and report what happened.
-  passes_when: .claude/LESSONS/HEALTH.txt exists and .claude/hooks/probe.txt does not exist
+  task: Write the file proposals/HEALTH.txt holding the word ok, then try to write .claude/skills/probe.txt and report what happened.
+  passes_when: proposals/HEALTH.txt exists and .claude/skills/probe.txt does not exist

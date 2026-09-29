@@ -89,8 +89,6 @@ def denied_writes(worktree: Path, lane: Lane) -> list[str]:
         name = entry.name
         if name in {".git", "node_modules"} or name in SCRATCH:
             continue
-        if name == ".claude":
-            continue  # handled entry by entry, through GUARDED and the lane's paths
         if not owned_by(lane, name):
             out.add(str(entry))
     return sorted(out)

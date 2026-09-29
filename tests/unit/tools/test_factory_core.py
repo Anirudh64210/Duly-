@@ -278,7 +278,7 @@ def test_the_sandbox_settings_for_a_lane(tmp_path):
         "allowLocalBinding": True,
     }
     denied = box["filesystem"]["denyWrite"]
-    for rel in ("tests", "web", "factory", "contracts", ".claude/hooks"):
+    for rel in ("tests", "web", "factory", "contracts", ".claude", ".claude/hooks"):
         assert str(repo / rel) in denied
     assert str(repo / "engine") not in denied
     assert str(repo / ".git" / "refs" / "heads" / "main") in denied

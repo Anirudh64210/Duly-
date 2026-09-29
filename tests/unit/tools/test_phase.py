@@ -256,20 +256,14 @@ def test_work_kept_for_the_founder_is_not_merged(tmp_path):
     repo = mini.build(tmp_path)
     env = mini.scenario(
         tmp_path,
-        {
-            "L-factory": [
-                mini.good([".claude/LESSONS/proposals/a.md"], ".claude/LESSONS", "lesson\n")
-            ]
-        },
+        {"L-factory": [mini.good(["proposals/lessons/a.md"], "proposals", "lesson\n")]},
     )
     plan_file(
         repo,
         [
             {
                 "name": "K",
-                "lanes": [
-                    job("L-factory", "skill-curator", "test -f .claude/LESSONS/proposals/a.md")
-                ],
+                "lanes": [job("L-factory", "skill-curator", "test -f proposals/lessons/a.md")],
                 "checks": [],
             }
         ],
@@ -277,7 +271,7 @@ def test_work_kept_for_the_founder_is_not_merged(tmp_path):
     done = orchestrate(repo, env)
     assert done.returncode == 0, done.stdout + done.stderr
     assert "waiting for the founder (skill_or_prompt_changed)" in done.stdout
-    assert not (repo / ".claude" / "LESSONS" / "proposals" / "a.md").exists()
+    assert not (repo / "proposals" / "lessons" / "a.md").exists()
     assert "lane/L-factory/" in mini.git(repo, "branch", "--list", "lane/*")
 
 
