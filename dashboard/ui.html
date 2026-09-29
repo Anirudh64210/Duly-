@@ -23,7 +23,7 @@
         --mono: ui-monospace, "SF Mono", Menlo, monospace;
       }
       @media (prefers-color-scheme: dark) {
-        :root {
+        :root:not([data-theme="light"]) {
           --ground: #141413;
           --surface: #1d1d1b;
           --sunken: #181817;
@@ -36,6 +36,19 @@
           --track: #33322f;
           --shadow: none;
         }
+      }
+      :root[data-theme="dark"] {
+        --ground: #141413;
+        --surface: #1d1d1b;
+        --sunken: #181817;
+        --ink: #f4f3ef;
+        --ink-2: #b9b7ae;
+        --ink-3: #85837c;
+        --line: #2c2b28;
+        --accent: #8fa8ea;
+        --accent-tint: #222a40;
+        --track: #33322f;
+        --shadow: none;
       }
       * { box-sizing: border-box; }
       html, body { height: 100%; }
@@ -56,8 +69,13 @@
       .top { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
       h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
       .round { color: var(--ink-2); margin-top: 2px; }
-      .head { color: var(--ink-3); text-align: right; max-width: 46%; overflow: hidden;
-        text-overflow: ellipsis; white-space: nowrap; }
+      .top-right { display: flex; align-items: center; gap: 14px; min-width: 0; max-width: 56%; }
+      .head { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .theme { display: inline-flex; align-items: center; gap: 7px; flex: none; padding: 6px 12px 6px 10px;
+        border: 1px solid var(--line); border-radius: 99px; background: var(--surface); color: var(--ink-2); }
+      .theme:hover { color: var(--ink); border-color: var(--ink-3); }
+      .theme svg { width: 14px; height: 14px; }
+      .bar-top { display: flex; justify-content: space-between; align-items: center; }
 
       .tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
       .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
@@ -189,7 +207,14 @@
           <h1>Factory</h1>
           <div class="round" id="round"></div>
         </div>
-        <div class="head mono" id="head"></div>
+        <div class="top-right">
+          <div class="head mono" id="head"></div>
+          <button class="theme" data-theme-toggle>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"><path data-theme-icon d="" /></svg>
+            <span data-theme-label></span>
+          </button>
+        </div>
       </div>
       <div class="tiles" id="tiles"></div>
       <div class="columns">
@@ -216,11 +241,18 @@
 
     <div id="detail" class="hidden">
       <div class="bar">
-        <button class="back" id="back">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5" /></svg>
-          All agents
-        </button>
+        <div class="bar-top">
+          <button class="back" id="back">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5" /></svg>
+            All agents
+          </button>
+          <button class="theme" data-theme-toggle>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"><path data-theme-icon d="" /></svg>
+            <span data-theme-label></span>
+          </button>
+        </div>
         <div class="title">
           <h1 id="d-lane"></h1>
           <span id="d-state"></span>
@@ -301,6 +333,33 @@
         iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "";
       const short = (iso) =>
         iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
+
+      const SUN = "M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1M8 5.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z";
+      const MOON = "M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z";
+      const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+      let theme = ""; // empty follows the system until the first click
+      function shownTheme() {
+        return theme || (systemDark.matches ? "dark" : "light");
+      }
+      function applyTheme() {
+        if (theme) document.documentElement.dataset.theme = theme;
+        else delete document.documentElement.dataset.theme;
+        const next = shownTheme() === "dark" ? "light" : "dark";
+        for (const button of document.querySelectorAll("[data-theme-toggle]")) {
+          button.querySelector("[data-theme-icon]").setAttribute("d", next === "dark" ? MOON : SUN);
+          button.querySelector("[data-theme-label]").textContent = next === "dark" ? "Dark" : "Light";
+          button.setAttribute("aria-label", "Switch to " + next + " mode");
+        }
+      }
+      for (const button of document.querySelectorAll("[data-theme-toggle]")) {
+        button.addEventListener("click", () => {
+          theme = shownTheme() === "dark" ? "light" : "dark";
+          applyTheme();
+          if (bridge) bridge.set_theme(theme);
+        });
+      }
+      systemDark.addEventListener("change", applyTheme);
+      applyTheme();
 
       let bridge = null;
       let snapshot = null;
@@ -538,6 +597,7 @@
 
       function start() {
         bridge = window.pywebview.api;
+        bridge.get_theme().then((saved) => { theme = saved || ""; applyTheme(); });
         refresh();
         setInterval(refresh, 2000);
         setInterval(() => { if (snapshot && !open) drawMain(); }, 1000);

@@ -249,10 +249,12 @@ def changes(repo: Path, agent: Agent) -> str:
     )
 
 
-def load(repo: Path, with_tokens: bool = True) -> Snapshot:
+def load(repo: Path, with_tokens: bool = True, ps_output: str | None = None) -> Snapshot:
     events = read_events(repo)
     agents = agents_from_events(events)
-    alive = running_lanes(_out(["ps", "-axo", "command"], repo))
+    if ps_output is None:
+        ps_output = _out(["ps", "-axo", "command"], repo)
+    alive = running_lanes(ps_output)
     base = _out(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo).strip() or "main"
     for agent in agents.values():
         agent.alive = agent.lane in alive
@@ -305,9 +307,9 @@ def _iso(at: datetime | None) -> str:
     return at.isoformat() if at else ""
 
 
-def snapshot_json(repo: Path) -> dict[str, Any]:
+def snapshot_json(repo: Path, ps_output: str | None = None) -> dict[str, Any]:
     """Everything the main view shows, as plain values."""
-    snap = load(repo)
+    snap = load(repo, ps_output=ps_output)
     return {
         "round": snap.round_line,
         "head": snap.head,
@@ -358,9 +360,32 @@ def snapshot_json(repo: Path) -> dict[str, Any]:
     }
 
 
-def agent_json(repo: Path, lane: str, limit: int = 500) -> dict[str, Any]:
+THEMES = ("light", "dark")
+
+
+def read_theme(repo: Path) -> str:
+    """The theme the founder picked, or an empty string to follow the system."""
+    try:
+        saved = json.loads((repo / ".factory" / "ui.json").read_text()).get("theme", "")
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return ""
+    return saved if saved in THEMES else ""
+
+
+def write_theme(repo: Path, theme: str) -> str:
+    if theme not in THEMES:
+        return read_theme(repo)
+    folder = repo / ".factory"
+    folder.mkdir(exist_ok=True)
+    (folder / "ui.json").write_text(json.dumps({"theme": theme}))
+    return theme
+
+
+def agent_json(
+    repo: Path, lane: str, limit: int = 500, ps_output: str | None = None
+) -> dict[str, Any]:
     """Everything the agent view shows: trace, activity, progress log, changes."""
-    snap = load(repo, with_tokens=False)
+    snap = load(repo, with_tokens=False, ps_output=ps_output)
     agent = next((a for a in snap.agents if a.lane == lane), None)
     if agent is None:
         return {"found": False}

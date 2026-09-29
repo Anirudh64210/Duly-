@@ -150,7 +150,7 @@ def test_load_reads_events_gates_and_lessons(tmp_path):
     (tree / "api").mkdir(parents=True)
     (tree / "api" / "PROGRESS.md").write_text("# Log\n\n## Lesson\nfailure, fix, evidence\n")
 
-    snap = data.load(repo, with_tokens=False)
+    snap = data.load(repo, with_tokens=False, ps_output="")
     api = snap.agents[0]
     assert snap.round_line == "round A: L-api"
     assert snap.gates == {"types": "pass"}
@@ -160,7 +160,7 @@ def test_load_reads_events_gates_and_lessons(tmp_path):
     assert api.worktree == tree
     assert "Not yet committed" in data.changes(repo, api)
 
-    main = data.snapshot_json(repo)
+    main = data.snapshot_json(repo, ps_output="")
     assert json.loads(json.dumps(main)) == main  # plain values only
     assert main["totals"]["running"] == 0
     assert main["totals"]["first_start"].startswith("2026-09-29T06:00")
@@ -168,12 +168,23 @@ def test_load_reads_events_gates_and_lessons(tmp_path):
     assert main["agents"][0]["lane"] == "L-api"
     assert main["orchestrator"][0]["message"] == "round A: L-api"
 
-    detail = data.agent_json(repo, "L-api")
+    detail = data.agent_json(repo, "L-api", ps_output="")
+    live = data.load(repo, with_tokens=False, ps_output="x tools.factory.run_lane --lane L-api y")
+    assert (live.agents[0].alive, live.agents[0].state) == (True, "working")
     assert json.loads(json.dumps(detail)) == detail
     assert [e["message"] for e in detail["activity"]] == ["m", "reads api/main.py"]
     assert "## Lesson" in detail["progress"]
     assert detail["trace"] == []
-    assert data.agent_json(repo, "L-nope") == {"found": False}
+    assert data.agent_json(repo, "L-nope", ps_output="") == {"found": False}
+
+
+def test_theme_is_remembered_and_only_known_themes_are_kept(tmp_path):
+    assert data.read_theme(tmp_path) == ""
+    assert data.write_theme(tmp_path, "dark") == "dark"
+    assert data.read_theme(tmp_path) == "dark"
+    assert data.write_theme(tmp_path, "neon") == "dark"
+    (tmp_path / ".factory" / "ui.json").write_text("{")
+    assert data.read_theme(tmp_path) == ""
 
 
 def test_changes_without_a_worktree():

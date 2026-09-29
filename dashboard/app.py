@@ -34,6 +34,12 @@ class Bridge:
     def agent(self, lane: str) -> dict[str, Any]:
         return data.agent_json(self._repo, str(lane))
 
+    def get_theme(self) -> str:
+        return data.read_theme(self._repo)
+
+    def set_theme(self, theme: str) -> str:
+        return data.write_theme(self._repo, str(theme))
+
 
 def find_repo(start: Path) -> Path:
     for folder in (start, *start.parents):
