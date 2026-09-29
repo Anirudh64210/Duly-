@@ -921,7 +921,7 @@ describe("SPEC section 6: what comes next", () => {
       "STEM OPT filing window opens",
       "STEM OPT filing window closes",
       "OPT EAD card ends",
-      "Grace period ends, counted from the OPT EAD end date",
+      "Grace period ends",
     ]);
   });
 

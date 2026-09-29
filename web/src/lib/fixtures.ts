@@ -260,7 +260,7 @@ export const NEXT = {
       reading: false,
     },
     {
-      id: "next.grace.ends",
+      id: "grace.ends",
       date: "2027-07-30",
       rule_ids: ["grace.after_completion_days"],
       status: "litigated",
