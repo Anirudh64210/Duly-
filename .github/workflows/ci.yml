@@ -53,5 +53,7 @@ jobs:
         run: make gate-5
       - name: Gate 7, the factory's own files, sourced numbers and quotes
         run: make gate-7
+      - name: Hidden tests, which no building agent sees
+        run: uv run pytest tests/holdout -q -p no:cacheprovider
       - name: Gate 6, diff coverage
         run: make gate-6 BASE="$BASE"
