@@ -14,7 +14,9 @@ from tests.support.f1_pack import (
     ead,
     job,
     months_later,
+    no_earlier_opt,
     pack_dict,
+    placeholders_made_real,
     refuse_placeholders,
     rule_value,
     values,
@@ -28,7 +30,14 @@ def run(case: dict[str, Any], today: date) -> dict[str, Any]:
     # tests/unit/support/test_placeholders.py: every run helper sends its case through the
     # guard, so that a placeholder answer never reaches the engine.
     clock = clock_on(today)
-    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), build_pack(today), clock)
+    pack = build_pack(today)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 39: a case whose opt.earlier_at_this_level is answered
+    # with no_earlier_opt is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 # OPT 2026-02-02 to 2027-02-01, program end 2025-12-19 (the window closes 2026-02-17; 14
@@ -44,6 +53,9 @@ CASE: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+CASE = no_earlier_opt(CASE)
 DAY = date(2026, 11, 30)
 
 

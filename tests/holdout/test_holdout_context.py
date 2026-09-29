@@ -27,9 +27,11 @@ from tests.support.f1_pack import (
     CAP_GAP_ALONE,
     CONFLICT_IDS,
     CPT_USED,
+    EARLIER,
     HELD_OPT,
     NO_EMPLOYMENT,
     NOTHING_MORE,
+    OPEN_AFTER_LAST_CARD,
     QUESTION_IDS,
     READINGS,
     SHIFTED,
@@ -47,6 +49,7 @@ from tests.support.f1_pack import (
     is_period_or_report_question,
     items,
     job,
+    no_earlier_opt,
     pack_dict,
     periods_answered,
     question_ids,
@@ -81,6 +84,9 @@ CASE_H: dict[str, Any] = {
     "employment": [job("2025-07-14", "2026-01-31")],
     "cap_gap": None,
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+CASE_H = no_earlier_opt(CASE_H)
 
 # Case K: OPT, then the STEM extension, one period that covers both.
 CASE_K: dict[str, Any] = {
@@ -94,6 +100,9 @@ CASE_K: dict[str, Any] = {
     "employment": [job("2024-02-01", None, hours=32)],
     "cap_gap": None,
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+CASE_K = no_earlier_opt(CASE_K)
 
 # SPEC-resolutions.md, point 20: the period begins on the STEM card; it is not with a new
 # employer (periods_answered). The tests of this case are about held_post_completion_opt.
@@ -410,7 +419,11 @@ def test_an_empty_list_answered_yes_is_counted_day_by_day():
     # OPT from 2025-07-14. Through 2025-09-30: 18 in July, 31 in August, 30 in
     # September.
     today = date(2025, 9, 30)
-    case = with_changes(CASE_H, employment=[], confirmations=answers(**{NO_EMPLOYMENT: True}))
+    # SPEC-resolutions.md, point 39: no_earlier_opt keeps opt.earlier_at_this_level
+    # answered no beside the answer under test.
+    case = no_earlier_opt(
+        with_changes(CASE_H, employment=[], confirmations=answers(**{NO_EMPLOYMENT: True}))
+    )
     out = run(case, today=today)
     assert values(out)["unemployment.days_used"] == 79
     assert values(out)["unemployment.days_remaining"] == 11
@@ -419,7 +432,10 @@ def test_an_empty_list_answered_yes_is_counted_day_by_day():
 
 
 def test_an_empty_list_answered_no_is_a_missing_input():
-    case = with_changes(CASE_H, employment=[], confirmations=answers(**{NO_EMPLOYMENT: False}))
+    # Point 39: opt.earlier_at_this_level answered no beside the answer under test.
+    case = no_earlier_opt(
+        with_changes(CASE_H, employment=[], confirmations=answers(**{NO_EMPLOYMENT: False}))
+    )
     out = run(case)
     assert out["verdict"]["state"] == "cannot_tell"
     assert "missing:employment" in out["verdict"]["reasons"]
@@ -430,6 +446,8 @@ def test_an_empty_list_answered_no_is_a_missing_input():
 @pytest.mark.parametrize("answer", [True, False])
 def test_answers_nobody_asked_for_change_nothing(answer):
     given = answers("2025-08-01", **dict.fromkeys(QUESTION_IDS, answer))
+    # Point 39: CASE_K's own answer to opt.earlier_at_this_level is kept beside them.
+    given = {**CASE_K["confirmations"], **given}
     assert run(with_changes(CASE_K, confirmations=given)) == run(CASE_K)
 
 
@@ -460,7 +478,8 @@ def records(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         case[part] = None
     if draw(st.booleans()):
         case["employment"] = []
-    given = draw(st.dictionaries(st.sampled_from(QUESTION_IDS), st.booleans()))
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level may be answered too.
+    given = draw(st.dictionaries(st.sampled_from((*QUESTION_IDS, EARLIER)), st.booleans()))
     if given:
         case["confirmations"] = answers(today.isoformat(), **given)
     return case, today
@@ -482,10 +501,13 @@ def test_a_record_with_a_gap_is_asked_about_and_never_called_quiet(drawn):
     assert set(later) <= set(unconfirmed(out))
     if later:
         assert out["verdict"]["state"] == "cannot_tell"
-    asked = [q for q in question_ids(out) if q not in CONFLICT_IDS and q not in later]
+    # Point 43: its conflict is set apart as the table's are.
+    conflict_ids = (*CONFLICT_IDS, OPEN_AFTER_LAST_CARD)
+    asked = [q for q in question_ids(out) if q not in conflict_ids and q not in later]
     given = case.get("confirmations", {})
     assert sorted(q for q in unconfirmed(out) if q not in later) == sorted(asked)
-    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
+    # Point 39 adds opt.earlier_at_this_level.
+    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED, EARLIER}
     assert set(asked).isdisjoint(given)
     state = out["verdict"]["state"]
     if asked:
@@ -503,6 +525,12 @@ def test_a_record_with_a_gap_is_asked_about_and_never_called_quiet(drawn):
         assert NO_EMPLOYMENT in asked or NO_EMPLOYMENT in given
         if state != "cannot_tell":
             assert given[NO_EMPLOYMENT]["answer"] is True
+    # Point 39: every OPT card here holds both dates; it is asked about or answered, and
+    # only a no leaves a quiet verdict or an open item.
+    if opt:
+        assert EARLIER in asked or EARLIER in given
+        if state in ("no_open_items", "needs_you"):
+            assert given[EARLIER]["answer"] is False
     # No recommendation date is entered anywhere, and every block holds its EAD dates.
     assert [r for r in out["verdict"]["reasons"] if "dso_recommendation_date" in r] == []
 
@@ -591,7 +619,12 @@ def test_the_api_refuses_a_zone_it_cannot_read(client, zone):
 
 
 def test_the_api_asks_and_follows_the_answer(client):
-    case = with_changes(API_CASE, employment=[])
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level is answered no first, on
+    # 2026-09-29, the day in Tokyo, with the about the api asked, so that the question
+    # under test stands alone.
+    bare = with_changes(API_CASE, employment=[])
+    first = client.post(URL, json=bare).json()
+    case = answer_as_the_screen_does(bare, first, "2026-09-29", **{EARLIER: False})
     asked = client.post(URL, json=case).json()
     assert question_ids(asked) == [NO_EMPLOYMENT]
     assert asked["verdict"]["state"] == "cannot_tell"

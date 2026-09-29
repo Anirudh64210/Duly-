@@ -27,7 +27,9 @@ from tests.support.f1_pack import (
     items,
     job,
     months_later,
+    no_earlier_opt,
     pack_dict,
+    placeholders_made_real,
     question_ids,
     refuse_placeholders,
     rule_value,
@@ -54,7 +56,13 @@ def run(
     clock = clock_on(today)
     if pack is None:
         pack = validate_pack(pack_dict(today) if raw_pack is None else raw_pack)
-    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 39: a case whose opt.earlier_at_this_level is answered
+    # with no_earlier_opt is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def iso(day: date) -> str:
@@ -67,19 +75,25 @@ def iso(day: date) -> str:
 def opt_case(program_end: date, start: date, end: date) -> dict[str, Any]:
     """An OPT card from start to end, recommended 20 days and filed 15 days before it
     begins, with one period that covers the card and stays open."""
-    return {
-        "program_end_date": iso(program_end),
-        "degree_level": "bachelor",
-        "documents_count": 1,
-        "cpt_full_time_days": 0,
-        "opt": ead(
-            iso(start - timedelta(days=20)), iso(start - timedelta(days=15)), iso(start), iso(end)
-        ),
-        "stem": None,
-        "employment": [job(iso(start), None)],
-        "cap_gap": None,
-        "time_zone": "UTC",
-    }
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level answered no (no_earlier_opt).
+    return no_earlier_opt(
+        {
+            "program_end_date": iso(program_end),
+            "degree_level": "bachelor",
+            "documents_count": 1,
+            "cpt_full_time_days": 0,
+            "opt": ead(
+                iso(start - timedelta(days=20)),
+                iso(start - timedelta(days=15)),
+                iso(start),
+                iso(end),
+            ),
+            "stem": None,
+            "employment": [job(iso(start), None)],
+            "cap_gap": None,
+            "time_zone": "UTC",
+        }
+    )
 
 
 @settings(deadline=None, max_examples=60)
