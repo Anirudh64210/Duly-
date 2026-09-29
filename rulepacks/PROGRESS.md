@@ -682,3 +682,33 @@ uv run pytest tests/unit/tools/test_plain.py -q : 11 passed
 
 - git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
 - No fetched page was read; no network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-0f0465de11, attempt 1 (SPEC-resolutions point 65)
+
+### What was tried
+
+Rewrote only stem.requires.previously_obtained_degree#2016-05-10 and capgap.end_month_day#2025-01-17, per reviews/product-1-fix7.md finding 1. A scratch script in TMPDIR scored variants with tools.sources.plain.problems and grade.
+
+- The review's example for the degree row scores 5 sentences (limit 3): the splitter `[^.!?]+[.!?]?` cuts "U.S." into "...U." and "S." and so adds two sentence ends, not one as the run of point 62 wrote. With the plain_term "U.S. educational institution" kept, only one real sentence can pass. Semicolons keep the count at 3 but the grade stays 9.8 to 10.9; "and be from" / "be in" after a clause split trip the instructs check.
+- The review's example for cap-gap ("they last on their own only until then") scores grade 9.41 in the old text. "It is for" and "till April 1" bring it to 8.98 with the review's words kept exactly.
+- The degree row keeps one sentence, names the student ("recommends the student for the extension"), and says "in a field on the STEM list" (grade 8.88). With "category" and "for the extension" every variant tried scored 9.04 to 9.6.
+
+What each sentence rests on (Q = quote, N = note):
+- stem.requires.previously_obtained_degree. One sentence. "If a 24-month OPT extension rests on an older degree than the one for post-completion OPT": "If an application for a 24-month OPT extension ... is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT" (Q). "that degree must be from a U.S. educational institution that is accredited and SEVP-certified when the DSO recommends the student for the extension": "that previously obtained degree must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension" (Q). "in a field on the STEM list then": "must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation" (Q). "and granted in the 10 years up to that day": "That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension" (Q); "The number 10 in the quote is a count of years" (N).
+- capgap.end_month_day#2025-01-17. S1 (unchanged but for "It is for"): "of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act ... requesting a change of status ... where such petition:" (Q); "Duly reads subject to section 214(g)(1)(A) of the Act as under the yearly H-1B cap; that is a reading of those preambles" (N); "The conditions follow the colon" (N). S2: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C) ... will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested" (Q); "the plain words say only the employment authorization the rule names" (N). S3: "or until the validity start date of the approved petition, whichever is earlier" (Q), which bounds the automatic extension and says nothing of an end of status.
+
+### What ran
+
+```
+done command (as written): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  changed: capgap.end_month_day#2025-01-17
+  changed: stem.requires.previously_obtained_degree#2016-05-10
+  plain changes: 2 row(s) changed, all allowed
+```
+
+### Seen and not worked around
+
+- git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
+- No network was used. No instruction was found in any data.
