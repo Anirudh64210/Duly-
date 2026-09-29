@@ -36,7 +36,7 @@ const ITEM_NAMES: ReadonlyMap<string, string> = new Map(
     "opt.apply_window_opens": "OPT filing window opens",
     "opt.apply_window_closes": "OPT filing window closes",
     "opt.file_by": "Last OPT filing day after the DSO recommendation",
-    "opt.latest_start": "Latest OPT start date",
+    "opt.latest_start": "Latest start date a student may request",
     "opt.complete_by": "Date OPT is to be completed by",
     "unemployment.limit": "Unemployment days allowed",
     "unemployment.days_used": "Unemployment days used",
@@ -138,6 +138,37 @@ const MISSING_PARTS: ReadonlyMap<string, string> = new Map(
     cpt_full_time_days: "Duly needs the number of full-time CPT days.",
   }),
 );
+
+/** The number and the side of an employment period date named in an about, or null. */
+export function periodDay(key: string): { period: number; side: "start" | "end" } | null {
+  const day = PERIOD_DAY.exec(key);
+  if (!day) return null;
+  return { period: Number(day[1]), side: day[2] === "end" ? "end" : "start" };
+}
+
+/**
+ * SPEC-resolutions point 34: an employment period as its start and end, so the person
+ * can check the dates they are asked to confirm. end undefined: the end is not known here.
+ */
+export function periodSpan(start: unknown, end: unknown): string {
+  const from = typeof start === "string" ? formatDate(start) : "no start date entered";
+  if (typeof end === "string") return `${from} to ${formatDate(end)}`;
+  if (end === null) return `${from}, no end date entered`;
+  return `Starts ${from}`;
+}
+
+/** SPEC-resolutions point 29: an answer among an item's inputs, as the person's own. */
+export function givenLine(answer: boolean, on: string): string {
+  return `You answered ${answer ? "Yes" : "No"} on ${formatDate(on)}`;
+}
+
+/** SPEC-resolutions point 29: an item whose value comes from the person's answer says so. */
+export function computedName(item: Pick<ComputedItem, "id" | "inputs">): string {
+  if (item.id === "cpt.full_time_days_used" && Object.hasOwn(item.inputs, "full_time_cpt_used")) {
+    return "Full-time CPT days (your answer)";
+  }
+  return itemName(item.id);
+}
 
 export function inputName(key: string): string {
   const known = INPUT_NAMES.get(key) ?? ITEM_NAMES.get(key) ?? numberedItem(key);
@@ -272,6 +303,9 @@ const FACTS: ReadonlyMap<string, string> = new Map(
       "The OPT I-765 filed date is more days after the program end date than the rule gives for filing.",
     "opt.ead_end.after_complete_by":
       "The OPT EAD end date is after the date OPT is to be completed by. That date is Duly's count from the months in the rule, counted from the program end date.",
+    // SPEC-resolutions point 27. Taking the EAD end date as the test is Duly's reading.
+    "opt.ead_end.not_after_program_end":
+      "The OPT EAD end date is on or before the program end date, so no day of these EAD dates is after it. The guidance below defines post-completion OPT by the program end date; taking the EAD end date as the test is Duly's reading.",
   }),
 );
 
@@ -286,6 +320,7 @@ const FACT_RULES: ReadonlyMap<string, string> = new Map(
     "stem.i765_filed_date.before_window_opens": "stem.apply_before_expiry_days",
     "opt.i765_filed_date.after_window_closes": "opt.apply_after_days",
     "opt.ead_end.after_complete_by": "opt.complete_within_months",
+    "opt.ead_end.not_after_program_end": "opt.post_completion_definition",
   }),
 );
 
@@ -493,7 +528,7 @@ export function reasonText(reason: string, computed: readonly ComputedItem[] = [
 
   const item = computed.find((candidate) => candidate.id === reason);
   if (item && item.value !== null) {
-    return `${itemName(item.id)}: ${formatValue(item.value, item.unit)}.`;
+    return `${computedName(item)}: ${formatValue(item.value, item.unit)}.`;
   }
 
   const split = reason.indexOf(":");
