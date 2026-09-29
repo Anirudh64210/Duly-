@@ -1275,3 +1275,74 @@ Shown with scratch plugins under TMPDIR, removed after:
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-165541a1bd (attempt 1): tests first for points 39, 40, 42, 43, 46 to 50 and plain-1
+
+### What I tried and what ran
+
+- Read the SPEC (SPEC-resolutions.md points 39 to 50, specs/plain-1/SPEC.md), the output
+  contract (rules[].plain, regimes, answers_read) and the shipped pack's rows and dates
+  (STEM rows from 2016-05-10; capgap.end_month_day 10-01 to 2025-01-16 and 04-01 from
+  2025-01-17; calendar list without Juneteenth 1986-01-01 to 2021-06-16; OPT window rows
+  from 2008-04-08; stem.report_change_within_days already shipped).
+- Wrote tests/unit/engine/test_f1_fix4.py (57 tests) and tests/holdout/test_holdout_fix4.py
+  (18 tests). Every answer goes through `settle`, which answers only what the output asks,
+  on the day of the case, with the about as asked, and calls refuse_placeholders on every
+  case (tests/support/f1_pack.py). A conflict question is never answered by default.
+- Ran the two files against the current engine: 58 fail, 17 pass. Each failure read by hand
+  (one line per failure): each is the missing behaviour of its point (no question
+  opt.earlier_at_this_level; no conflict period_open_after_last_card; KeyError answers_read
+  and regimes; validations dated after the card; June 19 2019 and 2020 skipped, giving
+  2019-07-01 and 2020-06-29; capgap.ends 2024-11-15 and 2025-04-01 where null is due;
+  rule_in_litigation on a null or equal alternate; report dated by the OPT guidance row on a
+  STEM card; unemployment counted after yes to point 27).
+- Fixed one slip of my own on the way (a case with no confirmations key) and removed three
+  state checks of my own new tests that the SPEC does not settle (see below).
+- The done command as written: exit 0 ("All checks passed!", "53 files already formatted",
+  collection clean).
+
+### Passing now, and why that is right
+
+The 17 that pass are guards: the edge on the other side of each point (no card raises
+nothing; the last card day; cap-gap still running; a STEM card from 2016-05-10; the October
+row for an October 1 start; the April row from 2025-01-17; 2023 skips June 19; point 47 on
+and before 2008-04-08, which point 28 already gives; point 49 differing values; point 50 on
+an OPT card; the contract test of the cases; no regime named, no regimes).
+
+### What change to the code would make each new test fail
+
+- Point 39: not raising opt.earlier_at_this_level, leaving degree_level out of its about,
+  or giving no_open_items on yes (all fail today, as the engine lacks the point).
+- Point 40: looking up the STEM rows, cap-gap rows or holiday list on today instead of the
+  event day; skipping June 19 before 2021-06-17; computing capgap.ends for a non-October
+  start on a petition filed before 2025-01-17.
+- Point 42: marking the OPT step done, placing next.stem.* or counting unemployment after
+  yes to point 27.
+- Point 43: exempting an open period after the last card (the old words), or raising it
+  while cap-gap runs, or on the last card day (the guards).
+- Point 46: leaving answers_read out, listing an answer not raised, one for other values,
+  or a stale yes to no_employment_to_record.
+- Point 47: taking the earliest row for an event before it.
+- Point 48: dating a validation or the 12-month evaluation after the card end (property over
+  1 to 730 days of card).
+- Point 49: counting an alternate where either value is null or both are equal.
+- Point 50: dating the STEM report with opt.report_employer_within_days, or writing 10 in
+  code (the 7-day and 12-day packs).
+- plain-1: dropping plain from rules or regimes, naming a regime no item depends on, or
+  giving another regime's citation or url.
+
+### Seen, not changed
+
+- Point 39 raises a question on every case with an OPT card, and point 43 a conflict on
+  every open period after the last card: many older tests will need their cases answered or
+  changed once the engine has them (as points 27 and 7 did). Not done here; the mission is
+  tests first.
+- The three state checks left out: after yes to point 27 (point 42) and on the test pack's
+  point 40 cases, grace.ends may keep an alternate after the card, because the test pack's
+  blocked grace row is in force from 2000, so point 25 may add rule_in_litigation. The SPEC
+  does not settle this; the tests pin the judgement item or the step back instead, and the
+  state on the shipped pack.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
