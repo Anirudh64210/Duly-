@@ -35,6 +35,18 @@ ALARM = re.compile(
     r"out of status)\b",
     re.IGNORECASE,
 )
+# Plain words are plain first. A citation lives with the exact words, one tap away, and
+# legal phrasing that an everyday word can carry without changing who or what the rule
+# covers is said in everyday words (point 58).
+CITATION = re.compile(
+    r"\b\d+\s*(?:CFR|C\.F\.R\.|U\.S\.C\.|FR)\b|\(\w{1,4}\)\(\w{1,4}\)|§", re.IGNORECASE
+)
+LEGALESE = re.compile(
+    r"\b(?:accru\w*|aggregate|pursuant|thereof|therein|herein|hereby|successor form|"
+    r"properly file\w*|engage in|described in|notwithstanding|in accordance with)\b",
+    re.IGNORECASE,
+)
+MAX_TERMS = 3
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 SENTENCE = re.compile(r"[^.!?]+[.!?]?")
 VOWELS = re.compile(r"[aeiouy]+")
@@ -76,6 +88,12 @@ def problems(plain: str, kind: str, grounds: str) -> list[str]:
     told = instructs(plain)
     if told:
         found.append(f"instructs: {told!r}")
+    cited = CITATION.search(plain)
+    if cited:
+        found.append(f"cites {cited.group(0)!r}; citations go with the exact words")
+    legal = LEGALESE.search(plain)
+    if legal:
+        found.append(f"legal phrasing {legal.group(0)!r}; say it in everyday words")
     alarm = ALARM.search(plain)
     if alarm:
         found.append(f"alarms: {alarm.group(0)!r}")
@@ -117,7 +135,15 @@ def term_problems(entry: dict[str, Any], plain: str, require: bool) -> list[str]
     quote = _flat(str((entry.get("source") or {}).get("quote", "")))
     words = _flat(plain)
     found = []
+    if len(terms) > MAX_TERMS:
+        found.append(
+            f"{len(terms)} terms; at most {MAX_TERMS}: keep a term only where an everyday word "
+            "would change who or what the rule covers"
+        )
     for term in terms:
+        if CITATION.search(str(term)) or LEGALESE.search(str(term)):
+            found.append(f"term {term!r} is a citation or legal phrasing, not a term of art")
+            continue
         flat = _flat(str(term))
         if flat not in quote:
             found.append(f"term {term!r} is not in the quote")

@@ -102,3 +102,34 @@ def test_terms_of_art_are_kept_word_for_word():
         plain.term_problems({k: v for k, v in entry.items() if k != "plain_terms"}, kept, False)
         == []
     )
+
+
+def test_plain_words_leave_citations_and_legalese_to_the_exact_words():
+    cited = (
+        "During any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B), "
+        "a student may not have more than 90 days of unemployment."
+    )
+    found = plain.problems(cited, "rule", QUOTE + " 8 274")
+    assert any("cites" in p for p in found)
+    assert any("legal phrasing" in p for p in found)
+    accrued = "A student may not accrue an aggregate of more than 90 days of unemployment."
+    assert any("legal phrasing" in p for p in plain.problems(accrued, "rule", QUOTE))
+
+
+def test_terms_of_art_are_few_and_are_not_legal_phrasing():
+    entry = {
+        "id": "x",
+        "source": {
+            "quote": "may not accrue an aggregate of more than 90 days of unemployment "
+            "by a U.S. worker"
+        },
+        "plain_terms": ["accrue an aggregate of", "U.S. worker"],
+    }
+    found = plain.term_problems(
+        entry, "A U.S. worker may not have more than 90 days without a job.", True
+    )
+    assert found == [
+        "term 'accrue an aggregate of' is a citation or legal phrasing, not a term of art"
+    ]
+    many = {**entry, "plain_terms": ["a", "b", "c", "d"]}
+    assert any("at most 3" in p for p in plain.term_problems(many, "a b c d", True))
