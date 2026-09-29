@@ -37,3 +37,13 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 | D24 | Schools (proposal 3) | Start with 100 schools | Decided |
 | D25 | Hermes Agent | May be used in any role. Goal: a clean, productive, self-improving agentic dev system | Decided |
 | D26 | Git | Founder will create a private repo on request | Requested |
+
+## 2026-09-28, round 3
+
+| # | Topic | Decision | Status |
+|---|---|---|---|
+| D27 | Where the assistant model runs | Local prototype: Claude API. v0 for market validation: AWS with Claude through Bedrock, no data retention, privacy rules met. Own servers only after validation | Decided |
+| D28 | Attorney and Anthropic zero retention | After validation: look for attorneys to work with, and Anthropic's zero retention terms | Later |
+| D29 | BOUNDARY.md | Approved as written. Founder wants to see what value inside the line looks like | Decided |
+| D30 | Container runtime | Docker engine through colima | Done |
+| D31 | Repo | git@github.com:Anirudh64210/Duly-.git, private | Done |

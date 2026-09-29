@@ -1,6 +1,6 @@
 # The line: where Duly helps and where it stops
 
-Status: draft for founder review. Once approved, this file is binding on the assistant, the engine, the updates pipeline, all copy, and all marketing. It is enforced by code and tests, not by good intentions.
+Status: approved by the founder on 2026-09-28 (DECISIONS.md D29). This file is binding on the assistant, the engine, the updates pipeline, all copy, and all marketing. It is enforced by code and tests, not by good intentions.
 
 Honest limit: no design removes legal risk completely. This line puts Duly on the side that courts and regulators have treated as publishing information, and keeps it off the side they have treated as practising law or immigration consulting. Source research: docs/research/law-liability-design-2026-09.md.
 
@@ -70,7 +70,7 @@ The drafted email asks a question. It never argues a position and never states a
 
 ## Where the assistant runs
 
-On infrastructure Duly controls. No user question and no user record is sent to Anthropic or any other outside model provider. Claude is used only on public law text inside the updates pipeline.
+In the released product, inside Duly's own AWS account (Claude through Amazon Bedrock, with no data retention), so no user question and no user record is sent to Anthropic or any other outside model provider. The local prototype may call the Claude API directly, with the founder's own test data only. In the updates pipeline, models read public law text only.
 
 ## Words Duly never uses about itself
 
