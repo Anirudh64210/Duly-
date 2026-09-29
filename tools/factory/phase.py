@@ -163,6 +163,7 @@ def main() -> int:
     parser.add_argument("plan")
     parser.add_argument("--from-round", default="")
     parser.add_argument("--only-round", default="")
+    parser.add_argument("--checks-only", default="", help="round whose lanes are already merged")
     args = parser.parse_args()
     plan = yaml.safe_load(Path(args.plan).read_text())
     base, spec = plan["branch"], plan["spec"]
@@ -183,7 +184,8 @@ def main() -> int:
             started = True
         lanes = ", ".join(j["lane"] for j in rnd["lanes"])
         _say("start", f"round {name}: {lanes}")
-        procs = [(job, _launch(job, spec, base)) for job in rnd["lanes"]]
+        jobs = [] if name == args.checks_only else rnd["lanes"]
+        procs = [(job, _launch(job, spec, base)) for job in jobs]
         outcomes = [(job, proc.wait()) for job, proc in procs]
         merged = True
         for job, code in outcomes:
