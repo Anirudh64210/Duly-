@@ -8,6 +8,7 @@ import {
   ZONE_FIELD,
   answer,
   buildCase,
+  keepFitting,
   reportedZone,
   withdrawAnswer,
   type CaseFields,
@@ -47,8 +48,9 @@ export function App() {
   const [problems, setProblems] = useState<string[]>([]);
 
   // A result belongs to the dates it was computed from. Once they change, it goes.
+  // An answer given for other values goes with them (SPEC-resolutions point 33).
   const change = (changed: CaseFields) => {
-    setFields(changed);
+    setFields(keepFitting(changed));
     setProblems([]);
     if (!compute.isIdle) compute.reset();
   };
@@ -93,7 +95,9 @@ export function App() {
   } else if (status.isError) {
     verdict = <CannotTell lines={["Duly could not reach its server."]} />;
   } else {
-    const checked = new Date(status.data.checked_at).toLocaleString(undefined, {
+    // SPEC-resolutions point 35: the time the server was asked is not a check of the
+    // rules, and is not called one.
+    const asked = new Date(status.data.checked_at).toLocaleString(undefined, {
       dateStyle: "medium",
       timeStyle: "short",
     });
@@ -103,7 +107,7 @@ export function App() {
         {status.data.verdict.reasons.map((reason) => (
           <p key={reason}>{reasonLine(reason)}</p>
         ))}
-        <p className="scope">Based on 0 documents you added. Checked {checked}.</p>
+        <p className="scope">Based on 0 documents you added. Server status read {asked}.</p>
       </section>
     );
   }
@@ -125,6 +129,7 @@ export function App() {
             <Questions
               output={compute.data}
               sent={compute.variables.confirmations}
+              entered={compute.variables}
               busy={compute.isPending}
               onAnswer={record}
               onWithdraw={withdraw}
