@@ -588,3 +588,127 @@ def test_the_header_says_whether_a_plan_is_running(tmp_path):
     )
     assert data.plan_state(repo, events)["running"] is True
     assert data.plan_state(repo, events)["branch"] == "product-1"
+
+
+def _registry(repo, runs):
+    (repo / ".factory" / "registry.json").write_text(json.dumps({"runs": runs}))
+
+
+def _claim(lane, task, pid, at=T0, agent="builder"):
+    return {"lane": lane, "task": task, "agent": agent, "pid": pid, "started_at": at}
+
+
+def test_two_lanes_in_one_round_both_show_as_working_until_each_ends(tmp_path):
+    import os
+
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    me = os.getpid()
+    events = [
+        ev("founder", "start", "round B: L-api, L-web", agent="orchestrator"),
+        {**ev("L-api", "start", "api work"), "run_id": "api1"},
+        {**ev("L-web", "start", "screen work"), "run_id": "web1"},
+        {**ev("L-api", "step", "writes api/main.py"), "run_id": "api1"},
+        {**ev("L-web", "step", "writes web/src/App.tsx"), "run_id": "web1"},
+    ]
+    (repo / ".factory" / "events.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    _registry(
+        repo,
+        {"api1": _claim("L-api", "p/B/L-api", me), "web1": _claim("L-web", "p/B/L-web", me)},
+    )
+    main = data.snapshot_json(repo, ps_output="", environ={}, auth_json="{}")
+    assert [(a["lane"], a["state"], a["alive"]) for a in main["agents"]] == [
+        ("L-api", "working", True),
+        ("L-web", "working", True),
+    ]
+    assert main["totals"]["running"] == 2
+    assert [r["run_id"] for r in main["live"]] == ["api1", "web1"]
+
+    # L-api writes its end. Its runner still holds the claim for a moment while it
+    # tidies up; it has finished and must not show as working.
+    events.append({**ev("L-api", "blocked", "escalated: x"), "run_id": "api1"})
+    (repo / ".factory" / "events.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    main = data.snapshot_json(repo, ps_output="", environ={}, auth_json="{}")
+    assert [(a["lane"], a["state"], a["alive"]) for a in main["agents"]] == [
+        ("L-web", "working", True),
+        ("L-api", "blocked", False),
+    ]
+    assert main["totals"]["running"] == 1
+    assert [r["run_id"] for r in main["live"]] == ["web1"]
+
+
+def test_a_check_in_a_lane_does_not_mark_its_old_card_as_working(tmp_path):
+    import os
+
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    events = [
+        # A review from before runs had ids, long finished.
+        ev("L-review", "start", "review", at="2026-09-29T08:00:00+00:00", agent="reviewer"),
+        ev("L-review", "done", "done: ok", at="2026-09-29T08:10:00+00:00", agent="reviewer"),
+    ]
+    (repo / ".factory" / "events.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    ps = (
+        "python -m tools.factory.agent_run --lane L-review --agent reviewer "
+        "--task health/reviewer/L-review\n"
+    )
+
+    # The check's runner has started but has not taken its claim yet.
+    snap = data.load(repo, with_tokens=False, ps_output=ps)
+    assert [(a.lane, a.alive) for a in snap.agents] == [("L-review", False)]
+
+    # The check has its claim and is at work.
+    events.append(
+        {
+            **ev("L-review", "start", "health", at="2026-09-29T13:16:50+00:00", agent="reviewer"),
+            "run_id": "h1",
+            "task": "health/reviewer/L-review",
+        }
+    )
+    (repo / ".factory" / "events.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    _registry(
+        repo, {"h1": _claim("L-review", "health/reviewer/L-review", os.getpid(), agent="reviewer")}
+    )
+    snap = data.load(repo, with_tokens=False, ps_output=ps)
+    assert [(a.lane, a.alive, a.state) for a in snap.agents] == [
+        ("L-review, health check", True, "working"),
+        ("L-review", False, "done"),
+    ]
+
+
+def test_the_registry_is_read_whole_while_the_runner_rewrites_it(tmp_path):
+    import fcntl
+    import os
+    import threading
+
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    whole = {"a": _claim("L-web", "p/B/L-web", os.getpid())}
+    _registry(repo, whole)
+    locked, done = threading.Event(), threading.Event()
+
+    def rewrite():  # what the runner does: lock, truncate, write, unlock
+        with (repo / ".factory" / "registry.lock").open("w") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            (repo / ".factory" / "registry.json").write_text("")
+            locked.set()
+            done.wait(0.1)
+            _registry(repo, whole)
+
+    writer = threading.Thread(target=rewrite)
+    writer.start()
+    locked.wait(5)
+    try:
+        assert data.read_registry(repo) == whole
+    finally:
+        writer.join()
+    assert [r["run_id"] for r in data.live_runs(repo)] == ["a"]
+
+
+def test_a_broken_registry_reads_as_empty(tmp_path):
+    (tmp_path / ".factory").mkdir()
+    (tmp_path / ".factory" / "registry.json").write_text('{"runs": {')
+    assert data.read_registry(tmp_path, tries=2) == {}
+    (tmp_path / ".factory" / "registry.json").write_text("[]")
+    assert data.read_registry(tmp_path) == {}
+    assert data.read_registry(tmp_path / "nowhere") == {}
