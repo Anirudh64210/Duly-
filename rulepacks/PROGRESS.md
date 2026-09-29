@@ -515,3 +515,68 @@ uv run python -m tools.copy_lint.lint <scratch copy of HEAD with the two changed
 
 - git status and git diff print "Operation not permitted" for tests/holdout. Nothing there was read.
 - capgap.end_month_day (10-01 row) quotes 73 FR 18944 for 2008-04-08 to 2025-01-16, but 81 FR 13040 reworded (f)(5)(vi)(A) in 2016. Not changed in this run; listed in the report.
+
+## 2026-09-29, run l-content-0ebd5d28f4, attempt 1: resolution 54
+
+### What I did
+
+1. Read this log, specs/product-1/SPEC-resolutions.md point 54, reviews/product-1-fix4.md findings 1 and 2, CLAUDE.md, PRINCIPLES.md, BOUNDARY.md, DECISIONS.md D56 and D57, specs/plain-1/SPEC.md section 1, tools/sources/plain.py and assistant/boundary.py (_CONCLUSION refuses eligible and ineligible, and qualif-anything).
+2. Read the six named rows and every other plain text beside its quote, and the full sentences around five quotes in the saved copies (tools.sources.verify.plain).
+3. Drafted in a scratch file under TMPDIR, ran problems() and grade() on each, then applied with a script that edits one line per field. Limits met on the way: grade 9, three sentences for a rule, and the schema's 320 characters for a rule's plain (engine/rulepack.py refused the first paused grace text at 376).
+4. Five quotes widened, each found by the source check. Notes added on nine rows. CHANGELOG.md entry.
+
+### Grounds: each sentence I wrote or changed, and the words of its quote it rests on
+
+- ds_2012. S1: the regime (effective, operative). S2: "Duration of status is defined as the time during which an F-1 student is pursuing a full course of study at an educational institution certified by SEVP for attendance by foreign students". S3: "or engaging in authorized practical training following completion of studies".
+- cpt.full_time_months_bar / cpt.full_time_bar_days. S1: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training" (ineligible said as cannot have; the plain check refuses the word). S2: Duly's reading, said as Duly's; the quote says one year and post-completion academic training. S3: the reading mark.
+- opt.latest_start_after_days (60). S1: "A student may not request a start date that is more than 60 days after the student's program end date"; OPT from the heading of (f)(11)(i)(D), "Start of OPT employment" (in the note); under the rule in force today from regime ds_2012.
+- opt.latest_start_after_days (30). S1: "A student may not request a start date that is more than 30 days after the student's program end date". S2: regime fixed_admission_2026.
+- opt.file_within_days_of_recommendation. S1: "must also file his or her Form I-765 or successor form with USCIS within 30 days". S2: "of the date the DSO enters the recommendation for OPT into his or her SEVIS record".
+- opt.max_months. S1: "A student may be authorized 12 months of practical training". S2: "becomes eligible for another 12 months of practical training when they change to a higher educational level".
+- stem.extension_months. S1: "An extension will be for 24 months". S2: "for the first qualifying degree for which the student has completed all course requirements" (qualifying said as meets the rule's terms; the plain check refuses qualif-).
+- stem.file_within_days_of_recommendation. S1: "The student seeking such 24-month OPT extension must properly file his or her Form I-765 or successor form with USCIS within 60 days". S2: "of the date the DSO enters the recommendation for the OPT extension into his or her SEVIS record".
+- stem.min_hours_per_week. S1: "A student may not engage in practical training for less than 20 hours per week"; 24-month extension from the heading of (f)(10)(ii)(C) (in the note). S2 and S3: "excluding time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment".
+- stem.validation_interval_months. S1: "The student must complete a validation report ... every six months"; approved 24-month extension from the heading of (f)(12)(ii) (in the note). S2: "confirming that the information required by paragraph (f)(12)(ii)(A) of this section has not changed".
+- stem.validation_due_business_days. S1: "The validation report is due to the student's DSO within 10 business days". S2: "of each reporting date".
+- stem.evaluation_due_days (quote widened). S1: "the DSO receives his or her 12-month evaluation ... no later than 10 days following the conclusion of the reporting period ... respectively". S2: "and final evaluation ... or conclusion of his or her practical training opportunity, respectively". S3: "The student is responsible for ensuring".
+- stem.new_plan_due_days. S1: "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension". S2: "the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO". S3: "and subsequently obtain a new DSO recommendation".
+- grace.after_completion_days (60) (quote widened). S1: "An F-1 student who has completed a course of study and any authorized practical training following completion of studies will be allowed an additional 60-day period"; today from ds_2012. S2: "to prepare for departure from the United States or to transfer".
+- grace.after_completion_days (30) (quote widened). S1: "An F-1 student who has completed a course of study and any authorized practical training will be allowed an additional 30-day period ... to prepare for departure from the United States, or to otherwise seek to maintain lawful status". S2: "from the program end date or the 4 year maximum period of admission, or the end date of the approved employment authorization for post-completion OPT or STEM OPT, as applicable". S3: regime fixed_admission_2026.
+- capgap.end_month_day (10-01) (quote widened). S1: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C), of an F-1 student who is the beneficiary of an H-1B petition and request for change of status shall be automatically extended". S2: "until October 1 of the fiscal year for which such H-1B visa is being requested". S3: "where such petition:".
+- capgap.end_month_day (04-01) (quote widened). S1: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), of an F-1 student who is the beneficiary of an H-1B petition ... requesting a change of status will be automatically extended". S2: "until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier". S3: "where such petition:".
+- stem.evaluation_interval_months. S1: "All STEM practical training opportunities require an initial evaluation within 12 months of the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application". S2: "and a concluding evaluation" (the same paragraph calls it the final evaluation).
+- capgap.fiscal_year_start_month_day. S1: "The fiscal year of the Treasury begins on October 1 of each year and ends on September 30 of the following year". S2 and S3: the reading, marked (note).
+- opt.report_employer_within_days. S1: "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information". S2: status guidance.
+- calendar.federal_holidays_law (from 2021-06-17). S1: "The following are legal public holidays: ... Juneteenth National Independence Day, June 19". S2 and S3: the reading, marked (note). (Before 2021-06-17): S1: "Pub. L. 117-17 inserted item relating to Juneteenth National Independence Day" with the date in the note. S2 and S3 as above.
+- stem.requires.accreditation. S1 and S2: "is from a U.S. educational institution accredited by an accrediting agency recognized by the Department of Education at the time of application". S3: the reading mark.
+- stem.requires.dhs_approved_degree. S1: "is a bachelor's, master's, or doctoral degree". S2: "in a field determined by the Secretary, or his or her designee, to qualify within a science, technology, engineering, or mathematics field". S3: the reading mark.
+- stem.requires.degree_on_designated_list. S1: "At the time the DSO recommends a 24-month OPT extension ... in SEVIS, the degree ... must be contained within a category on the STEM Designated Degree Program List". S2: the list's name in the same words.
+- stem.requires.previously_obtained_degree. S1: "If an application for a 24-month OPT extension ... is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT". S2: "must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends ... and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation". S3: "must have been conferred within the 10 years preceding the date the DSO recommends".
+- stem.requires.employer_qualification. S1: "is enrolled in E-Verify, as evidenced by either a valid E-Verify Company Identification number or ... a valid E-Verify Client Company Identification number". S2: "the employer remains a participant in good standing with E-Verify, as determined by USCIS. An employer must also have an employer identification number (EIN) used for tax purposes". S3: the reading mark.
+- stem.requires.employer_reporting. S1: the start of the sentence in the note, then "unless the employer agrees, by signing ... Form I-983 ..., to report the termination or departure of an OPT student to the DSO at the student's school, if the termination or departure is prior to the end of the authorized period of OPT". S2: the reading mark.
+- stem.requires.training_plan. S1: "A student must fully complete an individualized Form I-983 ... before the DSO may recommend a 24-month OPT extension". S2: "and obtain requisite signatures from an appropriate individual in the employer's organization on the form, consistent with form instructions".
+- stem.requires.duties_hours_and_compensation. S1: "The terms and conditions of a STEM practical training opportunity during the period of the 24-month OPT extension, including duties, hours, and compensation, must be commensurate with terms and conditions applicable to the employer's similarly situated U.S. workers in the area of employment".
+- stem.requires.employer_attestation. S1: "A student may only participate in a STEM practical training opportunity in which the employer attests ... that:". S2: "including by signing the Form I-983 or successor form".
+- stem.requires.employer_attests_resources, _no_replacement, _training_goals. S1: each row's own quote. S2: the reading mark, now "attests" as in stem.requires.employer_attestation.
+
+### What ran
+
+```
+done command (as written in the contract)
+  first run: sources: 4 pack(s) checked, every quote found; plain words: 3 problem(s) (reading grade over 9 on both capgap.end_month_day rows and stem.evaluation_interval_months); exit 1
+  after rewording: sources: 4 pack(s) checked, every quote found
+                   plain words: every plain text is general, calm, readable and grounded
+                   exit 0
+uv run pytest tests/unit/engine tests/unit/tools/test_plain.py tests/unit/tools/test_copy_lint.py -q
+  first run: 3 failed (engine/rulepack.py: the paused grace plain is too long, schema maxLength 320); after shortening: all passed
+uv run pytest tests/unit/engine tests/unit/api tests/unit/tools/test_plain.py -q
+  all passed
+```
+
+### Seen and not worked around
+
+- web/src/lib/samples/court-paused.json and specs/product-1/plan-fix5.yaml still hold the old plain words of the paused rows. Outside this lane; listed under requests.
+- git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
+- No fetched page was read this run; no instruction was found in any data.
+
+Also ran: uv run python -m tools.copy_lint.lint on a scratch copy of HEAD with the three changed files, tests/holdout left out: "copy lint: clean", exit 0. Done command run again after the commit: exit 0.
