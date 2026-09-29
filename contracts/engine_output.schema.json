@@ -230,6 +230,10 @@
           },
           "note": {
             "type": "string"
+          },
+          "plain": {
+            "type": "string",
+            "description": "The pack's plain words for this rule."
           }
         }
       }
@@ -391,6 +395,48 @@
           }
         }
       }
+    },
+    "regimes": {
+      "type": "object",
+      "description": "Every regime named by an item's operative or alternates, keyed by id: its legal status, its plain words and its source.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "legal_status",
+          "operative",
+          "citation",
+          "url"
+        ],
+        "properties": {
+          "legal_status": {
+            "type": "string"
+          },
+          "operative": {
+            "type": "boolean"
+          },
+          "plain": {
+            "type": "string"
+          },
+          "citation": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "checked_on": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "answers_read": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9_.:]+$"
+      },
+      "description": "The ids of the questions whose answers the engine read and used for this output. An answer sent for any other id was not read, and the screen never shows it as standing."
     }
   }
 }
