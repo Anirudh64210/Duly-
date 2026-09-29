@@ -56,6 +56,12 @@ The resolutions below come from the second sweep (2026-09-29), over the areas th
 34. An employment period in a question's `about` is shown as its start and end ("Dec 1, 2025 to Jun 30, 2026"), so the person can check the dates they are asked to confirm.
 35. The landing status uses the packs' own `rules_checked_on`, so it never says the rules have not been checked when they have. The time of the page load is not called "Checked". Showing the rules' date on the landing needs a field in the status contract; that is for the founder and lands first and alone.
 
+From the review of the fix (reviews/product-1-fix1.md):
+
+36. Point 21 covers every dated STEM duty the engine computes, not only validations and evaluations: `stem.new_plan_due.<n>` and `stem.concluding_evaluation_due.<n>` of point 20 as well. When the date of one has passed, the engine asks `<item id>.made` with `about` holding the item id and its date; until it is answered the verdict is cannot_tell; yes: done; no: the judgement item `<item id>.not_made` (talk_to_dso). Case: a new Form I-983 due 2026-07-11 was needs_you on 2026-07-05 and no_open_items from 2026-07-12.
+37. Point 16's conflict nulls the items that use any date in its `about`, as point 4 says for every conflict: `program_end_date` and `opt.ead_end`, so `opt.apply_window_opens` and `opt.complete_by` are null while it is open. Point 4 governs every conflict; where another point names fewer items, point 4 still holds.
+38. The case contract bounds `confirmations` at 256, room for every question a case within the contract can raise (contracts/case_f1.schema.json). A test of a refused count sends 257.
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.

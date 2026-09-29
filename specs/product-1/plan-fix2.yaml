@@ -30,8 +30,12 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
-          Write the tests for specs/product-1/SPEC-resolutions.md points 27, 28 and 35, first,
-          before the code has them. Engine tests for points 27 and 28 go in
+          Write the tests for specs/product-1/SPEC-resolutions.md points 27, 28, 35, 36 and 37,
+          first, before the code has them, and bring tests/unit/api/test_compute_context.py's
+          too_many case to 257 answers (point 38; the contract now allows 256). Point 36's
+          engine tests go in tests/unit/engine/test_f1_fix2.py with the case the point names;
+          point 37: while opt.ead_end.after_complete_by is open, opt.apply_window_opens and
+          opt.complete_by are null. Engine tests for points 27 and 28 go in
           tests/unit/engine/test_f1_fix2.py; hidden tests for them in
           tests/holdout/test_holdout_fix2.py; the api test for point 35 in
           tests/unit/api/test_status_rules.py. Point 27: the conflict with its about, its rule
@@ -56,7 +60,9 @@ rounds:
       - lane: L-engine
         agent: builder
         mission: >
-          Build specs/product-1/SPEC-resolutions.md points 27 and 28 in engine/. Point 27 is a
+          Build specs/product-1/SPEC-resolutions.md points 27, 28, 36 and 37 in engine/. Point 36
+          adds stem.new_plan_due.<n> and stem.concluding_evaluation_due.<n> to the passed reports
+          that are asked about. Point 37 keeps the nulling point 4 gives. Point 27 is a
           conflict that works as every conflict of SPEC section 1. Point 28 looks a rule up for
           the day of the event it measures from. No number is written in code. Older tests that
           collide are reconciled in the next round; list them in your report.
@@ -80,8 +86,8 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
-          The engine now has specs/product-1/SPEC-resolutions.md points 27 and 28, and the api
-          point 35. Bring every test in tests/unit and tests/holdout in line with them. The
+          The engine now has specs/product-1/SPEC-resolutions.md points 27, 28, 36 and 37, the
+          api point 35, and the contract point 38. Bring every test in tests/unit and tests/holdout in line with them. The
           builders' lists of collisions are in their reports on their branches (git show). For
           each change, write the point beside it; change a case so its facts fit or expect what
           the point says; never loosen an assertion a point supports; escalate any failure no
@@ -119,9 +125,11 @@ rounds:
         agent: reviewer
         mission: >
           Review what this plan changed (the merges since reviews/product-1-fix1.md) against
-          specs/product-1/SPEC-resolutions.md points 27 to 35, PRINCIPLES.md, BOUNDARY.md and
+          specs/product-1/SPEC-resolutions.md points 27 to 38, PRINCIPLES.md, BOUNDARY.md and
           CLAUDE.md, following your role file. Send each case the points name through the api,
-          including a four-month OPT card that ends before the program end. Check that every
+          including a four-month OPT card that ends before the program end, the passed new Form
+          I-983 of finding 1 and the seven-period record of finding 2 of
+          reviews/product-1-fix1.md, answered in full. Check that every
           test changed in the reconcile round names its point and loosens nothing, that no
           answer is shown as standing that the engine did not read, and that every date under
           What comes next opens to its rule. Write reviews/product-1-fix2.md and
