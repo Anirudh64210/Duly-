@@ -96,6 +96,36 @@ def problems(plain: str, kind: str, grounds: str) -> list[str]:
     return found
 
 
+def _flat(text: str) -> str:
+    return " ".join(text.replace("\u2019", "'").lower().split())
+
+
+def term_problems(entry: dict[str, Any], plain: str, require: bool) -> list[str]:
+    """The quote's terms of art, kept word for word in the plain words (D56, point 54).
+
+    Simplifying tempts a writer to trade a term of art for an everyday word ("academic
+    training" for "practical training", "U.S. worker" for "worker in the United States"). Each
+    rule lists its terms in plain_terms; each must be in the quote and in the plain words.
+    """
+    terms = entry.get("plain_terms")
+    if terms is None:
+        return (
+            ["no plain_terms: list the quote's terms of art, or [] if it has none"]
+            if require
+            else []
+        )
+    quote = _flat(str((entry.get("source") or {}).get("quote", "")))
+    words = _flat(plain)
+    found = []
+    for term in terms:
+        flat = _flat(str(term))
+        if flat not in quote:
+            found.append(f"term {term!r} is not in the quote")
+        elif flat not in words:
+            found.append(f"term {term!r} is not kept in the plain words")
+    return found
+
+
 def _grounds(entry: dict[str, Any]) -> str:
     source = entry.get("source") or {}
     return " ".join(
@@ -118,6 +148,8 @@ def check_pack(pack: dict[str, Any], require: bool) -> list[str]:
                 found.append(f"{name}: no plain words")
             continue
         found += [f"{name}: {p}" for p in problems(str(plain), kind, _grounds(entry))]
+        if kind == "rule":
+            found += [f"{name}: {p}" for p in term_problems(entry, str(plain), require)]
     return found
 
 

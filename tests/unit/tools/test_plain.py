@@ -79,3 +79,25 @@ def test_a_pack_is_checked_and_can_require_plain_words_everywhere(tmp_path):
 
 def test_the_shipped_packs_hold_no_bad_plain_words():
     assert plain.main([]) == 0
+
+
+def test_terms_of_art_are_kept_word_for_word():
+    entry = {
+        "id": "cpt.full_time_bar_days",
+        "value": 365,
+        "source": {"quote": "are ineligible for post-completion academic training"},
+        "plain_terms": ["post-completion academic training"],
+    }
+    kept = "The rule says one year of full-time CPT rules out post-completion academic training."
+    swapped = "The rule says one year of full-time CPT rules out practical training after study."
+    assert plain.term_problems(entry, kept, True) == []
+    assert plain.term_problems(entry, swapped, True) == [
+        "term 'post-completion academic training' is not kept in the plain words"
+    ]
+    invented = {**entry, "plain_terms": ["OPT"]}
+    assert plain.term_problems(invented, kept, True) == ["term 'OPT' is not in the quote"]
+    assert plain.term_problems({**entry, "plain_terms": None}, kept, True)
+    assert (
+        plain.term_problems({k: v for k, v in entry.items() if k != "plain_terms"}, kept, False)
+        == []
+    )
