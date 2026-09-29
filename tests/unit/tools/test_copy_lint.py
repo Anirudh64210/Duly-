@@ -85,3 +85,18 @@ def test_a_folder_inside_a_repository_is_walked_whole(tmp_path):
     write(tmp_path, ".gitignore", "scratch\n")
     write(tmp_path, "scratch/copy/web/src/a.tsx", f"<p>{LONG_DASH}</p>\n")
     assert rules(tmp_path / "scratch" / "copy") == {("web/src/a.tsx", "dash")}
+
+
+def test_what_a_sandbox_may_not_read_is_passed_over(tmp_path):
+    # A builder's sandbox denies reading the hidden tests; the linter must not fail there.
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    write(tmp_path, "tests/holdout/README.md", f"hidden {LONG_DASH} words\n")
+    write(tmp_path, "tests/holdout/deep/test_x.py", "x = 1\n")
+    write(tmp_path, "web/src/a.tsx", f"<p>{LONG_DASH}</p>\n")
+    (tmp_path / "tests/holdout/README.md").chmod(0)
+    (tmp_path / "tests/holdout/deep").chmod(0)
+    try:
+        assert rules(tmp_path) == {("web/src/a.tsx", "dash")}
+    finally:
+        (tmp_path / "tests/holdout/deep").chmod(0o755)
+        (tmp_path / "tests/holdout/README.md").chmod(0o644)
