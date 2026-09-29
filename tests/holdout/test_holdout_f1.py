@@ -32,6 +32,7 @@ from tests.support.f1_pack import (
     items,
     job,
     pack_dict,
+    refuse_placeholders,
     rule_value,
     values,
     with_block,
@@ -46,7 +47,7 @@ def run(case: dict[str, Any], today: date, **pack_changes: Any) -> dict[str, Any
     clock = clock_on(today)
 
     def compute(sent: dict[str, Any]) -> dict[str, Any]:
-        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock)
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
 
     # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
     return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
@@ -270,10 +271,16 @@ def test_h2_limit_on_each_side_of_stem_ead_start(today, expected):
     ],
 )
 def test_capgap(requested_start, status, change_of_status, expected):
-    case = with_changes(
-        CASE_H1,
-        cap_gap=cap_gap(requested_start, status=status, change_of_status=change_of_status),
+    # The petition is filed on H1_TODAY, 2024-03-01: a filing dated after the day of the
+    # case is a conflict whose dates give nulls (specs/product-1/SPEC.md, section 1;
+    # SPEC-resolutions.md, point 4).
+    petition = cap_gap(
+        requested_start,
+        status=status,
+        change_of_status=change_of_status,
+        petition_filed_on=H1_TODAY.isoformat(),
     )
+    case = with_changes(CASE_H1, cap_gap=petition)
     out = run(case, H1_TODAY)
     assert items(out)["capgap.ends"]["value"] == expected
     named = "cap_gap_petition_not_active" in out["verdict"]["reasons"]
@@ -356,22 +363,33 @@ def cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
     program_end = draw(st.dates(min_value=date(2023, 6, 1), max_value=date(2027, 6, 30)))
     opt_start = program_end + timedelta(days=draw(st.integers(min_value=1, max_value=60)))
     opt_end = opt_start + timedelta(days=364)
+    today = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1150)))
+    # specs/product-1/SPEC.md, section 1, and SPEC-resolutions.md, points 2 and 4: a
+    # recommendation or a filing dated after today, and a day of work outside the cards,
+    # are conflicts whose dates give nulls. The facts drawn here fit: each date entered is
+    # on or before today, and each period lies inside the cards (an open one may run on
+    # past the last card).
     stem = None
+    last_card_day = opt_end
     if draw(st.booleans()):
         stem_start = opt_end + timedelta(days=1)
+        last_card_day = stem_start + timedelta(days=729)
         stem = ead(
-            (opt_end - timedelta(days=80)).isoformat(),
-            (opt_end - timedelta(days=50)).isoformat(),
+            min(opt_end - timedelta(days=80), today).isoformat(),
+            min(opt_end - timedelta(days=50), today).isoformat(),
             stem_start.isoformat(),
-            (stem_start + timedelta(days=729)).isoformat(),
+            last_card_day.isoformat(),
         )
-    today = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1150)))
     employment = []
     for _ in range(draw(st.integers(min_value=0, max_value=4))):
-        start = opt_start + timedelta(days=draw(st.integers(min_value=-30, max_value=1100)))
-        start = min(start, today)
+        start = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1100)))
+        start = min(start, today, last_card_day)
         length = draw(st.one_of(st.none(), st.integers(min_value=0, max_value=500)))
-        end = None if length is None else (start + timedelta(days=length)).isoformat()
+        end = (
+            None
+            if length is None
+            else min(start + timedelta(days=length), last_card_day).isoformat()
+        )
         hours = draw(st.sampled_from([5, 19, 20, 21, 24, 25, 40]))
         employment.append(job(start.isoformat(), end, hours=hours, reported=draw(st.booleans())))
     case = {

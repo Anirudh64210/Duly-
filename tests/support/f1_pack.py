@@ -712,9 +712,44 @@ def with_the_about_asked(
             break
         for q in asked:
             sent[q["id"]] = {**pending[q["id"]], "about": copy.deepcopy(q["about"])}
-    for name, answer in pending.items():
-        sent.setdefault(name, answer)
+    # An answer whose question was never asked is left out: it would not be read, and a
+    # placeholder never reaches the engine or the api (refuse_placeholders).
     return with_changes(case, confirmations=sent)
+
+
+class PlaceholderAnswerError(Exception):
+    """A case still holds a placeholder answer where a real one belongs. Not a ValueError,
+    so that a test expecting the engine to refuse a case cannot pass on the marker."""
+
+
+def refuse_placeholders(case: Any) -> Any:
+    """The case, unchanged, once it is shown to hold no placeholder answer; raises
+    PlaceholderAnswerError otherwise. Every run helper calls it on what it passes to the engine,
+    and CheckedClient on what it posts to the api.
+
+    SPEC-resolutions.md, point 2: an answer is dated on or before the day of the case; a
+    day of ON_THE_DAY_IT_RUNS is a marker that dated_on_the_day has not replaced. Point 7:
+    an answer is taken only for the values it was given for; an about of the form
+    {"question": id} (about_asked) is a marker that with_the_about_asked has not replaced.
+    A test that sends either one tests the marker, not the rule it names."""
+    given = case.get("confirmations") if isinstance(case, dict) else None
+    if not isinstance(given, dict):
+        return case
+    for name, answer in given.items():
+        if not isinstance(answer, dict):
+            continue
+        if answer.get("on") == ON_THE_DAY_IT_RUNS:
+            raise PlaceholderAnswerError(
+                f"the answer to {name} is still dated ON_THE_DAY_IT_RUNS: "
+                "pass the case through dated_on_the_day first"
+            )
+        about = answer.get("about")
+        if isinstance(about, dict) and set(about) == {"question"}:
+            raise PlaceholderAnswerError(
+                f"the answer to {name} still carries the about {about}: "
+                "pass the case through with_the_about_asked first"
+            )
+    return case
 
 
 def dated_on_the_day(case: dict[str, Any], clock: Any) -> dict[str, Any]:

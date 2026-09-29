@@ -38,6 +38,7 @@ from tests.support.f1_pack import (
     months_later,
     pack_dict,
     reasons_with,
+    refuse_placeholders,
     rule_statuses,
     rule_value,
     settings_dict,
@@ -86,7 +87,10 @@ def run(
 
     def compute(sent: dict[str, Any]) -> dict[str, Any]:
         return f1.compute_f1(
-            f1.parse_case(sent, clock), pack, clock, settings=settings_dict(chosen)
+            f1.parse_case(refuse_placeholders(sent), clock),
+            pack,
+            clock,
+            settings=settings_dict(chosen),
         )
 
     # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.

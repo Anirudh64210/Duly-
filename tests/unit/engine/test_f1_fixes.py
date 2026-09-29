@@ -41,6 +41,7 @@ from tests.support.f1_pack import (
     job,
     pack_dict,
     reasons_with,
+    refuse_placeholders,
     rule_value,
     settings_dict,
     values,
@@ -76,7 +77,9 @@ def run(
     clock = clock_on(today)
 
     def compute(sent: dict[str, Any]) -> dict[str, Any]:
-        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock, settings=settings_dict())
+        return f1.compute_f1(
+            f1.parse_case(refuse_placeholders(sent), clock), pack, clock, settings=settings_dict()
+        )
 
     # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
     return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))

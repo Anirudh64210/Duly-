@@ -14,7 +14,6 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pytest
-from fastapi.testclient import TestClient
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -23,6 +22,7 @@ from api.settings import Settings
 from engine import f1
 from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
+from tests.support.api_client import CheckedClient
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
     CONFLICT_IDS,
@@ -33,6 +33,7 @@ from tests.support.f1_pack import (
     QUESTION_IDS,
     READINGS,
     SHIFTED,
+    answer_as_the_screen_does,
     answers,
     build_pack,
     cap_gap,
@@ -48,6 +49,7 @@ from tests.support.f1_pack import (
     pack_dict,
     question_ids,
     reasons_with,
+    refuse_placeholders,
     values,
     with_block,
     with_changes,
@@ -109,7 +111,10 @@ CAP_GAP_ALONE_CASE: dict[str, Any] = {
     "documents_count": 6,
     "cpt_full_time_days": 0,
     "employment": [job("2025-01-06", "2025-03-28", hours=12)],
-    "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-04-01"),
+    # Filed on 2026-03-02, a week before TODAY (2026-03-09): a filing dated after the day
+    # of the case is a conflict of its own (specs/product-1/SPEC.md, section 1;
+    # SPEC-resolutions.md, point 4), and this case is about the question alone.
+    "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-03-02"),
 }
 
 
@@ -127,7 +132,7 @@ def run(
     clock = clock or clock_on(today)
 
     def compute(sent: dict[str, Any]) -> dict[str, Any]:
-        return f1.compute_f1(f1.parse_case(sent, clock), pack, clock)
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
 
     # SPEC-resolutions.md, point 7: an answer is sent with the about it was asked with.
     return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
@@ -513,7 +518,7 @@ def client():
         datetime(2026, 9, 28, 23, 10, tzinfo=UTC)
     )
     app.dependency_overrides[get_settings] = lambda: Settings(database_url=UNREACHABLE)
-    yield TestClient(app)
+    yield CheckedClient(app)
     app.dependency_overrides.clear()
 
 
@@ -562,7 +567,9 @@ def test_the_api_asks_and_follows_the_answer(client):
     assert question_ids(asked) == [NO_EMPLOYMENT]
     assert asked["verdict"]["state"] == "cannot_tell"
     assert f"unconfirmed:{NO_EMPLOYMENT}" in asked["verdict"]["reasons"]
-    no = with_changes(case, confirmations=answers("2026-09-29", **{NO_EMPLOYMENT: False}))
+    # The answer no, dated 2026-09-29, the day in Tokyo (23:10 UTC on 2026-09-28 is 08:10
+    # on 2026-09-29 there), with the about the api asked (SPEC-resolutions.md, point 7).
+    no = answer_as_the_screen_does(case, asked, "2026-09-29", **{NO_EMPLOYMENT: False})
     answered = client.post(URL, json=no).json()
     assert answered["questions"] == []
     assert "missing:employment" in answered["verdict"]["reasons"]
