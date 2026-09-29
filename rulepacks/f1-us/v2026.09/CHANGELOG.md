@@ -50,3 +50,25 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - Reading, 5 rows, each with a note that begins with how the value was read: cpt.full_time_months_bar, cpt.full_time_bar_days, stem.apply_window_closes_rule, capgap.fiscal_year_start_month_day, calendar.federal_holidays_law.
 - Added stem.requires_post_completion_opt, true, flag, settled, a reading, from the first sentence of 8 CFR 214.2(f)(10)(ii)(C). The words are may apply while in a valid period of post-completion OPT; the regulation does not use the word only.
 - No rule was removed. No new source was fetched.
+
+### 2026-09-29, lane L-content, product round 1, drafted for founder review
+
+- cpt.full_time_bar_days: status changed from school to settled. Derivation stays reading. The row cites the regulation and no school's page. The five status tags have no tag for Duly's own count, so the status is the one the quoted sentence supports, and the note says that settled describes the sentence and that 365 is Duly's count. The value and the quote did not change.
+- Added 15 flags from 8 CFR 214.2(f)(10)(ii)(C), in the order of the paragraph, each settled, each with the exact words:
+  - stem.requires.all_of_the_following, verbatim, the last sentence of the opening text.
+  - stem.requires.accreditation, reading, (C)(1).
+  - stem.requires.dhs_approved_degree, reading, (C)(2).
+  - stem.requires.degree_on_designated_list, verbatim, (C)(2)(iii).
+  - stem.requires.previously_obtained_degree, verbatim, (C)(3). The words begin with If.
+  - stem.requires.eligible_practical_training_opportunity, verbatim, (C)(4).
+  - stem.requires.employer_qualification, reading, (C)(5). E-Verify and the employer identification number.
+  - stem.requires.employer_reporting, reading, (C)(6).
+  - stem.requires.training_plan, verbatim, (C)(7)(i).
+  - stem.requires.duties_hours_and_compensation, verbatim, (C)(8).
+  - stem.requires.self_evaluation, reading, (C)(9)(i).
+  - stem.requires.employer_attestation, verbatim, the opening text of (C)(10).
+  - stem.requires.employer_attests_resources, reading, (C)(10)(i).
+  - stem.requires.employer_attests_no_replacement, reading, (C)(10)(ii).
+  - stem.requires.employer_attests_training_goals, reading, (C)(10)(iii).
+- Not recorded: (C)(11), Site visits. Its words state what DHS may do.
+- No rule was removed. No new source was fetched. Every quote was read in the saved 2026-09-14 text and found in the 2026-09-15 text and in 81 FR 13040.
