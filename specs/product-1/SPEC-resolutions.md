@@ -80,6 +80,12 @@ From the review of the second fix (reviews/product-1-fix2.md):
 49. Point 25 counts an alternate only where the item and the alternate both hold a value and the values differ. A null item's null alternate gives no second answer and no `rule_in_litigation`.
 50. On a STEM card, the report of a change of employer or a loss of employment names the regulation, 8 CFR 214.2(f)(12)(ii)(A): "Within 10 days of the change, the student must report to the student's DSO a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment." L-content adds it as `stem.report_change_within_days`, verbatim and settled; point 22 uses it on a STEM card and SEVP's guidance row on an OPT card.
 
+From the build of fix 4 (the builder's report on lane/L-engine/l-engine-1c477e1c41):
+
+51. A cannot_tell verdict lists its blockers first and then its judgement items. The state is unchanged; a matter already known for the DSO is never hidden behind a missing fact.
+52. While the conflict of point 43 is answered yes (work goes on after the last card), `grace.ends` is null and the judgement item carries the matter to the DSO, as point 18 does for cap-gap. Duly states no grace date for someone whose record shows work after the last card.
+53. The day a holiday joins the list comes from the pack's rows of `calendar.federal_holidays_law` and their effective dates (the row from 2021-06-17 holds Juneteenth; the row to 2021-06-16 does not), never from a date written in code. A pack with no row in force on a counted day gives null with the step back (point 40).
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.

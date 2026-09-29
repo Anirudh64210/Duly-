@@ -59,27 +59,35 @@ rounds:
       - lane: L-engine
         agent: builder
         mission: >
-          Build specs/product-1/SPEC-resolutions.md points 39, 40, 42, 43, 46, 48, 49 and 50 in
-          engine/, and carry into the output what the contract now holds: each rule's plain
-          words, the regimes the items depend on, and answers_read. Point 40 looks every rule up
-          for the day of the event it governs and steps back where the pack holds no row in force
-          then. No number is written in code. Older tests that collide are reconciled in the next
-          round; list them in your report.
+          Your earlier run built specs/product-1/SPEC-resolutions.md points 39, 40, 42, 43, 46, 48,
+          49 and 50, the plain words, regimes and answers_read, on branch
+          lane/L-engine/l-engine-1c477e1c41, and escalated because this round's done command held
+          older test files that point 39 was bound to collide with. You were right; the done
+          command now holds only the new tests, and the next round reconciles the rest. Bring
+          your work in first: git merge lane/L-engine/l-engine-1c477e1c41. Then points 51, 52 and
+          53 as written: keep your verdict order (51) and your grace reading (52); for 53, take
+          the day Juneteenth starts from the pack's rows of calendar.federal_holidays_law and
+          their effective dates, and remove the date written in engine/dates.py. List the older
+          tests that collide in your report.
         done: >-
-          bash -c 'uv run pytest tests/unit/engine/test_f1_fix4.py tests/unit/engine/test_f1_fix2.py
-          tests/unit/engine/test_f1_windows.py tests/unit/engine/test_f1_periods_and_reports.py -q
+          bash -c 'uv run pytest tests/unit/engine/test_f1_fix4.py -q
           && uv run python -m tools.gates.engine_literals
-          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine
+          && ! grep -n "2021" engine/dates.py'
   - name: reconcile
     checkpoint: false
     lanes:
       - lane: L-tests
         agent: test-author
         mission: >
-          The engine now has specs/product-1/SPEC-resolutions.md points 39, 40, 42, 43, 46, 48, 49
-          and 50. Every case with an OPT card now raises opt.earlier_at_this_level: answer it no
-          in the case with the helpers of tests/support/f1_pack.py where the test is about
-          something else. Bring every test in tests/unit and tests/holdout in line; the builder's
+          The engine now has specs/product-1/SPEC-resolutions.md points 39, 40, 42, 43, 46, 48 to
+          53, and the output carries regimes and answers_read. Every case with an OPT card now
+          raises opt.earlier_at_this_level: add it to the helpers of tests/support/f1_pack.py that
+          give a case its ordinary answers, answered no, so a test about something else stays
+          about that; expect the question only where a test is about it. A test pack that counts
+          business days before 2021-06-17 holds both rows of calendar.federal_holidays_law
+          (point 53). Tests that pin the output's keys add regimes and answers_read; tests that
+          pin a cannot_tell verdict's reasons follow point 51. Bring every test in tests/unit and tests/holdout in line; the builder's
           list of collisions is in its report on its branch (git show). Write the point beside
           each change; never loosen an assertion a point supports; escalate any failure no
           settled point explains.
