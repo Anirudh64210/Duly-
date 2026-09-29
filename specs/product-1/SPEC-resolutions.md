@@ -113,6 +113,10 @@ From the review of fix 7 (reviews/product-1-fix7.md):
 
 65. Two plain texts change, and only these (point 62). `stem.requires.previously_obtained_degree` is split into short sentences and names whom the DSO recommends: the DSO recommends the student for the 24-month OPT extension, and the earlier degree must meet the rule's conditions at that time and be granted in the 10 years before that day. `capgap.end_month_day` (2025-01-17) says the automatic extension lasts on its own only until the approved petition's start date when that comes first; it never says status ends then. The review's example words for both are the starting point; the content lane checks them against the quotes.
 
+From the review of fix 8 (reviews/product-1-fix8.md), which found every engine, api and screen finding of product round 1 closed:
+
+66. The plain gate counts "U.S." and other abbreviations as one word that ends no sentence (tools/sources/plain.py; it had scored a text at grade 24 under 9). Measured truly, five texts are over grade 9: `stem.min_hours_per_week`, `stem.requires.accreditation`, `stem.requires.previously_obtained_degree`, `stem.requires.duties_hours_and_compensation` and `stem.requires.employer_attests_no_replacement`. These five alone are rewritten in short sentences under the gate, keeping their terms of art; `stem.requires.previously_obtained_degree` says "category", as its quote does, not "field". Every other plain text stays frozen (point 62).
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.

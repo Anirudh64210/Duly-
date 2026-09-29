@@ -1,0 +1,56 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+# Resolution 66, from the review of fix 8: five plain texts, measured truly, and nothing else.
+rounds:
+  - name: content
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-1/SPEC-resolutions.md point 66. The plain gate now counts "U.S." as one
+          word, and five plain texts in rulepacks/f1-us/v2026.09 are over reading grade 9:
+          stem.min_hours_per_week, stem.requires.accreditation,
+          stem.requires.previously_obtained_degree, stem.requires.duties_hours_and_compensation
+          and stem.requires.employer_attests_no_replacement. Rewrite ONLY these five, each in
+          short sentences (at most three) under grade 9, keeping every term of art word for word,
+          adding nothing, dropping no limit, and saying any reading as Duly's reading.
+          stem.requires.previously_obtained_degree says "category", as its quote does, and names
+          whom the DSO recommends (the student, for the extension). Every other plain text is
+          frozen. In your report, give the words of the quote or note each sentence rests on.
+          Record the change in CHANGELOG.md.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -m tools.sources.plain rulepacks --require f1
+          && uv run python -m tools.sources.plain_changes product-1 --allow stem.min_hours_per_week#2016-05-10 stem.requires.accreditation#2016-05-10 stem.requires.previously_obtained_degree#2016-05-10 stem.requires.duties_hours_and_compensation#2016-05-10 stem.requires.employer_attests_no_replacement#2016-05-10'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what this plan changed (the merges since reviews/product-1-fix8.md) against
+          specs/product-1/SPEC-resolutions.md points 66, 58 and 62, specs/plain-1/SPEC.md,
+          PRINCIPLES.md and BOUNDARY.md, following your role file. Read the five rewritten plain
+          texts beside their quotes and notes; veto any that drifts in meaning or is not plain, and
+          check the plain gate's grade on each by hand. Confirm with python -m
+          tools.sources.plain_changes that no other plain text changed since the commit
+          reviews/product-1-fix8.md read. Send fix 1's finding 3 (point 37) through the api, which
+          no review has sent since. Then give your decision on product round 1 as a whole, with the
+          table of every earlier finding brought up to date. Write reviews/product-1-fix9.md and
+          reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix9.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1, its fixes and specs/plain-1/SPEC.md
+          cover, as your role file describes, against specs/product-1/SPEC.md,
+          SPEC-resolutions.md and specs/plain-1/SPEC.md. Update docs/requirements/audits/product-1.md,
+          and report the share of the register met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'
