@@ -10,7 +10,7 @@ import yaml
 
 REAL = Path(__file__).resolve().parents[2]
 FAKE = REAL / "tests" / "support" / "fake_agent.py"
-MODEL = "claude-fable-5-1"
+MODEL = "claude-opus-5-5"
 GIT = ["git", "-c", "user.name=t", "-c", "user.email=t@t.invalid", "-c", "commit.gpgsign=false"]
 
 

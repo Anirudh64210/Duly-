@@ -27,7 +27,7 @@ from tools.factory import alerts, billing, jail, ledger, registry, sandbox, work
 from tools.factory.config import load_config, review_problems
 from tools.factory.paths import REPO_ROOT, main_repo, state_dir
 
-TRAILER = "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+TRAILER = "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 NEEDS_FOUNDER = {
     "dependency_added": (
         "pyproject.toml",

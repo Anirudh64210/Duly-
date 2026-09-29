@@ -10,7 +10,7 @@ outputs:
   - eval cases under evals/
   - REPORT.json in evals/, matching contracts/factory_report.schema.json
 tools: [Read, Edit, Write, Glob, Grep, Bash]
-model: claude-fable-5-1
+model: claude-opus-5-5
 max_turns: 80
 max_attempts: 2
 token_budget: 4000000

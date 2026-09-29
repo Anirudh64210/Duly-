@@ -3,8 +3,8 @@
 version: 1
 
 model:
-  pinned: claude-fable-5-1       # exact id. A run refuses to start on any other model.
-  reviewer: claude-fable-5-1
+  pinned: claude-opus-5-5       # exact id. A run refuses to start on any other model.
+  reviewer: claude-opus-5-5
 
 limits:
   max_parallel_agents: 4

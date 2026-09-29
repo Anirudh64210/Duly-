@@ -766,7 +766,7 @@ def _message(task: Task, outcome: Outcome, contract: Contract) -> str:
         f"Factory-Base: {outcome.base_commit}\n"
         f"Factory-Trace: {', '.join(outcome.sessions)}\n"
         f"Factory-Cost-USD: {outcome.cost_usd}\n\n"
-        "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+        "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
     )
 
 

@@ -10,7 +10,7 @@ outputs:
   - tests under tests/, including hidden tests under tests/holdout/
   - REPORT.json in tests/, matching contracts/factory_report.schema.json
 tools: [Read, Edit, Write, Glob, Grep, Bash]
-model: claude-fable-5-1
+model: claude-opus-5-5
 max_turns: 120
 max_attempts: 3
 token_budget: 6000000
