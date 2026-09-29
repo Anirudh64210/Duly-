@@ -192,7 +192,7 @@ def test_the_evaluation_date_moves_with_the_interval(months, expected):
     got = values(run(CASE_B, rules={EVALUATION_INTERVAL: months}))
     assert got["stem.evaluation_12_month_due"] == expected
     # The final evaluation is counted from stem.ead_end 2027-06-30, plus 10 days.
-    assert got["stem.final_evaluation_due"] == "2027-07-10"
+    assert got["stem.final_evaluation_due_from_ead_end"] == "2027-07-10"
 
 
 def test_the_evaluation_interval_is_clamped_to_the_end_of_a_short_month():

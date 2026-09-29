@@ -148,7 +148,7 @@ def test_the_evaluation_date_moves_with_the_interval(months, expected):
     assert got["stem.evaluation_12_month_due"]["value"] == expected
     assert EVALUATION_INTERVAL in got["stem.evaluation_12_month_due"]["rule_ids"]
     # stem.ead_end 2028-07-31 plus 10 days.
-    assert got["stem.final_evaluation_due"]["value"] == "2028-08-10"
+    assert got["stem.final_evaluation_due_from_ead_end"]["value"] == "2028-08-10"
 
 
 # The number of validation reports is derived

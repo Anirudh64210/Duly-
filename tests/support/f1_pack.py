@@ -35,7 +35,8 @@ EFFECTIVE_FROM = "2000-01-01"
 
 # SPEC, "The rules": id, value, unit, status, regime, where to look.
 # The last five rows are from specs/phase-2/SPEC-sourcing.md, "Rules to find and source",
-# with the assumed values. They come last so that the position of every earlier row holds.
+# with the assumed values. The two after them are from specs/phase-2/SPEC-fixes.md,
+# "Finding 5". New rows come last so that the position of every earlier row holds.
 SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
     ("opt.apply_before_days", 90, "days", "settled", "", "8 CFR 214.2(f)(11)(i)(B)"),
     ("opt.apply_after_days", 60, "days", "settled", "", "8 CFR 214.2(f)(11)(i)(B)"),
@@ -90,6 +91,8 @@ SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
     ("capgap.fiscal_year_start_month_day", "10-01", "date", "settled", "", "31 U.S.C. 1102"),
     ("opt.report_employer_within_days", 10, "days", "guidance", "", "SEVP guidance"),
     ("calendar.federal_holidays_law", True, "flag", "settled", "", "5 U.S.C. 6103(a)"),
+    ("opt.latest_start_after_days", 60, "days", "settled", "", "8 CFR 214.2(f)(11)(i)(D)"),
+    ("stem.apply_window_closes_rule", True, "flag", "settled", "", "8 CFR 214.2(f)(11)(i)(C)"),
 )
 
 # specs/phase-2/SPEC-sourcing.md, "Duly's own choices": id, value, unit. The values are
@@ -120,6 +123,9 @@ SHIFTED: dict[tuple[str, str], int | str] = {
     ("grace.after_completion_days", BLOCKED): 29,
     ("opt.min_hours_per_week", ""): 21,
     ("capgap.end_month_day", ""): "05-15",
+    # SPEC-fixes, "Finding 5": opt.latest_start has its own rule. It is shifted by the
+    # same day as opt.apply_after_days, so every date expected under this pack holds.
+    ("opt.latest_start_after_days", ""): 61,
 }
 
 # SPEC, "Rules of the house": from strongest to weakest.
@@ -139,11 +145,17 @@ def pack_dict(
     checked_on: str | date = "2026-09-28",
     values: dict[tuple[str, str], int | str] | None = None,
     statuses: dict[str, str] | None = None,
+    leave_out: tuple[str, ...] = (),
 ) -> dict[str, Any]:
-    """The SPEC pack as a raw mapping. values and statuses replace single entries."""
+    """The SPEC pack as a raw mapping. values and statuses replace single entries.
+
+    leave_out names rules the pack does not hold.
+    """
     checked = checked_on.isoformat() if isinstance(checked_on, date) else checked_on
     parameters = []
     for rule_id, value, unit, status, regime, citation in SPEC_RULES:
+        if rule_id in leave_out:
+            continue
         parameter: dict[str, Any] = {
             "id": rule_id,
             "value": (values or {}).get((rule_id, regime), value),
@@ -181,8 +193,35 @@ def build_pack(
     checked_on: str | date = "2026-09-28",
     values: dict[tuple[str, str], int | str] | None = None,
     statuses: dict[str, str] | None = None,
+    leave_out: tuple[str, ...] = (),
 ) -> Rulepack:
-    return validate_pack(pack_dict(checked_on, values, statuses))
+    return validate_pack(pack_dict(checked_on, values, statuses, leave_out))
+
+
+def with_operative_status(raw_pack: dict[str, Any], legal_status: str) -> dict[str, Any]:
+    """A deep copy of the raw pack whose operative regime has another legal status."""
+    changed = copy.deepcopy(raw_pack)
+    for regime in changed["regimes"]:
+        if regime["operative"]:
+            regime["legal_status"] = legal_status
+    return changed
+
+
+def with_regime_rows(
+    raw_pack: dict[str, Any], rule_id: str, operative: int | str, blocked: int | str
+) -> dict[str, Any]:
+    """A deep copy of the raw pack where one rule has a row under each regime, as the
+    shipped pack has for a rule whose words differ between the two texts."""
+    changed = copy.deepcopy(raw_pack)
+    rows = []
+    for parameter in changed["parameters"]:
+        if parameter["id"] != rule_id:
+            rows.append(parameter)
+            continue
+        for regime, value in ((OPERATIVE, operative), (BLOCKED, blocked)):
+            rows.append({**copy.deepcopy(parameter), "regime": regime, "value": value})
+    changed["parameters"] = rows
+    return changed
 
 
 def settings_dict(values: dict[str, int] | None = None) -> dict[str, Any]:
