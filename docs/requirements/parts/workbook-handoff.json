@@ -1,0 +1,3566 @@
+[
+ {
+  "id": "WB00-001",
+  "source": "README.md, WorkBook handoff",
+  "text": "Build WorkBook inside Duly without re-deriving the design.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Only a placeholder bridge contract and a WorkBook token scope in web/src/design/tokens.css exist; no WorkBook feature is built."
+ },
+ {
+  "id": "WB00-002",
+  "source": "README.md, Prototype",
+  "text": "Every screen, every state, and all the copy are in the prototype. Treat the copy as final unless the founder changes it.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook screen exists, so no prototype copy has been carried into the product; D5 and D10 also change parts of that copy."
+ },
+ {
+  "id": "WB00-003",
+  "source": "README.md, Prototype",
+  "text": "Read the .dc.html files as source; the markup and the renderVals() function describe every behavior.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No code in web/ or desktop/ implements any behavior from the prototype."
+ },
+ {
+  "id": "WB00-004",
+  "source": "README.md, Naming",
+  "text": "Treat the name as WorkBook everywhere; the parent product is Duly.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "desktop/src/about.ts, desktop/src/about.test.ts, README.md",
+  "note": "The repository uses Duly and WorkBook only; a search for Evidence Ledger outside the handoff finds nothing."
+ },
+ {
+  "id": "WB01-001",
+  "source": "docs/01-context-prompt.md, intro",
+  "text": "WorkBook quietly builds a trustworthy, day-by-day record of a person's work from the tools they already use.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-002",
+  "source": "docs/01-context-prompt.md, intro",
+  "text": "It lets them turn that record into evidence when they need it.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code exists."
+ },
+ {
+  "id": "WB01-003",
+  "source": "docs/01-context-prompt.md, intro",
+  "text": "It will ship as a feature inside Duly.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Only a placeholder contract exists."
+ },
+ {
+  "id": "WB01-004",
+  "source": "docs/01-context-prompt.md, intro",
+  "text": "It will ship also as a standalone open-source tool.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No standalone package, license or separate build exists."
+ },
+ {
+  "id": "WB01-005",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "The first users are international students and early-career workers in the US on F-1 OPT, STEM OPT, CPT, and later H-1B and O-1.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "engine/f1.py, rulepacks/h1b-us/v2026.09/parameters.yaml",
+  "note": "The engine covers F-1 OPT, STEM OPT, CPT days and cap-gap; the H-1B, O-1 and EB-1A packs are empty."
+ },
+ {
+  "id": "WB01-006",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "20 hours a week is the SEVP line for full time on post-completion OPT.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (opt.min_hours_per_week), sources/sits-f1-opt-2026-09-28.html",
+  "note": "Row has a quote and a saved copy, checked by tools/sources/verify.py; it is marked guidance, not regulation."
+ },
+ {
+  "id": "WB01-007",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "90 days of unemployment allowed on OPT, 150 with STEM OPT.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (opt.unemployment_limit_days, stem.unemployment_limit_days)",
+  "note": "Both rows quote 8 CFR 214.2(f)(10)(ii)(E) from the saved eCFR copy."
+ },
+ {
+  "id": "WB01-008",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "In May 2025 SEVP gave OPT students with no reported employer 15 days before terminating their SEVIS records.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No rule pack row, saved source or quote for the May 2025 notice."
+ },
+ {
+  "id": "WB01-009",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "Since August 5, 2026 (USCIS Policy Alert PA-2026-05) a deficient filing can be denied without an RFE, and RFEs can carry shorter deadlines than the old 84 days.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "PA-2026-05 is named in DECISIONS.md D1 and in research notes only; no pack row, saved copy or quote."
+ },
+ {
+  "id": "WB01-010",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "The record has to exist before anyone asks.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing records work."
+ },
+ {
+  "id": "WB01-011",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "Self-employment is allowed on post-completion OPT if the business is licensed and related to the degree.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "SEVP Policy Guidance 1004-03 is saved in the F-1 pack sources but no row quotes it for self-employment."
+ },
+ {
+  "id": "WB01-012",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "STEM OPT requires a bona fide employer-employee relationship, an E-Verify employer, and a supervisor who signs the I-983.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.employer_qualification, stem.requires.training_plan)",
+  "note": "E-Verify and the signed I-983 are quoted rows; the bona fide employer-employee relationship has no row."
+ },
+ {
+  "id": "WB01-013",
+  "source": "docs/01-context-prompt.md, 1. Who it is for and why it exists",
+  "text": "WorkBook's setup adapts its rules and its document checklist to the user's exact situation.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-014",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Record keeping first, not an urgency tool. Calm, unobtrusive, no badges, no nagging.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+  "note": "The copy linter bans urgency words in product copy; no WorkBook screen exists to show the rest."
+ },
+ {
+  "id": "WB01-015",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "The RFE response is one option inside Exports, never the framing of the product.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Exports screen exists."
+ },
+ {
+  "id": "WB01-016",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "No screenshots, no screen recording.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing captures the screen, but nothing collects anything at all and no test or rule enforces the ban; desktop/src holds only about.ts."
+ },
+ {
+  "id": "WB01-017",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Evidence comes from timestamps that already exist in third-party tools.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No source connector exists."
+ },
+ {
+  "id": "WB01-018",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "All data lives on the user's device, encrypted, with keys in the OS keychain.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "The threat model plans SQLCipher and the keychain for Phase 8; no code."
+ },
+ {
+  "id": "WB01-019",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "OAuth tokens never leave the device.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No OAuth code exists."
+ },
+ {
+  "id": "WB01-020",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Metadata only (times, titles, links); message and document content is off unless the user turns it on per source.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No collector and no per-source content switch."
+ },
+ {
+  "id": "WB01-021",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Records are plain files in a folder the user can open without the app (one Markdown file per day, a CSV, their documents).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No file writer exists."
+ },
+ {
+  "id": "WB01-022",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Export all, delete all, at any time.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export or delete function exists."
+ },
+ {
+  "id": "WB01-023",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Every entry, hour, note, and case detail is editable in place.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-024",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Edits after a day is completed are kept as dated amendments with the original preserved.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No amendment model exists."
+ },
+ {
+  "id": "WB01-025",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Nothing is ever overwritten; History shows every change.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No history store exists."
+ },
+ {
+  "id": "WB01-026",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Minimal surface: each screen shows one thing. Filters, options, and settings appear only when the user reaches for them.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook screen exists to judge."
+ },
+ {
+  "id": "WB01-027",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "AI may only restate events it can point to, it never invents.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No entry drafter exists; assistant/boundary.py guards the Duly assistant only."
+ },
+ {
+  "id": "WB01-028",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "AI never writes legal argument or declarations.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py, tests/unit/assistant/test_boundary_evals.py",
+  "note": "The classifier steps back on requests to write cover letters, declarations or responses; no WorkBook drafter exists to hold to the rule."
+ },
+ {
+  "id": "WB01-029",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Every AI-drafted line stays marked (a small amber star) forever, including in exports.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No entries or exports exist; D6 (AI disclosure toggle in exports) is still open."
+ },
+ {
+  "id": "WB01-030",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "The user confirms every day.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No day confirmation exists."
+ },
+ {
+  "id": "WB01-031",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "The design exists to make willful misrepresentation (8 USC 1182(a)(6)(C)(i)) impossible by accident.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "None of the safeguards (marking, confirmation, amendments) is built and the statute is not in a rule pack."
+ },
+ {
+  "id": "WB01-032",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Not legal advice. WorkBook organizes records.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.tsx, web/src/App.test.tsx",
+  "note": "The Duly screen footer says records and computations, not legal advice; WorkBook itself is not built."
+ },
+ {
+  "id": "WB01-033",
+  "source": "docs/01-context-prompt.md, 2. Product principles",
+  "text": "Cover letters and legal argument come from the user or their attorney.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "BOUNDARY.md B7, assistant/boundary.py",
+  "note": "The boundary forbids text addressed to an agency and the classifier steps back; there is no export flow that takes the user's own cover letter."
+ },
+ {
+  "id": "WB01-034",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Five steps, one screen each. Answers drive everything after.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-035",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Step 1, Status: F-1 OPT, F-1 STEM OPT, F-1 CPT, H-1B, O-1, or No visa.",
+  "kind": "workbook",
+  "status": "superseded",
+  "evidence": "D9",
+  "note": "D9 moves legal status tagging to Duly onboarding; WorkBook setup owns work details only. Neither onboarding is built."
+ },
+ {
+  "id": "WB01-036",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Step 2, Work: Employee (W-2), Contractor (1099), Founder, Unpaid. Plus job title, organization, start date.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-037",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Warnings appear when the combination is a problem.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists; any warning must be reworded under D5."
+ },
+ {
+  "id": "WB01-038",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "STEM OPT with Founder shows: STEM OPT needs a paid role with an E-Verify employer and a supervisor who signs your I-983. Self-employment, 1099 and unpaid roles don't qualify.",
+  "kind": "workbook",
+  "status": "superseded",
+  "evidence": "D5",
+  "note": "D5 requires every legal conclusion in copy to be reworded, and the copy linter bans the word qualify; nothing is built either way."
+ },
+ {
+  "id": "WB01-039",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "CPT with Founder shows: CPT is authorized by your school for a specific employer and dates. Check with your DSO before counting founder work.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow; the CPT rule behind the sentence is not in a rule pack."
+ },
+ {
+  "id": "WB01-040",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Step 3, Hours: Under 20 h, 20 to 39 h, 40 h or more.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-041",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Under 20 on OPT or STEM OPT shows: Under 20 hours a week doesn't count as OPT employment. Those days add to your unemployment count.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "engine/f1.py (employment.days_under_hours)",
+  "note": "The engine counts days under the hours line from entered periods, but the setup warning does not exist."
+ },
+ {
+  "id": "WB01-042",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Field: Software, Data and ML, Design, Research, Business and ops, Other. Degree.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-043",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "The field decides which sources are suggested.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-044",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Step 4, Sources: suggested tools pre-selected for the field; the user toggles any.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-045",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Nothing connects until you sign in to each one on the next screen.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connection code exists."
+ },
+ {
+  "id": "WB01-046",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Step 5, Your setup: a summary showing the weekly target, what else is watched (unemployment clock, I-983 evaluations), documents to keep, sources, where AI runs, and the folder path.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow exists."
+ },
+ {
+  "id": "WB01-047",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Then Start recording.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No recorder exists."
+ },
+ {
+  "id": "WB01-048",
+  "source": "docs/01-context-prompt.md, 3. Setup (onboarding)",
+  "text": "Everything from setup lives in Your case and can be edited with a pencil, or the setup can be re-run.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Your case screen exists."
+ },
+ {
+  "id": "WB01-049",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Data sources are read-only, metadata only.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No source connector exists."
+ },
+ {
+  "id": "WB01-050",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Meetings: Google Calendar, Google Meet (actual join and leave times), Zoom, Outlook, Teams.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector; Calendar and Meet are first sources, the rest are marked later in doc 04."
+ },
+ {
+  "id": "WB01-051",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Chat: Slack (also the optional daily post), Discord, Teams.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector exists."
+ },
+ {
+  "id": "WB01-052",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Code: GitHub, GitLab, Bitbucket, local git repos (catches unpushed commits).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector exists."
+ },
+ {
+  "id": "WB01-053",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Shipping: Vercel, Netlify, AWS, App Store Connect.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 4",
+  "note": "The document says to start with Calendar, Meet, GitHub and Slack; these are outside that first set."
+ },
+ {
+  "id": "WB01-054",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Docs: Google Drive activity, Notion, Confluence, Dropbox, OneDrive.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Notion is v1.1 and Drive activity is later; nothing is built."
+ },
+ {
+  "id": "WB01-055",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Tasks: Linear, Jira, Asana, Trello, ClickUp.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Linear is v1.1; the others are outside the first set."
+ },
+ {
+  "id": "WB01-056",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Design: Figma, Canva.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Figma is marked later."
+ },
+ {
+  "id": "WB01-057",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Business ops: Stripe, QuickBooks, business bank account, DocuSign.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 4",
+  "note": "Outside the first set of four sources."
+ },
+ {
+  "id": "WB01-058",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Local, opt-in: editor activity via a VS Code plugin, active app time.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 4",
+  "note": "Outside the first set of four sources."
+ },
+ {
+  "id": "WB01-059",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Gmail is out of v1.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 4",
+  "note": "The document itself excludes Gmail from v1; no Gmail code exists."
+ },
+ {
+  "id": "WB01-060",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Start with Google Calendar, Google Meet, GitHub, Slack.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "None of the four connectors exists."
+ },
+ {
+  "id": "WB01-061",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Connect: OAuth, read-only.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No OAuth code."
+ },
+ {
+  "id": "WB01-062",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Collect: normalize every event into one local encrypted store, keep the source link.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No event store."
+ },
+ {
+  "id": "WB01-063",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Build blocks: group nearby events into work blocks with start and end; meetings keep calendar times; check-in and check-out bound the day.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB01-064",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Map duties: local AI drafts a one-line work performed and tags one declared duty; low confidence is left untagged.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter or duty mapper."
+ },
+ {
+  "id": "WB01-065",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Confirm: user marks the day complete.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No day model."
+ },
+ {
+  "id": "WB01-066",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Seal: SHA-256 of each entry, a daily Merkle root, optional OpenTimestamps anchor.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sealing code."
+ },
+ {
+  "id": "WB01-067",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "Only a hash ever leaves the device.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No code and no test of what leaves the device."
+ },
+ {
+  "id": "WB01-068",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "AI options: Apple's on-device Foundation Models on macOS (default), any local model through Ollama.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "D20 leaves the WorkBook drafting model open; providers.py names an OpenAI compatible host for the assistant only and wires no model."
+ },
+ {
+  "id": "WB01-069",
+  "source": "docs/01-context-prompt.md, 4. Data sources",
+  "text": "A cloud model with the user's own key, used only for monthly narratives if the user chooses.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature; D13 and D20 bear on it."
+ },
+ {
+  "id": "WB01-070",
+  "source": "docs/01-context-prompt.md, 5. Screens, Sidebar",
+  "text": "Sidebar: Today, Log, Documents, Exports, then Your case.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "web/src/App.tsx has one F-1 form and result view; no sidebar."
+ },
+ {
+  "id": "WB01-071",
+  "source": "docs/01-context-prompt.md, 5. Screens, Sidebar",
+  "text": "At the bottom: recording status with Pause.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No recorder."
+ },
+ {
+  "id": "WB01-072",
+  "source": "docs/01-context-prompt.md, 5. Screens, Sidebar",
+  "text": "Feedback (Request a tool, Problem, Idea; Sent without any of your records).",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No feedback feature."
+ },
+ {
+  "id": "WB01-073",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "Heading is the date. One line under it: hours so far.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-074",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "Top right: hours of 20 this week above a progress bar.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-075",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "A list of the day's blocks: time range, what was done (amber star if AI-drafted), hours, a pencil.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-076",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "Click the text to reveal sources (From GitHub, From Calendar) and a note if AI wrote it or the user edited it.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-077",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "Pencil opens inline editing: the pencil's spot becomes an X (cancel) so a second click in the same place closes it.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-078",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "A red-outlined bin sits to the left of Save, never under the cursor.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-079",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "+ Add entry at the bottom.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-080",
+  "source": "docs/01-context-prompt.md, 5. Screens, Today",
+  "text": "Mark day complete bottom right; after that, Day complete. You can still edit.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-081",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "One row per calendar day, newest first, under month headers with the month's hours.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-082",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "Every day appears, including days with no work, which show No work or the user's note (Day off, Sick, Travel).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-083",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "Open a day to see entries, edit them, add an entry to that day (time, text, hours), or add a note.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-084",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "Top right: a search box and one filter icon.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-085",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "The filter popover has Dates (This week, This month, Last month, Everything, or From and To).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-086",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "The filter popover has From these tools (multi-select chips).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-087",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "The filter popover has Show (Everything, Written by AI, Edited, Added by me), with a live entry count.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-088",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "Active filters appear as removable chips.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-089",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "History at the bottom opens the full record of every change (completed days, edits with before and after, documents opened or removed, exports, settings changes).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-090",
+  "source": "docs/01-context-prompt.md, 5. Screens, Log",
+  "text": "History has a Check nothing changed integrity button.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB01-091",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "Locked by default: names blurred behind a lock icon.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB01-092",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "One Unlock button (passphrase or Touch ID).",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB01-093",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "Auto-locks after 5 minutes.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB01-094",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "Unlocked: click a name to open, red Remove with inline confirm, Lock, Add (file picker).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB01-095",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "A drop zone: Drop files here, or click to choose. Encrypted before it is saved. Any file type.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB01-096",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "Privacy is a small button that reveals switches: blur names while locked, ask before exporting documents, keep a record of every time a document is opened, notify when opened, lock-after timer.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB01-097",
+  "source": "docs/01-context-prompt.md, 5. Screens, Documents",
+  "text": "Encryption is always on.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No encryption code exists."
+ },
+ {
+  "id": "WB01-098",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Step 1, Build: two choices, Everything or Custom (dates via presets or a range, sources as chips, documents as chips).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB01-099",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "A drop zone for extra files (a pay stub, a letter, a screenshot).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB01-100",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Step 2, Preview: the pack as a numbered list with page counts (summary, timesheet, source records, each document, extras, and a method note), plus the first timesheet rows.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB01-101",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "The method note states which entries were AI-drafted and that all were reviewed by the user.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No method note template."
+ },
+ {
+  "id": "WB01-102",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Toggle chips: note AI-drafted entries, hide other people's names, include edit history.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code; D6 on the AI disclosure toggle is open."
+ },
+ {
+  "id": "WB01-103",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Step 3, Send as: Zip, Folder, or Link.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB01-104",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Link asks who can open it (only people I add, by email, who sign in to open; or anyone with the link) and an expiry.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No link service."
+ },
+ {
+  "id": "WB01-105",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Links can be revoked.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No link service."
+ },
+ {
+  "id": "WB01-106",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "Past exports listed under Made before.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB01-107",
+  "source": "docs/01-context-prompt.md, 5. Screens, Exports",
+  "text": "One quiet line at the bottom: Received a Request for Evidence? Build a response.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Exports screen."
+ },
+ {
+  "id": "WB01-108",
+  "source": "docs/01-context-prompt.md, 5. Screens, RFE response builder",
+  "text": "RFE response builder must follow this order: the RFE notice on top (all pages), the cover letter, a one-page exhibit index, then numbered exhibits in the same order as the requests in the notice.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 5 (not yet designed)",
+  "note": "The document says the builder is not yet designed; nothing is built."
+ },
+ {
+  "id": "WB01-109",
+  "source": "docs/01-context-prompt.md, 5. Screens, RFE response builder",
+  "text": "Continuous page numbers, English only, clean text layer.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 5 (not yet designed)",
+  "note": "Not designed and not built."
+ },
+ {
+  "id": "WB01-110",
+  "source": "docs/01-context-prompt.md, 5. Screens, RFE response builder",
+  "text": "One complete response, sent once; a missing document is explained, not omitted.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 5 (not yet designed)",
+  "note": "Not designed and not built."
+ },
+ {
+  "id": "WB01-111",
+  "source": "docs/01-context-prompt.md, 5. Screens, RFE response builder",
+  "text": "A consistency check across job title, dates, and employer against every document and the SEVP report.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 5 (not yet designed)",
+  "note": "Not designed and not built."
+ },
+ {
+  "id": "WB01-112",
+  "source": "docs/01-context-prompt.md, 5. Screens, Your case",
+  "text": "Status and dates, role, work type, weekly target, degree, duties, each with a pencil.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Your case screen."
+ },
+ {
+  "id": "WB01-113",
+  "source": "docs/01-context-prompt.md, 5. Screens, Your case",
+  "text": "Source switches.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Your case screen."
+ },
+ {
+  "id": "WB01-114",
+  "source": "docs/01-context-prompt.md, 5. Screens, Your case",
+  "text": "Privacy switches: AI summaries on this device, read message content.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Your case screen."
+ },
+ {
+  "id": "WB01-115",
+  "source": "docs/01-context-prompt.md, 5. Screens, Your case",
+  "text": "Run setup again.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No setup flow."
+ },
+ {
+  "id": "WB01-116",
+  "source": "docs/01-context-prompt.md, 5. Screens, Your case",
+  "text": "The menu bar popover (hours since check-in, today's blocks, Pause, Open).",
+  "kind": "desktop",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 5 (not yet designed)",
+  "note": "Marked not yet designed."
+ },
+ {
+  "id": "WB01-117",
+  "source": "docs/01-context-prompt.md, 5. Screens, Your case",
+  "text": "The optional daily Slack post of the confirmed day, which doubles as third-party corroboration.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 5 (not yet designed)",
+  "note": "Marked not yet designed."
+ },
+ {
+  "id": "WB01-118",
+  "source": "docs/01-context-prompt.md, 6. Integration with Duly",
+  "text": "WorkBook exposes its local store through a clean, versioned API so Duly can read the day record, the case profile, and export packs without touching the encryption or the file layout.",
+  "kind": "workbook",
+  "status": "partial",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "The contract is a placeholder that names v1 and nine endpoints; it has no shapes and no route implements it."
+ },
+ {
+  "id": "WB01-119",
+  "source": "docs/01-context-prompt.md, 6. Integration with Duly",
+  "text": "Duly must respect the same rules: no screen capture, metadata only, user confirms before anything is treated as a record, AI-drafted lines stay marked, nothing overwritten.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Duly stores no records at all yet (the compute route is stateless), and no test states these rules."
+ },
+ {
+  "id": "WB01-120",
+  "source": "docs/01-context-prompt.md, 6. Integration with Duly",
+  "text": "Multiple roles per user is planned; the case profile is a list, not a single object.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 6; docs/04 Planned",
+  "note": "Planned for later; no case profile exists."
+ },
+ {
+  "id": "WB01-121",
+  "source": "docs/01-context-prompt.md, 6. Integration with Duly",
+  "text": "Supervisor view (read-only link for STEM OPT I-983 evaluations) is a later addition and reuses the export link mechanism.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/01-context-prompt.md section 6",
+  "note": "Stated as a later addition."
+ },
+ {
+  "id": "WB01-122",
+  "source": "docs/01-context-prompt.md, 6. Integration with Duly",
+  "text": "Duly's document vault and WorkBook's Documents are the same store.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Neither store exists."
+ },
+ {
+  "id": "WB01-123",
+  "source": "docs/01-context-prompt.md, 6. Integration with Duly",
+  "text": "Status documents (I-20s, EAD, SEVP report) are Duly's, work documents (offer letter, EIN letter, I-983) are shared.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document typing or ownership exists."
+ },
+ {
+  "id": "WB01-124",
+  "source": "docs/01-context-prompt.md, 7. Open build decisions",
+  "text": "Platform for v0: native macOS (Swift, on-device Foundation Models) or cross-platform (Tauri and Rust with Ollama).",
+  "kind": "desktop",
+  "status": "superseded",
+  "evidence": "D7, D42",
+  "note": "D42 sets an Electron desktop window and D7 sets macOS first with copy for macOS and Windows; desktop/src so far holds only about.ts."
+ },
+ {
+  "id": "WB04-001",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event has id: stable per source (e.g. github:commit:<sha>).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-002",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event source enum: github, calendar, meet, slack, notion, linear, figma, git-local, manual.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-003",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event kind: commit, pr-opened, pr-merged, meeting, call, message, page-edit, issue-closed, check-in, check-out, note.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-004",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event at: start (UTC, stored with the user's zone); until: optional end.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model; engine/dates.py handles the person's zone for Duly dates only (D33)."
+ },
+ {
+  "id": "WB04-005",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event title: commit message, meeting title, issue title. No message bodies, no document bodies.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-006",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event url: deep link back to the source.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-007",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event people_count: attendees or recipients, never names unless the user turns on content.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-008",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Event raw_hash: sha256 of the normalized event, for the seal.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Event model."
+ },
+ {
+  "id": "WB04-009",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "Read-only OAuth scopes, metadata only.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No OAuth code."
+ },
+ {
+  "id": "WB04-010",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "The raw event is never mutated.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No event store."
+ },
+ {
+  "id": "WB04-011",
+  "source": "docs/04-data-and-pipeline.md, Event",
+  "text": "A source can be disconnected; its events stay.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sources."
+ },
+ {
+  "id": "WB04-012",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Block has id, date, start, end, hours (decimal, 1 place), text (work performed), duty_id or null.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Block model."
+ },
+ {
+  "id": "WB04-013",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Block origin enum: ai (drafted from events), user (typed or edited), source (pure meeting).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Block model."
+ },
+ {
+  "id": "WB04-014",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Block has edited (bool) and event_ids, the evidence behind the line.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Block model."
+ },
+ {
+  "id": "WB04-015",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Block status enum: draft or confirmed.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Block model."
+ },
+ {
+  "id": "WB04-016",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Meetings and calls are their own blocks with calendar or Meet times.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB04-017",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Other events within 45 minutes of each other join one block.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB04-018",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "The block starts at the first event minus 10 minutes (capped at check-in) and ends at the last event plus 10 minutes (capped at check-out or the next block).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB04-019",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "A block with no events after 45 minutes closes.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB04-020",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Manual check-in and check-out bound the day when present; otherwise the first and last events do.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB04-021",
+  "source": "docs/04-data-and-pipeline.md, Block",
+  "text": "Hours are rounded to 0.1.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No block builder."
+ },
+ {
+  "id": "WB04-022",
+  "source": "docs/04-data-and-pipeline.md, Day",
+  "text": "Day has date, blocks, note (Day off, Sick, Travel), status (open or complete), completed_at.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Day model."
+ },
+ {
+  "id": "WB04-023",
+  "source": "docs/04-data-and-pipeline.md, Day",
+  "text": "Day root: Merkle root over block hashes and the note.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sealing code."
+ },
+ {
+  "id": "WB04-024",
+  "source": "docs/04-data-and-pipeline.md, Day",
+  "text": "Day anchor: { method: opentimestamps, proof: bytes, at } or null.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No anchoring code."
+ },
+ {
+  "id": "WB04-025",
+  "source": "docs/04-data-and-pipeline.md, Amendment",
+  "text": "Amendment has id, at, target (block id, day, or case field), before, after, reason (string or null), by: user. Never overwrite.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Amendment model."
+ },
+ {
+  "id": "WB04-026",
+  "source": "docs/04-data-and-pipeline.md, Amendment",
+  "text": "History is the ordered list of amendments plus system events (day completed, document opened, export created, link revoked, setting changed).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No history."
+ },
+ {
+  "id": "WB04-027",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case status: opt, stem, cpt, h1b, o1, none; with status_from and status_to.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/case_f1.schema.json",
+  "note": "D9 gives status tagging to Duly onboarding; Duly has an F-1 case contract but no WorkBook Case and no stored profile."
+ },
+ {
+  "id": "WB04-028",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case work_type: w2, c1099, founder, unpaid.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Case model."
+ },
+ {
+  "id": "WB04-029",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case title, org, start_date.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Case model."
+ },
+ {
+  "id": "WB04-030",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case hours_target: int, 20 default for OPT and STEM.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Case model."
+ },
+ {
+  "id": "WB04-031",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case field: sw, ml, ds, rs, biz, ot; degree: string.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Case model."
+ },
+ {
+  "id": "WB04-032",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case duties: [{ id, text, courses }].",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No duty to course mapping."
+ },
+ {
+  "id": "WB04-033",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case sources: [{ source, enabled }].",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Case model."
+ },
+ {
+  "id": "WB04-034",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Case privacy: { ai_on_device, read_content }.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Case model."
+ },
+ {
+  "id": "WB04-035",
+  "source": "docs/04-data-and-pipeline.md, Case profile",
+  "text": "Planned: cases: Case[] for people with more than one role.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Case profile (Planned)",
+  "note": "Marked planned."
+ },
+ {
+  "id": "WB04-036",
+  "source": "docs/04-data-and-pipeline.md, Documents",
+  "text": "Encrypted blobs on disk, one per file, with a sidecar index.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB04-037",
+  "source": "docs/04-data-and-pipeline.md, Documents",
+  "text": "Index fields: name, type (ead, i20, sevp-report, ein, articles, license, offer, i983, bank, other), added_at, version, sha256, include_in_exports, last_opened_at.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document index."
+ },
+ {
+  "id": "WB04-038",
+  "source": "docs/04-data-and-pipeline.md, Documents",
+  "text": "Names are stored encrypted too so the locked list can only show blurred placeholders.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB04-039",
+  "source": "docs/04-data-and-pipeline.md, Documents",
+  "text": "Lock state: unlocked for N minutes (default 5) after passphrase or biometric.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No lock."
+ },
+ {
+  "id": "WB04-040",
+  "source": "docs/04-data-and-pipeline.md, Documents",
+  "text": "Every open is logged when the privacy switch is on.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No log."
+ },
+ {
+  "id": "WB04-041",
+  "source": "docs/04-data-and-pipeline.md, Storage",
+  "text": "~/WorkBook/ is the user's folder with days/YYYY-MM-DD.md, log.csv (regenerated), documents/ (encrypted), exports/, history.jsonl (append-only).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No folder writer."
+ },
+ {
+  "id": "WB04-042",
+  "source": "docs/04-data-and-pipeline.md, Storage",
+  "text": "The app's own database is SQLite (encrypted with SQLCipher or equivalent), keyed from the OS keychain.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md, CLAUDE.md",
+  "note": "Named as a Phase 8 plan only; api/db.py is a Postgres connection for the server."
+ },
+ {
+  "id": "WB04-043",
+  "source": "docs/04-data-and-pipeline.md, Storage",
+  "text": "The Markdown and CSV are derived views so the user never needs the app to read their record.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No derived views."
+ },
+ {
+  "id": "WB04-044",
+  "source": "docs/04-data-and-pipeline.md, Storage",
+  "text": "Nothing is synced by default.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No store and no test of sync behavior."
+ },
+ {
+  "id": "WB04-045",
+  "source": "docs/04-data-and-pipeline.md, Storage",
+  "text": "Optional end-to-end encrypted backup to the user's own Drive, iCloud, or S3 with a passphrase they hold.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No backup code."
+ },
+ {
+  "id": "WB04-046",
+  "source": "docs/04-data-and-pipeline.md, Sealing",
+  "text": "On Mark day complete: hash every block (canonical JSON), build a Merkle root with the note, store it on the Day, append a History line.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No sealing code."
+ },
+ {
+  "id": "WB04-047",
+  "source": "docs/04-data-and-pipeline.md, Sealing",
+  "text": "Optional anchor: submit the root to OpenTimestamps calendar servers. Only the 32-byte hash leaves the device.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No anchoring code."
+ },
+ {
+  "id": "WB04-048",
+  "source": "docs/04-data-and-pipeline.md, Sealing",
+  "text": "The .ots proof is stored alongside and included in exports.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No anchoring code."
+ },
+ {
+  "id": "WB04-049",
+  "source": "docs/04-data-and-pipeline.md, Sealing",
+  "text": "Check nothing changed: recompute every hash and root and compare.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No integrity check."
+ },
+ {
+  "id": "WB04-050",
+  "source": "docs/04-data-and-pipeline.md, Sealing",
+  "text": "Amendments are expected and listed; a mismatch on an unamended item is flagged.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No integrity check."
+ },
+ {
+  "id": "WB04-051",
+  "source": "docs/04-data-and-pipeline.md, Sealing",
+  "text": "Exports include manifest.sha256 and a small standalone verify.py.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "tools/sources/verify.py",
+  "note": "The only verify.py checks rule pack quotes; no export verifier exists."
+ },
+ {
+  "id": "WB04-052",
+  "source": "docs/04-data-and-pipeline.md, AI",
+  "text": "Default: on-device (Apple Foundation Models on macOS 26+; Ollama elsewhere).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "D20 leaves the choice open; no drafter model is wired."
+ },
+ {
+  "id": "WB04-053",
+  "source": "docs/04-data-and-pipeline.md, AI",
+  "text": "Input to the drafter is one block's events (titles, sources, times) plus the duty list.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB04-054",
+  "source": "docs/04-data-and-pipeline.md, AI",
+  "text": "Output is one line, at most 12 words, plus a duty id or null.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB04-055",
+  "source": "docs/04-data-and-pipeline.md, AI",
+  "text": "Never given: message bodies, document contents, other people's names.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter; the threat model states document contents never reach a model but nothing tests it."
+ },
+ {
+  "id": "WB04-056",
+  "source": "docs/04-data-and-pipeline.md, AI",
+  "text": "Cloud (user's own key) only for the monthly narrative, and only if the user turns it on.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature."
+ },
+ {
+  "id": "WB04-057",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Pack contents in order: summary page (role, org, dates, weekly hours table), timesheet, source records, documents, extras, method note, manifest.sha256, proofs/*.ots, verify.py.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-058",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Timesheet columns: date, start, end, hours, work performed, duty, origin.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-059",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Source records: one section per source, event list with links.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-060",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Documents in the user's chosen order.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-061",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Format zip (PDF plus the files).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-062",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Format folder (same, unzipped).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-063",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Format link: read-only web view of the same pack; access by allow-listed emails or anyone with the link; expiry; revocable.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No link service."
+ },
+ {
+  "id": "WB04-064",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Option: note AI-drafted entries (default on; this is the method note).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code; D6 is open on this toggle."
+ },
+ {
+  "id": "WB04-065",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Option: hide other people's names (default on).",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-066",
+  "source": "docs/04-data-and-pipeline.md, Exports",
+  "text": "Option: include edit history (default off).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No export code."
+ },
+ {
+  "id": "WB04-067",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Google Calendar in v1, scope events.readonly.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector."
+ },
+ {
+  "id": "WB04-068",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Google Meet in v1: Meet REST API conference records, actual join and leave.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector."
+ },
+ {
+  "id": "WB04-069",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "GitHub in v1: commits, PRs, reviews via user token; local git watcher optional.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector."
+ },
+ {
+  "id": "WB04-070",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Slack in v1: users.conversations plus search.messages for the user's own messages; optional chat.write to one channel for the daily post.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector."
+ },
+ {
+  "id": "WB04-071",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Linear, Notion in v1.1.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Placed in v1.1."
+ },
+ {
+  "id": "WB04-072",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Gmail: no.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Excluded by the document; no Gmail code exists."
+ },
+ {
+  "id": "WB04-073",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Zoom, Outlook, Teams: later.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Placed later."
+ },
+ {
+  "id": "WB04-074",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Figma, Drive activity: later.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/04-data-and-pipeline.md, Sources table",
+  "note": "Placed later."
+ },
+ {
+  "id": "WB04-075",
+  "source": "docs/04-data-and-pipeline.md, Sources: v1 scope and notes",
+  "text": "Daily Slack post (optional): after the day is marked complete, post the date, hours and entry texts to one channel the user picks.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Open 5",
+  "note": "Optional and not yet designed."
+ },
+ {
+  "id": "WB05-001",
+  "source": "docs/05-compliance-and-legal.md, intro",
+  "text": "Immigration rules change; re-verify before shipping copy that states a rule.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "tools/sources/verify.py, tests/holdout/test_holdout_sourcing.py",
+  "note": "Every F-1 pack row carries a quote, a saved copy and a checked_on date that the verifier checks; most facts in this document have no row, and no row is founder reviewed."
+ },
+ {
+  "id": "WB05-002",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "SEVP treats 20 or more hours a week as full-time employment on post-completion OPT.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (opt.min_hours_per_week), sources/sits-f1-opt-2026-09-28.html",
+  "note": "Quoted from the saved Study in the States page and marked guidance."
+ },
+ {
+  "id": "WB05-003",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Unpaid work counts if it does not violate labor law and the student can show at least 20 hours a week.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "rulepacks/f1-us/v2026.09/sources/ice-sevp-policy-guidance-1004-03.pdf",
+  "note": "The guidance is saved but no pack row states or quotes the unpaid work rule."
+ },
+ {
+  "id": "WB05-004",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Unemployment limit: 90 days on post-completion OPT.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (opt.unemployment_limit_days)",
+  "note": "Quoted from 8 CFR 214.2(f)(10)(ii)(E), saved eCFR copy."
+ },
+ {
+  "id": "WB05-005",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Unemployment limit: 150 total with the STEM extension.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.unemployment_limit_days)",
+  "note": "Quoted from 8 CFR 214.2(f)(10)(ii)(E), saved eCFR copy."
+ },
+ {
+  "id": "WB05-006",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Unreported employment does not count, however real.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (opt.report_employer_within_days)",
+  "note": "The pack has the 10 day reporting rule and the engine counts periods not marked reported, but no row quotes a source saying unreported employment does not count."
+ },
+ {
+  "id": "WB05-007",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Employment must be directly related to the degree.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.eligible_practical_training_opportunity)",
+  "note": "Only the STEM OPT sentence is quoted; the rule for post-completion OPT has no row."
+ },
+ {
+  "id": "WB05-008",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "DSOs may ask for a written narrative connecting duties to coursework.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row, source or quote."
+ },
+ {
+  "id": "WB05-009",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "WorkBook maps each duty to courses.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No duty model."
+ },
+ {
+  "id": "WB05-010",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "SEVP's own list of what to keep per job: position held, proof of duration, job title, supervisor contact, description of the work.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "rulepacks/f1-us/v2026.09/sources/ice-sevp-policy-guidance-1004-03.pdf",
+  "note": "The guidance is saved but no row quotes the list."
+ },
+ {
+  "id": "WB05-011",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Self-employed business owner (post-completion OPT): allowed. Must have proper business licenses and be actively engaged in a business related to the degree.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "rulepacks/f1-us/v2026.09/sources/ice-sevp-policy-guidance-1004-03.pdf",
+  "note": "The guidance is saved but no row quotes it; BOUNDARY.md A7 only uses it as an example."
+ },
+ {
+  "id": "WB05-012",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Universities also suggest keeping the EIN, incorporation documents, and a business bank account.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row; under D34 and D35 a university suggestion is not law, and no school record exists."
+ },
+ {
+  "id": "WB05-013",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Pre-revenue is fine with evidence of active development.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No primary source is saved for this; under D35 Duly does not have it."
+ },
+ {
+  "id": "WB05-014",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "STEM OPT requires a bona fide employer-employee relationship.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row quotes this phrase."
+ },
+ {
+  "id": "WB05-015",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "STEM OPT requires an E-Verify employer.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.employer_qualification)",
+  "note": "Quoted from 8 CFR 214.2(f)(10)(ii)(C)(5), saved eCFR copy."
+ },
+ {
+  "id": "WB05-016",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "STEM OPT requires paid work.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.duties_hours_and_compensation)",
+  "note": "The row quotes that compensation must be commensurate; no row states that unpaid roles are excluded."
+ },
+ {
+  "id": "WB05-017",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "STEM OPT requires a supervisor who signs the I-983 training plan.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.training_plan)",
+  "note": "Quoted from 8 CFR 214.2(f)(10)(ii)(C)(7)(i)."
+ },
+ {
+  "id": "WB05-018",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "The student cannot sign both sides.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row; SOURCES.md says the Form I-983 instructions were not saved or read."
+ },
+ {
+  "id": "WB05-019",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Self-employment, 1099, and unpaid roles do not qualify for STEM OPT.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row, source or quote."
+ },
+ {
+  "id": "WB05-020",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Founders can qualify only through a real third-party supervisor and a structure where the student's ownership does not undermine the relationship.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row, source or quote."
+ },
+ {
+  "id": "WB05-021",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "CPT: authorized by the school for a specific employer and dates.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (cpt.full_time_bar_days)",
+  "note": "The only CPT rows are the one year full-time bar; the authorization rule in 8 CFR 214.2(f)(10)(i) is not quoted."
+ },
+ {
+  "id": "WB05-022",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "CPT rules vary by school.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "D3 and D24 call for per-school records; the schools list is empty."
+ },
+ {
+  "id": "WB05-023",
+  "source": "docs/05-compliance-and-legal.md, OPT and STEM OPT employment",
+  "text": "Sources: ICE SEVP Policy Guidance 1004-03; Harvard HIO; Temple ISSS; UNC Charlotte; Malescu Law and Pandev Law; Immiva.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "D34, D35",
+  "note": "Only the exact text of the law from primary sources may support a rule; of these only SEVP 1004-03 is saved, and it is cited in a note, not quoted."
+ },
+ {
+  "id": "WB05-024",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "May 2025: SEVP sent OPT students with no employer reported in SEVIS a notice with 15 days to fix the record before termination.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row, saved source or quote; the document's own sources are NAFSA and press, which are not primary."
+ },
+ {
+  "id": "WB05-025",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "August 5, 2026: USCIS Policy Alert PA-2026-05. A deficient filing may be denied without an RFE.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "D1 names PA-2026-05 but no pack holds it; the H-1B, O-1 and EB-1A packs are empty."
+ },
+ {
+  "id": "WB05-026",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "RFE response periods may be shorter than 84 days.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row, saved source or quote."
+ },
+ {
+  "id": "WB05-027",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "July 17, 2026: DHS final rule replacing duration of status with fixed admission periods, effective September 15, 2026.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (regimes ds_2012, fixed_admission_2026), sources/fr-2026-14439.xml, sources/mad-1-26-cv-13799-doc51-order.pdf",
+  "note": "In the pack with quotes, recorded per D1 as enjoined and not operative, which corrects the document's statement that it is in effect."
+ },
+ {
+  "id": "WB05-028",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "Grace period after OPT drops from 60 to 30 days.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (grace.after_completion_days, two rows)",
+  "note": "Both values are quoted from dated eCFR copies; 60 is operative and 30 sits under the enjoined regime."
+ },
+ {
+  "id": "WB05-029",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "An EAD does not extend the admit-until date.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row or quote for this part of the final rule."
+ },
+ {
+  "id": "WB05-030",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "OPT reform: DHS regulatory agenda entry RIN 1653-AA97; details now expected February 2027.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml (reginfo)",
+  "note": "The agenda host is on the watch list but nothing is fetched and no pack row or update exists."
+ },
+ {
+  "id": "WB05-031",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "A separate OPT fee proposal cleared OMB review in September 2026.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row, update or saved source."
+ },
+ {
+  "id": "WB05-032",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "USCIS uses automated tools that tag evidence and flag inconsistencies in names, titles, and dates across documents; PDFs with hidden text layers have been misread.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No primary source saved; the document cites a law firm."
+ },
+ {
+  "id": "WB05-033",
+  "source": "docs/05-compliance-and-legal.md, Enforcement and timing",
+  "text": "WorkBook's consistency check and clean PDF output exist for this.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Neither exists."
+ },
+ {
+  "id": "WB05-034",
+  "source": "docs/05-compliance-and-legal.md, RFE response structure",
+  "text": "Order: RFE notice (all pages) on top, cover letter, one-page exhibit index, numbered exhibits in the order of the requests, continuous page numbers throughout.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Open 4",
+  "note": "The builder is designed in principle only; the source is a law firm article, not law."
+ },
+ {
+  "id": "WB05-035",
+  "source": "docs/05-compliance-and-legal.md, RFE response structure",
+  "text": "Full certified translations for anything not in English.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No row; the rule in 8 CFR 103.2(b)(3) is not in any pack."
+ },
+ {
+  "id": "WB05-036",
+  "source": "docs/05-compliance-and-legal.md, RFE response structure",
+  "text": "Send once, complete; a partial response can be decided on the record as it stands (8 CFR 103.2(b)(11)).",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "8 CFR 103.2 is not saved or quoted in any pack."
+ },
+ {
+  "id": "WB05-037",
+  "source": "docs/05-compliance-and-legal.md, RFE response structure",
+  "text": "If a document is unavailable, explain what was sought and why it cannot be provided.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Open 4",
+  "note": "Part of the undesigned RFE builder."
+ },
+ {
+  "id": "WB05-038",
+  "source": "docs/05-compliance-and-legal.md, Misrepresentation and AI",
+  "text": "8 USC 1182(a)(6)(C)(i): any alien who by fraud or willfully misrepresenting a material fact seeks to procure a visa or other benefit is inadmissible. It is permanent.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "tests/unit/assistant/test_validator.py",
+  "note": "The citation appears only as a test string; no pack row, saved copy or quote."
+ },
+ {
+  "id": "WB05-039",
+  "source": "docs/05-compliance-and-legal.md, Misrepresentation and AI",
+  "text": "There is no current rule requiring disclosure of AI use in a filing.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No source saved; D6 on the export disclosure toggle is open."
+ },
+ {
+  "id": "WB05-040",
+  "source": "docs/05-compliance-and-legal.md, Misrepresentation and AI",
+  "text": "WorkBook's rule: AI restates only events it can cite, never adds facts, never writes argument, and stays marked.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter exists."
+ },
+ {
+  "id": "WB05-041",
+  "source": "docs/05-compliance-and-legal.md, Misrepresentation and AI",
+  "text": "A 2026 lawsuit alleges ChatGPT engaged in the unlicensed practice of law; New York SB 7263 would create liability for chatbot operators giving substantive professional advice.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "docs/research/notes/upl_liability.md",
+  "note": "Research notes only; no saved primary source or quote."
+ },
+ {
+  "id": "WB05-042",
+  "source": "docs/05-compliance-and-legal.md, Misrepresentation and AI",
+  "text": "Duly's assistant must organize and cite, never advise.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py, tests/unit/assistant/test_validator.py, tests/unit/assistant/test_boundary_evals.py, BOUNDARY.md",
+  "note": "The classifier and validator exist and are tested, but no assistant model is wired (providers.NotWired) and the validator passes imperatives such as File this form now."
+ },
+ {
+  "id": "WB05-043",
+  "source": "docs/05-compliance-and-legal.md, Privacy constraints on sources",
+  "text": "Gmail gmail.metadata and gmail.readonly are Google restricted scopes. Excluded from v1.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "docs/05-compliance-and-legal.md, Privacy constraints",
+  "note": "Excluded by the document; no Gmail code exists."
+ },
+ {
+  "id": "WB05-044",
+  "source": "docs/05-compliance-and-legal.md, Privacy constraints on sources",
+  "text": "WorkBook captures nothing from the screen.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No capture code exists, but no test or guard enforces it; desktop/src/guard.ts named in specs/desktop-1/SPEC.md is not present."
+ },
+ {
+  "id": "WB05-045",
+  "source": "docs/05-compliance-and-legal.md, Prior art",
+  "text": "ActivityWatch: local server plus small watcher programs, event buckets, heartbeat API. Good model for the collector.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No collector exists."
+ },
+ {
+  "id": "WB05-046",
+  "source": "docs/05-compliance-and-legal.md, Prior art",
+  "text": "screenpipe: check its license before reuse. Not used for capture.",
+  "kind": "legal",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "screenpipe is not a dependency; no license check is recorded."
+ },
+ {
+  "id": "WB05-047",
+  "source": "docs/05-compliance-and-legal.md, Prior art",
+  "text": "OpenTimestamps: free Bitcoin-anchored timestamp proofs.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No anchoring code."
+ },
+ {
+  "id": "WB06-001",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "Duly is a visa-status app for international students in the US (UK next).",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "engine/f1.py, web/src/App.tsx",
+  "note": "A stateless F-1 date computation and one screen exist; no accounts, documents, updates or WorkBook."
+ },
+ {
+  "id": "WB06-002",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "You will always know: documents in one place.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "specs/desktop-1/SPEC.md",
+  "note": "The document vault is placed in Phase 8; the case carries only documents_count as a number."
+ },
+ {
+  "id": "WB06-003",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "You will always know: timelines and deadlines computed from them.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py, tests/unit/engine/test_f1.py, api/main.py (POST /v1/compute/f1)",
+  "note": "Dates and counts are computed from dates the person types in, not from documents."
+ },
+ {
+  "id": "WB06-004",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "You will always know: a daily digest of verified updates from primary sources.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "pipeline/graph.py, tests/unit/pipeline/test_graph.py, watch/sources.yaml, contracts/update.schema.json",
+  "note": "Only the stage order and the publish rule exist; no fetcher, no schedule, no digest, no stored update. D22 sets delivery as an email alert plus an in-app explanation."
+ },
+ {
+  "id": "WB06-005",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "Trust that the app keeps you posted.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "emails/README.md",
+  "note": "No alert or email is sent; email templates arrive in Phase 7."
+ },
+ {
+  "id": "WB06-006",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "Nothing gets lost: every CPT I-20 version, EAD, receipt notice, I-983, offer letter, sorted by status period and version.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB06-007",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "Nothing gets lost: encrypted, easy to reach.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store or encryption code."
+ },
+ {
+  "id": "WB06-008",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "You are covered: WorkBook keeps the proof of work so an RFE or a DSO check is a click, not a panic.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB06-009",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "An assistant that acts as a checklister: bundles the steps for each transition (CPT to OPT, OPT to STEM, STEM to H-1B).",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No checklist feature and no wired assistant."
+ },
+ {
+  "id": "WB06-010",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "The assistant cites official sources.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py (validate_answer), tests/unit/assistant/test_validator.py",
+  "note": "The validator rejects a sentence with no known source; there is no running assistant or retrieval."
+ },
+ {
+  "id": "WB06-011",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "The assistant flags where schools differ (confirm with your ISSS).",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "The schools list is empty; no school record exists (D3, D24)."
+ },
+ {
+  "id": "WB06-012",
+  "source": "docs/06-duly-integration.md, What Duly is",
+  "text": "The assistant keeps a human in the loop before any handoff.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No handoff exists."
+ },
+ {
+  "id": "WB06-013",
+  "source": "docs/06-duly-integration.md, Positioning",
+  "text": "One line: Your status, in order. Every document, every deadline, every hour of work, kept and ready.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "README.md",
+  "note": "The line appears nowhere; the README uses a different line."
+ },
+ {
+  "id": "WB06-014",
+  "source": "docs/06-duly-integration.md, Positioning",
+  "text": "Lane: a status manager with a trusted assistant. Not an advisor, not a lawyer replacement.",
+  "kind": "legal",
+  "status": "met",
+  "evidence": "BOUNDARY.md, tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+  "note": "The boundary file and the copy linter's forbidden list hold the product to this lane in copy."
+ },
+ {
+  "id": "WB06-015",
+  "source": "docs/06-duly-integration.md, Positioning",
+  "text": "Start at admission, not at OPT, to own the full lifecycle.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "contracts/case_f1.schema.json",
+  "note": "The case begins at program end, CPT days and OPT; there is no admission stage."
+ },
+ {
+  "id": "WB06-016",
+  "source": "docs/06-duly-integration.md, Positioning",
+  "text": "Free tier complete for compliance; charge at the moments that matter.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8",
+  "note": "Pricing is parked; D18 confirms Stripe for later."
+ },
+ {
+  "id": "WB06-017",
+  "source": "docs/06-duly-integration.md, Positioning",
+  "text": "Universities as the channel: a verified by your school layer where a DSO publishes the office's procedures into the app.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No school layer; D3 and D24 plan school records cited to ISSS pages, which is a different mechanism."
+ },
+ {
+  "id": "WB06-018",
+  "source": "docs/06-duly-integration.md, Positioning",
+  "text": "UK Graduate Route as the second country with the same engine.",
+  "kind": "engine",
+  "status": "deferred",
+  "evidence": "docs/06-duly-integration.md, Positioning",
+  "note": "Placed as the second country; packs carry a jurisdiction field but only US packs exist."
+ },
+ {
+  "id": "WB06-019",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "WorkBook exposes a local, versioned API (v1) to Duly.",
+  "kind": "workbook",
+  "status": "partial",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Placeholder contract only, titled to be filled in Phase 8."
+ },
+ {
+  "id": "WB06-020",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "GET /case and PUT /case (profile from setup).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Named in the placeholder; no route in api/main.py or contracts/openapi.yaml."
+ },
+ {
+  "id": "WB06-021",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Duly owns status dates and documents, WorkBook owns duties, sources, hours target.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Nothing enforces or models this split; D9 agrees with it."
+ },
+ {
+  "id": "WB06-022",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "GET /days?from&to (Day objects with blocks; read-only from Duly).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Named in the placeholder; no route."
+ },
+ {
+  "id": "WB06-023",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "GET /history?since.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Named in the placeholder; no route."
+ },
+ {
+  "id": "WB06-024",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "GET /documents (index only; blobs stay encrypted and are opened through WorkBook's unlock).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Named in the placeholder; no route."
+ },
+ {
+  "id": "WB06-025",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "POST /exports (build a pack; returns a job id) and GET /exports/:id.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Named in the placeholder; no route; api/worker.py has no jobs."
+ },
+ {
+  "id": "WB06-026",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "POST /links and DELETE /links/:id.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "Named in the placeholder; no route."
+ },
+ {
+  "id": "WB06-027",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Status documents (I-20s, EAD, SEVP report, receipt notices) belong to Duly's vault; work documents (offer letter, EIN letter, I-983, contracts, pay stubs) are shared.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No store."
+ },
+ {
+  "id": "WB06-028",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Both live in the same encrypted document store with the same lock.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No store."
+ },
+ {
+  "id": "WB06-029",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Duly's timeline reads WorkBook's weekly hours to show on track against the 20-hour line and to explain unemployment days.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py (employment.days_under_hours, unemployment.days_used)",
+  "note": "The engine counts days under the hours line from hours the person types in; it reads nothing from WorkBook, and an on track label would need rewording under D5."
+ },
+ {
+  "id": "WB06-030",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: no screen capture.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No test or guard."
+ },
+ {
+  "id": "WB06-031",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: metadata only.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "contracts/events.md",
+  "note": "A placeholder says events carry ids and metadata only; no code or test."
+ },
+ {
+  "id": "WB06-032",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: user confirms before anything becomes a record.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Duly keeps no records yet."
+ },
+ {
+  "id": "WB06-033",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: AI lines stay marked.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No AI output is shown anywhere."
+ },
+ {
+  "id": "WB06-034",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: nothing overwritten.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No stored records."
+ },
+ {
+  "id": "WB06-035",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: one lock for all documents.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No document store."
+ },
+ {
+  "id": "WB06-036",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Rule Duly must inherit: local-first with optional end-to-end encrypted backup.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "Stated in the threat model; not built."
+ },
+ {
+  "id": "WB06-037",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Later: multiple cases per user.",
+  "kind": "product",
+  "status": "deferred",
+  "evidence": "docs/06-duly-integration.md, Integration boundary (Later)",
+  "note": "Placed later."
+ },
+ {
+  "id": "WB06-038",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Later: supervisor view for STEM OPT evaluations via export links.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/06-duly-integration.md, Integration boundary (Later)",
+  "note": "Placed later."
+ },
+ {
+  "id": "WB06-039",
+  "source": "docs/06-duly-integration.md, Integration boundary",
+  "text": "Later: DSO share via the same links.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/06-duly-integration.md, Integration boundary (Later)",
+  "note": "Placed later."
+ },
+ {
+  "id": "WB06-040",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 1. Vault",
+  "text": "Vault: documents by status period (Admission, CPT 1, CPT 2, OPT, STEM OPT, Cap-gap, H-1B).",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No vault."
+ },
+ {
+  "id": "WB06-041",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 1. Vault",
+  "text": "Vault: documents typed and versioned.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No vault."
+ },
+ {
+  "id": "WB06-042",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 1. Vault",
+  "text": "Vault: extraction fills dates.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No extraction; the threat model says document contents never reach a model, so the method is undecided."
+ },
+ {
+  "id": "WB06-043",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 1. Vault",
+  "text": "Vault: user confirms every field.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No vault; dates are typed by hand in web/src/components/CaseForm.tsx."
+ },
+ {
+  "id": "WB06-044",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline: derived from documents.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/f1.py",
+  "note": "Derived from typed dates, not documents."
+ },
+ {
+  "id": "WB06-045",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: program end.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/case_f1.schema.json, engine/f1.py, tests/unit/engine/test_f1.py",
+  "note": "Program end is an input that the dated items are computed from."
+ },
+ {
+  "id": "WB06-046",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: OPT window.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py (opt.apply_window_opens, opt.apply_window_closes), tests/unit/engine/test_f1.py",
+  "note": "Computed from sourced pack rows."
+ },
+ {
+  "id": "WB06-047",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: EAD dates.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/case_f1.schema.json (opt.ead_start, opt.ead_end, stem), engine/f1.py",
+  "note": "Entered by the person and used in the computation."
+ },
+ {
+  "id": "WB06-048",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: unemployment days used.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py (unemployment.days_used, unemployment.days_remaining), tests/unit/engine/test_f1.py",
+  "note": "Computed against the 90 and 150 day rows."
+ },
+ {
+  "id": "WB06-049",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: STEM eligibility.",
+  "kind": "engine",
+  "status": "superseded",
+  "evidence": "D5, BOUNDARY.md B2",
+  "note": "Duly never says whether a person is eligible; the engine shows the STEM filing window and the stem.requires rows with their quotes instead."
+ },
+ {
+  "id": "WB06-050",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: cap-gap.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py (capgap.ends), rulepacks/f1-us/v2026.09/parameters.yaml (capgap.end_month_day)",
+  "note": "Computed from sourced rows."
+ },
+ {
+  "id": "WB06-051",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: 30-day grace.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/f1.py (grace.ends), rulepacks/f1-us/v2026.09/parameters.yaml (grace.after_completion_days)",
+  "note": "Per D1 the operative value is 60 days and 30 is shown under the enjoined regime."
+ },
+ {
+  "id": "WB06-052",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Timeline item: travel days.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No travel input, rule or computed item."
+ },
+ {
+  "id": "WB06-053",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
+  "text": "Each timeline item shows its source document.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "web/src/components/Result.tsx",
+  "note": "Each item shows its rule, quote and citation; there is no source document because there is no vault."
+ },
+ {
+  "id": "WB06-054",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 3. Checklists",
+  "text": "Checklists: per transition, from official guidance.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.*), tests/unit/api/test_compute_product.py",
+  "note": "Only the requirements the regulation lists for the STEM extension exist as rows; no checklist feature and no other transition."
+ },
+ {
+  "id": "WB06-055",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 3. Checklists",
+  "text": "Each checklist item cited.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml",
+  "note": "The stem.requires rows carry citations and quotes; no checklist exists."
+ },
+ {
+  "id": "WB06-056",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 3. Checklists",
+  "text": "Confirm with your ISSS where schools differ.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml",
+  "note": "No school records; schools list is empty."
+ },
+ {
+  "id": "WB06-057",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 3. Checklists",
+  "text": "Human approval before anything is marked done or sent.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No checklist state and nothing is sent."
+ },
+ {
+  "id": "WB06-058",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Updates: daily pull from primary sources.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml, watch/README.md, pipeline/graph.py",
+  "note": "The list of hosts with intervals exists; the watcher is not installed and every pipeline stage except the approval gate is an empty step."
+ },
+ {
+  "id": "WB06-059",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Source: USCIS.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml (uscis, every 6h)",
+  "note": "Listed; nothing fetches it."
+ },
+ {
+  "id": "WB06-060",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Source: ICE SEVP.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml (ice_sevp, study_in_the_states)",
+  "note": "Listed; nothing fetches it."
+ },
+ {
+  "id": "WB06-061",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Source: Federal Register.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "watch/sources.yaml (federal_register, every 6h)",
+  "note": "Listed; nothing fetches it. Federal Register files in the F-1 pack were saved by hand."
+ },
+ {
+  "id": "WB06-062",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Source: NAFSA.",
+  "kind": "updates",
+  "status": "superseded",
+  "evidence": "D2, D34",
+  "note": "NAFSA is listed in watch/sources.yaml as a signal that says where to look, never as a source that can support a claim; pipeline/graph.py blocks claims that are not primary."
+ },
+ {
+  "id": "WB06-063",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Source: the school's ISSS page.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "watch/sources.yaml (schools: [])",
+  "note": "The schools list is empty; D24 plans 100 schools."
+ },
+ {
+  "id": "WB06-064",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Updates classified by relevance to the user's status.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "contracts/update.schema.json (categories), pipeline/graph.py (tag_categories)",
+  "note": "The contract has categories and the stage is named; the stage does nothing and no user status is stored."
+ },
+ {
+  "id": "WB06-065",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Updates say what changed and what it means for your timeline.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "PRINCIPLES.md section 3",
+  "note": "D2 limits updates to reporting what happened, never recommending; no recompute of cases on a law change exists."
+ },
+ {
+  "id": "WB06-066",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 4. Updates",
+  "text": "Updates are always linked.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "contracts/update.schema.json, pipeline/graph.py (publish_blockers), tests/unit/pipeline/test_graph.py",
+  "note": "Every claim must carry an https source url, a quote found in a snapshot and Ops approval before publishing; no update is ever produced or shown."
+ },
+ {
+  "id": "WB06-067",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 5. Assistant",
+  "text": "Assistant retrieves from the user's documents plus the verified corpus.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "assistant/providers.py",
+  "note": "No retrieval and no model (NotWired); the threat model also says document contents never reach a model, and D23 and D27 set where it runs."
+ },
+ {
+  "id": "WB06-068",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 5. Assistant",
+  "text": "Assistant always cites.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py (validate_answer), tests/unit/assistant/test_validator.py",
+  "note": "The validator enforces a source on every sentence; no assistant produces answers."
+ },
+ {
+  "id": "WB06-069",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 5. Assistant",
+  "text": "Assistant ends with a concrete next action or ask your DSO.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "BOUNDARY.md",
+  "note": "The step-back card is described in BOUNDARY.md only; no code builds it and the validator does not check the ending."
+ },
+ {
+  "id": "WB06-070",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 5. Assistant",
+  "text": "Assistant never says you are eligible or file this.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py, tests/unit/assistant/test_validator.py",
+  "note": "Eligible and second person modals are rejected, but an imperative such as File this form now passes validate_answer."
+ },
+ {
+  "id": "WB06-071",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 6. WorkBook",
+  "text": "WorkBook is a Duly module.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "contracts/workbook_bridge.schema.json",
+  "note": "No WorkBook code exists in the repository; specs/desktop-1/SPEC.md places WorkBook in Phase 8."
+ },
+ {
+  "id": "WB06-072",
+  "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 7. Handoff",
+  "text": "Handoff: one-tap read-only, revocable packet for a DSO or attorney.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No packet, link or revocation code."
+ },
+ {
+  "id": "WB06-073",
+  "source": "docs/06-duly-integration.md, Trust architecture",
+  "text": "Local-first encrypted documents.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "Planned; not built."
+ },
+ {
+  "id": "WB06-074",
+  "source": "docs/06-duly-integration.md, Trust architecture",
+  "text": "Optional end-to-end encrypted sync with user-held keys.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Not built."
+ },
+ {
+  "id": "WB06-075",
+  "source": "docs/06-duly-integration.md, Trust architecture",
+  "text": "A public verified corpus that never trains on user data.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/",
+  "note": "A sourced F-1 rule library exists; it is not published, the other three packs are empty, and no test covers training."
+ },
+ {
+  "id": "WB06-076",
+  "source": "docs/06-duly-integration.md, Trust architecture",
+  "text": "An attorney review layer with visible reviewed on dates per checklist.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "D14, D28",
+  "note": "No attorney is retained and the search is put after validation; contracts/rulepack.schema.json has a reviewed_by field that no row uses."
+ },
+ {
+  "id": "WB06-077",
+  "source": "docs/06-duly-integration.md, Trust architecture",
+  "text": "Every AI output carries a citation.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py, tests/unit/assistant/test_validator.py",
+  "note": "Enforced by the validator for assistant sentences; no AI output is shown to a person yet."
+ },
+ {
+  "id": "WB06-078",
+  "source": "docs/06-duly-integration.md, Trust architecture",
+  "text": "Every AI output carries a not-legal-advice line in the product.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "web/src/App.tsx, web/src/App.test.tsx",
+  "note": "The screen footer carries the line on every view; there is no AI output to attach it to."
+ },
+ {
+  "id": "WB06-079",
+  "source": "docs/06-duly-integration.md, Pricing sketch",
+  "text": "Free (vault, timeline, updates, basic checklists); Plus about $5/mo or $39/yr; attorney consults pay-per-session with revenue share; university license per student per year.",
+  "kind": "product",
+  "status": "superseded",
+  "evidence": "D8",
+  "note": "Pricing is parked; no billing code."
+ },
+ {
+  "id": "WB07-001",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Name: WorkBook (parent: Duly).",
+  "kind": "product",
+  "status": "met",
+  "evidence": "README.md, desktop/src/about.ts, desktop/src/about.test.ts",
+  "note": "Names used throughout; APP_NAME is tested."
+ },
+ {
+  "id": "WB07-002",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Capture method: pull from tools; no screenshots or screen recording.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector and no guard."
+ },
+ {
+  "id": "WB07-003",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Data location: local-first, encrypted, keys in OS keychain.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "security/threat-model.md",
+  "note": "Planned for Phase 8."
+ },
+ {
+  "id": "WB07-004",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Content vs metadata: metadata only by default.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No collector."
+ },
+ {
+  "id": "WB07-005",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "AI role: drafter of one-line summaries from cited events; never facts, never argument; marked forever.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB07-006",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Where AI runs: on device by default; user's own cloud key only for monthly narrative.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "D20 reopens this choice; nothing is built."
+ },
+ {
+  "id": "WB07-007",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Editing: pencil beside every field, inline, Save and X, bin away from the cursor.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook screens."
+ },
+ {
+  "id": "WB07-008",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Record integrity: amendments with before and after; nothing overwritten; daily hash root; optional OpenTimestamps anchor.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Not built."
+ },
+ {
+  "id": "WB07-009",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Navigation: side panel: Today, Log, Documents, Exports, Your case; History under Log.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No side panel."
+ },
+ {
+  "id": "WB07-010",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Log structure: one row per calendar day, every day present, month sections; details on click.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Log."
+ },
+ {
+  "id": "WB07-011",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Log filters: one icon, one popover: dates, tools (multi), show; live count; removable chips.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Log."
+ },
+ {
+  "id": "WB07-012",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Documents: locked by default with blurred names; unlock by passphrase or Touch ID; auto-lock.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Documents."
+ },
+ {
+  "id": "WB07-013",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Exports: two choices (Everything, Custom), then Preview, then Zip, Folder, or Link with access control.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Exports."
+ },
+ {
+  "id": "WB07-014",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Feedback: sidebar bottom: Request a tool, Problem, Idea; no records sent.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No feedback."
+ },
+ {
+  "id": "WB07-015",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Tone: calm record keeping; RFE is one line at the bottom of Exports.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The linter bans urgency and reassurance words; the Exports screen does not exist."
+ },
+ {
+  "id": "WB07-016",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "Gmail: out of v1.",
+  "kind": "privacy",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Decided",
+  "note": "Excluded by the document."
+ },
+ {
+  "id": "WB07-017",
+  "source": "docs/07-decisions-and-open-questions.md, Decided",
+  "text": "First sources: Google Calendar, Google Meet, GitHub, Slack.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No connector."
+ },
+ {
+  "id": "WB07-018",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "Do not reintroduce filters on Documents or Exports pages beyond what the flow needs.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No such pages exist and nothing guards the rule."
+ },
+ {
+  "id": "WB07-019",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "Do not reintroduce subheadings, eyebrow labels, and grey caption text under rows.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook screens and no lint rule for this."
+ },
+ {
+  "id": "WB07-020",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "Do not reintroduce a Review queue screen with badges.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook screens; nothing guards the rule."
+ },
+ {
+  "id": "WB07-021",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "Do not use Sealed and cryptographic language in the UI. Use saved with a timestamp and check nothing changed.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "tools/copy_lint/lint.py (FORBIDDEN_PHRASES), tests/unit/tools/test_copy_lint.py",
+  "note": "Both words are banned in product copy; note that the method note text in doc 08 contains cryptographic hash and would fail this rule."
+ },
+ {
+  "id": "WB07-022",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "Do not offer a share link before a pack is built.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No links."
+ },
+ {
+  "id": "WB07-023",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "No default-selected export month that the user did not choose.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No Exports."
+ },
+ {
+  "id": "WB07-024",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "Delete is never placed under the pencil's position.",
+  "kind": "design",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No WorkBook screens."
+ },
+ {
+  "id": "WB07-025",
+  "source": "docs/07-decisions-and-open-questions.md, Rejected (do not reintroduce)",
+  "text": "No 24/7 screen capture (screenpipe or Recall style).",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No capture code, and no test or guard that keeps it out."
+ },
+ {
+  "id": "WB07-026",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Platform for v0: native macOS or Tauri and Rust with Ollama. Founder leans toward macOS first; not final.",
+  "kind": "desktop",
+  "status": "superseded",
+  "evidence": "D7, D42",
+  "note": "Electron window, macOS first."
+ },
+ {
+  "id": "WB07-027",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Manual check-in and check-out: keep as an optional anchor, or derive the day purely from events.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No decision recorded in DECISIONS.md and nothing built."
+ },
+ {
+  "id": "WB07-028",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Amendments: require a reason always, or make it optional. Prototype makes it optional.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No decision recorded and nothing built."
+ },
+ {
+  "id": "WB07-029",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "RFE response builder: designed in principle, not yet on a screen.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Open 4",
+  "note": "Not designed."
+ },
+ {
+  "id": "WB07-030",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Menu bar popover and daily Slack post: not yet designed in the WorkBook style.",
+  "kind": "desktop",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Open 5",
+  "note": "Not designed."
+ },
+ {
+  "id": "WB07-031",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Duly's vault and WorkBook's Documents: one store is the plan; confirm the ownership split.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "D9 splits onboarding only; no decision confirms document ownership and no store exists."
+ },
+ {
+  "id": "WB07-032",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Multiple roles per user: schema allows a list; UI not designed.",
+  "kind": "workbook",
+  "status": "deferred",
+  "evidence": "docs/07-decisions-and-open-questions.md, Open 7",
+  "note": "Not designed; no schema exists either."
+ },
+ {
+  "id": "WB07-033",
+  "source": "docs/07-decisions-and-open-questions.md, Open",
+  "text": "Attorney review of the evidence schema and the method note wording before public release.",
+  "kind": "legal",
+  "status": "superseded",
+  "evidence": "D14, D28",
+  "note": "No attorney is retained; the search is put after validation."
+ },
+ {
+  "id": "WB08-001",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "Three narrow jobs. Each runs on device by default with a small model.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No model job exists; D20 leaves the location open."
+ },
+ {
+  "id": "WB08-002",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "All outputs are drafts the user confirms.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafts."
+ },
+ {
+  "id": "WB08-003",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "Input is event metadata only: source, kind, time, title, link. Never message bodies, never document text, never people's names.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No prompt code; assistant/prompts/ does not exist."
+ },
+ {
+  "id": "WB08-004",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "Output must be traceable to the input. If the events do not support a statement, do not make it.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter or output check for it."
+ },
+ {
+  "id": "WB08-005",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "No adjectives about quality or impact (critical, successfully, significant).",
+  "kind": "workbook",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py",
+  "note": "The three words are banned in product copy files; nothing checks model output because no drafter exists."
+ },
+ {
+  "id": "WB08-006",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "No legal words (eligible, compliant, qualifies).",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py, assistant/boundary.py",
+  "note": "Banned in product copy and in assistant answers; no check on WorkBook drafter output."
+ },
+ {
+  "id": "WB08-007",
+  "source": "docs/08-prompts.md, Hard rules",
+  "text": "Plain English, present or past tense, no em dashes, no emoji.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+  "note": "Dashes and emoji are linted in repository files; model output is not checked."
+ },
+ {
+  "id": "WB08-008",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "Entry drafter system prompt as written (one short line describing work, using only the events provided).",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "The prompt is not in the repository outside the handoff."
+ },
+ {
+  "id": "WB08-009",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "At most 12 words. No period at the end.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter or output check."
+ },
+ {
+  "id": "WB08-010",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "Name the concrete thing worked on, taken from the event titles.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB08-011",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "Do not add facts, outcomes, or reasons that are not in the events.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB08-012",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "Do not use words like successfully, critical, important, significant, ensured.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter; important and ensured are not in the copy linter list either."
+ },
+ {
+  "id": "WB08-013",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "If the events are only a meeting, use the meeting title as the line.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB08-014",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "If you cannot describe the work from the events, output exactly: UNCLEAR.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB08-015",
+  "source": "docs/08-prompts.md, 1. Entry drafter",
+  "text": "Output only the line.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No drafter."
+ },
+ {
+  "id": "WB08-016",
+  "source": "docs/08-prompts.md, 2. Duty mapper",
+  "text": "Duty mapper outputs the duty number only, or 0 if none fits clearly. Does not explain.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No duty mapper."
+ },
+ {
+  "id": "WB08-017",
+  "source": "docs/08-prompts.md, 2. Duty mapper",
+  "text": "Rule in code: confidence below a threshold (or 0) leaves the block untagged; the user picks.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No code."
+ },
+ {
+  "id": "WB08-018",
+  "source": "docs/08-prompts.md, 3. Method note",
+  "text": "Method note is generated by a template, not a model.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No template."
+ },
+ {
+  "id": "WB08-019",
+  "source": "docs/08-prompts.md, 3. Method note",
+  "text": "Method note states that entries were built from timestamps in the tools listed, and that no screen recordings or screenshots were used.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No template."
+ },
+ {
+  "id": "WB08-020",
+  "source": "docs/08-prompts.md, 3. Method note",
+  "text": "Method note gives counts: N entries, K first drafted by an on-device language model then reviewed, E edited after drafting with original kept, M typed directly.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No template."
+ },
+ {
+  "id": "WB08-021",
+  "source": "docs/08-prompts.md, 3. Method note",
+  "text": "Entries drafted by the model are marked in the timesheet.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No timesheet."
+ },
+ {
+  "id": "WB08-022",
+  "source": "docs/08-prompts.md, 3. Method note",
+  "text": "Method note states each day was confirmed on the date shown and recorded with a cryptographic hash; A of D days carry an independent timestamp proof; verify instructions are in verify.py.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No template; the word cryptographic is banned by tools/copy_lint/lint.py, so this text conflicts with the linter."
+ },
+ {
+  "id": "WB08-023",
+  "source": "docs/08-prompts.md, 3. Method note",
+  "text": "Method note states names of other people have been removed or kept in this export.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No template."
+ },
+ {
+  "id": "WB08-024",
+  "source": "docs/08-prompts.md, 4. Monthly narrative",
+  "text": "Monthly narrative only if the user turns it on.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature."
+ },
+ {
+  "id": "WB08-025",
+  "source": "docs/08-prompts.md, 4. Monthly narrative",
+  "text": "Input: the month's confirmed blocks with duty tags and the case profile.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature; D13 aims for no user data to Anthropic, which bears on a cloud model."
+ },
+ {
+  "id": "WB08-026",
+  "source": "docs/08-prompts.md, 4. Monthly narrative",
+  "text": "Output: five to eight sentences describing what was worked on, grouped by duty, citing counts and dates, no claims about quality or eligibility.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature."
+ },
+ {
+  "id": "WB08-027",
+  "source": "docs/08-prompts.md, 4. Monthly narrative",
+  "text": "Always marked Written by AI from your confirmed entries in the export.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature."
+ },
+ {
+  "id": "WB08-028",
+  "source": "docs/08-prompts.md, 4. Monthly narrative",
+  "text": "The user can edit or remove it.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "No narrative feature."
+ },
+ {
+  "id": "WB08-029",
+  "source": "docs/08-prompts.md, 4. Monthly narrative",
+  "text": "Narrative prompt: do not mention immigration, visas, or compliance. No bullet points. No em dashes.",
+  "kind": "workbook",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Prompt not in the repository outside the handoff."
+ },
+ {
+  "id": "WB08-030",
+  "source": "docs/08-prompts.md, 5. What the assistant in Duly must never do",
+  "text": "Never state that the user is eligible, compliant, or safe.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py (_CONCLUSION), tests/unit/assistant/test_validator.py, evals/boundary/pairs.jsonl",
+  "note": "The validator rejects these words and is tested; no assistant model is wired, so the rule guards nothing live."
+ },
+ {
+  "id": "WB08-031",
+  "source": "docs/08-prompts.md, 5. What the assistant in Duly must never do",
+  "text": "Never tell the user to file, sign, or submit anything.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py",
+  "note": "You should or you must is rejected, but validate_answer passes File this form now and Submit the I-765 this week."
+ },
+ {
+  "id": "WB08-032",
+  "source": "docs/08-prompts.md, 5. What the assistant in Duly must never do",
+  "text": "Always cite the source (USCIS, ICE SEVP, CFR, the school's ISSS page) and link it.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py (validate_answer), web/src/components/Result.tsx",
+  "note": "A source id is required on each sentence and the result screen shows citations; the validator does not require a link and no school source exists."
+ },
+ {
+  "id": "WB08-033",
+  "source": "docs/08-prompts.md, 5. What the assistant in Duly must never do",
+  "text": "End every answer with one concrete next step the user can take, or ask your DSO.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "BOUNDARY.md",
+  "note": "Described as the step-back card; no code builds it and nothing checks the ending of an answer."
+ },
+ {
+  "id": "WB08-034",
+  "source": "docs/08-prompts.md, 5. What the assistant in Duly must never do",
+  "text": "Never write cover letters, declarations, or arguments for a filing.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "assistant/boundary.py (_MODAL), tests/unit/assistant/test_boundary_evals.py, BOUNDARY.md B7",
+  "note": "The classifier steps back on such requests; there is no running assistant."
+ }
+]

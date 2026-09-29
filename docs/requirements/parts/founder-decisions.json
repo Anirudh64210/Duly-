@@ -1,0 +1,2630 @@
+[
+  {
+    "id": "DEC-D01-001",
+    "source": "DECISIONS.md D1",
+    "text": "Every rule is stated together with its legal status in plain words (proposed, final, effective, enjoined, vacated, appealed).",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml; web/src/lib/labels.ts legalStatusWords",
+    "note": "Only the F-1 pack carries regimes with a legal status; the H-1B, O-1 and EB-1A packs are empty."
+  },
+  {
+    "id": "DEC-D01-002",
+    "source": "DECISIONS.md D1",
+    "text": "Every rule carries dates and a primary citation.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "contracts/rulepack.schema.json; tools/sources/verify.py (make gate-7 prints every quote found)",
+    "note": "True for the 46 rows of the F-1 pack, which is the only pack with rules."
+  },
+  {
+    "id": "DEC-D01-003",
+    "source": "DECISIONS.md D1",
+    "text": "The engine carries regime flags for rules in flux.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/rulepack.py; tests/unit/engine/test_rulepack_values.py::test_value_under_a_named_regime",
+    "note": "Regimes ds_2012 and fixed_admission_2026 are in the F-1 pack and the lookup honours them."
+  },
+  {
+    "id": "DEC-D01-004",
+    "source": "DECISIONS.md D1",
+    "text": "The default value is whatever is legally operative today.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tests/unit/engine/test_rulepack_values.py::test_a_rule_under_the_blocked_regime_never_leaks_into_the_default_lookup",
+    "note": "The operative flag is read from the pack and the blocked regime never leaks into the default lookup."
+  },
+  {
+    "id": "DEC-D01-005",
+    "source": "DECISIONS.md D1",
+    "text": "The D/S fixed admission rule is covered in full under its own regime.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (grace.after_completion_days, opt.apply_after_days, opt.latest_start_after_days)",
+    "note": "Three values are held under the enjoined regime; the admit-until date, the extension of stay logic and the 2030 transition cap are missing."
+  },
+  {
+    "id": "DEC-D01-006",
+    "source": "DECISIONS.md D1",
+    "text": "The 100k H-1B fee is stated with its legal status, dates and citations.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "rulepacks/h1b-us/v2026.09/parameters.yaml has no regimes and no parameters."
+  },
+  {
+    "id": "DEC-D01-007",
+    "source": "DECISIONS.md D1",
+    "text": "PA-2026-05 (RFE and NOID policy) is stated with its legal status, dates and citations.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No pack, rule or engine code mentions RFE or NOID handling."
+  },
+  {
+    "id": "DEC-D02-001",
+    "source": "DECISIONS.md D2",
+    "text": "The updates pipeline runs continuously.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "watch/ holds a README and sources.yaml only; no runner or scheduler exists and nothing is fetched."
+  },
+  {
+    "id": "DEC-D02-002",
+    "source": "DECISIONS.md D2",
+    "text": "The updates pipeline is automated end to end.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py; tests/unit/pipeline/test_graph.py",
+    "note": "The eleven stages exist in order but every stage except the approval gate is a stub that only records its name."
+  },
+  {
+    "id": "DEC-D02-003",
+    "source": "DECISIONS.md D2",
+    "text": "The pipeline uses primary sources only.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py publish_blockers; watch/sources.yaml; tests/unit/pipeline/test_graph.py::test_each_missing_check_blocks_publishing",
+    "note": "The publish rule refuses a claim that is not from a primary source, but no fetcher enforces the host allowlist yet."
+  },
+  {
+    "id": "DEC-D02-004",
+    "source": "DECISIONS.md D2",
+    "text": "The pipeline covers student immigration law and work immigration law.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "watch/sources.yaml",
+    "note": "Twelve sources are listed, including USCIS, DOL and the Visa Bulletin, but none is read by any code."
+  },
+  {
+    "id": "DEC-D02-005",
+    "source": "DECISIONS.md D2",
+    "text": "Sources are checked frequently, on a set interval per source.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "watch/sources.yaml (every: 6h to 24h)",
+    "note": "Intervals are written down; nothing runs on them."
+  },
+  {
+    "id": "DEC-D02-006",
+    "source": "DECISIONS.md D2",
+    "text": "Every claim in an update is verified by deep analysis: quote found in a saved copy, an independent check, and a refutation attempt.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py; contracts/update.schema.json",
+    "note": "The publish rule demands these flags, but the stages that would set them are stubs."
+  },
+  {
+    "id": "DEC-D02-007",
+    "source": "DECISIONS.md D2",
+    "text": "Every update carries citations to its sources.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "contracts/update.schema.json (claims need quote, source_url, snapshot_sha256)",
+    "note": "The shape is defined; no update has ever been produced."
+  },
+  {
+    "id": "DEC-D02-008",
+    "source": "DECISIONS.md D2",
+    "text": "Accuracy over speed: an update that is not fully checked is held, late rather than wrong.",
+    "kind": "updates",
+    "status": "met",
+    "evidence": "tests/unit/pipeline/test_graph.py::test_graph_holds_an_unapproved_update_before_publish; test_an_empty_update_is_blocked_for_every_reason",
+    "note": "The hold rule is built and tested; it has no real updates to act on yet."
+  },
+  {
+    "id": "DEC-D02-009",
+    "source": "DECISIONS.md D2",
+    "text": "Updates are written in a neutral, plain, nonpartisan voice that reports what happened and never recommends.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py",
+    "note": "The copy linter covers emails/ and the screens, but no update text or writing stage exists to be checked."
+  },
+  {
+    "id": "DEC-D02-010",
+    "source": "DECISIONS.md D2",
+    "text": "Status changes of a law are tracked over time.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "contracts/update.schema.json (history)",
+    "note": "A history field is in the contract and a watch stage is named; no code records a change."
+  },
+  {
+    "id": "DEC-D02-011",
+    "source": "DECISIONS.md D2",
+    "text": "The handoff is a starting point, not the ceiling, for the updates design.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py",
+    "note": "The stage list goes beyond the handoff, but the pipeline itself is not built."
+  },
+  {
+    "id": "DEC-D03-001",
+    "source": "DECISIONS.md D3",
+    "text": "Per-school policy records exist for matters that vary by school, such as CPT.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "watch/sources.yaml has schools: [] and no school record exists in any pack."
+  },
+  {
+    "id": "DEC-D03-002",
+    "source": "DECISIONS.md D3",
+    "text": "Each school record is cited to that school's ISSS page, with a saved snapshot and a last-checked date.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "contracts/rulepack.schema.json (status school, source.snapshot, source.checked_on)",
+    "note": "The rule shape can hold a school rule; no school rule has been written."
+  },
+  {
+    "id": "DEC-D04-001",
+    "source": "DECISIONS.md D4",
+    "text": "The verdict has four states.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
+    "note": "All four states are decided in code and tested."
+  },
+  {
+    "id": "DEC-D04-002",
+    "source": "DECISIONS.md D4",
+    "text": "The four states are worded: No open items in what you've added / One thing needs you / Talk to your DSO / Can't tell yet.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/status.ts HEADLINES",
+    "note": "Three headlines match; the third reads 'A question for your DSO' and not 'Talk to your DSO'."
+  },
+  {
+    "id": "DEC-D04-003",
+    "source": "DECISIONS.md D4",
+    "text": "Can't tell yet never falls back to green.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tests/unit/engine/test_verdict.py::test_the_quiet_state_is_never_a_fallback; test_not_knowing_wins_over_everything",
+    "note": "Property tests hold the rule in the verdict function."
+  },
+  {
+    "id": "DEC-D05-001",
+    "source": "DECISIONS.md D5",
+    "text": "Duly never answers a personal legal question directly.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py::test_personal_questions_always_step_back",
+    "note": "The classifier floor is built and tested; no assistant is wired to it and nothing calls it from the api."
+  },
+  {
+    "id": "DEC-D05-002",
+    "source": "DECISIONS.md D5",
+    "text": "For a personal question Duly shows the rule and the citation.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx",
+    "note": "The F-1 screen shows rules with citations for judgement items; there is no assistant answer path."
+  },
+  {
+    "id": "DEC-D05-003",
+    "source": "DECISIONS.md D5",
+    "text": "For a personal question Duly shows a drafted question for the DSO.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No template or code drafts a question for the DSO; it is specified in specs/product-1/SPEC.md section 6 only."
+  },
+  {
+    "id": "DEC-D05-004",
+    "source": "DECISIONS.md D5",
+    "text": "Every legal conclusion in copy is reworded.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py; make gate-1 prints copy lint: clean",
+    "note": "The forbidden list covers conclusion words and runs over web, ops, emails and desktop."
+  },
+  {
+    "id": "DEC-D06-001",
+    "source": "DECISIONS.md D6",
+    "text": "AI disclosure toggle in exports.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D6",
+    "note": "The founder is still deciding; status is Open."
+  },
+  {
+    "id": "DEC-D07-001",
+    "source": "DECISIONS.md D7",
+    "text": "Final copy covers macOS and Windows.",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No Windows copy or Windows build setting exists anywhere in desktop/."
+  },
+  {
+    "id": "DEC-D07-002",
+    "source": "DECISIONS.md D7",
+    "text": "The prototype is built on macOS first.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/src/about.ts; desktop/src/about.test.ts; specs/desktop-1/SPEC.md",
+    "note": "Only the app's address helper exists; main, engine process, protocol, guard, preload and smoke run are not written, so make desktop cannot open a window."
+  },
+  {
+    "id": "DEC-D08-001",
+    "source": "DECISIONS.md D8",
+    "text": "Pricing.",
+    "kind": "product",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D8",
+    "note": "Parked by the founder."
+  },
+  {
+    "id": "DEC-D09-001",
+    "source": "DECISIONS.md D9",
+    "text": "Duly onboarding owns legal status tagging.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No onboarding exists; the screen is a single F-1 form."
+  },
+  {
+    "id": "DEC-D09-002",
+    "source": "DECISIONS.md D9",
+    "text": "WorkBook setup owns work details and context only.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "contracts/workbook_bridge.schema.json",
+    "note": "Only a placeholder contract exists for WorkBook."
+  },
+  {
+    "id": "DEC-D10-001",
+    "source": "DECISIONS.md D10",
+    "text": "Confetti is removed.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src (no match for confetti in web, ops or desktop)",
+    "note": "No product code contains confetti."
+  },
+  {
+    "id": "DEC-D10-002",
+    "source": "DECISIONS.md D10",
+    "text": "A quiet, premium completion moment replaces confetti.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No spec and no code for a completion moment."
+  },
+  {
+    "id": "DEC-D11-001",
+    "source": "DECISIONS.md D11",
+    "text": "The breathing glow is kept but smaller, slower, lower in amplitude, and not continuous.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css; web/src/design/tokens.css (halo 8s, opacity 0.05, 3 cycles)",
+    "note": "The halo is built this way, but the spec named in the decision is not written and no test guards the values."
+  },
+  {
+    "id": "DEC-D12-001",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 post-completion OPT is covered with its nuances.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py; rulepacks/f1-us/v2026.09/parameters.yaml; tests/unit/engine/test_f1.py",
+    "note": "Windows, filing dates and unemployment counts are computed; the portal employer clock and other nuances are missing. On work/product-1 324 engine and api tests fail, because the round 1 contract and tests landed before the engine work."
+  },
+  {
+    "id": "DEC-D12-002",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 STEM OPT is covered with its nuances.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py _add_stem_items; tests/unit/engine/test_f1_sourcing.py",
+    "note": "Validation reports, evaluations and the filing window are computed; the automatic extension while an application is pending is not."
+  },
+  {
+    "id": "DEC-D12-003",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 cap-gap is covered with its nuances.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py _add_cap_gap; tests/unit/engine/test_f1_sourcing.py::test_capgap_names_the_fiscal_year_rule",
+    "note": "The end date is computed; the separate ending events (rejected, denied, revoked, withdrawn, consular approval) are reduced to one status field."
+  },
+  {
+    "id": "DEC-D12-004",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 CPT is covered with its nuances.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py (cpt.full_time_days_used); rule cpt.full_time_bar_days",
+    "note": "Only the one year full-time bar is counted; CPT authorisations, part-time CPT and school policy are absent."
+  },
+  {
+    "id": "DEC-D12-005",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 pre-completion OPT is covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rule or engine code for pre-completion OPT."
+  },
+  {
+    "id": "DEC-D12-006",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 program extension is covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rule or engine code."
+  },
+  {
+    "id": "DEC-D12-007",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 transfer is covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rule or engine code."
+  },
+  {
+    "id": "DEC-D12-008",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 change of level is covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rule or engine code."
+  },
+  {
+    "id": "DEC-D12-009",
+    "source": "DECISIONS.md D12",
+    "text": "F-1 travel is covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rule or engine code."
+  },
+  {
+    "id": "DEC-D12-010",
+    "source": "DECISIONS.md D12",
+    "text": "The F-1 grace period is covered with its nuances.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py (grace.ends); rule grace.after_completion_days",
+    "note": "The period after completion is computed under both regimes; the shorter periods after a withdrawal or a violation are not held."
+  },
+  {
+    "id": "DEC-D12-011",
+    "source": "DECISIONS.md D12",
+    "text": "H-1B is covered with its nuances.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "rulepacks/h1b-us/v2026.09/parameters.yaml",
+    "note": "The pack is an empty shell with parameters: [] and there is no engine module."
+  },
+  {
+    "id": "DEC-D12-012",
+    "source": "DECISIONS.md D12",
+    "text": "O-1 is covered with its nuances.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "rulepacks/o1-us/v2026.09/parameters.yaml",
+    "note": "The pack is an empty shell and there is no engine module."
+  },
+  {
+    "id": "DEC-D12-013",
+    "source": "DECISIONS.md D12",
+    "text": "EB-1A is covered with its nuances.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "rulepacks/eb1a-us/v2026.09/parameters.yaml",
+    "note": "The pack is an empty shell and there is no engine module."
+  },
+  {
+    "id": "DEC-D12-014",
+    "source": "DECISIONS.md D12",
+    "text": "The immigrant path beyond EB-1A is covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "contracts/rulepack.schema.json allows only f1, h1b, o1 and eb1a as categories."
+  },
+  {
+    "id": "DEC-D12-015",
+    "source": "DECISIONS.md D12",
+    "text": "Dependents are covered.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No category, pack or code for dependents."
+  },
+  {
+    "id": "DEC-D13-001",
+    "source": "DECISIONS.md D13",
+    "text": "No user-specific data goes to Anthropic.",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "security/semgrep/duly.yml (duly-models-only-behind-the-boundary); assistant/providers.py",
+    "note": "No model is called at all today, so nothing is sent; the architecture that would guarantee it once a model is wired is not built."
+  },
+  {
+    "id": "DEC-D14-001",
+    "source": "DECISIONS.md D14",
+    "text": "Whether an attorney is needed.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "The founder moved this to after validation."
+  },
+  {
+    "id": "DEC-D15-001",
+    "source": "DECISIONS.md D15",
+    "text": "Domain.",
+    "kind": "ops",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D15",
+    "note": "Parked by the founder."
+  },
+  {
+    "id": "DEC-D16-001",
+    "source": "DECISIONS.md D16",
+    "text": "AWS region is US West (us-west-2).",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The region appears only in DECISIONS.md; infra/ holds a local Docker stack and no cloud configuration."
+  },
+  {
+    "id": "DEC-D17-001",
+    "source": "DECISIONS.md D17",
+    "text": "An Ops IP allowlist prototype the founder can see.",
+    "kind": "security",
+    "status": "met",
+    "evidence": "api/ops_guard.py; ops/src/App.tsx; tests/unit/api/test_api.py::test_ops_refuses_any_other_address; make ops-block-demo",
+    "note": "Built, tested, and shown by one command."
+  },
+  {
+    "id": "DEC-D18-001",
+    "source": "DECISIONS.md D18",
+    "text": "Billing is Stripe, set up later.",
+    "kind": "ops",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D18",
+    "note": "Confirmed but put off by the decision itself; nothing in the repository."
+  },
+  {
+    "id": "DEC-D19-001",
+    "source": "DECISIONS.md D19",
+    "text": "Check the trademark 'Duly', through to full clearance.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "DECISIONS.md D19",
+    "note": "The log says a first check was done; no record of it is kept in the repository and full clearance is pending."
+  },
+  {
+    "id": "DEC-D20-001",
+    "source": "DECISIONS.md D20",
+    "text": "WorkBook drafting model: cloud or on-device.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D20",
+    "note": "Open, undecided."
+  },
+  {
+    "id": "DEC-D21-001",
+    "source": "DECISIONS.md D21",
+    "text": "Dev tooling such as LangGraph, LangSmith, Hermes, Supermemory and n8n may be used if needed; selection to be made.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "pipeline/graph.py (langgraph)",
+    "note": "LangGraph is in use; no written selection of the other tools exists."
+  },
+  {
+    "id": "DEC-D22-001",
+    "source": "DECISIONS.md D22",
+    "text": "Ops approval is the final pass before an update is published.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py (founder_approval gate); tests/unit/pipeline/test_graph.py::test_stage_order_ends_with_approval_publish_watch",
+    "note": "The gate is in the graph; the Ops screen has no approval view and no update can be approved by a person."
+  },
+  {
+    "id": "DEC-D22-002",
+    "source": "DECISIONS.md D22",
+    "text": "An approved update goes out as an email alert from the no-reply address.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "api/settings.py (email_from_alerts)",
+    "note": "Only the sender address setting exists; emails/ is a README and nothing sends mail."
+  },
+  {
+    "id": "DEC-D22-003",
+    "source": "DECISIONS.md D22",
+    "text": "An approved update gets a deeper explanation in the app.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The screen has no updates view."
+  },
+  {
+    "id": "DEC-D23-001",
+    "source": "DECISIONS.md D23",
+    "text": "A live AI assistant exists.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "assistant/providers.py (NotWired)",
+    "note": "The only model class raises NotImplementedError; no endpoint or screen for the assistant."
+  },
+  {
+    "id": "DEC-D23-002",
+    "source": "DECISIONS.md D23",
+    "text": "The assistant runs on infrastructure Duly controls, so no user data goes to Anthropic.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No Bedrock or self-hosted provider is implemented."
+  },
+  {
+    "id": "DEC-D23-003",
+    "source": "DECISIONS.md D23",
+    "text": "The assistant handles as many nuanced cases as it can with rules and citations.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No retrieval over the rule library exists."
+  },
+  {
+    "id": "DEC-D23-004",
+    "source": "DECISIONS.md D23",
+    "text": "When asked for a conclusion about the person's own case, the assistant steps back and drafts the email to the DSO.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "assistant/boundary.py classify_conversation",
+    "note": "The step back decision is made in code; no card and no drafted email exist."
+  },
+  {
+    "id": "DEC-D23-005",
+    "source": "DECISIONS.md D23",
+    "text": "The line between answering and stepping back is explicit and enforced in code.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py; tests/unit/assistant/test_validator.py",
+    "note": "The deterministic floor and output validator are built and tested; they guard nothing yet because no assistant produces answers."
+  },
+  {
+    "id": "DEC-D24-001",
+    "source": "DECISIONS.md D24",
+    "text": "Start with 100 schools, each catered to separately.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "watch/sources.yaml (schools: [])",
+    "note": "No school is listed and no school page has been saved."
+  },
+  {
+    "id": "DEC-D25-001",
+    "source": "DECISIONS.md D25",
+    "text": "Hermes Agent may be used in any role.",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": "watch/README.md",
+    "note": "The README says Hermes is not installed."
+  },
+  {
+    "id": "DEC-D25-002",
+    "source": "DECISIONS.md D25",
+    "text": "A clean, productive, self-improving agentic dev system.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "tools/factory/; docs/factory/CHECKLIST.md section 3; .claude/skills/*/REPLAY.md",
+    "note": "The factory and the curator exist; 14 of the 50 checklist items carry stated limits."
+  },
+  {
+    "id": "DEC-D26-001",
+    "source": "DECISIONS.md D26",
+    "text": "A private Git repo is created on request.",
+    "kind": "ops",
+    "status": "superseded",
+    "evidence": "DECISIONS.md D31",
+    "note": "Done under D31."
+  },
+  {
+    "id": "DEC-D27-001",
+    "source": "DECISIONS.md D27",
+    "text": "The local prototype of the assistant uses the Claude API.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "assistant/providers.py",
+    "note": "ProviderKind.ANTHROPIC is an enum value with no client behind it."
+  },
+  {
+    "id": "DEC-D27-002",
+    "source": "DECISIONS.md D27",
+    "text": "v0 runs on AWS with Claude through Bedrock, with no data retention.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "assistant/providers.py",
+    "note": "ProviderKind.BEDROCK is an enum value with no client and no AWS configuration."
+  },
+  {
+    "id": "DEC-D27-003",
+    "source": "DECISIONS.md D27",
+    "text": "Own servers only after validation.",
+    "kind": "ops",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D27",
+    "note": "Put off until after market validation."
+  },
+  {
+    "id": "DEC-D28-001",
+    "source": "DECISIONS.md D28",
+    "text": "After validation, look for attorneys and for Anthropic's zero retention terms.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "Status Later."
+  },
+  {
+    "id": "DEC-D29-001",
+    "source": "DECISIONS.md D29",
+    "text": "BOUNDARY.md is approved as written and binding.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "BOUNDARY.md; tools/diff_policy/check.py",
+    "note": "The file is in the repository and lanes are blocked from editing it."
+  },
+  {
+    "id": "DEC-D29-002",
+    "source": "DECISIONS.md D29",
+    "text": "The founder is shown what value inside the line looks like.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx",
+    "note": "The F-1 screen shows Side A arithmetic with rules; the what comes next view and the assistant, which would show the value, are not built."
+  },
+  {
+    "id": "DEC-D30-001",
+    "source": "DECISIONS.md D30",
+    "text": "Container runtime is Docker engine through colima.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "infra/docker-compose.yml; README.md; make up",
+    "note": "Documented and used by the local stack."
+  },
+  {
+    "id": "DEC-D31-001",
+    "source": "DECISIONS.md D31",
+    "text": "The private repo git@github.com:Anirudh64210/Duly-.git is the remote.",
+    "kind": "ops",
+    "status": "met",
+    "evidence": "git remote -v (origin)",
+    "note": "The remote is set in both working copies."
+  },
+  {
+    "id": "DEC-D32-001",
+    "source": "DECISIONS.md D32",
+    "text": "A missing DSO recommendation date blocks the verdict only while it can still matter; it stops blocking once a filing date or an EAD is recorded.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/f1.py _add_file_by; tests/unit/engine/test_f1_context.py::test_a_recommendation_date_does_not_block_once_the_ead_start_alone_is_recorded",
+    "note": "Built and the direct tests pass; one sibling test fails on this branch for the contract reason. On work/product-1 324 engine and api tests fail, because the round 1 contract and tests landed before the engine work."
+  },
+  {
+    "id": "DEC-D33-001",
+    "source": "DECISIONS.md D33",
+    "text": "Today is the person's own calendar day in their own time zone.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/clocks.py day_in_zone; tests/unit/engine/test_f1_context.py::test_today_is_the_calendar_day_in_the_zone_of_the_case",
+    "note": "Built and the direct test passes; two sibling tests fail on this branch for the contract reason."
+  },
+  {
+    "id": "DEC-D34-001",
+    "source": "DECISIONS.md D34",
+    "text": "Duly's knowledge comes from PRINCIPLES.md: the exact text of the law, cited as written; the plan and handoff are starting context only.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "PRINCIPLES.md; tools/sources/verify.py; tools/gates/engine_literals.py",
+    "note": "The doctrine file exists and two gates enforce it for the F-1 pack."
+  },
+  {
+    "id": "DEC-D34-002",
+    "source": "DECISIONS.md D34",
+    "text": "When Duly does not know, it says so or points to the DSO.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py::test_empty_case_cannot_tell",
+    "note": "Held by the verdict function."
+  },
+  {
+    "id": "DEC-D35-001",
+    "source": "DECISIONS.md D35",
+    "text": "Agents find the law and source it; a number the law does not state is a number Duly does not have.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tools/gates/engine_literals.py; tests/unit/tools/test_engine_literals.py; contracts/product_settings.yaml",
+    "note": "Gate 7 refuses an unsourced number in the engine; Duly's own choices live in a separate settings file and are never shown as law."
+  },
+  {
+    "id": "DEC-D36-001",
+    "source": "DECISIONS.md D36",
+    "text": "No skill is removed yet; the corrections to the stale skill and the boundary skill are kept.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": ".claude/skills/ (six skills, each with SKILL.md and REPLAY.md)",
+    "note": "All six skills are present."
+  },
+  {
+    "id": "DEC-D36-002",
+    "source": "DECISIONS.md D36",
+    "text": "The curator designs harder replays before anything is removed.",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": ".claude/skills/README.md",
+    "note": "The README states the intent; every REPLAY.md still holds only the first easy replay."
+  },
+  {
+    "id": "DEC-D37-001",
+    "source": "DECISIONS.md D37",
+    "text": "The biggest failure, a wrong answer shown to a person, is written into PRINCIPLES.md.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "PRINCIPLES.md section 4",
+    "note": "Present."
+  },
+  {
+    "id": "DEC-D38-001",
+    "source": "DECISIONS.md D38",
+    "text": "The factory is production grade against the founder's 50 item checklist, every item.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "docs/factory/CHECKLIST.md",
+    "note": "The checklist reports 36 met and 14 met with a stated limit, so not every item is met in full."
+  },
+  {
+    "id": "DEC-D38-002",
+    "source": "DECISIONS.md D38",
+    "text": "Order: infrastructure, then the agent system, then Duly; no product agent runs until the factory is ready.",
+    "kind": "factory",
+    "status": "superseded",
+    "evidence": "DECISIONS.md D42 and D48",
+    "note": "Later decisions set the next order of work."
+  },
+  {
+    "id": "DEC-D39-001",
+    "source": "DECISIONS.md D39",
+    "text": "The founder's first use of the F-1 screen is recorded in specs/product/BACKLOG.md.",
+    "kind": "product",
+    "status": "met",
+    "evidence": "specs/product/BACKLOG.md",
+    "note": "Recorded."
+  },
+  {
+    "id": "DEC-D40-001",
+    "source": "DECISIONS.md D40",
+    "text": "Branch protection on GitHub.",
+    "kind": "ops",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D40",
+    "note": "Parked until a finished version is close."
+  },
+  {
+    "id": "DEC-D41-001",
+    "source": "DECISIONS.md D41",
+    "text": "A student with no OPT, STEM OPT or cap-gap entered is asked first; no quiet verdict until the person says there is nothing more to record.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 2; tests/unit/engine/test_f1_product.py",
+    "note": "The SPEC, contract and tests exist; engine/f1.py has no nothing_more_to_record question and the 184 tests in test_f1_product.py fail."
+  },
+  {
+    "id": "DEC-D42-001",
+    "source": "DECISIONS.md D42",
+    "text": "The product backlog is built through the factory.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "specs/product-1/plan.yaml; git log (merge(L-tests), merge(L-content))",
+    "note": "The tests and content lanes have merged; the engine, api and web lanes of round 1 have not."
+  },
+  {
+    "id": "DEC-D42-002",
+    "source": "DECISIONS.md D42",
+    "text": "A desktop window (Electron) the founder can test on this Mac.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/package.json; desktop/src/about.ts; Makefile desktop",
+    "note": "Electron is installed and one helper is written; there is no main process, so no window opens."
+  },
+  {
+    "id": "DEC-D42-003",
+    "source": "DECISIONS.md D42",
+    "text": "Quality, accuracy and safety come first, for the build and for Duly's liability.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "Makefile (gates 1 to 7); .github/workflows/ci.yml",
+    "note": "Seven gates exist and run in CI; gate 5 is red on this branch."
+  },
+  {
+    "id": "DEC-D43-001",
+    "source": "DECISIONS.md D43",
+    "text": "If the pinned model's limit is reached, the factory's agents move to claude-opus-5-5.",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": "factory/config.yaml",
+    "note": "The config pins claude-fable-5-1 and refuses any other model; no fallback is written in either working copy."
+  },
+  {
+    "id": "DEC-D44-001",
+    "source": "DECISIONS.md D44",
+    "text": "All 22 first lessons are kept: 12 filed by lane for agents, 10 as records of factory faults that were fixed.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "duly-founder/.claude/LESSONS/ (L-*.md, all-lanes.md, factory-fixed.md)",
+    "note": "on the founder's side branch, not yet merged."
+  },
+  {
+    "id": "DEC-D45-001",
+    "source": "DECISIONS.md D45",
+    "text": "Agents run on the subscription login only; paid credits are never used.",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "duly-founder/tools/factory/billing.py",
+    "note": "on the founder's side branch, not yet merged."
+  },
+  {
+    "id": "DEC-D46-001",
+    "source": "DECISIONS.md D46",
+    "text": "Every change to main is tagged with a dated tag on GitHub.",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "duly-founder/.github/workflows/tag-main.yml",
+    "note": "on the founder's side branch, not yet merged; no tag exists in the repository yet."
+  },
+  {
+    "id": "DEC-D47-001",
+    "source": "DECISIONS.md D47",
+    "text": "Any student can log in.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "security/threat-model.md (Known gaps)",
+    "note": "No accounts, authentication or sessions exist."
+  },
+  {
+    "id": "DEC-D47-002",
+    "source": "DECISIONS.md D47",
+    "text": "A student sees where they stand.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "api/main.py POST /v1/compute/f1; web/src/components/Result.tsx",
+    "note": "Works for one F-1 form, with nothing saved between visits."
+  },
+  {
+    "id": "DEC-D47-003",
+    "source": "DECISIONS.md D47",
+    "text": "A student sees what comes next.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 6; tests/unit/engine/test_f1_product.py",
+    "note": "Specified and tested; the engine returns no upcoming list and the tests fail."
+  },
+  {
+    "id": "DEC-D47-004",
+    "source": "DECISIONS.md D47",
+    "text": "A student sees the latest verified changes in the law.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No update has been produced and the screen has no place for one."
+  },
+  {
+    "id": "DEC-D47-005",
+    "source": "DECISIONS.md D47",
+    "text": "The platform covers every case and every category.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "rulepacks/",
+    "note": "One of four packs has rules, and it covers part of F-1 only."
+  },
+  {
+    "id": "DEC-D47-006",
+    "source": "DECISIONS.md D47",
+    "text": "Every SPEC says what share of the whole it covers.",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": "specs/",
+    "note": "No SPEC in either working copy states its share of the whole."
+  },
+  {
+    "id": "DEC-D48-001",
+    "source": "DECISIONS.md D48",
+    "text": "Step 1: product round 1 finishes.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "specs/product-1/plan.yaml; work/product-1",
+    "note": "Tests and content are merged; engine, api and web work remain and the suite is red."
+  },
+  {
+    "id": "DEC-D48-002",
+    "source": "DECISIONS.md D48",
+    "text": "Step 2: the path model, so that the engine holds no scenario of its own.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "engine/f1.py holds the F-1 scenario in code; packs declare no stages or steps."
+  },
+  {
+    "id": "DEC-D48-003",
+    "source": "DECISIONS.md D48",
+    "text": "Step 3: the desktop window, showing the path model.",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/src/about.ts",
+    "note": "Shell scaffolding only."
+  },
+  {
+    "id": "DEC-D48-004",
+    "source": "DECISIONS.md D48",
+    "text": "Step 4: the updates pipeline.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py",
+    "note": "Stage order and publish rule only."
+  },
+  {
+    "id": "DEC-D48-005",
+    "source": "DECISIONS.md D48",
+    "text": "Step 5: breadth, pack by pack, every rule sourced.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No pack beyond the first part of F-1 has a rule."
+  },
+  {
+    "id": "PRIN-001",
+    "source": "PRINCIPLES.md section 1",
+    "text": "Truth comes from the exact text of the law, cited and shown as written, never from memory, a summary, a plan or a model.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tools/sources/verify.py; rulepacks/f1-us/v2026.09/sources/",
+    "note": "Each quote is matched against a saved copy with a hash on every gate run."
+  },
+  {
+    "id": "PRIN-002",
+    "source": "PRINCIPLES.md section 1",
+    "text": "A value in the plan, the handoff or a SPEC table is a claim to check, never a fact to copy.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tools/gates/engine_literals.py; rulepacks/f1-us/v2026.09/parameters.yaml notes",
+    "note": "Pack notes record where the source differed from the SPEC, and the engine may hold no literal number."
+  },
+  {
+    "id": "PRIN-003",
+    "source": "PRINCIPLES.md section 1",
+    "text": "Every rule carries the exact words that state it.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/rulepack.py QUOTE_NEEDED; tests/unit/engine/test_rulepack_values.py::test_a_rule_without_a_quote_is_refused",
+    "note": "A rule without a quote does not load."
+  },
+  {
+    "id": "PRIN-004",
+    "source": "PRINCIPLES.md section 1",
+    "text": "Every rule carries a saved copy of its source.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "contracts/rulepack.schema.json (snapshot, snapshot_sha256); rulepacks/f1-us/v2026.09/SOURCES.md",
+    "note": "Saved copies and hashes are in the pack."
+  },
+  {
+    "id": "PRIN-005",
+    "source": "PRINCIPLES.md section 1",
+    "text": "Every rule carries the date it was checked.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "contracts/rulepack.schema.json (checked_on); tests/unit/engine/test_rulepack_values.py::test_rules_checked_on_is_the_oldest_among_the_parameters",
+    "note": "Required by the schema."
+  },
+  {
+    "id": "PRIN-006",
+    "source": "PRINCIPLES.md section 1",
+    "text": "A rule is marked verbatim or a reading.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "contracts/rulepack.schema.json (derivation); rulepacks/f1-us/v2026.09/parameters.yaml",
+    "note": "Every F-1 rule has a derivation."
+  },
+  {
+    "id": "PRIN-007",
+    "source": "PRINCIPLES.md section 1",
+    "text": "A reading is marked as a reading everywhere it is shown.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx (READING_TAG); specs/product-1/SPEC.md section 5",
+    "note": "The mark shows only after the row is opened; the row, the verdict line and the list of what comes next do not carry it."
+  },
+  {
+    "id": "PRIN-008",
+    "source": "PRINCIPLES.md section 1",
+    "text": "A reading is shown with the words it was read from.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/components/Result.tsx; web/src/lib/labels.ts READING_LABEL",
+    "note": "The quoted words sit beside the reading once the rule is open."
+  },
+  {
+    "id": "PRIN-009",
+    "source": "PRINCIPLES.md section 1",
+    "text": "If the law does not state a number, Duly does not have that number.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tools/gates/engine_literals.py; tests/unit/tools/test_engine_literals.py",
+    "note": "Same gate as D35."
+  },
+  {
+    "id": "PRIN-010",
+    "source": "PRINCIPLES.md section 2",
+    "text": "Duly never assumes a person did or did not do something; a gap becomes a plain question and Duly waits.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py (three questions); tests/unit/engine/test_f1_context.py",
+    "note": "Three questions exist for F-1; the no-training and CPT questions are not built and several proving tests fail on this branch."
+  },
+  {
+    "id": "PRIN-011",
+    "source": "PRINCIPLES.md section 2",
+    "text": "Two facts that do not fit become a question to the person.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py _conflicts; specs/product-1/SPEC.md section 1",
+    "note": "Four conflicts give cannot_tell with no question; the thirteen conflicts of round 1 and their questions are not built."
+  },
+  {
+    "id": "PRIN-012",
+    "source": "PRINCIPLES.md section 2",
+    "text": "STEM OPT dates with no OPT dates: Duly asks and guesses neither way.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py HELD_OPT; tests/unit/engine/test_f1_context.py::test_stem_without_opt_asks_whether_the_person_held_opt",
+    "note": "The code is there; its test fails on this branch because the output no longer meets the contract."
+  },
+  {
+    "id": "PRIN-013",
+    "source": "PRINCIPLES.md section 2",
+    "text": "Until the person answers, the verdict is Can't tell yet.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/verdict.py open_questions; tests/unit/engine/test_f1_context.py::test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict",
+    "note": "The verdict function holds the rule; the property test over whole cases fails on this branch."
+  },
+  {
+    "id": "PRIN-014",
+    "source": "PRINCIPLES.md section 2",
+    "text": "An answer is recorded as the person's own statement, with the date, and shown as such.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py Confirmation; specs/product-1/SPEC.md section 3",
+    "note": "An answer carries a date, but the day is never checked and nothing is stored beyond the request."
+  },
+  {
+    "id": "PRIN-015",
+    "source": "PRINCIPLES.md section 3",
+    "text": "Duly holds the person's whole situation.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "api/main.py",
+    "note": "The api is stateless and drops the case after computing; there is no record store."
+  },
+  {
+    "id": "PRIN-016",
+    "source": "PRINCIPLES.md section 3",
+    "text": "Duly holds the law's whole state.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "rulepacks/",
+    "note": "Part of F-1 only."
+  },
+  {
+    "id": "PRIN-017",
+    "source": "PRINCIPLES.md section 3",
+    "text": "A date matters only while it can still matter; a passed deadline with the filing recorded blocks nothing.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py _add_file_by; specs/product-1/SPEC.md section 4",
+    "note": "Done for the recommendation date; filing windows still show as open after the filing is recorded."
+  },
+  {
+    "id": "PRIN-018",
+    "source": "PRINCIPLES.md section 3",
+    "text": "The day is the person's own calendar day in their own time zone.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/clocks.py; tests/unit/engine/test_f1_context.py::test_the_engine_never_reads_today_from_the_clock",
+    "note": "Same as D33."
+  },
+  {
+    "id": "PRIN-019",
+    "source": "PRINCIPLES.md section 3",
+    "text": "When the pipeline confirms a change in the law, the rule pack changes.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No link from the pipeline to a pack."
+  },
+  {
+    "id": "PRIN-020",
+    "source": "PRINCIPLES.md section 3",
+    "text": "When the law changes, every affected case is computed again.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No cases are stored, so none can be recomputed."
+  },
+  {
+    "id": "PRIN-021",
+    "source": "PRINCIPLES.md section 3",
+    "text": "When the law changes, the person is told what changed and where it is written.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No alert or update view."
+  },
+  {
+    "id": "PRIN-022",
+    "source": "PRINCIPLES.md section 4",
+    "text": "No wrong date, count, status or quote is shown to a person.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "Makefile gate-5, gate-7; tools/gates/mutation.py",
+    "note": "Gates guard the engine and the quotes, but gate 5 is red on this branch and review findings 1 to 6 are open."
+  },
+  {
+    "id": "PRIN-023",
+    "source": "PRINCIPLES.md section 4",
+    "text": "No cheap win: a check is never passed without doing what the check is for.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "tools/diff_policy/check.py; tools/gates/prove.py; .claude/hooks/guard_paths.py",
+    "note": "Lanes cannot edit tests or gates, and make prove-gates plants violations to show each gate catches its own."
+  },
+  {
+    "id": "PRIN-024",
+    "source": "PRINCIPLES.md section 4",
+    "text": "No fake win: nothing is reported as done or true without verification.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "tools/factory/agent_run.py; docs/factory/CHECKLIST.md items 1.4 and 7.2",
+    "note": "The orchestrator runs the done command itself and checks each report against git."
+  },
+  {
+    "id": "PRIN-025",
+    "source": "PRINCIPLES.md section 4",
+    "text": "When Duly does not know, it says Can't tell yet or points to the DSO; saying nothing is better than saying something wrong.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
+    "note": "Held in the verdict function."
+  },
+  {
+    "id": "PRIN-026",
+    "source": "PRINCIPLES.md section 4",
+    "text": "For agents, a switched off test, an edited gate, a copied number, an unread quote or an unrun status is task failure.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "CLAUDE.md; tools/factory/validate.py; tools/factory/sandbox.py",
+    "note": "Enforced by the sandbox, path guards and gate 3."
+  },
+  {
+    "id": "BOUND-001",
+    "source": "BOUNDARY.md rule in one sentence",
+    "text": "Duly states what the rule says, where it is written, its legal status today and the arithmetic for the dates entered, and never what it means for the person.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "engine/f1.py; assistant/boundary.py; tools/copy_lint/lint.py",
+    "note": "Held for the one F-1 screen; the other surfaces the rule binds do not exist yet."
+  },
+  {
+    "id": "BOUND-002",
+    "source": "BOUNDARY.md A1",
+    "text": "State a rule with its citation and legal status.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx",
+    "note": "F-1 rules only, on the compute screen only."
+  },
+  {
+    "id": "BOUND-003",
+    "source": "BOUNDARY.md A2",
+    "text": "Explain a term in plain words, such as cap-gap, RFE or enjoined.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No glossary or assistant answer exists."
+  },
+  {
+    "id": "BOUND-004",
+    "source": "BOUNDARY.md A3",
+    "text": "Do arithmetic on a rule with fixed numbers from dates the user entered, show the working, and end with Confirm with your DSO.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "engine/f1.py; web/src/components/Result.tsx; web/src/App.tsx footer",
+    "note": "F-1 only; the confirm line is a page footer, not the end of each answer."
+  },
+  {
+    "id": "BOUND-005",
+    "source": "BOUNDARY.md A4",
+    "text": "Say which updates touch the user's category and name the field that matched.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "pipeline/graph.py (tag_categories stub)",
+    "note": "A stub stage only."
+  },
+  {
+    "id": "BOUND-006",
+    "source": "BOUNDARY.md A5",
+    "text": "List what an official source says a process requires, each step linked.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.*)",
+    "note": "Sixteen STEM requirement rules are sourced in the pack; the engine does not return the list and the screen does not show it."
+  },
+  {
+    "id": "BOUND-007",
+    "source": "BOUNDARY.md A6",
+    "text": "Report what the user's school publishes, with the date checked.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No school records."
+  },
+  {
+    "id": "BOUND-008",
+    "source": "BOUNDARY.md A7",
+    "text": "Handle nuance by showing every rule that touches the situation side by side, with status.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "engine/f1.py _alternates; web/src/components/Result.tsx",
+    "note": "Two regimes of one rule are shown side by side; nothing gathers different rules for one situation."
+  },
+  {
+    "id": "BOUND-009",
+    "source": "BOUNDARY.md A8",
+    "text": "Keep and organise the user's own records: documents, WorkBook days, exports.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No vault, WorkBook or export code."
+  },
+  {
+    "id": "BOUND-010",
+    "source": "BOUNDARY.md A9",
+    "text": "Draft a question for the user to send to their DSO or attorney.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No template or code."
+  },
+  {
+    "id": "BOUND-011",
+    "source": "BOUNDARY.md B1",
+    "text": "Never say whether the user is in status, out of status, or safe.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-opt-02; assistant/boundary.py _CONCLUSION",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "BOUND-012",
+    "source": "BOUNDARY.md B2",
+    "text": "Never say whether the user is or is not eligible for anything.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-stem-02, o1-02",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "BOUND-013",
+    "source": "BOUNDARY.md B3",
+    "text": "Never judge whether the user's facts meet a legal standard.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-opt-04, f1-opt-10",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "BOUND-014",
+    "source": "BOUNDARY.md B4",
+    "text": "Never recommend an action or compare strategies.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-opt-06, o1-04, eb1a-04",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "BOUND-015",
+    "source": "BOUNDARY.md B5",
+    "text": "Never pick a form, a category code, or an answer on a form.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-stem-06",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "BOUND-016",
+    "source": "BOUNDARY.md B6",
+    "text": "Never predict an outcome or odds.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl h1b-02",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "BOUND-017",
+    "source": "BOUNDARY.md B7",
+    "text": "Never write anything addressed to a government agency.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "evals/boundary/pairs.jsonl rfe-02, rfe-03; tests/unit/assistant/test_boundary_evals.py",
+    "note": "No code produces such text and the classifier steps back on both requests."
+  },
+  {
+    "id": "BOUND-018",
+    "source": "BOUNDARY.md B8",
+    "text": "Never fill in or submit a government form.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "assistant/boundary.py _MODAL (fill ... i-765)",
+    "note": "No code fills a form, but no eval row asks for one to be filled."
+  },
+  {
+    "id": "BOUND-019",
+    "source": "BOUNDARY.md B9",
+    "text": "Never resolve a conflict between sources on the user's behalf; show both and stop.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No school sources exist, so nothing shows two sources in conflict."
+  },
+  {
+    "id": "BOUND-020",
+    "source": "BOUNDARY.md B10",
+    "text": "Never reassure.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; evals/boundary/pairs.jsonl calm-01; tests/unit/assistant/test_validator.py::test_conclusions_about_the_user_are_rejected",
+    "note": "The linter and the validator both refuse reassurance phrases."
+  },
+  {
+    "id": "BOUND-021",
+    "source": "BOUNDARY.md three tests",
+    "text": "Judgement test: a question needing judgement against a standard with no fixed number is a stop.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "assistant/boundary.py _JUDGEMENT; tests/unit/assistant/test_boundary_evals.py",
+    "note": "Pattern based floor, tested."
+  },
+  {
+    "id": "BOUND-022",
+    "source": "BOUNDARY.md three tests",
+    "text": "Modal test: an answer with should, can, may, must, will, safe, fine, eligible or qualify about the user is a stop.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "assistant/boundary.py _MODAL; tests/unit/assistant/test_boundary_evals.py",
+    "note": "Pattern based floor, tested."
+  },
+  {
+    "id": "BOUND-023",
+    "source": "BOUNDARY.md three tests",
+    "text": "Arithmetic test: a date or count from a fixed rule and entered inputs is answered under A3 with the working shown.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "assistant/boundary.py _INFORMATION; evals date-01, date-02",
+    "note": "The classifier lets such questions through; nothing then answers them from engine output."
+  },
+  {
+    "id": "BOUND-024",
+    "source": "BOUNDARY.md three tests",
+    "text": "Anything that passes none of the tests cleanly is a stop; doubt resolves to the stop.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "assistant/boundary.py classify_turn (doubt); evals vague-01; test_empty_conversation_steps_back",
+    "note": "Tested."
+  },
+  {
+    "id": "BOUND-025",
+    "source": "BOUNDARY.md step back",
+    "text": "When the assistant stops, the user never sees a refusal; they see a calm card.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No card component."
+  },
+  {
+    "id": "BOUND-026",
+    "source": "BOUNDARY.md step back",
+    "text": "The card shows the rules that touch the question, with citations and status.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No card."
+  },
+  {
+    "id": "BOUND-027",
+    "source": "BOUNDARY.md step back",
+    "text": "The card says: This part depends on your own situation, so it is a question for your DSO.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/labels.ts",
+    "note": "The sentence is used in two F-1 judgement lines; there is no card."
+  },
+  {
+    "id": "BOUND-028",
+    "source": "BOUNDARY.md step back",
+    "text": "The card holds a drafted email to the DSO built from a template and the user's record, which the user edits and sends from their own mail.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No template."
+  },
+  {
+    "id": "BOUND-029",
+    "source": "BOUNDARY.md step back",
+    "text": "Duly never sends the drafted email.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing drafts or sends mail, so the rule has nothing to guard yet."
+  },
+  {
+    "id": "BOUND-030",
+    "source": "BOUNDARY.md step back",
+    "text": "The card says where to find an attorney through a neutral pointer, with no paid referrals.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No pointer in any screen."
+  },
+  {
+    "id": "BOUND-031",
+    "source": "BOUNDARY.md step back",
+    "text": "The drafted email asks a question; it never argues a position or states a conclusion.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No template and no test."
+  },
+  {
+    "id": "BOUND-032",
+    "source": "BOUNDARY.md enforcement",
+    "text": "The question classifier runs on the whole conversation and labels each turn A or B, with uncertain as B.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "assistant/boundary.py classify_conversation; evals/boundary/drift.jsonl",
+    "note": "It reads the last turn and at most the one before it, not the whole conversation; five drift cases pass."
+  },
+  {
+    "id": "BOUND-033",
+    "source": "BOUNDARY.md enforcement",
+    "text": "Retrieval only: the assistant speaks only from the verified rule library, school records and engine output.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No retrieval code."
+  },
+  {
+    "id": "BOUND-034",
+    "source": "BOUNDARY.md enforcement",
+    "text": "The output validator rejects a Side B pattern, a number that is not an engine value, or a sentence with no source.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "assistant/boundary.py validate_answer; tests/unit/assistant/test_validator.py",
+    "note": "Built and tested."
+  },
+  {
+    "id": "BOUND-035",
+    "source": "BOUNDARY.md enforcement",
+    "text": "A rejected answer becomes a step-back card.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing calls the validator."
+  },
+  {
+    "id": "BOUND-036",
+    "source": "BOUNDARY.md enforcement",
+    "text": "There is no code path that produces text addressed to USCIS, SEVP or a consulate.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "assistant/, api/, web/src (no such path)",
+    "note": "No drafting code of any kind exists."
+  },
+  {
+    "id": "BOUND-037",
+    "source": "BOUNDARY.md enforcement",
+    "text": "The Side B word list runs over UI strings, emails and marketing.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py PRODUCT_PREFIXES",
+    "note": "Runs over web, ops, emails, desktop and assistant prompts; there is no marketing folder in its scope."
+  },
+  {
+    "id": "BOUND-038",
+    "source": "BOUNDARY.md enforcement",
+    "text": "evals/ holds paired questions on each side of the line for every visa category, plus drift conversations.",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl; tests/unit/assistant/test_boundary_evals.py::test_every_category_is_on_both_sides",
+    "note": "46 pairs and 5 drift cases cover F-1, H-1B, O-1 and EB-1A; dependents and the wider immigrant path have none."
+  },
+  {
+    "id": "BOUND-039",
+    "source": "BOUNDARY.md enforcement",
+    "text": "Any Side B answer that gets through fails the build.",
+    "kind": "testing",
+    "status": "met",
+    "evidence": "tests/unit/assistant/test_boundary_evals.py::test_personal_questions_always_step_back; make gate-5",
+    "note": "Part of gate 5."
+  },
+  {
+    "id": "BOUND-040",
+    "source": "BOUNDARY.md enforcement",
+    "text": "Part of the boundary test set is hidden from the agents that build the assistant.",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "tests/holdout/",
+    "note": "The hidden folder holds engine tests only; no boundary cases are hidden."
+  },
+  {
+    "id": "BOUND-041",
+    "source": "BOUNDARY.md enforcement",
+    "text": "Every answer and every step back is logged with its sources and the rule that decided it.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No audit log for the assistant."
+  },
+  {
+    "id": "BOUND-042",
+    "source": "BOUNDARY.md where the assistant runs",
+    "text": "In the released product the assistant runs inside Duly's own AWS account through Bedrock with no data retention.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "assistant/providers.py",
+    "note": "Enum value only."
+  },
+  {
+    "id": "BOUND-043",
+    "source": "BOUNDARY.md where the assistant runs",
+    "text": "The local prototype may call the Claude API with the founder's own test data only.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "assistant/providers.py",
+    "note": "No client."
+  },
+  {
+    "id": "BOUND-044",
+    "source": "BOUNDARY.md where the assistant runs",
+    "text": "In the updates pipeline, models read public law text only.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "pipeline/models does not exist."
+  },
+  {
+    "id": "BOUND-045",
+    "source": "BOUNDARY.md words Duly never uses",
+    "text": "Duly never calls itself lawyer, attorney, legal advice, consultant, paralegal or notario, and never says guaranteed, prevents, protects your status or never miss a deadline.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES",
+    "note": "The list holds paralegal, notario, guarantee, prevents, protects your status, never miss and immigration consultant; plain lawyer, attorney, legal advice and consultant are not on it."
+  },
+  {
+    "id": "BOUND-046",
+    "source": "BOUNDARY.md words Duly never uses",
+    "text": "The word rule holds in any language and any channel, including social posts and investor material.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The linter is English only and reads product folders only."
+  },
+  {
+    "id": "BOUND-047",
+    "source": "BOUNDARY.md changing this file",
+    "text": "BOUNDARY.md changes only by founder decision recorded in DECISIONS.md; agents may propose, not change.",
+    "kind": "factory",
+    "status": "met",
+    "evidence": "tools/diff_policy/check.py; .claude/hooks/guard_paths.py; tools/factory/sandbox.py",
+    "note": "Lanes are blocked from the file by gate 3 and by the sandbox."
+  },
+  {
+    "id": "BACK-001",
+    "source": "specs/product/BACKLOG.md B1",
+    "text": "Item names say what the number is in a person's words, such as Unemployment days remaining; the working stays behind the row.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 7; web/src/lib/labels.ts",
+    "note": "The screen still reads 'Limit minus days with no employment period'."
+  },
+  {
+    "id": "BACK-002",
+    "source": "specs/product/BACKLOG.md B2",
+    "text": "A row shows one value, the one in force; the other regime sits behind one plain line about the court block.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 7; web/src/components/Result.tsx",
+    "note": "The screen still shows both regime values side by side on the row."
+  },
+  {
+    "id": "BACK-003",
+    "source": "specs/product/BACKLOG.md B3",
+    "text": "A what comes next view computed from the dates entered: the dates ahead, each with its rule and quote.",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 6; rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.*)",
+    "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail."
+  },
+  {
+    "id": "BACK-004",
+    "source": "specs/product/BACKLOG.md B3",
+    "text": "What comes next states the date a window opens and what the official source lists, and never whether the person can or should apply.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 6",
+    "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail."
+  },
+  {
+    "id": "BACK-005",
+    "source": "specs/product/BACKLOG.md B4",
+    "text": "The screen carries its own purpose: a person who enters dates leaves with the dates ahead of them.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 6",
+    "note": "Depends on the what comes next view, which is not built."
+  },
+  {
+    "id": "BACK-006",
+    "source": "specs/product/BACKLOG.md second review 1",
+    "text": "Dates that contradict each other never get the quiet verdict and raise a question. Blocking.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 1; tests/unit/engine/test_f1_product.py",
+    "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail."
+  },
+  {
+    "id": "BACK-007",
+    "source": "specs/product/BACKLOG.md second review 2",
+    "text": "A reading is marked on the row, not only after the row is opened.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 5; web/src/components/Result.tsx",
+    "note": "The mark still appears only inside the opened rule."
+  },
+  {
+    "id": "BACK-008",
+    "source": "specs/product/BACKLOG.md second review 3",
+    "text": "The screen never calls 365 the number in the rule.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 5",
+    "note": "Specified; the screen wording is not yet changed and no test in web/ guards it."
+  },
+  {
+    "id": "BACK-009",
+    "source": "specs/product/BACKLOG.md second review 4",
+    "text": "CPT days do not default to 0 when nothing was entered; Duly asks.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 2; engine/f1.py",
+    "note": "The engine has no full_time_cpt_used question. Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail."
+  },
+  {
+    "id": "BACK-010",
+    "source": "specs/product/BACKLOG.md second review 5",
+    "text": "The day of an answer is checked.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 3; tests/unit/engine/test_f1_context.py::test_the_day_of_the_answer_changes_nothing",
+    "note": "The engine still ignores the day of an answer."
+  },
+  {
+    "id": "BACK-011",
+    "source": "specs/product/BACKLOG.md second review 6",
+    "text": "A filing window does not show as open after the filing is recorded.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "specs/product-1/SPEC.md section 4",
+    "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail."
+  },
+  {
+    "id": "BACK-012",
+    "source": "specs/product/BACKLOG.md open question",
+    "text": "A student still in their program with nothing entered: quiet verdict, or does Duly ask first?",
+    "kind": "engine",
+    "status": "superseded",
+    "evidence": "DECISIONS.md D41",
+    "note": "Answered by D41: Duly asks first."
+  },
+  {
+    "id": "BACK-013",
+    "source": "specs/product/BACKLOG.md B5",
+    "text": "Every rule of behaviour holds for every case: confirm and never assume, questions for facts that do not fit, readings marked, four verdicts, what comes next.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/verdict.py; engine/f1.py",
+    "note": "The verdict is general; everything else is written for part of F-1 and three packs are empty."
+  },
+  {
+    "id": "BACK-014",
+    "source": "specs/product/BACKLOG.md B6",
+    "text": "What comes next is produced for any stage from the rule packs: each pack declares its stages, their dated windows and the steps that can follow.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "contracts/rulepack.schema.json has no stages or steps."
+  },
+  {
+    "id": "BACK-015",
+    "source": "specs/product/BACKLOG.md B7",
+    "text": "General checks for facts that do not fit run over every dated fact in every pack: done event after today, end before start, span longer than its rule, gap or overlap.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "engine/f1.py _conflicts",
+    "note": "Four checks are written by hand for F-1."
+  },
+  {
+    "id": "BACK-016",
+    "source": "specs/product/BACKLOG.md proposed next",
+    "text": "The path model: packs declare stages and steps as data with sourced rules; the engine reads them and holds no scenario of its own.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not started; DECISIONS.md D48 places it after product round 1."
+  },
+  {
+    "id": "BACK-017",
+    "source": "specs/product/BACKLOG.md proposed next",
+    "text": "Scenarios are filled pack by pack, each rule from a primary source, in order: rest of F-1, H-1B, O-1, EB-1A and the immigrant path, dependents.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No breadth work has begun."
+  },
+  {
+    "id": "BACK-018",
+    "source": "specs/product/BACKLOG.md proposed next",
+    "text": "The F-1 rule in litigation is filled in as its own scenario.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (fixed_admission_2026)",
+    "note": "Three values are held under the blocked regime; the rest of the rule is not."
+  },
+  {
+    "id": "IMPL-001",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "regime.ds_2012 is active and regime.fixed_admission_2026 is enjoined; the default is D/S.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml regimes; tests/unit/engine/test_rulepack_values.py::test_value_without_a_regime_uses_the_operative_one",
+    "note": "Both regimes are in the pack with the court order saved."
+  },
+  {
+    "id": "IMPL-002",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Under D/S the grace end is the later of program end and OPT EAD end plus 60 days.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/f1.py _final_end and grace.ends; tests/unit/engine/test_f1.py",
+    "note": "Computed from the pack value. On work/product-1 324 engine and api tests fail, because the round 1 contract and tests landed before the engine work."
+  },
+  {
+    "id": "IMPL-003",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Under D/S the grace period is 15 days after a withdrawal and 0 after a violation.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Neither value is in the pack."
+  },
+  {
+    "id": "IMPL-004",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "The flagged regime holds the 30-day grace.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml grace.after_completion_days (fixed_admission_2026)",
+    "note": "Sourced to the 2026-09-15 text."
+  },
+  {
+    "id": "IMPL-005",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "The flagged regime holds the admit-until date, the I-539 extension logic, the stop on employment during an extension filed in the grace period, and the 14 Nov 2030 transition cap.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None of these is in the pack or the engine."
+  },
+  {
+    "id": "IMPL-006",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "eCFR fetches are pinned to point-in-time 2026-09-14 and the current text is blocked for 214.2(f)(5).",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "rulepacks/f1-us/v2026.09/sources/ecfr-8cfr214.2-2026-09-14.xml; watch/sources.yaml note",
+    "note": "Pack sources use the pinned date; nothing in tools/sources/verify.py refuses a rule that cites the current text."
+  },
+  {
+    "id": "IMPL-007",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "h1b_100k_fee.status is vacated_unstayed, with petition type, beneficiary outside the US and a travel log as fields.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The H-1B pack is empty."
+  },
+  {
+    "id": "IMPL-008",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "For the 100k fee Duly shows the status and the check date and never says you owe or you don't owe.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl h1b-03, h1b-04",
+    "note": "The classifier steps back on the personal question; no fee rule is shown."
+  },
+  {
+    "id": "IMPL-009",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Cap-gap end is the earlier of April 1 of the fiscal year and the approved start date.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/f1.py _add_cap_gap; tests/unit/engine/test_f1_sourcing.py::test_the_fiscal_year_start_comes_from_the_pack",
+    "note": "Computed from two sourced rules."
+  },
+  {
+    "id": "IMPL-010",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Cap-gap ends on rejected, denied, revoked or withdrawn petitions, denied or withdrawn change of status, and consular approval.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py CAP_GAP_ACTIVE",
+    "note": "A petition that is not pending or approved, or is not a change of status, gives no date; the separate events have no rules or dates of their own."
+  },
+  {
+    "id": "IMPL-011",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "RFE and NOID due date is the date on the notice, plus 3 days if mailed, entered by the user, with no default of 84 or 98 days.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No RFE code."
+  },
+  {
+    "id": "IMPL-012",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Duly warns that a partial RFE response is treated as a request for a decision.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No RFE code."
+  },
+  {
+    "id": "IMPL-013",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Every parameter has one of five status tags: settled, guidance, litigated, proposed, school.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "contracts/rulepack.schema.json; tests/unit/engine/test_rulepack.py::test_unknown_status_tag_is_refused",
+    "note": "Enforced by the schema."
+  },
+  {
+    "id": "IMPL-014",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Every parameter has a source_url.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tests/unit/engine/test_rulepack.py::test_parameter_without_source_is_refused; test_source_must_be_https",
+    "note": "Enforced by the schema."
+  },
+  {
+    "id": "IMPL-015",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Every parameter has reviewed_by and reviewed_on.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "contracts/rulepack.schema.json (reviewed_by, reviewed_on)",
+    "note": "The fields exist but are optional, and no rule in the F-1 pack has a reviewer."
+  },
+  {
+    "id": "IMPL-016",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "School-configurable parameters: CPT full-time year definition, Day 1 programs, re-entry while unemployed, job-letter requirement, volunteer and self-employment documentation.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No school parameter exists."
+  },
+  {
+    "id": "IMPL-017",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "The 50 percent part-time pre-completion OPT deduction and the 180-day STEM auto-extension stay behind a verify gate until pulled from primary text.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "tools/sources/verify.py; rulepacks/f1-us/v2026.09/parameters.yaml",
+    "note": "Neither value is in the pack, and the quote gate would refuse them without primary text."
+  },
+  {
+    "id": "IMPL-018",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Portal-employer clock: warn well before 90 days pass with no employer in the SEVP Portal.",
+    "kind": "engine",
+    "status": "partial",
+    "evidence": "engine/f1.py (employment.periods_not_reported); rule opt.report_employer_within_days",
+    "note": "Unreported periods are counted; there is no 90 day portal clock."
+  },
+  {
+    "id": "IMPL-019",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Status is kept separate from unlawful presence; unlawful presence is never computed for a user admitted D/S.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/f1.py (no unlawful presence item)",
+    "note": "Nothing in the engine computes unlawful presence; no test names the rule."
+  },
+  {
+    "id": "IMPL-020",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "A nationality flag feeds cannot tell and watching states from travel-ban lists and the OPT processing pause, never a verdict.",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No nationality field in contracts/case_f1.schema.json."
+  },
+  {
+    "id": "IMPL-021",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "Monitoring watches the injunction docket, the First Circuit and D.C. Circuit cases, SEVP broadcasts and the OPT fee NPRM.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "watch/sources.yaml (courtlistener, ice_sevp); rulepacks/f1-us/v2026.09/sources/courtlistener-docket-74661796-entries-2026-09-28.json",
+    "note": "One docket was saved by hand once; nothing watches it."
+  },
+  {
+    "id": "IMPL-022",
+    "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
+    "text": "A change to any litigated flag triggers attorney re-review before the rule ships.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "No attorney is retained until after validation."
+  },
+  {
+    "id": "IMPL-023",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The Home verdict has four explicit states.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/verdict.py; web/src/lib/status.ts",
+    "note": "Same as D4."
+  },
+  {
+    "id": "IMPL-024",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The quiet state reads No open items in what you've added and replaces Everything is in order.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/lib/status.ts HEADLINES; web/src/lib/status.test.ts",
+    "note": "Wording matches."
+  },
+  {
+    "id": "IMPL-025",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Needs you reads: One thing needs you: [task], about [N] minutes, due [date].",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/status.ts; web/src/lib/labels.ts",
+    "note": "The headline and the item with its date are shown; no minutes estimate."
+  },
+  {
+    "id": "IMPL-026",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Talk to your DSO or attorney is shown with a pre-written question.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/status.ts",
+    "note": "The headline is shown; no pre-written question."
+  },
+  {
+    "id": "IMPL-027",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Can't tell yet is shown when inputs are missing, stale, conflicting or regime-sensitive, with the reason named.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py::test_missing_and_conflicting_inputs_are_named; test_rules_on_the_stale_edge; test_litigated_rule_cannot_tell",
+    "note": "All four causes are tested."
+  },
+  {
+    "id": "IMPL-028",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "A permanent scope line under every verdict: Based on [N] documents you added. Rules checked [date]. Duly isn't your DSO or a lawyer.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/labels.ts scopeLine",
+    "note": "The first two sentences are shown; the third is missing."
+  },
+  {
+    "id": "IMPL-029",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The verdict info sheet carries the absence line: No alert from Duly doesn't mean nothing is wrong; Duly only sees what you've added.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No info sheet and no such line."
+  },
+  {
+    "id": "IMPL-030",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The update impact questions are Does this change your dates? and Anything to do now?, not Worry? or Prepare?.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "tools/copy_lint/lint.py (worry is forbidden)",
+    "note": "No impact score exists; the linter bans the word worry."
+  },
+  {
+    "id": "IMPL-031",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Each update carries a deterministic High, Medium or Low label with the rubric published.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "contracts/update.schema.json has no impact field."
+  },
+  {
+    "id": "IMPL-032",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Each update carries an Applies to you because [field] line.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "IMPL-033",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Each update carries a primary-source link.",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "contracts/update.schema.json (claims.source_url)",
+    "note": "In the contract only."
+  },
+  {
+    "id": "IMPL-034",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "A third answer, Nothing to do; we're watching, keeps policy news from turning Home red.",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built."
+  },
+  {
+    "id": "IMPL-035",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Verdict and score wording is chosen by accuracy review, never by engagement A/B tests.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "contracts/events.md (no third-party analytics)",
+    "note": "No A/B tooling exists; no written rule or review record states this."
+  },
+  {
+    "id": "IMPL-036",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "A written rationale is kept for each wording choice.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rationale file in the repository."
+  },
+  {
+    "id": "IMPL-037",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The weekly brief email is transactional only, with no upsell.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "contracts/emails.md",
+    "note": "Listed as a placeholder for Phase 7."
+  },
+  {
+    "id": "IMPL-038",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The weekly brief ends on what is settled and what is next.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No template."
+  },
+  {
+    "id": "IMPL-039",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "Reminders are capped at one per item per week plus the deadline itself.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No reminder code."
+  },
+  {
+    "id": "IMPL-040",
+    "source": "law-liability-design-2026-09.md, Verdict and impact-score wording",
+    "text": "The user can set quiet hours.",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No setting."
+  },
+  {
+    "id": "IMPL-041",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant retrieves and explains official sources and the user's own records, with citations.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No assistant."
+  },
+  {
+    "id": "IMPL-042",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "When asked, the assistant restates deterministic engine output with the inputs shown.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "evals/boundary/pairs.jsonl date-01, date-02",
+    "note": "The classifier allows the question; nothing answers it."
+  },
+  {
+    "id": "IMPL-043",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines Am I in status? and Am I eligible for STEM OPT or cap-gap?.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-opt-02, f1-stem-02, f1-gap-02",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "IMPL-044",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines which form or category code to use.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-stem-06",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "IMPL-045",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines whether a job, volunteer role or self-employment counts as qualifying or directly related.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-opt-04, f1-opt-10, drift-01",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "IMPL-046",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines Should I travel?, Can I re-enter unemployed? and Does the 100k fee apply to me?.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl f1-opt-08, h1b-04",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "IMPL-047",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines questions on reinstatement or unlawful presence.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "assistant/boundary.py",
+    "note": "No eval row covers reinstatement or unlawful presence."
+  },
+  {
+    "id": "IMPL-048",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines H-1B odds or case outcomes.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "evals/boundary/pairs.jsonl h1b-02",
+    "note": "The classifier and validator floor pass these eval rows; no assistant is wired, so the rule guards no real answer yet."
+  },
+  {
+    "id": "IMPL-049",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant declines to draft letters, explanations, cover letters or RFE and NOID responses to any agency.",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "evals/boundary/pairs.jsonl rfe-02, rfe-03; tests/unit/assistant/test_boundary_evals.py",
+    "note": "Same as BOUNDARY B7."
+  },
+  {
+    "id": "IMPL-050",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "Each decline answers with the rule, the citation and a pre-written question for the DSO or an attorney.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No step-back card."
+  },
+  {
+    "id": "IMPL-051",
+    "source": "law-liability-design-2026-09.md, What the assistant must refuse",
+    "text": "The assistant discloses that it is AI.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "tools/copy_lint/lint.py",
+    "note": "No assistant screen; the linter also forbids the phrases ai-generated and ai generated in product copy, which the disclosure wording will have to work around."
+  },
+  {
+    "id": "IMPL-052",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "AI drafts come only from content the user supplied, such as notes, commits and calendar entries.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-053",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "AI never invents hours, duties, outcomes or a link to the user's degree.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-054",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "Every entry requires explicit user confirmation, with provenance stored.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-055",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "Exports are labeled as the user's personal work log, never as USCIS-ready evidence or an RFE response.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-056",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "O-1 criteria appear as organizing tags, never as you meet criterion 5.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-057",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "WorkBook prompts users to attach primary documents such as pay stubs, I-983s and employer letters.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-058",
+    "source": "law-liability-design-2026-09.md, What WorkBook may draft",
+    "text": "Timing mismatches between logged work and authorized dates are flagged as check with your DSO, not as violations.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "WorkBook is not built; contracts/workbook_bridge.schema.json is a placeholder for Phase 8."
+  },
+  {
+    "id": "IMPL-059",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "All states: Not a law firm; not legal advice; no attorney-client relationship; not affiliated with USCIS, DHS or SEVP; verify with your DSO.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "web/src/App.tsx footer",
+    "note": "The footer says 'Records and computations, not legal advice. Confirm with your DSO or an attorney.' and leaves out the other three statements."
+  },
+  {
+    "id": "IMPL-060",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "The disclaimer is placed in onboarding with assent, the footer, the AI panel, exports and the verdict info sheet.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "web/src/App.tsx footer",
+    "note": "Footer only; the other four places do not exist."
+  },
+  {
+    "id": "IMPL-061",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "Texas: a clear and conspicuous not a substitute for the advice of an attorney, everywhere and in translations.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The sentence appears nowhere."
+  },
+  {
+    "id": "IMPL-062",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "Texas: notario is never used in Spanish or other translated marketing.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py (notario)",
+    "note": "The word is forbidden in product copy; there are no translations or marketing to check."
+  },
+  {
+    "id": "IMPL-063",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "Illinois: design so Duly is not a provider; counsel decides.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "Needs counsel."
+  },
+  {
+    "id": "IMPL-064",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "California: referrals only as nonlegal assistance; stay out of form completion.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "BOUNDARY.md B8",
+    "note": "No form completion code exists; the referral question needs counsel, deferred under D28."
+  },
+  {
+    "id": "IMPL-065",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "New York: AI disclosure in the AI panel and no reliance on a disclaimer.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No AI panel."
+  },
+  {
+    "id": "IMPL-066",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "Nevada: NRS 603A privacy notice and sale opt-out in the privacy policy.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No privacy policy in the repository."
+  },
+  {
+    "id": "IMPL-067",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "Nevada: registration and bond if deemed a document preparer.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "Needs counsel."
+  },
+  {
+    "id": "IMPL-068",
+    "source": "law-liability-design-2026-09.md, Required disclaimers by state",
+    "text": "Florida: no holding out as qualified in legal matters; marketing review.",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py (qualified, lawyer-quality, like a lawyer)",
+    "note": "Words are linted in product copy; no marketing or review step exists."
+  },
+  {
+    "id": "IMPL-069",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "A separate, logged opt-in consent for immigration-status and ID data.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No consent flow and no accounts."
+  },
+  {
+    "id": "IMPL-070",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "A data protection assessment covering the LLM path.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "security/threat-model.md",
+    "note": "The threat model is not a data protection assessment."
+  },
+  {
+    "id": "IMPL-071",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "Access, deletion, correction and portability requests handled within 45 days, with an appeal path.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No stored data and no request process."
+  },
+  {
+    "id": "IMPL-072",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "Maryland's strictly necessary standard is the design test for every collected field.",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "contracts/case_f1.schema.json; api/main.py (stateless compute)",
+    "note": "The F-1 case holds dates only and is not stored; no written field by field test exists."
+  },
+  {
+    "id": "IMPL-073",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "No sale of any data, including de-identified data.",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "Stated in the threat model; no published policy."
+  },
+  {
+    "id": "IMPL-074",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "GPC detection.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No code reads the Sec-GPC header."
+  },
+  {
+    "id": "IMPL-075",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "No ad or analytics SDKs that see status-revealing events.",
+    "kind": "privacy",
+    "status": "met",
+    "evidence": "contracts/events.md; web/package.json; tools/diff_policy/check.py (dependency_added needs the founder)",
+    "note": "No analytics dependency is present and lanes cannot add one."
+  },
+  {
+    "id": "IMPL-076",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "Identifiers are redacted before prompts, and derived facts are sent to the model rather than raw document images.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "tools/factory/redact.py",
+    "note": "Redaction exists for factory logs only; there is no product prompt path."
+  },
+  {
+    "id": "IMPL-077",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "ZDR requested from Anthropic, or disclosure of up to 30 days of retention.",
+    "kind": "privacy",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "After validation."
+  },
+  {
+    "id": "IMPL-078",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "Client-side encryption for documents.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "security/threat-model.md (Phase 1, Phase 8)",
+    "note": "Planned only."
+  },
+  {
+    "id": "IMPL-079",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "Minimized server-side case fields and logs.",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "api/main.py compute_f1_case (body is read, computed and dropped)",
+    "note": "True of the one endpoint; no logging policy or test for log content."
+  },
+  {
+    "id": "IMPL-080",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "A published warrant-only law-enforcement policy, with user notice, a commitment to challenge overbroad requests, and transparency reports.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "security/threat-model.md (Phase 9)",
+    "note": "Planned only."
+  },
+  {
+    "id": "IMPL-081",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "MFA on all admin access.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "api/ops_guard.py",
+    "note": "Ops is guarded by a network allowlist only; there is no login at all."
+  },
+  {
+    "id": "IMPL-082",
+    "source": "law-liability-design-2026-09.md, Privacy obligations",
+    "text": "A pre-planned breach notification.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No plan in the repository."
+  },
+  {
+    "id": "IMPL-083",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "A written opinion on whether any feature makes Duly an immigration consultant, provider or document preparer, before charging users.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "No attorney is retained; the founder put this off until after validation."
+  },
+  {
+    "id": "IMPL-084",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "A licensed immigration attorney reviews the rule library, checklists, assistant guardrails and WorkBook templates, with dated sign-offs.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "No attorney is retained; the founder put this off until after validation."
+  },
+  {
+    "id": "IMPL-085",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "Counsel reviews the enforceability of liability caps, damage exclusions and arbitration against wrong-date harms.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "No attorney is retained; the founder put this off until after validation."
+  },
+  {
+    "id": "IMPL-086",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "Counsel decides whether WorkBook exports carry AI-provenance metadata when submitted to USCIS.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D6 and D28",
+    "note": "Open under D6 and waits for counsel."
+  },
+  {
+    "id": "IMPL-087",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "Counsel decides whether any attorney-directory monetization fits Rule 7.2 and the state referral bans.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "No attorney is retained; the founder put this off until after validation."
+  },
+  {
+    "id": "IMPL-088",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "Tech E&O coverage that includes AI output.",
+    "kind": "legal",
+    "status": "deferred",
+    "evidence": "DECISIONS.md D28",
+    "note": "Nothing in the repository; waits for validation."
+  },
+  {
+    "id": "IMPL-089",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "Primary-text check on the text of the D/S injunction order, including any appeal.",
+    "kind": "engine",
+    "status": "met",
+    "evidence": "rulepacks/f1-us/v2026.09/sources/mad-1-26-cv-13799-doc51-order.txt; tools/sources/verify.py",
+    "note": "The order is saved and quoted, and the docket listing of 2026-09-28 is saved."
+  },
+  {
+    "id": "IMPL-090",
+    "source": "law-liability-design-2026-09.md, Items that need counsel",
+    "text": "Primary-text checks on the CT and MD sensitive-data definitions, 274a.12(b)(6)(iv), and the 50 percent pre-completion deduction.",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None of these sources is saved in the repository."
+  }
+]

@@ -1,0 +1,3620 @@
+[
+  {
+    "id": "PLAN03-001",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "web/: React 18",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/package.json",
+    "note": "React is used in web/, but the manifest pins React 19.3, not 18."
+  },
+  {
+    "id": "PLAN03-002",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "ops/: React 18",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "ops/package.json",
+    "note": "React is used in ops/, but the manifest pins React 19.3, not 18."
+  },
+  {
+    "id": "PLAN03-003",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "web/ and ops/: TypeScript strict",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/tsconfig.json, ops/tsconfig.json",
+    "note": "Both set strict to true, and gate 2 runs the type check."
+  },
+  {
+    "id": "PLAN03-004",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "web/ and ops/: Vite",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/vite.config.ts, ops/vite.config.ts",
+    "note": "Both apps build and serve with Vite."
+  },
+  {
+    "id": "PLAN03-005",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "web/ and ops/: TanStack Router",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No router package is in web/package.json or ops/package.json; each app is a single screen."
+  },
+  {
+    "id": "PLAN03-006",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "web/ and ops/: TanStack Query",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/App.tsx, ops/src/App.tsx",
+    "note": "Both apps use @tanstack/react-query for their requests."
+  },
+  {
+    "id": "PLAN03-007",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "web/ and ops/: Tailwind",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css",
+    "note": "Tailwind is installed and imported, but every style is hand written CSS and no Tailwind class is used."
+  },
+  {
+    "id": "PLAN03-008",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "API client generated from contracts/openapi.yaml (openapi-typescript + fetch wrapper)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/api-types.ts, ops/src/lib/api-types.ts",
+    "note": "Types are generated, but no script or make target regenerates them and there is no shared fetch wrapper; each module calls fetch itself."
+  },
+  {
+    "id": "PLAN03-009",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "zod parsing at every boundary",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/lib/status.ts, web/src/lib/compute.ts, ops/src/lib/ops.ts; ops/src/App.test.tsx 'refuses a body that does not match the contract'",
+    "note": "Every server reply in web and ops is parsed with a strict zod schema."
+  },
+  {
+    "id": "PLAN03-010",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "desktop/: Electron (electron-vite)",
+    "kind": "desktop",
+    "status": "partial",
+    "evidence": "desktop/package.json",
+    "note": "Electron is installed, but electron-vite is not, and there is no main process file; desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN03-011",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "desktop/: contextIsolation on",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "It is written in specs/desktop-1/SPEC.md only; no window is created in desktop/src."
+  },
+  {
+    "id": "PLAN03-012",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "desktop/: sandbox on",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "It is written in specs/desktop-1/SPEC.md only; no window is created in desktop/src."
+  },
+  {
+    "id": "PLAN03-013",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "desktop/: no nodeIntegration in renderers",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "It is written in specs/desktop-1/SPEC.md only; no window is created in desktop/src."
+  },
+  {
+    "id": "PLAN03-014",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "desktop/: single preload exposing a typed, allowlisted bridge",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no preload file in desktop/src."
+  },
+  {
+    "id": "PLAN03-015",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "desktop/: auto-update deferred past v0",
+    "kind": "desktop",
+    "status": "deferred",
+    "evidence": "duly-plan/03-frontend-and-design.md, Stack",
+    "note": "The plan itself places auto-update after v0, and desktop/package.json has no updater."
+  },
+  {
+    "id": "PLAN03-016",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "Accessibility floor: keyboard reachable",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/CaseForm.tsx, web/src/components/Result.tsx",
+    "note": "The screen uses native buttons, inputs and labels, but no test walks the screen by keyboard."
+  },
+  {
+    "id": "PLAN03-017",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "Accessibility floor: visible focus",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/styles.css (:focus-visible), ops/src/styles.css",
+    "note": "A 2px outline is set for every focused control; no test checks it."
+  },
+  {
+    "id": "PLAN03-018",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "Accessibility floor: 4.5:1 text contrast",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The token pairs compute to 4.78:1 or more by hand, but no automated check or test proves it."
+  },
+  {
+    "id": "PLAN03-019",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "Accessibility floor: prefers-reduced-motion respected",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/styles.css (@media prefers-reduced-motion)",
+    "note": "The only animation, the halo, is switched off under reduced motion; no test checks it."
+  },
+  {
+    "id": "PLAN03-020",
+    "source": "duly-plan/03-frontend-and-design.md, Stack",
+    "text": "all motion additive; app fully legible with animations off",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/styles.css",
+    "note": "The halo is a pseudo element behind the card with opacity 0 at rest, so nothing depends on it."
+  },
+  {
+    "id": "PLAN03-021",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Duly app tokens: ground #F8F7F4",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--ground holds this value."
+  },
+  {
+    "id": "PLAN03-022",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Duly app tokens: ink #1A1917",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--ink holds this value."
+  },
+  {
+    "id": "PLAN03-023",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Duly app tokens: secondary #6B6862",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--ink-2 holds this value."
+  },
+  {
+    "id": "PLAN03-024",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Duly app tokens: hairlines #ECEAE4",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--hairline holds this value."
+  },
+  {
+    "id": "PLAN03-025",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Duly app tokens: visa blue #2B4EA2",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--accent holds this value."
+  },
+  {
+    "id": "PLAN03-026",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Duly app tokens: tints #E9EEF9",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--accent-tint holds this value."
+  },
+  {
+    "id": "PLAN03-027",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "amber #B45309 reserved for AI marks",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "--ai-mark is defined and used nowhere else, but no AI mark exists on any screen yet."
+  },
+  {
+    "id": "PLAN03-028",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "danger only in Ops",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css ([data-app=\"ops\"] scope)",
+    "note": "--danger exists only under the ops scope."
+  },
+  {
+    "id": "PLAN03-029",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Type: Instrument Sans only",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css, web/src/design/tokens.css",
+    "note": "Instrument Sans is the UI font, but values and rule ids are set in a system monospace font through --font-mono."
+  },
+  {
+    "id": "PLAN03-030",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "hierarchy by size and weight, headings 600 with -0.02em",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css",
+    "note": "h1 and h2 carry 600 and -0.02em; h3 and h4 carry 600 without the letter spacing."
+  },
+  {
+    "id": "PLAN03-031",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "WorkBook module tokens (binding, from workbook-handoff 02 visual system): white ground",
+    "kind": "workbook",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The workbook scope sets --ground to #ffffff."
+  },
+  {
+    "id": "PLAN03-032",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "WorkBook module tokens: green #1B7A57 accent",
+    "kind": "workbook",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The workbook scope sets --accent to #1b7a57."
+  },
+  {
+    "id": "PLAN03-033",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "WorkBook module tokens: IBM Plex Sans + Mono",
+    "kind": "workbook",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css, web/package.json",
+    "note": "The tokens name the fonts and the packages are installed, but styles.css never imports the font files."
+  },
+  {
+    "id": "PLAN03-034",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "WorkBook module tokens: its own radii and hairlines",
+    "kind": "workbook",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "One radius (10px) and one hairline are set; the hairline is #eceeed, not the handoff's #ECEFED, and #E1E5E2 is missing."
+  },
+  {
+    "id": "PLAN03-035",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "WorkBook screens use WorkBook tokens inside the Duly shell",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists and nothing sets data-module=\"workbook\"."
+  },
+  {
+    "id": "PLAN03-036",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "the sidebar and chrome stay Duly",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no sidebar or shell; web is one page."
+  },
+  {
+    "id": "PLAN03-037",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Do not blend the palettes.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The two palettes are kept in separate scopes, but no screen uses the second one and no check guards it."
+  },
+  {
+    "id": "PLAN03-038",
+    "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
+    "text": "Codify both as CSS variables in web/src/design/tokens.css with a data-module=\"workbook\" scope switch.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The file holds both sets and the scope switch."
+  },
+  {
+    "id": "PLAN03-039",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "each screen is reviewed against this list",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No review file or reviewer checklist in reviews/, specs/ or .claude/ names the design laws."
+  },
+  {
+    "id": "PLAN03-040",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "One thing per screen (handoff rule 1)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/App.tsx",
+    "note": "The one page holds the case form, the verdict, the questions, the rules and the items together."
+  },
+  {
+    "id": "PLAN03-041",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "secondary controls behind one affordance (handoff rule 1)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx",
+    "note": "The working of an item sits behind its row, but every form section is on screen at once."
+  },
+  {
+    "id": "PLAN03-042",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Minimum labels, maximum value; no eyebrow captions, no explanatory grey filler (rule 2)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css",
+    "note": "Grey 12px labels exist (.legal, .working h4, .reading-label) and group captions sit above each list."
+  },
+  {
+    "id": "PLAN03-043",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Edit in place with the pencil (rule 3)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No pencil or inline edit exists in web/src."
+  },
+  {
+    "id": "PLAN03-044",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "cancel where the cursor is (rule 3)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No inline edit exists, so there is no cancel control."
+  },
+  {
+    "id": "PLAN03-045",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "destructive never under the cursor (rule 3)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Nothing places or tests the position of the remove buttons."
+  },
+  {
+    "id": "PLAN03-046",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Nothing lost (rule 4)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no history; a removed answer or period is gone."
+  },
+  {
+    "id": "PLAN03-047",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "provenance on every line (rule 5)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx; web/src/App.test.tsx 'shows the working when the row is clicked'",
+    "note": "Each computed item shows its inputs and its cited rules; there are no record entries with a source line."
+  },
+  {
+    "id": "PLAN03-048",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "AI star until edited (rule 5)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No AI mark exists on any screen."
+  },
+  {
+    "id": "PLAN03-049",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Calm: no badges, no counters, no urgency (rule 6)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py, tests/unit/tools/test_copy_lint.py",
+    "note": "Urgency words fail the copy lint; nothing checks badges or counters, and status tags are drawn as pills."
+  },
+  {
+    "id": "PLAN03-050",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "one bar, one line (rule 6)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No progress bar exists."
+  },
+  {
+    "id": "PLAN03-051",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Two choices, not three (rule 7)",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/components/Result.tsx; web/src/App.test.tsx 'shows an open question in plain words, with two answers'",
+    "note": "The only choice the screen offers is a question with two answers."
+  },
+  {
+    "id": "PLAN03-052",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "locked visible but blurred (rule 8)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no document vault or locked state."
+  },
+  {
+    "id": "PLAN03-053",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "drop zone plus button (rule 9)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No file can be added anywhere; the form asks for a count of documents."
+  },
+  {
+    "id": "PLAN03-054",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Copy rules verbatim from handoff rule 10, extended product-wide: plain sentences",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/labels.ts",
+    "note": "The copy reads as plain sentences, but no check enforces it."
+  },
+  {
+    "id": "PLAN03-055",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Copy rules: outcome-named buttons",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/CaseForm.tsx",
+    "note": "Most buttons name an outcome; the main button is 'Compute', and no check enforces the rule."
+  },
+  {
+    "id": "PLAN03-056",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Copy rules: no em or en dashes",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py; Makefile gate-1",
+    "note": "The lint fails the build on a long dash in any file."
+  },
+  {
+    "id": "PLAN03-057",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Copy rules: no emoji",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py; Makefile gate-1",
+    "note": "The lint fails the build on an emoji in any file."
+  },
+  {
+    "id": "PLAN03-058",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Copy rules: \"Written by AI\"",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py",
+    "note": "The lint forbids 'AI-generated'; the phrase 'Written by AI' appears on no screen because no AI text is shown."
+  },
+  {
+    "id": "PLAN03-059",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Copy rules: \"saved with a timestamp\"",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py",
+    "note": "The lint forbids 'sealed' and 'cryptographic'; the replacement phrase appears nowhere because nothing is saved that way yet."
+  },
+  {
+    "id": "PLAN03-060",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Hicks law (few options per decision)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/CaseForm.tsx",
+    "note": "Questions have two answers, but the form shows up to four sections and many fields at once."
+  },
+  {
+    "id": "PLAN03-061",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Fitts (44px targets)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css (--target), web/src/styles.css",
+    "note": "Buttons and fields are 44px, but '.scope button.quiet' sets min-height to 0 and checkboxes are 18px."
+  },
+  {
+    "id": "PLAN03-062",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Millers chunking (verdict then three numbers then rows)",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx",
+    "note": "The verdict and the rows exist; there is no block of three numbers."
+  },
+  {
+    "id": "PLAN03-063",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "Jakob (conventional patterns for auth and billing)",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no sign in and no billing screen."
+  },
+  {
+    "id": "PLAN03-064",
+    "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
+    "text": "von Restorff reserved for the single Affects-your-case element per screen",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No Affects-your-case element exists."
+  },
+  {
+    "id": "PLAN03-065",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Verdict-first everywhere: the first sentence on any surface says whether anything needs the user.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/App.tsx",
+    "note": "The verdict is first inside the result, but the case form is rendered above it, so the first words on the page are the form heading."
+  },
+  {
+    "id": "PLAN03-066",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Relief ritual: the daily check ends in under 30 seconds",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no daily check; every visit starts from an empty form."
+  },
+  {
+    "id": "PLAN03-067",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "the weekly brief mirrors it in email",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "emails/ holds a README only."
+  },
+  {
+    "id": "PLAN03-068",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "confetti only on genuinely completed journey phases and finished checklists",
+    "kind": "design",
+    "status": "superseded",
+    "evidence": "D10",
+    "note": "D10 removes confetti and asks for a quiet completion moment, whose spec is still pending."
+  },
+  {
+    "id": "PLAN03-069",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "slow breathing glow on ALL CLEAR (4.8s cycle)",
+    "kind": "design",
+    "status": "superseded",
+    "evidence": "D11; web/src/styles.css, web/src/design/tokens.css",
+    "note": "D11 makes the glow smaller, slower and not continuous; it is built as an 8s breath, three times, at 0.05 opacity."
+  },
+  {
+    "id": "PLAN03-070",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "progress bars fill once on load",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No progress bar exists."
+  },
+  {
+    "id": "PLAN03-071",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "streaks stated in plain text, never gamified counters",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No streak is recorded or shown."
+  },
+  {
+    "id": "PLAN03-072",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Honesty as UI: every AI block shows sources",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/components/Result.tsx (RuleCard)",
+    "note": "Rule cards show the citation, the quote and the checked date; there is no AI block on any screen."
+  },
+  {
+    "id": "PLAN03-073",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "every AI block shows rule pack version",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The engine sends rulepacks with versions and the parser reads them, but no component shows them."
+  },
+  {
+    "id": "PLAN03-074",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "every AI block shows impact dots with a worry verdict",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No impact dots exist; the word 'worry' is also on the forbidden list in tools/copy_lint/lint.py, so the wording needs a founder decision."
+  },
+  {
+    "id": "PLAN03-075",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "the fixed footer \"Records and computations, not legal advice. Confirm with your DSO or an attorney.\"",
+    "kind": "legal",
+    "status": "met",
+    "evidence": "web/src/App.tsx; web/src/App.test.tsx 'the footer is on every view'",
+    "note": "The footer is on the page in every state."
+  },
+  {
+    "id": "PLAN03-076",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Abstentions render as a calm card with the DSO question drafted.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/App.tsx (CannotTell), web/src/lib/labels.ts",
+    "note": "The card says it is a question for the DSO, but no question is drafted for the person to send."
+  },
+  {
+    "id": "PLAN03-077",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Never: countdown reds",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The web app has no red token; danger exists only in the ops scope."
+  },
+  {
+    "id": "PLAN03-078",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Never: streak-loss threats",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py",
+    "note": "No streak exists and urgency phrases fail the lint, but nothing tests for this pattern."
+  },
+  {
+    "id": "PLAN03-079",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Never: notification pressure",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "specs/desktop-1/SPEC.md",
+    "note": "No notification is sent by anything; the refusal of the notification permission is in the desktop spec and not yet in code."
+  },
+  {
+    "id": "PLAN03-080",
+    "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
+    "text": "Retention is the relief loop plus the Updates value, not anxiety.",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Neither a returning check nor an Updates screen exists in web."
+  },
+  {
+    "id": "PLAN03-081",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Student app: the nine approved canvas screens",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/App.tsx",
+    "note": "One screen exists, the F-1 dates form with its result; the nine canvas screens are not in the repository."
+  },
+  {
+    "id": "PLAN03-082",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Student app: Case",
+    "kind": "product",
+    "status": "partial",
+    "evidence": "web/src/components/CaseForm.tsx",
+    "note": "The form takes the dates of a case but nothing is saved and there is no Case screen."
+  },
+  {
+    "id": "PLAN03-083",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Student app: Settings",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No settings screen; the time zone is a field in the form."
+  },
+  {
+    "id": "PLAN03-084",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Student app: Feedback",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No feedback screen or control."
+  },
+  {
+    "id": "PLAN03-085",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Student app: Billing placeholder",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No billing screen; D8 and D18 park pricing and Stripe setup but do not remove the placeholder."
+  },
+  {
+    "id": "PLAN03-086",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "WorkBook module: Today, Log, Documents, Exports, Your case, per the handoff prototype v7 states (copy is final)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None of the five screens exists; the prototype sits in workbook-handoff/prototype only."
+  },
+  {
+    "id": "PLAN03-087",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Ops: the six panes of the skeleton plan",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "ops/src/App.tsx",
+    "note": "One placeholder pane shows the caller and the allowed networks."
+  },
+  {
+    "id": "PLAN03-088",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Ops: WCAG-compliant tables",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Ops has no table."
+  },
+  {
+    "id": "PLAN03-089",
+    "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
+    "text": "Ops: diff viewers",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Ops has no diff viewer."
+  },
+  {
+    "id": "PLAN03-090",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Main process owns: source pollers (Calendar, Meet, GitHub, Slack per handoff v1 table)",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN03-091",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Main process owns: block builder (45-minute rule, check-in and check-out anchors)",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN03-092",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Main process owns: SQLCipher store keyed from OS keychain",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No store and no SQLCipher dependency in desktop/package.json."
+  },
+  {
+    "id": "PLAN03-093",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Main process owns: sealing (canonical JSON hash, Merkle root, optional OpenTimestamps)",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No sealing code exists."
+  },
+  {
+    "id": "PLAN03-094",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Main process owns: export builder (zip, folder, link upload of the pack only, revocable)",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No export code exists."
+  },
+  {
+    "id": "PLAN03-095",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Main process owns: the local bridge",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "contracts/workbook_bridge.schema.json",
+    "note": "Only a placeholder contract that lists endpoint names exists."
+  },
+  {
+    "id": "PLAN03-096",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "Renderer never touches raw stores.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "There is no store and no renderer bridge yet."
+  },
+  {
+    "id": "PLAN03-097",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "On-device drafting per handoff prompts",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No drafting code exists; D20 leaves cloud or on-device open."
+  },
+  {
+    "id": "PLAN03-098",
+    "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
+    "text": "if no local model is available, drafting is off and entries are typed, never silently cloud-routed",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No drafting code exists; D20 leaves the model choice open."
+  },
+  {
+    "id": "PLAN04-001",
+    "source": "duly-plan/04-workbook-module.md, header",
+    "text": "Binding source: workbook-handoff/. On any conflict the handoff wins, and the founder arbitrates.",
+    "kind": "workbook",
+    "status": "met",
+    "evidence": "DECISIONS.md, CLAUDE.md",
+    "note": "DECISIONS.md is set above both the plan and the handoff, which is the founder arbitrating."
+  },
+  {
+    "id": "PLAN04-002",
+    "source": "duly-plan/04-workbook-module.md, Placement",
+    "text": "Optional module, exactly as decided. Never a default",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-003",
+    "source": "duly-plan/04-workbook-module.md, Placement",
+    "text": "Entry is the intro gate (\"Working a job, a contract, or your own thing?\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-004",
+    "source": "duly-plan/04-workbook-module.md, Placement",
+    "text": "Set up WorkBook or Not now",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-005",
+    "source": "duly-plan/04-workbook-module.md, Placement",
+    "text": "never nagged",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-006",
+    "source": "duly-plan/04-workbook-module.md, Placement",
+    "text": "Sidebar item present for everyone",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "web has no sidebar."
+  },
+  {
+    "id": "PLAN04-007",
+    "source": "duly-plan/04-workbook-module.md, Placement",
+    "text": "state machine: intro to setup (sources) to live",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-008",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Manual first: check-in and check-out optional anchors kept (handoff open item 2 resolved for v0 as: keep, optional)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-009",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "typed entries",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-010",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Mark day complete",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-011",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "amendments with optional reason (open item 3 resolved for v0 as optional)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-012",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "History",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-013",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Sealing per handoff 04: canonical JSON block hashes",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-014",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "day Merkle root with note",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-015",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "history.jsonl",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-016",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "days markdown and log.csv derived views",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-017",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "verify.py in exports",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No verify.py exists for export packs; tools/sources/verify.py is a different tool."
+  },
+  {
+    "id": "PLAN04-018",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "OpenTimestamps anchor behind a setting, default on",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-019",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "only the 32-byte root leaves the device",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-020",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Exports: Everything or Custom",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-021",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Preview with method note (template verbatim from handoff 08)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-022",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Zip, Folder, or Link",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-023",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Link (allow-listed emails or anyone, expiry, revocable)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-024",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Link packs upload only the built pack to S3 under a per-link key",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No upload code; infra has minio in the local stack but nothing writes packs to it."
+  },
+  {
+    "id": "PLAN04-025",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "revoke deletes",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-026",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Sources behind a flag",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-027",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "in this order when enabled: Google Calendar, Google Meet, GitHub, Slack",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-028",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "scopes exactly as the handoff table",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-029",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Gmail stays out",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No source integration exists, so nothing reads Gmail, but nothing guards it either."
+  },
+  {
+    "id": "PLAN04-030",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Event model implemented verbatim in desktop/main",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN04-031",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "block-building rules: 45 min join",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN04-032",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "block-building rules: plus-minus 10 min caps",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN04-033",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "block-building rules: 0.1 h rounding",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN04-034",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "property tests mirroring the rules",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "fast-check is installed in web and ops, not in desktop, and no block test exists."
+  },
+  {
+    "id": "PLAN04-035",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "AI drafter and duty mapper: on-device only",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No drafter exists; D20 leaves cloud or on-device open, so this line is under review, not overridden."
+  },
+  {
+    "id": "PLAN04-036",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "prompts verbatim from handoff 08",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "assistant/ holds boundary.py and providers.py only; no prompts folder."
+  },
+  {
+    "id": "PLAN04-037",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "UNCLEAR path honored",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-038",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "star semantics per design rule 5",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-039",
+    "source": "duly-plan/04-workbook-module.md, v0 slice",
+    "text": "Monthly narrative deferred.",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, v0 slice",
+    "note": "The plan itself defers it."
+  },
+  {
+    "id": "PLAN04-040",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Bridge API v1 as specified",
+    "kind": "workbook",
+    "status": "partial",
+    "evidence": "contracts/workbook_bridge.schema.json",
+    "note": "The contract is a placeholder that lists nine endpoint names, marked 'filled in Phase 8'; nothing implements it."
+  },
+  {
+    "id": "PLAN04-041",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Duly web consumes GET /days summaries and weekly hours for Home and Timeline coverage (\"WorkBook recording, N weeks\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "web has no Home or Timeline and calls no bridge."
+  },
+  {
+    "id": "PLAN04-042",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Server sync is opt-in",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "contracts/openapi.yaml has no WorkBook route."
+  },
+  {
+    "id": "PLAN04-043",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Server sync is summary-only: date, hours, entry count, completed flag",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "contracts/openapi.yaml has no WorkBook route."
+  },
+  {
+    "id": "PLAN04-044",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Entry texts sync only if the user enables it",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-045",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "document blobs never [sync]",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-046",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "One shared encrypted document store and one lock, ownership split per handoff",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No document store exists."
+  },
+  {
+    "id": "PLAN04-047",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Duly vault UI reads the shared index through the bridge on desktop",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No vault screen exists."
+  },
+  {
+    "id": "PLAN04-048",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "Web-only users get manual day entry posting the same summary shape to the server",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-049",
+    "source": "duly-plan/04-workbook-module.md, Duly integration",
+    "text": "clearly labeled as not source-backed",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-050",
+    "source": "duly-plan/04-workbook-module.md, Evidence pack meets Duly exports",
+    "text": "The checklist step \"Assemble your evidence pack\" opens WorkBook Exports with a Duly preset",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No checklist and no Exports screen exist."
+  },
+  {
+    "id": "PLAN04-051",
+    "source": "duly-plan/04-workbook-module.md, Evidence pack meets Duly exports",
+    "text": "Duly preset (degree relatedness section from duties, hours table, employer record)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-052",
+    "source": "duly-plan/04-workbook-module.md, Evidence pack meets Duly exports",
+    "text": "the RFE and STEM reporting packs are one flow, not two products",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook code exists in web/ or desktop/."
+  },
+  {
+    "id": "PLAN04-053",
+    "source": "duly-plan/04-workbook-module.md, Tests specific to this module",
+    "text": "Golden days: fixture event streams to expected blocks and hours (byte-stable canonical JSON)",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No such fixtures or tests under tests/ or desktop/src."
+  },
+  {
+    "id": "PLAN04-054",
+    "source": "duly-plan/04-workbook-module.md, Tests specific to this module",
+    "text": "Property: block rules invariants (no overlap, day bounds respected, rounding)",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No block tests exist."
+  },
+  {
+    "id": "PLAN04-055",
+    "source": "duly-plan/04-workbook-module.md, Tests specific to this module",
+    "text": "Seal round trip: complete, amend, check-nothing-changed flags exactly the unamended mismatch and lists amendments",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No sealing tests exist."
+  },
+  {
+    "id": "PLAN04-056",
+    "source": "duly-plan/04-workbook-module.md, Tests specific to this module",
+    "text": "Export verify: built pack passes its own verify.py in CI",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": ".github/workflows/ci.yml has no such step."
+  },
+  {
+    "id": "PLAN04-057",
+    "source": "duly-plan/04-workbook-module.md, Tests specific to this module",
+    "text": "Copy lint: forbidden words (sealed, cryptographic, AI-generated, success adjectives, legal words) fail the build in module strings and prompts",
+    "kind": "testing",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py; Makefile gate-1; .github/workflows/ci.yml",
+    "note": "The lint covers web/src, desktop/ and assistant/prompts/ and runs in gate 1; there are no module strings yet for it to read."
+  },
+  {
+    "id": "PLAN04-058",
+    "source": "duly-plan/04-workbook-module.md, Tests specific to this module",
+    "text": "Bridge contract tests from workbook_bridge.schema.json",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "contracts/workbook_bridge.schema.json",
+    "note": "The schema is a placeholder and no test reads it."
+  },
+  {
+    "id": "PLAN04-059",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "Menu bar popover",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan lists it as later, not now."
+  },
+  {
+    "id": "PLAN04-060",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "daily Slack post",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan lists it as later, not now."
+  },
+  {
+    "id": "PLAN04-061",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "supervisor and DSO links reusing export links",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan lists it as later, not now."
+  },
+  {
+    "id": "PLAN04-062",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "multiple cases",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan lists it as later, not now."
+  },
+  {
+    "id": "PLAN04-063",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "RFE response builder screen",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan lists it as later, not now."
+  },
+  {
+    "id": "PLAN04-064",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "cloud backup with user-held keys",
+    "kind": "workbook",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan lists it as later, not now."
+  },
+  {
+    "id": "PLAN04-065",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "macOS-native rewrite decision (open item 1 stays open)",
+    "kind": "desktop",
+    "status": "deferred",
+    "evidence": "duly-plan/04-workbook-module.md, Later",
+    "note": "The plan keeps the decision open."
+  },
+  {
+    "id": "PLAN04-066",
+    "source": "duly-plan/04-workbook-module.md, Later (tracked, not now)",
+    "text": "Electron chosen for v0 to share the stack",
+    "kind": "desktop",
+    "status": "met",
+    "evidence": "desktop/package.json; DECISIONS.md D42",
+    "note": "Electron is the installed shell and D42 confirms it."
+  },
+  {
+    "id": "WB02-001",
+    "source": "workbook-handoff/docs/02-design-principles.md, 1. One thing per screen",
+    "text": "A screen shows the thing it is named for and nothing else.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-002",
+    "source": "workbook-handoff/docs/02-design-principles.md, 1. One thing per screen",
+    "text": "Today shows today's entries.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-003",
+    "source": "workbook-handoff/docs/02-design-principles.md, 1. One thing per screen",
+    "text": "Log shows days.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-004",
+    "source": "workbook-handoff/docs/02-design-principles.md, 1. One thing per screen",
+    "text": "Documents shows documents.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-005",
+    "source": "workbook-handoff/docs/02-design-principles.md, 1. One thing per screen",
+    "text": "Anything secondary (filters, options, settings, privacy) is behind a single small control and appears only when the user reaches for it.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-006",
+    "source": "workbook-handoff/docs/02-design-principles.md, 2. Minimum labels, maximum value",
+    "text": "No subheadings, no eyebrow labels, no explanatory grey text under things that explain themselves.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository. The Duly screen itself uses grey group captions."
+  },
+  {
+    "id": "WB02-007",
+    "source": "workbook-handoff/docs/02-design-principles.md, 2. Minimum labels, maximum value",
+    "text": "A title, the content, one line of context if it earns its place.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-008",
+    "source": "workbook-handoff/docs/02-design-principles.md, 2. Minimum labels, maximum value",
+    "text": "Text is 15 to 17 px for content",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "web/src/styles.css",
+    "note": "The shared body size is 16px, but no WorkBook screen exists to apply it."
+  },
+  {
+    "id": "WB02-009",
+    "source": "workbook-handoff/docs/02-design-principles.md, 2. Minimum labels, maximum value",
+    "text": "never 11 to 12 px captions stacked under every row",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "web/src/styles.css",
+    "note": "No WorkBook screen exists in the repository. The Duly screen uses 12px text in .legal, .tag and .working h4."
+  },
+  {
+    "id": "WB02-010",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "Every editable value has a pencil beside it.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-011",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "Clicking it turns that row into inputs with Save.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-012",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "Escape or the X cancels.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-013",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "There is no separate edit mode, no modal, no \"edit page.\"",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-014",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "The pencil's spot becomes the X (cancel) when editing opens.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-015",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "a second click must be harmless",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-016",
+    "source": "workbook-handoff/docs/02-design-principles.md, 3. Edit in place, with a pencil",
+    "text": "Destructive actions (the bin) are never placed where the cursor was.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-017",
+    "source": "workbook-handoff/docs/02-design-principles.md, 4. Nothing is ever lost",
+    "text": "Edits create amendments.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-018",
+    "source": "workbook-handoff/docs/02-design-principles.md, 4. Nothing is ever lost",
+    "text": "Deletes keep a copy.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-019",
+    "source": "workbook-handoff/docs/02-design-principles.md, 4. Nothing is ever lost",
+    "text": "Every change is a line in History with before and after.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-020",
+    "source": "workbook-handoff/docs/02-design-principles.md, 4. Nothing is ever lost",
+    "text": "The user can always see what the record looked like at any point.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-021",
+    "source": "workbook-handoff/docs/02-design-principles.md, 5. Provenance on every line",
+    "text": "Every entry shows where it came from when you click it: \"From GitHub\", \"From Calendar\", \"Added by you\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-022",
+    "source": "workbook-handoff/docs/02-design-principles.md, 5. Provenance on every line",
+    "text": "AI-drafted lines carry a small amber star.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "web/src/design/tokens.css",
+    "note": "Only the amber token exists."
+  },
+  {
+    "id": "WB02-023",
+    "source": "workbook-handoff/docs/02-design-principles.md, 5. Provenance on every line",
+    "text": "Once the user edits an AI line, the star goes away and \"Edited by you\" appears.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-024",
+    "source": "workbook-handoff/docs/02-design-principles.md, 5. Provenance on every line",
+    "text": "The star survives into every export via the method note.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No export exists."
+  },
+  {
+    "id": "WB02-025",
+    "source": "workbook-handoff/docs/02-design-principles.md, 6. Calm",
+    "text": "No red badges",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-026",
+    "source": "workbook-handoff/docs/02-design-principles.md, 6. Calm",
+    "text": "no counters in the sidebar",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-027",
+    "source": "workbook-handoff/docs/02-design-principles.md, 6. Calm",
+    "text": "no \"3 blocks need review.\"",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-028",
+    "source": "workbook-handoff/docs/02-design-principles.md, 6. Calm",
+    "text": "The only feedback is a short confirmation after an action (a toast).",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No toast component exists."
+  },
+  {
+    "id": "WB02-029",
+    "source": "workbook-handoff/docs/02-design-principles.md, 6. Calm",
+    "text": "Progress toward the weekly target is one bar and one line of text.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-030",
+    "source": "workbook-handoff/docs/02-design-principles.md, 7. Two choices, not three",
+    "text": "Where a choice has to be made (export type, delivery), offer two, or at most three obviously distinct options.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-031",
+    "source": "workbook-handoff/docs/02-design-principles.md, 7. Two choices, not three",
+    "text": "Sub-options appear only after the choice.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-032",
+    "source": "workbook-handoff/docs/02-design-principles.md, 8. Locked means locked, but not hidden",
+    "text": "Documents in the locked state are visible as a list with names blurred and a lock icon.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-033",
+    "source": "workbook-handoff/docs/02-design-principles.md, 8. Locked means locked, but not hidden",
+    "text": "The user can see that things exist and how many, without seeing what they are.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-034",
+    "source": "workbook-handoff/docs/02-design-principles.md, 8. Locked means locked, but not hidden",
+    "text": "One Unlock button.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-035",
+    "source": "workbook-handoff/docs/02-design-principles.md, 9. Drop zones and buttons both",
+    "text": "Anywhere files go in (Documents, Export extras), there is a drop zone and a conventional Add button. Never one without the other.",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB02-036",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "Plain sentences. \"Nothing was recorded.\" not \"No activity detected.\"",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/lib/labels.ts",
+    "note": "Duly's copy is in plain sentences, but no check enforces it and no WorkBook copy exists."
+  },
+  {
+    "id": "WB02-037",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "Buttons name the outcome: \"Mark day complete\", \"Create link\", \"Save zip\".",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "CLAUDE.md; web/src/components/CaseForm.tsx",
+    "note": "The rule is in CLAUDE.md and most Duly buttons follow it, but no check enforces it and the named buttons do not exist."
+  },
+  {
+    "id": "WB02-038",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "No em dashes or en dashes anywhere in the product.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+    "note": "The lint fails the build on a long dash."
+  },
+  {
+    "id": "WB02-039",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "No emoji.",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py; tests/unit/tools/test_copy_lint.py",
+    "note": "The lint fails the build on an emoji."
+  },
+  {
+    "id": "WB02-040",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "Never say \"AI-generated\"",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py (FORBIDDEN_PHRASES)",
+    "note": "The phrase fails the build in product copy."
+  },
+  {
+    "id": "WB02-041",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "say \"Written by AI\" and mark it",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No AI text is shown anywhere, so the phrase and the mark do not exist."
+  },
+  {
+    "id": "WB02-042",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "Never say \"sealed\" or \"cryptographic\"",
+    "kind": "design",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py (FORBIDDEN_PHRASES)",
+    "note": "Both words fail the build in product copy."
+  },
+  {
+    "id": "WB02-043",
+    "source": "workbook-handoff/docs/02-design-principles.md, 10. Copy rules",
+    "text": "say \"saved with a timestamp\" and \"check nothing changed.\"",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Neither phrase is on any screen."
+  },
+  {
+    "id": "WB02-044",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Type: IBM Plex Sans for UI",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css, web/package.json",
+    "note": "The token and the package exist; the font files are never imported."
+  },
+  {
+    "id": "WB02-045",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "IBM Plex Mono for times, hours, hashes",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css, web/package.json",
+    "note": "The token and the package exist; the font files are never imported."
+  },
+  {
+    "id": "WB02-046",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Ground: white #FFFFFF",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "Set in the workbook scope."
+  },
+  {
+    "id": "WB02-047",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "sidebar #F6F7F6",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No token holds this value."
+  },
+  {
+    "id": "WB02-048",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "hairlines #ECEFED and #E1E5E2",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The one hairline token is #eceeed, which is not #ECEFED, and the second value is missing."
+  },
+  {
+    "id": "WB02-049",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Ink: #141816",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "Set in the workbook scope."
+  },
+  {
+    "id": "WB02-050",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "secondary #56605B",
+    "kind": "design",
+    "status": "met",
+    "evidence": "web/src/design/tokens.css",
+    "note": "Set in the workbook scope as --ink-2."
+  },
+  {
+    "id": "WB02-051",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "tertiary #7A827E",
+    "kind": "design",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No token holds this value."
+  },
+  {
+    "id": "WB02-052",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Accent: green #1B7A57 for recording, progress, links, confirmations.",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The token exists; nothing uses it."
+  },
+  {
+    "id": "WB02-053",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "AI mark: amber #C08A2E",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "The token exists; nothing uses it."
+  },
+  {
+    "id": "WB02-054",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Destructive: #A1271E with pale border #F0D4D2",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "#a1271e exists only as --danger in the ops scope, and plan 03 says danger only in Ops; the pale border is missing."
+  },
+  {
+    "id": "WB02-055",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Radii: 9 to 14 px",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/design/tokens.css",
+    "note": "One radius of 10px is set in the workbook scope."
+  },
+  {
+    "id": "WB02-056",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Buttons 40 to 48 px tall",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css",
+    "note": "Buttons are 44px in the shared styles; no WorkBook button exists."
+  },
+  {
+    "id": "WB02-057",
+    "source": "workbook-handoff/docs/02-design-principles.md, Visual system",
+    "text": "Touch targets 34 px minimum",
+    "kind": "design",
+    "status": "partial",
+    "evidence": "web/src/styles.css",
+    "note": "The shared target is 44px, but one quiet button drops its minimum height to 0."
+  },
+  {
+    "id": "WB03-001",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, header",
+    "text": "Source of truth is prototype/workbook-v7.dc.html.",
+    "kind": "workbook",
+    "status": "partial",
+    "evidence": "workbook-handoff/prototype/workbook-v7.dc.html",
+    "note": "The prototype file is in the repository; nothing is built from it."
+  },
+  {
+    "id": "WB03-002",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "1280 x 840 desktop window.",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No window is created; specs/desktop-1/SPEC.md asks for 1200 by 860 for the Duly shell."
+  },
+  {
+    "id": "WB03-003",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Left sidebar 232 px, background #F6F7F6.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-004",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Main area padded 36 px top, 52 px sides.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-005",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Sidebar: \"WorkBook\" wordmark",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-006",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Sidebar: Today, Log, Documents, Exports",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-007",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Log is also active when History is open",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-008",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Sidebar: divider",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-009",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Sidebar: Your case",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-010",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "(push to bottom) recording status: green dot \"Recording\" with \"Pause\" link",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-011",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "when paused, grey dot \"Paused\" with \"Resume\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-012",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Toast on change: \"Paused\" or \"Recording again\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-013",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Feedback: opens a popover anchored above it.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-014",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Feedback popover: Title \"Tell us\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-015",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Feedback popover: Three chips: Request a tool, Problem, Idea.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-016",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Textarea with a placeholder that changes per chip (\"Which tool should we pull from? Jira, Zoom, Figma...\", \"What went wrong?\", \"What would make this better?\").",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-017",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Feedback footer: \"Sent without any of your records.\"",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-018",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Feedback: Cancel and Send.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-019",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Feedback toast: \"Thanks, sent.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-020",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Toasts: one at a time",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-021",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Toasts: bottom center of the main area",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-022",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Toasts: dark pill",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-023",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Frame",
+    "text": "Toasts: 2.4 s",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-024",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Header: \"Tuesday, October 6\" (the real date)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-025",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "under it \"6.2 hours so far\" (sum of today's entries, live)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-026",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Top right: \"12.6 of 20 hours this week\" over a 200 px progress bar",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-027",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "week = Monday to today",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-028",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Entry list, one row per block, separated by hairlines",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-029",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Column 1 (140 px): time range in mono, \"09:02  10:00\", two spaces between",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-030",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "\"14:40  now\" for the running block in green",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-031",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Column 2: entry text as a button; clicking toggles the detail below.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-032",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Amber star after the text when AI-drafted.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-033",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Column 3 (60 px): hours, mono, right aligned.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-034",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Column 4 (34 px): pencil.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-035",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Detail (open state, indented under the text): one line per source (\"From GitHub\", \"From Calendar\", \"From Meet\", \"Added by you\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-036",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "if AI: \"Written by AI from these events. Edit it to put it in your words.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-037",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "If edited: \"Edited by you. The original is kept in History.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-038",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Editing state (same row): time (read only), text input, hours input",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-039",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Editing state: bin (red outline, 40 px)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-040",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Editing state: Save (primary)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-041",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Editing state: X (in the pencil's column, cancels)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-042",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Enter saves, Escape cancels.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-043",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "On save: if text or hours changed, entry loses its AI flag, gains edited flag",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-044",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "On save: a History line is written (\"Entry edited\", before, after).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-045",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Toast \"Saved. The original is kept in History.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-046",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "If nothing changed: \"No changes\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-047",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "On bin: entry removed",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-048",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "On bin: History line \"Entry deleted\" with the text",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-049",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "On bin: toast \"Deleted. A copy stays in History.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-050",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Add: \"+ Add entry\" link at the bottom of the list.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-051",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Opens a row: time \"17:00\", text input with placeholder \"What did you work on?\", hours input, Add and Cancel.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-052",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Enter adds.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-053",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Source is \"Added by you\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-054",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "History line \"Entry added, 2026-10-06\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-055",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Footer right: \"Mark day complete\" primary button.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-056",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "After: green check \"Day complete. You can still edit.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-057",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "History line \"Day completed, Tue Oct 6, 5 entries, 6.2 hours\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-058",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Today",
+    "text": "Toast \"Saved\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-059",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Header: \"Log\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-060",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Right: search box (filters entry text live)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-061",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Right: a filter icon button",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-062",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Active filter chips appear left of the search box, dark, each \"label  x\", click removes that one filter.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-063",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Filter popover (380 px, anchored under the icon)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-064",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "\"Dates\": chips This week, This month, Last month, Everything",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-065",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "then From and To inputs (YYYY-MM-DD)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-066",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Typing a date clears the chip selection.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-067",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "\"From these tools\": chips GitHub, Calendar, Meet, Slack, Notion, Linear, Added by me. Multi-select.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-068",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "\"Show\": chips Everything, Written by AI, Edited, Added by me. Single-select.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-069",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Footer: live count \"14 entries\", Clear, Done.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-070",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "List: month sections. Section header: \"October 2026\" left, \"21.0 h\" right.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-071",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "one row per calendar day from today back to the earliest record, newest first",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-072",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Day label \"Tue, Oct 6\"; grey if the day has no entries.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-073",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Preview: first two entry texts joined with a comma, \"and N more\" if longer.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-074",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Today prefixed \"Still open.\" until complete.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-075",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Empty days show the day note (\"Day off\") or \"No work\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-076",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Hours, mono, blank for empty days.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-077",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Chevron.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-078",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Days with zero matching entries are hidden only when a text, tool, or Show filter is active.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-079",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "With no filter, every day shows.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-080",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Open day: entries indented, each with time, text (star, \"edited\" tag), hours, pencil.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-081",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Same inline edit as Today (without the bin).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-082",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Empty days show \"Nothing was recorded.\" plus \"Add a note\" (or the note plus \"Change\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-083",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "note editing is an input with placeholder \"Day off, sick, travel...\" and Save.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-084",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Every open day ends with a green \"+ Add entry\" that opens a row with time (placeholder 09:00), text, hours, Add, Cancel",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-085",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "[Add entry in an open day] adds to that specific date.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-086",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Log",
+    "text": "Footer: \"Every change ever made is kept.\" left, \"History\" link right.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-087",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "Back arrow, \"History\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-088",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "right: \"Check nothing changed\" button",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-089",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "after clicking, \"N items checked\" appears beside it",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-090",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "toast \"Nothing has changed since it was saved\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-091",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "List: one row per event, newest first: timestamp (mono, \"Oct 6, 14:31\"), title, chevron.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-092",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "Open: detail line",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-093",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "when there is a before and after, the old text struck through above the new text.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-094",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "Event titles used: \"Day completed, Mon Oct 5\", \"Entry edited\", \"Entry added, 2026-10-04\", \"Entry deleted\", \"Note added for 2026-10-03\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-095",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "Event titles used: \"EAD card opened\", \"Documents unlocked\", \"N documents added\", \"X removed\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-096",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "Event titles used: \"Weekly target changed\", \"Duty changed\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-097",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, History",
+    "text": "Event titles used: \"Full record, 2026-06-01 to 2026-10-06 exported\", \"Link revoked\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-098",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Locked (default): header \"Documents\" with one primary \"Unlock\" button.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-099",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Locked list: each row shows a lock icon, the name blurred (CSS blur, unselectable), and the added date.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-100",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Drop zone at the bottom stays usable [while locked].",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-101",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Unlock: clicking Unlock reveals a grey row: passphrase input, \"Unlock\" primary, \"Touch ID\" secondary, \"Locks again after 5 minutes.\"",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-102",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Enter or either button unlocks.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-103",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "History line \"Documents unlocked\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-104",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Toast \"Unlocked for 5 minutes\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-105",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Unlocked: header buttons Privacy (quiet), Lock, Add (primary, with plus icon, opens file picker).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-106",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Rows: name as a button (opens; History line \"X opened\" if that privacy switch is on)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-107",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Rows: added date",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-108",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Rows: red-outlined \"Remove\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-109",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Remove shows inline \"Remove? Yes No\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-110",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Yes removes, History line \"X removed, Deleted from this Mac\", toast \"Removed\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository. D7 also asks that final copy cover Windows, so 'this Mac' needs a second wording."
+  },
+  {
+    "id": "WB03-111",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Lock returns to the locked state, toast \"Locked\".",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-112",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Privacy (revealed): two-column grid of switches",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-113",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Privacy switch: Blur names while locked",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-114",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Privacy switch: Ask before exporting documents",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-115",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Privacy switch: Keep a record of every time a document is opened",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-116",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Privacy switch: Notify me when a document is opened",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-117",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "a \"Lock after\" select (1 minute, 5 minutes, 15 minutes, When I quit)",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-118",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "\"Encrypted on this Mac: Always\"",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No encrypted store exists; D7 also asks that final copy cover Windows."
+  },
+  {
+    "id": "WB03-119",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Drop zone: dashed box, \"Drop files here, or click to choose\" and \"Encrypted before it is saved. Any file type.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-120",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Drop zone highlights green on drag.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-121",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Dropped or picked files are added with date \"Today\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-122",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "History line \"N documents added\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-123",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "toast \"Added and encrypted\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-124",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Documents",
+    "text": "Default document list for an OPT founder: EAD card, I-20 with OPT recommendation, SEVP portal employer report, Articles of incorporation, EIN confirmation letter, Role description, Bank statement (September).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-125",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Three steps.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-126",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Header shows \"Exports\", then \"Preview\" (Step 2 of 3), then \"Send as\" (Step 3 of 3)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-127",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "a back arrow on steps 2 and 3",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-128",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Step 1: Two cards: \"Everything: All entries, sources and documents since Jun 1\" and \"Custom: Pick dates, sources and documents\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-129",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Everything is the default and sets the range to the start date through today.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-130",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Custom reveals a grey panel: Dates (chips This month, Last month, Last 3 months, Since Jun 1, plus From and To inputs)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-131",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Custom panel: Sources (all chips on by default, toggle off)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-132",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Custom panel: Documents (all chips on by default, toggle off)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-133",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Drop zone: \"Drop anything else to include, or click to choose. A pay stub, a letter, a screenshot.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-134",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Files show as chips with an x.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-135",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "\"Preview\" primary button with a live summary: \"128 days, 118.4 hours, 7 documents, 1 extra\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-136",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "If documents are included and locked and the privacy switch is on: \"Documents are locked, so you will be asked to unlock.\"",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-137",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Below: \"Made before\" list (timestamp, name, Open, and Revoke for links)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-138",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "the quiet RFE line: \"Received a Request for Evidence?\" with \"Build a response\".",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository. Plan 04 lists the RFE response builder screen as later, so only the line itself is in the first version."
+  },
+  {
+    "id": "WB03-139",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Step 2: Pack box: title row with pack name and total pages",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-140",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "numbered items with page counts: 1 Summary: role, dates, weekly hours (1 p)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-141",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "2 Timesheet, N entries",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-142",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "3 Source records: GitHub, Calendar, ...",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-143",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "then each document (1 p)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-144",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "each extra (1 p)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-145",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Method note: which entries were drafted by AI, all reviewed by you (1 p).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository. D6, the AI disclosure toggle in exports, is still open."
+  },
+  {
+    "id": "WB03-146",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "\"Timesheet, first rows\" box with the first four rows.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-147",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Toggle chip: Note which entries were written by AI (on)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "D6 (open)",
+    "note": "No WorkBook screen exists in the repository. D6 on this toggle is still open, so the default may change."
+  },
+  {
+    "id": "WB03-148",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Toggle chip: Hide other people's names (on)",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-149",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Toggle chip: Include edit history (off)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-150",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "\"Export\" primary, \"Change\" secondary (back to step 1).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-151",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Step 3: Three cards: Zip file (One file to attach or upload), Folder (Plain files on this Mac), Link (Opens in a browser, read-only).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository. D7 also asks that final copy cover Windows."
+  },
+  {
+    "id": "WB03-152",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Link reveals: \"Who can open it\": chips Only people I add (default) or Anyone with the link.",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-153",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "For people: email input with Add, chips for added emails",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-154",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "\"They sign in with that email to open it. You can revoke any time.\"",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-155",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "\"Link expires\" select: In 30 days, In 7 days, Never.",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-156",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "Button: \"Save zip\", \"Save folder\", or \"Create link\", with the pack name beside it.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-157",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "On success: added to \"Made before\" (links show \"link for 2 people\" or \"open link\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-158",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "On success: History line",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-159",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "On success: toast (\"Zip saved to ~/WorkBook/exports\", \"Link copied. Revoke it any time.\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-160",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Exports",
+    "text": "On success: back to step 1.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-161",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Header \"Your case\", right link \"Run setup again\" (goes to the setup flow).",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-162",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Two columns.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-163",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Left, with a pencil and inline edit: Status (\"F-1 OPT, Jun 1, 2026 to May 31, 2027\")",
+    "kind": "workbook",
+    "status": "superseded",
+    "evidence": "D9",
+    "note": "D9 gives legal status tagging to Duly onboarding, so WorkBook no longer owns editing the status; nothing is built either way."
+  },
+  {
+    "id": "WB03-164",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Left, with a pencil and inline edit: Role (\"Founding Engineer, Example Co\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-165",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Left, with a pencil and inline edit: Work type (\"Founder, self-employed\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-166",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Left, with a pencil and inline edit: Weekly target (\"20 hours a week\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-167",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Left, with a pencil and inline edit: Degree (\"M.Eng, Computer Science\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-168",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Left, with a pencil and inline edit: Duty x4 (\"Build backend services\", \"Write product specs\", \"Customer research\", \"Coordinate engineering\")",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-169",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Saving a changed value writes a History line with before and after.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-170",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: GitHub",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-171",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: Calendar and Meet",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-172",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: Slack",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-173",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: Linear and Notion",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-174",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: Figma (off)",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-175",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: AI summaries on this device",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository. D20 leaves cloud or on-device drafting open."
+  },
+  {
+    "id": "WB03-176",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Your case",
+    "text": "Right, switch: Read message content (off)",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-177",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Setup (separate prototype)",
+    "text": "See prototype/setup-onboarding.dc.html. Five steps",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "workbook-handoff/prototype/setup-onboarding.dc.html",
+    "note": "Only the prototype exists; D9 also limits setup to work details and context, so any legal status step moves to Duly onboarding."
+  },
+  {
+    "id": "WB03-178",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Setup (separate prototype)",
+    "text": "a left rail showing progress",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-179",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Setup (separate prototype)",
+    "text": "Options are large cards.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-180",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Setup (separate prototype)",
+    "text": "Warnings are amber panels.",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  },
+  {
+    "id": "WB03-181",
+    "source": "workbook-handoff/docs/03-screens-and-flows.md, Setup (separate prototype)",
+    "text": "The last step is a two-column summary and \"Start recording.\"",
+    "kind": "workbook",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook screen exists in the repository."
+  }
+]
