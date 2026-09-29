@@ -622,8 +622,38 @@ def _card(block: dict[str, Any] | None) -> tuple[date, date] | None:
     return date.fromisoformat(block["ead_start"]), date.fromisoformat(block["ead_end"])
 
 
+# SPEC-resolutions.md, points 11, 14, 15 and 16: the seven conflicts that joined the table of
+# section 1. The table of section 1 as written (CONFLICT_IDS) keeps its 13 rows; these are
+# tested row by row in tests/unit/engine/test_f1_windows.py.
+WINDOW_CONFLICT_IDS = (
+    "opt.i765_filed_date.before_recommendation",
+    "stem.i765_filed_date.before_recommendation",
+    "opt.i765_filed_date.after_file_by",
+    "stem.i765_filed_date.after_file_by",
+    "stem.i765_filed_date.before_window_opens",
+    "opt.i765_filed_date.after_window_closes",
+    "opt.ead_end.after_complete_by",
+)
+
+
+def _operative_value(raw_pack: dict[str, Any], rule_id: str) -> Any:
+    """The rule's value for the operative regime when the pack has a row for it, and its
+    one row otherwise (section 7: the enjoined value is an alternate, never the value)."""
+    operative = [r["id"] for r in raw_pack["regimes"] if r["operative"]]
+    for regime in operative:
+        try:
+            return rule_value(raw_pack, rule_id, regime)
+        except KeyError:
+            pass
+    return rule_value(raw_pack, rule_id)
+
+
 def conflicts_by_the_table(
-    case: dict[str, Any], today: date, opt_months: int, stem_months: int
+    case: dict[str, Any],
+    today: date,
+    opt_months: int,
+    stem_months: int,
+    raw_pack: dict[str, Any] | None = None,
 ) -> tuple[set[str], set[str]]:
     """specs/product-1/SPEC.md, section 1, row by row, written apart from the engine.
 
@@ -631,10 +661,48 @@ def conflicts_by_the_table(
     open. SPEC-resolutions.md, point 10, settled the one open point: a card whose last
     day is the day its months end is not a conflict. Nothing is left open, so the second
     set is empty; it is kept so that the callers read the same.
+
+    SPEC-resolutions.md, points 11, 14, 15 and 16 add seven rows (WINDOW_CONFLICT_IDS).
+    Their days are read from raw_pack (the test pack of 2026-09-28 unless one is passed),
+    never written here. Each is raised only when both of its dates are entered.
     """
     sure: set[str] = set()
     unsure: set[str] = set()
     opt, stem, gap = case.get("opt"), case.get("stem"), case.get("cap_gap")
+    rules = pack_dict() if raw_pack is None else raw_pack
+    program_end = _day(case.get("program_end_date"))
+    # Point 11: a filing on the recommendation day, or on the last day of the window, fits.
+    for part, block in (("opt", opt), ("stem", stem)):
+        if not block:
+            continue
+        filed = _day(block["i765_filed_date"])
+        recommended = _day(block["dso_recommendation_date"])
+        if filed is None or recommended is None:
+            continue
+        if filed < recommended:
+            sure.add(f"{part}.i765_filed_date.before_recommendation")
+        within = rule_value(rules, f"{part}.file_within_days_of_recommendation")
+        if filed > recommended + timedelta(days=within):
+            sure.add(f"{part}.i765_filed_date.after_file_by")
+    # Point 14: the STEM filing before opt.ead_end minus stem.apply_before_expiry_days.
+    opt_end = _day(opt["ead_end"]) if opt else None
+    stem_filed = _day(stem["i765_filed_date"]) if stem else None
+    if opt_end is not None and stem_filed is not None:
+        before = rule_value(rules, "stem.apply_before_expiry_days")
+        if stem_filed < opt_end - timedelta(days=before):
+            sure.add("stem.i765_filed_date.before_window_opens")
+    # Point 15: the OPT filing after program_end_date plus the operative opt.apply_after_days.
+    opt_filed = _day(opt["i765_filed_date"]) if opt else None
+    if program_end is not None and opt_filed is not None:
+        after = _operative_value(rules, "opt.apply_after_days")
+        if opt_filed > program_end + timedelta(days=after):
+            sure.add("opt.i765_filed_date.after_window_closes")
+    # Point 16: the OPT card ends after program_end_date plus opt.complete_within_months,
+    # whether or not STEM is entered. The day the months end fits.
+    if program_end is not None and opt_end is not None:
+        complete_by = months_later(program_end, rule_value(rules, "opt.complete_within_months"))
+        if opt_end > complete_by:
+            sure.add("opt.ead_end.after_complete_by")
     for part, block, months in (("opt", opt, opt_months), ("stem", stem, stem_months)):
         if not block:
             continue

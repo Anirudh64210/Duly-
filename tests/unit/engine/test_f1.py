@@ -113,6 +113,8 @@ ALL_IDS = {
     "unemployment.limit",
     "unemployment.days_used",
     "unemployment.days_remaining",
+    # SPEC-resolutions.md, point 19: the days counted inside the OPT card.
+    "unemployment.opt_card_days_used",
     "employment.days_under_hours",
     "employment.periods_not_reported",
     "grace.ends",
@@ -133,6 +135,8 @@ UNITS = {
     "unemployment.limit": "days",
     "unemployment.days_used": "days",
     "unemployment.days_remaining": "days",
+    # SPEC-resolutions.md, point 19: counted as unemployment.days_used counts, in days.
+    "unemployment.opt_card_days_used": "days",
     "employment.days_under_hours": "days",
     "employment.periods_not_reported": "count",
     "cpt.full_time_days_used": "days",
@@ -1162,10 +1166,16 @@ def test_not_knowing_wins_over_a_judgement_item():
 )
 def test_file_by_is_no_open_item_once_the_filing_is_recorded(recommended, file_by):
     # specs/product-1/SPEC.md, section 4, and SPEC-resolutions.md, point 5: opt.file_by
-    # is done once opt.i765_filed_date or opt.ead_start is recorded. CASE_A records both,
-    # so the date is still worked out but is an open item on no day. The lookahead is
+    # is done once opt.i765_filed_date or opt.ead_start is recorded. CASE_A records the
+    # card, so the date is still worked out but is an open item on no day. The lookahead is
     # tested on an item that is never done, in the test below.
-    out = run(with_block(CASE_A, "opt", dso_recommendation_date=recommended))
+    # SPEC-resolutions.md, point 11: CASE_A's filing of 2026-03-10 lies before each of these
+    # recommendations (opt.i765_filed_date.before_recommendation), and a filing on or after
+    # them would lie after the card of 2026-06-01 (after_card). Point 4: the facts are made
+    # to fit by leaving the filing out; with a date missing, point 11 raises none of its
+    # four, and the card alone makes opt.file_by done.
+    case = with_block(CASE_A, "opt", dso_recommendation_date=recommended, i765_filed_date=None)
+    out = run(case)
     assert values(out)["opt.file_by"] == file_by
     assert out["verdict"] == {"state": "no_open_items", "reasons": []}
 

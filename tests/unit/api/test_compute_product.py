@@ -189,16 +189,22 @@ def test_reading_on_each_item_is_what_the_rules_shown_say(client):
 def test_review_1_an_opt_card_of_three_years_is_asked_about(client):
     out = answered_200(client, with_block(OPT_CARD, "opt", ead_end="2028-10-31"))
     assert out["verdict"]["state"] == "cannot_tell"
-    assert conflicts(out) == ["opt.card_longer_than_rule"]
-    assert question_ids(out) == ["opt.card_longer_than_rule"]
+    # SPEC-resolutions.md, point 16: 14 months from the program end of 2025-09-15 is
+    # 2026-11-15, and the card runs through 2028-10-31, after it.
+    assert sorted(conflicts(out)) == ["opt.card_longer_than_rule", "opt.ead_end.after_complete_by"]
+    assert sorted(question_ids(out)) == sorted(conflicts(out))
 
 
 def test_review_1_a_filing_dated_2030_is_asked_about(client):
     out = answered_200(client, with_block(OPT_CARD, "opt", i765_filed_date="2030-01-01"))
     assert out["verdict"]["state"] == "cannot_tell"
+    # SPEC-resolutions.md, point 15: the OPT window closes 60 days after 2025-09-15, on
+    # 2025-11-14 (15 days reach Sep 30, 31 Oct 31, 14 more); 2030-01-01 is after it. No
+    # recommendation is entered, so point 11 raises nothing.
     assert set(conflicts(out)) == {
         "opt.i765_filed_date.after_today",
         "opt.i765_filed_date.after_card",
+        "opt.i765_filed_date.after_window_closes",
     }
 
 
@@ -254,10 +260,13 @@ def test_review_1_four_months_between_the_cards_are_asked_about(client):
 def test_the_answer_yes_with_the_about_of_the_question_is_for_the_dso(client):
     case = with_block(OPT_CARD, "opt", ead_end="2028-10-31")
     asked = answered_200(client, case)
-    given_yes = {"opt.card_longer_than_rule": True}
+    # SPEC-resolutions.md, point 16: the card through 2028-10-31 also ends after
+    # opt.complete_by (2026-11-15), a second conflict; a yes to each is for the DSO.
+    given_yes = {"opt.card_longer_than_rule": True, "opt.ead_end.after_complete_by": True}
     out = answered_200(client, answer_as_the_screen_does(case, asked, "2026-09-28", **given_yes))
     assert out["verdict"]["state"] == "talk_to_dso"
     assert "opt.card_longer_than_rule" in out["verdict"]["reasons"]
+    assert "opt.ead_end.after_complete_by" in out["verdict"]["reasons"]
     assert question_ids(out) == []
 
 
