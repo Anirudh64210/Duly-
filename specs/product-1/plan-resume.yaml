@@ -8,26 +8,51 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
-          Bring the older engine and api tests in line with specs/product-1/SPEC.md and
-          SPEC-resolutions.md, settled points 2 to 10, and add tests for points 7 and 8.
-          The engine builder's list of the tests that contradict the SPEC is in
-          engine/PROGRESS.md on branch lane/L-engine/l-engine-b63b2c6ea2 under
-          "Disputes"; read it with git show. Never loosen an assertion that the SPEC
-          supports: change a case so its facts fit, or expect what the SPEC says.
+          Bring these tests in line with specs/product-1/SPEC.md and SPEC-resolutions.md.
+          The engine that they must pass against is on branch
+          lane/L-engine/l-engine-209410c52d. Do not merge it (engine/ is outside your
+          lane); your done command copies this branch into a scratch folder, lays that
+          engine over it and runs tests/unit/engine there. Read the builder's reasons with
+          git show lane/L-engine/l-engine-209410c52d:engine/PROGRESS.md. Each one below
+          contradicts a settled point; fix the test, never the engine.
+          (1) tests/support/f1_pack.py: answered_yes, answered and answers must give every
+          confirmation an `about` naming the question it answers (point 7) and date it on
+          or before the case day the test runs (point 2), taking that day from the case or
+          the clock passed in.
+          (2) test_f1_context::test_an_item_is_open_on_the_persons_own_day: use a case with
+          no OPT filing recorded, so the apply window is an open item (point 5).
+          (3) test_f1_context::test_no_date_from_before_the_ead_blocks_a_case_that_holds_the_ead:
+          draw only dates on or before today, so no after_today conflict (section 1, point 4).
+          (4) test_f1_context::test_the_question_names_the_inputs_that_raised_it: expect
+          keys id, because and about (point 6).
+          (5) test_f1_context::test_the_answer_yes_counts_on_an_empty_list: date the
+          answer on or before the case day (point 2).
+          (6) test_f1_fixes::test_the_largest_case_is_counted_right and
+          test_the_largest_window_with_no_employment_is_counted_right: keep the largest
+          case large, but make each card no longer than its rule allows, so no
+          card_longer_than_rule conflict (point 4).
+          (7) test_f1_fixes::test_the_count_agrees_with_a_plain_day_by_day_count_on_small_windows:
+          start STEM the day after OPT ends, or assert null counts with the gap conflict
+          when there is a gap (point 4). Keep the day by day comparison for the no gap case.
+          Never loosen an assertion that the SPEC supports. Done means every test in
+          tests/unit/engine passes against that engine; say so in your report with the
+          pytest tail.
         done: >-
           bash -c 'uv run ruff check tests && uv run ruff format --check tests
-          && grep -rq "about" tests/unit/engine/test_f1_product.py'
+          && R=$PWD && d=$(mktemp -d) && git archive HEAD | tar -x -C $d
+          && git archive lane/L-engine/l-engine-209410c52d engine | tar -x -C $d
+          && cd $d && $R/.venv/bin/python -m pytest tests/unit/engine -q -p no:cacheprovider'
   - name: engine
     checkpoint: false
     lanes:
       - lane: L-engine
         agent: builder
         mission: >
-          Your earlier run built SPEC sections 1 to 6 on branch
-          lane/L-engine/l-engine-b63b2c6ea2 and escalated on tests that contradicted the
-          SPEC. Those are settled in specs/product-1/SPEC-resolutions.md and the tests are
-          now in line. First bring your earlier work in: git merge
-          lane/L-engine/l-engine-b63b2c6ea2. Then do points 7 and 8, and pass.
+          Your earlier runs built SPEC sections 1 to 6 and points 7 and 8 on branch
+          lane/L-engine/l-engine-209410c52d and escalated on seven tests that contradicted
+          the SPEC. The tests round has now fixed those tests on this branch. Bring your
+          work in first: git merge lane/L-engine/l-engine-209410c52d. Then run the done
+          command; fix anything left in engine/, and pass.
         done: >-
           bash -c 'uv run pytest tests/unit/engine -q && uv run python -m tools.gates.engine_literals
           && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
