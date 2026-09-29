@@ -65,6 +65,7 @@ export const OUTPUT = {
       alternates: [
         { regime: "fixed_admission_2026", legal_status: "enjoined", value: "2027-06-30" },
       ],
+      operative: { regime: "ds_2012", legal_status: "effective" },
     },
     {
       id: "cpt.full_time_days_used",

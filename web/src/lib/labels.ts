@@ -48,7 +48,7 @@ const ITEM_NAMES: ReadonlyMap<string, string> = new Map(
     "stem.apply_window_closes": "STEM OPT filing window closes",
     "stem.file_by": "Last STEM OPT filing day after the DSO recommendation",
     "stem.evaluation_12_month_due": "12-month evaluation due",
-    "stem.final_evaluation_due": "Final evaluation due",
+    "stem.final_evaluation_due_from_ead_end": "Final evaluation due, counted from the EAD end date",
     "cpt.full_time_days_used": "Full-time CPT days entered",
     "capgap.ends": "Cap-gap period ends",
   }),
@@ -84,6 +84,28 @@ const INPUT_NAMES: ReadonlyMap<string, string> = new Map(
     "cap_gap.requested_start": "Requested start date",
     "cap_gap.status": "Petition status",
     "cap_gap.change_of_status": "Change of status requested",
+    duly_settings: "Duly settings used, which are not law",
+  }),
+);
+
+// Mirrors the meaning lines in contracts/product_settings.yaml.
+const SETTING_NAMES: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    "product.open_item_lookahead_days": "How far ahead a dated item is listed as an open item",
+    "product.opt_start_earliest_years_before_program_end":
+      "How early an OPT start date is read as a likely typing mistake",
+  }),
+);
+
+export function settingName(settingId: string): string {
+  return SETTING_NAMES.get(settingId) ?? (plain(settingId) || "Setting");
+}
+
+// A whole part of the case that the engine found absent.
+const MISSING_PARTS: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    opt: "Duly needs the OPT dates.",
+    stem: "Duly needs the STEM OPT dates.",
   }),
 );
 
@@ -201,6 +223,10 @@ export function reasonText(reason: string, computed: readonly ComputedItem[] = [
   const split = reason.indexOf(":");
   const kind = split < 0 ? "" : reason.slice(0, split);
   const name = split < 0 ? "" : reason.slice(split + 1);
+  if (kind === "missing") {
+    const part = MISSING_PARTS.get(name);
+    if (part) return part;
+  }
   if (kind === "missing" && INPUT_NAMES.has(name)) {
     return `Duly needs the ${inputName(name)}.`;
   }

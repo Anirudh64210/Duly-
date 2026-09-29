@@ -75,6 +75,87 @@ Also ran, outside the done command:
    output. The zod parser is written from the json schemas by hand. Request: reference the two
    schemas from the OpenAPI file, and give the 422 a body shape.
 
+## 2026-09-29, iteration 2: findings 7 and 5 of the phase 2 review
+
+### Read
+
+web/PROGRESS.md, reviews/phase-2.md, specs/phase-2/SPEC-fixes.md, CLAUDE.md, BOUNDARY.md,
+DECISIONS.md, contracts/engine_output.schema.json (now has `operative`), engine/f1.py for the
+shape of `operative`, the renamed item, and the new missing name.
+
+### Built
+
+- web/src/lib/api-types.ts : regenerated with
+  `npx openapi-typescript contracts/openapi.yaml -o web/src/lib/api-types.ts`. No change in the
+  file. contracts/openapi.yaml did not change in the fixes round, and /v1/compute/f1 is still a
+  bare object there, so `operative` is not in the generated types. Request 2 of iteration 1 stands.
+- Finding 7. web/src/lib/compute.ts : the parser reads `operative` (strict: regime and
+  legal_status, nothing else) and refuses an item that has alternates and no `operative`.
+  web/src/components/Result.tsx : the label beside the main value is
+  `legalStatusWords(item.operative.legal_status)`. No legal status is written into the screen.
+- Finding 5. web/src/lib/labels.ts : the item is `stem.final_evaluation_due_from_ead_end` and
+  reads "Final evaluation due, counted from the EAD end date". The old id has no name left.
+- Found while checking against real engine output, fixed in a second commit:
+  - `missing:opt` (finding 1) read "Duly needs your opt." It now reads "Duly needs the OPT
+    dates." The same for `missing:stem`.
+  - The `duly_settings` input (rounds S and T) is a list of setting ids, and the screen showed
+    "This entry could not be shown." on most rows. It now shows under "Duly settings used, which
+    are not law", each setting by the meaning line of contracts/product_settings.yaml.
+
+### Tests added
+
+- App.test.tsx : an output whose operative regime is `appealed` shows "under appeal" and never
+  "in effect". An output with alternates and no `operative` shows "Can't tell yet" and no items.
+  The settings list shows by name.
+- compute.test.ts : keeps `operative` as given; refuses alternates without it; refuses an
+  `operative` with a missing or an extra field.
+- labels.test.ts : the renamed id in the SPEC list; the two missing parts; setting names.
+
+### Choices a reviewer may want to look at
+
+- Alternates without `operative` is treated as a malformed answer, so the whole result is
+  refused and the screen says it cannot tell. The other choice was to show "status not given"
+  beside the value. Refusing is stricter and the contract says `operative` is present with
+  alternates.
+- `operative` on an item with no alternates is accepted and not shown. The contract does not
+  forbid it and the row has one value with nothing to compare.
+
+### Ran
+
+```
+bash -c 'npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0 && npx prettier --check "web/**/*.{ts,tsx,css,html,json}" && uv run python -m tools.copy_lint.lint'
+```
+
+Printed: typecheck clean; Test Files 5 passed (5), Tests 80 passed (80); coverage statements
+94.78%, branches 89.76%; eslint clean; "All matched files use Prettier code style!"; "copy lint:
+clean".
+
+Runs before that one: the first failed on a test of mine that looked for a button by a name the
+screen does not have; the second failed eslint on two unused variables in tests. Both were in
+the new tests, not in the code under test.
+
+Also ran, outside the done command: `compute_f1` on the real pack with FixedClock 2026-09-28 and
+the case from the review, json written to /tmp, parsed by `engineOutputSchema` in a throwaway
+test. 22 items parsed. `operative` was `ds_2012`, `effective` on opt.apply_window_closes,
+opt.latest_start and grace.ends. The same case without `opt` gave `cannot_tell` with
+`missing:opt`. The throwaway test was deleted.
+
+### Not done, not verified
+
+- Still not seen in a browser against a live api.
+- The real pack has no operative regime other than `effective`, so "under appeal" is proven
+  with made up output only.
+
+### Requests for files this lane does not own
+
+1. Request 1 of iteration 1 is answered by the contract change. Closed.
+2. Request 2 of iteration 1 stands: contracts/openapi.yaml, reference the two json schemas and
+   give the 422 a body shape.
+3. contracts/engine_output.schema.json and engine/f1.py : `duly_settings` carries setting ids
+   only. The screen can name a setting but cannot show its value, since the web code holds no
+   numbers of its own. Request: carry each setting used with its value and unit, the way `rules`
+   carries each rule.
+
 ## Lesson
 
 - failure: openapi-typescript turns a bare `type: object` into `Record<string, never>`, so a type
@@ -90,3 +171,13 @@ Also ran, outside the done command:
   for a fresh read.
 - fix: run prettier once at the end of a batch of writes, then read before any further edit.
 - evidence: iteration 1, after the first prettier run.
+
+## Lesson
+
+- failure: the fixtures were hand written from the contract, so two shapes the engine really
+  sends (`duly_settings` as a list of ids, `missing:opt` as a whole part) showed on the screen
+  as "This entry could not be shown." and "Duly needs your opt." with every test passing.
+- fix: after any contract or engine change, run `compute_f1` on the real pack with a FixedClock
+  (`PYTHONPATH=. uv run python <script>`), parse the json with `engineOutputSchema`, and read
+  the input keys and the reasons for names the labels do not know.
+- evidence: iteration 2; web/src/lib/labels.ts, SETTING_NAMES and MISSING_PARTS.

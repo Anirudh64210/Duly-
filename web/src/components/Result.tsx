@@ -12,6 +12,7 @@ import {
   legalStatusWords,
   reasonText,
   scopeLine,
+  settingName,
   statusTag,
 } from "../lib/labels";
 import { headline } from "../lib/status";
@@ -41,6 +42,15 @@ function InputValue({ value }: { value: unknown }) {
   if (typeof value === "boolean") return <>{value ? "Yes" : "No"}</>;
   if (Array.isArray(value)) {
     if (value.length === 0) return <>None entered</>;
+    if (value.every((entry) => typeof entry === "string")) {
+      return (
+        <ul className="periods">
+          {value.map((entry) => (
+            <li key={entry}>{settingName(entry)}</li>
+          ))}
+        </ul>
+      );
+    }
     return (
       <ol className="periods">
         {value.map((entry, index) => (
@@ -77,11 +87,13 @@ function Values({ item }: { item: ComputedItem }) {
   if (alternates.length === 0) {
     return <span className="value">{formatValue(item.value, item.unit)}</span>;
   }
+  // The status is the one the engine read from the pack. The screen holds none of its own.
+  const operative = item.operative?.legal_status ?? "";
   return (
     <span className="regimes">
       <span className="regime">
         <span className="value">{formatValue(item.value, item.unit)}</span>
-        <span className="legal">{legalStatusWords("effective")}</span>
+        <span className="legal">{legalStatusWords(operative)}</span>
       </span>
       {alternates.map((alternate) => (
         <span className="regime" key={alternate.regime}>

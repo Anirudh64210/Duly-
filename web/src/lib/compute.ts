@@ -82,6 +82,8 @@ export const engineOutputSchema = z
             }),
           )
           .optional(),
+        // The regime the item's value was computed under, and its legal status from the pack.
+        operative: z.strictObject({ regime: z.string(), legal_status: z.string() }).optional(),
       }),
     ),
     rulepacks: z.array(z.strictObject({ category: z.string(), version: z.string() })),
@@ -104,6 +106,14 @@ export const engineOutputSchema = z
     (output) =>
       output.computed.every((item) => item.rule_ids.every((id) => Object.hasOwn(output.rules, id))),
     { message: "a computed item names a rule that has no source" },
+  )
+  // A value beside alternates is never shown without the legal status the pack gives it.
+  .refine(
+    (output) =>
+      output.computed.every(
+        (item) => (item.alternates ?? []).length === 0 || item.operative !== undefined,
+      ),
+    { message: "an item with alternates does not name its operative regime" },
   );
 
 export type EngineOutput = z.infer<typeof engineOutputSchema>;
