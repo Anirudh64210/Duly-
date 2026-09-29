@@ -200,6 +200,100 @@ uv run python -m tools.diff_policy.check --base phase-2
   diff policy: lane L-content, 0 file(s), clean   (run before the commit)
 ```
 
+## 2026-09-29, iteration 4, context round
+
+### State
+
+Section 1 of specs/phase-2/SPEC-context.md is done for every rule in every pack. Only f1-us has rules; h1b-us, o1-us and eb1a-us are empty and needed no change. The flag named in section 4 is in the pack. The done command passes. Nothing is reviewed by the founder yet.
+
+### What I did
+
+1. Read PRINCIPLES.md, the SPEC, and this log.
+2. Printed every quote with 500 characters of the saved source on each side, from the saved copy named in the row, and read each one. Every quote is found once in its saved copy.
+3. Marked each row verbatim or reading from what the words say, not from what the check accepts.
+4. Read paragraph (f)(10)(ii)(C) from its heading to the end of (C)(6) in the 2026-09-14 and 2026-09-15 texts, and every place the saved 81 FR 13040 says valid period of post-completion OPT.
+5. Added stem.requires_post_completion_opt. No value and no quote of an existing row changed. No rule was removed. No new source was fetched.
+
+### How each row was marked
+
+| Rule | Value | Words in the quote that carry it | Derivation |
+|---|---|---|---|
+| opt.apply_before_days | 90 | "up to 90 days prior to" | verbatim |
+| opt.apply_after_days, ds_2012 | 60 | "no later than 60 days after" | verbatim |
+| opt.apply_after_days, fixed_admission_2026 | 30 | "no later than 30 days after" | verbatim |
+| opt.latest_start_after_days, ds_2012 | 60 | "more than 60 days after" | verbatim |
+| opt.latest_start_after_days, fixed_admission_2026 | 30 | "more than 30 days after" | verbatim |
+| opt.file_within_days_of_recommendation | 30 | "within 30 days of the date the DSO enters" | verbatim |
+| opt.max_months | 12 | "12 months of practical training" | verbatim |
+| opt.complete_within_months | 14 | "within a 14-month period" | verbatim |
+| opt.unemployment_limit_days | 90 | "more than 90 days of unemployment" | verbatim |
+| stem.unemployment_limit_days | 150 | "more than 150 days of unemployment" | verbatim |
+| stem.extension_months | 24 | "will be for 24 months" | verbatim |
+| stem.apply_before_expiry_days | 90 | "up to 90 days prior to the expiration date" | verbatim |
+| stem.file_within_days_of_recommendation | 60 | "within 60 days of the date the DSO enters" | verbatim |
+| stem.min_hours_per_week | 20 | "less than 20 hours per week" | verbatim |
+| stem.validation_interval_months | 6 | "every six months", a number word | verbatim |
+| stem.validation_due_business_days | 10 | "within 10 business days" | verbatim |
+| stem.evaluation_due_days | 10 | "no later than 10 days following" | verbatim |
+| stem.new_plan_due_days | 10 | "within 10 days of beginning" | verbatim |
+| grace.after_completion_days, ds_2012 | 60 | "an additional 60-day period" | verbatim |
+| grace.after_completion_days, fixed_admission_2026 | 30 | "an additional 30-day period" | verbatim |
+| opt.min_hours_per_week | 20 | "at least 20 hours per week" | verbatim |
+| capgap.end_month_day, to 2025-01-16 | 10-01 | "until October 1 of the fiscal year" | verbatim |
+| capgap.end_month_day, from 2025-01-17 | 04-01 | "until April 1 of the fiscal year" | verbatim |
+| stem.evaluation_interval_months | 12 | "within 12 months of the approved starting date" | verbatim, see the limits below |
+| opt.report_employer_within_days | 10 | "within 10 days" | verbatim |
+| cpt.full_time_months_bar | 12 | "one year or more" | reading |
+| cpt.full_time_bar_days | 365 | "one year or more" | reading, status school |
+| stem.apply_window_closes_rule | true | "while in a valid period of post-completion OPT" | reading |
+| capgap.fiscal_year_start_month_day | 10-01 | "The fiscal year of the Treasury begins on October 1" | reading |
+| calendar.federal_holidays_law | true | the list in 5 U.S.C. 6103(a) | reading |
+| stem.requires_post_completion_opt | true | "may apply for an extension of OPT while in a valid period of post-completion OPT" | reading |
+
+### Rows marked reading although the source check would accept verbatim
+
+The check accepts any flag as written, and accepts 10-01 when the quote says October 1. Three rows pass that test and are still readings, because the words do not say what the rule says:
+
+- capgap.fiscal_year_start_month_day. October 1 is in the statute, about the fiscal year of the Treasury. The cap-gap paragraph says fiscal year and names no date. Joining the two is Duly's step.
+- calendar.federal_holidays_law. The list is in the statute. 8 CFR 214.2(f) says business days and does not point to the list.
+- stem.apply_window_closes_rule. The regulation states a condition and names no date.
+
+### stem.requires_post_completion_opt
+
+- Paragraph: the first sentence of 8 CFR 214.2(f)(10)(ii)(C). Same words in the 2026-09-14 and 2026-09-15 texts, so no regime.
+- The words are "may apply ... while in a valid period of post-completion OPT". The regulation does not say only, and does not say must. So the flag is a reading.
+- The words "only if the student is in a valid period of post-completion OPT at the time of filing" are in the preamble of 81 FR 13040, twice. That is the agency explaining the rule. It is named in the note and not quoted as the rule.
+- The list of requirements in (C)(1) to (C)(6) that follows "all of the following requirements must be met" does not include holding post-completion OPT. The condition is only in the opening sentence.
+- The same quote, without its first clause, already supports stem.apply_window_closes_rule. One sentence carries both rules.
+
+### Limits the founder needs to know
+
+1. stem.evaluation_interval_months is marked verbatim because 12 months is written in the quote. The id says interval and the regulation states no repeating interval. The note says so. If the engine uses the value as a repeating interval, that use is a reading, and the founder may want the row marked reading or the id changed. An id change is a contract matter for other lanes.
+2. cpt.full_time_bar_days has status school. The SPEC asks for derivation on the four other statuses only, and the check does not look at school rows. I marked it reading anyway, so the screen can show that 365 is not in the law. Under D35 the founder may want this row removed: the law does not state a number of days, and no school document is saved with the pack.
+3. The regulatory text in 81 FR 13040 at 8 CFR 214.16 excepted students on a 17-month extension from the valid period requirement. I did not check whether 8 CFR 214.16 is still in the Code. No copy is saved.
+4. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is still not saved and was not read.
+5. The note of a reading begins with one sentence that starts "Reading:" and says how the value was read. The rest of the note holds the start date and the limits, as before. If the screen shows the whole note, it shows all of that.
+
+### Requests to other lanes
+
+- L-engine, L-web: for a reading, the first sentence of the note is the one that says how the value was read. The note has more after it.
+- L-engine: stem.requires_post_completion_opt is a reading with status settled. The talk_to_dso output should show the quoted words and the note, and state no conclusion.
+- L-tests: tests/support/f1_pack.py may cite the first sentence of (f)(10)(ii)(C) for the new flag, starting 2016-05-10, derivation reading.
+
+### What ran
+
+```
+uv run python -m tools.sources.verify rulepacks
+  before: sources: 29 problem(s), each "needs derivation, verbatim or reading"
+  after:  sources: 4 pack(s) checked, every quote found
+uv run pytest tests/unit/engine/test_rulepack.py -q
+  19 passed
+grep -q "stem.requires_post_completion_opt" rulepacks/f1-us/v2026.09/parameters.yaml
+  exit 0
+uv run python -m tools.copy_lint.lint
+  copy lint: clean
+```
+
 ## Lesson
 
 ### The bash guard reads mkdir -p as a compose project flag
@@ -267,3 +361,9 @@ uv run python -m tools.diff_policy.check --base phase-2
 - Failure: the SPEC pointed to (f)(11)(i)(C) for the closing of the STEM filing window. That paragraph has only the opening, "up to 90 days prior to the expiration date".
 - Fix: search the whole section for the condition, not only the paragraph named. A paragraph that starts "Consistent with paragraph ..." points at its pair. Cite the paragraph that holds the words.
 - Evidence: 2026-09-14 text, opening of (f)(10)(ii)(C): "Consistent with paragraph (f)(11)(i)(C) of this section, a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT".
+
+### The source check accepts more than the law says
+
+- Failure: none, a trap. The check marks any flag as written, and finds October 1 in a quote about the Treasury. A row can pass as verbatim while the rule it stands for is Duly's own step.
+- Fix: decide the derivation from the words and the rule's meaning first, then run the check. Ask: do the quoted words, alone, say what the id says? If a second source or a step of reasoning is needed, it is a reading.
+- Evidence: tools/sources/verify.py, value_is_written returns True for every bool; capgap.fiscal_year_start_month_day reports written True and its own note says the link is a reading.
