@@ -116,6 +116,27 @@ def clean(repo: Path) -> int:
     return 0
 
 
+def handled(repo: Path, seal: str, note: str) -> int:
+    """Record that an alert was dealt with, and how. The alert itself is never removed."""
+    rows = [r for r in ledger.read(repo) if r.get("kind") == "alert"]
+    found = [r for r in rows if str(r.get("hash", "")).startswith(seal)] if seal else []
+    if len(found) != 1:
+        print("Name one alert by the start of its seal. Open alerts:")
+        done = {r.get("handles") for r in ledger.read(repo) if r.get("handles")}
+        for row in rows:
+            if row.get("hash") not in done:
+                print(f"  {row['hash'][:10]}  {row['at']}  {row['message'][:90]}")
+        return 1
+    if not note.strip():
+        print('Say how it was dealt with: --note "..."')
+        return 1
+    ledger.append(
+        "founder", "founder", "control", f"handled: {note.strip()}", repo, handles=found[0]["hash"]
+    )
+    print("Recorded.")
+    return 0
+
+
 def metrics(repo: Path) -> int:
     print(json.dumps(telemetry.summary(telemetry.read_runs(repo)), indent=2))
     return 0
@@ -124,14 +145,18 @@ def metrics(repo: Path) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "command", choices=["stop", "resume", "status", "doctor", "clean", "metrics"]
+        "command", choices=["stop", "resume", "status", "doctor", "clean", "metrics", "handled"]
     )
     parser.add_argument("--reason", default="the founder stopped the factory")
     parser.add_argument("--agent", default="")
+    parser.add_argument("--alert", default="")
+    parser.add_argument("--note", default="")
     args = parser.parse_args()
     repo = main_repo(Path.cwd())
     if args.command == "stop":
         return stop(repo, args.reason)
+    if args.command == "handled":
+        return handled(repo, args.alert, args.note)
     if args.command == "doctor":
         return doctor(repo, args.agent)
     return {"resume": resume, "status": status, "clean": clean, "metrics": metrics}[args.command](

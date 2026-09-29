@@ -224,6 +224,17 @@ def live_runs(repo: Path) -> list[dict[str, Any]]:
     return sorted(out, key=lambda r: r["started_at"])
 
 
+def open_alerts(events: list[dict[str, Any]], own: set[str]) -> list[dict[str, Any]]:
+    """Alerts nobody has dealt with yet. One that was dealt with stays in the record of
+    actions, with the line that says how, and leaves this list."""
+    done = {e.get("handles") for e in events if e.get("handles")}
+    return [
+        e
+        for e in events
+        if e.get("kind") == "alert" and e.get("run_id") not in own and e.get("hash") not in done
+    ]
+
+
 def factory_runs(events: list[dict[str, Any]]) -> set[str]:
     """Runs that test the factory itself: health checks, golden tasks, drift checks."""
     return {
@@ -588,7 +599,7 @@ def load(
             2,
         ),
         day_cap=day_cap,
-        alerts=[e for e in events if e.get("kind") == "alert" and e.get("run_id") not in own][-30:],
+        alerts=open_alerts(events, own)[-30:],
         metrics=agent_metrics(runs),
         reviews=read_jsonl(factory / "reviews.jsonl")[-20:],
         ledger_problems=ledger_problems(events),

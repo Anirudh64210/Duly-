@@ -14,7 +14,7 @@ from typing import Any
 import yaml
 
 from engine.clocks import SystemClock
-from tools.factory import agent_run, alerts, jail, sandbox, worktree
+from tools.factory import agent_run, alerts, jail, ledger, sandbox, worktree
 from tools.factory.config import load_config, review_problems
 from tools.factory.paths import main_repo, state_dir
 
@@ -146,6 +146,23 @@ def main() -> int:
     with (state_dir(repo) / "golden.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row) + "\n")
     print(f"golden: {rate:.0%} passed, {need:.0%} needed")
+    if rate >= need:
+        # A pass answers every earlier alert about the golden tasks.
+        answered = {r.get("handles") for r in ledger.read(repo) if r.get("handles")}
+        for row in ledger.read(repo):
+            if (
+                row.get("alert") == "eval_drop"
+                and "golden tasks" in row.get("message", "")
+                and row.get("hash") not in answered
+            ):
+                ledger.append(
+                    "founder",
+                    "orchestrator",
+                    "control",
+                    f"handled: golden tasks passed at {rate:.0%}",
+                    repo,
+                    handles=row["hash"],
+                )
     if rate < need:
         alerts.notify("eval_drop", f"golden tasks: {rate:.0%} passed, {need:.0%} needed", cwd=repo)
         return 1

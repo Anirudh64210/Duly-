@@ -433,3 +433,11 @@ def test_whoever_is_working_comes_first_and_running_checks_are_shown(tmp_path):
         ("L-api", False, "work"),
     ]
     assert snap.agents[0].last_action == "writes ops/HEALTH.txt"
+
+
+def test_an_alert_that_was_dealt_with_leaves_the_list():
+    first = {**ev("founder", "alert", "eval_drop: golden tasks: 0% passed"), "hash": "aaa"}
+    second = {**ev("L-api", "alert", "loop: the same action"), "hash": "bbb"}
+    fixed = {**ev("founder", "control", "handled: fixed and rerun"), "handles": "aaa"}
+    assert [a["hash"] for a in data.open_alerts([first, second], set())] == ["aaa", "bbb"]
+    assert [a["hash"] for a in data.open_alerts([first, second, fixed], set())] == ["bbb"]
