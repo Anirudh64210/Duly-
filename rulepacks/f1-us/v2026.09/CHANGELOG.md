@@ -37,3 +37,8 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - Added opt.report_employer_within_days, 10 days, guidance, from Study in the States. The regulation states no number for post-completion OPT.
 - Added calendar.federal_holidays_law, true, settled, from 5 U.S.C. 6103(a), with the list of eleven holidays quoted.
 - Saved copies of 31 U.S.C. 1102 and 5 U.S.C. 6103 under sources/.
+
+### 2026-09-28, lane L-content, third pass, drafted for founder review
+
+- Added opt.latest_start_after_days, 60 days under ds_2012 and 30 days under fixed_admission_2026, litigated, from 8 CFR 214.2(f)(11)(i)(D).
+- Added stem.apply_window_closes_rule, true, settled, from the opening text of 8 CFR 214.2(f)(10)(ii)(C). Paragraph (f)(11)(i)(C) states the opening of the window and no closing. The source states a condition and names no date.

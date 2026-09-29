@@ -68,6 +68,34 @@ parameters:
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
     note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime."
+  - id: opt.latest_start_after_days
+    value: 60
+    unit: days
+    status: litigated
+    regime: ds_2012
+    effective_from: 2008-04-08
+    source:
+      citation: "8 CFR 214.2(f)(11)(i)(D), text of 2026-09-14"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-28
+      quote: "A student may not request a start date that is more than 60 days after the student's program end date."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    note: "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which has the same sentence. Words checked in the 2026-09-14 text. The final rule at 91 FR 44976 replaces 60 with 30 in this sentence, so the rule is recorded under both regimes. The next sentence of the paragraph says employment authorization will begin on the date requested or the date the employment authorization is adjudicated, whichever is later; this row limits the date a student may request, not the date the authorization begins."
+  - id: opt.latest_start_after_days
+    value: 30
+    unit: days
+    status: litigated
+    regime: fixed_admission_2026
+    effective_from: 2026-09-15
+    source:
+      citation: "8 CFR 214.2(f)(11)(i)(D), text of 2026-09-15, as amended by 91 FR 44976"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-28
+      quote: "A student may not request a start date that is more than 30 days after the student's program end date."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
+      snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
+    note: "Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. The preamble of that rule says DHS replaced 60 with 30 in 8 CFR 214.2(f)(11)(i)(D). A court postponed the effective date on 2026-09-14; see the regime."
   - id: opt.file_within_days_of_recommendation
     value: 30
     unit: days
@@ -159,6 +187,19 @@ parameters:
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text."
+  - id: stem.apply_window_closes_rule
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-28
+      quote: "a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text; the 2026-09-15 text has the same words, so the rule sits under no regime. The SPEC pointed to (f)(11)(i)(C). That paragraph states only the opening of the window, up to 90 days prior to the expiration date of the current OPT employment authorization, and states no closing. The closing is in the opening text of (f)(10)(ii)(C), quoted here, which begins with the words Consistent with paragraph (f)(11)(i)(C) of this section. The regulation states the closing as a condition, while in a valid period of post-completion OPT, and names no date. The preamble of 81 FR 13040 says a student may file only if the student is in a valid period of post-completion OPT at the time of filing, and that a period extended under cap-gap is a valid period. So the window can close later than the expiration date on the employment authorization document. That the window closes on that expiration date is a reading, not the words of the source."
   - id: stem.file_within_days_of_recommendation
     value: 60
     unit: days
