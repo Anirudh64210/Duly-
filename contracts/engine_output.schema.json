@@ -6,11 +6,13 @@
   "additionalProperties": false,
   "required": [
     "computed",
+    "lists",
     "questions",
     "rulepacks",
     "rules",
     "scope",
     "today",
+    "upcoming",
     "verdict"
   ],
   "properties": {
@@ -70,7 +72,8 @@
           "unit",
           "inputs",
           "rule_ids",
-          "status"
+          "status",
+          "reading"
         ],
         "properties": {
           "id": {
@@ -149,6 +152,10 @@
               }
             },
             "description": "Present with alternates. The regime whose value is shown as the item's value, and that regime's legal status from the pack."
+          },
+          "reading": {
+            "type": "boolean",
+            "description": "True when any rule this item used is Duly's reading of the source and not the source's own words. The screen marks the item wherever it is shown."
           }
         }
       }
@@ -248,6 +255,10 @@
               "type": "string"
             },
             "minItems": 1
+          },
+          "about": {
+            "type": "object",
+            "description": "The values of the inputs that raised the question. The screen sends them back with the answer, so that an answer is never carried over to values it was not given for."
           }
         }
       }
@@ -266,6 +277,118 @@
         },
         "time_zone": {
           "type": "string"
+        }
+      }
+    },
+    "upcoming": {
+      "type": "array",
+      "description": "The dated items that lie ahead of today on the person's path, soonest first. Arithmetic only: a date, its rules, and nothing about what the person can or should do.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "date",
+          "rule_ids",
+          "status",
+          "reading"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "status": {
+            "enum": [
+              "settled",
+              "guidance",
+              "litigated",
+              "proposed",
+              "school"
+            ]
+          },
+          "reading": {
+            "type": "boolean"
+          },
+          "alternates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "regime",
+                "legal_status",
+                "value"
+              ],
+              "properties": {
+                "regime": {
+                  "type": "string"
+                },
+                "legal_status": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "operative": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "regime",
+              "legal_status"
+            ],
+            "properties": {
+              "regime": {
+                "type": "string"
+              },
+              "legal_status": {
+                "type": "string"
+              }
+            },
+            "description": "Present with alternates. The regime whose value is shown as the item's value, and that regime's legal status from the pack."
+          }
+        }
+      }
+    },
+    "lists": {
+      "type": "array",
+      "description": "What an official source lists for a step that lies ahead. Each entry names rules whose quotes the screen shows as written.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "rule_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$"
+          },
+          "rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
         }
       }
     }

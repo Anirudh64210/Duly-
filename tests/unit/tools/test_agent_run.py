@@ -308,3 +308,14 @@ def test_an_agents_own_commits_never_carry_its_report(tmp_path, monkeypatch):
     log = mini.git(repo, "log", "--format=%an %s", f"{out.base_commit}..{out.branch}")
     assert log.splitlines() == ["builder L-engine: Add engine/new.py. Nothing else."]
     assert ".lane" not in mini.git(repo, "ls-tree", "-r", "--name-only", out.branch)
+
+
+def test_the_founders_work_on_another_branch_does_not_fail_a_run(tmp_path, monkeypatch):
+    elsewhere = [
+        {"init": mini.MODEL},
+        {"git": ["branch", "founder-work", "HEAD"]},
+        {"git": ["branch", "-f", "founder-work", "HEAD~0"]},
+        *mini.good(["engine/new.py"])[1:],
+    ]
+    _, out = play(tmp_path, monkeypatch, [elsewhere])
+    assert out.status == "done", out.reason

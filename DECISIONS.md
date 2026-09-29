@@ -66,3 +66,11 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 | D38 | Order of work | The factory is made production grade first, against the founder's 50 item checklist, every item. Infrastructure, then the agent system, then Duly. No product agent runs until then | Decided |
 | D39 | First use of the F-1 screen | Arithmetic was right. Wording and the two-regime display were hard to read, and nothing was said about what comes next (STEM OPT). Recorded in specs/product/BACKLOG.md | Recorded |
 | D40 | Branch protection on GitHub | Left as it is for now. Raise it again when a finished version is close | Parked |
+
+## 2026-09-29, round 6
+
+| # | Topic | Decision | Status |
+|---|---|---|---|
+| D41 | A student with no OPT, STEM OPT or cap-gap entered | Duly asks first. No quiet verdict until the person has said there is nothing more to record | Decided |
+| D42 | Next work | The product backlog through the factory, then a desktop window (Electron) the founder can test on this Mac. Quality, accuracy and safety first, for the build and for Duly's liability | Decided |
+| D43 | Model | If the pinned model's limit is reached, the factory's agents move to claude-opus-5-5 | Decided |

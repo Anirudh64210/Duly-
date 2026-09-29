@@ -286,26 +286,20 @@ def watch(
             out.session = str(event.get("session_id") or out.session)
 
 
-def protected_state(repo: Path) -> dict[str, str]:
+def protected_state(repo: Path, branches: list[str]) -> dict[str, str]:
     """What no agent may change in the shared repository, as it stands now.
 
-    Lane branches are left out: each belongs to its own run, and the orchestrator only
-    ever merges the one commit it checked.
+    The branches named in the config, the branch the run started from, the branch the
+    plan lands on, every tag, and git's own config and hooks. Other branches are left
+    out: the founder may be at work on one, and the orchestrator only ever merges the one
+    commit it checked.
     """
-    refs = worktree.git(
-        [
-            "for-each-ref",
-            "--format=%(refname) %(objectname)",
-            "refs/heads",
-            "refs/tags",
-            "refs/remotes",
-        ],
-        repo,
-    )
-    state = {}
+    refs = worktree.git(["for-each-ref", "--format=%(refname) %(objectname)"], repo)
+    watched = {f"refs/heads/{name}" for name in branches}
+    state = dict.fromkeys(watched, "absent")
     for line in refs.splitlines():
         name, _, value = line.partition(" ")
-        if not name.startswith("refs/heads/lane/"):
+        if name in watched or name.startswith("refs/tags/"):
             state[name] = value
     for rel in ("config", "hooks"):
         path = repo / ".git" / rel
@@ -476,7 +470,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     )
     env = sandbox.environment(dict(os.environ), repo, tree.path, task.lane, task.run_id, task.done)
     home = home_of(lane)
-    before = protected_state(repo)
+    before = protected_state(repo, protected)
     ledger.append(
         task.lane,
         task.agent,
@@ -624,7 +618,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             repo,
         )
 
-        after = protected_state(repo)
+        after = protected_state(repo, protected)
         if after != before:
             changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
             alerts.notify(

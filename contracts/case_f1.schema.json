@@ -30,10 +30,13 @@
       "maximum": 10000
     },
     "cpt_full_time_days": {
-      "type": "integer",
+      "type": [
+        "integer",
+        "null"
+      ],
       "minimum": 0,
-      "default": 0,
-      "maximum": 5000
+      "maximum": 5000,
+      "description": "Full-time CPT days as the person entered them. Absent or null means nothing was entered. It is never taken as zero."
     },
     "opt": {
       "type": [
@@ -214,7 +217,7 @@
       "type": "object",
       "maxProperties": 20,
       "propertyNames": {
-        "pattern": "^[a-z0-9_]+$"
+        "pattern": "^[a-z0-9_.:]+$"
       },
       "additionalProperties": {
         "type": "object",
@@ -231,6 +234,10 @@
             "type": "string",
             "format": "date",
             "pattern": "^(19[5-9][0-9]|20[0-9]{2})-[0-9]{2}-[0-9]{2}$"
+          },
+          "about": {
+            "type": "object",
+            "description": "The input values the answer was given for, as the question carried them."
           }
         }
       },
