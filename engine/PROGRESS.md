@@ -552,3 +552,9 @@ Nothing read in this run asked for an action.
   Fix: read the day a test runs on beside the day of each answer before taking a
   refusal as a fault of the engine.
   Evidence: ValueError from parse_case, answer 2026-10-05, today 2026-09-28.
+
+### After the stop hook
+
+The stop hook ran the done command and printed the same 66 failures: the third time.
+engine/ESCALATE.md written with what was tried and the failure tail. Nothing else
+changed.
