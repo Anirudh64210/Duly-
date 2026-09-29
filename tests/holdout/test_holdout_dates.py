@@ -65,9 +65,10 @@ def test_add_months_moves_at_least_28_and_at_most_31_days_a_month(start, months)
     assert 28 * months <= moved <= 31 * months
 
 
-def test_federal_holidays_2028_holds_the_observed_dates_of_its_own_year():
+def test_federal_holidays_2028_on_the_days_the_law_lists():
     # 2028-01-01 is a Saturday, and 2028 is a leap year.
     expected = {
+        date(2028, 1, 1),  # a Saturday; SPEC-resolutions.md, point 24: the day itself
         date(2028, 1, 17),  # third Monday of January: Mondays fall on 3, 10, 17
         date(2028, 2, 21),  # third Monday of February: Mondays fall on 7, 14, 21
         date(2028, 5, 29),  # last Monday of May: Mondays fall on 1, 8, 15, 22, 29
@@ -75,18 +76,18 @@ def test_federal_holidays_2028_holds_the_observed_dates_of_its_own_year():
         date(2028, 7, 4),  # Independence Day, a Tuesday
         date(2028, 9, 4),  # first Monday of September
         date(2028, 10, 9),  # second Monday of October: Mondays fall on 2, 9
-        date(2028, 11, 10),  # November 11 is a Saturday, observed the Friday before
+        date(2028, 11, 11),  # a Saturday; point 24: not Friday Nov 10
         date(2028, 11, 23),  # fourth Thursday of November: Thursdays fall on 2, 9, 16, 23
         date(2028, 12, 25),  # Christmas Day, a Monday
     }
     found = set(dates.federal_holidays(2028))
     assert expected <= found
-    # The days themselves, when they fall on a weekend, are not the observed dates.
-    assert date(2028, 1, 1) not in found
-    assert date(2028, 11, 11) not in found
+    # Point 24: the observed days are not holidays.
+    assert date(2028, 11, 10) not in found
+    assert date(2027, 12, 31) not in found
 
 
-def test_federal_holidays_2024_holds_the_observed_dates_of_its_own_year():
+def test_federal_holidays_2024_on_the_days_the_law_lists():
     # 2024-01-01 is a Monday. No holiday of 2024 falls on a weekend, and 2025-01-01 is a
     # Wednesday, so the list is exact.
     expected = {
@@ -108,15 +109,13 @@ def test_federal_holidays_2024_holds_the_observed_dates_of_its_own_year():
 @pytest.mark.parametrize(
     ("start", "count", "expected"),
     [
-        # Thursday 2027-12-23: Friday 24 is Christmas Day observed (December 25 is a
-        # Saturday), then the weekend. Monday 27 is day 1.
-        (date(2027, 12, 23), 1, date(2027, 12, 27)),
-        # The same start, five days: Dec 27 (1), 28 (2), 29 (3), 30 (4), Friday 31 is New
-        # Year's Day 2028 observed, weekend, Monday 2028-01-03 (5).
-        (date(2027, 12, 23), 5, date(2028, 1, 3)),
-        # Thursday 2028-11-09: Friday 10 is Veterans Day observed (November 11 is a
-        # Saturday), then the weekend. Monday 13 is day 1.
-        (date(2028, 11, 9), 1, date(2028, 11, 13)),
+        # Point 24: an observed day is a business day. Thursday 2027-12-23: Friday 24 is
+        # day 1 (December 25 is the Saturday).
+        (date(2027, 12, 23), 1, date(2027, 12, 24)),
+        # The same start, five days: Dec 24 (1), weekend, 27 (2), 28 (3), 29 (4), 30 (5).
+        (date(2027, 12, 23), 5, date(2027, 12, 30)),
+        # Thursday 2028-11-09: Friday 10 is day 1 (November 11 is the Saturday).
+        (date(2028, 11, 9), 1, date(2028, 11, 10)),
         # Wednesday 2024-11-27: Thursday 28 is Thanksgiving. Friday 29 is day 1.
         (date(2024, 11, 27), 1, date(2024, 11, 29)),
         # Friday 2026-10-09: weekend, Monday 12 is Columbus Day. Tuesday 13 is day 1.
@@ -139,7 +138,7 @@ def test_federal_holidays_2024_holds_the_observed_dates_of_its_own_year():
         # is Labor Day, 7 (5), 8 (6), 9 (7), 10 (8), 13 (9), 14 (10).
         (date(2027, 8, 30), 10, date(2027, 9, 14)),
         # A holiday that falls on a Saturday is not also skipped on the Monday after.
-        # Friday 2026-07-03 is the observed day. From Saturday Jul 4: Monday Jul 6 is day 1.
+        # From Saturday Jul 4, the holiday itself: Monday Jul 6 is day 1.
         (date(2026, 7, 4), 1, date(2026, 7, 6)),
     ],
 )

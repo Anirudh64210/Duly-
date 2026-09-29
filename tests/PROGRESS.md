@@ -895,3 +895,210 @@ the interval 3: 2026-08-01 + 3 months = 2026-11-01, plus 10 days = 2026-11-11; 2
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-4f74a497fe (attempt 1): SPEC-resolutions.md points 11 to 24, tests first
+
+### What was done
+
+| Point | Tests |
+|---|---|
+| 11, 14, 15, 16 | tests/unit/engine/test_f1_windows.py, table ROWS of 7 conflicts: cannot_tell with conflict:<id> and nothing else; question with the id, its about keys and values; the rule shown in out["rules"] with a quote; every item whose inputs name an about key is null and not in upcoming; each edge day fits (recommendation day, last day of the window, window's first day, complete_by itself) and is not cannot_tell; yes gives talk_to_dso with <id>, no keeps cannot_tell. Edges from rule_value(PACK, id). Missing date raises none. Point 14 sweep case (112 days). Point 15 operative only, and a filing before the window is no conflict. Point 16 with STEM entered, and grace.ends/counts/next.* null. Five hypothesis properties: the rule's value moves the edge (clock injected) |
+| 12 | test_point_12_the_grace_date_is_listed_once; next.grace.ends removed from test_f1_product.py (NEXT_IDS and four tests now read grace.ends in upcoming) and test_holdout_product.py |
+| 17 | STEM filed with no card, OPT with no card end: grace.ends null; control 2026-12-30 |
+| 18 | card to 2026-10-15, cap-gap to 2027-01-15: grace.ends null, grace_with_cap_gap, talk_to_dso; control on NEXT; a denied petition raises nothing |
+| 19 | the sweep case (105 days, 45 remaining); at the limit and one under; property over limit and idle days; no STEM, no new judgement |
+| 20, 21, 22 | tests/unit/engine/test_f1_periods_and_reports.py: new_employer asked for a period from/after stem.ead_start (on the start itself too, not the day before); yes gives stem.new_plan_due.<n> 2026-08-04 as needs_you; no gives nothing; concluding evaluation 2026-07-30 with reading; validation_1_due 2026-09-28 open on the 28th, .made asked on the 29th, yes done, no talk_to_dso with .not_made; evaluation .made on 2027-04-01; property on today; end_reported asked despite employer_reported, yes nothing, no report_employer dated 2026-07-10 status guidance; three properties on pack days. n is read from the question, not assumed |
+| 23 | blocked grace row effective 2026-09-15: 2024 grace date has no alternate, 2027 has; a 2023 window with regime rows has none |
+| 24 | test_dates.py and test_holdout_dates.py: holidays on their own days, business-day rows moved (2026-07-02+1 = Jul 3; 2026-07-01+10 = Jul 15; 2027-12-23+5 = Dec 30 and others). Engine pins moved: CASE_B validation_2 2026-07-15, validation_4 2027-07-15, shifted 07-16 / 2027-07-16; the lookahead rows and properties in test_f1.py and test_f1_sourcing.py; test_f1_context instant 2026-07-16T01:30. Engine-level test_point_24_a_report_date_skips_no_observed_day |
+| Point 4 cases | CASE_C program end 2025-06-01 (complete_by 2026-08-01 >= card end 2026-07-31); opt_card_from keeps 2025-05-16 for its worked rows. holdout_f1 cases(): STEM recommended opt_end-80, filed opt_end-50, drawn only when today >= the filing |
+| Holdout | tests/holdout/test_holdout_windows.py, six tests on a 2025-12-19 program end case |
+
+### What ran
+
+- Done command, exactly as written: exit 0 (ruff check: all passed; format: 46 files formatted; collection clean).
+- New files against today's engine: every conflict edge-fit test passes (the cases are clean); the new rule tests fail on the missing rule (e.g. "assert False is (1 > 0)" for the edge property, grace.ends '2026-12-14' for point 18, validation_1_due '2026-07-16' for point 24).
+- Changed suites: holdout_f1, holdout_sourcing pass; failures are only point 12 (next.grace.ends still emitted) and point 24 (observed day still skipped).
+
+### What change to the code would make each new test fail
+
+- Conflict rows: an engine that does not raise the id, raises it one day early (edge-fit tests), writes 30/60/90/14 in code (the properties under other pack values), or keeps an item that uses the dates.
+- 17/18: a grace date from the OPT card alone; a grace date beside an active cap-gap past the card.
+- 19: an opt-card count that includes STEM days, or a judgement at limit+1.
+- 20-22: a question never asked, or asked for a period before stem.ead_start; the new plan date not from stem.new_plan_due_days; a report date dropped once passed; the employer_reported flag taken as the answer.
+- 23: alternates looked up on today instead of the item's date.
+- 24: add_business_days skipping the observed day.
+No fault was planted through a scratch plugin in this attempt (time).
+
+### Disputes / questions
+
+- Point 11 says each conflict "names its rule in rule_ids"; a question has no rule_ids in contracts/engine_output.schema.json (additionalProperties false). The tests read the rule in out["rules"].
+- Point 16 says the conflict "carries reading"; no field of a question or a reason can hold it. Not asserted.
+- Point 21 will ask .made on every case run after a STEM report date: CASE_B (validation_1 2026-01-15), STEM_NOW in test_f1_product.py and others will turn cannot_tell once the engine rounds. Not changed here; the founder decides whether those cases answer yes or move.
+
+## Run l-tests-1117c8c4ae (attempt 1): older tests brought in line with points 11, 12, 14 to 19, 23, 24
+
+### What was done
+
+The engine (HEAD 32ba768, the same engine/ as lane/L-engine/l-engine-9492007270) builds the
+points. engine/REPORT.json of that branch is ignored by git, so `git show` finds nothing; it
+was read from the builder's worktree on disk. Its disputes list the older tests that collide.
+Before any change the done command failed on 72 tests (the builder's list plus the holdout
+suites, which the builder never sees).
+
+| File | Change | Point |
+|---|---|---|
+| tests/support/f1_pack.py | WINDOW_CONFLICT_IDS; conflicts_by_the_table has the seven new rows, days read from the pack (operative row for opt.apply_after_days), none raised with a date missing | 11, 14, 15, 16 |
+| test_f1_product.py | rows opt/stem.dso_recommendation_date.after_today: raising case has no filing, safe case files on the recommendation day; rows opt/stem.i765_filed_date.after_card: recommendation 2025-10-15 / 2024-10-01 so filings are within 30 / 60 days | 11 (point 4) |
+| test_f1_product.py | review_1 filing 2030 also expects after_window_closes (2025-09-15 + 60 = 2025-11-14); card of three years also expects opt.ead_end.after_complete_by (2025-09-15 + 14 months = 2026-11-15) | 15, 16 |
+| test_f1_product.py | the property's table widened to WINDOW_CONFLICT_IDS (asked ids, table check, answers drawn) | 11, 14-16 |
+| test_compute_product.py (api) | the same two review_1 cases; the yes test answers both conflicts | 15, 16 |
+| test_f1.py | unemployment.opt_card_days_used in ALL_IDS and UNITS (days); file_by rows leave the filing out (a filing on or after 2026-08-28 lies after the card of 2026-06-01, one before lies before the recommendation) | 19; 11 (point 4) |
+| test_f1_fixes.py | far card to 2099: conflict:opt.ead_end.after_complete_by present and the program items null (2026-05-15 + 14 months = 2027-07-15) | 16 with 4 |
+| holdout/test_holdout_product.py | rows refitted as above (recommendations 2027-02-15, 2027-01-15, 2026-06-01, 2026-01-10; no filing for the recommendation rows); two facts case recommends 2026-06-01; the card end typed again is 2027-07-08, the last day of complete_by | 11, 14, 15, 16 |
+| holdout/test_holdout_fixes.py | long window answers yes to after_complete_by too (2030-06-15 + 14 months = 2031-08-15); api regime test uses CASE_D_LATER (grace.ends 2028-03-31, after 2026-09-15) | 16; 23 |
+| holdout/test_holdout_sourcing.py | reporting-rule test drops the petition: pending cap-gap to 2027-10-01 past the card of 2027-08-31 gives grace_with_cap_gap | 18 |
+| holdout/test_holdout_windows.py, test_f1_periods_and_reports.py | run helper passes the case through refuse_placeholders (test_placeholders.py found both). No assertion touched | guard |
+
+### What ran
+
+- Done command before: exit 1, 72 failed.
+- Done command after: exit 1. ruff check: All checks passed. ruff format: 46 files already
+  formatted. pytest: 2 failed, both in tests/holdout/test_holdout_windows.py:
+  test_holdout_a_passed_evaluation_is_asked_about (no stem.evaluation_12_month_due.made
+  question; point 21) and test_holdout_an_unreported_end_gives_the_report_item (no
+  .end_reported question; point 22). The engine has not built points 20 to 22.
+
+### Faults planted (scratch copy under TMPDIR, removed)
+
+- opt.ead_end.after_complete_by never raised: test_the_reviewers_far_dates..., the api
+  three_years and yes tests, holdout long window fail. Shown.
+- before_recommendation on the recommendation day (<=): the safe-side row for
+  opt.dso_recommendation_date.after_today fails in test_f1_product.py and holdout. Shown.
+- after_window_closes never raised: review_1 filing 2030 fails (engine and api). Shown.
+- unemployment.opt_card_days_used dropped: test_case_b_has_every_item_once fails. Shown.
+- Not planted: point 18 (sourcing test would fail if grace_with_cap_gap were raised with no
+  petition), point 23 (the api regime test fails if the alternate is dropped from items
+  after effective_from).
+
+### Disputes
+
+- The two holdout tests of points 21 and 22 fail because the engine lacks those points. The
+  mission excludes only tests/unit/engine/test_f1_periods_and_reports.py; the holdout copies
+  were not excluded. Not skipped, not changed. Escalated for the founder: exclude
+  tests/holdout/test_holdout_windows.py's two tests from this round's done command, or wait
+  for points 20 to 22.
+- Seen while probing: CASE_D of test_holdout_fixes.py with no answers gives cannot_tell with
+  rule_in_litigation, yet no item of it carries an alternate (point 23). Not a test failure;
+  for the founder to judge whether the reason should follow the alternates.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-09c772d4c1 (attempt 1): merge, points 20 to 22 and 25 held apart, points 25 and 26 written
+
+### What was done
+
+- git merge lane/L-tests/l-tests-1117c8c4ae: clean, 11 files. The done command then failed on
+  the same two holdout tests of points 21 and 22 and nothing else.
+- `git show lane/L-engine/l-engine-9492007270:engine/REPORT.json` gives "path does not
+  exist": the file is ignored by git. The previous run read it from disk and worked its 33
+  tests; the done command after the merge shows none of them failing, so no older test was
+  changed in this run.
+- tests/holdout/test_holdout_periods_and_reports.py (new): the two tests of points 21 and 22
+  moved from test_holdout_windows.py (assertions unchanged; the evaluation test now names its
+  case STEM_CASE, the same facts); new holdout tests of point 20 (new_employer asked, yes gives
+  stem.new_plan_due.<n> 2026-05-21, no gives nothing, concluding evaluation 2026-04-30 as a
+  reading), point 21 (a passed report answered no gives .not_made), point 25 (a 2023 grace end
+  with the blocked row from 2026-09-15 is no litigation; the same with the row from 2000 keeps
+  it; CASE_D on the shipped pack loses the reason).
+- tests/holdout/test_holdout_windows.py: the two tests removed, a comment names where they went,
+  the unused import dropped by ruff, docstring now points 11, 14, 16 and 18.
+- tests/unit/engine/test_f1_periods_and_reports.py: point 25 (ENDED_2024 with the blocked row
+  from 2026-09-15: grace.ends 2024-07-30, no alternate, no reason, not cannot_tell; ENDS_2027
+  on 2027-06-15: alternate 2027-06-30, cannot_tell with the reason; on 2027-05-30 and 05-31 no
+  reason; a property over days 2024-06-01 to 2030-12-31 with the clock injected) and point 26
+  (a before_recommendation and an after_complete_by conflict: question keys are exactly id,
+  because, about; the rule is in rules with its quote).
+
+### What ran
+
+- Done command, exactly as written: exit 0 (ruff: All checks passed; 47 files already
+  formatted; pytest all passed).
+- The two waiting files against today's engine: 38 tests, 27 fail, 11 pass (the controls,
+  point 26, the clean-case and worked-date checks). Every failure is a missing point: no
+  new_employer / .made / .end_reported question, or rule_in_litigation with no alternate.
+
+### What change to the code would make each new test fail
+
+- Point 25 tests: today's engine (reason given with no alternate shown) fails them; shown.
+  The controls fail when the reason is dropped everywhere: planted through a scratch plugin
+  that strips rule_in_litigation, both "regimes differ" tests failed. Shown.
+- Point 26: a plugin adding rule_ids to every question failed both point 26 tests. Shown.
+- Point 20 holdout: an engine that asks about a period begun before the STEM card (len 2), or
+  counts the new plan from somewhere other than the start plus stem.new_plan_due_days.
+- Scratch folders under TMPDIR removed.
+
+### Disputes
+
+- None new. Carried: when points 21 and 22 land, every older case run after a STEM report date
+  or with a recorded period end turns cannot_tell until answered (CASE_B, STEM_NOW and others).
+  The next engine round will list them; the fix is a settled point (21, 22), for the founder.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-ff9a7c4ceb (attempt 1): tests in line with points 20, 21, 22 and 25
+
+### What was done
+
+- The engine of l-engine-ac276e806b (merged at a5aab67) asks employment.<n>.new_employer,
+  employment.<n>.end_reported and <item>.made. The builder's engine/REPORT.json is ignored by
+  git and its worktree is gone, so the list of collisions was taken from the done command:
+  69 failures in 11 files, every one an unanswered question of points 20 to 22 or the new
+  item stem.concluding_evaluation_due.<n>. No failure was left that no point explains.
+- tests/support/f1_pack.py: periods_answered(case) answers the questions of points 20 to 22
+  for a test about something else (not a new employer, the end reported, each passed report
+  made), as placeholders that dated_on_the_day and with_the_about_asked make real. Also
+  is_period_or_report_question, period_question, made_question, placeholders_made_real.
+- Cases answered with periods_answered, point beside each: test_f1.py (CASE_B verdict,
+  stem_start, judgement items, lookahead and validation tests), test_f1_context.py (CASE_B,
+  STEM_ONLY, SEPTEMBER; answered() keeps the case's answers), test_f1_product.py (STEM_NOW,
+  TWO_JOBS, FOUR_MONTHS, HOLE; run() makes placeholders real), test_f1_sourcing.py (two
+  lookahead tests), api test_compute_context.py (STEM_ONLY; GOOD in the no-gap test),
+  holdout context (STEM_ALONE, CAP_GAP_ALONE_CASE, the api zone test through
+  as_the_screen_sends), holdout f1 (CASE_H1, CASE_H2), holdout fixes (long window),
+  holdout product (STEM_NOW, TWO_JOBS, the period_outside_cards rows, the cards test),
+  holdout sourcing (lookahead).
+- Expected, not answered, where the test is about the output (point 20):
+  test_case_b_has_every_item_once now expects stem.concluding_evaluation_due.1 = 2025-12-31
+  plus 10 = 2026-01-10; the date property works each concluding evaluation by hand (end plus
+  stem.evaluation_due_days, reading true). The two gap properties (unit and holdout context)
+  set the new questions apart as they set conflicts apart, and now assert each is unconfirmed
+  and the verdict cannot_tell. The product property allows them next to the table.
+- Holdout test_the_order_of_the_employment_periods_does_not_matter compares the dates of the
+  items numbered by period as a sorted list: the number follows the case's order (point 20).
+
+### What ran
+
+- Done command before: exit 1, 69 failed. After: exit 0 (ruff: All checks passed; 47 files
+  already formatted; pytest all passed).
+
+### What change to the code would make each new test fail
+
+- Concluding evaluation one day late (scratch plugin on engine.f1._days_after): fails
+  test_case_b_has_every_item_once and the date property. Shown.
+- A passed report answered yes not marked done (scratch plugin clearing work.done): fails the
+  test_f1.py tests that expect no open item. Shown. Scratch folder removed.
+- The gap properties fail if a new question is asked but not listed as unconfirmed, or if
+  the verdict is anything but cannot_tell while one is open.
+
+### Disputes
+
+- None new. The order test's comparison now ignores the period number of per-period items;
+  point 20 numbers by period and does not say the number is independent of order.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

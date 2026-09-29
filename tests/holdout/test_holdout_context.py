@@ -22,7 +22,7 @@ from api.settings import Settings
 from engine import f1
 from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
-from tests.support.api_client import CheckedClient
+from tests.support.api_client import CheckedClient, as_the_screen_sends
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
     CONFLICT_IDS,
@@ -44,9 +44,11 @@ from tests.support.f1_pack import (
     count_days,
     dated_on_the_day,
     ead,
+    is_period_or_report_question,
     items,
     job,
     pack_dict,
+    periods_answered,
     question_ids,
     reasons_with,
     refuse_placeholders,
@@ -93,29 +95,42 @@ CASE_K: dict[str, Any] = {
     "cap_gap": None,
 }
 
-STEM_ALONE: dict[str, Any] = {
-    "time_zone": "UTC",
-    "program_end_date": "2024-12-13",
-    "degree_level": "master",
-    "documents_count": 1,
-    "cpt_full_time_days": 0,
-    "opt": None,
-    "stem": ead("2025-11-03", "2025-11-17", "2026-02-01", "2028-01-31"),
-    "employment": [job("2026-02-01", None, hours=25)],
-}
+# SPEC-resolutions.md, point 20: the period begins on the STEM card; it is not with a new
+# employer (periods_answered). The tests of this case are about held_post_completion_opt.
+STEM_ALONE: dict[str, Any] = periods_answered(
+    {
+        "time_zone": "UTC",
+        "program_end_date": "2024-12-13",
+        "degree_level": "master",
+        "documents_count": 1,
+        "cpt_full_time_days": 0,
+        "opt": None,
+        "stem": ead("2025-11-03", "2025-11-17", "2026-02-01", "2028-01-31"),
+        "employment": [job("2026-02-01", None, hours=25)],
+    }
+)
 
-CAP_GAP_ALONE_CASE: dict[str, Any] = {
-    "time_zone": "UTC",
-    "program_end_date": "2026-05-08",
-    "degree_level": "bachelor",
-    "documents_count": 6,
-    "cpt_full_time_days": 0,
-    "employment": [job("2025-01-06", "2025-03-28", hours=12)],
-    # Filed on 2026-03-02, a week before TODAY (2026-03-09): a filing dated after the day
-    # of the case is a conflict of its own (specs/product-1/SPEC.md, section 1;
-    # SPEC-resolutions.md, point 4), and this case is about the question alone.
-    "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-03-02"),
-}
+# SPEC-resolutions.md, point 22: the end of the period, 2025-03-28, was reported
+# (periods_answered). The tests of this case are about cap_gap_without_training.
+CAP_GAP_ALONE_CASE: dict[str, Any] = periods_answered(
+    {
+        "time_zone": "UTC",
+        "program_end_date": "2026-05-08",
+        "degree_level": "bachelor",
+        "documents_count": 6,
+        "cpt_full_time_days": 0,
+        "employment": [job("2025-01-06", "2025-03-28", hours=12)],
+        # Filed on 2026-03-02, a week before TODAY (2026-03-09): a filing dated after the day
+        # of the case is a conflict of its own (specs/product-1/SPEC.md, section 1;
+        # SPEC-resolutions.md, point 4), and this case is about the question alone.
+        "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-03-02"),
+    }
+)
+
+
+def with_answers(case: dict[str, Any], given: dict[str, Any]) -> dict[str, Any]:
+    """The case with the answers given added to those it holds (periods_answered)."""
+    return with_changes(case, confirmations={**case.get("confirmations", {}), **given})
 
 
 def run(
@@ -340,7 +355,7 @@ def test_stem_alone_asks_and_waits():
 
 
 def test_stem_alone_answered_yes_names_both_opt_ead_dates():
-    out = run(with_changes(STEM_ALONE, confirmations=answers("2026-03-02", **{HELD_OPT: True})))
+    out = run(with_answers(STEM_ALONE, answers("2026-03-02", **{HELD_OPT: True})))
     assert out["questions"] == []
     assert out["verdict"]["state"] == "cannot_tell"
     assert {"missing:opt.ead_start", "missing:opt.ead_end"} <= set(out["verdict"]["reasons"])
@@ -349,7 +364,7 @@ def test_stem_alone_answered_yes_names_both_opt_ead_dates():
 
 def test_stem_alone_answered_no_is_for_the_dso_with_the_words_of_the_law():
     raw = pack_dict(TODAY)
-    case = with_changes(STEM_ALONE, confirmations=answers("2026-03-02", **{HELD_OPT: False}))
+    case = with_answers(STEM_ALONE, answers("2026-03-02", **{HELD_OPT: False}))
     out = run(case, raw_pack=raw)
     assert out["verdict"]["state"] == "talk_to_dso"
     assert "stem_without_post_completion_opt" in out["verdict"]["reasons"]
@@ -368,11 +383,11 @@ def test_cap_gap_alone_asks_and_each_answer_is_followed():
     assert question_ids(out) == [CAP_GAP_ALONE]
     assert out["verdict"]["state"] == "cannot_tell"
     assert unconfirmed(out) == [CAP_GAP_ALONE]
-    yes = run(with_changes(CAP_GAP_ALONE_CASE, confirmations=answers(**{CAP_GAP_ALONE: True})))
+    yes = run(with_answers(CAP_GAP_ALONE_CASE, answers(**{CAP_GAP_ALONE: True})))
     assert yes["verdict"]["state"] == "cannot_tell"
     assert "missing:opt.ead_end" in yes["verdict"]["reasons"]
     assert yes["questions"] == []
-    no = run(with_changes(CAP_GAP_ALONE_CASE, confirmations=answers(**{CAP_GAP_ALONE: False})))
+    no = run(with_answers(CAP_GAP_ALONE_CASE, answers(**{CAP_GAP_ALONE: False})))
     assert no["verdict"]["state"] == "talk_to_dso"
     assert "cap_gap_without_training" in no["verdict"]["reasons"]
     assert no["questions"] == []
@@ -460,9 +475,16 @@ def test_a_record_with_a_gap_is_asked_about_and_never_called_quiet(drawn):
     # specs/product-1/SPEC.md, sections 1 and 2: the engine now asks two more questions,
     # and one for each conflict, whose reason is conflict:<id>. Those have their own
     # property in the product tests. This one keeps to the questions of its round.
-    asked = [asked_id for asked_id in question_ids(out) if asked_id not in CONFLICT_IDS]
+    # SPEC-resolutions.md, points 20, 21 and 22 add the questions of a period and of a
+    # passed report; each is unconfirmed and the verdict cannot_tell until it is answered.
+    # They have their own tests in test_holdout_periods_and_reports.py.
+    later = [q for q in question_ids(out) if is_period_or_report_question(q)]
+    assert set(later) <= set(unconfirmed(out))
+    if later:
+        assert out["verdict"]["state"] == "cannot_tell"
+    asked = [q for q in question_ids(out) if q not in CONFLICT_IDS and q not in later]
     given = case.get("confirmations", {})
-    assert sorted(unconfirmed(out)) == sorted(asked)
+    assert sorted(q for q in unconfirmed(out) if q not in later) == sorted(asked)
     assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
     assert set(asked).isdisjoint(given)
     state = out["verdict"]["state"]
@@ -536,8 +558,15 @@ API_CASE: dict[str, Any] = {
 def test_the_api_counts_on_the_persons_own_day(client):
     # 23:10 UTC on 2026-09-28 is 08:10 on the 29th in Tokyo and 17:10 on the 28th in
     # Denver. From 2026-09-11 on: 19 days through the 29th, 18 through the 28th.
-    east = client.post(URL, json=API_CASE)
-    west = client.post(URL, json=with_changes(API_CASE, time_zone="America/Denver"))
+    # SPEC-resolutions.md, point 22: the end of the period, 2026-09-10, was reported. The
+    # answer is sent as the screen sends it, with the about the api asked, dated on the
+    # person's own day at the api's clock.
+    clock = FixedClock(datetime(2026, 9, 28, 23, 10, tzinfo=UTC))
+    tokyo = as_the_screen_sends(client, URL, periods_answered(API_CASE), clock)
+    denver = with_changes(API_CASE, time_zone="America/Denver")
+    denver = as_the_screen_sends(client, URL, periods_answered(denver), clock)
+    east = client.post(URL, json=tokyo)
+    west = client.post(URL, json=denver)
     assert east.status_code == 200
     assert west.status_code == 200
     assert east.json()["today"] == {"date": "2026-09-29", "time_zone": "Asia/Tokyo"}

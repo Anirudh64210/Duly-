@@ -47,9 +47,11 @@ from tests.support.f1_pack import (
     count_days,
     dated_on_the_day,
     ead,
+    is_period_or_report_question,
     items,
     job,
     pack_dict,
+    periods_answered,
     question_ids,
     reasons_with,
     refuse_placeholders,
@@ -88,29 +90,37 @@ CASE_A: dict[str, Any] = {
 }
 
 # Case B: OPT followed by the STEM extension, with a cap-gap petition.
-CASE_B: dict[str, Any] = {
-    "program_end_date": "2024-05-10",
-    "degree_level": "master",
-    "documents_count": 5,
-    "cpt_full_time_days": 100,
-    "opt": ead("2024-03-01", "2024-03-15", "2024-07-01", "2025-06-30"),
-    "stem": ead("2025-04-15", "2025-05-01", "2025-07-01", "2027-06-30"),
-    "employment": [job("2024-07-01", None)],
-    "cap_gap": cap_gap("2026-10-01", petition_filed_on="2026-04-02"),
-    "time_zone": "UTC",
-}
+# SPEC-resolutions.md, point 21: its validations and evaluations dated before the day it
+# runs were made (periods_answered). No test here is about those answers.
+CASE_B: dict[str, Any] = periods_answered(
+    {
+        "program_end_date": "2024-05-10",
+        "degree_level": "master",
+        "documents_count": 5,
+        "cpt_full_time_days": 100,
+        "opt": ead("2024-03-01", "2024-03-15", "2024-07-01", "2025-06-30"),
+        "stem": ead("2025-04-15", "2025-05-01", "2025-07-01", "2027-06-30"),
+        "employment": [job("2024-07-01", None)],
+        "cap_gap": cap_gap("2026-10-01", petition_filed_on="2026-04-02"),
+        "time_zone": "UTC",
+    }
+)
 
 # PRINCIPLES.md, 2: STEM OPT dates entered with no OPT dates. The period covers every
 # day since the STEM start, so the only gap in the record is the OPT block.
-STEM_ONLY: dict[str, Any] = {
-    "program_end_date": "2026-05-15",
-    "degree_level": "master",
-    "documents_count": 2,
-    "cpt_full_time_days": 0,
-    "employment": [job("2026-06-01", None)],
-    "stem": ead("2026-04-01", "2026-04-20", "2026-06-01", "2028-05-31"),
-    "time_zone": "UTC",
-}
+# SPEC-resolutions.md, point 20: the period begins on the STEM card; it is not with a new
+# employer (periods_answered). The tests here are about held_post_completion_opt.
+STEM_ONLY: dict[str, Any] = periods_answered(
+    {
+        "program_end_date": "2026-05-15",
+        "degree_level": "master",
+        "documents_count": 2,
+        "cpt_full_time_days": 0,
+        "employment": [job("2026-06-01", None)],
+        "stem": ead("2026-04-01", "2026-04-20", "2026-06-01", "2028-05-31"),
+        "time_zone": "UTC",
+    }
+)
 
 # Cap-gap entered with neither OPT nor STEM. The program ends after 2026-09-28, so the
 # grace period has not begun and the verdict does not turn on the rule in litigation.
@@ -156,8 +166,11 @@ def answered(
 ) -> dict[str, Any]:
     """The case with the answers named. SPEC-resolutions.md, point 2: by default each is
     dated on the day the case is run, which run() puts in from its clock; point 7: each
-    carries the about of the question it answers."""
-    return with_changes(case, confirmations=answers(on, **given))
+    carries the about of the question it answers. An answer the case already holds to
+    another question (periods_answered) is kept."""
+    return with_changes(
+        case, confirmations={**case.get("confirmations", {}), **answers(on, **given)}
+    )
 
 
 def unconfirmed(output: dict[str, Any]) -> list[str]:
@@ -217,7 +230,10 @@ EARLY = "2026-09-29T01:30"
 
 # OPT from 2026-06-01, one period through 2026-08-31. Every day from 2026-09-01 on is a
 # day without an employer.
-SEPTEMBER: dict[str, Any] = with_changes(CASE_A, employment=[job("2026-06-01", "2026-08-31")])
+# SPEC-resolutions.md, point 22: the end of 2026-08-31 was reported (periods_answered).
+SEPTEMBER: dict[str, Any] = periods_answered(
+    with_changes(CASE_A, employment=[job("2026-06-01", "2026-08-31")])
+)
 
 
 def test_at_0130_utc_los_angeles_counts_through_the_28th_and_kolkata_through_the_29th():
@@ -324,17 +340,18 @@ def test_an_item_is_open_on_the_persons_own_day():
     # recorded as done is no open item, so this test uses an item whose step is never
     # recorded. (No case the SPEC allows makes opt.apply_window_closes an open item: see
     # tests/REPORT.json, disputes.) CASE_B's STEM card begins 2025-07-01; 12 months on is
-    # 2026-07-01, and 10 business days after it, with 2026-07-03 the observed holiday for
-    # July 4 (a Saturday), are Jul 2, 6, 7, 8, 9, 10, 13, 14, 15, 16: stem.validation_2_due
-    # is 2026-07-16. It is an open item from today through 14 days on. At 01:30 UTC on
-    # 2026-07-17 it is still July 16 in Los Angeles (7 hours behind), and July 17 in
-    # Kolkata (5 hours 30 minutes ahead), the day after.
-    instant = "2026-07-17T01:30"
+    # 2026-07-01, and 10 business days after it, with Friday 2026-07-03 a business day
+    # (SPEC-resolutions.md, point 24: the observed day of July 4 is not skipped), are
+    # Jul 2, 3, 6, 7, 8, 9, 10, 13, 14, 15: stem.validation_2_due is 2026-07-15. It is an
+    # open item from today through 14 days on. At 01:30 UTC on 2026-07-16 it is still
+    # July 15 in Los Angeles (7 hours behind), and July 16 in Kolkata (5 hours 30 minutes
+    # ahead), the day after.
+    instant = "2026-07-16T01:30"
     west = run(
-        in_zone(CASE_B, "America/Los_Angeles"), clock=clock_at(instant), checked_on="2026-07-16"
+        in_zone(CASE_B, "America/Los_Angeles"), clock=clock_at(instant), checked_on="2026-07-15"
     )
-    east = run(in_zone(CASE_B, "Asia/Kolkata"), clock=clock_at(instant), checked_on="2026-07-16")
-    assert values(west)["stem.validation_2_due"] == "2026-07-16"
+    east = run(in_zone(CASE_B, "Asia/Kolkata"), clock=clock_at(instant), checked_on="2026-07-15")
+    assert values(west)["stem.validation_2_due"] == "2026-07-15"
     assert "stem.validation_2_due" in west["verdict"]["reasons"]
     assert east["verdict"]["state"] != "cannot_tell"
     assert "stem.validation_2_due" not in east["verdict"]["reasons"]
@@ -877,7 +894,10 @@ def test_cap_gap_with_stem_alone_asks_about_opt_and_not_about_training():
 @pytest.mark.parametrize("answer", [True, False])
 def test_an_answer_to_a_question_that_is_not_raised_changes_nothing(case, answer):
     given = dict.fromkeys(QUESTION_IDS, answer)
-    assert run(with_changes(case, confirmations=answers(**given))) == run(case)
+    # The answers the case holds to the questions of points 20 to 22 (periods_answered)
+    # are kept: only the answers to questions not raised are added.
+    confirmations = {**case.get("confirmations", {}), **answers(**given)}
+    assert run(with_changes(case, confirmations=confirmations)) == run(case)
 
 
 def test_a_case_with_every_answer_is_a_case_of_the_contract():
@@ -926,11 +946,22 @@ def test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict(
     # specs/product-1/SPEC.md, sections 1 and 2: the engine now asks two more questions,
     # and one for each conflict, whose reason is conflict:<id>. Those have their own
     # property in the product tests. This one keeps to the questions of its round.
-    asked = [asked_id for asked_id in question_ids(out) if asked_id not in CONFLICT_IDS]
+    # SPEC-resolutions.md, points 20, 21 and 22 add the questions of a period and of a
+    # passed report; each is open and unconfirmed until answered, and has its own tests in
+    # test_f1_periods_and_reports.py. Here they are set apart as the conflicts are.
+    later = [q for q in question_ids(out) if is_period_or_report_question(q)]
+    assert set(later) <= set(unconfirmed(out))
+    if later:
+        assert out["verdict"]["state"] == "cannot_tell"
+    asked = [
+        asked_id
+        for asked_id in question_ids(out)
+        if asked_id not in CONFLICT_IDS and asked_id not in later
+    ]
     given = case.get("confirmations", {})
     assert len(asked) == len(set(asked))
     assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
-    assert sorted(unconfirmed(out)) == sorted(asked)
+    assert sorted(q for q in unconfirmed(out) if q not in later) == sorted(asked)
     # A question the person has answered is not asked again.
     assert set(asked).isdisjoint(given)
     if asked:

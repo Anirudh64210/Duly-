@@ -622,8 +622,38 @@ def _card(block: dict[str, Any] | None) -> tuple[date, date] | None:
     return date.fromisoformat(block["ead_start"]), date.fromisoformat(block["ead_end"])
 
 
+# SPEC-resolutions.md, points 11, 14, 15 and 16: the seven conflicts that joined the table of
+# section 1. The table of section 1 as written (CONFLICT_IDS) keeps its 13 rows; these are
+# tested row by row in tests/unit/engine/test_f1_windows.py.
+WINDOW_CONFLICT_IDS = (
+    "opt.i765_filed_date.before_recommendation",
+    "stem.i765_filed_date.before_recommendation",
+    "opt.i765_filed_date.after_file_by",
+    "stem.i765_filed_date.after_file_by",
+    "stem.i765_filed_date.before_window_opens",
+    "opt.i765_filed_date.after_window_closes",
+    "opt.ead_end.after_complete_by",
+)
+
+
+def _operative_value(raw_pack: dict[str, Any], rule_id: str) -> Any:
+    """The rule's value for the operative regime when the pack has a row for it, and its
+    one row otherwise (section 7: the enjoined value is an alternate, never the value)."""
+    operative = [r["id"] for r in raw_pack["regimes"] if r["operative"]]
+    for regime in operative:
+        try:
+            return rule_value(raw_pack, rule_id, regime)
+        except KeyError:
+            pass
+    return rule_value(raw_pack, rule_id)
+
+
 def conflicts_by_the_table(
-    case: dict[str, Any], today: date, opt_months: int, stem_months: int
+    case: dict[str, Any],
+    today: date,
+    opt_months: int,
+    stem_months: int,
+    raw_pack: dict[str, Any] | None = None,
 ) -> tuple[set[str], set[str]]:
     """specs/product-1/SPEC.md, section 1, row by row, written apart from the engine.
 
@@ -631,10 +661,48 @@ def conflicts_by_the_table(
     open. SPEC-resolutions.md, point 10, settled the one open point: a card whose last
     day is the day its months end is not a conflict. Nothing is left open, so the second
     set is empty; it is kept so that the callers read the same.
+
+    SPEC-resolutions.md, points 11, 14, 15 and 16 add seven rows (WINDOW_CONFLICT_IDS).
+    Their days are read from raw_pack (the test pack of 2026-09-28 unless one is passed),
+    never written here. Each is raised only when both of its dates are entered.
     """
     sure: set[str] = set()
     unsure: set[str] = set()
     opt, stem, gap = case.get("opt"), case.get("stem"), case.get("cap_gap")
+    rules = pack_dict() if raw_pack is None else raw_pack
+    program_end = _day(case.get("program_end_date"))
+    # Point 11: a filing on the recommendation day, or on the last day of the window, fits.
+    for part, block in (("opt", opt), ("stem", stem)):
+        if not block:
+            continue
+        filed = _day(block["i765_filed_date"])
+        recommended = _day(block["dso_recommendation_date"])
+        if filed is None or recommended is None:
+            continue
+        if filed < recommended:
+            sure.add(f"{part}.i765_filed_date.before_recommendation")
+        within = rule_value(rules, f"{part}.file_within_days_of_recommendation")
+        if filed > recommended + timedelta(days=within):
+            sure.add(f"{part}.i765_filed_date.after_file_by")
+    # Point 14: the STEM filing before opt.ead_end minus stem.apply_before_expiry_days.
+    opt_end = _day(opt["ead_end"]) if opt else None
+    stem_filed = _day(stem["i765_filed_date"]) if stem else None
+    if opt_end is not None and stem_filed is not None:
+        before = rule_value(rules, "stem.apply_before_expiry_days")
+        if stem_filed < opt_end - timedelta(days=before):
+            sure.add("stem.i765_filed_date.before_window_opens")
+    # Point 15: the OPT filing after program_end_date plus the operative opt.apply_after_days.
+    opt_filed = _day(opt["i765_filed_date"]) if opt else None
+    if program_end is not None and opt_filed is not None:
+        after = _operative_value(rules, "opt.apply_after_days")
+        if opt_filed > program_end + timedelta(days=after):
+            sure.add("opt.i765_filed_date.after_window_closes")
+    # Point 16: the OPT card ends after program_end_date plus opt.complete_within_months,
+    # whether or not STEM is entered. The day the months end fits.
+    if program_end is not None and opt_end is not None:
+        complete_by = months_later(program_end, rule_value(rules, "opt.complete_within_months"))
+        if opt_end > complete_by:
+            sure.add("opt.ead_end.after_complete_by")
     for part, block, months in (("opt", opt, opt_months), ("stem", stem, stem_months)):
         if not block:
             continue
@@ -765,3 +833,92 @@ def dated_on_the_day(case: dict[str, Any], clock: Any) -> dict[str, Any]:
         for name, answer in given.items()
     }
     return with_changes(case, confirmations=dated)
+
+
+# specs/product-1/SPEC-resolutions.md, points 20, 21 and 22: the questions of an
+# employment period and of a STEM report whose date has passed. Periods are numbered as
+# the case lists them, from 1.
+NEW_EMPLOYER = "new_employer"
+END_REPORTED = "end_reported"
+MADE = "made"
+STEM_REPORTS = ("stem.evaluation_12_month_due", "stem.final_evaluation_due_from_ead_end")
+
+
+def period_question(number: int, name: str) -> str:
+    """employment.<n>.new_employer (point 20) or employment.<n>.end_reported (point 22)."""
+    return f"employment.{number}.{name}"
+
+
+def made_question(item_id: str) -> str:
+    """<item id>.made (point 21)."""
+    return f"{item_id}.{MADE}"
+
+
+def _report_ids(case: dict[str, Any]) -> list[str]:
+    """Every STEM report item the engine can date for this case: the validations of the
+    card (one each six months of it, and one more to spare), the two evaluations, and a
+    concluding evaluation for each period. An answer to a question not asked is left out
+    by with_the_about_asked, so naming one too many costs nothing."""
+    card = _card(case.get("stem"))
+    validations = 0
+    if card is not None and card[1] >= card[0]:
+        months = (card[1].year - card[0].year) * 12 + card[1].month - card[0].month
+        validations = months // 6 + 2
+    periods = len(case.get("employment") or [])
+    return [
+        *(f"stem.validation_{n}_due" for n in range(1, validations + 1)),
+        *STEM_REPORTS,
+        *(f"stem.concluding_evaluation_due.{n}" for n in range(1, periods + 1)),
+    ]
+
+
+def periods_answered(
+    case: dict[str, Any],
+    *,
+    new_employer: bool = False,
+    end_reported: bool = True,
+    made: bool = True,
+) -> dict[str, Any]:
+    """The case with the questions of points 20, 21 and 22 answered, for a test about
+    something else: each period is not with a new employer, its end has been reported,
+    and each STEM report whose date has passed was made. So answered, the case says what
+    it said before those points: no stem.new_plan_due.<n>, no report_employer for an end,
+    no <item>.not_made. Answers are dated ON_THE_DAY_IT_RUNS and carry about_asked, which
+    the run helpers replace (dated_on_the_day, with_the_about_asked). An answer already
+    in the case is kept."""
+    periods = range(1, len(case.get("employment") or []) + 1)
+    given: dict[str, bool] = {}
+    for number in periods:
+        given[period_question(number, NEW_EMPLOYER)] = new_employer
+        given[period_question(number, END_REPORTED)] = end_reported
+    for item_id in _report_ids(case):
+        given[made_question(item_id)] = made
+    confirmations = {**answers(**given), **copy.deepcopy(case.get("confirmations") or {})}
+    return with_changes(case, confirmations=confirmations)
+
+
+def is_period_or_report_question(question_id: str) -> bool:
+    """Whether the id is a question of points 20, 21 or 22: employment.<n>.new_employer,
+    employment.<n>.end_reported, or <item id>.made."""
+    parts = question_id.split(".")
+    if len(parts) == 3 and parts[0] == "employment" and parts[1].isdigit():
+        return parts[2] in (NEW_EMPLOYER, END_REPORTED)
+    return len(parts) >= 2 and parts[-1] == MADE and parts[0] == "stem"
+
+
+def placeholders_made_real(
+    case: dict[str, Any], clock: Any, compute: Callable[[dict[str, Any]], dict[str, Any]]
+) -> dict[str, Any]:
+    """The case as the screen sends it, when it holds a placeholder answer (a day of
+    ON_THE_DAY_IT_RUNS or an about of about_asked, as periods_answered writes them):
+    dated_on_the_day, then with_the_about_asked. A case with no placeholder is returned as
+    it is, so an answer a test leaves with no about stays with none (SPEC-resolutions.md,
+    point 7)."""
+    given = case.get("confirmations") or {}
+    marked = any(
+        answer.get("on") == ON_THE_DAY_IT_RUNS or answer.get("about") == about_asked(name)
+        for name, answer in given.items()
+    )
+    if not marked:
+        return case
+    return with_the_about_asked(dated_on_the_day(case, clock), compute)

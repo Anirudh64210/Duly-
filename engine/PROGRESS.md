@@ -611,3 +611,135 @@ Nothing else changed.
 - The seven tests named in the last run's disputes pass now that the tests round fixed
   them. No change to engine/ beyond the merge was needed.
 - Status: done.
+
+## Run l-engine-9492007270 (attempt 1): SPEC-resolutions.md points 11, 12, 14 to 19, 23, 24
+
+### What was built
+
+- Point 24 (engine/dates.py): `federal_holidays` lists the eleven days of 5 U.S.C.
+  6103(a) on the days the law gives; the observed-day shift (`_observed`) is gone.
+- Point 12: `next.grace.ends` removed; `grace.ends` is the one grace date in upcoming.
+- Points 11, 14, 15, 16: `_window_facts` in engine/f1.py adds seven rows after the
+  section 1 table: `<part>.i765_filed_date.before_recommendation`,
+  `<part>.i765_filed_date.after_file_by`, `stem.i765_filed_date.before_window_opens`,
+  `opt.i765_filed_date.after_window_closes` (operative value only),
+  `opt.ead_end.after_complete_by`. Each day count is `work.whole_rule(id)`, read through
+  Rulepack.value on today under the operative regime. Each shows its rule in `rules`.
+  They go through the same `ask` path as every other fact: cannot_tell, question with
+  about, the about inputs nulled, yes gives talk_to_dso with the id.
+- Point 17: `grace.ends` needs every entered card end.
+- Point 18: `_cap_gap_past_cards`: an active petition whose end is after the last card
+  end (or held in a conflict) gives grace.ends null; with capgap.ends known the verdict
+  carries `grace_with_cap_gap`.
+- Point 19: item `unemployment.opt_card_days_used` (when a STEM block is entered), from
+  the same pieces as days_used, cut at opt.ead_end, naming opt.unemployment_limit_days;
+  judgement `unemployment_opt_card_at_or_over_limit` when the STEM card is entered and
+  the count is at or over the rule's value.
+- Point 23: `_alternates` drops a regime when the item's date is before that regime's
+  own row's effective_from.
+
+### What ran
+
+- Done command parts, each run on its own with its exit code read: pytest exit 1
+  (33 failed), engine_literals exit 0 "every number has a source", mypy exit 0 "no
+  issues found in 56 source files", ruff check exit 0, ruff format --check exit 0.
+- Every test in test_f1_windows.py, test_dates.py and test_f1_sourcing.py passes.
+- The shipped pack by hand (f1 v2026.09): point 14 sweep case gives cannot_tell with
+  conflict:stem.i765_filed_date.before_window_opens; point 18 case talk_to_dso
+  grace_with_cap_gap, grace.ends null, capgap.ends 2027-01-15; point 19 case
+  talk_to_dso unemployment_opt_card_at_or_over_limit, 105 used on the card, 45
+  remaining; a late OPT filing gives conflict:opt.i765_filed_date.after_window_closes.
+
+### Disputes: 33 older tests whose cases hold a row the SPEC now requires
+
+- test_f1.py::test_file_by_is_no_open_item_once_the_filing_is_recorded (5): CASE_A files
+  2026-03-10, the rows put the recommendation 2026-08-28 to 2026-09-13, after the filing.
+  Point 11 raises opt.i765_filed_date.before_recommendation.
+- test_f1_product.py facts rows [opt/stem.dso_recommendation_date.after_today] (5 tests
+  each): the later recommendation is after the recorded filing, so point 11 raises
+  before_recommendation beside after_today.
+- test_f1_product.py facts rows [opt/stem.i765_filed_date.after_card] (5 tests each):
+  the filing moved after the card is also past recommendation plus the rule's days, so
+  point 11 raises after_file_by.
+- test_f1_product.py::test_review_1_a_filing_dated_2030: 2030-01-01 is after the program
+  window closes: point 15 raises opt.i765_filed_date.after_window_closes.
+- test_f1_product.py::test_review_1_an_opt_card_of_three_years: the card through
+  2028-10-31 runs past opt.complete_by: point 16 raises opt.ead_end.after_complete_by.
+- test_f1_product.py::test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part:
+  tests/support/f1_pack.py conflicts_by_the_table does not know the seven new rows.
+- test_f1_fixes.py::test_the_reviewers_far_dates_conflict_and_the_engine_does_not_walk_them:
+  the card to 2099-12-31 raises point 16, whose about holds program_end_date, so the
+  program items are null (test_f1_windows.py::test_a_new_window_conflict_nulls_the_items_that_use_its_dates
+  requires exactly that).
+- test_f1.py::test_case_b_has_every_item_once, test_dated_items_carry_the_date_unit_...[case_b],
+  test_no_date_appears_that_the_pack_and_the_inputs_cannot_produce: ALL_IDS, UNITS and
+  the expected set lack point 19's `unemployment.opt_card_days_used` (unit days).
+- Point 16 says the conflict "carries reading"; a question has no field for it
+  (additionalProperties false). The rule shown in `rules` carries the pack's derivation.
+
+Status: escalated. No test was changed or worked around.
+
+### After the stop hook
+
+The stop hook ran the done command and printed the same failures: the second time.
+engine/ESCALATE.md written. Status stays escalated. Nothing else changed.
+
+## Run l-engine-5be53ef08a (attempt 1): merge points 11, 12, 14 to 19, 23, 24 and pass
+
+- `git merge --no-edit lane/L-engine/l-engine-9492007270`: merge made; engine/dates.py,
+  engine/f1.py and engine/PROGRESS.md came in. git printed "Operation not permitted" for
+  tests/holdout/, which the sandbox closes to this lane; the merge went through.
+- Done command, run as written with no pipe (output saved to a file under TMPDIR, exit
+  code read from the shell): exit 0. pytest 220 passed, engine literals "every number
+  has a source", mypy "no issues found in 56 source files", ruff check "All checks
+  passed!", ruff format "8 files already formatted".
+- Point 16 as clarified: the question `opt.ead_end.after_complete_by` carries id,
+  because and about only; `note` in `_window_conflicts` calls `work.show`, so
+  `opt.complete_within_months` is in `rules` with its derivation. Checked by hand
+  against the shipped pack rulepacks/f1-us/v2026.09/parameters.yaml on 2026-10-20: card
+  end on complete_by raises nothing; one day later raises the conflict, the question
+  keys are [about, because, id], and rules holds the rule (value 14, months, settled,
+  8 CFR 214.2(f)(10)(ii)(A)(3), derivation verbatim). The shipped pack also gave
+  rules_stale on that day, which is expected: it was checked on 2026-09-28.
+- No change to engine/ beyond the merge was needed.
+- Status: done.
+
+## Run l-engine-ac276e806b (attempt 1): points 20, 21, 22 and 25
+
+### What was built (engine/f1.py)
+
+- Point 20: `_add_periods` numbers the periods as the case lists them (from 1, as the
+  conflict `employment_<n>_end` already does). A period that begins from `stem.ead_start`
+  through `stem.ead_end` asks `employment.<n>.new_employer`, about the period's start and
+  `stem.ead_start`. Yes gives `stem.new_plan_due.<n>` = start + `stem.new_plan_due_days`,
+  an open item through the look-ahead (OPEN_ITEM_PREFIXES). A period on the STEM card
+  whose end is recorded from the card start and before the card end gives
+  `stem.concluding_evaluation_due.<n>` = end + `stem.evaluation_due_days`, reading true
+  (new `reading` flag on `_Working.add`). Neither is asked or given while a STEM card date
+  is missing or held in a conflict, or for a period whose end is before its start.
+- Point 21: `_passed_reports` asks `<item>.made` for each validation, the 12-month
+  evaluation, the final evaluation and each concluding evaluation whose date is before
+  today, about {item id: date}. Yes marks the item done. No gives judgement
+  `<item>.not_made`, and `stem.reporting_required` is shown in `rules` when the pack holds it.
+- Point 22: each period with a recorded end asks `employment.<n>.end_reported`, about its
+  start and end. No gives item `employment.<n>.end_report_by` = end +
+  `opt.report_employer_within_days` (plus `opt.report_interruption` in rule_ids when the
+  pack holds it; status stays guidance), and the open item `report_employer`.
+- Point 25: rule_in_litigation only when today is after the last card end and a computed
+  item or an upcoming entry carries alternates.
+
+### What ran
+
+- Done command as written, no pipe, output to a file: first exit 1 (mypy: tuple[str]
+  assigned a two-tuple at the report rules); fixed with an annotation; second run exit 0:
+  pytest all passed, "engine literals: every number has a source", mypy "no issues found
+  in 56 source files", ruff "All checks passed!", "8 files already formatted".
+- tests/unit on the worktree and on a git archive of HEAD under TMPDIR: 44 tests fail now
+  that passed at HEAD, all on the new questions (list in REPORT.json disputes); 19 fail
+  at HEAD and pass now. tests/unit/tools failures are the sandbox (sandbox_apply) in both.
+- Shipped pack by hand (v2026.09) on the sweep case with a second period 2026-04-01 to
+  2026-07-20: on 2026-09-28 the questions are new_employer, end_reported and
+  concluding_evaluation_due.2.made (2026-07-30); on 2026-09-29 validation_1_due.made
+  (2026-09-28) joins them. Verdict cannot_tell both days.
+
+Status: done.

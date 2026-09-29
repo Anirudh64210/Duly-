@@ -60,3 +60,10 @@
 - Failure: a probe claimed in the draft review had not been run (the verdict line for stem.apply_window_closes), and a table said every row was quiet when one returned needs_you.
 - Fix: before the done command, run every input the review names and correct the text to what was printed. Say which screen findings were read from code and not seen.
 - Evidence: the input returned needs_you with stem.apply_window_closes once run; the table row was corrected.
+
+## 2026-09-29, run l-review-6768445363 (product round 1)
+- Read SPEC.md and SPEC-resolutions.md of product-1, reviews/phase-2-second.md, engine/f1.py (facts, answers, compute_f1), api/main.py, case contract, web labels.ts.
+- Ran: engine/api/assistant/support unit tests (pass), holdout --tb=no (pass), web vitest from a TMPDIR copy (183 passed), sources verify (every quote found), engine_literals (pass), copy lint (clean).
+- Sent the inputs of phase-2-second findings 1 to 6 again through TestClient, today 2026-09-29 America/Los_Angeles. All closed: each conflict gives cannot_tell with a question; answers after today give 422; answers with no about or an older day stay open; a filed step is no longer an open item.
+- Resolution 11 not built: four inputs (STEM filed before its rec, STEM 101 days after, OPT filed before, OPT 71 days after) return no_open_items with no question. No test covers it. engine/f1.py last changed before the resolution landed.
+- Wrote reviews/product-1.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.

@@ -37,6 +37,7 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
+    periods_answered,
     reasons_with,
     refuse_placeholders,
     rule_statuses,
@@ -267,9 +268,10 @@ def test_a_shorter_extension_gives_fewer_reports():
     out = run(case, rules={"stem.extension_months": 12})
     assert validation_ids(out) == {"stem.validation_1_due", "stem.validation_2_due"}
     got = values(out)
-    # The dates are those of the first two reports under the shipped numbers.
+    # The dates are those of the first two reports under the shipped numbers. Point 24:
+    # Friday 2026-07-03, the observed day of July 4, is a business day.
     assert got["stem.validation_1_due"] == "2026-01-15"
-    assert got["stem.validation_2_due"] == "2026-07-16"
+    assert got["stem.validation_2_due"] == "2026-07-15"
 
 
 def test_a_longer_extension_gives_more_reports():
@@ -277,7 +279,7 @@ def test_a_longer_extension_gives_more_reports():
     out = run(CASE_B, rules={"stem.extension_months": 36})
     assert validation_ids(out) == {f"stem.validation_{n}_due" for n in range(1, 7)}
     got = values(out)
-    assert got["stem.validation_4_due"] == "2027-07-16"
+    assert got["stem.validation_4_due"] == "2027-07-15"
     # stem.ead_start 2025-07-01 plus 30 months is Saturday 2028-01-01. Ten business days
     # after it: Jan 3 (1), 4 (2), 5 (3), 6 (4), 7 (5), 10 (6), 11 (7), 12 (8), 13 (9),
     # 14 (10). The holiday on Monday Jan 17 is not reached.
@@ -295,9 +297,9 @@ def test_a_longer_interval_gives_fewer_reports_further_apart():
     got = values(out)
     # 2025-07-01 plus 12 months is Wednesday 2026-07-01: see stem.validation_2_due under
     # the shipped numbers.
-    assert got["stem.validation_1_due"] == "2026-07-16"
+    assert got["stem.validation_1_due"] == "2026-07-15"
     # Plus 24 months is Thursday 2027-07-01: see stem.validation_4_due.
-    assert got["stem.validation_2_due"] == "2027-07-16"
+    assert got["stem.validation_2_due"] == "2027-07-15"
 
 
 def test_a_shorter_interval_gives_more_reports_closer_together():
@@ -311,7 +313,7 @@ def test_a_shorter_interval_gives_more_reports_closer_together():
     # Plus 6 months: the first report under the shipped numbers.
     assert got["stem.validation_2_due"] == "2026-01-15"
     # Plus 24 months: the fourth report under the shipped numbers.
-    assert got["stem.validation_8_due"] == "2027-07-16"
+    assert got["stem.validation_8_due"] == "2027-07-15"
 
 
 def test_every_derived_report_is_null_when_the_start_date_is_missing():
@@ -444,8 +446,9 @@ def test_periods_not_reported_names_the_reporting_rule(days):
 @pytest.mark.parametrize(
     ("ahead", "before", "open_item"),
     [
-        # stem.validation_2_due of CASE_B is 2026-07-16. The item is open when it falls
-        # from today through today plus the lookahead: today is the due day less `before`.
+        # stem.validation_2_due of CASE_B is 2026-07-15 (SPEC-resolutions.md, point 24).
+        # The item is open when it falls from today through today plus the lookahead:
+        # today is the due day less `before`.
         # opt.file_by is not used: it is done once the card is recorded (SPEC-resolutions.md,
         # point 5), so it is never open on a case that computes.
         (7, 7, True),  # today plus 7
@@ -462,10 +465,14 @@ def test_periods_not_reported_names_the_reporting_rule(days):
     ],
 )
 def test_the_lookahead_comes_from_the_settings(ahead, before, open_item):
-    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
-    today = date(2026, 7, 16) - timedelta(days=before)
+    # SPEC-resolutions.md, point 21: each report dated before the day of the run was made
+    # (periods_answered), so no .made question stands between the lookahead and the verdict.
+    case = periods_answered(
+        with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    )
+    today = date(2026, 7, 15) - timedelta(days=before)
     out = run(case, today=today, chosen={LOOKAHEAD: ahead})
-    assert values(out)["stem.validation_2_due"] == "2026-07-16"
+    assert values(out)["stem.validation_2_due"] == "2026-07-15"
     assert ("stem.validation_2_due" in out["verdict"]["reasons"]) == open_item
     if open_item:
         assert out["verdict"]["state"] == "needs_you"
@@ -579,13 +586,17 @@ def test_same_inputs_and_settings_same_output():
     offset=st.integers(min_value=-10, max_value=100),
 )
 def test_an_item_is_open_from_today_through_the_lookahead_and_on_no_other_day(ahead, offset):
-    # stem.validation_2_due of CASE_B, 2026-07-16, falls offset days from the day the case
-    # is run. opt.file_by is done once the card is recorded (SPEC-resolutions.md, point
+    # stem.validation_2_due of CASE_B, 2026-07-15 (point 24), falls offset days from the
+    # day the case is run. opt.file_by is done once the card is recorded (SPEC-resolutions.md, point
     # 5), so it cannot carry this property.
-    case = with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
-    run_on = date(2026, 7, 16) - timedelta(days=offset)
+    # SPEC-resolutions.md, point 21: each report dated before the day of the run was made
+    # (periods_answered), so no .made question stands between the lookahead and the verdict.
+    case = periods_answered(
+        with_changes(CASE_B, employment=[job("2024-07-01", None)], cap_gap=None)
+    )
+    run_on = date(2026, 7, 15) - timedelta(days=offset)
     out = run(case, today=run_on, chosen={LOOKAHEAD: ahead})
-    assert values(out)["stem.validation_2_due"] == "2026-07-16"
+    assert values(out)["stem.validation_2_due"] == "2026-07-15"
     assert ("stem.validation_2_due" in out["verdict"]["reasons"]) == (0 <= offset <= ahead)
 
 

@@ -430,3 +430,32 @@ uv run pytest tests/unit/engine tests/unit/api -q
 - Failure: 114 tests under tests/unit/engine and tests/unit/api fail in this worktree.
 - Fix: git archive HEAD into TMPDIR, run the same suites there, count per file. The counts match, so the diff causes none.
 - Evidence: 20, 6, 3, 37, 32, 8, 8 in both runs.
+
+## 2026-09-29, run l-content-8eadcf0295, attempt 1: resolutions 20, 21, 22 and 24
+
+### What I did
+
+1. Read this log, specs/product-1/SPEC-resolutions.md points 20 to 24, CLAUDE.md, PRINCIPLES.md, BOUNDARY.md, DECISIONS.md.
+2. Looked for each sentence with the source check's own plain() in every saved copy. The whole sentence of (f)(10)(ii)(C)(7)(iv), the first sentence of (f)(12)(i) and the sentence of (f)(12)(ii) are each found once in the 2026-09-14 text, once in the 2026-09-15 text and once in 81 FR 13040. The (f)(12)(ii) sentence is also in 73 FR 18944 (2008), where it covers the 17-month extension. The (f)(12)(i) duty is in 67 FR 76256 and 73 FR 18944 in other words. The opening words of 6103(b) are found once in usc-5-6103-2026-09-28.htm.
+3. stem.new_plan_due_days: quote is now the whole sentence, starting with the condition. Value 10, settled and verbatim did not change. checked_on 2026-09-29.
+4. Added opt.report_interruption and stem.reporting_required, flags, settled, verbatim, start 2016-05-10. Neither has a number.
+5. calendar.federal_holidays_law: the note says business days skip the days in 6103(a), on those days, and not observed days, and quotes the opening words of 6103(b). The quote stays the list in (a).
+6. CHANGELOG.md entry added. No network was used.
+
+### What ran
+
+```
+done command (as written in the contract)
+  sources: 4 pack(s) checked, every quote found
+  exit 0
+uv run pytest tests/unit/engine/test_rulepack.py -q
+  19 passed
+uv run python -m tools.copy_lint.lint
+  PermissionError on tests/holdout/.gitkeep (the sandbox refuses the read). Not a copy problem.
+uv run python -m tools.copy_lint.lint <scratch copy of HEAD under TMPDIR with the two changed files, tests/holdout left out>
+  copy lint: clean, exit 0
+```
+
+### Seen and not worked around
+
+- The copy lint run from the repo root lists tests/holdout/.gitkeep through git ls-files and stops on the sandbox's refusal. Ran it on a scratch copy instead. The lint itself is outside this lane.

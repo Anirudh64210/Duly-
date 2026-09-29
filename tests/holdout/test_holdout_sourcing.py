@@ -30,6 +30,7 @@ from tests.support.f1_pack import (
     job,
     months_later,
     pack_dict,
+    periods_answered,
     reasons_with,
     refuse_placeholders,
     rule_statuses,
@@ -84,9 +85,13 @@ def run(
 
 
 # Case C: on the STEM extension since 2026-08-01, one employer, reported, full time.
-# Nothing is open on 2026-11-02.
+# Nothing is open on 2026-11-02. SPEC-resolutions.md, point 16: the program end is
+# 2025-06-01 (it was 2025-05-16, and 14 months from it, 2026-07-16, fell before the OPT
+# card's last day, 2026-07-31). 14 months from 2025-06-01 is 2026-08-01. The OPT filing of
+# 2025-03-12 is before the window closes 60 days after it (point 15); the STEM filing of
+# 2026-05-20 is after the window opens 90 days before 2026-07-31, on 2026-05-02 (point 14).
 CASE_C: dict[str, Any] = {
-    "program_end_date": "2025-05-16",
+    "program_end_date": "2025-06-01",
     "time_zone": TIME_ZONE,
     "confirmations": answered_yes(),
     "degree_level": "doctorate",
@@ -306,7 +311,11 @@ def test_the_fiscal_year_start_comes_from_the_pack(starts, requested_start, expe
 
 @pytest.mark.parametrize("days", [10, 21])
 def test_periods_not_reported_names_the_reporting_rule(days):
-    out = run(CASE_D, rules={REPORT_EMPLOYER: days})
+    # SPEC-resolutions.md, point 18: CASE_D's petition is active and asks for 2027-10-01,
+    # after the card's last day of 2027-08-31, so its verdict carries the judgement item
+    # grace_with_cap_gap, which wins over the open item report_employer. The test is about
+    # the reporting rule, so its case has no petition (point 4: the facts fit).
+    out = run(with_changes(CASE_D, cap_gap=None), rules={REPORT_EMPLOYER: days})
     got = items(out)["employment.periods_not_reported"]
     assert got["value"] == 1
     assert REPORT_EMPLOYER in got["rule_ids"]
@@ -347,7 +356,11 @@ SHORT_INTERVAL = {EVALUATION_INTERVAL: 3}
     ],
 )
 def test_the_lookahead_comes_from_the_settings(ahead, today, open_item):
-    out = run(CASE_C, today=today, rules=SHORT_INTERVAL, chosen={LOOKAHEAD: ahead})
+    # SPEC-resolutions.md, point 21: on 2026-11-12 the evaluation of 2026-11-11 has passed,
+    # and each report dated before the day of the run was made (periods_answered). The
+    # test is about the lookahead.
+    case = periods_answered(CASE_C)
+    out = run(case, today=today, rules=SHORT_INTERVAL, chosen={LOOKAHEAD: ahead})
     assert values(out)["stem.evaluation_12_month_due"] == EVALUATION_DUE.isoformat()
     if open_item:
         assert out["verdict"] == {
@@ -370,7 +383,14 @@ def opt_card_from(opt_start: str) -> dict[str, Any]:
         opt_start,
         (months_later(first, 12) - timedelta(days=1)).isoformat(),
     )
-    return with_changes(CASE_C, opt=card, stem=None, employment=[job(opt_start, None)])
+    # The program end these rows were worked from, kept here now that CASE_C's moved.
+    return with_changes(
+        CASE_C,
+        program_end_date="2025-05-16",
+        opt=card,
+        stem=None,
+        employment=[job(opt_start, None)],
+    )
 
 
 @pytest.mark.parametrize(
