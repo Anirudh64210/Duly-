@@ -150,6 +150,32 @@ describe("plain-1 section 3: what a court did, in plain words", () => {
     expect(calmProblems(text).filter((found) => found.startsWith("status word"))).toEqual([]);
   });
 
+  it("shows no court line where every alternate is null (points 49 and 55)", () => {
+    const nulled: EngineOutput = {
+      ...output,
+      computed: output.computed.map((item) =>
+        item.alternates
+          ? {
+              ...item,
+              value: null,
+              alternates: item.alternates.map((a) => ({ ...a, value: null })),
+            }
+          : item,
+      ),
+      upcoming: output.upcoming.map((entry) =>
+        entry.alternates
+          ? { ...entry, alternates: entry.alternates.map((a) => ({ ...a, value: null })) }
+          : entry,
+      ),
+    };
+    showAll(nulled);
+    const row = rowOf(/^Grace period ends/);
+    expect(within(row).queryByText(PAUSED_PLAIN)).toBeNull();
+    expect(within(row).queryByRole("link", { name: "Read the court's order" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "What the paused rule would change" })).toBeNull();
+    expect(screen.queryAllByText(PAUSED_PLAIN)).toEqual([]);
+  });
+
   it("names the rule tags in the words of the SPEC", () => {
     showAll();
     expect(within(rowOf(/^Grace period ends/)).getByText("A court paused a change")).toBeDefined();
