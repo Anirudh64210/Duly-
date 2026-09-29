@@ -13,7 +13,7 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -225,14 +225,136 @@ def live_runs(repo: Path) -> list[dict[str, Any]]:
 
 
 def open_alerts(events: list[dict[str, Any]], own: set[str]) -> list[dict[str, Any]]:
-    """Alerts nobody has dealt with yet. One that was dealt with stays in the record of
-    actions, with the line that says how, and leaves this list."""
+    """Alerts nobody has dealt with yet.
+
+    An alert leaves this list when someone records how it was dealt with, or when the
+    same task later finishes and passes. It always stays in the record of actions.
+    """
     done = {e.get("handles") for e in events if e.get("handles")}
-    return [
+    task_of = {e["run_id"]: e["task"] for e in events if e.get("run_id") and e.get("task")}
+    passed_at: dict[str, str] = {}
+    for e in events:
+        task = task_of.get(str(e.get("run_id") or ""))
+        if task and e.get("kind") == "done" and str(e.get("message", "")).startswith("done"):
+            passed_at[task] = str(e.get("at", ""))
+    out = []
+    for e in events:
+        if e.get("kind") != "alert" or e.get("run_id") in own or e.get("hash") in done:
+            continue
+        task = task_of.get(str(e.get("run_id") or ""))
+        if task and passed_at.get(task, "") > str(e.get("at", "")):
+            continue
+        out.append(e)
+    return out
+
+
+def read_notes(repo: Path) -> list[dict[str, Any]]:
+    """What the founder wrote to Claude in the window, each with its replies."""
+    rows = read_jsonl(repo / ".factory" / "inbox.jsonl")
+    notes = [dict(r, replies=[]) for r in rows if r.get("kind") == "note"]
+    by_id = {n["id"]: n for n in notes}
+    for row in rows:
+        if row.get("kind") == "reply" and row.get("note") in by_id:
+            note = by_id[row["note"]]
+            note["replies"].append({"at": row.get("at", ""), "text": row.get("text", "")})
+            note["state"] = "open" if row.get("keep_open") else "done"
+    for note in notes:
+        note.setdefault("state", "open")
+    return notes
+
+
+def add_note(repo: Path, text: str, now: datetime) -> dict[str, Any]:
+    text = text.strip()[:2000]
+    if not text:
+        return {}
+    folder = repo / ".factory"
+    folder.mkdir(exist_ok=True)
+    stamp = now.isoformat(timespec="seconds")
+    row = {
+        "kind": "note",
+        "id": hashlib.sha256((stamp + text).encode()).hexdigest()[:10],
+        "at": stamp,
+        "text": text,
+    }
+    with (folder / "inbox.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+    return row
+
+
+def self_check(
+    repo: Path, snap: "Snapshot", live: list[dict[str, Any]], now: datetime
+) -> list[str]:
+    """What the window itself can see is wrong or stale, said before anyone has to ask."""
+    found: list[str] = []
+    for agent in snap.agents:
+        if agent.state == "stopped" and agent.kind == "work":
+            found.append(f"{agent.lane} shows as working in the record but has no live process.")
+    try:
+        held = json.loads((repo / ".factory" / "registry.json").read_text()).get("runs", {})
+    except (OSError, json.JSONDecodeError):
+        held = {}
+    dead = [k for k, r in held.items() if not pid_alive(int(r.get("pid", 0)))]
+    if dead:
+        found.append(f"{len(dead)} claims are held by processes that have ended.")
+    stale = [h for h in health_rows(repo, snap.health) if h["state"] != "passed"]
+    if stale and not any(r["kind"] == "health" for r in live):
+        found.append(
+            f"{len(stale)} health checks are out of date or were never run. "
+            "No agent in those lanes can start until make doctor passes."
+        )
+    if snap.ledger_problems:
+        found.append("The record of actions was changed, or a line is missing.")
+    old = [
+        a for a in snap.alerts if (parse_time(a.get("at", "")) or now) < now - timedelta(hours=6)
+    ]
+    if old:
+        found.append(f"{len(old)} alerts have been open for more than six hours.")
+    trees = repo.parent / f"{repo.name}-worktrees"
+    if trees.is_dir():
+        in_use = {str(r.get("worktree", "")) for r in held.values()}
+        waiting = {str(a.worktree) for a in snap.agents if a.worktree}
+        left = [
+            p
+            for p in trees.iterdir()
+            if p.is_dir() and str(p) not in in_use and str(p) not in waiting
+        ]
+        if left:
+            found.append(
+                f"{len(left)} worktrees are left over from runs that ended. "
+                "make factory-clean removes them."
+            )
+    failing = [name for name, result in snap.gates.items() if result != "pass"]
+    if failing and not live:
+        found.append("The last checks did not all pass: " + ", ".join(failing) + ".")
+    if snap.stopped and live:
+        found.append("The factory is stopped but processes are still running.")
+    return found
+
+
+def plan_state(repo: Path, events: list[dict[str, Any]]) -> dict[str, Any]:
+    """Whether a plan is running now, and the orchestrator's latest word."""
+    try:
+        held = json.loads((repo / ".factory" / "registry.json").read_text()).get("runs", {})
+    except (OSError, json.JSONDecodeError):
+        held = {}
+    running = [
+        r
+        for r in held.values()
+        if str(r.get("lane", "")).startswith("orchestrator:") and pid_alive(int(r.get("pid", 0)))
+    ]
+    said = [
         e
         for e in events
-        if e.get("kind") == "alert" and e.get("run_id") not in own and e.get("hash") not in done
+        if e.get("lane") == ORCHESTRATOR
+        and e.get("kind") in {"start", "step", "done", "failed", "blocked", "merge"}
     ]
+    last = said[-1] if said else {}
+    return {
+        "running": bool(running),
+        "branch": str(running[0]["lane"]).split(":", 1)[1] if running else "",
+        "message": last.get("message", ""),
+        "at": last.get("at", ""),
+    }
 
 
 def factory_runs(events: list[dict[str, Any]]) -> set[str]:
@@ -621,6 +743,9 @@ def snapshot_json(
     snap = load(repo, ps_output=ps_output)
     return {
         "round": snap.round_line,
+        "plan": plan_state(repo, read_events(repo)),
+        "notes": list(reversed(read_notes(repo)))[:20],
+        "notices": self_check(repo, snap, live_runs(repo), clock.now()),
         "live": live_runs(repo),
         "stopped": snap.stopped,
         "spend": {

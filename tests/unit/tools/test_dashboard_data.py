@@ -441,3 +441,150 @@ def test_an_alert_that_was_dealt_with_leaves_the_list():
     fixed = {**ev("founder", "control", "handled: fixed and rerun"), "handles": "aaa"}
     assert [a["hash"] for a in data.open_alerts([first, second], set())] == ["aaa", "bbb"]
     assert [a["hash"] for a in data.open_alerts([first, second, fixed], set())] == ["bbb"]
+
+
+def test_an_alert_leaves_the_list_when_its_task_later_passes():
+    events = [
+        {
+            **ev("L-web", "start", "m", at="2026-09-29T09:00:00+00:00"),
+            "run_id": "w1",
+            "task": "p/A/L-web",
+        },
+        {
+            **ev("L-web", "alert", "loop: x", at="2026-09-29T09:05:00+00:00"),
+            "run_id": "w1",
+            "hash": "a1",
+        },
+        {
+            **ev("L-api", "start", "m", at="2026-09-29T09:00:00+00:00"),
+            "run_id": "p1",
+            "task": "p/A/L-api",
+        },
+        {
+            **ev("L-api", "alert", "stall: x", at="2026-09-29T09:06:00+00:00"),
+            "run_id": "p1",
+            "hash": "a2",
+        },
+        {
+            **ev("L-web", "start", "m", at="2026-09-29T09:10:00+00:00"),
+            "run_id": "w2",
+            "task": "p/A/L-web",
+        },
+        {**ev("L-web", "done", "done: passes", at="2026-09-29T09:20:00+00:00"), "run_id": "w2"},
+    ]
+    assert [a["hash"] for a in data.open_alerts(events, set())] == ["a2"]
+
+
+def test_notes_to_claude_and_their_replies(tmp_path):
+    repo = tmp_path / "duly"
+    repo.mkdir()
+    now = datetime(2026, 9, 29, 11, 0, tzinfo=UTC)
+    assert data.add_note(repo, "   ", now) == {}
+    first = data.add_note(repo, "The count says 0 but an agent is running", now)
+    second = data.add_note(repo, "The panel is cut off when the window is wide", now)
+    rows = [
+        {
+            "kind": "reply",
+            "note": first["id"],
+            "text": "Looking now.",
+            "keep_open": True,
+            "at": "2026-09-29T11:01:00+00:00",
+        },
+        {
+            "kind": "reply",
+            "note": first["id"],
+            "text": "Fixed and reopened.",
+            "keep_open": False,
+            "at": "2026-09-29T11:09:00+00:00",
+        },
+    ]
+    with (repo / ".factory" / "inbox.jsonl").open("a") as handle:
+        handle.write("".join(json.dumps(r) + "\n" for r in rows))
+    notes = {n["id"]: n for n in data.read_notes(repo)}
+    assert notes[first["id"]]["state"] == "done"
+    assert [r["text"] for r in notes[first["id"]]["replies"]] == [
+        "Looking now.",
+        "Fixed and reopened.",
+    ]
+    assert notes[second["id"]]["state"] == "open"
+    assert notes[second["id"]]["replies"] == []
+
+
+def test_the_window_says_what_it_can_see_is_wrong(tmp_path):
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    (tmp_path / "duly-worktrees" / "old-run").mkdir(parents=True)
+    events = [
+        {**ev("L-api", "start", "m"), "run_id": "a"},
+        {
+            **ev("L-api", "alert", "stall: x", at="2026-09-28T01:00:00+00:00"),
+            "run_id": "a",
+            "hash": "h",
+        },
+    ]
+    (repo / ".factory" / "events.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    (repo / ".factory" / "registry.json").write_text(
+        json.dumps(
+            {
+                "runs": {
+                    "gone": {"lane": "L-web", "task": "t", "pid": 2_000_000_000, "worktree": "x"}
+                }
+            }
+        )
+    )
+    (repo / ".factory" / "gates.json").write_text(json.dumps({"results": {"types": "fail"}}))
+    now = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
+    snap = data.load(repo, with_tokens=False, ps_output="", now=now)
+    found = " ".join(data.self_check(repo, snap, [], now))
+    for part in (
+        "L-api shows as working",
+        "1 claims are held",
+        "1 alerts have been open",
+        "1 worktrees are left over",
+        "did not all pass: types",
+    ):
+        assert part in found
+    quiet = tmp_path / "quiet"
+    quiet.mkdir()
+    assert (
+        data.self_check(quiet, data.load(quiet, with_tokens=False, ps_output="", now=now), [], now)
+        == []
+    )
+
+
+def test_the_header_says_whether_a_plan_is_running(tmp_path):
+    import os
+
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    events = [
+        ev("founder", "start", "round A: L-api", agent="orchestrator"),
+        ev(
+            "founder",
+            "blocked",
+            "round A stopped",
+            agent="orchestrator",
+            at="2026-09-29T07:00:00+00:00",
+        ),
+    ]
+    assert data.plan_state(repo, events) == {
+        "running": False,
+        "branch": "",
+        "message": "round A stopped",
+        "at": "2026-09-29T07:00:00+00:00",
+    }
+    (repo / ".factory" / "registry.json").write_text(
+        json.dumps(
+            {
+                "runs": {
+                    "o": {
+                        "lane": "orchestrator:product-1",
+                        "task": "orchestrate:product-1",
+                        "pid": os.getpid(),
+                    }
+                }
+            }
+        )
+    )
+    assert data.plan_state(repo, events)["running"] is True
+    assert data.plan_state(repo, events)["branch"] == "product-1"

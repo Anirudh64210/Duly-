@@ -137,6 +137,53 @@ def handled(repo: Path, seal: str, note: str) -> int:
     return 0
 
 
+def _inbox(repo: Path) -> list[dict[str, object]]:
+    path = repo / ".factory" / "inbox.jsonl"
+    if not path.exists():
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return rows
+
+
+def inbox(repo: Path) -> int:
+    """The founder's notes from the window that have no closing reply yet."""
+    rows = _inbox(repo)
+    closed = {r["note"] for r in rows if r.get("kind") == "reply" and not r.get("keep_open")}
+    waiting = [r for r in rows if r.get("kind") == "note" and r["id"] not in closed]
+    for note in waiting:
+        print(f"{note['id']}  {note['at']}  {note['text']}")
+    if not waiting:
+        print("No notes are waiting.")
+    return 0
+
+
+def reply(repo: Path, note: str, text: str, keep_open: bool) -> int:
+    rows = _inbox(repo)
+    if not any(r.get("kind") == "note" and r.get("id") == note for r in rows):
+        print(f"There is no note {note}.")
+        return 1
+    if not text.strip():
+        print('Say what was done: --text "..."')
+        return 1
+    row = {
+        "kind": "reply",
+        "note": note,
+        "text": text.strip()[:2000],
+        "keep_open": keep_open,
+        "at": SystemClock().now().isoformat(timespec="seconds"),
+    }
+    with (repo / ".factory" / "inbox.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row) + "\n")
+    ledger.append("founder", "orchestrator", "control", f"replied to note {note}", repo)
+    print("Replied.")
+    return 0
+
+
 def metrics(repo: Path) -> int:
     print(json.dumps(telemetry.summary(telemetry.read_runs(repo)), indent=2))
     return 0
@@ -145,16 +192,33 @@ def metrics(repo: Path) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "command", choices=["stop", "resume", "status", "doctor", "clean", "metrics", "handled"]
+        "command",
+        choices=[
+            "stop",
+            "resume",
+            "status",
+            "doctor",
+            "clean",
+            "metrics",
+            "handled",
+            "inbox",
+            "reply",
+        ],
     )
     parser.add_argument("--reason", default="the founder stopped the factory")
     parser.add_argument("--agent", default="")
     parser.add_argument("--alert", default="")
     parser.add_argument("--note", default="")
+    parser.add_argument("--text", default="")
+    parser.add_argument("--keep-open", action="store_true")
     args = parser.parse_args()
     repo = main_repo(Path.cwd())
     if args.command == "stop":
         return stop(repo, args.reason)
+    if args.command == "inbox":
+        return inbox(repo)
+    if args.command == "reply":
+        return reply(repo, args.note, args.text, args.keep_open)
     if args.command == "handled":
         return handled(repo, args.alert, args.note)
     if args.command == "doctor":

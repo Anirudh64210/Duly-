@@ -269,6 +269,59 @@
       .alert-line b {
         font-weight: 600;
       }
+      textarea {
+        width: 100%;
+        font: inherit;
+        color: var(--ink);
+        background: var(--sunken);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        resize: vertical;
+        user-select: text;
+        cursor: text;
+      }
+      .note-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 8px;
+        font-size: 12.5px;
+      }
+      .send {
+        flex: none;
+        padding: 7px 14px;
+        border-radius: 99px;
+        background: var(--accent);
+        color: var(--surface);
+        font-weight: 600;
+      }
+      .send:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .note {
+        border-top: 1px solid var(--line);
+        margin-top: 12px;
+        padding-top: 10px;
+        font-size: 13px;
+      }
+      .note .said {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .note .reply {
+        margin-top: 6px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: var(--accent-tint);
+      }
+      .note time {
+        color: var(--ink-3);
+      }
       .bar-top {
         display: flex;
         justify-content: space-between;
@@ -812,6 +865,23 @@
         </section>
         <aside>
           <div class="panel">
+            <h2>Tell Claude</h2>
+            <textarea
+              id="note-text"
+              rows="3"
+              placeholder="What looks wrong, or what you want changed"
+            ></textarea>
+            <div class="note-actions">
+              <span class="muted" id="note-hint">Claude is told as soon as you send it.</span>
+              <button class="send" id="note-send">Send to Claude</button>
+            </div>
+            <div id="notes"></div>
+          </div>
+          <div class="panel hidden" id="notices-panel">
+            <h2>The factory's own check</h2>
+            <ul class="rows" id="notices"></ul>
+          </div>
+          <div class="panel">
             <h2>Needs you</h2>
             <div id="alerts"></div>
           </div>
@@ -1045,6 +1115,36 @@
         else if (checks) sub = work + " at work, " + checks + " checking the factory";
         return tile("Running now", String(s.live.length), sub);
       }
+      function drawNotes(s) {
+        const notes = s.notes.slice(0, 6).map((n) => {
+          const box = el("div", "note");
+          const said = el("div", "said");
+          const text = el("div");
+          text.append(el("time", "mono", short(n.at) + "  "), n.text);
+          const pill = el("span", "state");
+          const done = n.state === "done";
+          if (done) pill.append(icon("done", "var(--good)"), "Done");
+          else pill.append(el("span", "dot live"), n.replies.length ? "In hand" : "Sent");
+          said.append(text, pill);
+          box.append(said);
+          for (const r of n.replies) {
+            const reply = el("div", "reply");
+            reply.append(el("time", "mono", short(r.at) + "  "), "Claude: " + r.text);
+            box.append(reply);
+          }
+          return box;
+        });
+        $("notes").replaceChildren(...notes);
+        const notices = s.notices.map((text) => {
+          const li = el("li");
+          const pill = el("span", "state");
+          pill.append(icon("blocked", "var(--warning)"), "Check");
+          li.append(el("span", "", text), pill);
+          return li;
+        });
+        $("notices-panel").classList.toggle("hidden", notices.length === 0);
+        $("notices").replaceChildren(...notices);
+      }
       function spendTile(spend) {
         const node = spend.charged
           ? tile(
@@ -1088,6 +1188,7 @@
       function drawMain() {
         const s = snapshot;
         drawStop();
+        drawNotes(s);
 
         const alerts = s.alerts.slice(0, 6).map((a) => {
           const row = el("div", "alert-line");
@@ -1208,7 +1309,10 @@
           $("health").replaceChildren(list, note);
         } else $("health").replaceChildren(el("div", "muted", "No agent contracts found."));
 
-        $("round").textContent = s.round || "No round has started.";
+        $("round").textContent = s.plan.running
+          ? "A plan is running on " + s.plan.branch + ". " + tidy(s.plan.message)
+          : "No plan is running." +
+            (s.plan.message ? " Last word, " + short(s.plan.at) + ": " + tidy(s.plan.message) : "");
         $("head").textContent = s.head;
         const t = s.totals;
         $("tiles").replaceChildren(
@@ -1490,6 +1594,19 @@
         drawStop();
         setTimeout(drawStop, 4100);
       });
+      $("note-text").addEventListener("input", () => {
+        $("note-send").disabled = !$("note-text").value.trim();
+      });
+      $("note-send").disabled = true;
+      $("note-send").addEventListener("click", async () => {
+        const text = $("note-text").value.trim();
+        if (!text || !bridge) return;
+        $("note-send").disabled = true;
+        await bridge.note(text);
+        $("note-text").value = "";
+        $("note-hint").textContent = "Sent. Claude has been told.";
+        refresh();
+      });
       $("back").addEventListener("click", closeAgent);
       $("follow").addEventListener("click", () => {
         follow = !follow;
@@ -1505,6 +1622,7 @@
         }
       });
       document.addEventListener("keydown", (event) => {
+        if (event.target instanceof HTMLTextAreaElement) return;
         if (event.key === "Escape" && open) closeAgent();
         const order = ["trace", "activity", "progress", "changes"];
         if (open && order[Number(event.key) - 1]) {
