@@ -1,0 +1,500 @@
+UNITED STATES DISTRICT COURT
+FOR THE DISTRICT OF COLUMBIA
+ANGELICA PAOLA TRILLERAS GOMEZ,
+et al.,
+Case No. 26-cv-2364 (JMC)
+Plaintiffs,
+v.
+MARKWAYNE MULLIN, et al.,
+Defendants.
+MEMORANDUM OPINION
+Angelica Paola Trilleras Gomez, a J-1 visa holder from Colombia, and her spouse Jonathan
+Alan Liao, an American citizen, sued several governmental Defendants.1 See ECF 3 ¶¶ 1, 3, 67–68.
+They allege that when Trilleras petitioned the U.S. Citizenship and Immigration Services (USCIS)
+to waive a requirement of her J-1 visa, the USCIS denied her petition on the grounds that she had—
+about two years earlier—already received a waiver of that same requirement (although Trilleras
+allegedly never used that waiver). See id. ¶¶ 1, 4–7. Based on that denial, Plaintiffs concluded that
+the USCIS and the State Department—which itself also administers J-1 visas—are using a “one
+waiver per customer” rule. Id. ¶¶ 3, 8. Plaintiffs say that the agencies’ use of this rule violates the
+Administrative Procedure Act (APA) because the rule is in effect a “secret law,” promulgated
+without notice and comment. Id. ¶¶ 13, 131–39. Plaintiffs also allege that the “one waiver per
+customer rule” is arbitrary and capricious, ultra vires, and contrary to law in violation of the APA.
+1 These Defendants are Markwayne Mullin, in his official capacity as Secretary of the Department of Homeland
+Security; Joseph B. Edlow, in his official capacity as Director of the U.S. Citizenship and Immigration Services
+(USCIS); Carrie M. Selby, in her official capacity as Acting Associate Director of Service Center Operations for the
+USCIS; Marco A. Rubio, in his official capacity as Secretary of State; Jennifer L. Weronski, in her official capacity
+as the Chief of the Waiver Review Division of the State Department; the USCIS; and the State Department. See ECF 3
+¶¶ 28, 33–39.
+1
+Id. ¶¶ 102–30. In addition to these APA claims, Plaintiffs also sue under the Freedom of
+Information Act (FOIA), seeking an order compelling Defendants to produce agency records
+related to this “secret law.” Id. ¶¶ 140–47.
+Presently, the Court is faced with Plaintiffs’ motion for a preliminary injunction. ECF 8.
+Plaintiffs seek to enjoin a new Department of Homeland Security (DHS) rule from applying to
+Trilleras for the duration of this litigation. Id. ¶ 1. This new rule does not pertain to the process of
+visa waiver applications at all. Rather, the rule would cause Trilleras to begin accruing days of
+“unlawful presence” in the United States as early as September 15, 2026, when she otherwise
+would not begin accruing unlawful presence until some indeterminate later time. Id. ¶¶ 3–4.
+Plaintiffs argue that unless the Court prevents this rule from applying to Trilleras, Trilleras could
+be deported, detained, or otherwise banned from re-entering the United States during the course of
+this litigation. Id. ¶ 4.
+The Court has reviewed the papers. No hearing is necessary. While the Court is
+sympathetic to Trilleras’ predicament, Plaintiffs have not shown that the legal basis for issuing a
+preliminary injunction has been satisfied. The Court will therefore DENY Plaintiffs’ motion.
+2
+I. BACKGROUND
+A. Legal Background
+To understand this dispute, some general knowledge of J-1 visas is required. The Court
+briefly summarizes the framework governing those visas here.
+When a foreign national seeks to enter the United States, they generally must first obtain a
+visa from the State Department. Gomez v. Trump, 485 F. Supp. 3d 145, 158 (D.D.C. 2020). “There
+2 Unless otherwise indicated, the formatting of citations has been modified throughout this opinion, for example, by
+omitting internal quotation marks, emphases, citations, and alterations and by altering capitalization. All pincites to
+documents filed on the docket in this case are to the automatically generated ECF Page ID number that appears at the
+top of each page.
+2
+are two overarching categories of visas: immigrant and nonimmigrant.” Id. “Nonimmigrant visas
+are issued to foreign nationals seeking to enter the United States on a temporary basis for tourism,
+business, medical treatment, and certain types of temporary work.” Id. “Immigrant visas are issued
+to foreign nationals intending to relocate permanently to the United States.” Id.
+The J-1 visa is a nonimmigrant visa. See Khan v. Blome, No. 22-cv-2422, 2022 WL
+17262219, at *1 (D.D.C. Nov. 29, 2022). It permits certain foreign nationals to come to the United
+States for a limited term “for the purpose of teaching, instructing or lecturing, studying, observing,
+conducting research, consulting, demonstrating special skills, or receiving training.” 8 U.S.C.
+§ 1101(a)(15)(J). Once the visa expires—often when the prescribed term of study, research, or
+teaching ends, see 8 C.F.R. § 214.2(j)(1)(ii)—the visa holder generally must return to their home
+country for a period of at least two years. See 8 U.S.C. § 1182(e).
+That return requirement, however, can be waived in certain instances. 8 U.S.C. § 1182(e).
+Relevant in this case are two particular types of waivers. The first is what the Court terms a
+“clinical waiver.”3 That waiver allows the J-1 visa holder to stay in the United States past the end
+of their program so long as they “agree[] to practice primary care or specialty medicine . . . for a
+total of not less than 3 years” in certain “geographic area[s]” that have a “shortage of health care
+professionals.” 8 U.S.C. § 1184(l)(1)(D). The second is an “exceptional hardship waiver.” That
+waiver allows the J-1 visa holder to stay in the United States if certain agency officials determine
+that requiring the visa holder to return home “would impose exceptional hardship upon” the visa
+holder’s “spouse or child.” Id. § 1182(e). If a J-1 visa holder is approved for either of these waivers,
+they can seek H-1B sponsorship and consequently remain in the United States on an immigrant,
+rather than nonimmigrant, visa. See id. § 1101(a)(15)(H)(i)(b).
+3 These clinical waivers are sometimes also referred to as “Conrad 30 Waivers.” See, e.g., Michailidou v. E. Me. Med.
+Ctr., No. 23-cv-352, 2025 WL 2821371, at *3 (D. Me. Oct. 3, 2025); see also 8 C.F.R. § 212.7(c)(9).
+3
+However, if a J-1 visa holder overstays their visa without obtaining a waiver and
+subsequent H-1B status, they risk being subjected to a number of different enforcement
+mechanisms. One such mechanism is deportation. The Immigration and Nationality Act (INA)
+says that any individual “who was admitted [to the United States] as a nonimmigrant”—which
+includes J-1 visa holders—is “deportable” if they “fail[] to maintain the nonimmigrant status”
+under which they were admitted. 8 U.S.C. § 1227(a)(1)(C)(i); see also Khan, 2022 WL 17262219,
+at *1. Failure to maintain a J-1 visa, then (e.g., by overstaying the term of the visa), renders a
+nonimmigrant potentially subject to deportation proceedings.
+Another enforcement mechanism is the accrual of unlawful presence. Under the INA, an
+individual who is “unlawfully present in the United States” for “more than 180 days but less than
+1 year” is barred from returning to the United States for three years after their departure or removal.
+8 U.S.C. § 1182(a)(9)(B)(i)(I). Likewise, an individual who is “unlawfully present in the United
+States for one year or more” is barred from returning to the United States for ten years after their
+departure or removal. Id. § 1182(a)(9)(B)(i)(II). Thus, a former J-1 visa holder who enters a state
+of unlawful presence risks not only deportation, but also—depending on the duration of their
+unlawful presence—the possibility that they may not be able to re-enter the United States for many
+years.
+Importantly, being “deportable” is different from “accruing unlawful presence,
+” at least
+when it comes to J-1 visa holders. The INA makes clear that failure to maintain J-1 visa status
+renders an individual immediately and automatically “deportable.” 8 U.S.C. § 1227(a)(1)(C)(i).
+However, even if a J-1 visa holder overstays the term of their program (and thus becomes
+deportable), current regulations hold that the “unlawful presence” clock does not start ticking until
+“the day after the immigration agency finds a status violation while adjudicating a request for an
+4
+immigration benefit or the day after an immigration judge finds the individual removable.”
+5 Gordon et al., Immigration Law and Procedure § 63.10(2)(b). Thus, while a person who
+overstays their J-1 visa can, at any point, be subjected to deportation proceedings, that same person
+does not accrue “unlawful presence” until after those proceedings have been resolved against them,
+or until an agency formally finds that they have violated their visa terms. Under this framework,
+if a J-1 visa holder who has overstayed their program leaves the United States fewer than 180 days
+after the unlawful presence clock starts, they can seek readmission at any point. Not so for an
+overstayed J-1 visa holder who leaves after 180 days or more of unlawful presence and
+consequently faces a multi-year statutory penalty.
+As relevant for this motion, though, the “current regulations” will not be the governing
+rules for much longer. On July 17, 2026, DHS published a new final rule that will take effect on
+September 15, 2026. See Establishing a Fixed Time Period of Admission, 91 Fed. Reg. 44,976,
+44,976 (July 17, 2026) (“September Rule”). The September Rule will cause J-1 visa holders to
+now begin accruing unlawful presence at a date certain: four years and thirty days after admission
+is granted (unless the visa holder’s exchange program ends sooner). See id. at 45129. If a J-1 visa
+holder is already out of status by the time the September Rule takes effect (meaning, their exchange
+program has finished, and they have overstayed their visa), the unlawful presence clock will start
+ticking that same day. See id. at 45019.
+B. Factual Background
+The Court summarizes the alleged facts as they appear in Plaintiffs’ amended complaint.
+ECF 3. While not all of these alleged facts are supported by record evidence, the Court notes that
+its decisions of law would be the same even if all of Plaintiffs’ complaint was taken as true.
+5
+Plaintiff Trilleras is a Colombian national. ECF 3 ¶ 67. She came to the United States in
+2019 to practice and study medicine. Id. ¶ 68. She was admitted on a J-1 visa. Id.
+Trilleras’ visa program was slated to end in 2024. ECF 3 ¶ 71. But when the time came,
+rather than return to Colombia for two years, Trilleras sought a clinical waiver to remain in the
+United States. Id. Trilleras was at this point a seasoned doctor. See id. ¶¶ 68–70. Perhaps in
+recognition of that fact, the USCIS granted her waiver application. Id. ¶ 71. The agency determined
+that she could remain stateside on a path to immigrant status (as opposed to the J-1 nonimmigrant
+status she previously had), so long as she fulfilled the requirements of the waiver by practicing
+medicine in an underserved area for three years. Id. ¶¶ 71, 73. That worked out fine for Trilleras,
+since she already had a qualifying job offer to practice medicine in southeastern California. Id.
+¶ 74.
+But then, after receiving some dubious legal advice, Trilleras suddenly canceled her
+employment contract and made the decision to forgo her clinical waiver entirely, only one month
+after it had been approved. ECF 3 ¶¶ 5, 71, 74, 76–77. In doing so, she consciously forfeited her
+opportunity to have a legitimate pathway to immigrant status. See id. ¶ 74. This seemingly did not
+concern Trilleras, though, because she believed she had an equally legitimate way to stay in the
+United States: She could obtain an exceptional hardship waiver. Id. ¶ 76. Trilleras had at least
+some grounds for thinking that this type of waiver would be obtainable—she had recently married
+Plaintiff Liao, an American citizen, and there were arguments that Liao would experience medical,
+economic, and social difficulties if Trilleras were required to return to Colombia for two years. Id.
+¶¶ 32, 80. Trilleras put these arguments in a formal waiver application to the USCIS and let the
+days pass as that application processed. See id. ¶¶ 78, 80. Unbeknownst to her—again, allegedly
+6
+because of lacking legal advice—she had now officially overstayed her visa and was at risk of
+being deported. See id. ¶ 77.
+After some back and forth with the USCIS, ECF 3 ¶¶ 82, 89, the agency denied Trilleras’
+request for an exceptional hardship waiver on March 26, 2026, id. ¶ 90. The denial stated in part
+that Trilleras’ application could not proceed because she had not shown that her “previously
+approved waiver”—i.e., the short-lived clinical waiver—had been appropriately “canceled.” Id.
+¶ 90. That ruling caused Trilleras some chagrin; indeed, in her application to the USCIS, she had
+included a signed declaration stating that she had no intention of relying on the now-outdated
+clinical waiver. See id. ¶ 89. That same declaration further told the USCIS that if that clinical
+waiver was still on the books, Trilleras would like the USCIS to formally cancel it. Id. And
+although Trilleras was not sure whether using a declaration to “cancel” her waiver was proper, she
+did not know what else she could do—at the time she was processing her application, no “formal
+mechanism, form, or procedure” to “cancel” a waiver existed. Id.
+So Trilleras sued, filing this case with her spouse, Liao, on July 6, 2026. ECF 1. Their chief
+allegation is that the USCIS and the State Department are employing an unwritten “one waiver per
+customer” rule in violation of the APA. See id. ¶ 1. Plaintiffs amended their complaint to add FOIA
+claims, ECF 3 ¶¶ 140–47, and then on August 24, 2026, moved for a preliminary injunction,
+ECF 8. The motion for preliminary injunction asks the Court to prevent the September Rule from
+being applied to Trilleras until the underlying dispute—i.e., whether the “one waiver per customer”
+rule exists and, if so, whether it is lawful—can be adjudicated. ECF 8 ¶ 1. If the September Rule
+is not enjoined, Trilleras will begin accruing unlawful presence on September 15, 2026. Id. ¶ 4;
+see also ECF 11 at 8–9.
+7
+Separately—two weeks before the preliminary injunction motion was filed—the USCIS
+reopened Trilleras’ application to waive the two-year foreign-residence requirement. ECF 12 ¶ 1.
+On August 31, 2026, the USCIS requested that Trilleras submit fresh evidence supporting her
+assertions that her family would face exceptional hardship if she was to return to Colombia.4 See
+ECF 11-2. Trilleras has agreed to engage in this administrative reprocessing and has worked with
+the USCIS to establish a schedule for her submission of new evidence. See ECF 12 ¶¶ 3–5. That
+administrative activity is still ongoing and is not expected to be resolved by the date the September
+Rule takes effect. See id.
+II. LEGAL STANDARD
+A preliminary injunction is “an extraordinary remedy that may only be awarded upon a
+clear showing that the plaintiff is entitled to such relief.” Winter v. Nat. Res. Def. Council, Inc.,
+555 U.S. 7, 22 (2008). The party moving for a preliminary injunction must establish (1) a
+substantial likelihood of success on the merits, (2) that they would suffer irreparable harm without
+preliminary injunctive relief, (3) that the balance of equities tilts in their favor, and (4) that an
+injunction serves the public interest. Id. at 20; Aamer v. Obama, 742 F.3d 1023, 1038 (D.C. Cir.
+2014). The third and fourth prongs—the balance of equities and the public interest—
+“merge when
+the government is the opposing party.” Nken v. Holder, 556 U.S. 418, 435 (2009).
+In APA cases, the Court can grant a preliminary injunction pursuant to Federal Rule of
+Civil Procedure 65 or “issue all necessary and appropriate process to . . . preserve status or rights
+pending conclusion of the review proceedings” when doing so is “necessary to prevent irreparable
+injury.” 5 U.S.C. § 705. The same factors governing the issuance of a preliminary injunction
+4 When Trilleras submitted her first exceptional hardship waiver application, her evidence of hardship was based
+mostly on the hardship Liao would suffer with Trilleras’ departure. See ECF 3 ¶ 89. But between the initial processing
+of that application and the recent reprocessing of that application, Trilleras and Liao had a child. Id. ¶ 95. Any hardship
+that child would face from its mother’s relocation is now relevant to the agency’s assessment. See ECF 11-2 at 3.
+8
+govern the issuance of relief under Section 705. District of Columbia v. U.S. Dep’t of Agric.,
+444 F. Supp. 3d 1, 15 (D.D.C. 2020); see also Make the Road N.Y. v. Mullin, 179 F.4th 16, 24–25
+(D.C. Cir. 2026).
+III. ANALYSIS
+The Court’s assessment of Plaintiffs’ claim for injunctive relief starts and ends with the
+first preliminary injunction factor: likelihood of success on the merits. Regardless of whether
+Plaintiffs could ultimately show that Defendants are employing an unwritten “secret law” in
+violation of the APA, Plaintiffs have not shown that they are likely to succeed in this case, for at
+least two independent reasons. First, because Defendants have reopened Trilleras’ waiver
+application, and Trilleras has agreed to submit new evidence in support of that application, the
+Court is not convinced that Plaintiffs have challenged a final agency action, which is a necessary
+precondition to APA review. See 5 U.S.C. § 704; Holistic Candlers & Consumers Ass’
+n v. Food
+& Drug Admin., 664 F.3d 940, 943 (D.C. Cir. 2012). And second, because Plaintiffs have not
+shown that the harm Trilleras and her family will allegedly suffer from the September Rule was
+caused by Defendants’ unlawful conduct, or that enjoining application of the September Rule
+would redress any injury incurred from unlawful conduct, Plaintiffs have not shown that they have
+the requisite standing to seek the injunctive relief they ask for. See Cruz v. Am. Airlines, Inc.,
+356 F.3d 320, 328 (D.C. Cir. 2004). Because Plaintiffs have not shown likelihood of success, the
+Court does not consider the other preliminary injunction factors. See Sherley v. Sebelius, 644
+F.3d 388, 393 (D.C. Cir. 2011).
+A. This case is not moot.
+Before proceeding to the meat of the analysis, the Court offers a brief word on mootness.
+Defendants argue that because Trilleras’ waiver application has now been reopened, the
+9
+controversy Plaintiffs allege in their complaint is dead letter. ECF 11 at 20. While this argument
+necessarily overlaps with Defendants’ final-agency-action arguments—arguments the Court
+agrees with infra—the Court addresses mootness separately because it goes to this Court’s
+jurisdiction. Compare Am. Whitewater v. Fed. Energy Regul. Comm’n, 183 F.4th 805, 813 (D.C.
+Cir. 2026) (federal courts have “an independent duty” under Article III to consider “whether the
+case is moot”), with Trudeau v. FTC, 456 F.3d 178, 184 (D.C. Cir. 2006) (“The APA’s final agency
+action requirement is not jurisdictional.”).
+The Court concludes that this controversy is not moot for two reasons.
+First: A case only becomes moot “when, by virtue of an intervening event, a court . . .
+cannot grant any effectual relief what[so]ever in favor of the [plaintiff].” Calderon v. Moore,
+518 U.S. 149, 150 (1996). That means that if a court is able to grant some modicum of relief—
+even if the relief is only a “partial remedy” for the plaintiff—that is “sufficient to prevent [the]
+case from being moot.” Id.
+Here, the chief relief Plaintiffs sought in their complaint was the swift reprocessing of
+Trilleras’ application. ECF 3 at 42–44. That relief has now been effectuated without Court
+intervention. See ECF 12 ¶ 1. However, Plaintiffs also sought a declaration that the Defendants’
+“unwritten rule or practice of categorically refusing to review” waiver applications in situations
+where the applicant had received “a prior unutilized waiver” is unlawful. ECF 3 at 42–43. Even
+though the Court is now without authority to order that first and primary form of relief, the Court
+could still, theoretically, offer that second form of relief, should the Court eventually find in
+Plaintiffs’ favor. And that declaratory relief would affect Plaintiffs’ rights going forward, even if
+only in limited part: It would make it so the USCIS and State Department could not deny Trilleras’
+new application on the same grounds as before and would instead require the agencies to adjudicate
+10
+Trilleras’ application on the merits. The fact that this conceivable remedy remains on the table
+suffices to prevent Plaintiffs’ claims from being moot. See Byrd v. EPA, 174 F.3d 239, 244 (D.C.
+Cir. 1999); Crowley Gov’t Servs., Inc. v. Gen. Servs. Admin., 143 F.4th 518, 529 (D.C. Cir. 2025)
+(“A case may be saved from mootness where a declaratory judgment has the potential to impact a
+concrete interest pending before another decisionmaker.”).
+Second: The action that threatens to moot the case—the reopening of Trilleras’ waiver
+application—only occurred because of the USCIS’s independent action once litigation began. See
+ECF 12 ¶ 1. In such a situation, the voluntary-cessation doctrine applies. Pub. Citizen, Inc. v. Fed.
+Energy Regul. Comm’n, 92 F.4th 1124, 1128 (D.C. Cir. 2024). That doctrine exists to ensure that
+a defendant cannot “manipulat[e] the judicial process through the false pretense of singlehandedly
+ending a dispute.” Id. And when a defendant does insist that a case is moot because it has
+voluntarily ceased the unlawful conduct, the defendant must meet a “stringent” and “heavy
+burden” to convince the court of mootness; indeed, the case remains live unless it is “absolutely
+clear that the allegedly wrongful behavior could not reasonably be expected to recur.” Friends of
+the Earth, Inc. v. Laidlaw Env’t Servs. (TOC), Inc., 528 U.S. 167, 189 (2000).
+Defendants do not meet that burden here. While the record contains no strong showing that
+the Defendants are “manipulating” this Court’s jurisdiction, Plaintiffs allege as much. ECF 13 at 5.
+They may be wrong, but the reopening of Trilleras’ application once litigation began creates at
+least a “plausible argument” that the agency was trying to moot this case. Pub. Citizen, 92 F.4th
+at 1129; see also Nat’l Council of Nonprofits v. Off. of Mgmt. & Budget, No. 25-cv-5148, 2026 WL
+2451517, at *7–8 (D.C. Cir. Aug. 21, 2026) (not applying voluntary cessation when there was “no
+reason to suppose the government had any awareness of Plaintiffs’ lawsuit” before policy change).
+In view of that, the Court does not find a sufficient basis to determine that it is “absolutely clear”
+11
+that the complained-of conduct—denying Trilleras’ exceptional hardship waiver application on
+the basis of her previous clinical waiver—could not recur. The Court is therefore satisfied that it
+has jurisdiction to address the present motion. Cf. FBI v. Fikre, 601 U.S. 234, 242–43 (2024) (case
+against government not moot even when Supreme Court “accept[ed] as true” the government’s
+assertion that it had no intention to resume complained-of conduct).5
+B. There is no final agency action.
+The Court turns now to the substance of the instant motion: whether staying the application
+of the September Rule against Trilleras is warranted. The Court concludes that it is not.
+The first reason for this conclusion is that the Plaintiffs have not challenged a final agency
+action. Challenging such an action is generally a prerequisite to obtaining review under the APA.
+See 5 U.S.C. § 704 (agency actions are “subject to judicial review” only if they are “final” or are
+otherwise “made reviewable by statute”). Thus, when a plaintiff challenges only nonfinal agency
+actions, they lose their case right out of the gate. See Clifton Power Corp. v. Fed. Energy Regul.
+Comm’n, 294 F.3d 108, 110 (D.C. Cir. 2002).
+To distinguish nonfinal agency actions from final ones, courts use a two-part test. To be
+“final,” an agency’s action must first “mark the consummation of the agency’s decisionmaking
+process.” Bennett v. Spear, 520 U.S. 154, 177–78 (1997). And second, “the action must be one by
+which rights or obligations have been determined, or from which legal consequences will flow.”
+Id. at 178. If either of those factors is lacking, the agency action is an unreviewable nonfinal one.
+See id. at 177–78.
+5 The Court notes that even if it were to determine that all the claims at issue in this motion were in fact moot, the
+Court still would not have grounds to dismiss the case in its entirety. Cf. Cierco v. Mnuchin, 857 F.3d 407, 414 (D.C.
+Cir. 2017) (“If a case is moot, the court must dismiss it for lack of jurisdiction.”). That is because Plaintiffs’ FOIA
+claims (which are not at issue on this motion) remain live, and the Court has not seen any indication that it lacks
+subject matter jurisdiction over those causes of action. See ECF 3 ¶¶ 140–47.
+12
+A textbook example of a nonfinal agency action is an agency adjudication that is actively
+being processed via an “administrative reconsideration” of a prior decision. Clifton Power,
+294 F.3d at 110. The fact that such an action would be “nonfinal” makes sense—an adjudication
+that has not actually been adjudicated cannot “mark the consummation” of a “decisionmaking
+process.
+” Further, no “rights or obligations” or “legal consequences” can flow from a matter that
+is still pending. Consequently, when a plaintiff challenges an agency’s adjudicatory decision in
+court while simultaneously petitioning the agency to reconsider that same decision, the plaintiff’s
+lawsuit is “incurably” premature. Id. If a plaintiff loses an adjudication, they are empowered to
+“choose between [a] rehearing before the agency or immediate court review,” but they cannot
+choose both, at least until the agency’s reconsideration is complete. Id. at 110–11.
+Unfortunately for Plaintiffs, they now find themselves in that exact situation: They are
+seeking this Court’s review of a now-vacated adjudication while simultaneously asking the agency
+to take another stab at the issue. See ECF 12 ¶¶ 1–5. The action Plaintiffs challenge is therefore a
+nonfinal one. Indeed, a judge in this District recently reached an identical conclusion on facts that
+are quite analogous to the ones here. See O’Sullivan v. U.S. Dep’t of Health & Hum. Servs.,
+No. 22-cv-1189, 2024 WL 1071045, at *1 (D.D.C. Mar. 12, 2024) (resubmission of J-1 visa
+holder’s waiver application during litigation was “fatal” to APA claim “as it render[ed]” previous
+waiver denial “nonfinal”).
+Plaintiffs would have the Court distinguish O’Sullivan (and presumably the Clifton Power
+line of cases) because the O’Sullivan plaintiff “voluntarily” sought reconsideration from the
+agency while litigation was pending, whereas Plaintiffs here “did not request reconsideration.
+”
+ECF 13 at 7. Instead, Trilleras’ application was “unilateral[ly]” reopened, perhaps in part because
+the agency was “provoked” by being sued. Id. Plaintiffs further argue that “if this ‘reopening
+13
+gambit’ were permitted, federal agencies could perpetually insulate their illegal policies from
+judicial review by simply reopening files whenever they are sued, only to reissue boilerplate
+denials once the lawsuit is dismissed.” Id. at 8.
+The argument is a fair one, but the Court is not convinced. First, as a factual matter,
+Plaintiffs have stipulated that they are actively engaging in the agency’s reopened case. Indeed, as
+part of the administrative reprocessing, the USCIS has requested evidence of exceptional hardship
+from Trilleras and Liao, ECF 11-2 at 3–6, and Trilleras and Liao have indicated that they intend
+to gather and provide that evidence to the agency to assist in its determination, see ECF 12 ¶¶ 3–4.
+Thus, while the reopening of the case itself might have been “unilateral,” the renewed adjudication
+process seems very much to be a two-sided affair.
+And second, from the Court’s review of the law, whether an administrative adjudication is
+reopened on an applicant’s motion or on the agency’s motion seems generally to be a distinction
+without a difference. Multiple cases from district and circuit courts across the country have
+considered situations in which the USCIS has unilaterally reopened visa adjudications during
+litigation, and by and large those cases have concluded that those reopenings caused plaintiffs to
+fail the “final agency action” requirement. See, e.g., 6801 Realty Co., LLC v. U.S. Citizenship &
+Immigr. Servs., 719 F. App’x 58, 60 (2d Cir. 2018) (“USCIS’s reopening rendered the initial visa
+denial non-final.”); Bhasin v. U.S. Dep’t of Homeland Sec., 413 F. App’x 983, 985 (9th Cir. 2011)
+(same); Mamigonian v. Biggs, 710 F.3d 936, 941 (9th Cir. 2013) (same), abrogated in part by
+Patel v. Garland, 596 U.S. 328 (2022); Amponsah v. Barr, No. 20-cv-4639, 2020 WL 7327699, at
+*2 (N.D. Ill. Dec. 11, 2020) (same); Utah Life Real Est. Grp., LLC v. U.S. Citizenship & Immigr.
+Servs., 259 F. Supp. 3d 1294, 1300 (D. Utah 2017) (same); Reyes v. Rodriguez, No. 15-cv-195,
+2015 WL 13919460, at *6 (D.S.C. June 4, 2015) (same); Ahlijah v. Nielsen, No. 17-cv-1720,
+14
+2018 WL 3363875, at *2 (D. Md. July 10, 2018) (same), aff’d, 755 F. App’x 290 (4th Cir. 2019)
+(per curiam); Net-Inspect, LLC v. U.S. Citizenship & Immigr. Servs., No. 14-cv-1514, 2015 WL
+880956, at *4–5 (W.D. Wash. Mar. 2, 2015) (same); True Cap. Mgmt., LLC v. U.S. Dep’t of
+Homeland Sec., No. 13-cv-261, 2013 WL 3157904, at *3 (N.D. Cal. June 20, 2013) (same);
+Colmenares Calderon v. Bondi, No. 26-cv-726, 2026 WL 1145816, at *4 (M.D. Fla. Apr. 28,
+2026) (same); German Language Ctr. v. United States, No. 09-cv-3950, 2010 WL 3824636, at *3
+(S.D. Tex. Sept. 27, 2010) (same).
+6
+A small handful of district court cases go the other way, but they are readily
+distinguishable. In Mantena v. Hazuda, the Southern District of New York found that the USCIS’s
+reopening of a visa petition did not make the agency’s adjudication nonfinal. No. 17-cv-5142,
+2018 WL 3745668, at *5–6 (S.D.N.Y. Aug. 7, 2018). But there, the USCIS had clearly engaged
+in gamesmanship: At the time of the court’s decision, the USCIS had already reopened and revoked
+the visa petition on three separate occasions. See id. at *5. Indeed, on the most recent reopening,
+the agency had not even taken steps to obtain evidence that would be relevant to its new
+adjudication of the application. Id. at *6. The court therefore found that the agency’s purported
+reopening was not a legitimate reopening at all, such that the previous denial of the plaintiff’s
+application remained the agency’s final decision. Id. The court acknowledged that its case was the
+rare one, stating that “courts typically hold that re-opened cases are non-final.” Id.
+Likewise, in RELX, Inc. v. Baran, a judge in this District held that an agency’s reopening
+of a visa adjudication did not render the previous adjudication nonfinal. 397 F. Supp. 3d 41, 53
+(D.D.C. 2019). But the judge reached that conclusion specifically by analogizing to Mantena: As
+in that case, RELX concluded that the agency had “reopened the case in name only” to evade APA
+6 See also Mukhtar v. Lambrecht, 172 F.4th 836, 842 (10th Cir. 2026) (reaching similar decision on mootness grounds).
+15
+review. Id. (noting that defendant had “fail[ed] to follow its own regulation related to reopening
+the case” and “fail[ed] to request any new evidence”); see also id. at 50 (“Generally, an agency’s
+decision to reopen a case may render a final agency action nonfinal.”). Even those cases, then,
+support the idea that the USCIS’s unilateral reopening of a visa adjudication generally renders the
+action nonfinal, subject only to an exception for cases with a clear record of agency subterfuge.7
+The court does not have any clear record of subterfuge here. To the contrary, although the
+USCIS reopened Trilleras’ application after litigation, it did so before the motion for a preliminary
+injunction was filed. Compare ECF 12 ¶ 1, with ECF 8. Further, and more importantly, the USCIS
+promptly sent Trilleras a request for evidence in support of her waiver application, seeking various
+records that would prove Trilleras’ assertions that Liao and her child would suffer an exceptional
+hardship upon her relocation. ECF 12 ¶ 3; ECF 11-2 at 3–6; see also 6801 Realty Co., 719 F.
+App’x at 60 (“The reopening was not an informal revision that offered a mere possibility of
+success; USCIS actually reopened the decision and actively sought new evidence.”). True enough,
+it could be the case that the USCIS is simply going through the motions of reconsideration, when
+in reality it has already decided to deny Trilleras’ application even before it sees the evidence in
+her favor. Cf. ECF 13 at 7–8. But it could also be the case that the agency realized it made a mistake
+when it denied Trilleras’ previous application on grounds that she had not “canceled” her clinical
+waiver. Cf. Gibbs v. Brady, 773 F. Supp. 454, 456–57 (D.D.C. 1991) (after agency was notified it
+had engaged in “prohibited employment practice,” agency took “voluntary corrective action” that
+“provided plaintiff with the same relief as [a] court-ordered [injunction] would have provided”).
+The record before the Court does not allow it to determine which of these two possibilities is closer
+7 The Court also notes that both Mantena and RELX addressed this issue on motions to dismiss, such that the defendant
+agencies bore the burden of persuasion. Mantena, 2018 WL 3745668, at *1; RELX, 397 F. Supp. 3d at 44, 53. The
+opposite is true here.
+16
+to the correct one. And at bottom, that lack of evidence does not suffice to award Plaintiffs the
+“extraordinary remedy” they seek. Winter, 555 U.S. at 22.
+Because Plaintiffs have not shown that they challenge a final agency action, they are not
+likely to prevail on the merits and are thus not entitled to preliminary injunctive relief.
+C. Plaintiffs lack standing for the injunctive relief they seek.
+Still, even if Plaintiffs had convinced the Court that they were challenging a final agency
+action, the Court would not be convinced that they have standing to obtain an injunction against
+the September Rule (which is precisely what this motion seeks). See ECF 8 at 1. That provides a
+separate ground for concluding that Plaintiffs have not satisfied their preliminary injunction
+requirements, because “the affirmative burden of showing a likelihood of success on the merits
+necessarily . . . depends on a likelihood that [the] plaintiff has standing.” Obama v. Klayman,
+800 F.3d 559, 565 (D.C. Cir. 2015) (per curiam).
+To have standing, a plaintiff must show that they “suffered an injury in fact”; that there is
+a “causal connection between the injury and the conduct complained of”; and that it is “likely” that
+“the injury will be redressed by a favorable decision.” Lujan v. Defs. of Wildlife, 504 U.S. 555,
+560–61 (1992). And although a plaintiff must show some amount of standing to even get through
+the doors of a federal courthouse, having standing to file a lawsuit is not the same as having
+standing to obtain an injunction. See City of Los Angeles v. Lyons, 461 U.S. 95, 105 (1983). Rather,
+a plaintiff “bears the burden of showing that he has standing for each type of relief sought.”
+Summers v. Earth Island Inst., 555 U.S. 488, 493 (2009).
+Plaintiffs here do not have standing to stay the application of the September Rule against
+Trilleras because they have not adequately shown causation and redressability. Start with
+causation. To show causation to seek injunctive relief, a plaintiff must show that the threatened
+17
+injury “[is] fairly traceable to the challenged action of the defendant.
+” Id. Plaintiffs have not made
+that showing. First, the injury Plaintiffs assert here is Trilleras’ accrual of unlawful presence that
+will begin once the September Rule takes effect. ECF 8 ¶¶ 3–4. That might well be an injury, but
+it has little to do with the “challenged action” from Plaintiffs’ complaint, i.e., the Defendant
+agencies’ alleged secretive use of an unlawful “one waiver per customer” rule. ECF 3 ¶¶ 13, 18,
+96. Indeed, whether the Defendants did or did not have this secret rule, that would change nothing
+about the content of the upcoming regulation change or the date on which it will take effect. The
+September Rule simply pertains to matters independent of the conduct Plaintiffs challenge. See
+generally Establishing a Fixed Time Period of Admission, 91 Fed. Reg. 44976 (July 17, 2026).
+Further, the injury Trilleras faces was caused in the first instance by decisions made by
+people other than Defendants. Before applying for the exceptional hardship waiver, Trilleras had
+already secured a clinical waiver, which would, by its terms, suspend the requirement that she
+return to Colombia for two years. ECF 3 ¶¶ 71–74. Although the receipt of that waiver would not
+itself prevent her from accruing unlawful presence when the September Rule eventually came
+along (more on that below), it would at least give Trilleras as much time as she needed to try to
+transition to an H-1B visa, which would prevent her from accruing unlawful presence by shifting
+her to “immigrant” status. See 8 U.S.C. § 1101(a)(15)(H)(i)(b). But Trilleras chose to forgo that
+waiver and instead begin a new lengthy agency adjudication whose success was not guaranteed.
+ECF 3 ¶¶ 74–76. That decision was the first step of the causation chain that led to the present
+predicament. Contra ECF 13 at 19–20. And while it is possible that Trilleras did not fully
+understand the import of that decision because she received poor legal advice, see ECF 3 ¶ 77, that
+is a third party’s alleged shortcoming, not the Defendants’. Plaintiffs have the burden to show “a
+substantial probability that the challenged acts of the defendant caused their injury.” Util. Workers
+18
+Union of Am. Loc. 464 v. Fed. Energy Regul. Comm’n, 896 F.3d 573, 577 (D.C. Cir. 2018). As the
+record and the pleadings suggest at least some probability that the impending injury was not the
+result of the challenged acts, the Court cannot say that Plaintiffs have met that burden.
+Then turn to redressability. To satisfy that factor in the context of a preliminary injunction,
+a plaintiff must show that it is “likely that a favorable judicial decision will prevent or redress the
+injury” complained of. Summers, 555 U.S. at 493. That showing is also lacking here. Both
+Plaintiffs and Defendants seemingly agree that even if the Court was to award the Plaintiffs all the
+relief they seek, that would not stop the unlawful presence clock from ticking when September 15
+comes. That is because even if Trilleras received an exceptional hardship waiver, she would still
+accrue unlawful presence until she accomplished the subsequent step of applying to transition from
+nonimmigrant to immigrant status. Compare ECF 11 at 34 (citing 8 U.S.C. § 1182(e)), with
+ECF 13 at 19 (acknowledging that if Trilleras received an exceptional hardship waiver, she would
+then seek to “appl[y] for adjustment or an H-1B visa [stamp]”). There is no guarantee that Trilleras
+would be able to accomplish that step. See ECF 11 at 34; ECF 13 at 19. Even if the Plaintiffs were
+to succeed on every cause of action they bring, then, the Court could still not say that it is “likely”
+that Trilleras’ unlawful-presence-accrual injury will be prevented. Summers, 555 U.S. at 493.
+To be sure, if the Court simply enjoined application of the September Rule to Trilleras full
+stop without examining the relationship between the rule and Plaintiffs’ allegations, that would
+keep Trilleras from being injured. Plaintiffs flirt with making such a request in their briefing. See
+ECF 13 at 18 (seeking relief under APA § 705). But the Court has no basis to issue such a
+freewheeling injunction because, again, Plaintiffs bring no independent challenge to the September
+Rule. To the contrary, they state explicitly that they have no legal quarrel with it. See id. at 18–19.
+In fact, Plaintiffs’ complaint contains almost no mention of the September Rule whatsoever, aside
+19
+from a cursory reference to it in a footnote. See ECF 3 ¶ 11 n.1. An injunction against the
+September Rule is certainly not mentioned in the prayer for relief. See generally id. at 42–44.
+Under such circumstances—with the requested relief being unmoored from specific allegations of
+wrongdoing—an injunction cannot issue. See Aminjavaheri v. Biden, No. 21-cv-2246,
+2021 WL 4399690, at *5 (D.D.C. Sept. 27, 2021) (“A plaintiff’s request for preliminary injunctive
+relief must mirror the allegations and relief sought in the complaint.”). And although Plaintiffs
+point (belatedly, in their reply brief) to § 705 of the APA, which allows a court to “postpone the
+effective date of an agency action” or otherwise “preserve status or rights pending conclusion of
+the review proceedings,” that provision gets them no further, because “requests for relief under
+5 U.S.C. § 705 are evaluated under the same standards as requests for preliminary injunctions.
+”
+Coal. for Indep. Tech. Rsch. v. Rubio, No. 26-cv-815, 2026 WL 2030770, at *5 (D.D.C. July 14,
+2026). Thus, Plaintiffs’ failure to show likelihood of success on the merits applies with equal force
+to an APA stay.
+Because the Plaintiffs have, at a minimum, failed to show that the harm from the impending
+rule change was likely caused by the complained-of conduct, or that the harm is likely redressable
+by any decision this Court could issue, Plaintiffs have not shown that they have standing to receive
+the preliminary injunction they request.
+* * *
+For the foregoing reasons, Plaintiffs’ motion for a preliminary injunction, ECF 8, is
+DENIED. A separate order follows this opinion.
+SO ORDERED.
+__________________________
+JIA M. COBB
+United States District Judge
+Date: September 14, 2026
+20
