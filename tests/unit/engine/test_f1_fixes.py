@@ -495,10 +495,16 @@ def test_the_reviewers_far_dates_conflict_and_the_engine_does_not_walk_them():
     out = found[0]
     assert out["verdict"]["state"] == "cannot_tell"
     assert "conflict:opt_start" in out["verdict"]["reasons"]
-    # The items it can: those that turn on program_end_date alone.
+    # SPEC-resolutions.md, point 16: 14 months from the program end of 2026-05-15 is
+    # 2027-07-15, and the card runs through 2099-12-31, after it. The conflict's about holds
+    # program_end_date and opt.ead_end, so by point 4 the items that turn on
+    # program_end_date are null while it is open (before point 16 they were 2026-02-14 and
+    # 2027-07-15). The far card is the reviewer's input, so the test expects the null and
+    # the conflict rather than a changed case.
+    assert "conflict:opt.ead_end.after_complete_by" in out["verdict"]["reasons"]
     got = values(out)
-    assert got["opt.apply_window_opens"] == "2026-02-14"
-    assert got["opt.complete_by"] == "2027-07-15"
+    assert got["opt.apply_window_opens"] is None
+    assert got["opt.complete_by"] is None
     assert contract_problems(out) == []
     # 1950-01-01 through 2026-09-28 is more than 28,000 days.
     assert steps < 28000

@@ -295,8 +295,15 @@ def test_a_long_window_with_gaps_is_counted_right():
     # SPEC.md, section 1; SPEC-resolutions.md, point 4). The person answers yes, dated on
     # the day of the case with the about asked; the verdict is for the DSO and Duly
     # computes what it can, the counts among it.
+    # SPEC-resolutions.md, point 16: 14 months from the program end of 2030-06-15 is
+    # 2031-08-15, and the card runs through 2060-06-30, after it: the conflict
+    # opt.ead_end.after_complete_by, whose open question makes the items that use the card's
+    # end null. The person answers yes to it too.
     long_card = long_case("2030-07-01", "2060-06-30", "2030-06-15", 0)
-    given = {**long_card["confirmations"], **answers(**{"opt.card_longer_than_rule": True})}
+    given = {
+        **long_card["confirmations"],
+        **answers(**{"opt.card_longer_than_rule": True, "opt.ead_end.after_complete_by": True}),
+    }
     case = with_changes(
         long_card,
         confirmations=given,
@@ -306,6 +313,7 @@ def test_a_long_window_with_gaps_is_counted_right():
     out = run(case, today=today)
     assert out["verdict"]["state"] == "talk_to_dso"
     assert "opt.card_longer_than_rule" in out["verdict"]["reasons"]
+    assert "opt.ead_end.after_complete_by" in out["verdict"]["reasons"]
     got = values(out)
     expected = count_days(case, today, 20, 20)
     # Used: Jul 1 through Jul 10 of 2030 is 10 days, then 2040-07-11 through 2049-12-31.
@@ -406,11 +414,25 @@ def test_case_c_latest_start_under_each_regime():
     ]
 
 
+# SPEC-resolutions.md, point 23: an item dated before the effective_from of another
+# regime's row carries no alternate for it. The blocked row of the shipped pack takes effect
+# 2026-09-15, and every date of CASE_D is before it (its grace ends 2026-03-31), so no item
+# of CASE_D carries an alternate. CASE_D two years later: the STEM card ends 2028-01-31 and
+# grace.ends, 60 days on, is 2028-03-31 (29 days of February 2028, 31 of March).
+CASE_D_LATER: dict[str, Any] = {
+    **CASE_D,
+    "program_end_date": "2024-12-16",
+    "opt": ead("2024-10-03", "2024-10-20", "2025-02-01", "2026-01-31"),
+    "stem": ead("2025-11-20", "2025-12-05", "2026-02-01", "2028-01-31"),
+    "employment": [job("2025-02-01", None)],
+}
+
+
 def test_the_api_carries_the_operative_regime_of_the_shipped_pack(client):
     regime = next(r for r in get_f1_pack().regimes if r["operative"])
-    # CASE_D as the screen sends it: each answer dated on the day of the case with the
+    # CASE_D_LATER as the screen sends it: each answer dated on the day of the case with the
     # about the api asked (SPEC-resolutions.md, points 2, 3 and 7).
-    sent = as_the_screen_sends(client, URL, CASE_D, FixedClock(API_NOON))
+    sent = as_the_screen_sends(client, URL, CASE_D_LATER, FixedClock(API_NOON))
     out = client.post(URL, json=sent).json()
     found = [item for item in items(out).values() if "alternates" in item]
     assert found
