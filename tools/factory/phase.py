@@ -358,6 +358,8 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
             "--done",
             job["done"],
             "--base",
+            working_branch(plan),
+            "--protect",
             plan["branch"],
             "--result",
             str(result),

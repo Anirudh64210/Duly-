@@ -436,7 +436,10 @@ def pr_plan(repo: Path) -> None:
             {
                 "name": "B",
                 "checks": [{"name": "landed", "run": "test -f engine/new.py"}],
-                "lanes": [job("L-engine", "builder", "test -f engine/new.py")],
+                # The second round must start from what the first round landed.
+                "lanes": [
+                    job("L-engine", "builder", "test -f engine/new.py -a -f tests/test_new.py")
+                ],
             },
         ],
         merge="pr",
