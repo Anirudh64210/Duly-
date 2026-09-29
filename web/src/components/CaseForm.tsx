@@ -1,13 +1,16 @@
 import type { FormEvent, ReactNode } from "react";
 
 import {
+  ZONE_FIELD,
   addPeriod,
   removePeriod,
+  zoneChoices,
   type CapGapFields,
   type CaseFields,
   type EadFields,
   type PeriodFields,
 } from "../lib/caseForm";
+import { zoneName } from "../lib/labels";
 import {
   DEGREE_LEVELS,
   PETITION_STATUSES,
@@ -279,6 +282,21 @@ export function CaseForm(props: {
               value={fields.cpt_full_time_days}
               onChange={(event) => onChange({ ...fields, cpt_full_time_days: event.target.value })}
             />
+          </Field>
+          <Field label="Your time zone, which sets the day Duly counts as today">
+            <select
+              id={ZONE_FIELD}
+              value={fields.time_zone}
+              required
+              onChange={(event) => onChange({ ...fields, time_zone: event.target.value })}
+            >
+              {fields.time_zone === "" && <option value="">Choose a time zone</option>}
+              {zoneChoices(fields.time_zone).map((zone) => (
+                <option key={zone} value={zone}>
+                  {zoneName(zone)}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
       </fieldset>

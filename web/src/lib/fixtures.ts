@@ -18,6 +18,8 @@ export const CASE: F1Case = {
   stem: null,
   employment: [{ start: "2026-06-20", end: null, hours_per_week: 40, employer_reported: true }],
   cap_gap: null,
+  time_zone: "America/Los_Angeles",
+  confirmations: {},
 };
 
 export const OUTPUT = {
@@ -86,6 +88,7 @@ export const OUTPUT = {
       url: ECFR,
       checked_on: "2026-09-28",
       quote: "within 30 days of the date the DSO enters the recommendation",
+      derivation: "verbatim",
     },
     "opt.unemployment_limit_days": {
       value: 90,
@@ -123,8 +126,41 @@ export const OUTPUT = {
       url: ECFR,
       checked_on: "2026-09-28",
       quote: "one year or more of full time curricular practical training",
+      derivation: "reading",
+      note: "Reading: the source says one year or more, and the pack holds one year as 12 months.",
     },
   },
+  questions: [] as { id: string; because: string[] }[],
+  today: { date: "2026-09-28", time_zone: "America/Los_Angeles" },
+};
+
+// STEM OPT dates with no OPT dates, before the person has answered.
+export const ASKING = {
+  ...OUTPUT,
+  verdict: { state: "cannot_tell", reasons: ["unconfirmed:held_post_completion_opt"] },
+  computed: [],
+  rules: {},
+  questions: [{ id: "held_post_completion_opt", because: ["stem", "opt"] }],
+};
+
+// The same case after the answer no. The rule is named by no item.
+export const ANSWERED_NO = {
+  ...ASKING,
+  verdict: { state: "talk_to_dso", reasons: ["stem_without_post_completion_opt"] },
+  rules: {
+    "stem.requires_post_completion_opt": {
+      value: true,
+      unit: "flag",
+      status: "settled",
+      citation: "8 CFR 214.2(f)(10)(ii)(C)",
+      url: ECFR,
+      checked_on: "2026-09-29",
+      quote: "while in a valid period of post-completion OPT",
+      derivation: "reading",
+      note: "Reading: made up for the tests.",
+    },
+  },
+  questions: [],
 };
 
 export const STATUS = {

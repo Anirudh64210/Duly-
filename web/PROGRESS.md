@@ -156,6 +156,121 @@ opt.latest_start and grace.ends. The same case without `opt` gave `cannot_tell` 
    numbers of its own. Request: carry each setting used with its value and unit, the way `rules`
    carries each rule.
 
+## 2026-09-29, iteration 3: context round, sections 2, 4 and 5
+
+### Read
+
+web/PROGRESS.md, specs/phase-2/SPEC-context.md, PRINCIPLES.md, BOUNDARY.md, DECISIONS.md (D32 to
+D37), CLAUDE.md, the skill close-a-lane-iteration, both json contracts, engine/f1.py and
+engine/clocks.py for the questions and the zone, tests/unit/engine/test_f1_context.py for what
+each answer means, tools/copy_lint/lint.py.
+
+### Built
+
+- web/src/lib/api-types.ts : regenerated with
+  `npx openapi-typescript contracts/openapi.yaml -o web/src/lib/api-types.ts`. No change in the
+  file: /v1/compute/f1 is still a bare object in contracts/openapi.yaml. Request 2 stands.
+- Section 2, the person's own day.
+  - The case carries `time_zone` and `confirmations`. The form has a field "Your time zone, which
+    sets the day Duly counts as today". It starts as the zone the browser reports. When the
+    browser reports none the contract takes, the field starts empty and the screen asks
+    "Choose your time zone." and posts nothing. It never picks one.
+  - The verdict shows, under the scope line, "Today is Sep 28, 2026 in America/Los Angeles." from
+    the output's `today`, with a button "Change the time zone" that moves to the field.
+    Changing the zone clears the result, like any other field.
+- Section 4, confirm, never assume.
+  - Each open question shows in plain words with two answers and the line "Asked because of: ...".
+    An answer is recorded with `today.date` of the output that asked, then the case is computed
+    again. The web code reads no clock for it. A test sets the browser clock to 2031 and the
+    answer still carries 2026-09-28.
+  - Answers sent with the case show under "Your answers, sent with these dates" as
+    `You answered "No, I did not" on Sep 28, 2026.`, each with "Change the answer to ..." and
+    "Remove the answer". Both compute again. Answers stay when a date is changed.
+  - A question id the screen has no words for shows one plain line and no answer buttons.
+  - The rules no item names (the paragraph sent with `stem_without_post_completion_opt`) show
+    under "What the rule says", between the questions and the items.
+  - The parser refuses an output with an open question and a verdict other than cannot_tell.
+- Section 5, derivation.
+  - A rule card labels the quote "Words of the source". A verbatim rule adds "The value is written
+    in the quoted words." A reading carries the tag "Duly's reading" and, after the quote, a
+    tinted block headed "Duly's reading of the quoted words, not the words of the source" with
+    the note. A rule with no derivation says neither.
+  - The parser refuses a reading that has no note or no quote.
+  - A rule with unit `flag` no longer shows "Yes" as its value. A flag is its words.
+
+### What each answer sends
+
+| Question | Button | Sent |
+|---|---|---|
+| held_post_completion_opt | Yes, I had one | true |
+| held_post_completion_opt | No, I did not | false |
+| no_employment_to_record | Yes, there is none | true |
+| no_employment_to_record | No, there is some to add | false |
+| cap_gap_without_training | Yes, I had one | true |
+| cap_gap_without_training | No, I did not | false |
+
+### Choices a reviewer may want to look at
+
+- cap_gap_without_training: by its name, yes could be read as "cap-gap without training". The
+  SPEC table and the engine say yes gives `missing:opt.ead_end`, so yes means the person had OPT
+  or STEM OPT that is not entered. The question is worded that way: "Did you have a period of
+  OPT or STEM OPT that is not entered here?" A reviewer should check this reading of the table.
+- The day of an answer is the engine's `today.date`, in the zone the case was sent with. The
+  screen only has an open question after a computation, so that day is always there.
+- An answer is kept until the person changes or removes it. The engine does not read an answer
+  to a question that is not raised, and the output does not say which answers it read. The
+  screen therefore shows every answer that was sent, under a heading that says only that.
+- A reading without a note refuses the whole output (the screen says it cannot tell). This
+  follows the choice made for alternates without `operative`.
+- The notes in the real pack are long paragraphs, not the one sentence of the SPEC. The screen
+  shows the note whole.
+- Two tests of iteration 1 changed because the case changed: the expected case now has
+  `time_zone` and `confirmations`, and an empty form now also names the time zone. No assertion
+  was removed.
+
+### Ran
+
+```
+bash -c 'npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0 && npx prettier --check "web/**/*.{ts,tsx,css,html,json}" && uv run python -m tools.copy_lint.lint'
+```
+
+Printed: typecheck clean; Test Files 5 passed (5), Tests 131 passed (131); coverage statements
+95.6%, branches 91.32%; eslint clean; "All matched files use Prettier code style!"; "copy lint:
+clean". Exit code 0.
+
+Runs before that one: one failed on a test of mine that chose Asia/Kolkata from the list (see
+the lesson below); one failed eslint on four unused variables in tests of mine.
+
+Also ran, outside the done command:
+
+- `npm run build -w web` : built.
+- `compute_f1` on the real pack, FixedClock 2026-09-29 01:30 UTC, ten cases: each question open,
+  answered yes, answered no, and one case in Asia/Kolkata. All ten parsed with
+  `engineOutputSchema` in a throwaway test, which was deleted. America/Los_Angeles gave
+  2026-09-28 and Asia/Kolkata gave 2026-09-29. The answer no to held_post_completion_opt gave
+  talk_to_dso and the rule stem.requires_post_completion_opt, named by no item.
+- The api of this branch on port 8011 with curl. A case in Asia/Calcutta with the answer no came
+  back 200 with talk_to_dso. A case with the zone Mars/Base came back 500, not 422 (request 4).
+
+### Not done, not verified
+
+- Not seen in a browser. The checks above are tests in jsdom, the engine run, and curl.
+- The 422 for an unknown zone is proven with a made up reply only, since this branch gives 500.
+- The list of zones comes from the browser (`Intl.supportedValuesOf`). Which names each browser
+  lists was not checked in a real browser.
+
+### Requests for files this lane does not own
+
+2. Stands: contracts/openapi.yaml, reference the two json schemas and give the 422 a body shape.
+3. Stands: `duly_settings` carries ids only.
+4. api/main.py on this branch: an unknown `time_zone` that fits the pattern of the contract
+   (tried: Mars/Base) reaches `parse_case`, the ValueError is not caught, and the reply is 500.
+   SPEC-context section 2 says 422 in plain words. With a 500 the screen says "Duly could not
+   reach its server.", which is not what happened. It may already be fixed in lane L-api.
+5. contracts/engine_output.schema.json and engine/f1.py: the output does not say which answers
+   the engine read. Request: list the confirmations that were read, so the screen shows only
+   the answers the result rests on.
+
 ## Lesson
 
 - failure: openapi-typescript turns a bare `type: object` into `Record<string, never>`, so a type
@@ -181,3 +296,12 @@ opt.latest_start and grace.ends. The same case without `opt` gave `cannot_tell` 
   (`PYTHONPATH=. uv run python <script>`), parse the json with `engineOutputSchema`, and read
   the input keys and the reasons for names the labels do not know.
 - evidence: iteration 2; web/src/lib/labels.ts, SETTING_NAMES and MISSING_PARTS.
+
+## Lesson
+
+- failure: a test chose Asia/Kolkata in the zone list and the field went empty. The runtime
+  (node, and Chrome) lists that zone as Asia/Calcutta, so the option was not there.
+- fix: the list always holds the zone that is held now, beside what the runtime lists. In a
+  test, choose a zone the runtime lists (Asia/Tokyo), or start from a mocked
+  `resolvedOptions`. The server takes both names.
+- evidence: iteration 3; web/src/lib/caseForm.ts, zoneChoices; curl with Asia/Calcutta gave 200.

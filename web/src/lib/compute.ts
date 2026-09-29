@@ -50,7 +50,24 @@ export type F1Case = {
   stem: EadBlock | null;
   employment: EmploymentPeriod[];
   cap_gap: CapGap | null;
+  time_zone: string;
+  confirmations: Confirmations;
 };
+
+/** The person's own answer to a question Duly asked, and the day it was given. */
+export type Confirmation = { answer: boolean; on: string };
+export type Confirmations = Record<string, Confirmation>;
+
+// The pattern the case contract gives for time_zone.
+const ZONE_NAME = /^[A-Za-z]+(\/[A-Za-z0-9_+-]+){1,2}$|^UTC$/;
+const ZONE_MAX = 64;
+
+export function isZoneName(text: string): boolean {
+  return text.length <= ZONE_MAX && ZONE_NAME.test(text);
+}
+
+export const DERIVATIONS = ["verbatim", "reading"] as const;
+export type Derivation = (typeof DERIVATIONS)[number];
 
 const valueSchema = z.union([z.number(), z.string(), z.null()]);
 
@@ -98,8 +115,17 @@ export const engineOutputSchema = z
         checked_on: z.string(),
         quote: z.string().optional(),
         regime: z.string().optional(),
+        derivation: z.enum(DERIVATIONS).optional(),
+        note: z.string().optional(),
       }),
     ),
+    questions: z.array(
+      z.strictObject({
+        id: z.string().regex(/^[a-z0-9_]+$/),
+        because: z.array(z.string()).min(1),
+      }),
+    ),
+    today: z.strictObject({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), time_zone: z.string() }),
   })
   // An item is never shown without the source of every rule it used.
   .refine(
@@ -114,12 +140,25 @@ export const engineOutputSchema = z
         (item) => (item.alternates ?? []).length === 0 || item.operative !== undefined,
       ),
     { message: "an item with alternates does not name its operative regime" },
-  );
+  )
+  // A reading is never shown without the words it was read from and how it was read.
+  .refine(
+    (output) =>
+      Object.values(output.rules).every(
+        (rule) => rule.derivation !== "reading" || (Boolean(rule.quote) && Boolean(rule.note)),
+      ),
+    { message: "a reading does not carry its words and its note" },
+  )
+  // An open question and a verdict other than cannot_tell do not fit together.
+  .refine((output) => output.questions.length === 0 || output.verdict.state === "cannot_tell", {
+    message: "a question is open and the verdict is not cannot_tell",
+  });
 
 export type EngineOutput = z.infer<typeof engineOutputSchema>;
 export type ComputedItem = EngineOutput["computed"][number];
 export type Alternate = NonNullable<ComputedItem["alternates"]>[number];
 export type ShownRule = EngineOutput["rules"][string];
+export type Question = EngineOutput["questions"][number];
 
 const COMPUTE_PATH = "/v1/compute/f1" satisfies keyof paths;
 

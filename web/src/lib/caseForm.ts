@@ -1,10 +1,12 @@
-import type {
-  CapGap,
-  DegreeLevel,
-  EadBlock,
-  EmploymentPeriod,
-  F1Case,
-  PetitionStatus,
+import {
+  isZoneName,
+  type CapGap,
+  type Confirmations,
+  type DegreeLevel,
+  type EadBlock,
+  type EmploymentPeriod,
+  type F1Case,
+  type PetitionStatus,
 } from "./compute";
 
 // What the form holds: text as typed. buildCase turns it into the case contract.
@@ -44,7 +46,12 @@ export type CaseFields = {
   next_key: number;
   cap_gap_on: boolean;
   cap_gap: CapGapFields;
+  time_zone: string;
+  confirmations: Confirmations;
 };
+
+/** The id of the time zone field, so the result can send the person to it. */
+export const ZONE_FIELD = "time-zone";
 
 const EMPTY_EAD: EadFields = {
   dso_recommendation_date: "",
@@ -71,7 +78,51 @@ export const EMPTY_CASE: CaseFields = {
     change_of_status: false,
     status: "pending",
   },
+  time_zone: "",
+  confirmations: {},
 };
+
+/** The zone the browser reports, or empty when it reports none the contract takes. */
+export function reportedZone(): string {
+  try {
+    const zone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return isZoneName(zone) ? zone : "";
+  } catch {
+    return "";
+  }
+}
+
+/** Every zone offered in the list: what the browser knows, UTC, and the zone held now. */
+export function zoneChoices(held: string): string[] {
+  let known: string[] = [];
+  try {
+    known = Intl.supportedValuesOf("timeZone");
+  } catch {
+    // The browser gives no list. The zone held now and UTC are still offered.
+  }
+  const choices = new Set([...known, "UTC", ...(held === "" ? [] : [held])]);
+  return [...choices].filter(isZoneName).sort();
+}
+
+/** The person's answer, with the day Duly used as today when it asked. */
+export function answer(
+  fields: CaseFields,
+  question: string,
+  given: boolean,
+  on: string,
+): CaseFields {
+  return {
+    ...fields,
+    confirmations: { ...fields.confirmations, [question]: { answer: given, on } },
+  };
+}
+
+export function withdrawAnswer(fields: CaseFields, question: string): CaseFields {
+  const confirmations = Object.fromEntries(
+    Object.entries(fields.confirmations).filter(([id]) => id !== question),
+  );
+  return { ...fields, confirmations };
+}
 
 export function addPeriod(fields: CaseFields): CaseFields {
   const period: PeriodFields = {
@@ -164,7 +215,10 @@ export function buildCase(fields: CaseFields): Built {
     stem: fields.stem_on ? ead(fields.stem, "STEM OPT") : null,
     employment: fields.employment.map((entered, index) => period(entered, index + 1)),
     cap_gap: fields.cap_gap_on ? capGap(fields.cap_gap) : null,
+    time_zone: fields.time_zone,
+    confirmations: fields.confirmations,
   };
+  if (!isZoneName(fields.time_zone)) problems.push("Choose your time zone.");
 
   return problems.length > 0 ? { ok: false, problems } : { ok: true, body };
 }

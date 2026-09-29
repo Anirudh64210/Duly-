@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { CaseRefused, computeF1, engineOutputSchema } from "./compute";
-import { CASE, OUTPUT } from "./fixtures";
+import fc from "fast-check";
+
+import { CaseRefused, computeF1, engineOutputSchema, isZoneName } from "./compute";
+import { ANSWERED_NO, ASKING, CASE, OUTPUT } from "./fixtures";
 
 const reply = (body: unknown, status = 200) =>
   vi.fn(() =>
@@ -103,6 +105,89 @@ describe("engine output parsing", () => {
         rules: { ...OUTPUT.rules, "opt.unemployment_limit_days": rule },
       }),
     ).toThrow();
+  });
+});
+
+function without(record: Record<string, unknown>, key: string) {
+  return Object.fromEntries(Object.entries(record).filter(([name]) => name !== key));
+}
+
+describe("the context round", () => {
+  const rule = OUTPUT.rules["cpt.full_time_months_bar"];
+  const withRule = (changed: Record<string, unknown>) => ({
+    ...OUTPUT,
+    rules: { ...OUTPUT.rules, "cpt.full_time_months_bar": changed },
+  });
+
+  it("accepts an open question, and an answered case with a rule no item names", () => {
+    expect(engineOutputSchema.parse(ASKING).questions).toEqual(ASKING.questions);
+    expect(Object.keys(engineOutputSchema.parse(ANSWERED_NO).rules)).toEqual([
+      "stem.requires_post_completion_opt",
+    ]);
+  });
+
+  it("keeps the day and the zone as the engine gave them", () => {
+    expect(engineOutputSchema.parse(OUTPUT).today).toEqual(OUTPUT.today);
+  });
+
+  it("refuses an answer with no day, no zone, or no list of questions", () => {
+    const noToday = without(OUTPUT, "today");
+    const noQuestions = without(OUTPUT, "questions");
+    expect(() => engineOutputSchema.parse(noToday)).toThrow();
+    expect(() => engineOutputSchema.parse(noQuestions)).toThrow();
+    expect(() => engineOutputSchema.parse({ ...OUTPUT, today: { date: "2026-09-28" } })).toThrow();
+    expect(() =>
+      engineOutputSchema.parse({ ...OUTPUT, today: { ...OUTPUT.today, date: "Sep 28" } }),
+    ).toThrow();
+  });
+
+  it("refuses a question with no id it can read or nothing that raised it", () => {
+    for (const question of [
+      { id: "Held OPT", because: ["stem"] },
+      { id: "held_post_completion_opt", because: [] },
+      { id: "held_post_completion_opt" },
+      { id: "held_post_completion_opt", because: ["stem"], answer: true },
+    ]) {
+      expect(() => engineOutputSchema.parse({ ...ASKING, questions: [question] })).toThrow();
+    }
+  });
+
+  it("refuses an open question beside any verdict other than cannot_tell", () => {
+    fc.assert(
+      fc.property(fc.constantFrom("no_open_items", "needs_you", "talk_to_dso"), (state) => {
+        const output = { ...ASKING, verdict: { state, reasons: [] } };
+        expect(() => engineOutputSchema.parse(output)).toThrow();
+      }),
+    );
+  });
+
+  it("keeps the derivation and the note of a rule", () => {
+    const parsed = engineOutputSchema.parse(OUTPUT).rules["cpt.full_time_months_bar"];
+    expect(parsed?.derivation).toBe("reading");
+    expect(parsed?.note).toBe(rule.note);
+  });
+
+  it("refuses a derivation that is neither verbatim nor a reading", () => {
+    expect(() => engineOutputSchema.parse(withRule({ ...rule, derivation: "summary" }))).toThrow();
+  });
+
+  it("refuses a reading without its note or without the words it was read from", () => {
+    const noNote = without(rule, "note");
+    const noQuote = without(rule, "quote");
+    expect(() => engineOutputSchema.parse(withRule(noNote))).toThrow();
+    expect(() => engineOutputSchema.parse(withRule({ ...rule, note: "" }))).toThrow();
+    expect(() => engineOutputSchema.parse(withRule(noQuote))).toThrow();
+  });
+});
+
+describe("zone names", () => {
+  it("takes the names the case contract takes", () => {
+    for (const zone of ["America/Los_Angeles", "Asia/Kolkata", "UTC", "America/Indiana/Knox"]) {
+      expect(isZoneName(zone)).toBe(true);
+    }
+    for (const zone of ["", "PST", "utc", "Mars", "America/", "a/b/c/d", `A/${"b".repeat(64)}`]) {
+      expect(isZoneName(zone)).toBe(false);
+    }
   });
 });
 
