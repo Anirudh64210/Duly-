@@ -575,3 +575,124 @@ no test can see that from outside. Gate rules on engine.clocks cover it.
   date.max if the first day were drawn from the whole range.
   Fix: draw the first day from dates up to date.max minus six days.
   Evidence: tests/unit/engine/test_is_weekend.py, `days`.
+
+## Iteration 6, 2026-09-29: product round 1 (run l-tests-10980efb8b)
+
+Read: tests/PROGRESS.md, specs/product-1/SPEC.md, reviews/phase-2-second.md, CLAUDE.md,
+PRINCIPLES.md, BOUNDARY.md, DECISIONS.md, contracts/engine_output.schema.json,
+contracts/case_f1.schema.json. engine/f1.py and engine/verdict.py were read for the
+names they hold and for the conflict ids of earlier rounds.
+
+### What was written
+
+| File | What it covers |
+|---|---|
+| tests/unit/engine/test_f1_product.py | Sections 1 to 6. For each of the 13 conflicts: the input that raises it, the input to the safe side, the answers yes and no, the about of the question. The reviewer's inputs of findings 1, 4, 5 and 6. Days between two cards. The two questions of section 2. The day and the about of an answer. Done items. reading on items and on upcoming. The four next dates, lists. A property over generated records |
+| tests/unit/api/test_compute_product.py | The same findings through POST /v1/compute/f1 with the reviewer's clock and zone, the 422 for an answer dated after today, upcoming and lists in the response |
+| tests/holdout/test_holdout_product.py | Hidden second set: other dates, today 2027-03-10, a leap day, two conflicts at once, a second property |
+| tests/support/f1_pack.py | Three placeholder rules stem.requires.*, the ids of the questions and conflicts, helpers for upcoming, conflicts and answers that carry about, and the table of section 1 written apart from the engine (conflicts_by_the_table) |
+
+### Changes to existing tests, each because a contract changed
+
+No assertion was switched off or deleted. Each change is listed so the founder can judge it.
+
+1. Cases without cpt_full_time_days (STEM_ONLY, CAP_GAP_ONLY, STEM_WITHOUT_OPT and six
+   more, in test_f1_context.py, test_f1_fixes.py, test_compute_context.py,
+   test_holdout_context.py, test_holdout_fixes.py) gained `cpt_full_time_days: 0`.
+   Without it each would now raise full_time_cpt_used, which is not what they test.
+2. tests/unit/engine/test_f1.py, test_parse_case_fills_what_the_contract_lets_a_case_leave_out:
+   `cpt_full_time_days == 0` became `is None`. The case contract no longer has the default.
+3. tests/unit/engine/test_f1_context.py, test_an_empty_list_with_neither_opt_nor_stem_raises_no_question:
+   `questions == []` became `NO_EMPLOYMENT not in question_ids`. The engine now asks
+   nothing_more_to_record in that case (D41). This is narrower than before.
+4. The two older properties (test_f1_context.py and test_holdout_context.py) allowed only
+   the three questions of their round. They now allow the two new questions and leave
+   conflict questions to the new property. This is narrower than before.
+
+### What ran and what it printed
+
+- The done command: exit 0. `ruff check tests`: All checks passed. `ruff format --check tests`: 39 files already formatted.
+- `uv run pytest tests/unit/engine tests/unit/api tests/holdout` before any change: 151 failed, 896 passed.
+  Every one of the 151 is the older tests meeting the new output contract (upcoming, lists, reading required).
+- The same after the changes, without the three new files: 152 failed, 895 passed. The one
+  more is change 2 above, which cannot pass until the engine stops defaulting to 0.
+- With the three new files: 432 failed, 911 passed. The SPEC expects the new tests to fail.
+- The safe side of every conflict was run on the engine as it is: each fails only on the
+  contract check that comes last, so each case reaches a verdict other than cannot_tell.
+- Every date and count was worked by hand and then checked with datetime in a scratch
+  script: all agree.
+
+### What change to the code would make each test fail
+
+Not shown by planted faults this time. No reference engine for the new contract was
+written: the time limit of the attempt did not allow it. This is a gap. What is known:
+
+| Tests | Fail on the engine as it is, because |
+|---|---|
+| conflict raised, question, about, yes, no (13 rows each) | no conflict of the table exists: verdict is no_open_items or needs_you |
+| null items while a conflict is open | the items hold dates and counts |
+| section 2 questions | cpt days default to 0; nothing is asked |
+| answer dated after today | parse_case takes it |
+| answer before today, answer about other values | `_answer` never reads `on` or `about` |
+| done items | opt.apply_window_closes is an open item |
+| reading, upcoming, lists | the keys are absent |
+
+Thirteen tests pass on the engine as it is. Each says that something is not asked or
+not refused (an open period past the last card, a part entered, cpt days entered, an
+answer dated today). They fail on an engine that asks or refuses too much.
+
+### Disputes
+
+1. contracts/engine_output.schema.json, questions.items.id has the pattern
+   `^[a-z0-9_]+$`. SPEC section 1 gives the question the id of the conflict, such as
+   `opt.card_longer_than_rule`, which holds dots. The case contract was changed to take
+   dots in the names of confirmations; the output contract was not. The tests follow
+   the SPEC. test_the_output_of_a_conflict_follows_the_contract and
+   test_the_response_to_a_conflict_follows_the_contract cannot pass with both as written.
+
+### Questions (the SPEC is unclear; the tests take no side unless stated)
+
+47. An answer with no `about` at all. Is it an answer to a question that carries about?
+    Most older tests answer through `answers()`, with no about. If it is not an answer,
+    those tests need the helper answer_as_the_screen_does. Not tested. Needs the founder.
+48. How parse_case learns the day. The tests pass the clock as a second argument when
+    parse_case takes two or more, and one argument otherwise. Older tests call it with one.
+49. A card whose last day is the day the months end (2025-11-01 to 2026-11-01). Longer
+    than the rule or not? Left open: the raising input is one day past it, the safe input
+    one day before it.
+50. The shape of `about`. The tests require only that the values that do not fit are
+    somewhere inside it, and that the engine compares it with what the answer carries.
+51. The shape of the inputs of cpt.full_time_days_used after the answer no. The tests
+    require the id full_time_cpt_used and the day of the answer somewhere inside, and
+    that cpt_full_time_days is not shown as 0.
+52. Which items "use the dates" of a conflict. Tested: grace.ends and the counts for the
+    card rows, the counts for the gap and the employment rows, capgap.ends for the
+    requested start (and for the petition date in the reviewer's input, where the
+    reviewer named it).
+53. Whether the rules named in upcoming and lists are shown under `rules`. The contract
+    says "every rule named in computed". The tests require them there, since the screen
+    shows their words.
+54. Conflict ids of earlier rounds (stem_start, opt_start) are not in the table. Untouched.
+55. The reason for an open question of section 2 is taken to be `unconfirmed:<id>`, as
+    SPEC-context section 4 has it.
+
+### Requests for files this lane does not own
+
+- contracts/engine_output.schema.json: allow dots in the id of a question, or the SPEC
+  names another id for the question of a conflict.
+- specs/product-1/SPEC.md: a line for each of questions 47, 48 and 49.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Lesson
+
+- Failure: a date after today for a filing also lies after a card in hand, so one input
+  raised two conflicts and the row could not be tested alone.
+  Fix: test the after_today rows on a case whose card begins after today.
+  Evidence: tests/unit/engine/test_f1_product.py, AHEAD and STEM_AHEAD.
+- Failure: older cases that leave a field out change meaning when the contract drops a default.
+  Fix: spy on parse_case through a scratch plugin under TMPDIR to list every test whose
+  case lacks the field, then change the cases, not the assertions.
+  Evidence: 43 tests listed for cpt_full_time_days, 7 for no training entered.

@@ -25,8 +25,11 @@ from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
+    CONFLICT_IDS,
+    CPT_USED,
     HELD_OPT,
     NO_EMPLOYMENT,
+    NOTHING_MORE,
     QUESTION_IDS,
     READINGS,
     SHIFTED,
@@ -91,6 +94,7 @@ STEM_ALONE: dict[str, Any] = {
     "program_end_date": "2024-12-13",
     "degree_level": "master",
     "documents_count": 1,
+    "cpt_full_time_days": 0,
     "opt": None,
     "stem": ead("2025-11-03", "2025-11-17", "2026-02-01", "2028-01-31"),
     "employment": [job("2026-02-01", None, hours=25)],
@@ -101,6 +105,7 @@ CAP_GAP_ALONE_CASE: dict[str, Any] = {
     "program_end_date": "2026-05-08",
     "degree_level": "bachelor",
     "documents_count": 6,
+    "cpt_full_time_days": 0,
     "employment": [job("2025-01-06", "2025-03-28", hours=12)],
     "cap_gap": cap_gap("2026-10-01", status="approved", petition_filed_on="2026-04-01"),
 }
@@ -412,6 +417,7 @@ def records(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         "program_end_date": program_end.isoformat(),
         "degree_level": "master",
         "documents_count": draw(st.integers(min_value=1, max_value=9)),
+        "cpt_full_time_days": 0,
         "opt": ead(None, None, opt_start.isoformat(), opt_end.isoformat()),
         "stem": ead(
             None,
@@ -438,10 +444,13 @@ def test_a_record_with_a_gap_is_asked_about_and_never_called_quiet(drawn):
     case, today = drawn
     out = run(case, today=today)
     assert contract_problems(out) == []
-    asked = question_ids(out)
+    # specs/product-1/SPEC.md, sections 1 and 2: the engine now asks two more questions,
+    # and one for each conflict, whose reason is conflict:<id>. Those have their own
+    # property in the product tests. This one keeps to the questions of its round.
+    asked = [asked_id for asked_id in question_ids(out) if asked_id not in CONFLICT_IDS]
     given = case.get("confirmations", {})
     assert sorted(unconfirmed(out)) == sorted(asked)
-    assert set(asked) <= set(QUESTION_IDS)
+    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
     assert set(asked).isdisjoint(given)
     state = out["verdict"]["state"]
     if asked:
@@ -505,6 +514,7 @@ API_CASE: dict[str, Any] = {
     "program_end_date": "2026-05-22",
     "degree_level": "master",
     "documents_count": 8,
+    "cpt_full_time_days": 0,
     "opt": ead("2026-03-16", "2026-03-30", "2026-06-15", "2027-06-14"),
     "employment": [job("2026-06-15", "2026-09-10", hours=30)],
 }

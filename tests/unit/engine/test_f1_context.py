@@ -28,8 +28,11 @@ from engine.clocks import FixedClock
 from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
     CAP_GAP_ALONE,
+    CONFLICT_IDS,
+    CPT_USED,
     HELD_OPT,
     NO_EMPLOYMENT,
+    NOTHING_MORE,
     QUESTION_IDS,
     READINGS,
     answered_yes,
@@ -99,6 +102,7 @@ STEM_ONLY: dict[str, Any] = {
     "program_end_date": "2026-05-15",
     "degree_level": "master",
     "documents_count": 2,
+    "cpt_full_time_days": 0,
     "employment": [job("2026-06-01", None)],
     "stem": ead("2026-04-01", "2026-04-20", "2026-06-01", "2028-05-31"),
     "time_zone": "UTC",
@@ -110,6 +114,7 @@ CAP_GAP_ONLY: dict[str, Any] = {
     "program_end_date": "2026-12-18",
     "degree_level": "master",
     "documents_count": 2,
+    "cpt_full_time_days": 0,
     "employment": [],
     "cap_gap": cap_gap("2026-10-01"),
     "time_zone": "UTC",
@@ -770,8 +775,10 @@ def test_employment_that_is_entered_raises_no_question():
 
 
 def test_an_empty_list_with_neither_opt_nor_stem_raises_no_question():
+    # specs/product-1/SPEC.md, section 2: with no part entered the engine now asks
+    # nothing_more_to_record. This test protects that it does not ask about employment.
     out = run(with_changes(NO_JOBS, opt=None))
-    assert out["questions"] == []
+    assert NO_EMPLOYMENT not in question_ids(out)
     assert reasons_with(out, "missing:") == []
 
 
@@ -887,10 +894,13 @@ def test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict(
     case, today = drawn
     out = run(case, today=today, checked_on=today)
     assert contract_problems(out) == []
-    asked = question_ids(out)
+    # specs/product-1/SPEC.md, sections 1 and 2: the engine now asks two more questions,
+    # and one for each conflict, whose reason is conflict:<id>. Those have their own
+    # property in the product tests. This one keeps to the questions of its round.
+    asked = [asked_id for asked_id in question_ids(out) if asked_id not in CONFLICT_IDS]
     given = case.get("confirmations", {})
     assert len(asked) == len(set(asked))
-    assert set(asked) <= set(QUESTION_IDS)
+    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
     assert sorted(unconfirmed(out)) == sorted(asked)
     # A question the person has answered is not asked again.
     assert set(asked).isdisjoint(given)
