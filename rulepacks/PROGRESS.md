@@ -76,6 +76,76 @@ Every other value in the SPEC table matches the source.
 - emails/: nothing in this mission touches it.
 - The other three packs are still empty.
 
+## 2026-09-28, iteration 2
+
+### State
+
+The five rules in specs/phase-2/SPEC-sourcing.md are in rulepacks/f1-us/v2026.09/parameters.yaml, each with a saved source and an exact quote. The pack now has 2 regimes and 27 parameter rows. The done command passes. Nothing is reviewed by the founder yet.
+
+### What I did
+
+1. Searched the saved 2026-09-14 and 2026-09-15 texts of 8 CFR 214.2 for the evaluation paragraph, the CPT sentence, paragraph (f)(12), and the cap-gap paragraph.
+2. Searched the saved Study in the States page and SEVP Policy Guidance 1004-03 for a number of days to report an employer.
+3. Fetched 31 U.S.C. 1102 and 5 U.S.C. 6103 from uscode.house.gov with curl. Both returned 200. Saved as served.
+4. Checked each regulation quote against the 2026-09-15 text as well. All are there, word for word.
+5. Added five rows, two lines in the SOURCES.md table, a comparison table, and the CHANGELOG entry.
+
+### Where the sources differ from the addendum table
+
+| Rule | Addendum said | Source says | What I recorded |
+|---|---|---|---|
+| stem.evaluation_interval_months | 12 months, the annual self-evaluation, (f)(10)(ii)(C)(9) | "an initial evaluation within 12 months of the approved starting date on the employment authorization document ... and a concluding evaluation". Two evaluations, not a repeating interval. The word annual is in the preamble of 81 FR 13040, not in the regulation | 12 months, settled, cited (C)(9)(i), with the difference in the note |
+| cpt.full_time_bar_days | 365 days, school | "one year or more". No number of days anywhere in the source | 365, school, regulation quoted, note says the count in days is not the words of the law |
+| capgap.fiscal_year_start_month_day | 10-01, from 31 U.S.C. 1102 and the cap-gap paragraph | The statute says "The fiscal year of the Treasury begins on October 1". The cap-gap paragraph says fiscal year and never defines it or names October 1 | 10-01, settled, statute quoted. The note says the link between the two is a reading |
+| opt.report_employer_within_days | 10 days, guidance | The regulation has no number for post-completion OPT. (f)(12)(i) has no time limit. (f)(12)(ii)(A) has 10 days, for the 24-month extension only. Study in the States says within 10 days. The 2010 guidance says SEVP recommends 10 business days | 10 days, guidance, from Study in the States, starting 2025-05-19 |
+| calendar.federal_holidays_law | true, flag | The list in 5 U.S.C. 6103(a) has eleven holidays | true, settled, the whole list quoted, starting 2021-06-17 |
+
+### The law does not state these numbers
+
+- 365 days for the CPT bar. The law says one year or more.
+- A number of days to report an employer on post-completion OPT. The regulation has none. The only number is in agency guidance.
+- A repeating 12-month evaluation interval. The regulation has one 12-month evaluation and one final evaluation.
+- A definition of business day in 8 CFR 214.2(f), or a pointer from it to 5 U.S.C. 6103.
+- A definition of fiscal year in the cap-gap paragraph.
+
+### The blocked regime
+
+None of the five changes. The three regulation quotes are word for word in the 2026-09-15 text. The final rule moves the cap-gap paragraph from (f)(5)(vi) to (f)(5)(vii) and keeps the words. The two statutes are not touched by a DHS rule. No row sits under a regime.
+
+### Limits the founder needs to know
+
+1. opt.report_employer_within_days starts 2025-05-19, the last updated date on the saved page. That is the earliest date the saved copy supports. A lookup for an earlier date finds no row. The older guidance is a recommendation in business days, which is a different rule, so I did not record it as an earlier row. If the founder wants cover before 2025-05-19, someone has to find an older dated copy of the Study in the States page.
+2. calendar.federal_holidays_law starts 2021-06-17, when Juneteenth was added. Before that the list had ten holidays. I saved no copy of the earlier list, so there is no earlier row. A business-day count across dates before 2021-06-17 has no sourced list.
+3. 5 U.S.C. 6103(b) moves a Saturday holiday to the Friday before, for federal pay and leave. The pack row quotes (a) only. Whether the engine treats the observed day or the named day as the holiday is not settled by this row.
+4. Holidays declared by executive order for a single day are not in 6103(a).
+5. Not checked, from memory only, no saved copy: 8 CFR 1.2 has a definition of day that speaks to periods ending on a Saturday, Sunday, or legal holiday. It may bear on the day counts. It is outside the five rules in the addendum, so it is not in the pack.
+6. capgap.fiscal_year_start_month_day starts 1982-09-13, the date title 31 was enacted in its present form. The October 1 start is older.
+
+### Requests to other lanes
+
+- L-engine: stem.evaluation_interval_months is not a repeating interval in the regulation. It counts from the approved starting date on the employment authorization document. The final evaluation is tied to the end of the training, not to month 24.
+- L-engine: opt.report_employer_within_days and calendar.federal_holidays_law have no row before 2025-05-19 and 2021-06-17. A lookup on an earlier date must give cannot_tell, not a default.
+- L-tests: tests/support/f1_pack.py may use the same start dates.
+
+### What ran
+
+```
+uv run python -m tools.sources.verify rulepacks
+  sources: 4 pack(s) checked, every quote found
+uv run pytest tests/unit/engine/test_rulepack.py -q
+  19 passed
+the three greps in the done command
+  exit 0
+uv run python -m tools.copy_lint.lint
+  copy lint: clean
+uv run python -m tools.diff_policy.check --base phase-2
+  diff policy: lane L-content, 0 file(s), clean   (run before the commit)
+```
+
+### Gate 4 fails on this branch, and not from this lane
+
+`make test BASE=phase-2` passes gates 1 to 3 and stops at gate 4. The secret scan reports one finding in web/PROGRESS.md line 85, commit 07ffcc7, from lane L-web. The founder already excused it on phase-2 in commit 8f92f1b, which adds .gitleaksignore. This branch was cut at 082326c, one commit before that, so it does not have the file. .gitleaksignore is outside this lane and I did not touch it or merge. Gates 5 and 6 pass when run one at a time. The finding goes away when this branch is merged into phase-2 or rebased on it.
+
 ## Lesson
 
 ### The bash guard reads mkdir -p as a compose project flag
@@ -113,3 +183,27 @@ Every other value in the SPEC table matches the source.
 - Failure: `make test` failed at gate 3, listing contracts/, specs/, and tools/ files this lane never touched, and gate 6 reported 1% coverage on tools/sources/verify.py. Those are the phase-2 branch's own changes, which are not on main yet.
 - Fix: a lane in phase 2 starts from phase-2, so run `make test BASE=phase-2`. I changed no gate and no file outside rulepacks/.
 - Evidence: `uv run python -m tools.diff_policy.check --base phase-2` prints "lane L-content, 0 file(s), clean" before the commit; `make test BASE=phase-2` prints "gates 1 to 6: green".
+
+### A where-to-look column names a source, not what the source says
+
+- Failure: the addendum calls the STEM evaluation annual and points the fiscal year at the cap-gap paragraph. The regulation never says annual, and the cap-gap paragraph never names October 1.
+- Fix: read the paragraph itself, quote only the words that carry the value, and write in the note what the source does not say. When a value rests on joining two sources, say the join is a reading.
+- Evidence: 2026-09-14 text, (f)(10)(ii)(C)(9)(i): "an initial evaluation within 12 months of the approved starting date"; sources/usc-31-1102-2026-09-28.htm: "The fiscal year of the Treasury begins on October 1".
+
+### Old and new guidance can differ in unit
+
+- Failure: the 2010 SEVP guidance says 10 business days, as a recommendation. The current Study in the States page says within 10 days, as a must.
+- Fix: search every saved guidance copy for the number before choosing a start date. Do not borrow a start date from a document that states a different rule.
+- Evidence: sources/ice-sevp-policy-guidance-1004-03.txt: "SEVP recommends that the student report any change within 10 business days of the change".
+
+### uscode.house.gov serves plain curl
+
+- Failure: none. Recorded so the next agent does not search for another host.
+- Fix: `curl -L -A "Mozilla/5.0" "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim"` returns 200 with the text, the source credit, and the amendment notes. The page embeds a session id, so a second fetch has a different hash. Save once and record that hash.
+- Evidence: 200, 166778 bytes; "Text contains those laws in effect on September 28, 2026".
+
+### A gate can fail on history this lane did not write
+
+- Failure: gate 4 reported a secret in web/PROGRESS.md, a file from lane L-web, in a commit under this branch.
+- Fix: run `gitleaks git . --no-banner --redact -v` to see the file and commit, then check whether the base branch already has a fix with `git log phase-2`. If it does, record it and leave the ignore file alone.
+- Evidence: fingerprint 07ffcc7e66e876d0adaa288b48809611883a3d33:web/PROGRESS.md:generic-api-key:85; phase-2 commit 8f92f1b adds .gitleaksignore.

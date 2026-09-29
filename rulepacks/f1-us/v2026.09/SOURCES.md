@@ -21,6 +21,8 @@ All copies fetched on 2026-09-28. Files are kept exactly as served. Text files b
 | sits-f1-opt-2026-09-28.html | Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19 | https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt | 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288 |
 | ice-sevp-policy-guidance-1004-03.pdf | SEVP Policy Guidance 1004-03, 2010-04-23 | https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf | a835bd1d588ce1dc702ae1b55b8bbee9d051a4dda84509bfe46b09826fa6ec76 |
 | ice-sevp-policy-guidance-1004-03.txt | Text extracted from the PDF above | extracted locally | 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73 |
+| usc-31-1102-2026-09-28.htm | 31 U.S.C. 1102, Fiscal year, laws in effect on 2026-09-28 | https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title31-section1102&num=0&edition=prelim | c8513d7d62a8ebbafae9889d40461c3de7b0847fce597f281cbc5aac07a8da5d |
+| usc-5-6103-2026-09-28.htm | 5 U.S.C. 6103, Holidays, laws in effect on 2026-09-28 | https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim | a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0 |
 
 ## Claims about the blocked rule
 
@@ -51,3 +53,15 @@ Found by comparing paragraph (f) in the 2026-09-14 and 2026-09-15 texts.
 | capgap.end_month_day | April 1, (f)(5)(vi)(A) | April 1, moved to (f)(5)(vii)(A) |
 
 Every other rule in the pack has the same words in both texts.
+
+### Rules added in the second pass
+
+| Rule | 2026-09-14 text | 2026-09-15 text |
+|---|---|---|
+| stem.evaluation_interval_months | within 12 months, (f)(10)(ii)(C)(9)(i) | same words, same paragraph |
+| cpt.full_time_bar_days | one year or more, (f)(10)(i) | same words, same paragraph |
+| opt.report_employer_within_days | no number in (f)(12)(i); 10 days in (f)(12)(ii)(A) for the 24-month extension only | same words, same paragraphs |
+| capgap.fiscal_year_start_month_day | from 31 U.S.C. 1102, not from the regulation | the final rule does not amend the statute |
+| calendar.federal_holidays_law | from 5 U.S.C. 6103(a), not from the regulation | the final rule does not amend the statute |
+
+None of the five has a different value under the blocked rule, so none has a row under a regime.
