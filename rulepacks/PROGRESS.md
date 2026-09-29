@@ -485,3 +485,33 @@ uv run python -m tools.copy_lint.lint <scratch copy of HEAD with the two changed
 ### Seen and not worked around
 
 - A python heredoc run from the pack folder printed "Operation not permitted" for tests/holdout/.gitkeep and README.md (from git diff --stat walking the tree). I read nothing there.
+
+## 2026-09-29, run l-content-d92eb9e1df, attempt 1: plain-1 section 1, resolutions 40 and 50
+
+### What I did
+
+1. Read this log, specs/plain-1/SPEC.md, specs/product-1/SPEC-resolutions.md, tools/sources/plain.py and the checks it imports (assistant/boundary.py instructs and _CONCLUSION, tools/copy_lint FORBIDDEN_PHRASES).
+2. Drafted plain words for all 49 rules and 2 regimes in a scratch file under TMPDIR, ran problems() on each against its own grounds, and fixed every problem before writing: grade over 9 (8 rows), and clauses the instruction check reads as orders ("and work permission", "and pay"). Then inserted them into parameters.yaml with a script that adds one `plain:` line per entry.
+3. Regime fixed_admission_2026: plain words from the order (doc 51): published July 17, 2026, fixed period of admission, paused September 14, 2026 while the case goes on, date put off until further order or the end of the case, earlier rule applies today.
+4. Point 50: stem.report_change_within_days, 10, settled, verbatim, quote found once in the 2026-09-14 text, once in the 2026-09-15 text and once in 81 FR 13040.
+5. Point 40, holidays: the saved 6103 copy has the note "Pub. L. 117-17 inserted item relating to Juneteenth National Independence Day." and the effective date note of the 1983 amendment. Added a reading row 1986-01-01 to 2021-06-16 naming the ten holidays in the note.
+6. Point 40, cap-gap: 73 FR 18944 (2) is found once in fr-e8-7427. 81 FR 13040 rewrote (2) as "requests an H-1B employment start date of October 1 of the following fiscal year" (found in fr-2016-04828), and 89 FR 103054 rewrote it again. So capgap.october_start_condition has two closed rows, 2008-04-08 to 2016-05-09 and 2016-05-10 to 2025-01-16. Recorded as a dispute with the mission's single row.
+7. CHANGELOG.md entry. No network used.
+
+### What ran
+
+```
+done command (as written in the contract)
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  exit 0
+uv run pytest tests/unit/engine -q
+  exit 0, all passed
+uv run python -m tools.copy_lint.lint <scratch copy of HEAD with the two changed files, tests/holdout left out>
+  copy lint: clean, exit 0
+```
+
+### Seen and not worked around
+
+- git status and git diff print "Operation not permitted" for tests/holdout. Nothing there was read.
+- capgap.end_month_day (10-01 row) quotes 73 FR 18944 for 2008-04-08 to 2025-01-16, but 81 FR 13040 reworded (f)(5)(vi)(A) in 2016. Not changed in this run; listed in the report.
