@@ -56,6 +56,8 @@ def seatbelt_profile(writable: list[Path], unreadable: list[str]) -> str:
 
 
 def available() -> bool:
+    if os.environ.get("DULY_IN_JAIL"):
+        return False  # a jail cannot hold another; nothing is ever run two walls deep
     if sys.platform == "darwin":
         return shutil.which("sandbox-exec") is not None
     return shutil.which("bwrap") is not None
@@ -74,7 +76,12 @@ def run(
     scratch = Path(tempfile.mkdtemp(prefix="duly-jail-"))
     writable = [cwd, scratch, *(extra_writable or [])]
     unreadable = [*SECRETS, *(extra_unreadable or [])]
-    jail_env = {**env, "TMPDIR": str(scratch), "HOME": env.get("HOME", str(Path.home()))}
+    jail_env = {
+        **env,
+        "DULY_IN_JAIL": "1",
+        "TMPDIR": str(scratch),
+        "HOME": env.get("HOME", str(Path.home())),
+    }
     if sys.platform == "darwin":
         profile = scratch / "profile.sb"
         profile.write_text(seatbelt_profile(writable, unreadable))

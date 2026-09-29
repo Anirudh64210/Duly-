@@ -25,5 +25,5 @@ rounds:
           && uv run ruff check engine && uv run ruff format --check engine
           && uv run python -m tools.gates.engine_literals'
     checks:
-      - { name: "gates 1 to 7", run: "make test BASE=factory-e2e" }
+      - { name: "offline gates", run: "make test-offline BASE=factory-e2e" }
       - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }

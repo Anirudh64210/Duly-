@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -56,6 +56,12 @@ gate-7:
 	uv run python -m tools.factory.validate
 	uv run python -m tools.gates.engine_literals
 	uv run python -m tools.sources.verify rulepacks
+
+# The gates that need no network. The orchestrator runs these in the jail, where the
+# network is closed. Dependency audits need the network and run in clean CI.
+test-offline: gate-1 gate-2 gate-3 gate-5 gate-6 gate-7
+	gitleaks git . --no-banner --redact
+	@echo "offline gates: green"
 
 test: gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7
 	@echo "gates 1 to 7: green"
