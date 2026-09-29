@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/factory_review.schema.json",
+  "title": "Review scores",
+  "description": "The reviewer's rubric, scored 1 to 5 on each line, with the evidence for each score. The thresholds are in factory/config.yaml.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "reviewed_commit", "scores", "findings", "decision"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "reviewed_commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correct", "sourced", "never_assumes", "inside_the_boundary", "secure", "tested"],
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "object", "additionalProperties": false, "required": ["score", "evidence"],
+          "properties": {
+            "score": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "evidence": { "type": "string", "minLength": 10 }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["severity", "title", "file", "input", "what_happens"],
+        "properties": {
+          "severity": { "enum": ["blocking", "should_fix", "note"] },
+          "title": { "type": "string" },
+          "file": { "type": "string" },
+          "input": { "type": "string" },
+          "what_happens": { "type": "string" }
+        }
+      }
+    },
+    "decision": { "enum": ["APPROVE", "VETO"] }
+  }
+}

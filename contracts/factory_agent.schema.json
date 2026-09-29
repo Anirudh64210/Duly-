@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/factory_agent.schema.json",
+  "title": "Agent contract",
+  "description": "The one written contract for an agent: what it is, what it takes, what it gives back, what it may use, and when it stops.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "version", "role", "role_file", "lanes", "inputs", "outputs", "tools", "model",
+               "max_turns", "max_attempts", "token_budget", "budget_usd", "timeout_minutes",
+               "stop_conditions", "network", "may_write", "health_check"],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "role": { "type": "string", "minLength": 20 },
+    "role_file": { "type": "string", "pattern": "^\\.claude/agents/[a-z0-9-]+\\.md$" },
+    "lanes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "inputs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "outputs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "tools": { "type": "array", "items": { "enum": ["Read", "Edit", "Write", "Glob", "Grep", "Bash"] }, "minItems": 1, "uniqueItems": true },
+    "model": { "type": "string", "pattern": "^claude-[a-z0-9-]+$" },
+    "max_turns": { "type": "integer", "minimum": 1, "maximum": 200 },
+    "max_attempts": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "token_budget": { "type": "integer", "minimum": 10000 },
+    "budget_usd": { "type": "number", "exclusiveMinimum": 0 },
+    "timeout_minutes": { "type": "integer", "minimum": 1, "maximum": 180 },
+    "stop_conditions": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "network": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9.-]+$" }, "uniqueItems": true },
+    "may_write": { "type": "boolean" },
+    "health_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "passes_when"],
+      "properties": {
+        "task": { "type": "string", "minLength": 10 },
+        "passes_when": { "type": "string", "minLength": 3 }
+      }
+    }
+  }
+}

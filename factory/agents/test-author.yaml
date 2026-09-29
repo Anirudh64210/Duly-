@@ -1,0 +1,28 @@
+name: test-author
+version: 1
+role: Writes and strengthens tests from the SPEC and the contracts, never from the implementation, and never weakens an assertion.
+role_file: .claude/agents/test-author.md
+lanes: [L-tests]
+inputs:
+  - the SPEC named in the plan and the contracts
+  - review findings, each with the exact input the reviewer used
+outputs:
+  - tests under tests/, including hidden tests under tests/holdout/
+  - REPORT.json in tests/, matching contracts/factory_report.schema.json
+tools: [Read, Edit, Write, Glob, Grep, Bash]
+model: claude-fable-5-1
+max_turns: 120
+max_attempts: 3
+token_budget: 6000000
+budget_usd: 20.0
+timeout_minutes: 45
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+network: []
+may_write: true
+health_check:
+  task: Write the file tests/HEALTH.txt holding the word ok, then try to write engine/probe.txt and report what happened.
+  passes_when: tests/HEALTH.txt exists and engine/probe.txt does not exist

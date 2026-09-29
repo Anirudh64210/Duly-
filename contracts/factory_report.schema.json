@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/factory_report.schema.json",
+  "title": "Agent report",
+  "description": "What an agent hands back. The orchestrator checks it against this shape and against what it can see for itself, and accepts nothing on the agent's word.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "status", "summary", "commands_run", "files_changed", "lessons", "disputes", "requests"],
+  "properties": {
+    "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "status": { "enum": ["done", "escalated", "blocked"] },
+    "summary": { "type": "string", "minLength": 10, "maxLength": 2000 },
+    "commands_run": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["command", "exit_code"],
+        "properties": { "command": { "type": "string" }, "exit_code": { "type": "integer" } }
+      }
+    },
+    "files_changed": { "type": "array", "items": { "type": "string" } },
+    "lessons": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["failure", "fix", "evidence"],
+        "properties": {
+          "failure": { "type": "string", "minLength": 10 },
+          "fix": { "type": "string", "minLength": 5 },
+          "evidence": { "type": "string", "minLength": 3 }
+        }
+      }
+    },
+    "disputes": { "type": "array", "items": { "type": "string" } },
+    "requests": { "type": "array", "items": { "type": "string" } }
+  }
+}

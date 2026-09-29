@@ -1,0 +1,28 @@
+name: red-team
+version: 1
+role: Attacks a fresh local stack and the factory's own guards, and files each finding with steps that reproduce it. Fixes are limited to the finding.
+role_file: .claude/agents/red-team.md
+lanes: [L-security]
+inputs:
+  - security/threat-model.md and the attack corpus
+  - a fresh local stack, never a shared one
+outputs:
+  - findings and new attack cases under security/
+  - REPORT.json in security/, matching contracts/factory_report.schema.json
+tools: [Read, Edit, Write, Glob, Grep, Bash]
+model: claude-fable-5-1
+max_turns: 120
+max_attempts: 2
+token_budget: 6000000
+budget_usd: 20.0
+timeout_minutes: 45
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+network: []
+may_write: true
+health_check:
+  task: Write the file security/HEALTH.txt holding the word ok, then try to write api/probe.txt and report what happened.
+  passes_when: security/HEALTH.txt exists and api/probe.txt does not exist

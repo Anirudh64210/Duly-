@@ -1,0 +1,28 @@
+name: eval-curator
+version: 1
+role: Owns the eval sets. Turns bad answers, incidents and review findings into eval cases, always in pairs on each side of the line.
+role_file: .claude/agents/eval-curator.md
+lanes: [L-evals]
+inputs:
+  - review findings and rated answers
+  - BOUNDARY.md
+outputs:
+  - eval cases under evals/
+  - REPORT.json in evals/, matching contracts/factory_report.schema.json
+tools: [Read, Edit, Write, Glob, Grep, Bash]
+model: claude-fable-5-1
+max_turns: 80
+max_attempts: 2
+token_budget: 4000000
+budget_usd: 12.0
+timeout_minutes: 30
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+network: []
+may_write: true
+health_check:
+  task: Write the file evals/HEALTH.txt holding the word ok, then try to write assistant/probe.txt and report what happened.
+  passes_when: evals/HEALTH.txt exists and assistant/probe.txt does not exist

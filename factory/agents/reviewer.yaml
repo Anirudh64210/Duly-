@@ -1,0 +1,29 @@
+name: reviewer
+version: 1
+role: Reviews a diff against its SPEC with no memory of how it was written, scores it on the rubric, and may veto. Never edits the code it reviews.
+role_file: .claude/agents/reviewer.md
+lanes: [L-review]
+inputs:
+  - the diff between the phase branch and main
+  - the SPEC files, PRINCIPLES.md, BOUNDARY.md and CLAUDE.md
+outputs:
+  - a written review under reviews/
+  - REVIEW.json under reviews/, matching contracts/factory_review.schema.json
+  - REPORT.json in reviews/, matching contracts/factory_report.schema.json
+tools: [Read, Write, Glob, Grep, Bash]
+model: claude-fable-5-1
+max_turns: 120
+max_attempts: 2
+token_budget: 6000000
+budget_usd: 20.0
+timeout_minutes: 45
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+network: []
+may_write: true
+health_check:
+  task: Write the file reviews/HEALTH.txt holding the word ok, then try to write engine/probe.txt and report what happened.
+  passes_when: reviews/HEALTH.txt exists and engine/probe.txt does not exist

@@ -1,0 +1,43 @@
+name: rulepack-drafter
+version: 1
+role: Finds the exact words of the law in primary sources, saves the source, and records each rule with its quote. Never records a value it did not read in a saved source.
+role_file: .claude/agents/rulepack-drafter.md
+lanes: [L-content]
+inputs:
+  - the SPEC named in the plan, whose values are claims to check
+  - primary sources, fetched only from the hosts listed under network
+outputs:
+  - rule pack rows with quote, saved copy and hash, under rulepacks/
+  - REPORT.json in rulepacks/, matching contracts/factory_report.schema.json
+tools: [Read, Edit, Write, Glob, Grep, Bash]
+model: claude-fable-5-1
+max_turns: 120
+max_attempts: 3
+token_budget: 6000000
+budget_usd: 20.0
+timeout_minutes: 45
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+  - "a primary source cannot be reached: leave the rule out and say so in the report"
+network:
+  - www.ecfr.gov
+  - www.federalregister.gov
+  - www.govinfo.gov
+  - www.uscis.gov
+  - studyinthestates.dhs.gov
+  - www.ice.gov
+  - travel.state.gov
+  - www.whitehouse.gov
+  - www.courtlistener.com
+  - storage.courtlistener.com
+  - www.reginfo.gov
+  - www.dol.gov
+  - flag.dol.gov
+  - uscode.house.gov
+may_write: true
+health_check:
+  task: Write the file rulepacks/HEALTH.txt holding the word ok, then try to fetch https://example.com and report what happened.
+  passes_when: rulepacks/HEALTH.txt exists and the fetch of example.com failed

@@ -1,0 +1,30 @@
+name: builder
+version: 1
+role: Builds one feature in one lane against tests it cannot edit, and commits on its own branch.
+role_file: .claude/agents/builder.md
+lanes: [L-engine, L-api, L-narration, L-pipeline, L-web, L-ops, L-desktop]
+inputs:
+  - the SPEC named in the plan
+  - the tests for the lane, which it cannot edit
+  - its own progress log and the factory's memory of past failures
+outputs:
+  - commits on the lane branch, inside the lane's paths only
+  - REPORT.json in the lane's home folder, matching contracts/factory_report.schema.json
+  - an appended progress log
+tools: [Read, Edit, Write, Glob, Grep, Bash]
+model: claude-fable-5-1
+max_turns: 120
+max_attempts: 3
+token_budget: 6000000
+budget_usd: 20.0
+timeout_minutes: 45
+stop_conditions:
+  - the done command passes
+  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - the turn, token, cost or time limit in this contract is reached
+  - the factory STOP file exists
+network: []
+may_write: true
+health_check:
+  task: Write the file HEALTH.txt holding the word ok in your lane's home folder, then try to write tests/holdout/probe.txt and report what happened.
+  passes_when: HEALTH.txt exists in the lane home and tests/holdout/probe.txt does not exist

@@ -1,0 +1,46 @@
+# Every threshold the factory uses. Numbers live here, not in code and not in judgement.
+# Only the founder changes this file.
+version: 1
+
+model:
+  pinned: claude-fable-5-1       # exact id. A run refuses to start on any other model.
+  reviewer: claude-fable-5-1
+
+limits:
+  max_parallel_agents: 4
+  max_subagent_depth: 0          # agents may not start agents
+  max_retries_per_task: 3        # attempts, then escalate
+  repeated_action_limit: 4       # the same tool call this many times in a row stops the run
+  stall_minutes: 12              # no action for this long raises an alert and stops the agent
+  lessons_memory_max_items: 40   # size cap on what is injected from past failures
+  lessons_memory_max_chars: 12000
+
+budgets:
+  per_task_usd: 25.0             # estimated at API prices; on a subscription this caps usage
+  per_day_usd: 250.0
+
+gates:
+  diff_coverage_percent: 80
+  engine_diff_coverage_percent: 95
+  golden_pass_rate: 1.0          # share of golden factory tasks that must pass
+  reviewer_rubric_min: 4         # each rubric line is scored 1 to 5; any line below this is a veto
+  reviewer_rubric_mean_min: 4.3
+  judge_drift_max: 0.5           # mean score change allowed when old work is scored again
+
+approval_required:               # a human, never an agent and never the orchestrator
+  - merge_to_main
+  - dependency_added
+  - ci_or_infra_changed
+  - guardrail_changed
+  - skill_or_prompt_changed
+  - contract_changed
+
+protected_branches: [main]
+
+network:
+  default: deny
+  allow_for_all: []
+  # per agent allowlists are in factory/agents/<name>.yaml
+
+alerts:
+  notify: macos                  # macos | none
