@@ -86,6 +86,13 @@ From the build of fix 4 (the builder's report on lane/L-engine/l-engine-1c477e1c
 52. While the conflict of point 43 is answered yes (work goes on after the last card), `grace.ends` is null and the judgement item carries the matter to the DSO, as point 18 does for cap-gap. Duly states no grace date for someone whose record shows work after the last card.
 53. The day a holiday joins the list comes from the pack's rows of `calendar.federal_holidays_law` and their effective dates (the row from 2021-06-17 holds Juneteenth; the row to 2021-06-16 does not), never from a date written in code. A pack with no row in force on a counted day gives null with the step back (point 40).
 
+From the review of fix 4 (reviews/product-1-fix4.md):
+
+54. Plain words keep the rule's own terms. Where the rule's word differs from the everyday one (the CPT rule says "post-completion academic training"), the plain words use the rule's word, and where Duly reads it as something else they say so in words ("Duly reads this as..."). Each sentence of a plain text rests on words of its quote; nothing is added from outside the quote and nothing the quote limits is dropped. The five texts the review names are rewritten from their quotes: `cpt.full_time_months_bar`, `cpt.full_time_bar_days`, `opt.latest_start_after_days`, `stem.validation_interval_months`, `grace.after_completion_days` (the paused row) and `stem.min_hours_per_week`.
+55. An item carries an alternate only where the alternate holds a value. The screen shows what a court paused, and "What the paused rule would change", only where an alternate with a value exists (points 25 and 49).
+56. Every rule is looked up for the day of the event it governs, including `opt.report_employer_within_days` for a period's end (point 40). A rule with no row in force on that day gives null with the step back, never an error: no clock and no case makes the engine fail.
+57. The drafted email states no status: it opens "I have a question about my F-1 record." Every dated duty has a name in the draft, including a new Form I-983 for an employment period. A draft about hours states the hours the student entered, not Duly's comparison with the rule.
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.
