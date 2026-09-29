@@ -32,6 +32,7 @@ from tests.support.f1_pack import (
     items,
     job,
     pack_dict,
+    periods_answered,
     refuse_placeholders,
     rule_value,
     values,
@@ -55,37 +56,47 @@ def run(case: dict[str, Any], today: date, **pack_changes: Any) -> dict[str, Any
 
 # Case H1: a bachelor's program that ends in December, OPT across a leap February.
 H1_TODAY = date(2024, 3, 1)
-CASE_H1: dict[str, Any] = {
-    "program_end_date": "2023-12-15",
-    "time_zone": TIME_ZONE,
-    "confirmations": answered_yes(),
-    "degree_level": "bachelor",
-    "documents_count": 2,
-    "cpt_full_time_days": 364,
-    "opt": ead("2023-11-01", "2023-11-20", "2024-01-08", "2025-01-07"),
-    "stem": None,
-    "employment": [job("2024-02-01", "2024-02-29", hours=20)],
-    "cap_gap": None,
-}
+# SPEC-resolutions.md, point 22: the end of the period, 2024-02-29, was reported
+# (periods_answered). No test of this case is about that answer.
+CASE_H1: dict[str, Any] = periods_answered(
+    {
+        "program_end_date": "2023-12-15",
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
+        "degree_level": "bachelor",
+        "documents_count": 2,
+        "cpt_full_time_days": 364,
+        "opt": ead("2023-11-01", "2023-11-20", "2024-01-08", "2025-01-07"),
+        "stem": None,
+        "employment": [job("2024-02-01", "2024-02-29", hours=20)],
+        "cap_gap": None,
+    }
+)
 
 # Case H2: a doctorate, OPT then STEM, with a part-time period in the middle.
 H2_TODAY = date(2026, 9, 2)
-CASE_H2: dict[str, Any] = {
-    "program_end_date": "2024-08-16",
-    "time_zone": TIME_ZONE,
-    "confirmations": answered_yes(),
-    "degree_level": "doctorate",
-    "documents_count": 11,
-    "cpt_full_time_days": 0,
-    "opt": ead("2024-06-03", "2024-06-20", "2024-08-30", "2025-08-29"),
-    "stem": ead("2025-06-10", "2025-07-01", "2025-08-30", "2027-08-29"),
-    "employment": [
-        job("2024-09-09", "2025-03-31"),
-        job("2025-03-15", "2025-09-30", hours=15),
-        job("2025-10-01", None, hours=32),
-    ],
-    "cap_gap": None,
-}
+# SPEC-resolutions.md, points 20 to 22 (periods_answered): the ends of the first two
+# periods were reported, the third period (from 2025-10-01, on the STEM card) is not with a
+# new employer, and the reports dated before the day of the case were made. No test of
+# this case is about those answers.
+CASE_H2: dict[str, Any] = periods_answered(
+    {
+        "program_end_date": "2024-08-16",
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
+        "degree_level": "doctorate",
+        "documents_count": 11,
+        "cpt_full_time_days": 0,
+        "opt": ead("2024-06-03", "2024-06-20", "2024-08-30", "2025-08-29"),
+        "stem": ead("2025-06-10", "2025-07-01", "2025-08-30", "2027-08-29"),
+        "employment": [
+            job("2024-09-09", "2025-03-31"),
+            job("2025-03-15", "2025-09-30", hours=15),
+            job("2025-10-01", None, hours=32),
+        ],
+        "cap_gap": None,
+    }
+)
 
 
 def test_case_h1_every_value():
@@ -443,7 +454,29 @@ def test_the_order_of_the_employment_periods_does_not_matter(drawn, seed):
     case, today = drawn
     shuffled = list(case["employment"])
     random.Random(seed).shuffle(shuffled)
-    assert values(run(with_changes(case, employment=shuffled), today)) == values(run(case, today))
+    # SPEC-resolutions.md, point 20: a concluding evaluation belongs to its period, and
+    # the engine numbers the periods as the case lists them, so the id moves with the
+    # order. The dates do not: they are compared as a list, apart from their numbers.
+    assert apart_from_numbers(
+        values(run(with_changes(case, employment=shuffled), today))
+    ) == apart_from_numbers(values(run(case, today)))
+
+
+def apart_from_numbers(got: dict[str, Any]) -> tuple[dict[str, Any], dict[str, list[Any]]]:
+    """The values, with each item numbered by its period (stem.concluding_evaluation_due.<n>,
+    stem.new_plan_due.<n>) taken out and its values listed under the id without the number."""
+    plain: dict[str, Any] = {}
+    numbered: dict[str, list[Any]] = {}
+    for item_id, value in got.items():
+        head, _, tail = item_id.rpartition(".")
+        if tail.isdigit() and head in PERIOD_ITEMS:
+            numbered.setdefault(head, []).append(value)
+        else:
+            plain[item_id] = value
+    return plain, {head: sorted(found) for head, found in numbered.items()}
+
+
+PERIOD_ITEMS = ("stem.concluding_evaluation_due", "stem.new_plan_due")
 
 
 @settings(max_examples=100, deadline=None)

@@ -50,10 +50,13 @@ from tests.support.f1_pack import (
     conflicts_by_the_table,
     contract_problems,
     ead,
+    is_period_or_report_question,
     items,
     job,
     months_later,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     reasons_with,
@@ -118,7 +121,13 @@ def run(
     clock = clock or clock_on(today)
     checked = clock.now().date()
     pack = build_pack(checked) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(parsed(case, clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(parsed(sent, clock), pack, clock)
+
+    # SPEC-resolutions.md, points 20 to 22: a case whose period and report questions are
+    # answered with periods_answered is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def review(case: dict[str, Any]) -> dict[str, Any]:
@@ -170,18 +179,23 @@ STEM_AHEAD: dict[str, Any] = with_changes(
 )
 
 # The STEM card is in hand. 24 months from 2024-11-01 is 2026-11-01.
-STEM_NOW: dict[str, Any] = with_changes(
-    FITS,
-    program_end_date="2023-09-15",
-    opt=ead("2023-08-01", "2023-08-10", "2023-11-01", "2024-10-31"),
-    stem=ead("2024-08-15", "2024-08-20", "2024-11-01", "2026-10-31"),
-    employment=[job("2023-11-01", None)],
+# SPEC-resolutions.md, point 21: the reports dated before 2026-09-28 were made
+# (periods_answered); the rows of the table are about the dates of the cards.
+STEM_NOW: dict[str, Any] = periods_answered(
+    with_changes(
+        FITS,
+        program_end_date="2023-09-15",
+        opt=ead("2023-08-01", "2023-08-10", "2023-11-01", "2024-10-31"),
+        stem=ead("2024-08-15", "2024-08-20", "2024-11-01", "2026-10-31"),
+        employment=[job("2023-11-01", None)],
+    )
 )
 
 # STEM_NOW with no employment on 2024-11-01, so that a STEM card which begins a day
-# later leaves no employment between the cards.
-TWO_JOBS: dict[str, Any] = with_changes(
-    STEM_NOW, employment=[job("2023-11-01", "2024-10-31"), job("2024-11-02", None)]
+# later leaves no employment between the cards. Points 20 to 22: the first end was
+# reported, the second period is not with a new employer, and the reports were made.
+TWO_JOBS: dict[str, Any] = periods_answered(
+    with_changes(STEM_NOW, employment=[job("2023-11-01", "2024-10-31"), job("2024-11-02", None)])
 )
 
 PETITION: dict[str, Any] = with_changes(
@@ -385,6 +399,8 @@ def test_the_answer_yes_to_another_row_leaves_this_one_open(conflict):
     # wrong: an answer is read for the question it names.
     about = question(run(raises, today=today), conflict)["about"]
     given = {other: {"answer": True, "on": today.isoformat(), "about": about}}
+    # The answers the case holds to the questions of points 20 to 22 are kept.
+    given = {**raises.get("confirmations", {}), **given}
     out = run(with_changes(raises, confirmations=given), today=today)
     assert out["verdict"]["state"] == "cannot_tell"
     assert conflicts(out) == [conflict]
@@ -579,12 +595,16 @@ def test_review_1_an_opt_card_of_three_years():
 
 # OPT 2024-11-01 to 2025-10-31, STEM 2026-03-01 to 2028-02-29. 24 months from
 # 2026-03-01 is 2028-03-01, so the STEM card is not longer than the rule.
-FOUR_MONTHS: dict[str, Any] = with_changes(
-    REVIEW_OPT,
-    program_end_date="2024-09-15",
-    opt=ead(None, None, "2024-11-01", "2025-10-31"),
-    stem=ead(None, None, "2026-03-01", "2028-02-29"),
-    employment=[job("2024-11-01", None)],
+# SPEC-resolutions.md, point 21: the reports dated before the day of the review were
+# made (periods_answered).
+FOUR_MONTHS: dict[str, Any] = periods_answered(
+    with_changes(
+        REVIEW_OPT,
+        program_end_date="2024-09-15",
+        opt=ead(None, None, "2024-11-01", "2025-10-31"),
+        stem=ead(None, None, "2026-03-01", "2028-02-29"),
+        employment=[job("2024-11-01", None)],
+    )
 )
 
 
@@ -602,12 +622,16 @@ def test_review_1_four_months_between_the_two_cards():
 # OPT 2024-07-01 to 2025-06-30, STEM 2025-10-01 to 2027-09-30. Employment stops at the
 # OPT end and starts again at the STEM start. Between them lie July (31), August (31)
 # and September (30): 92 days.
-HOLE: dict[str, Any] = with_changes(
-    REVIEW_OPT,
-    program_end_date="2024-05-15",
-    opt=ead(None, None, "2024-07-01", "2025-06-30"),
-    stem=ead(None, None, "2025-10-01", "2027-09-30"),
-    employment=[job("2024-07-01", "2025-06-30"), job("2025-10-01", None)],
+# SPEC-resolutions.md, points 20 to 22: the first end was reported, the second period is
+# not with a new employer, and the reports were made (periods_answered).
+HOLE: dict[str, Any] = periods_answered(
+    with_changes(
+        REVIEW_OPT,
+        program_end_date="2024-05-15",
+        opt=ead(None, None, "2024-07-01", "2025-06-30"),
+        stem=ead(None, None, "2025-10-01", "2027-09-30"),
+        employment=[job("2024-07-01", "2025-06-30"), job("2025-10-01", None)],
+    )
 )
 
 
@@ -1407,7 +1431,10 @@ def test_anything_open_is_cannot_tell_and_the_quiet_verdict_needs_every_part(dra
     answered = case.get("confirmations", {})
     assert len(asked) == len(set(asked))
     # SPEC-resolutions.md, points 11, 14, 15 and 16: seven rows joined the table.
-    assert set(asked) <= set(ALL_QUESTIONS) | set(CONFLICT_IDS) | set(WINDOW_CONFLICT_IDS)
+    # Points 20, 21 and 22: the questions of a period and of a passed report.
+    assert {q for q in asked if not is_period_or_report_question(q)} <= (
+        set(ALL_QUESTIONS) | set(CONFLICT_IDS) | set(WINDOW_CONFLICT_IDS)
+    )
     if asked or conflicts(out) or unconfirmed(out) or reasons_with(out, "missing:"):
         assert state == "cannot_tell"
 
