@@ -8,6 +8,9 @@ SOURCE = {
     "citation": "8 CFR 214.2(f)(10)(ii)(E)",
     "url": "https://www.ecfr.gov/current/title-8/section-214.2",
     "checked_on": "2026-09-28",
+    # Phase 2 SPEC, engine/rulepack.py: a settled, guidance, litigated, or proposed rule
+    # without a quote is refused. Placeholder words for a test pack, not a source's.
+    "quote": "placeholder words for a test pack",
 }
 PARAM = {
     "id": "opt.unemployment_limit",
