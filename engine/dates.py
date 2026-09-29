@@ -10,6 +10,7 @@ MONDAY = 0
 THURSDAY = 3
 SATURDAY = 5
 SUNDAY = 6
+MONTHS_IN_YEAR = 12
 
 
 def add_months(d: date, n: int) -> date:
@@ -17,6 +18,11 @@ def add_months(d: date, n: int) -> date:
     year, month_index = divmod(d.year * 12 + (d.month - 1) + n, 12)
     month = month_index + 1
     return date(year, month, min(d.day, calendar.monthrange(year, month)[1]))
+
+
+def add_years(d: date, n: int) -> date:
+    """The same day n years on. February 29 is clamped to February 28."""
+    return add_months(d, n * MONTHS_IN_YEAR)
 
 
 def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
@@ -42,9 +48,13 @@ def _observed(day: date) -> date:
 def _observed_holidays_of(year: int) -> list[date]:
     """The eleven holidays of 5 U.S.C. 6103(a) for one year, on their observed dates.
 
+    Rule calendar.federal_holidays_law in the rule pack holds the source and the quote
+    for this list. Every item counted in business days names that rule.
+
     Inauguration Day, 6103(c), is left out: it applies only to employees in the
     Washington, DC area.
     """
+    # calendar.federal_holidays_law: 5 U.S.C. 6103(a).
     return [
         _observed(date(year, 1, 1)),
         _nth_weekday(year, 1, MONDAY, 3),

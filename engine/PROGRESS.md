@@ -115,3 +115,95 @@ More readings, not in the list above:
   as well as the test pack.
   Evidence: rulepacks/f1-us/v2026.09/parameters.yaml, the rows for opt.apply_after_days
   and capgap.end_month_day.
+
+## Iteration 2, 2026-09-28: every number has a source
+
+Work under "The engine (L-engine)" and "Derived, not stored" in
+specs/phase-2/SPEC-sourcing.md.
+
+### What was written
+
+| File | What changed |
+|---|---|
+| engine/settings.py | New. `load_settings` reads contracts/product_settings.yaml. `whole_setting` reads one value by id and raises SettingsError when the id is absent, repeated, or not a whole number of zero or more |
+| engine/dates.py | `add_years`, and a comment on the holiday list that cites calendar.federal_holidays_law |
+| engine/f1.py | The six numbers are gone. `compute_f1` takes the keyword argument `settings`; None means the shipped file |
+
+Where each number went:
+
+| Was | Now |
+|---|---|
+| 4 validation reports | stem.extension_months divided by stem.validation_interval_months, whole intervals only |
+| 12 months to the evaluation | stem.evaluation_interval_months |
+| 12 months back for opt.ead_start | product.opt_start_earliest_years_before_program_end, in years, through `add_years` |
+| 365 days of full time CPT | cpt.full_time_bar_days |
+| 14 days ahead | product.open_item_lookahead_days |
+| month 10 | capgap.fiscal_year_start_month_day, compared as month and day |
+
+### What ran and what it printed
+
+- Before: the gate printed six numbers with no source in f1.py, lines 22 to 28, exit 1.
+  Every test in test_f1_sourcing.py that calls the engine failed with
+  `TypeError: compute_f1() got an unexpected keyword argument 'settings'`.
+- After, the done command, run as written:
+  `engine literals: every number has a source`, every engine test passed, mypy
+  `no issues found in 34 source files`, ruff check passed, 8 files already formatted,
+  exit 0.
+- `uv run python -m tools.copy_lint.lint` : copy lint: clean.
+- Shipped pack by hand: Case B of test_f1_sourcing.py against rulepacks/f1-us/v2026.09 on
+  2026-09-28 with the shipped settings. No contract problems. Four validation reports,
+  stem.evaluation_12_month_due 2026-07-11, capgap.ends 2026-10-01,
+  employment.periods_not_reported with status guidance, cpt.full_time_days_used with
+  status school.
+- Not run: the hidden tests. `uv run pytest tests/holdout -q --tb=no` collected nothing
+  in this worktree (exit 5). I did not open the directory. The SPEC's done line names
+  the hidden tests, so someone who may run them should.
+
+### Test disputes
+
+None.
+
+### Decisions where the SPEC is open
+
+Numbers follow the questions in tests/PROGRESS.md.
+
+| # | Question | What the engine does | Why |
+|---|---|---|---|
+| 16 | Shape of `settings` | The shape of contracts/product_settings.yaml once parsed | The tests pass that shape |
+| 17 | Which item lists a setting | product.open_item_lookahead_days: every item with a date whose id ends in `_due`, `file_by`, or `window_closes`, because the look-ahead is applied to that date. product.opt_start_earliest_years_before_program_end: unemployment.days_used, unemployment.days_remaining, and employment.days_under_hours, because their inputs hold opt.ead_start, the date the setting is checked against. An item that used no setting has no `duly_settings` key | "The ids it used" |
+| 18 | Which item names the CPT bar | cpt.full_time_days_used names cpt.full_time_months_bar and cpt.full_time_bar_days. Its status is now school | It is the only CPT item |
+| 19 | An extension the interval does not divide | Whole intervals only: 24 and 5 give 4 reports | A report falls at the end of an interval that was reached |
+| 20 | calendar.federal_holidays_law set to false | Nothing changes. The flag is cited, not read as a switch | The SPEC gives it no other meaning. A pack without the rule in force raises RulepackError |
+| 22 | A setting the engine needs is absent | SettingsError | Never a silent default |
+| 23 | Program end on February 29 | The earliest start is February 28 of the earlier year | Same clamp as `add_months` |
+
+More readings:
+
+- Each validation item names stem.extension_months as well as the interval, the business
+  days rule, and the holiday law. Its date does not turn on the extension, but whether
+  the item exists does, so the source is shown.
+- employment.periods_not_reported names only opt.report_employer_within_days. The
+  unemployment limit rule it named before was a stand-in.
+- `add_years` holds the 12 months of a year in engine/dates.py. That is the calendar, not
+  a rule, and it sits with the other calendar arithmetic.
+- A value of zero or less for stem.validation_interval_months raises RulepackError.
+
+### Requests for files this lane does not own
+
+- api/ : a caller that wants settings other than the shipped file passes `settings=`.
+  Nothing else changed in how `compute_f1` is called.
+- tests/ (L-tests): questions 19, 20, 22, and 23 have no test. Each is worth one.
+
+## Lesson
+
+- Failure: none seen, but close. "One year back" written as `add_months(d, -12)` in
+  engine/f1.py puts a 12 in a checked file, and the gate fails on it.
+  Fix: calendar facts live in engine/dates.py (`add_years`). engine/f1.py holds only
+  lookups, 0, 1, and -1.
+  Evidence: `uv run python -m tools.gates.engine_literals` printed
+  "every number has a source" after the change.
+- Failure: `uv run pytest tests/holdout -q --tb=no | tail -1` printed an empty line, which
+  reads like a pass.
+  Fix: read pytest's own exit code (`${pipestatus[1]}` in zsh). Exit 5 means nothing
+  was collected.
+  Evidence: "pytest exit 5" in this worktree.
