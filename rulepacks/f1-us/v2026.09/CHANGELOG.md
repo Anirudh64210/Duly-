@@ -127,3 +127,10 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - `stem.extension_months`: split into "The extension lasts 24 months." and a sentence joining both clauses to the degree with "and for which".
 - `stem.requires.previously_obtained_degree`: the 10 years now end on the day the DSO recommends. It is still one sentence: the plain check allows three sentences and counts each period in "U.S." as a sentence end, so any split that keeps the term "U.S. educational institution" fails. Recorded as a dispute in rulepacks/REPORT.json.
 - No value, status, derivation, quote or date changed. No network was used.
+
+### 2026-09-29, lane L-content, run l-content-0f0465de11 (SPEC-resolutions point 65)
+
+- Only two plain texts changed, as reviews/product-1-fix7.md finding 1 asks. Every other plain text, every plain_terms list, and every value, status, derivation, quote, note and date are unchanged.
+- `capgap.end_month_day` (from 2025-01-17): "If the approved petition starts first, they end then" is now "If the approved petition starts first, they last on their own only until then." The text no longer says status and authorization end on that day; it says they stop being extended on their own. To stay within the reading grade (9.0), "This rule is for" is now "It is for" and "until April 1" is now "till April 1". Grade 8.98.
+- `stem.requires.previously_obtained_degree`: "when the DSO recommends it" is now "when the DSO recommends the student for the extension", so the text names whom the DSO recommends, as the quote does. "in a category on the STEM list" is now "in a field on the STEM list", and "have been granted" is now "granted", to stay within the reading grade. Grade 8.88. It is still one sentence: the plain check counts "U.S." as two extra sentence ends, so any text that keeps the term "U.S. educational institution" can hold only one real sentence under the three-sentence limit. The review's split into three sentences counts as five. Recorded as a dispute in rulepacks/REPORT.json.
+- No network was used.
