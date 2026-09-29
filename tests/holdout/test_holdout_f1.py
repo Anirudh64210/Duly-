@@ -146,7 +146,7 @@ def test_case_h2_dates():
     # 2026-08-30 plus 10 days: 1 to Aug 31, 9 to Sep 9.
     assert got["stem.evaluation_12_month_due"] == "2026-09-09"
     # stem.ead_end 2027-08-29 plus 10 days: 2 to Aug 31, 8 to Sep 8.
-    assert got["stem.final_evaluation_due"] == "2027-09-08"
+    assert got["stem.final_evaluation_due_from_ead_end"] == "2027-09-08"
 
 
 def test_case_h2_counts_grace_and_verdict():

@@ -246,3 +246,115 @@ the founder, not something the tests should bend around.
 The stop hook failed again on `uv run pytest -q`, for the reason recorded in iteration 1:
 the new tests need an engine that round T has not built. Second time, so
 tests/ESCALATE.md is written and the lane stops. No test was weakened.
+
+## Iteration 3, 2026-09-28: tests for the answers to the review
+
+Spec: specs/phase-2/SPEC-fixes.md, findings 1, 2, 4, 5 and 7. Inputs: reviews/phase-2.md.
+
+### What was written
+
+| File | What it covers |
+|---|---|
+| tests/support/f1_pack.py | The two new rules at the end of SPEC_RULES (opt.latest_start_after_days 60, stem.apply_window_closes_rule true). `leave_out` on pack_dict and build_pack. `with_operative_status` and `with_regime_rows` |
+| tests/unit/engine/test_f1_fixes.py | Finding 1: the reviewer's input, cap-gap alone, ten ways a needed part can be absent or null, and the general rule as a property. Finding 2: parse_case refuses NaN and both infinities. Finding 4: the largest case under one second, counts on the widest window by hand, a count of engine lines that must not grow with the window, the far dates conflict, the interval count against a day-by-day count on small windows. Finding 5: each item names its own rule and moves with it alone, the closing is left out when the pack lacks the rule, the rename. Finding 7: operative on every item with alternates, with appealed and five other statuses, with the regimes changing places |
+| tests/unit/api/test_compute_fixes.py | Finding 1 through the api with the reviewer's body as text. Finding 2: NaN, Infinity and -Infinity in eight places, as the whole body, refused before the contract is checked, and 1e999. Finding 4: six far dates in each of 13 date fields, 50 and 51 periods, the count bounds, input A refused within a second, the largest case within a second, the engine off the event loop. Finding 7 against the shipped pack |
+| tests/holdout/test_holdout_fixes.py | The hidden second set for all five findings, with other cases and other numbers |
+| tests/unit/engine/test_f1.py, test_f1_sourcing.py, tests/unit/api/test_compute.py | Follow the SPEC: the renamed item, and opt.latest_start read from its own rule. No assertion was loosened or removed |
+
+### What ran and what it printed
+
+- The done command: exit 0. `ruff check tests`: All checks passed. `ruff format --check tests`:
+  26 files already formatted.
+- `uv run pytest tests/unit tests/holdout` on the engine and api as they are: `119 failed,
+  801 passed`. Expected: rounds F2 and F3 have not run. By file: test_f1_fixes.py 47,
+  test_holdout_fixes.py 46, test_compute_fixes.py 10, test_f1.py 7, test_holdout_sourcing.py 4,
+  test_f1_sourcing.py 3, test_compute.py 1, test_holdout_f1.py 1. The failures in the older
+  files are the rename and the new rule id for opt.latest_start.
+- Satisfiability check, as in iterations 1 and 2. A throwaway copy of engine/f1.py and
+  api/main.py in a scratch folder under tests/, changed to follow the SPEC and loaded with
+  `PYTEST_PLUGINS`. The scratch api added the two rule ids to the shipped pack in memory.
+  Result over tests/unit and tests/holdout: `920 passed`. The scratch folder was deleted
+  before the commit.
+- Planted faults in the scratch copy, each run over both folders:
+  - operative status written as "effective": 12 failed.
+  - cap-gap alone not named as missing: 16 failed.
+  - parse_case refusing NaN and not the infinities: 18 failed.
+  - opt.latest_start naming opt.apply_after_days: 18 failed.
+  - the day by day loop put back: 2 failed, the two tests that count engine lines.
+- The check found one mistake of mine: the hidden api tests ran the shipped pack on
+  2025-03-14, a day on which opt.report_employer_within_days is not in force. They now run
+  on 2026-09-28, as the unit api tests do.
+
+### What the one second test does not catch
+
+On the largest case the contract allows, the engine as it is now, which walks the window one
+day at a time, answers in about 0.16 seconds on this machine. The bounds in the contract
+are what closed the 49 seconds the reviewer saw. So the one second test passes before any
+engine work. The SPEC line "counting must not depend on the length of the window one day
+at a time" is held by `test_counting_does_not_walk_the_window_one_day_at_a_time` and its
+hidden twin. They count the lines of engine code that run, through `sys.settrace`, on a
+window of 31 days and on one of 54,787 days, and allow fewer than one line for each day
+added. They do not depend on the speed of the machine.
+
+### Hidden tests and the instruction not to read them
+
+The rename in finding 5 reaches two hidden files that this lane wrote earlier. I did not
+open them. I replaced the quoted id `stem.final_evaluation_due"` with the new id by a
+blind search and replace, one line in each file, and ran them with the traceback switched
+off. Against the reference they pass. SHIFTED gained `opt.latest_start_after_days: 61`,
+the same shift as opt.apply_after_days, so every date expected under that pack holds.
+This differs from the lesson of iteration 2, and the reason is that here the change keeps
+the meaning of the hidden tests where leaving it out would have changed it.
+
+### Order of landing (needs the orchestrator)
+
+The api tests run on the shipped pack. `opt.latest_start` and `stem.apply_window_closes`
+are answered through the api only once rulepacks/f1-us/v2026.09/parameters.yaml holds
+opt.latest_start_after_days. If L-content leaves stem.apply_window_closes_rule out, the
+api tests still pass: none of them needs that item.
+
+### Questions (continued; the tests take the side stated)
+
+25. What a missing OPT block is called. The SPEC says `missing_inputs` names `opt`. The
+    tests accept any reason that starts `missing:opt`, so `missing:opt` and
+    `missing:opt.ead_start` both pass.
+26. Are the three counts shown when OPT is absent? The tests require only that a count
+    that is shown is null.
+27. Are the counts shown when the inputs conflict? "It returns the items it can and the
+    conflict." The tests require the conflict, the items that turn on program_end_date,
+    and that the window is not walked. They do not say whether a count is shown.
+28. The renamed item no longer ends in `_due`. SPEC, "Verdict inputs", makes a dated
+    item an open item by the ending of its id. Whether the final evaluation is still an
+    open item inside the look-ahead is not tested. It needs a line in the SPEC.
+29. stem.apply_window_closes_rule set to false. Not tested. The SPEC gives the flag no
+    meaning beyond being cited and being present.
+30. Does `parse_case` refuse a date outside 1950 through 2099, or a 51st period? The
+    SPEC asks this of the api only. Not tested for the engine.
+31. The words of the refusal for NaN. The tests require a 422 whose detail is text, the
+    same text whatever else is wrong with the case. They do not fix the words.
+32. An item without alternates that carries `operative`. The contract says "present with
+    alternates". The tests require it where there are alternates and do not forbid it
+    elsewhere.
+33. "The handler does not run the engine on the event loop." The tests do not look at
+    how the handler is written. They pass a clock that notes whether an event loop is
+    running in the thread that reads it.
+
+### Stop hook
+
+The lane test in .claude/lanes/L-tests.yaml is still `uv run pytest -q`, which cannot pass
+in round F1 for the reason recorded in iterations 1 and 2. The done command for this
+round passes. No test was weakened, skipped, or marked as expected to fail.
+
+## Lesson
+
+- Failure: a timing test passed against the code it was written to catch. The bound in
+  the contract had already made the slow path fast enough.
+  Fix: when the rule is about how work grows, count the work and compare two sizes. Keep
+  the timing test the SPEC asks for, and do not rely on it.
+  Evidence: the day by day loop put back into the reference: 2 failed, both line counts;
+  the two one second tests passed.
+- Failure: hidden api tests raised `RulepackError: opt.report_employer_within_days: no
+  rule in force on 2025-03-14`.
+  Fix: a test on the shipped pack uses the clock of the unit api tests, 2026-09-28. A
+  test that needs another day builds its pack in code.
+  Evidence: tests/holdout/test_holdout_fixes.py, the `client` fixture.

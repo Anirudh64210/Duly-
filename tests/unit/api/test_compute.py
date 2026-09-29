@@ -152,7 +152,9 @@ def test_each_answer_follows_from_the_rule_the_response_shows(client):
     before = timedelta(days=rules["opt.apply_before_days"]["value"])
     within = timedelta(days=rules["opt.file_within_days_of_recommendation"]["value"])
     assert day(got["opt.apply_window_closes"]["value"]) == program_end + after
-    assert day(got["opt.latest_start"]["value"]) == program_end + after
+    # specs/phase-2/SPEC-fixes.md, "Finding 5": the start date has its own rule.
+    latest = timedelta(days=rules["opt.latest_start_after_days"]["value"])
+    assert day(got["opt.latest_start"]["value"]) == program_end + latest
     assert day(got["opt.apply_window_opens"]["value"]) == program_end - before
     assert day(got["opt.file_by"]["value"]) == day("2026-03-03") + within
     grace = timedelta(days=rules["grace.after_completion_days"]["value"])

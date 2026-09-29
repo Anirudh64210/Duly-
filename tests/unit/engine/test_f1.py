@@ -109,7 +109,7 @@ ALL_IDS = {
     "stem.validation_3_due",
     "stem.validation_4_due",
     "stem.evaluation_12_month_due",
-    "stem.final_evaluation_due",
+    "stem.final_evaluation_due_from_ead_end",
     "cpt.full_time_days_used",
     "capgap.ends",
 }
@@ -254,7 +254,7 @@ def test_case_a_leaves_out_the_parts_that_are_absent():
         "stem.validation_3_due",
         "stem.validation_4_due",
         "stem.evaluation_12_month_due",
-        "stem.final_evaluation_due",
+        "stem.final_evaluation_due_from_ead_end",
         "capgap.ends",
     ):
         assert item_id not in got
@@ -362,7 +362,7 @@ def test_case_b_stem_values():
     # 2025-07-01 plus 12 months is 2026-07-01, plus 10 calendar days.
     assert got["stem.evaluation_12_month_due"] == "2026-07-11"
     # stem.ead_end 2027-06-30 plus 10 days.
-    assert got["stem.final_evaluation_due"] == "2027-07-10"
+    assert got["stem.final_evaluation_due_from_ead_end"] == "2027-07-10"
 
 
 def test_case_b_counts_and_grace():
@@ -418,7 +418,7 @@ def test_case_b_under_a_pack_with_other_numbers():
     # 2026-07-01 plus 9 days.
     assert got["stem.evaluation_12_month_due"] == "2026-07-10"
     # 2027-06-30 plus 9 days.
-    assert got["stem.final_evaluation_due"] == "2027-07-09"
+    assert got["stem.final_evaluation_due_from_ead_end"] == "2027-07-09"
     assert got["unemployment.limit"] == 151
     # 151 minus 10.
     assert got["unemployment.days_remaining"] == 141
@@ -480,7 +480,8 @@ def test_the_named_rules_include_the_one_in_the_formula():
         "opt.apply_window_opens": "opt.apply_before_days",
         "opt.apply_window_closes": "opt.apply_after_days",
         "opt.file_by": "opt.file_within_days_of_recommendation",
-        "opt.latest_start": "opt.apply_after_days",
+        # specs/phase-2/SPEC-fixes.md, "Finding 5": the start date has its own rule.
+        "opt.latest_start": "opt.latest_start_after_days",
         "opt.complete_by": "opt.complete_within_months",
         "unemployment.limit": "stem.unemployment_limit_days",
         "grace.ends": "grace.after_completion_days",
@@ -489,7 +490,7 @@ def test_the_named_rules_include_the_one_in_the_formula():
         "stem.validation_1_due": "stem.validation_due_business_days",
         "stem.validation_4_due": "stem.validation_due_business_days",
         "stem.evaluation_12_month_due": "stem.evaluation_due_days",
-        "stem.final_evaluation_due": "stem.evaluation_due_days",
+        "stem.final_evaluation_due_from_ead_end": "stem.evaluation_due_days",
         "capgap.ends": "capgap.end_month_day",
     }
     for item_id, rule_id in expected.items():
@@ -841,7 +842,7 @@ def test_missing_stem_ead_start_gives_null_for_what_is_computed_from_it():
     ):
         assert got[item_id]["value"] is None, item_id
     # Computed from stem.ead_end, which is present: 2027-06-30 plus 10 days.
-    assert got["stem.final_evaluation_due"]["value"] == "2027-07-10"
+    assert got["stem.final_evaluation_due_from_ead_end"]["value"] == "2027-07-10"
     # Computed from the recommendation date, which is present.
     assert got["stem.file_by"]["value"] == "2025-06-14"
     # SPEC: the STEM limit applies if stem.ead_start is present. It is not.
@@ -851,7 +852,7 @@ def test_missing_stem_ead_start_gives_null_for_what_is_computed_from_it():
 def test_missing_stem_ead_end_gives_null_for_the_final_evaluation():
     out = run(with_changes(with_block(CASE_B, "stem", ead_end=None), cap_gap=None))
     got = items(out)
-    assert got["stem.final_evaluation_due"]["value"] is None
+    assert got["stem.final_evaluation_due_from_ead_end"]["value"] is None
     # Computed from stem.ead_start, which is present.
     assert got["stem.validation_1_due"]["value"] == "2026-01-15"
     assert got["stem.evaluation_12_month_due"]["value"] == "2026-07-11"
@@ -1302,7 +1303,7 @@ def expected_dates(case: dict[str, Any], raw: dict[str, Any]) -> dict[str, str]:
     expected = {
         "opt.apply_window_opens": plus(program_end, -rule("opt.apply_before_days")),
         "opt.apply_window_closes": plus(program_end, rule("opt.apply_after_days")),
-        "opt.latest_start": plus(program_end, rule("opt.apply_after_days")),
+        "opt.latest_start": plus(program_end, rule("opt.latest_start_after_days")),
         "opt.file_by": plus(
             date.fromisoformat(case["opt"]["dso_recommendation_date"]),
             rule("opt.file_within_days_of_recommendation"),
@@ -1325,7 +1326,9 @@ def expected_dates(case: dict[str, Any], raw: dict[str, Any]) -> dict[str, str]:
             "stem.evaluation_12_month_due": plus(
                 months_later(stem_start, 12), rule("stem.evaluation_due_days")
             ),
-            "stem.final_evaluation_due": plus(stem_end, rule("stem.evaluation_due_days")),
+            "stem.final_evaluation_due_from_ead_end": plus(
+                stem_end, rule("stem.evaluation_due_days")
+            ),
         }
     expected["grace.ends"] = plus(max(ends), rule("grace.after_completion_days", OPERATIVE))
     expected["grace.alternate"] = plus(max(ends), rule("grace.after_completion_days", BLOCKED))
