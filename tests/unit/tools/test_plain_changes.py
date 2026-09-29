@@ -57,3 +57,37 @@ def test_rows_of_one_id_are_told_apart_by_their_start_date():
 
 def test_the_shipped_pack_reads_against_its_own_branch():
     assert plain_changes.main(["HEAD"]) == 0
+
+
+def test_a_change_no_review_named_fails_and_a_named_one_passes(tmp_path, monkeypatch, capsys):
+    import subprocess
+
+    import yaml
+
+    base = {"parameters": [{"id": "opt.max_months", "plain": "Twelve months."}]}
+    head = {"parameters": [{"id": "opt.max_months", "plain": "A year."}]}
+    pack = tmp_path / plain_changes.PACK
+    pack.parent.mkdir(parents=True)
+    pack.write_text(yaml.safe_dump(head))
+    monkeypatch.setattr(plain_changes, "REPO_ROOT", tmp_path)
+
+    def shown(*args, **kwargs):
+        return subprocess.CompletedProcess(args, 0, yaml.safe_dump(base), "")
+
+    monkeypatch.setattr(plain_changes.subprocess, "run", shown)
+    assert plain_changes.main(["base", "--allow", "grace.after_completion_days"]) == 1
+    assert "no review named: opt.max_months" in capsys.readouterr().out
+    assert plain_changes.main(["base", "--allow", "opt.max_months"]) == 0
+    assert "1 row(s) changed, all allowed" in capsys.readouterr().out
+    assert plain_changes.main(["base"]) == 0  # without --allow it lists and passes
+
+
+def test_a_base_that_cannot_be_read_fails(monkeypatch, capsys):
+    import subprocess
+
+    def missing(*args, **kwargs):
+        return subprocess.CompletedProcess(args, 128, "", "fatal: invalid object name")
+
+    monkeypatch.setattr(plain_changes.subprocess, "run", missing)
+    assert plain_changes.main(["no-such-branch"]) == 1
+    assert "cannot read" in capsys.readouterr().out
