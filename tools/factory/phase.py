@@ -76,6 +76,9 @@ def load_plan(path: Path, repo: Path) -> dict[str, Any]:
     plan.setdefault("merge", "local")
     if plan["merge"] not in {"local", "pr"}:
         raise PlanError("merge is local or pr")
+    agents = [job["agent"] for rnd in plan["rounds"] for job in rnd["lanes"]]
+    if plan.get("audited", True) and "auditor" not in agents:
+        raise PlanError("the plan has no audit: its last round must run the auditor")
     seen: set[str] = set()
     for rnd in plan["rounds"]:
         lanes = [job["lane"] for job in rnd["lanes"]]

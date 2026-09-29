@@ -1,0 +1,1523 @@
+[
+  {
+    "id": "PLAN05-001",
+    "source": "duly-plan/05-security-privacy-encryption.md, opening paragraph",
+    "text": "no system \"cannot be hacked\" and Duly will never claim it",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The threat model states it, but tools/copy_lint/lint.py has no rule that blocks such a claim in product copy."
+  },
+  {
+    "id": "PLAN05-002",
+    "source": "duly-plan/05-security-privacy-encryption.md, opening paragraph",
+    "text": "The commitment is: a written threat model",
+    "kind": "security",
+    "status": "met",
+    "evidence": "security/threat-model.md",
+    "note": "Threat model v1 exists in the repository."
+  },
+  {
+    "id": "PLAN05-003",
+    "source": "duly-plan/05-security-privacy-encryption.md, opening paragraph",
+    "text": "an architecture where the worst compromise yields the least",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "api/main.py",
+    "note": "The only user endpoint is stateless and stores nothing; no encryption, accounts or key separation exist yet."
+  },
+  {
+    "id": "PLAN05-004",
+    "source": "duly-plan/05-security-privacy-encryption.md, opening paragraph",
+    "text": "continuous adversarial testing against that model",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "make attack is a stub that prints a message and exits 1; no adversarial suite exists."
+  },
+  {
+    "id": "PLAN05-005",
+    "source": "duly-plan/05-security-privacy-encryption.md, opening paragraph",
+    "text": "published proof",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No public security page, report or policy exists in the repository."
+  },
+  {
+    "id": "PLAN05-006",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Threat model (security/threat-model.md, maintained)",
+    "kind": "security",
+    "status": "met",
+    "evidence": "security/threat-model.md",
+    "note": "The file exists as v1 with a known gaps section; it is one day old so upkeep over time cannot be judged."
+  },
+  {
+    "id": "PLAN05-007",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: opportunistic credential stuffers",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists the adversary and its answer (argon2id, MFA, session revocation) but no login, password or session code exists."
+  },
+  {
+    "id": "PLAN05-008",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: a breached or subpoenaed cloud",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists the adversary; per-user field encryption is not built and nothing is stored yet."
+  },
+  {
+    "id": "PLAN05-009",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: a malicious uploaded document driving the LLM",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists the adversary; there is no upload path and no model wired, and no test proves document text cannot reach a prompt."
+  },
+  {
+    "id": "PLAN05-010",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: a stolen laptop",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists the adversary; SQLCipher, keychain and auto lock are not built, desktop/src holds only about.ts."
+  },
+  {
+    "id": "PLAN05-011",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: an insider or stolen admin session",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists the adversary; only the network allowlist exists (api/ops_guard.py), no hardware key login, re-auth or audit log."
+  },
+  {
+    "id": "PLAN05-012",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: data brokers and warrant-free purchase",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists the adversary; no client has analytics code today but no gate checks for it and no no-sale policy is published."
+  },
+  {
+    "id": "PLAN05-013",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Adversaries: a compelled request for a user's records",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "The file lists it as Government request; the published policy is marked Phase 9 and does not exist."
+  },
+  {
+    "id": "PLAN05-014",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Crown jewels: document blobs and names",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "Listed as an asset in the file; no protection is built because no document handling exists."
+  },
+  {
+    "id": "PLAN05-015",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Crown jewels: case identifiers (SEVIS, passport)",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "Listed as an asset in the file; per-user encryption of these fields is not built."
+  },
+  {
+    "id": "PLAN05-016",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Crown jewels: narration audit content",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The threat model asset table lists assistant questions but not narration audit content, and no narration audit exists."
+  },
+  {
+    "id": "PLAN05-017",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Crown jewels: admin access",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md",
+    "note": "Listed as Ops access; only the network allowlist protects it today."
+  },
+  {
+    "id": "PLAN05-018",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "Design answer per adversary is listed in the file",
+    "kind": "security",
+    "status": "met",
+    "evidence": "security/threat-model.md",
+    "note": "The adversary table has an answer column and a status column for every row."
+  },
+  {
+    "id": "PLAN05-019",
+    "source": "duly-plan/05-security-privacy-encryption.md, Threat model",
+    "text": "the invariant: the server can never produce plaintext documents because it never has them",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "security/threat-model.md; api/main.py",
+    "note": "The api has no upload or document endpoint, but no test asserts the invariant and a MinIO object store is in infra/docker-compose.yml."
+  },
+  {
+    "id": "PLAN05-020",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Device (WorkBook and vault blobs): SQLCipher database",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SQLCipher code or dependency exists; desktop/src holds only about.ts. Planned for Phase 8."
+  },
+  {
+    "id": "PLAN05-021",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Device: per-file AES-256-GCM blobs",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No blob encryption code exists."
+  },
+  {
+    "id": "PLAN05-022",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Device: keys derived and held in OS keychain (Keychain, DPAPI, libsecret)",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No keychain code exists in desktop/."
+  },
+  {
+    "id": "PLAN05-023",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "export packs re-encrypted per link",
+    "kind": "desktop",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No export packs or links exist."
+  },
+  {
+    "id": "PLAN05-024",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Cloud fields: envelope encryption. Per-user data key (DEK) generated at signup",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-025",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "DEK encrypts sensitive columns (case identifiers, synced entry texts, feedback bodies) with AES-256-GCM",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-026",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "DEK wrapped by a KMS CMK",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-027",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "unwrap only inside api at request time",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-028",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "key ids versioned for rotation",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-029",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "crypto-shred on account deletion: destroy wrapped DEK",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-030",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "crypto-shred on account deletion: hard-delete rows",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-031",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "crypto-shred on account deletion: documented backup purge window",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables, signup, crypto code or KMS use exist; api/db.py only opens a connection. Planned for Phase 1."
+  },
+  {
+    "id": "PLAN05-032",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Transit: TLS 1.2+ everywhere",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "infra/nginx.conf listens on plain port 8080 and no TLS config or cloud infra exists."
+  },
+  {
+    "id": "PLAN05-033",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Transit: HSTS",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "infra/nginx.conf",
+    "note": "nginx sets CSP and other headers but no Strict-Transport-Security header."
+  },
+  {
+    "id": "PLAN05-034",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Transit: ALB terminates",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No terraform or AWS infrastructure files exist."
+  },
+  {
+    "id": "PLAN05-035",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Transit: internal service calls stay in the VPC",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No cloud network is defined; only a local compose network exists."
+  },
+  {
+    "id": "PLAN05-036",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Secrets: AWS Secrets Manager",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No Secrets Manager use exists."
+  },
+  {
+    "id": "PLAN05-037",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Secrets: never in env files in prod",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "api/settings.py",
+    "note": "Settings sets env_file=None so no env file is read, but there is no prod deployment or check, and compose passes fixed passwords."
+  },
+  {
+    "id": "PLAN05-038",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Secrets: gitleaks in CI",
+    "kind": "security",
+    "status": "met",
+    "evidence": ".github/workflows/ci.yml; Makefile gate-4; .gitleaks.toml",
+    "note": "CI installs gitleaks and gate 4 runs it on every push and pull request."
+  },
+  {
+    "id": "PLAN05-039",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Secrets: short-lived DB creds via IAM auth where supported",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "infra/docker-compose.yml",
+    "note": "The database uses a fixed local password; no IAM auth exists."
+  },
+  {
+    "id": "PLAN05-040",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "Passwords argon2id",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No password or account code exists."
+  },
+  {
+    "id": "PLAN05-041",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "sessions httpOnly Secure SameSite=Lax",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No session or cookie code exists."
+  },
+  {
+    "id": "PLAN05-042",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "sessions: server-side revocation",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No session store exists."
+  },
+  {
+    "id": "PLAN05-043",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "user MFA (TOTP) available day one",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No MFA code exists."
+  },
+  {
+    "id": "PLAN05-044",
+    "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
+    "text": "user MFA required for export links management",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No export links or MFA exist."
+  },
+  {
+    "id": "PLAN05-045",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Separate admin identity table; no shared users rows",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables exist."
+  },
+  {
+    "id": "PLAN05-046",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "no role escalation path from the app",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No roles or authorization code exist, so nothing proves this."
+  },
+  {
+    "id": "PLAN05-047",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "WebAuthn hardware key mandatory for every ops login",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Ops has no login at all; planned with Phase 6."
+  },
+  {
+    "id": "PLAN05-048",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "TOTP fallback only for break-glass, stored sealed",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No ops login exists."
+  },
+  {
+    "id": "PLAN05-049",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Ops served on its own hostname",
+    "kind": "ops",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml; infra/Dockerfile.ops",
+    "note": "Ops is a separate container on its own port 5174, but no hostname is defined."
+  },
+  {
+    "id": "PLAN05-050",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Ops behind WAF",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WAF configuration exists."
+  },
+  {
+    "id": "PLAN05-051",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Ops with an IP allowlist option",
+    "kind": "security",
+    "status": "met",
+    "evidence": "api/ops_guard.py; tests/unit/api/test_api.py test_ops_refuses_any_other_address; D17",
+    "note": "Built as the D17 prototype; the threat model notes the local stack trusts a forwarded address that a local process could forge."
+  },
+  {
+    "id": "PLAN05-052",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Ops sessions 8 hours",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No ops sessions exist."
+  },
+  {
+    "id": "PLAN05-053",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "re-auth for destructive actions (publish rule pack, delete user, revoke link)",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "None of these actions or any re-auth exist."
+  },
+  {
+    "id": "PLAN05-054",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Every admin action writes to the same hash-chained audit log with actor, before and after",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "tools/factory/ledger.py is a hash-chained log for factory agents only; the product has no audit log and no admin actions."
+  },
+  {
+    "id": "PLAN05-055",
+    "source": "duly-plan/05-security-privacy-encryption.md, Ops auth model (decided)",
+    "text": "Two-person rule flag ready for rule-pack publish once a second reviewer exists",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No flag exists; contracts/update.schema.json records a single approved_by."
+  },
+  {
+    "id": "PLAN05-056",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Prompt injection: retrieved pack text and any user-derived strings enter prompts inside delimited untrusted blocks with spotlighting instructions",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "assistant/providers.py",
+    "note": "No prompts exist; the provider is NotWired and there is no assistant/prompts folder."
+  },
+  {
+    "id": "PLAN05-057",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "narration output passes the no-new-facts validator",
+    "kind": "security",
+    "status": "partial",
+    "evidence": "assistant/boundary.py validate_answer; tests/unit/assistant/test_validator.py",
+    "note": "The validator exists and is tested, but no narration service exists to pass output through it."
+  },
+  {
+    "id": "PLAN05-058",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "markdown link and image URLs stripped",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No code strips links or image URLs from model output."
+  },
+  {
+    "id": "PLAN05-059",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "no tool side effects reachable from content",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No model is wired, so there is nothing to test."
+  },
+  {
+    "id": "PLAN05-060",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Attack corpus in security/: injection strings inside fake I-20 metadata",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "security/ holds only threat-model.md and semgrep/duly.yml."
+  },
+  {
+    "id": "PLAN05-061",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Attack corpus in security/: jailbreak set",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "evals/boundary/drift.jsonl; evals/boundary/pairs.jsonl; tests/unit/assistant/test_boundary_evals.py",
+    "note": "A boundary walking set of 51 rows exists under evals/, not security/, and it tests the pattern classifier, not a model."
+  },
+  {
+    "id": "PLAN05-062",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Attack corpus in security/: exfil probes",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No exfiltration probes exist."
+  },
+  {
+    "id": "PLAN05-063",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Attack corpus runs in CI (07)",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": ".github/workflows/ci.yml gate 5",
+    "note": "Only the boundary eval set runs in CI through pytest; the attack corpus itself does not exist."
+  },
+  {
+    "id": "PLAN05-064",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Attack corpus runs nightly by the red-team lane (08)",
+    "kind": "factory",
+    "status": "not_started",
+    "evidence": ".claude/agents/red-team.md",
+    "note": "The red-team role file exists but there is no schedule, no corpus and no recorded run."
+  },
+  {
+    "id": "PLAN05-065",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "Provider: no-training default confirmed",
+    "kind": "privacy",
+    "status": "superseded",
+    "evidence": "D13, D23, D27",
+    "note": "The decisions replace this with no user data to an outside provider; v0 uses Claude through Bedrock with no retention."
+  },
+  {
+    "id": "PLAN05-066",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "pursue ZDR terms before any retention claim",
+    "kind": "privacy",
+    "status": "superseded",
+    "evidence": "D27, D28",
+    "note": "Zero retention terms are moved to after validation by D28."
+  },
+  {
+    "id": "PLAN05-067",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "per-tenant token budgets",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "tools/factory/budget.py limits factory agents, not product users."
+  },
+  {
+    "id": "PLAN05-068",
+    "source": "duly-plan/05-security-privacy-encryption.md, LLM and document attack surface",
+    "text": "model and prompt versions in every audit row",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No audit rows and no model calls exist."
+  },
+  {
+    "id": "PLAN05-069",
+    "source": "duly-plan/05-security-privacy-encryption.md, Government and legal process posture (launch artifacts)",
+    "text": "Published law-enforcement policy: enumerate exactly what exists server-side (ciphertext plus listed metadata)",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No policy page exists; the threat model marks it Phase 9."
+  },
+  {
+    "id": "PLAN05-070",
+    "source": "duly-plan/05-security-privacy-encryption.md, Government and legal process posture (launch artifacts)",
+    "text": "commit to challenging administrative subpoenas",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Only a line in security/threat-model.md; no published policy."
+  },
+  {
+    "id": "PLAN05-071",
+    "source": "duly-plan/05-security-privacy-encryption.md, Government and legal process posture (launch artifacts)",
+    "text": "user notification unless legally barred",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No published policy exists."
+  },
+  {
+    "id": "PLAN05-072",
+    "source": "duly-plan/05-security-privacy-encryption.md, Government and legal process posture (launch artifacts)",
+    "text": "periodic transparency notes",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No transparency notes exist."
+  },
+  {
+    "id": "PLAN05-073",
+    "source": "duly-plan/05-security-privacy-encryption.md, Government and legal process posture (launch artifacts)",
+    "text": "no third-party analytics or ad SDKs in any client, ever",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "web/package.json; ops/package.json; desktop/package.json; infra/nginx.conf",
+    "note": "No such dependency exists and the CSP limits connections to self, but no gate or test checks for analytics code."
+  },
+  {
+    "id": "PLAN05-074",
+    "source": "duly-plan/05-security-privacy-encryption.md, Government and legal process posture (launch artifacts)",
+    "text": "bankruptcy and acquisition data commitments stated in the privacy policy",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No privacy policy exists."
+  },
+  {
+    "id": "PLAN05-075",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Consent: unbundled opt-in screen for immigration-status processing (TDPSA floor)",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No consent screen exists in web/src. Planned for Phase 9."
+  },
+  {
+    "id": "PLAN05-076",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Consent: symmetric choices",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No consent screen exists."
+  },
+  {
+    "id": "PLAN05-077",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Consent: revocable in Settings",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No Settings screen exists."
+  },
+  {
+    "id": "PLAN05-078",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "consent_events append-only",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No tables exist."
+  },
+  {
+    "id": "PLAN05-079",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Minimization to Maryland strictly-necessary standard",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "api/main.py compute_f1_case",
+    "note": "The compute endpoint reads, computes and drops the body and nothing is stored, but no written standard or test covers minimization."
+  },
+  {
+    "id": "PLAN05-080",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "one portable DPIA maintained in security/",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No DPIA file exists in security/."
+  },
+  {
+    "id": "PLAN05-081",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Rights: export flow",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No rights flows exist."
+  },
+  {
+    "id": "PLAN05-082",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Rights: delete flow",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No accounts or delete flow exist."
+  },
+  {
+    "id": "PLAN05-083",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Rights: 45-day SLA timers surfaced in Ops pane 4",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "ops/src/App.tsx",
+    "note": "Ops shows only the allowlist status; no panes exist."
+  },
+  {
+    "id": "PLAN05-084",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "GPC honored on web",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No code reads the Sec-GPC header or the browser signal."
+  },
+  {
+    "id": "PLAN05-085",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Claim scoping enforced by copy lint: the exact two-part sentence pattern (documents stay on device; questions and account data go to our servers and AI provider)",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "tools/copy_lint/lint.py; D23",
+    "note": "The lint does not check for the sentence, and its AI provider wording conflicts with D23 and would need rewording."
+  },
+  {
+    "id": "PLAN05-086",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "never an unqualified never-leaves claim",
+    "kind": "privacy",
+    "status": "met",
+    "evidence": "tools/copy_lint/lint.py FORBIDDEN_PHRASES; tests/unit/tools/test_copy_lint.py",
+    "note": "The lint blocks never leaves and never leave in all product copy and runs in gate 1."
+  },
+  {
+    "id": "PLAN05-087",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "Disclaimer stack: Texas 81.101(c) sentence verbatim on marketing",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No marketing page exists and the sentence appears only in research notes."
+  },
+  {
+    "id": "PLAN05-088",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "signup clickwrap (Meyer standard): unticked box",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No signup exists."
+  },
+  {
+    "id": "PLAN05-089",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "signup clickwrap: linked terms",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No signup or terms exist."
+  },
+  {
+    "id": "PLAN05-090",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "signup clickwrap: logged version",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No signup or version log exists."
+  },
+  {
+    "id": "PLAN05-091",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "one-time interstitial before first AI answer",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No AI answers or interstitial exist."
+  },
+  {
+    "id": "PLAN05-092",
+    "source": "duly-plan/05-security-privacy-encryption.md, Privacy compliance build",
+    "text": "fixed per-answer footer",
+    "kind": "legal",
+    "status": "partial",
+    "evidence": "web/src/App.tsx",
+    "note": "The web screen has one fixed footer line under the computed result; there are no AI answers to carry a per-answer footer."
+  },
+  {
+    "id": "PLAN05-093",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "CI security gates every PR (07)",
+    "kind": "testing",
+    "status": "met",
+    "evidence": ".github/workflows/ci.yml; Makefile gate-4",
+    "note": "Gate 4 runs gitleaks, semgrep, pip-audit and npm audit on every push and pull request."
+  },
+  {
+    "id": "PLAN05-094",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "make attack full adversarial suite",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "Makefile attack target",
+    "note": "The target prints that the attack profile arrives in Phase 10 and exits 1."
+  },
+  {
+    "id": "PLAN05-095",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "ZAP baseline weekly",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No ZAP configuration or schedule exists."
+  },
+  {
+    "id": "PLAN05-096",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "dependency audit daily",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "Makefile gate-4; .github/workflows/ci.yml",
+    "note": "Audits run on each push and pull request only; the workflow has no daily schedule."
+  },
+  {
+    "id": "PLAN05-097",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "internal red-team lane nightly",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": ".claude/agents/red-team.md; factory/agents/red-team.yaml; .claude/lanes/L-security.yaml",
+    "note": "The role and lane are defined but nothing schedules or records a nightly run."
+  },
+  {
+    "id": "PLAN05-098",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "external penetration test before public launch",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No record of a test or plan to buy one exists."
+  },
+  {
+    "id": "PLAN05-099",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "external penetration test annually",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No record exists."
+  },
+  {
+    "id": "PLAN05-100",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "VDP with security.txt from day one",
+    "kind": "security",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No security.txt or VDP page exists in web/ or ops/."
+  },
+  {
+    "id": "PLAN05-101",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "SOC 2 deferred until the university channel demands it",
+    "kind": "security",
+    "status": "deferred",
+    "evidence": "duly-plan/05 Verification cadence; duly-plan/13-cutlines.md",
+    "note": "The plan itself defers SOC 2."
+  },
+  {
+    "id": "PLAN05-102",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "incident runbook",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "docs/factory/RUNBOOK.md covers the factory only; no incident runbook exists."
+  },
+  {
+    "id": "PLAN05-103",
+    "source": "duly-plan/05-security-privacy-encryption.md, Verification cadence",
+    "text": "72-hour disclosure commitment",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No such commitment is written anywhere outside the plan."
+  },
+  {
+    "id": "PLAN06-001",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "Create a product subdomain, for example duly.expandrange.com (or the future duly domain)",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "api/settings.py; D15",
+    "note": "Addresses use the placeholder duly.invalid; D15 parks the domain question."
+  },
+  {
+    "id": "PLAN06-002",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "addresses are config, not code",
+    "kind": "email",
+    "status": "met",
+    "evidence": "api/settings.py email_from_alerts, email_from_brief, email_from_account; contracts/emails.md",
+    "note": "Sender addresses are settings read from DULY_ environment values."
+  },
+  {
+    "id": "PLAN06-003",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "support@ : human inbox. Receiving stays in Google Workspace as an alias or group so the founder replies from Gmail",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No support address appears in settings or contracts."
+  },
+  {
+    "id": "PLAN06-004",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "the app files inbound support mail into the feedback inbox via a forwarding webhook later (v0: manual)",
+    "kind": "email",
+    "status": "deferred",
+    "evidence": "duly-plan/06 Identities",
+    "note": "The document itself places the webhook after v0."
+  },
+  {
+    "id": "PLAN06-005",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "updates@ : the weekly brief",
+    "kind": "email",
+    "status": "partial",
+    "evidence": "api/settings.py email_from_brief",
+    "note": "Only the sender key exists; no brief is rendered or sent."
+  },
+  {
+    "id": "PLAN06-006",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "updates@ : update alerts",
+    "kind": "email",
+    "status": "superseded",
+    "evidence": "D22",
+    "note": "D22 sends update alerts from the no-reply address; contracts/emails.md follows D22."
+  },
+  {
+    "id": "PLAN06-007",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "updates@ : Sending identity only; replies route to support@ via Reply-To",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No sending code or Reply-To setting exists."
+  },
+  {
+    "id": "PLAN06-008",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "no-reply@ : transactional (signup, rights confirmations, export links)",
+    "kind": "email",
+    "status": "partial",
+    "evidence": "api/settings.py email_from_account; contracts/emails.md",
+    "note": "Only the sender key exists; no transactional mail is sent."
+  },
+  {
+    "id": "PLAN06-009",
+    "source": "duly-plan/06-email-system.md, Identities",
+    "text": "no-reply@ : Auto-replies suppressed",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No mail headers or sending code exist."
+  },
+  {
+    "id": "PLAN06-010",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "SES in the same AWS account",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-011",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "domain and each identity verified",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-012",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "DKIM (SES tokens)",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-013",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "SPF include",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-014",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "DMARC p=quarantine moving to reject after warmup",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-015",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "custom MAIL FROM subdomain for alignment",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-016",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "Google Workspace keeps receiving; SES only sends",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, DNS or AWS configuration exists in the repository. Planned for Phase 7."
+  },
+  {
+    "id": "PLAN06-017",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "No app credentials for Gmail",
+    "kind": "email",
+    "status": "partial",
+    "evidence": "pyproject.toml; .gitleaks.toml",
+    "note": "True today because no Gmail code or credential exists, but no check enforces it."
+  },
+  {
+    "id": "PLAN06-018",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "no Gmail API scopes (restricted-scope trap stays avoided)",
+    "kind": "email",
+    "status": "partial",
+    "evidence": "pyproject.toml",
+    "note": "True today by absence of any Google client; no check enforces it."
+  },
+  {
+    "id": "PLAN06-019",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "Local: mailpit catches everything",
+    "kind": "email",
+    "status": "partial",
+    "evidence": "infra/docker-compose.yml mailpit service",
+    "note": "Mailpit runs in the local stack, but the api has no SMTP setting and sends no mail."
+  },
+  {
+    "id": "PLAN06-020",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "CI: mailpit catches everything",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": ".github/workflows/ci.yml",
+    "note": "CI does not start mailpit or any mail test."
+  },
+  {
+    "id": "PLAN06-021",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "the e2e suite asserts rendered briefs",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "Makefile e2e target",
+    "note": "make e2e is a stub that exits 1; no briefs exist."
+  },
+  {
+    "id": "PLAN06-022",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "Warmup plan: low volume from updates@ for two weeks",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No warmup plan or sending exists."
+  },
+  {
+    "id": "PLAN06-023",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "bounce and complaint handling via SES notifications into a jobs handler",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "api/worker.py",
+    "note": "The worker only logs a heartbeat; no jobs table or handler exists."
+  },
+  {
+    "id": "PLAN06-024",
+    "source": "duly-plan/06-email-system.md, Sending",
+    "text": "suppression list respected before every send",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No suppression list exists."
+  },
+  {
+    "id": "PLAN06-025",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Template in emails/",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "emails/README.md",
+    "note": "emails/ holds only a README that says templates arrive in Phase 7."
+  },
+  {
+    "id": "PLAN06-026",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "rendered per user by the worker",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "api/worker.py",
+    "note": "The worker only logs a heartbeat."
+  },
+  {
+    "id": "PLAN06-027",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "1. Verdict line mirroring Home: Everything is in order, or the one thing that needs you",
+    "kind": "email",
+    "status": "superseded",
+    "evidence": "D4",
+    "note": "D4 replaces the wording with four verdict states; the brief itself is not built."
+  },
+  {
+    "id": "PLAN06-028",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "2. Numbers: unemployment clock",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "engine/f1.py",
+    "note": "The engine computes the count but no brief shows it."
+  },
+  {
+    "id": "PLAN06-029",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "2. Numbers: week hours (if WorkBook on)",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No WorkBook or brief exists."
+  },
+  {
+    "id": "PLAN06-030",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "2. Numbers: EAD days left",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No brief exists."
+  },
+  {
+    "id": "PLAN06-031",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "3. Updates since last brief, each with the impact score block: three dots, MODERATE or NONE label",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No updates store, impact score or brief exists."
+  },
+  {
+    "id": "PLAN06-032",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "3. impact score block: Worry? and Prepare? verdicts",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "tools/copy_lint/lint.py; D2",
+    "note": "Not built, and the word worry is banned in emails/ by the copy lint while D2 says never recommend, so this needs a founder ruling."
+  },
+  {
+    "id": "PLAN06-033",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "3. impact score block: one-line meaning for this case",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "Not built; D5 also limits statements about a person's own case."
+  },
+  {
+    "id": "PLAN06-034",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "3. impact score block: source link",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "contracts/update.schema.json",
+    "note": "The update contract carries source_url per claim but no brief renders it."
+  },
+  {
+    "id": "PLAN06-035",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Scores come from the published update_impacts computed deterministically from case attributes",
+    "kind": "engine",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No impact code exists in engine/ and no update_impacts table exists."
+  },
+  {
+    "id": "PLAN06-036",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "the LLM never scores in the send path",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No send path exists to test."
+  },
+  {
+    "id": "PLAN06-037",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "4. One next move with its deep link",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No brief exists."
+  },
+  {
+    "id": "PLAN06-038",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Footer: the disclaimer sentence",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No email template exists."
+  },
+  {
+    "id": "PLAN06-039",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Footer: physical address",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No email template exists."
+  },
+  {
+    "id": "PLAN06-040",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Footer: one-click List-Unsubscribe (RFC 8058)",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No sending code exists."
+  },
+  {
+    "id": "PLAN06-041",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Footer: an unsubscribe page",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No such page exists in web/src."
+  },
+  {
+    "id": "PLAN06-042",
+    "source": "duly-plan/06-email-system.md, The weekly brief",
+    "text": "Footer: preference link (weekly, only-affects-me, off)",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No preferences exist."
+  },
+  {
+    "id": "PLAN06-043",
+    "source": "duly-plan/06-email-system.md, Alerts policy (calm by contract)",
+    "text": "Immediate email only when an approved update has impact score at least MODERATE for that user",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "pipeline/graph.py; D22",
+    "note": "The publish rule exists but no alert sending or impact score; D22 says an approved update sends an alert and names no threshold, so the founder should confirm."
+  },
+  {
+    "id": "PLAN06-044",
+    "source": "duly-plan/06-email-system.md, Alerts policy (calm by contract)",
+    "text": "Immediate email when a deadline enters its 14-day window",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No alert job exists."
+  },
+  {
+    "id": "PLAN06-045",
+    "source": "duly-plan/06-email-system.md, Alerts policy (calm by contract)",
+    "text": "Everything else waits for the weekly brief",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No brief or alert code exists."
+  },
+  {
+    "id": "PLAN06-046",
+    "source": "duly-plan/06-email-system.md, Alerts policy (calm by contract)",
+    "text": "No streak mails",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No mail is sent at all and nothing enforces the rule."
+  },
+  {
+    "id": "PLAN06-047",
+    "source": "duly-plan/06-email-system.md, Alerts policy (calm by contract)",
+    "text": "no re-engagement nags",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No mail is sent at all and nothing enforces the rule."
+  },
+  {
+    "id": "PLAN06-048",
+    "source": "duly-plan/06-email-system.md, Compliance",
+    "text": "CAN-SPAM: accurate headers",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No sending code exists."
+  },
+  {
+    "id": "PLAN06-049",
+    "source": "duly-plan/06-email-system.md, Compliance",
+    "text": "CAN-SPAM: identification",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No sending code exists."
+  },
+  {
+    "id": "PLAN06-050",
+    "source": "duly-plan/06-email-system.md, Compliance",
+    "text": "unsubscribe honored within 10 days (implemented instantly)",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No unsubscribe handling exists."
+  },
+  {
+    "id": "PLAN06-051",
+    "source": "duly-plan/06-email-system.md, Compliance",
+    "text": "marketing consent captured separately from account email at signup",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No signup exists."
+  },
+  {
+    "id": "PLAN06-052",
+    "source": "duly-plan/06-email-system.md, Compliance",
+    "text": "transactional never mixed with marketing content",
+    "kind": "legal",
+    "status": "not_started",
+    "evidence": "contracts/emails.md",
+    "note": "Not built; the contract labels the weekly brief transactional, which should be reviewed against this rule."
+  },
+  {
+    "id": "PLAN06-053",
+    "source": "duly-plan/06-email-system.md, Compliance",
+    "text": "All sends logged (message id, template version, user) minus body PII",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No send log exists."
+  },
+  {
+    "id": "PLAN09-001",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L1 User feedback: source in-app Feedback, support@; store feedback table; consumer Ops pane 5; action weekly triage to lane issues",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No Feedback screen, feedback table or Ops pane 5 exists."
+  },
+  {
+    "id": "PLAN09-002",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L2 Answer quality: thumbs on every AI block; answer_ratings joined to narration_audit; eval lane; bad answers become eval cases; regressions block L-narration merges",
+    "kind": "testing",
+    "status": "not_started",
+    "evidence": "evals/boundary/README.md",
+    "note": "An eval lane and boundary set exist, but there are no AI blocks, thumbs, answer_ratings or narration_audit."
+  },
+  {
+    "id": "PLAN09-003",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L3 Rule currency: ingestion jobs (FR, USCIS, CourtListener); review_queue; attorney gate in Ops pane 1; approve publishes update and pack release; impacts recomputed; briefs updated",
+    "kind": "updates",
+    "status": "partial",
+    "evidence": "pipeline/graph.py; tests/unit/pipeline/test_graph.py; watch/sources.yaml; D14, D22",
+    "note": "Stage order, the publish rule and the source list exist; ingestion jobs, review_queue, Ops pane 1, impacts and briefs do not, and D22 with D14 replace the attorney gate with founder approval in Ops."
+  },
+  {
+    "id": "PLAN09-004",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L4 Correctness: gate failures, reverts, prod errors (OTel, Sentry-compatible); CI artifacts, LESSONS proposals; curation PR; verified lessons and new golden tests",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": ".claude/LESSONS/proposals/; tools/factory/telemetry.py; .claude/agents/skill-curator.md",
+    "note": "Gate failures and lesson proposals are recorded for the factory; there is no production error feed and no verified lesson file has come out of a curation PR."
+  },
+  {
+    "id": "PLAN09-005",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L5 Usage: first-party events per events.md, no third-party SDKs; events table; Ops pane 6; verdict views, brief opens, checklist completion steer roadmap",
+    "kind": "product",
+    "status": "not_started",
+    "evidence": "contracts/events.md",
+    "note": "events.md is a placeholder that lists no events; no events table or Ops pane 6 exists."
+  },
+  {
+    "id": "PLAN09-006",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L6 Trust and rights: consent revocations, rights requests; rights_requests; Ops pane 4 SLA timers; executed and reported monthly",
+    "kind": "privacy",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No consent, rights_requests table or Ops pane 4 exists."
+  },
+  {
+    "id": "PLAN09-007",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L7 Security findings: red-team lane, ZAP, VDP inbox, dep audits; security findings issues; L-security + founder; fix PRs, corpus growth, threat-model updates",
+    "kind": "security",
+    "status": "partial",
+    "evidence": ".claude/lanes/L-security.yaml; .claude/agents/red-team.md; Makefile gate-4",
+    "note": "The lane, the role and dependency audits exist; ZAP, a VDP inbox, findings issues and a corpus do not."
+  },
+  {
+    "id": "PLAN09-008",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L8 Eval drift: nightly eval and holdout trends, mutation canary; evals dashboards; founder weekly; prompt or rule fixes; threshold ratchets from data",
+    "kind": "testing",
+    "status": "partial",
+    "evidence": "tools/factory/drift.py; tools/gates/mutation.py; tools/factory/weekly.py; tests/holdout/",
+    "note": "Holdout tests, a mutation check, a drift check and a weekly review exist as manual make targets for the factory; nothing runs nightly and no eval trend dashboard exists."
+  },
+  {
+    "id": "PLAN09-009",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L9 Email engagement: SES opens, clicks, bounces, complaints, unsubscribes; email_events; Ops pane 6; brief content tuning, suppression hygiene, alert-policy checks",
+    "kind": "email",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "No SES, email_events table or Ops pane 6 exists."
+  },
+  {
+    "id": "PLAN09-010",
+    "source": "duly-plan/09-feedback-loops.md, loop table",
+    "text": "L10 Attorney gate quality: review decisions and correction diffs in pane 1; review_queue history; curator; improves classifier prompts and ingestion filters (gated)",
+    "kind": "updates",
+    "status": "not_started",
+    "evidence": "D14, D22",
+    "note": "No review queue or pane 1 exists; under D14 and D22 the reviewer is the founder, not an attorney."
+  },
+  {
+    "id": "PLAN09-011",
+    "source": "duly-plan/09-feedback-loops.md, Rules",
+    "text": "every loop names a store and an accountable consumer",
+    "kind": "ops",
+    "status": "not_started",
+    "evidence": "none",
+    "note": "The stores and consumers are named only in the plan; the repository has no loop registry and most stores do not exist."
+  },
+  {
+    "id": "PLAN09-012",
+    "source": "duly-plan/09-feedback-loops.md, Rules",
+    "text": "loops feed the factory only through reviewed lanes",
+    "kind": "factory",
+    "status": "partial",
+    "evidence": "tools/diff_policy/check.py; .claude/LESSONS/README.md; tests/unit/tools/test_diff_policy.py",
+    "note": "Lane ownership and the rule that nobody approves their own lesson exist; product loops that would feed the factory do not exist yet."
+  },
+  {
+    "id": "PLAN09-013",
+    "source": "duly-plan/09-feedback-loops.md, Rules",
+    "text": "sensitive content never leaves its zone to power a loop (L5 and L9 carry ids and metadata only)",
+    "kind": "privacy",
+    "status": "partial",
+    "evidence": "contracts/events.md",
+    "note": "The contract states ids and metadata only, but no events or email events exist and no test enforces it."
+  }
+]

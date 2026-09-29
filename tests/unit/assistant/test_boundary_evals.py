@@ -44,3 +44,20 @@ def test_every_category_is_on_both_sides():
 
 def test_empty_conversation_steps_back():
     assert classify_conversation([]).side is Side.STEP_BACK
+
+
+ANSWERS = _rows("answers.jsonl")
+NUMBERS = {"90", "35", "3"}
+
+
+@pytest.mark.parametrize("row", ANSWERS, ids=lambda r: r["id"])
+def test_no_answer_tells_a_person_what_to_do_or_what_is_true_of_them(row):
+    from assistant.boundary import Sentence, validate_answer
+
+    result = validate_answer([Sentence(row["text"], ("cfr",))], {"cfr"}, NUMBERS)
+    assert result.ok is (row["expect"] == "ok"), result.problems
+
+
+def test_the_answer_set_covers_every_kind():
+    kinds = {r["why"] for r in ANSWERS}
+    assert {"instruction", "advice", "conclusion", "rule", "arithmetic", "to the dso"} <= kinds

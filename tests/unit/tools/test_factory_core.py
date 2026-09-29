@@ -62,6 +62,7 @@ def test_every_shipped_contract_loads_and_is_complete():
         "skill-curator",
         "eval-curator",
         "red-team",
+        "auditor",
     }
     config = load_config()
     for c in contracts:
