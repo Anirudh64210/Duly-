@@ -1,0 +1,973 @@
+<RULE>
+            <PREAMB>
+                <AGENCY TYPE="N">DEPARTMENT OF HOMELAND SECURITY </AGENCY>
+                <CFR>8 CFR Parts 214 and 274a </CFR>
+                <DEPDOC>[DHS No. ICEB-2008-0002; ICE No. 2124-08] </DEPDOC>
+                <RIN>RIN 1653-AA56 </RIN>
+                <SUBJECT>Extending Period of Optional Practical Training by 17 Months for F-1 Nonimmigrant Students With STEM Degrees and Expanding Cap-Gap Relief for All F-1 Students With Pending H-1B Petitions </SUBJECT>
+                <AGY>
+                    <HD SOURCE="HED">AGENCY:</HD>
+                    <P>U.S. Immigration and Customs Enforcement, U.S. Citizenship and Immigration Services; DHS. </P>
+                </AGY>
+                <ACT>
+                    <HD SOURCE="HED">ACTION:</HD>
+                    <P>Interim final rule with request for comments. </P>
+                </ACT>
+                <SUM>
+                    <HD SOURCE="HED">SUMMARY:</HD>
+                    <P>Currently, foreign students in F-1 nonimmigrant status who have been enrolled on a full-time basis for at least one full academic year in a college, university, conservatory, or seminary certified by U.S. Immigration and Custom Enforcement's (ICE's) Student and Exchange Visitor Program (SEVP) are eligible for 12 months of optional practical training (OPT) to work for a U.S. employer in a job directly related to the student's major area of study. This interim final rule extends the maximum period of OPT from 12 months to 29 months for F-1 students who have completed a science, technology, engineering, or mathematics (STEM) degree and accept employment with employers enrolled in U.S. Citizenship and Immigration Services' (USCIS') E-Verify employment verification program. This interim rule requires F-1 students with an approved OPT extension to report changes in the student's name or address and changes in the employer's name or address as well as periodically verify the accuracy of this reporting information. The rule also requires the employers of F-1 students with an extension of post-completion OPT authorization to report to the student's designated school official (DSO) within 48 hours after the OPT student has been terminated from, or otherwise leaves, his or her employment with that employer prior to end of the authorized period of OPT. </P>
+                    <P>
+                        This rule also ameliorates the so-called “cap-gap” problem by extending the authorized period of stay for all F-1 students who have a properly filed H-1B petition and change of status request (filed under the cap for the next fiscal year) pending with USCIS. If USCIS approves the H-1B petition, the students will have an extension that enables them to remain in the United 
+                        <PRTPAGE P="18945"/>
+                        States until the requested start date indicated in the H-1B petition takes effect. This interim final rule also implements a programmatic change to allow students to apply for OPT within 60 days of concluding their studies. 
+                    </P>
+                </SUM>
+                <EFFDATE>
+                    <HD SOURCE="HED">DATES:</HD>
+                    <P>This interim final rule is effective April 8, 2008. Written comments must be submitted on or before June 9, 2008. </P>
+                </EFFDATE>
+                <ADD>
+                    <HD SOURCE="HED">ADDRESSES:</HD>
+                    <P>You may submit comments, which must be identified by Department of Homeland Security docket number ICEB-2008-0002, using one of the following methods: </P>
+                    <P>
+                        • 
+                        <E T="03">Federal Rulemaking Portal: http://www.regulations.gov.</E>
+                         Follow the instructions for submitting comments. 
+                    </P>
+                    <P>
+                        • 
+                        <E T="03">Mail:</E>
+                         Office of Policy, U.S. Immigration and Customs Enforcement, Department of Homeland Security, 425 I Street, NW., Room 7257, Washington, DC 20536. 
+                    </P>
+                    <P>
+                        • 
+                        <E T="03">Hand Delivery/Courier:</E>
+                         The address for sending comments by hand delivery or courier is the same as that for submitting comments by mail. Contact telephone number is (202) 514-8693. 
+                    </P>
+                    <P>
+                        • 
+                        <E T="03">Facsimile:</E>
+                         Comments may be submitted by facsimile at (866) 466-5370. 
+                    </P>
+                    <P>
+                        <E T="03">Viewing Comments:</E>
+                         Comments may be viewed online at 
+                        <E T="03">http://www.regulations.gov</E>
+                         or in person at U.S. Immigration and Customs Enforcement, Department of Homeland Security, Chester Arthur Building, 425 I Street, NW., Room 7257, Washington, DC 20536. You must call telephone number (202) 514-8693 in advance to arrange an appointment. 
+                    </P>
+                </ADD>
+                <HD SOURCE="HD1">Public Participation </HD>
+                <P>This is an interim final rule with a request for public comment. The most helpful comments reference the specific section of the rule using section number, explain the reason for any recommended change, and include data, information, and the authority that supports the recommended change. </P>
+                <P>
+                    <E T="03">Instructions:</E>
+                     All submissions must include the agency name and Department of Homeland Security docket number ICEB-2008-0002. All comments (including any personal information provided) will be posted without change to 
+                    <E T="03">http://www.regulations.gov.</E>
+                     See 
+                    <E T="02">ADDRESSES</E>
+                     above for methods to submit comments. Mailed submissions may be paper, disk, or CD-ROM. 
+                </P>
+                <FURINF>
+                    <HD SOURCE="HED">FOR FURTHER INFORMATION CONTACT:</HD>
+                    <P>
+                        Louis Farrell, Director, Student and Exchange Visitor Program; U.S. Immigration and Customs Enforcement, Department of Homeland Security; Chester Arthur Building, 425 I Street, NW., Suite 6034, Washington, DC 20536; telephone number (202) 305-2346. This is not a toll-free number. Program information can be found at 
+                        <E T="03">http://www.ice.gov/sevis/.</E>
+                    </P>
+                </FURINF>
+            </PREAMB>
+            <SUPLINF>
+                <HD SOURCE="HED">SUPPLEMENTARY INFORMATION:</HD>
+                <EXTRACT>
+                    <HD SOURCE="HD1">Table of Contents</HD>
+                    <FP SOURCE="FP-2">I. Background and Purpose </FP>
+                    <FP SOURCE="FP1-2">A. Optional Practical Training and Need To Extend for F-1 Students With STEM Degrees </FP>
+                    <FP SOURCE="FP1-2">B. “Cap-Gap” and Need To Expand Relief to All F-1 Students With Pending H-1B Petitions </FP>
+                    <FP SOURCE="FP-2">II. Discussion of This Interim Final Rule </FP>
+                    <FP SOURCE="FP1-2">A. Extension of Optional Practical Training by 17 Months for F-1 Students With STEM Degrees </FP>
+                    <FP SOURCE="FP1-2">1. Requirements for Students Seeking a 17-Month OPT Extension </FP>
+                    <FP SOURCE="FP1-2">2. Requirement for Employers of Students with a 17-Month OPT Extension </FP>
+                    <FP SOURCE="FP1-2">B. Expansion of Cap-Gap Relief for All F-1 Students With Pending H-1B Petitions </FP>
+                    <FP SOURCE="FP1-2">C. Related Changes to the OPT Provisions </FP>
+                    <FP SOURCE="FP1-2">1. Changes to Post-Completion OPT </FP>
+                    <FP SOURCE="FP1-2">2. Validation That OPT Employment Is Related to the Student's Degree Program </FP>
+                    <FP SOURCE="FP-2">III. Regulatory Requirements </FP>
+                    <FP SOURCE="FP1-2">A. Administrative Procedure Act </FP>
+                    <FP SOURCE="FP1-2">B. Regulatory Flexibility Act </FP>
+                    <FP SOURCE="FP1-2">C. Small Business Regulatory Enforcement Fairness Act of 1996 </FP>
+                    <FP SOURCE="FP1-2">D. Executive Order 12866 </FP>
+                    <FP SOURCE="FP1-2">E. Executive Order 13132 </FP>
+                    <FP SOURCE="FP1-2">F. Executive Order 12988 Civil Justice Reform </FP>
+                    <FP SOURCE="FP1-2">G. Paperwork Reduction Act </FP>
+                    <FP SOURCE="FP-2">List of Subjects in 8 CFR Part 214</FP>
+                </EXTRACT>
+                <GPOTABLE COLS="02" OPTS="L2,i1" CDEF="s25,r100">
+                    <TTITLE>Table of Abbreviations</TTITLE>
+                    <BOXHD>
+                        <CHED H="1">Abbreviation</CHED>
+                        <CHED H="1">Amplification</CHED>
+                    </BOXHD>
+                    <ROW>
+                        <ENT I="01">APA</ENT>
+                        <ENT>Administrative Procedure Act</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">ASC</ENT>
+                        <ENT>Application Support Center</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">CEU</ENT>
+                        <ENT>Compliance Enforcement Unit</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">CBP</ENT>
+                        <ENT>U.S. Customs and Border Protection</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">CFR</ENT>
+                        <ENT>Code of Federal Regulations</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">DHS</ENT>
+                        <ENT>Department of Homeland Security</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">DSO</ENT>
+                        <ENT>Designated School Official</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">EAD</ENT>
+                        <ENT>Form I-766, Employment Authorization Document</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">ICE</ENT>
+                        <ENT>U.S. Immigration and Customs Enforcement</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">IIRIRA</ENT>
+                        <ENT>Illegal Immigration Reform and Immigrant Responsibility Act of 1996</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">INA</ENT>
+                        <ENT>Immigration and Nationality Act of 1952, as amended</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">INS</ENT>
+                        <ENT>Immigration and Naturalization Service</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">OMB</ENT>
+                        <ENT>Office of Management and Budget</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">OPT</ENT>
+                        <ENT>Optional Practical Training</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">RFA</ENT>
+                        <ENT>Regulatory Flexibility Act</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">SEVIS</ENT>
+                        <ENT>Student and Exchange Visitor Information System</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">SEVP</ENT>
+                        <ENT>Student and Exchange Visitor Program</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">STEM</ENT>
+                        <ENT>Science, Technology, Engineering, or Math</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">U.S.</ENT>
+                        <ENT>United States</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">USA PATRIOT Act</ENT>
+                        <ENT>Uniting and Strengthening America by Providing Appropriate Tools Required to Intercept and Obstruct Terrorism Act</ENT>
+                    </ROW>
+                    <ROW>
+                        <ENT I="01">USCIS</ENT>
+                        <ENT>U.S. Citizenship and Immigration Services</ENT>
+                    </ROW>
+                </GPOTABLE>
+                <HD SOURCE="HD1">I. Background and Purpose </HD>
+                <HD SOURCE="HD2">A. Optional Practical Training and Need To Extend by 17 Months for F-1 Students With STEM Degrees </HD>
+                <P>Section 101(a)(15)(F)(i) of the Immigration and Nationality Act of 1952, as amended (INA), 8 U.S.C. 1101(a)(15)(F)(i), establishes the F-1 nonimmigrant classification for individuals who wish to come to the United States temporarily to attend an academic or language training institution certified by the Student and Visitor Exchange Program (SEVP) for U.S. Immigration and Customs Enforcement (ICE). F-1 students may remain in the United States for the duration of their educational programs if they otherwise maintain status. 8 CFR 214.2(f)(5). Once an F-1 student has completed his or her course of study, and any authorized practical training following completion of studies, the student must either transfer to another SEVP-certified school to continue studies, change to a different nonimmigrant status, otherwise legally extend their period of authorized stay in the United States, or leave the United States. 8 CFR 214.2(f)(5)(iv). F-1 students are allowed 60 days after the completion of such studies and practical training to prepare for departure from the United States. 8 CFR 214.2(f)(5)(iv). </P>
+                <P>
+                    F-1 students generally are not authorized to work in the United States during the term of their educational program, with limited exceptions. Currently, students in F-1 nonimmigrant status who have been enrolled on a full-time basis for at least one full academic year in a college, university, conservatory, or seminary certified by SEVP, and have otherwise maintained status, are eligible to apply for up to 12 months of optional practical training (OPT) to work for a U.S. employer in a job directly related to the student's major area of study. 8 CFR 214.2(f)(10). F-1 students may obtain OPT either during their educational program (“pre-completion OPT”) or after the student graduates (“post-completion OPT”). The student remains in F-1 status throughout the OPT period. 
+                    <PRTPAGE P="18946"/>
+                </P>
+                <P>
+                    An F-1 student in post-completion OPT, therefore, does not have to leave the United States within 60 days after graduation, but is authorized to remain in the United States for the entire post-completion OPT period. If the student has not used any pre-completion OPT, then the student's post-completion OPT period could be up to 12 months. Once the post-completion OPT period has concluded, the student must depart the United States within 60 days, unless he or she changes status or otherwise legally extends his or her stay in the United States (
+                    <E T="03">e.g.</E>
+                    , starts a graduate program). 
+                </P>
+                <P>During his or her authorized period of stay, a qualified F-1 student may receive a change of nonimmigrant status to H-1B nonimmigrant status if an employer has timely filed, and USCIS grants, a petition on behalf of that student. The employer must submit a Form I-129, Petition for a Nonimmigrant Worker to USCIS. The Form includes a section for the employer to indicate whether change of status is being requested for the beneficiary (if eligible), or whether the beneficiary will instead apply for a visa outside of the United States at a U.S. consulate. USCIS may grant H-1B status to eligible nonimmigrants employed in or offered a job by the petitioner in a specialty occupation. 8 CFR 214.2(h)(1)(ii)(B). A specialty occupation is one that requires the theoretical and practical application of a body of specialized knowledge and a bachelor's or higher degree in the specific specialty as a minimum qualification. INA Section 214(i). </P>
+                <P>
+                    Congress, however, has prohibited USCIS from granting H-1B status to more than 65,000 nonimmigrant aliens during any fiscal year (referred to as the “cap”).
+                    <SU>1</SU>
+                    <FTREF/>
+                      
+                    <E T="03">See</E>
+                     INA Section 214(g). The H-1B category is greatly oversubscribed. When USCIS determines that the cap will be reached for that fiscal year, based on the number of H-1B petitions received, it announces to the public the final day on which USCIS will accept such petitions for adjudication in that fiscal year. USCIS refers to this day as the “final receipt date.” 
+                    <E T="03">See</E>
+                     8 CFR 214.2(h)(8)(ii)(B). USCIS then randomly selects from among the petitions received on the final receipt date the number of petitions necessary to reach the 65,000 cap. 
+                    <E T="03">Id.</E>
+                     If the final receipt date falls within the first five business days on which petitions subject to the applicable cap may be filed, USCIS will randomly select the number of petitions necessary to reach the 65,000 cap from among those filed during the acceptance period. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>1</SU>
+                         The 65,000 person cap does not, however, apply to certain limited classes of aliens, including individuals who are employed by, or have received offers of employment at: (1) An institution of higher education, or a related or affiliated nonprofit entity, or (2) a nonprofit research organization or a governmental research organization. Additionally, there is an exemption from the H-1B cap for up to 20,000 individuals who are advanced degree graduates (master's degree or higher) from U.S. institutions of higher education.
+                    </P>
+                </FTNT>
+                <P>
+                    There is a significant amount of competition among employers of highly-skilled workers for the limited number of H-1B visas available each fiscal year. Each year, the cap has been reached earlier in the year. For FY05, the cap was reached on October 1, 2004, the first day of that fiscal year. In FY06, the cap was reached on August 10, 2005; and in FY 07, the cap was reached on May 26, 2006. Last year, the cap was reached on April 2, 2007, the first business day for filing. On that single day, USCIS received more than twice the number of petitions needed to reach the cap for that fiscal year.
+                    <SU>2</SU>
+                    <FTREF/>
+                </P>
+                <P>Many employers who hire F-1 students under the OPT program eventually file a petition on the students' behalf for classification as an H-1B worker in a specialty occupation. If the student is maintaining his or her F-1 nonimmigrant status, the employer may also include a request to have the student's nonimmigrant status changed to H-1B. Because the H-1B category is greatly oversubscribed, however, OPT employees often are unable to obtain H-1B status within their authorized period of stay in F-1 status, including the 12-month OPT period, and thus are forced to leave the country. The inability of U.S. employers, in particular in the fields of science, technology, engineering and mathematics, to obtain H-1B status for highly skilled foreign students and foreign nonimmigrant workers has adversely affected the ability of U.S. employers to recruit and retain skilled workers and creates a competitive disadvantage for U.S. companies. </P>
+                <FTNT>
+                    <P>
+                        <SU>2</SU>
+                         
+                        <E T="03">See</E>
+                         USCIS Update at 
+                        <E T="03">http://www.uscis.gov/files/pressrelease/H1BFY08Cap040307.pdf.</E>
+                    </P>
+                </FTNT>
+                <P>
+                    The National Science Foundation (NSF), in its 
+                    <E T="03">Science and Engineering Indicators 2008</E>
+                     (SEIND08),
+                    <SU>3</SU>
+                    <FTREF/>
+                     took note of these trends. NSF observed that globalization of science and technology has proceeded at a quick pace since the early 1990s. Increased international travel coincided with the development of the Internet as a tool for unfettered worldwide information dissemination and communication. “By the late 1990s,” the report continues “many governments had taken note of these developments. They increasingly looked to the development of knowledge-intensive economics for their countries' economic competitiveness and growth.” SEIND08 at 0-4. NSF further reports that “twenty-five percent of all college-education science and engineering occupations in 2003 were foreign born, as were [forty percent] of doctorate holders in science and engineering.” According to the Task Force on the Future of American Innovation, 
+                    <E T="03">Measuring the Moment: Innovation, National Security and Economic Competitiveness</E>
+                     (November 2006),
+                    <SU>4</SU>
+                    <FTREF/>
+                     the proportion of American students in the United States obtaining degrees in STEM fields has fallen from 32% to 27%. Later, the report reveals that since 2000, there have been more foreign graduate students studying engineering and the physical, computer and mathematical sciences in U.S. graduate schools than U.S. citizens and permanent residents. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>3</SU>
+                         This publication may be found at 
+                        <E T="03">http://www.nsf.gov/statistics/seind08</E>
+                        .
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>4</SU>
+                         This report may be accessed at 
+                        <E T="03">http://www.futureofinnovation.org/PDF/BII-FINAL-HighRes-11-14-06_nocover.pdf</E>
+                        .
+                    </P>
+                </FTNT>
+                <P>
+                    The NSF goes on to say that “U.S. [Gross Domestic Product] growth is robust but cannot match large, sustained increases in China and other Asian economies.” And because of this globalization, the United States, while still the leading producer of scientific knowledge, faces a labor market in which it must increasingly compete with these countries. The economies of the Organization of Economic Cooperation and Development (OECD) countries, particularly Australia, Canada, and certain European countries, are also providing increased opportunities for STEM scientists. And STEM graduates from the growing economies of China, India, and Russia, for example, have increased employment opportunities in their native countries. Thus, the Task Force on the Future of American Innovation reports “the impact of China and India on global R&amp;D [research and development] is significant and growing rapidly: In 1990, these two countries accounted for 3.4% of foreign R&amp;D staff, which increased to 13.9% by 2004. By the end of 2007, China and India will account for 31% of global R&amp;D staff, up from 19% in 2004.” 
+                    <E T="03">See Measuring the Moment: Innovation, National Security and Economic Competitiveness</E>
+                     (November 2006). In short, with their large and growing populations of STEM-graduate scientists, high-tech industries in these three countries and others in the OECD now compete much more effectively against the U.S. high technology industry. 
+                    <PRTPAGE P="18947"/>
+                </P>
+                <P>
+                    DHS has received communications from a wide range of concerned stakeholders, including companies in the high-tech industry, members of Congress, and U.S. educational institutions, about the adverse impact on the U.S. economy and the ability of U.S. schools to attract talented foreign students for STEM study programs due to the immigration and employment practices in the United States. Representatives of high-tech industries in particular have raised significant concerns that the inability of U.S. companies to obtain H-1B visas for qualified F-1 students in a timely manner continues to result in the loss of skilled technical workers to countries with more lenient employment visa regimes, such as Canada and Australia. 
+                    <E T="03">See</E>
+                     Testimony of Bill Gates, Chairman, Microsoft Corporation, before the U.S. Senate Committee on Health, Education, Labor &amp; Pensions, “Strengthening American Competitiveness for the 21st Century” (Washington, D.C.; March 7, 2007).
+                    <SU>5</SU>
+                    <FTREF/>
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>5</SU>
+                         A copy of this testimony can be accessed at 
+                        <E T="03">http://help.senate.gov/hearings/2007_03_07/Gates.pdf</E>
+                        . 
+                    </P>
+                </FTNT>
+                <P>
+                    Notably, the European Union recently proposed a “Blue Card” program, similar to the U.S. H-1B visa program, under which skilled workers would be able to obtain a temporary work visa for employment in the European Union. Unlike the H-1B program, the European Union's Blue Card program proposal would not have a cap. The European Union estimates that workers would usually be able to obtain their visas in 90 days or less. If the Blue Card proposal is adopted, U.S. employers could be at a competitive disadvantage to employers in the European Union when recruiting foreign national candidates. U.S. high-tech employers are particularly concerned about the H-1B cap because of the critical shortage of domestic science and engineering talent and the degree to which high-tech employers are as a consequence necessarily far more dependent on foreign workers than other industries. 
+                    <E T="03">See</E>
+                     The National Science Foundation, 
+                    <E T="03">Rising Above the Gathering Storm: Energizing and Employing America for a Brighter Economic Future</E>
+                     (2007), pp. 78-83 (describing the critical shortages of science, math, and engineering talent in the United States) .
+                    <SU>6</SU>
+                    <FTREF/>
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>6</SU>
+                         This publication may be found at 
+                        <E T="03">http://www.nap.edu/catalog.php?record_id=11463</E>
+                        . 
+                    </P>
+                </FTNT>
+                <P>Many F-1 students who graduated last spring will soon be concluding their 12-month periods of OPT. Unless employers for those students are able to obtain H-1B visas when the filing period commences on April 1, 2008 for FY09 (October 1, 2008), many of these students will need to leave the United States when their current post-completion OPT period concludes. </P>
+                <P>This interim final rule addresses the immediate competitive disadvantage faced by U.S. high-tech industries, and thus may quickly ameliorate some of the adverse impacts on the U.S. economy. It does this by allowing an F-1 student already in a period of approved post-completion OPT to apply to extend that period by up to 17 months (for a maximum total period of 29 months of OPT) if the student received a STEM degree. As discussed in Section II below, this extension is only available to F-1 students with STEM degrees who have accepted employment with an employer registered and in good standing with USCIS' E-Verify employment verification program. In addition, employers of F-1 students who qualify for this 17-month extension of post-completion OPT must report to the student's school DSO within 48 hours if the student's employment ends prior to the end of the student's authorized OPT employment period. </P>
+                <HD SOURCE="HD2">B. “Cap-Gap” and Need To Expand Relief to All F-1 Students With Pending H-1B Petitions </HD>
+                <P>As discussed above, nonimmigrant F-1 students on post-completion OPT maintain valid F-1 status until the expiration of the OPT period and the subsequent 60-day departure preparation period. Employers of students already working for the employer under OPT often file petitions to change the students' status to H-1B so that these nonimmigrant aliens may continue working in their current or a similar job. Many times, however, an F-1 student's OPT authorization will expire prior to the student being able to assume the employment specified in the approved H-1B petition. </P>
+                <P>Currently, an employer may not file, and USCIS may not approve, an H-1B petition submitted earlier than six months before the date of actual need for the beneficiary's services or training. 8 CFR 214.2(h)(9)(i)(B). As a result, the earliest date that an employer can file an H-1B petition for consideration under the next fiscal year cap is April 1, for an October 1 employment start date. If that H-1B petition and the accompanying change of status request are approved, the earliest date that the student may start H-1B employment is October 1. Consequently, F-1 students who are the beneficiaries of approved H-1B petitions, but whose period of authorized stay (including authorized periods of post-completion OPT and the subsequent 60-day departure preparation period) expires before the October 1 H-1B employment start date, would have a gap in authorized stay and employment. This situation is commonly referred to as the “cap-gap.” </P>
+                <P>An F-1 student in a cap-gap situation would have to leave the United States and return at the time his or her H-1B status becomes effective at the beginning of the next fiscal year. This gap creates a hardship to a number of students and provides a disincentive to remaining in the United States for employment. The cap-gap therefore creates a recruiting obstacle for U.S. employers interested in obtaining F-1 students for employment and submitting H-1B petitions on their behalf. Moreover, when the student is already working for a U.S. company on OPT and has to leave the United States, frequently for several months, during the cap-gap period, the employer suffers a major disruption. </P>
+                <P>
+                    USCIS is already authorized to extend the status of F-1 students caught in a cap-gap between graduation and the start date on his or her approved H-1B petition. 8 CFR 214.2(f)(5)(vi). However, before USCIS can offer students any relief from the cap-gap, it must first determine that the cap has been reached for the current fiscal year, or is likely to be reached prior to the end of the current fiscal year, and then publish a notice in the 
+                    <E T="04">Federal Register</E>
+                     announcing that status is extended for students with pending H-1B petitions. Significantly, the existing regulations do not take into account the fact that the H-1B category is now oversubscribed to such a degree that USCIS' final receipt date for petitions is now announced even before the start of the fiscal year for which the petitions are being submitted and, in the absence of an expansion of the 65,000 cap by Congress, this state of affairs will likely continue indefinitely. The existing regulations, therefore, are not an effective means of addressing the cap-gap problem suffered by student beneficiaries of pending H-1B petitions (and their employers). 
+                </P>
+                <P>
+                    This interim rule amends USCIS procedures by eliminating the requirement that USCIS issue a 
+                    <E T="04">Federal Register</E>
+                     notice. Instead, this rule extends the authorized period of stay, as well as work authorization, of any F-1 student who is the beneficiary of a timely-filed H-1B petition that has been granted by, or remains pending with, USCIS. The extension of status and work authorization terminates on October 1 of the fiscal year for which the H-1B visa has been requested. This amendment better reflects the reality of the current situation, where demand for 
+                    <PRTPAGE P="18948"/>
+                    H-1B visas is so high that USCIS regularly receives enough petitions to reach the cap before the beginning of the fiscal year for which petitions are filed, and offer more substantial cap gap relief to both students and employers. 
+                </P>
+                <HD SOURCE="HD1">II. Discussion of This Interim Final Rule </HD>
+                <HD SOURCE="HD2">A. 17-Month Extension of Optional Practical Training for F-1 Students Who Have Obtained a STEM Degree </HD>
+                <P>This interim rule will allow F-1 students who have received a degree in a STEM field to obtain an extension of their existing post-completion OPT period for up to 17 months, for a maximum period of post-completion OPT of 29 months. The extension, however, is only available to students who are employed, or will be employed, by an employer enrolled (and determined by USCIS to be in good standing) in USCIS' E-Verify employment verification program at the time the student applies for the 17-month extension. A student seeking an extension must agree to report to a DSO at his or her school the following: Changes to the student's name, the student's residential and mailing address, the student's employer, and the address of the student's employer. The student must also report to a DSO every six months from the date the OPT extension starts to verify this information. In addition, the employer of a student under extended OPT must report to the student's school DSO within 48 hours after the student leaves employment with that employer. The DSO must report all of this information in SEVIS. </P>
+                <HD SOURCE="HD3">1. Requirements for Students Seeking a 17-Month OPT Extension </HD>
+                <P>This interim final rule will allow qualified F-1 students who currently have approved post-completion OPT to apply for a 17-month extension of OPT. The student's degree, as shown is SEVIS, must be a bachelor's, master's, or doctorate degree with a degree code that is on the current STEM Designated Degree Program List. </P>
+                <P>
+                    The STEM Designated Degree Program List is based on the “Classification of Instructional Programs” (CIP) developed by the U.S. Department of Education's National Center for Education Statistics (NCES). 
+                    <E T="03">See Classification of Instructional Programs—2000: (NCES 2002-165)</E>
+                     U.S. Department of Education, National Center for Education Statistics. Washington, DC: U.S. Government Printing Office.
+                    <SU>7</SU>
+                    <FTREF/>
+                     To be eligible for the 17-month OPT extension, a student must have received a degree in the following: 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>7</SU>
+                         This publication may be found at 
+                        <E T="03">http://nces.ed.gov/pubs2002/2002165_2.pdf</E>
+                        . 
+                    </P>
+                </FTNT>
+                <P>• Actuarial Science. NCES CIP Code 52.1304 </P>
+                <P>• Computer Science: NCES CIP Codes 11.xxxx (except Data Entry/Microcomputer Applications, NCES CIP Codes 11.06xx) </P>
+                <P>• Engineering: NCES CIP Codes 14.xxxx </P>
+                <P>• Engineering Technologies: NCES CIP Codes 15.xxxx </P>
+                <P>• Biological and Biomedical Sciences: NCES CIP Codes 26.xxxx </P>
+                <P>• Mathematics and Statistics: NCES CIP Codes 27.xxxx </P>
+                <P>• Military Technologies: NCES CIP Codes 29.xxxx </P>
+                <P>• Physical Sciences: NCES CIP Codes 40.xxxx </P>
+                <P>• Science Technologies: NCES CIP Codes 41.xxxx </P>
+                <P>• Medical Scientist (MS, PhD): NCES CIP Code 51.1401 </P>
+                <FP>
+                    The approved list is available on SEVP's Web site at 
+                    <E T="03">http://www.ice.gov/sevis.</E>
+                     DHS welcomes comment on the list and any recommendations for additional degrees that the Department should consider for inclusion in the list. DHS will continue to work with interested parties to evaluate the degrees that may be added to this list in the future, and will be reaching out to other agencies in the development of the final rule. The Department, however, must also continue to ensure that the extension remains limited to students with degrees in major areas of study falling within a technical field where there is a shortage of qualified, highly-skilled U.S. workers and that is essential to this country's technological innovative competitiveness. 
+                </FP>
+                <P>DHS will announce any future changes to the list on this Web site. Note that catch-all NCES CIP codes ending in “99” are not considered STEM designated degrees. </P>
+                <P>Students who wish to extend OPT must request that their DSO recommend the 17-month OPT extension. DSOs recommending the extension must verify the student's eligibility, certify that the student's degree is on the STEM Designated Degree Program List, and ensure that the student is aware of his or her responsibilities for maintaining status while on OPT. The DSO must make the recommendation to extend OPT for the student through SEVP's Student and Exchange Visitor Information System (SEVIS), a Web-enabled database for the collection of information related to F, M and J nonimmigrants, certified schools, and State Department approved exchange visitor programs. SEVP will implement an interim update to SEVIS to ensure schools can recommend extending the authorized OPT period for 17 months for qualified students. The changes will be minimal due to the short time for planning and the reduced testing cycle. SEVP is also planning a major SEVIS release in the first part of FY 2009 to more fully support the new regulatory requirements. SEVP will publish interim instructions for the period between the interim update and the major release and provide training opportunities for DSOs. SEVIS help desk personnel will provide assistance with the proper interim procedures. </P>
+                <P>
+                    Once the DSO recommends a student for the extension, the student must submit a Form I-765 and appropriate fees (as indicated in the form instructions) to USCIS. Instructions for filing the Form I-765 can be found at USCIS' Web site at 
+                    <E T="03">http://www.uscis.gov.</E>
+                </P>
+                <P>This interim final rule also extends EADs for students with pending requests for extension of post-completion OPT. An F-1 student who has properly filed Form I-765 prior to the end date of his or her post completion OPT is allowed to maintain continuous employment for up to 180 days while USCIS adjudicates the request for the extension. </P>
+                <P>To implement the changes discussed in this rulemaking, USCIS is making conforming amendments to Form I-765 to ensure that that the F-1 students seeking a 17-month extension of their post-completion OPT are, in fact, eligible to do so. USCIS is amending this form to add, among other things, a new question #17 asking students to identify the degree they have received, so that USCIS may determine that the student has received a degree in a STEM field. The new Form I-765 also will ask the student seeking the extension to provide the name of their employer (as listed in E-Verify), and their employer's E-Verify Company I.D. number or, if the employer is using a Designated Agent to perform the E-Verify queries, a valid E-Verify Client Company I.D. number </P>
+                <HD SOURCE="HD3">2. Requirement for Employers of Students With a 17-Month OPT Extension </HD>
+                <HD SOURCE="HD3">a. USCIS E-Verify Employment Verification Program </HD>
+                <P>
+                    As discussed above, only students who are employed by employers who have enrolled, and are determined by USCIS to be in good standing, in USCIS' 
+                    <PRTPAGE P="18949"/>
+                    E-Verify program will be eligible for the 17-month extension of post-completion OPT. The E-Verify program is an Internet-based system operated by USCIS, in partnership with the Social Security Administration (SSA). E-Verify is currently free to employers and is available in all 50 states, the District of Columbia, Puerto Rico, Guam, and the U.S. Virgin Islands. E-Verify electronically compares information contained on the Employment Eligibility Verification Form I-9 (herein Form I-9) with records contained in SSA and DHS databases to help employers verify identity and employment eligibility of newly-hired employees. This program currently is the best means available for employers to determine employment eligibility of new hires and the validity of their Social Security Numbers. 
+                </P>
+                <P>Before an employer can participate in the E-Verify program, the employer must enter into a Memorandum of Understanding (MOU) with DHS and SSA. This memorandum requires employers to agree to abide by current legal hiring procedures and to ensure that no employee will be unfairly discriminated against as a result of the E-Verify program. Violation of the terms of this agreement by the employer is grounds for immediate termination of its participation in the program. </P>
+                <P>Employers participating in E-Verify must still complete a Form I-9 for each newly hired employee, as required under current law. Following completion of the Form I-9, the employer must enter the newly hired worker's information into the E-Verify Web site, and that information is then checked against information contained in SSA and USCIS databases. E-Verify compares employee information against more than 425 million records in the SSA database and more than 60 million records stored in the DHS database. Currently, 93 percent of all employer queries are instantly verified as work authorized. </P>
+                <P>
+                    It is important to note that, once an employer enrolls in E-Verify, that employer is responsible for verifying all new hires, including newly hired OPT students with 17-month OPT extensions, at the hiring site(s) identified in the MOU executed by the employer and DHS. New hires must be verified to be authorized to work in the United States through E-Verify within three days of hire. If, however, an employer enrolls in E-Verify to retain the employment of an OPT student, the employer may not verify the employment eligibility of the OPT employee in E-Verify as the MOU prohibits the verification of existing employees. Additional information on enrollment and responsibilities under E-Verify can be found at 
+                    <E T="03">http://www.uscis.gov/E-Verify.</E>
+                </P>
+                <P>
+                    Employers can register for E-Verify on-line at 
+                    <E T="03">http://www.uscis.gov/E-Verify.</E>
+                     The site provides instructions for completing the MOU needed to officially register for the program. 
+                </P>
+                <HD SOURCE="HD3">b. Employer Reporting Requirement </HD>
+                <P>SEVP's ability to track nonimmigrant students in the United States relies on reporting by the students' DSOs. DSOs obtain the needed information from the school's recordkeeping systems and contact with the students. Students on OPT, however, are often away from the academic environment, making it difficult for DSOs to ensure proper and prompt reporting on student status to SEVP. While DHS regulations currently require DSOs to update SEVIS, the current reporting requirements depend entirely on the student's timely compliance. DSOs are not currently required to review and verify information reported by students on a recurring basis. This combination of factors hinders systematic reporting and SEVP's ability to track F-1 students during OPT. </P>
+                <P>
+                    Accordingly, DHS will only extend post-completion OPT for students employed by employers that agree to report when an F-1 student on extended OPT terminates or otherwise leaves his or her employment with the employer prior to end of the authorized period of OPT. The employer must report this information to the DSO of the student's school no later than 48 hours after the student leaves employment. Employers must report this information to the DSO at the student's school unless DHS announces another means to report such information through a 
+                    <E T="04">Federal Register</E>
+                     notice. The contact information for the DSO is on the student's Form I-20. DHS welcomes comments on possible means for directly reporting to DHS, such as through electronic means similar to or associated with the E-Verify platform. 
+                </P>
+                <HD SOURCE="HD2">B. Expansion of Cap-Gap Relief for All F-1 Students With Pending H-1B Petitions </HD>
+                <P>Currently, F-1 students who are the beneficiaries of approved H-1B petitions, but whose period of admission (including authorized periods of post-completion OPT and the subsequent 60-day departure preparation period) expires before the H-1B employment start date, have a gap in authorized stay and employment between the end of their F-1 status and the beginning of their H-1B employment. This situation is commonly referred to as the “cap-gap.” </P>
+                <P>
+                    USCIS is authorized to extend the status of F-1 students caught in a cap gap between the end of the student's F-1 status and the start date on his or her approved H-1B petition.
+                    <SU>8</SU>
+                    <FTREF/>
+                     8 CFR 214.2(f)(5)(vi). The current regulations, however, do not provide for a commensurate extension of students' employment authorization to cover the gap period. Additionally, the regulations currently provide that USCIS must determine that the H-1B cap will be met prior to the end of the “current” fiscal year before it may authorize an extension of stay for students subject to the cap gap for that fiscal year by means of a notice published in the 
+                    <E T="04">Federal Register</E>
+                    . 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>8</SU>
+                         The current regulations also require that the “Commissioner” issue the notice in the 
+                        <E T="04">Federal Register</E>
+                        . This is a technical error because this regulation has not been updated since the responsibilities of the Commissioner of the former INS were transferred to the Department of Homeland Security in March 2003 under the Homeland Security Act of 2002. Because DHS is removing this provision altogether, there is no need to make the technical correction from “Commissioner” to “Director [of USCIS]” at this time. 
+                    </P>
+                </FTNT>
+                <P>
+                    This interim rule expands the relief offered by the existing cap gap provision by first eliminating the limitation that cap gap relief be authorized only when the H-1B cap is likely to be reached prior to the end of the current fiscal year. This interim rule also removes the requirement that USCIS issue a notice in the 
+                    <E T="04">Federal Register</E>
+                     to announce the extension of status and instead allows an automatic extension of status and employment authorization for F-1 students with pending H-1B petitions. If USCIS denies a pending H-1B petition, the student will have the standard 60-day period (from notification of the denial or rejection of the petition) before they have to leave the United States. 
+                </P>
+                <P>Unlike the extension of post-completion OPT, which is limited to F-1 students who have obtained STEM degrees, the extension of status for ­F-1 students in a cap-gap applies to all ­F-1 students with pending H-1B petitions during a fiscal year. </P>
+                <HD SOURCE="HD2">C. Related Changes to the OPT Requirements </HD>
+                <HD SOURCE="HD3">1. Changes to Post-Completion OPT </HD>
+                <P>
+                    Currently, students must apply for post-completion OPT prior to completing their course requirements. 8 CFR 214.2(f)(10)(ii)(A). This is inconsistent with other regulatory provisions allowing students to transfer, apply for a new degree program, or change to another nonimmigrant status 
+                    <PRTPAGE P="18950"/>
+                    during their 60-day post-completion departure preparation period. Problems also arise if students fail to complete their program after receiving authorization for post-completion OPT. Therefore, this rule allows students to apply for post-completion OPT during the 60-day departure preparation period. 
+                </P>
+                <HD SOURCE="HD3">2. Periods of Unemployment During OPT </HD>
+                <P>DHS regulations currently define the period of an F-1 student's status as the time the student is pursuing a full course of study at an SEVP-certified school or engaging in authorized post-completion OPT. 8 CFR 214.2(f)(5). They do not specify how much time the student may be unemployed, making it difficult to determine when an unemployed student on post-completion OPT violates the requirements for remaining in ­F-1 status. As status during OPT is based on the premise that the F-1 student is working, there must be a limit on unemployment, just as the ­F-1 student's period in school is based on the premise that he is actually pursuing a full-time course of study, and there are limits on how often the student can reduce his course load. An F-1 student who drops out of school or does not pursue a full-time course of study loses status; an F-1 student with OPT who is unemployed for a significant period should similarly put his status in jeopardy. Therefore, this rule specifies an aggregate maximum allowed period of unemployment of 90 days for students on 12-month OPT. This maximum period increases by 30 days for F-1 students who have an approved 17-month OPT period. In addition to clarifying the student's status, this measure allows time for job searches or a break when switching employers. </P>
+                <HD SOURCE="HD1">III. Regulatory Requirements </HD>
+                <HD SOURCE="HD2">A. Administrative Procedure Act </HD>
+                <P>
+                    To avoid a loss of skilled students through the next round of H-1B filings in April 2008, DHS is implementing this initiative as an interim final rule without first providing notice and the opportunity for public comment under the “good cause” exception found under the Administrative Procedure Act (APA) at 5 U.S.C. 553(b). The APA provides that an agency may dispense with notice and comment rulemaking procedures when an agency, for “good cause,” finds that those procedures are “impracticable, unnecessary, or contrary to the public interest.” 
+                    <E T="03">See</E>
+                     5 U.S.C. 553(b)(B). The exception excuses notice and comment, however, in emergency situations, or where “the delay created by the notice and comment requirements would result in serious damage to important interests.” 
+                    <E T="03">Woods Psychiatric Institute</E>
+                     v. 
+                    <E T="03">United States,</E>
+                     20 Cl. Ct. 324, 333 (1990), 
+                    <E T="03">aff'd</E>
+                     925 F.2d 1454 (Fed. Cir. 1991); 
+                    <E T="03">see also National Fed'n of Fed. Employees</E>
+                     v. 
+                    <E T="03">National Treasury Employees Union,</E>
+                     671 F.2d 607, 611 (D.C. Cir. 1982). 
+                </P>
+                <P>Currently, DHS estimates, through data collected by SEVP's Student and Visitor Exchange Information System (SEVIS), that there are approximately 70,000 F-1 students on OPT in the United States. About one-third have earned a degree in a STEM field. Many of these students currently are in the United States under a valid post-completion OPT period that was granted immediately prior to the conclusion of their studies last year. Those students soon will be concluding the end of their post-completion OPT and will need to leave the United States unless they are able to obtain an H-1B visa for FY09 or otherwise maintain their lawful nonimmigrant status. DHS estimates that there are 30,205 F-1 students with OPT expiring between April 1 and July 31 of this year. The 17-month extension could more than double the total period of post-completion OPT for F-1 students in STEM fields. Even if only a portion of these students choose to apply for the extension, this extension has the potential to add tens of thousands of OPT workers to the total population of OPT workers in STEM occupations in the U.S. economy. </P>
+                <P>
+                    This interim rule also provides a permanent solution to the “cap-gap” issue by an automatic extension of the duration of status and employment authorization to the beginning of the next fiscal year for F-1 students who have an approved or pending H-1B petition. This provision allows U.S. employers and affected students to avoid the gap in continuous employment and the resulting possible violation of status. This increases the ability of U.S. employers to compete for highly qualified employees and makes the United States more competitive in attracting foreign students. Based on the historical numbers of “cap-gap” students taking advantage of a 
+                    <E T="04">Federal Register</E>
+                     Notice extending F-1 status, ICE estimates that up to 10,000 students will have approved H-1B petitions with FY09 start dates. At the end of their OPT, these students must terminate employment and either depart the United States within 60 days or extend their F-1 status by enrolling in another course of study. Unless this rule, and the cap gap relief it affords, is implemented this Spring, all these students must interrupt their employment and those who leave the United States will not be allowed to return until the October 1, 2008 start date on their H-1B petitions. 
+                </P>
+                <P>The ability of U.S. high-tech employers to retain skilled technical workers, rather than losing such workers to foreign business, is an important economic interest for the United States. This interest would be seriously damaged if the extension of the maximum OPT period to twenty-nine months for F-1 students who have received a degree in science, technology, engineering, or mathematics is not implemented early this spring, before F-1 students complete their studies and, without this rule in place and effective, would be required to leave the United States. </P>
+                <P>
+                    Accordingly, DHS finds that good cause exists under 5 U.S.C. 553(b) to issue this rule as an interim final rule. DHS nevertheless invites written comments on this interim rule. Further, because this interim final rule relieves a restriction by extending the maximum current post-completion OPT period for certain students from 12 months to up to 29 months, DHS finds that this rule shall become effective immediately upon publication of this interim final rule in the 
+                    <E T="04">Federal Register</E>
+                    . 5 U.S.C. 553(d). 
+                </P>
+                <HD SOURCE="HD2">B. Regulatory Flexibility Act </HD>
+                <P>The Regulatory Flexibility Act (RFA) (5 U.S.C. 605(b)), as amended by the Small Business Regulatory Enforcement and Fairness Act of 1996 (SBRFA), requires an agency to prepare and make available to the public a regulatory flexibility analysis that describes the effect of the rule on small entities (i.e., small businesses, small organizations, and small governmental jurisdictions). RFA analysis is not required when a rule is exempt from notice and comment rulemaking under 5 U.S.C. 553(b). DHS has determined that this rule is exempt from notice and comment rulemaking pursuant to 5 U.S.C. 553(b)(B). An RFA analysis, therefore, is not required for this rule. </P>
+                <HD SOURCE="HD2">C. Small Business Regulatory Enforcement Fairness Act of 1996 </HD>
+                <P>
+                    This is not a major rule, as defined by Section 804 of the Small Business Regulatory Enforcement Act of 1996. This rule will not result in an annual effect on the United States economy of $100 million or more; a major increase in costs or prices; or significant adverse effects on competition, employment, investment, productivity, innovation, or the ability of United States-based companies to compete with foreign-
+                    <PRTPAGE P="18951"/>
+                    based companies in domestic and export markets. 
+                </P>
+                <HD SOURCE="HD2">D. Executive Order 12866 </HD>
+                <P>This proposed rule has been designated as a “significant regulatory action” under Executive Order 12866. This rule therefore has been submitted to OMB for review. In addition, under section 6(a)(3)(C) of the Executive Order, DHS has prepared an assessment of the benefits and costs anticipated to occur as a result of this regulatory action and provided the assessment to OMB for review. This assessment is as follows: </P>
+                <P>
+                    <E T="03">Recent numbers:</E>
+                     This rule will have an impact on a small percentage of international students in the United States. According to the DHS Office of Immigration Statistics, an average of approximately 642,000 F-1 academic students, at all grade levels, have entered the United States per year in fiscal years 2004, 2005, and 2006.
+                    <SU>9</SU>
+                    <FTREF/>
+                     According to the Institute of International Education, approximately 583,000 of these students are college students.
+                    <SU>10</SU>
+                    <FTREF/>
+                     Of those, SEVP records indicate that close to 70,000 students currently participate in OPT and, of those, only about 23,000 are OPT participants who are studying in designated STEM fields. Thus, about 3.6 percent of F-1 students could potentially benefit from this rule. Nonetheless, as shown below, this may be a sufficient number to significantly benefit employers who are in need of workers in STEM-related fields. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>9</SU>
+                         DHS Office of Immigration Statistics, Temporary Admissions of Nonimmigrants to the United States: 2006, “Nonimmigrant Admissions (I-94 Only) by Class of Admission: Fiscal Years 2004 to 2006.” Available on line at 
+                        <E T="03">http://www.dhs.gov/xlibrary/assets/statistics/publications/NI_FR_2006_508_final.pdf</E>
+                        . 
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>10</SU>
+                         The Institute of International Education, “International Student and Total U.S. Enrollment” Available on line at: 
+                        <E T="03">http://opendoors.iienetwork.org/?p=113122.</E>
+                          
+                    </P>
+                </FTNT>
+                <P>
+                    <E T="03">OPT extension volume estimate:</E>
+                     A reasonable estimate of the number of students who will participate in this new OPT 17-month extension program is difficult for a number of reasons, but DHS estimates that about 12,000 students will apply for an OPT extension after this rule takes effect. Of the 23,000 OPT students, however, about 4,000 have bachelor's degrees, 13,000 have master's degrees, and 6,000 have a doctorate. Anecdotal evidence indicates that foreign students with a master's or bachelor's degrees often continue as students and pursue more advanced degrees. DHS experience indicates that many of these students will be granted H-1B status and will not need an OPT extension, although actual records do not exist on the rates at which F-1 OPT participants actually receive an H-1B position. Additionally, some students will not request an OPT extension because they are returning to their home country, while many students will want to stay. According to a report from the Oak Ridge Institute for Science and Education, 65 percent of 2000 U.S. science and engineering doctoral degree recipients with temporary visas were still in the United States in 2005, up from a 61 percent 5-year stay rate found in 2003.
+                    <SU>11</SU>
+                    <FTREF/>
+                     This implies that STEM students stay in the U.S. at a relatively high rate. And, finally, the changes made by this rule are expected to increase the attractiveness of the OPT program. Although a precise estimate of the effect is impossible, the OPT application volume is likely to increase at least a slight amount because of the impact of this rule on program flexibility, length of stay, and students' quality of life. Therefore, after considering these factors, DHS estimates that about 12,000 of the 23,000 students who could apply for the OPT extension allowed by this rule, will apply in an average year after this rule takes effect. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>11</SU>
+                         Finn, Michael, “Stay Rates of Foreign Doctorate Recipients from U.S. Universities: 2005,” Oak Ridge Institute for Science and Education (2007). 
+                    </P>
+                </FTNT>
+                <HD SOURCE="HD3">Public Costs </HD>
+                <P>
+                    <E T="03">Fees.</E>
+                     The fee for Form I-765 is $340. 8 CFR 103.7(b)(1). Thus, the new filing fees to be collected by USCIS from students requesting an employment authorization document as a result of this rule will be about $4.1 million.
+                    <SU>12</SU>
+                    <FTREF/>
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>12</SU>
+                         $340 × 12,000 = $4,080,000. 
+                    </P>
+                </FTNT>
+                <P>
+                    <E T="03">Paperwork burden.</E>
+                     The public reporting burden for completion of the Form I-765 information is estimated at 3 hours and 25 minutes per response, including the time for reviewing instructions, completing and submitting the form. As discussed below in the Paperwork Reduction Act section of this rule, this form is being amended to add a space for STEM students to provide their degree, the name of their employer, and their employer's E-Verify Company I.D. number or, if the employer is using a Designated Agent to perform the E-Verify queries, a valid E-Verify Company Client Company I.D. Number. Therefore, the 12,000 students requesting OPT will expend approximately 3.42 hours per application for a total of 41,040 burden hours per year.
+                    <SU>13</SU>
+                    <FTREF/>
+                     Based on the private industry employer average compensation costs of $28.03 per hour worked,
+                    <SU>14</SU>
+                    <FTREF/>
+                     this requirement will result in an estimated total cost of $1.15 million.
+                    <SU>15</SU>
+                    <FTREF/>
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>13</SU>
+                         3.42 hours (25 minutes = .42 hours) × 12,000.
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>14</SU>
+                         Employer Costs for Employee Compensation, All civilian occupations, 3rd Quarter 2007, U.S. Department of Labor, Bureau of Labor Statistics at 
+                        <E T="03">http://data.bls.gov/cgi-bin/surveymost.</E>
+                         No consideration is given to possibly lower wage rates being applicable for students.
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>15</SU>
+                         3.42 hours × 12,000 applications = 41,040. 41,040 × 28.03 = $1,150,351 (rounded).
+                    </P>
+                </FTNT>
+                <P>
+                    <E T="03">New burden.</E>
+                     This rule adds to the current regulation's DSO and student reporting requirements. A student with a 17-month extension to post-completion OPT must also make a validation report to the DSO every six months starting from the date of the extension, within 10 business days, and ending when the student's F-1 status ends, if the student changes educational levels at the same school or the student transfers to another school or program. The validation is a confirmation that the student's information in SEVIS is current and accurate. The DSO is responsible for updating the student's record with SEVIS within 21 days. The DSO must also report in SEVIS when the employer of a student with the 17-month OPT extension reports that the student no longer works for that employer. 
+                </P>
+                <P>
+                    Also, this rule makes failure to report a basis for terminating the student's status and provides that failure to report can impact the future visa program and OPT eligibility of the school, employer, and student. Further, the school is required by this rule to report to SEVIS whether there have been any changes in the student's circumstances or not. Although the student is already required to report to the school DSO any changes in their address and their OPT employer's name and address, and the school is then required to report this information to SEVIS, program familiarity and anecdotal evidence indicates that full compliance is lacking. The increased incentives to comply with the reporting requirements provided in this rule will result in about 2.5 additional reports per student per extension period from students to schools and schools to SEVIS. Each report or update will require an estimated 10 minutes. Thus, for the 12,000 students and graduates expected to benefit from this rule, an additional reporting burden of 5,000 hours (12,000 × .42 hours) is estimated to occur for both the student and school for a total of 5,000 additional hours of burden. Based on the private industry employer average compensation costs of $28.03 per hour worked,
+                    <SU>16</SU>
+                    <FTREF/>
+                     this requirement 
+                    <PRTPAGE P="18952"/>
+                    will result in an estimated total cost of $140,150 (5,000 hours × $28.03). 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>16</SU>
+                         Employer Costs for Employee Compensation, All civilian occupations, 3rd Quarter 2007, U.S. Department of Labor, Bureau of Labor Statistics at 
+                        <E T="03">http://data.bls.gov/cgi-bin/surveymost.</E>
+                         No 
+                        <PRTPAGE/>
+                        consideration is given to possibly lower wage rates being applicable for students. 
+                    </P>
+                </FTNT>
+                <P>DHS has determined that the currently approved information collection burden for SEVIS contains a high enough estimate of that program's paperwork burden on program participants to encompass this rule's requirements because reporting requirements were already imposed, although not with the utmost clarity. Also, current regulations do not impose any penalty on a school or student for failure to report. SEVP will work with schools on the best way to implement this new reporting requirement so as to maximize its benefit while minimizing its burden on participating students and schools. SEVP is making conforming amendments to its approved information collection for SEVIS and has included the updated burden estimates. Public comments are especially welcome on these changes. </P>
+                <P>
+                    <E T="03">E-Verify Registration.</E>
+                     This rule requires employers of F-1 students participating in the 17-month OPT extension to enroll in E-Verify. That will require the employer to register for E-Verify if they wish to hire an employee under the extended OPT. Less than 1 percent of the total number of employers in the United States are currently enrolled in E-Verify and a similar percentage of enrollment in E-Verify would be expected for OPT employers. Thus, DHS anticipates that most employers who would want to employ these students under the 17-month extension would need to register for E-Verify.
+                    <SU>17</SU>
+                    <FTREF/>
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>17</SU>
+                         No allowance is made for the few employers that would choose to no longer hire students under OPT because of this requirement. 
+                    </P>
+                </FTNT>
+                <P>The time and cost associated with registering for E-Verify largely depends on the access method a company chooses. The vast majority of companies will sign up for employer access which requires approximately 3 to 4 hours for a person to register online, read and review the Memorandum of Understanding, and take the tutorial. A recent cost analysis for the E-Verify program looked at the associated costs for an organization to undertake the above tasks based on an average salary and the time required. According to this analysis, a company would spend an average of $170 per registration for the Employer Access method. This cost could increase if an employer chose to use a Designated Agent or Web Services as their access method. The Designated Agent costs can vary greatly and would be difficult to estimate as many employers contract with a Designated Agent to perform a variety of human resources related tasks. Web Services would also likely involve a significant cost and time to the employer as they would need to design their own software to interface with the E-Verify system. </P>
+                <P>
+                    DHS has no record of the numbers or identity of employers hiring students under OPT, no figures on those that hire students and also participate in E-Verify, no data on the average number of employees in such firms, and no data on the average number of employees hired by such firms for which the immigration status will have to be verified. However, since this rule is applicable only to STEM students and recent graduates, it is estimated that the employers and positions will be similar in characteristics to those hiring employees in the H-1B specialty worker program. In that program, USCIS records show that in FY 2007, about 29,000 different employers employed at least one of the 65,000 initial H-1B employees (based on employer identification number) with about 20,000 employing only one H-1B employee. Thus, employers hiring new H-1B employees in FY 2007 hired an average of 2.24 each. If the 12,000 students per year that DHS is estimating will receive an OPT extension are distributed along those same lines, as is expected, they will work for approximately 5,357 employers (12,000/2.24). Since about 1.0 percent of employers are already enrolled in E-Verify already, 5,300 employers are estimated to have to enroll in E-Verify as a result of this rule. At $170 per registration for the Employer Access method, the total initial enrollment costs from this rule would be $901,000.
+                    <SU>18</SU>
+                    <FTREF/>
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>18</SU>
+                         It is assumed for this analysis that there would be no initial costs for acquiring computers or Internet connections for employers that would hire an OPT student or graduate with an STEM major study area. 
+                    </P>
+                </FTNT>
+                <P>
+                    At the end of registration, the company is required to read and sign a Memorandum of Understanding (MOU) that provides the terms of agreement between the employer, SSA, and USCIS. It is expected that each company will have a Human Resources manager review the MOU and that many companies will also have a lawyer and or a general manager review the MOU. Using the Bureau of Labor Statistics (BLS) estimates for the average hourly labor rate, plus a multiplier of 1.4 to account for fringe benefits, DHS calculated a labor rate of $48.33 for an HR manager, $60.93 per hour for a general manager, and $76.09 for legal counsel.
+                    <SU>19</SU>
+                    <FTREF/>
+                     Based on the amount of time that company employees are expected to spend reviewing and approving the MOU, DHS estimates this rule will cost the 5,300 establishments that must enroll in E-Verify in order to hire OPT students about $64 each or a total of $339,200 to review, approve, and sign the MOU. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>19</SU>
+                         The 1.4 multiplier used here to adjust base compensation levels to account for private industry compensation costs was taken from the BLS publication “Employer Costs for Employee Compensation—March 2007.” 
+                    </P>
+                </FTNT>
+                <P>
+                    <E T="03">New hire verification.</E>
+                     This rule will require the affected employers of students to verify the status of every new employee they hire using E-Verify.
+                    <SU>20</SU>
+                    <FTREF/>
+                     To calculate this annual cost, DHS estimated the number of new employees hired by these employers in an average year. While there is no record of the average size of an employer of OPT students, it is assumed that the average monthly and annual employee hire rate for these employers is consistent with the average. An estimate of the average number of employees may be made based on the average number of employees per firm in industries where STEM employment is prevalent. The 2002 Economic Census 
+                    <SU>21</SU>
+                    <FTREF/>
+                     indicates that, as of 2002, in industries where STEM employment is most prevalent, 1.7 million firms have 26.5 million employees, or an average of 16 employees per firm.
+                    <SU>22</SU>
+                    <FTREF/>
+                     According to the Bureau of Labor Statistics, the new hires rate (number of hires to the payroll during the month as a percent of total employment) in the industries where STEM employment is believed to be most prevalent was about 2.5 percent in February 2008.
+                    <SU>23</SU>
+                    <FTREF/>
+                     Therefore, for 12 months, newly hired and rehired employees amount to about 30 percent (12 months × 2.5 percent monthly hire rate) of the total number of current employees in the STEM related industries. For an establishment with 16 employees, that hire rate would result in about 5 new hires per year. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>20</SU>
+                         There is no requirement that these employers verify the immigration status of their current employees. 
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>21</SU>
+                         Available on line at 
+                        <E T="03">http://www.census.gov/econ/census02/guide/SUBSUMM.HTM.</E>
+                          
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>22</SU>
+                         Information: 3,736,061 employees, 137,678 establishments. Professional, Scientific, and Technical Services: 7,243,505 employees, 771,305 establishments. Educational Services: 430,164 employees, 49,319 establishments. Health Care and Social Assistance: 15,052,255 workers, 704,526 establishments.
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>23</SU>
+                         Bureau of Labor Statistics, Job Openings and Labor Turnover Survey. Available on line at 
+                        <E T="03">http://www.bls.gov/web/ceshighlights.pdf.</E>
+                          
+                    </P>
+                </FTNT>
+                <P>
+                    To verify new hires, the E-Verify participant company must submit a query before the end of three business days after the new hire's actual start 
+                    <PRTPAGE P="18953"/>
+                    date. Based on the number of queries and case resolutions for the current E-Verify program from January through June of 2007, the time required to enter this information into the computer and submit the query, and the costs incurred by an employee to challenge occurrences of tentative nonconfirmation, DHS has calculated the combined costs incurred by an employer and prospective employee to verify each new hire to be about $6.36 per new hire. Thus, the annual public cost incurred for verification of new hires for the 5,300 employers affected by this rule is around $168,540 (5,300 × 5 × $6.36). 
+                </P>
+                <P>In summary, the total public cost of this rule requiring employers of F-1 students participating in the 17-month OPT extension to enroll in E-Verify will be $1,240,000 ($901,000 + $339,200) up front and $168,540 per year thereafter. </P>
+                <HD SOURCE="HD3">Government Costs </HD>
+                <P>This rule requires no additional outlays of DHS funds. The requirements of this rule and the associated benefits are funded by fees collected from persons requesting these benefits. The fees are deposited into the Immigration Examinations Fee Account. These fees are used to fund the full cost of processing immigration and naturalization benefit applications and petitions and associated support services. </P>
+                <HD SOURCE="HD3">Public Benefit </HD>
+                <P>
+                    <E T="03">Improved U.S. competitive position for STEM students and employees.</E>
+                     The primary benefits to be derived from allowing the extension of OPT relates to maintaining and improving the United States competitive position in the market. Over the past 20 years, there has been a sustained globalization of the STEM labor force, according to the National Science Board's “Science and Engineering Indicators 2008.” Increased globalization has turned the labor market for STEM workers into a worldwide marketplace.
+                    <SU>24</SU>
+                    <FTREF/>
+                     Today, investment crosses borders in search of available talent, talented people cross borders in search of work, and employers recruit internationally. Slowing of the growth of the science and engineering labor force in the United States could affect both technological change and economic growth. As a result, the United States must be successful in the increasing international competition for immigrant and temporary nonimmigrant scientists and engineers. The employment-based immigrant visa ceiling makes it difficult for foreign students to stay in the United States permanently after their studies because long delays in the immigrant visa process usually makes it impractical to be directly hired with an immigrant visa. Though obtaining a nonimmigrant work visa like an H-1B is a much quicker process, the oversubscription of the H-1B program makes obtaining even temporary work authorization an uncertain prospect. Studies show that the most talented employees worldwide are increasingly unwilling to tolerate the long waits and uncertainty entailed in coming to work temporarily in or immigrating to the United States. Instead, they are going to Europe, Canada, Australia and other countries where knowledge workers face fewer immigration difficulties.
+                    <SU>25</SU>
+                    <FTREF/>
+                     This rule will help ease this difficulty by adding an estimated 12,000 OPT students to the STEM-related workforce. With only 65,000 H-1B visas available annually, this number represents a significant expansion of the available pool of skilled workers. 
+                </P>
+                <FTNT>
+                    <P>
+                        <SU>24</SU>
+                         National Science Foundation, National Science Board, “Science and Engineering Indicators 2008.” Available on line at 
+                        <E T="03">http://www.nsf.gov/statistics/seind08/.</E>
+                          
+                    </P>
+                </FTNT>
+                <FTNT>
+                    <P>
+                        <SU>25</SU>
+                         E.g. Hansen, Fay, “Green Card Recruiting,” Workforce Management, Recruiting and Staffing (Jan. 2007). Available on line at 
+                        <E T="03">http://www.workforce.com/section/06/feature/24/64/42/index.html.</E>
+                          
+                    </P>
+                </FTNT>
+                <P>
+                    <E T="03">Student's quality of life.</E>
+                     The most significant qualitative improvement made by this rule is the enhancement related to improving the quality of life for participating students by making available an extension of OPT status for up to 17 months for certain students following post-completion OPT. Additionally, the changes to the cap gap provision for F-1 students will allow up to 10,000 students to remain in the United States and work while waiting to become an H-1B worker. These and similar changes made by this rule will significantly enhance the experience of the student who participates in the program by potentially allowing them more time and flexibility while considering employment in the United States. Students should experience much less stress about their need to comply with tight time frames or risk being out of status. These changes will result an increase in the attractiveness of the program. 
+                </P>
+                <HD SOURCE="HD3">Conclusion </HD>
+                <P>This rule will cost students approximately $1.49 million per year in additional information collection burdens, $4,080,000 in fees, and cost employers $1,240,000 to enroll in E-Verify and $168,540 per year thereafter to verify the status of new hires. However, this rule will increase the availability of qualified workers in science, technology, engineering, and mathematical fields; reduce delays that place U.S. employers at a disadvantage when recruiting foreign job candidates; increase the quality of life for participating students, and increase the integrity of the student visa program. Thus, DHS has determined that the benefits of this rule to the public exceed its costs. </P>
+                <HD SOURCE="HD2">E. Executive Order 13132 </HD>
+                <P>This rule will not have a substantial direct effect on the states, on the relationship between the national government and the states, or on the distribution of power and responsibilities among the various levels of government. Therefore, in accordance with section 6 of Executive Order 13132, DHS has determined that this rule does not have sufficient federalism implications to warrant the preparation of a federalism summary impact statement. </P>
+                <HD SOURCE="HD2">F. Executive Order 12988 Civil Justice Reform </HD>
+                <P>This rule meets the applicable standards set forth in sections 3(a) and 3(b)(2) of Executive Order 12988. </P>
+                <HD SOURCE="HD2">G. Paperwork Reduction Act </HD>
+                <P>Under the Paperwork Reduction Act of 1995, Public Law 104-13, all departments are required to submit to OMB, for review and approval, any reporting requirements inherent in a rule. To implement the changes discussed in this rulemaking, USCIS is making conforming amendments to Form I-765, Application for Employment Authorization (current OMB Control No. 1615-0040), which is used by students to apply for pre- and post-completion OPT. Specifically, this form is being amended to add a new question #17, asking STEM students to provide their degree, the name of their employer (as listed in E-Verify), and their employer's E-Verify Company identification number or, if the employer is using a Designated Agent to perform the E-Verify queries, a valid E-Verify Client Company identification number. The collection of this information is necessary to ensure that F-1 students seeking a 17-month extension of their post-completion OPT are, in fact, eligible to do so. E-Verify has been approved by OMB under OMB Control No. 1615-0092. USCIS will submit an OMB Correction Worksheet (OMB 83-C), increasing the number of respondents, for both Form I-765 and E-Verify (OMB Control No. 1615-0092). </P>
+                <P>
+                    To implement the changes discussed in this rulemaking, SEVP is making 
+                    <PRTPAGE P="18954"/>
+                    conforming amendments to its information collection for the Student and Exchange Visitor Information System (SEVIS; current OMB Control No. 1653-0038). This authorization encompasses all data collected to meet the requirements of the Student and Exchange Visitor Program (SEVP). This further includes completion of Forms I-20, Certificate of Eligibility for Nonimmigrant Student Status, which are updated and generated by SEVIS in the recommendation for employment authorization and tracking of activity. The reporting requirements in this rule will impact 3% of the total number of F-1 students, those who are eligible for the 29-month OPT option. Additions to the reporting burden include: 
+                </P>
+                <P>• DSO verification of student qualification for OPT and issuance of a Form I-20 recommending the 17-month extension of OPT for STEM students (five minutes per student applicant); </P>
+                <P>• Semiannual verification of student and employment information in SEVIS for all students with an approved 17-month extension of OPT (five minutes for both the student and a DSO per verification); and </P>
+                <P>• Updates to SEVIS records of about 25% of the students with an approved 17-month OPT who report a change in student name, student address, employer name, or employer address (five minutes for both the students and a DSO per verification). </P>
+                <P>• Updates by the DSO to SEVIS based on an estimated 600 reports by an employer that the student's employment has ended (five minutes for the reporting DSO).</P>
+                <FP>The aggregate annual increased burden related to all students on extended OPT is 12.5 minutes per student and 20 minutes per supporting DSO. Accordingly, SEVP has submitted the amended Supporting Statement, along with an OMB Correction Worksheet (OMB 83-C), increasing the number of respondents, the annual reporting burden hours and annual reporting burden cost for submitting. </FP>
+                <LSTSUB>
+                    <HD SOURCE="HED">List of Subjects </HD>
+                    <CFR>8 CFR Part 214 </CFR>
+                    <P>Administrative practice and procedure, Aliens, Employment, Foreign officials, Health professions, Reporting and recordkeeping requirements, Students. </P>
+                    <CFR>8 CFR Part 274a </CFR>
+                    <P>Administrative practice and procedure, Aliens, Employment, Penalties, Reporting and recordkeeping requirements.</P>
+                </LSTSUB>
+                <REGTEXT TITLE="8" PART="214">
+                    <AMDPAR>For the reasons set forth in the preamble, 8 CFR part 214 is amended as follows: </AMDPAR>
+                    <PART>
+                        <HD SOURCE="HED">PART 214—NONIMMIGRANT CLASSES </HD>
+                    </PART>
+                    <AMDPAR>1. The authority citation for part 214 continues to read as follows: </AMDPAR>
+                    <AUTH>
+                        <HD SOURCE="HED">Authority:</HD>
+                        <P>8 U.S.C. 1101, 1102, 1103, 1182, 1184, 1186a, 1187, 1221, 1281, 1282, 1301-1305 and 1372; section 643, Pub. L. 104-208, 110 Stat. 3009-708; Pub. L. 106-386, 114 Stat. 1477-1480; section 141 of the Compacts of Free Association with the Federated States of Micronesia and the Republic of the Marshall Islands, and with the Government of Palau, 48 U.S.C. 1901 note, and 1931 note, respectively; 8 CFR part 2.</P>
+                    </AUTH>
+                </REGTEXT>
+                <REGTEXT TITLE="8" PART="214">
+                    <AMDPAR>2. Amend § 214.2(f) by: </AMDPAR>
+                    <AMDPAR>a. Revising paragraph (f)(5)(vi); and </AMDPAR>
+                    <AMDPAR>b. Revising paragraphs (f)(10)(ii)(A), (C), and (E); and by; </AMDPAR>
+                    <AMDPAR>c. Revising paragraphs (f)(11) and (f)(12). </AMDPAR>
+                    <P>The revisions read as follows: </P>
+                    <SECTION>
+                        <SECTNO>§ 214.2 </SECTNO>
+                        <SUBJECT>Special requirements for admission, extension and maintenance of status. </SUBJECT>
+                        <STARS/>
+                        <P>(f) * * * </P>
+                        <P>(5) * * * </P>
+                        <STARS/>
+                        <P>
+                            (vi) 
+                            <E T="03">Extension of duration of status and grant of employment authorization.</E>
+                        </P>
+                        <P>(A) The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C), of an F-1 student who is the beneficiary of an H-1B petition and request for change of status shall be automatically extended until October 1 of the fiscal year for which such H-1B visa is being requested where such petition: </P>
+                        <P>
+                            (
+                            <E T="03">1</E>
+                            ) Has been timely filed; and 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">2</E>
+                            ) States that the employment start date for the F-1 student is October 1 of the following fiscal year. 
+                        </P>
+                        <P>(B) The automatic extension of an F-1 student's duration of status and employment authorization under paragraph (f)(5)(vi)(A) of this section shall immediately terminate upon the rejection, denial, or revocation of the H-1B petition filed on such F-1 student's behalf. </P>
+                        <P>(C) In order to obtain the automatic extension of stay and employment authorization under paragraph (f)(5)(vi)(A) of this section, the F-1 student, according to 8 CFR part 248, must not have violated the terms or conditions of his or her nonimmigrant status. </P>
+                        <P>(D) An automatic extension of an F-1 student's duration of status under paragraph (f)(5)(vi)(A) of this section also applies to the duration of status of any F-2 dependent aliens. </P>
+                        <STARS/>
+                        <P>(10) * * * </P>
+                        <P>
+                            (ii) 
+                            <E T="03">Optional practical training</E>
+                            . 
+                        </P>
+                        <P>
+                            (A) 
+                            <E T="03">General.</E>
+                             Consistent with the application and approval process in paragraph (f)(11) of this section, a student may apply to USCIS for authorization for temporary employment for optional practical training directly related to the student's major area of study. The student may not begin optional practical training until the date indicated on his or her employment authorization document, Form I-766. A student may be granted authorization to engage in temporary employment for optional practical training: 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">1</E>
+                            ) During the student's annual vacation and at other times when school is not in session, if the student is currently enrolled, and is eligible for registration and intends to register for the next term or session; 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">2</E>
+                            ) While school is in session, provided that practical training does not exceed 20 hours a week while school is in session; or 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">3</E>
+                            ) After completion of the course of study, or, for a student in a bachelor's, master's, or doctoral degree program, after completion of all course requirements for the degree (excluding thesis or equivalent). Continued enrollment, for the school's administrative purposes, after all requirements for the degree have been met does not preclude eligibility for optional practical training. A student must complete all practical training within a 14-month period following the completion of study, except that a 17-month extension pursuant to paragraph (f)(10)(ii)(C) of this section does not need to be completed within such 14-month period. 
+                        </P>
+                        <STARS/>
+                        <P>
+                            (C) 
+                            <E T="03">17-month extension of post-completion OPT for students with a science, technology, engineering, or mathematics (STEM) degree.</E>
+                             Consistent with paragraph (f)(11)(i)(C) of this section, a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT. The extension will be for an additional 17 months, for a maximum of 29 months of OPT, if all of the following requirements are met. 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">1</E>
+                            ) The student has not previously received a 17-month OPT extension after earning a STEM degree. 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">2</E>
+                            ) The degree that was the basis for the student's current period of OPT is a bachelor's, master's, or doctoral degree in one of the degree programs on the current STEM Designated Degree Program List, published on the SEVP Web site at 
+                            <E T="03">http://www.ice.gov/sevis.</E>
+                            <PRTPAGE P="18955"/>
+                        </P>
+                        <P>
+                            (
+                            <E T="03">3</E>
+                            ) The student's employer is registered in the E-Verify program, as evidenced by either a valid E-Verify company identification number or, if the employer is using a designated agent to perform the E-Verify queries, a valid E-Verify client company identification number, and the employer is a participant in good standing in the E-Verify program, as determined by USCIS. 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">4</E>
+                            ) The employer agrees to report the termination or departure of an OPT employee to the DSO at the student's school or through any other means or process identified by DHS if the termination or departure is prior to end of the authorized period of OPT. Such reporting must be made within 48 hours of the event. An employer shall consider a worker to have departed when the employer knows the student has left the employment or if the student has not reported for work for a period of 5 consecutive business days without the consent of the employer, whichever occurs earlier. 
+                        </P>
+                        <P>
+                            (D) 
+                            <E T="03">Duration of status while on post-completion OPT</E>
+                            . For a student with approved post-completion OPT, the duration of status is defined as the period beginning when the student's application for OPT was properly filed and pending approval, including the authorized period of post-completion OPT, and ending 60 days after the OPT employment authorization expires (allowing the student to prepare for departure, change educational levels at the same school, or transfer in accordance with paragraph (f)(8) of this section). 
+                        </P>
+                        <P>
+                            (E) 
+                            <E T="03">Periods of unemployment during post-completion OPT</E>
+                            . During post-completion OPT, F-1 status is dependent upon employment. Students may not accrue an aggregate of more than 90 days of unemployment during any post-completion OPT carried out under the initial post-completion OPT authorization. Students granted a 17-month OPT extension may not accrue an aggregate of more than 120 days of unemployment during the total OPT period comprising any post-completion OPT carried out under the initial post-completion OPT authorization and the subsequent 17-month extension period. 
+                        </P>
+                        <P>
+                            (11) 
+                            <E T="03">OPT application and approval process</E>
+                            .
+                        </P>
+                        <P>
+                            (i) 
+                            <E T="03">Student responsibilities</E>
+                            . A student must initiate the OPT application process by requesting a recommendation for OPT from his or her DSO. Upon making the recommendation, the DSO will provide the student a signed Form I-20 indicating that recommendation. 
+                        </P>
+                        <P>
+                            (A) 
+                            <E T="03">Application for employment authorization</E>
+                            . The student must properly file a Form I-765, Application for Employment Authorization, with USCIS, accompanied by the required fee for the Form I-765, and the supporting documents, as described in the form's instructions. 
+                        </P>
+                        <P>
+                            (B) 
+                            <E T="03">Filing deadlines for pre-completion OPT and post-completion OPT</E>
+                            . 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">1</E>
+                            ) Students may file a Form I-765 for pre-completion OPT up to 90 days before being enrolled for one full academic year, provided that the period of employment will not start prior to the completion of the full academic year. 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">2</E>
+                            ) For post-completion OPT, the student must properly file his or her Form I-765 up to 90 days prior to his or her program end-date and no later than 60 days after his or her program end-date. The student must also file the Form I-765 with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record. 
+                        </P>
+                        <P>
+                            (C) 
+                            <E T="03">Applications for 17-month OPT extension</E>
+                            . A student meeting the eligibility requirement in paragraph (f)(10)(ii)(C) of this section may file for a 17-month extension of employment authorization by filing Form I-765, Application for Employment Authorization, with the appropriate fee, prior to the expiration date of the student's current OPT employment authorization. If a student timely and properly files an application for a 17-month OPT extension, but the Form I-766, Employment Authorization Document, currently in the student's possession, expires prior to the decision on the student's application for 17-month OPT extension, the student's Form I-766 is extended automatically pursuant to the terms and conditions specified in 8 CFR 274a.12(b)(6)(iv). 
+                        </P>
+                        <P>
+                            (D) 
+                            <E T="03">Start of employment.</E>
+                             A student may not begin employment prior to the approved starting date on his or her employment authorization except as noted in paragraph (f)(11)(i)(C) of this section. A student may not request a start date that is more than 60 days after the student's program end date. Employment authorization will begin on the date requested or the date the employment authorization is adjudicated, whichever is later. 
+                        </P>
+                        <P>
+                            (ii) 
+                            <E T="03">DSO responsibilities</E>
+                            . A student needs a recommendation from his or her DSO in order to apply for OPT. When a DSO recommends a student for OPT, the school assumes the added responsibility for maintaining the SEVIS record of that student for the entire period of authorized OPT, consistent with paragraph (f)(12) of this section. 
+                        </P>
+                        <P>(A) Prior to making a recommendation, the DSO must ensure that the student is eligible for the given type and period of OPT and that the student is aware of his or her responsibilities for maintaining status while on OPT. Prior to recommending a 17-month OPT extension, the DSO must certify that the student's degree, as shown in SEVIS, is a bachelor's, master's, or doctorate degree with a degree code that is on the current STEM Designated Degree Program List. </P>
+                        <P>(B) The DSO must update the student's SEVIS record with the DSO's recommendation for OPT before the student can apply to USCIS for employment authorization. The DSO will indicate in SEVIS whether the employment is to be full-time or part-time, and note in SEVIS the start and end date of employment. </P>
+                        <P>(C) The DSO must provide the student with a signed, dated Form I-20 indicating that OPT has been recommended. </P>
+                        <P>
+                            (iii) 
+                            <E T="03">Decision on application for OPT employment authorization</E>
+                            . USCIS will adjudicate the Form I-765 and, if approved, issue an EAD on the basis of the DSO's recommendation and other eligibility considerations. 
+                        </P>
+                        <P>(A) The employment authorization period for post-completion OPT begins on the date requested or the date the employment authorization application is approved, whichever is later, and ends at the conclusion of the remaining time period of post-completion OPT eligibility. The employment authorization period for the 17-month OPT extension begins on the day after the expiration of the initial post-completion OPT employment authorization and ends 17 months thereafter, regardless of the date the actual extension is approved. </P>
+                        <P>(B) USCIS will notify the applicant of the decision and, if the application is denied, of the reason or reasons for the denial. </P>
+                        <P>(C) The applicant may not appeal the decision. </P>
+                        <P>
+                            (12) 
+                            <E T="03">Reporting while on optional practical training</E>
+                            . 
+                        </P>
+                        <P>
+                            (i) 
+                            <E T="03">General.</E>
+                             An F-1 student who is authorized by USCIS to engage in optional practical training (OPT) employment is required to report any change of name or address, or interruption of such employment to the DSO for the duration of the optional practical training. A DSO who recommends a student for OPT is responsible for updating the student's record to reflect these reported changes for the duration of the time that training is authorized. 
+                            <PRTPAGE P="18956"/>
+                        </P>
+                        <P>
+                            (ii) 
+                            <E T="03">Additional reporting obligations for students with an approved 17-month OPT.</E>
+                             Students with an approved 17-month OPT extension have additional reporting obligations. Compliance with these reporting requirements is required to maintain F-1 status. The reporting obligations are: 
+                        </P>
+                        <P>(A) Within 10 days of the change, the student must report to the student's DSO a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment. </P>
+                        <P>(B) The student must make a validation report to the DSO every six months starting from the date the extension begins and ending when the student's F-1 status ends, the student changes educational levels at the same school, or the student transfers to another school or program, or the 17-month OPT extension ends, whichever is first. The validation is a confirmation that the student's information in SEVIS for the items in listed in paragraph (f)(12)(ii)(A) of this section is current and accurate. This report is due to the student's DSO within 10 business days of each reporting date.</P>
+                    </SECTION>
+                </REGTEXT>
+                <REGTEXT TITLE="8" PART="214">
+                    <AMDPAR>3. Amend § 214.3 to add paragraph (g)(3)(ii)(F) as follows: </AMDPAR>
+                    <SECTION>
+                        <SECTNO>§ 214.3 </SECTNO>
+                        <SUBJECT>Approval of schools for enrollment of F and M nonimmigrants. </SUBJECT>
+                        <STARS/>
+                        <P>(g) * * * </P>
+                        <P>(3) * * * </P>
+                        <P>(ii) * * * </P>
+                        <P>(F) For F-1 students authorized by USCIS to engage in a 17-month extension of OPT, </P>
+                        <P>
+                            (
+                            <E T="03">1</E>
+                            ) Any change that the student reports to the school concerning legal name, residential or mailing address, employer name, or employer address; and 
+                        </P>
+                        <P>
+                            (
+                            <E T="03">2</E>
+                            ) The end date of the student's employment reported by a former employer in accordance with § 214.2(f)(10)(ii)(C)(
+                            <E T="03">4</E>
+                            ). 
+                        </P>
+                        <STARS/>
+                    </SECTION>
+                </REGTEXT>
+                <REGTEXT TITLE="8" PART="274a">
+                    <PART>
+                        <HD SOURCE="HED">PART 274a—CONTROL OF EMPLOYMENT OF ALIENS </HD>
+                    </PART>
+                    <AMDPAR>4. The authority citation for part 274a continues to read as follows: </AMDPAR>
+                    <AUTH>
+                        <HD SOURCE="HED">Authority:</HD>
+                        <P>8 U.S.C. 1101, 1103, 1324a; 8 CFR part 2; Pub. L. 101-410, 104 Stat. 890, as amended by Pub. L. 104-134, 110 Stat. 1321.</P>
+                    </AUTH>
+                </REGTEXT>
+                <REGTEXT TITLE="8" PART="274a">
+                    <AMDPAR>5. Amend § 274a.12 by: </AMDPAR>
+                    <AMDPAR>a. Adding paragraph (b)(6)(iv) and (v); and </AMDPAR>
+                    <AMDPAR>b. Revising paragraph (c)(3). </AMDPAR>
+                    <P>The revisions read as follows: </P>
+                    <SECTION>
+                        <SECTNO>§ 274a.12 </SECTNO>
+                        <SUBJECT>Classes of aliens authorized to accept employment. </SUBJECT>
+                        <P>(b) * * * </P>
+                        <P>(6) * * * </P>
+                        <P>(iv) A Form I-766, “Employment Authorization Document,” under 8 CFR 274a.12(c)(3)(i)(C) based on a 17-month STEM Optional Practical Training extension, and whose timely filed Form I-765, “Application for Employment Authorization,” is pending and Form I-766 issued under 8 CFR 274a.12(c)(3)(i)(B) has expired. Employment is authorized beginning on the expiration date of Form I-766 issued under 8 CFR 274a.12(c)(3)(i)(B) and ending on the date of USCIS' written decision on Form I-765, but not to exceed 180 days; or </P>
+                        <P>(v) Or pursuant to 8 CFR 214.2(h) is seeking H-1B nonimmigrant status and whose duration of status and employment authorization have been extended pursuant to 8 CFR 214.2(f)(5)(vi). </P>
+                        <STARS/>
+                        <P>(c) * * * </P>
+                        <P>(3) A nonimmigrant (F-1) student who: </P>
+                        <P>
+                            (i)(A) Is seeking pre-completion practical training pursuant to 8 CFR 214.2(f)(10)(ii)(A)(
+                            <E T="03">1</E>
+                            )-(
+                            <E T="03">2</E>
+                            ); 
+                        </P>
+                        <P>
+                            (B) Is seeking authorization to engage in post-completion Optional Practical Training (OPT) pursuant to 8 CFR 214.2(f)(10)(ii)(A)(
+                            <E T="03">3</E>
+                            ); or 
+                        </P>
+                        <P>(C) Is seeking a 17-month STEM OPT extension pursuant to 8 CFR 214.2(f)(10)(ii)(C); </P>
+                        <STARS/>
+                    </SECTION>
+                </REGTEXT>
+                <SIG>
+                    <DATED>Dated: April 2, 2008. </DATED>
+                    <NAME>Michael Chertoff, </NAME>
+                    <TITLE>Secretary.</TITLE>
+                </SIG>
+            </SUPLINF>
+            <FRDOC>[FR Doc. E8-7427 Filed 4-7-08; 8:45 am] </FRDOC>
+            <BILCOD>BILLING CODE 4410-10-P</BILCOD>
+        </RULE>
