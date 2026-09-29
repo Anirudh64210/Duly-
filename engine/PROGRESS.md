@@ -879,3 +879,32 @@ status is escalated; see engine/ESCALATE.md.
   api/test_compute 3, test_f1_fixes 1.
 
 Status: done.
+
+## Run l-engine-d51f38059e (attempt 1): points 55 and 56
+
+### What was done
+
+- Point 55: `_Working._alternates` skips a regime whose formula gives null, so an item
+  carries an alternate only where the alternate holds a value. `regimes` follows, since it
+  is built from the items' operative and alternates.
+- Point 56: `_Working._item` no longer falls back to `_rule` (which raised RulepackError)
+  when no row is in force on the event's day. The new `_row_shown(rule_id, day)` gives the
+  row whose words the item shows: the row in force today, else the first operative row that
+  takes effect after the event day (after today for an item with no event day, such as
+  employment.periods_not_reported). A value measured from the event stays null and the
+  verdict steps back with rule_not_in_force_on_event_day, as before. No number in code.
+
+### What ran
+
+- test_f1_fix5.py before: 12 failed (4 point 55, 8 point 56 with RulepackError on
+  opt.report_employer_within_days at 2016-10-01 and 2024-09-01).
+- Done command as written, output to a file, no pipe: exit 0. "engine literals: every
+  number has a source", mypy "no issues found in 57 source files", ruff "All checks
+  passed!", "8 files already formatted".
+- tests/unit/engine and tests/unit/api against a git archive of HEAD: HEAD failed 12 (all
+  test_f1_fix5.py); now 1 fails: test_f1_fixes.py::test_operative_always_comes_from_the_pack.
+  Its drawn case (pending cap gap, STEM after OPT, clock 2024-01-02) has grace.ends null,
+  and the test asks for grace.ends among the items with alternates; the line hit only by
+  the failing case is the point 55 skip. A point 55 collision, for the next round.
+
+Status: done.
