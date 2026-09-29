@@ -92,3 +92,21 @@
 - Failure: tests for a new conflict checked only the open and no branches; the yes branch still ran the code the conflict was meant to stop.
 - Fix: for each conflict that gates later steps, answer it yes and look at next steps, lists and counts, not only the verdict state.
 - Evidence: reviews/product-1-fix2.md finding 1.
+
+## 2026-09-29, run l-review-720330a91e (product round 1, fix 4)
+- Read SPEC-resolutions.md points 39 to 53, specs/plain-1/SPEC.md, plan-fix4.yaml, reviews/product-1-fix2.md, PRINCIPLES.md, BOUNDARY.md, DECISIONS.md D54 to D57, the pack's 53 rows and 2 regimes (quote, note, plain side by side), the saved court order, engine/f1.py (point 48 and 50 code, passed reports), web drafts.ts, Result.tsx (RuleCard, CourtLine, Questions), labels.ts, caseForm.ts, and every changed assertion in the reconcile commit 1f3349f.
+- Ran: unit suites (exit 0), holdout --tb=no (exit 0), tools tests for plain and copy lint (exit 0), tools.sources.plain (pass), sources verify, engine_literals, copy lint (all clean), web vitest on a TMPDIR copy (11 files, 290 passed).
+- Sent the cases of points 39, 40, 42, 43, 46 to 51 and the inputs of fix 2 findings 1, 2 and 5 through TestClient. All give what the points say; dates checked by hand.
+- Printed every DSO draft from a scratch vitest file on api outputs for 13 cases. No Duly, no computed date; every draft opens "I am an F-1 student".
+- Found: six plain texts say other, more or less than their quotes (two CPT rows unmarked academic to practical training). A clock before 2025-05-19 gives a 500. Null alternates remain on null items.
+- Wrote reviews/product-1-fix4.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: TMPDIR is shared with earlier runs; a grep over TMPDIR/*.txt showed old tracebacks as if this run's holdout had failed.
+- Fix: keep scratch files in a folder named for the run and read only those.
+- Evidence: this run's result files ended with exit 0; the tracebacks were in files hours older.
+
+## Lesson
+- Failure: the plain words gate passes plain texts whose meaning differs from the quote.
+- Fix: print quote, note and plain side by side for every row and read each; check which rows the output's rules carry before naming an input.
+- Evidence: reviews/product-1-fix4.md findings 1 and 2.
