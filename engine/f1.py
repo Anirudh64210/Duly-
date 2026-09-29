@@ -748,15 +748,15 @@ def _answer(
 ) -> str:
     """Where a question stands. An answer to a question that is not raised is not read.
 
-    An answer holds for the values it was given for: one that carries other values is
-    not an answer to this question. through is the last day a yes has to cover: a yes
-    given before it leaves the days since open."""
+    An answer holds for the values it was given for: one that carries other values, or
+    none, is not an answer to this question (SPEC-resolutions point 7). through is the
+    last day a yes has to cover: a yes given before it leaves the days since open."""
     if not raised:
         return NOT_RAISED
     given = case.confirmations.get(question)
     if given is None:
         return OPEN
-    if given.about is not None and dict(given.about) != dict(about):
+    if given.about is None or dict(given.about) != dict(about):
         return OPEN
     if given.answer and through is not None and given.on < through:
         return OPEN
