@@ -97,6 +97,15 @@
       }
 
       /* main view */
+      #main,
+      .bar,
+      .tabs,
+      .pane {
+        max-width: 1760px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+      }
       #main {
         height: 100%;
         overflow: auto;
@@ -206,6 +215,13 @@
         border-collapse: collapse;
         font-size: 12.5px;
       }
+      table.record th:first-child {
+        width: 38%;
+      }
+      table.record td {
+        overflow-wrap: break-word;
+        word-break: normal;
+      }
       table.record th {
         text-align: right;
         font-weight: 400;
@@ -215,16 +231,19 @@
       .state {
         white-space: nowrap;
       }
-      #health table.record td {
-        white-space: nowrap;
-        font-size: 12px;
+      .health-row .who {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
       }
-      #health table.record th,
-      #health table.record td {
-        text-align: left;
+      .health-row .who b {
+        font-weight: 600;
       }
-      #health table.record td:last-child {
-        text-align: right;
+      .health-row .who span {
+        overflow-wrap: anywhere;
+      }
+      .health-row .state {
+        flex: none;
       }
       table.record th:first-child,
       table.record td:first-child {
@@ -287,7 +306,7 @@
 
       .columns {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1fr) clamp(340px, 26vw, 460px);
         gap: 20px;
         margin-top: 24px;
         align-items: start;
@@ -442,6 +461,16 @@
         border-radius: 16px;
       }
 
+      aside {
+        min-width: 0;
+      }
+      aside .panel {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      table.record {
+        table-layout: fixed;
+      }
       .panel {
         background: var(--surface);
         border: 1px solid var(--line);
@@ -1097,36 +1126,34 @@
         $("integrity").replaceChildren(ledger, health);
 
         if (s.health.length) {
-          const table = el("table", "record");
-          const head = el("tr");
-          for (const h of ["Agent", "Lane", "Checked", ""]) head.append(el("th", "", h));
-          table.append(head);
           const rank = { "out of date": 0, "not checked": 1, passed: 2 };
-          for (const h of [...s.health].sort((a, b) => rank[a.state] - rank[b.state])) {
-            const row = el("tr");
-            const ok = h.state === "passed";
-            const pill = el("span", "state");
-            pill.append(
-              icon(ok ? "done" : "blocked", ok ? "var(--good)" : "var(--warning)"),
-              ok ? "Passed" : h.state === "out of date" ? "Out of date" : "Not checked",
-            );
-            const cell = el("td");
-            cell.append(pill);
-            row.append(
-              el("td", "", h.agent),
-              el("td", "mono", h.lane),
-              el("td", "mono muted", h.at ? short(h.at) : ""),
-              cell,
-            );
-            table.append(row);
-          }
+          const rows = [...s.health]
+            .sort((a, b) => rank[a.state] - rank[b.state])
+            .map((h) => {
+              const ok = h.state === "passed";
+              const row = el("li", "health-row");
+              const who = el("div", "who");
+              who.append(
+                el("b", "", h.agent),
+                el("span", "mono muted", h.lane + (h.at ? ", checked " + short(h.at) : "")),
+              );
+              const pill = el("span", "state");
+              pill.append(
+                icon(ok ? "done" : "blocked", ok ? "var(--good)" : "var(--warning)"),
+                ok ? "Passed" : h.state === "out of date" ? "Out of date" : "Not checked",
+              );
+              row.append(who, pill);
+              return row;
+            });
+          const list = el("ul", "rows");
+          list.append(...rows);
           const note = el(
             "div",
             "note",
             "A pass holds for the exact contract, sandbox and runner it was earned with. Run make doctor after any of them changes.",
           );
           note.style.paddingTop = "10px";
-          $("health").replaceChildren(table, note);
+          $("health").replaceChildren(list, note);
         } else $("health").replaceChildren(el("div", "muted", "No agent contracts found."));
 
         $("round").textContent = s.round || "No round has started.";
