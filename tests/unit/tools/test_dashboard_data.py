@@ -335,3 +335,45 @@ def test_dollars_are_for_credits_only():
     assert data.billing({"ANTHROPIC_API_KEY": "k"}, sub) == {"charged": True, "plan": "API credits"}
     assert data.billing({}, '{"loggedIn": true, "authMethod": "apiKey"}')["charged"] is True
     assert data.billing({}, "not json") == {"charged": False, "plan": "unknown"}
+
+
+def test_running_counts_every_live_run_and_names_its_kind(tmp_path):
+    import os
+
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    me = os.getpid()
+    runs = {
+        "a": {
+            "lane": "L-api",
+            "agent": "builder",
+            "task": "p/A/L-api",
+            "pid": me,
+            "started_at": "2026-09-29T10:00:00+00:00",
+        },
+        "b": {
+            "lane": "L-factory",
+            "agent": "skill-curator",
+            "pid": me,
+            "task": "health/skill-curator/L-factory",
+            "started_at": "2026-09-29T10:01:00+00:00",
+        },
+        "c": {
+            "lane": "L-web",
+            "agent": "builder",
+            "task": "p/A/L-web",
+            "pid": 2_000_000_000,
+            "started_at": "2026-09-29T10:02:00+00:00",
+        },
+        "d": {
+            "lane": "orchestrator:p",
+            "agent": "orchestrator",
+            "task": "orchestrate:p",
+            "pid": me,
+            "started_at": "2026-09-29T09:59:00+00:00",
+        },
+    }
+    (repo / ".factory" / "registry.json").write_text(json.dumps({"runs": runs}))
+    live = data.live_runs(repo)
+    assert [(r["run_id"], r["kind"]) for r in live] == [("a", "work"), ("b", "health")]
+    assert data.live_runs(tmp_path / "nowhere") == []

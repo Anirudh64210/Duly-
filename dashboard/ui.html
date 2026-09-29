@@ -797,6 +797,7 @@
           <div class="cards" id="cards"></div>
         </section>
         <aside>
+          <div class="panel hidden" id="checks-running"></div>
           <div class="panel">
             <h2>Needs you</h2>
             <div id="alerts"></div>
@@ -1022,6 +1023,41 @@
         if (snapshot && snapshot.spend.charged) return text;
         return String(text).replace(/,? ?\$?\d+(\.\d+)? USD/g, "");
       }
+      const CHECK_NAMES = { health: "health check", golden: "golden task", drift: "judge check" };
+      function runningTile(s) {
+        const work = s.live.filter((r) => r.kind === "work").length;
+        const checks = s.live.length - work;
+        let sub = "of " + s.totals.lanes + " lanes used";
+        if (checks && !work)
+          sub = checks === 1 ? "a check of the factory itself" : "checks of the factory itself";
+        else if (checks) sub = work + " at work, " + checks + " checking the factory";
+        return tile("Running now", String(s.live.length), sub);
+      }
+      function checksPanel(s) {
+        const rows = s.live
+          .filter((r) => r.kind !== "work")
+          .map((r) => {
+            const row = el("li", "health-row");
+            const who = el("div", "who");
+            who.append(
+              el("b", "", r.agent),
+              el(
+                "span",
+                "mono muted",
+                r.lane + ", " + (CHECK_NAMES[r.kind] || r.kind) + ", running " + span(r.started_at),
+              ),
+            );
+            const pill = el("span", "state");
+            pill.append(el("span", "dot live"), "Running");
+            row.append(who, pill);
+            return row;
+          });
+        const panel = $("checks-running");
+        panel.classList.toggle("hidden", rows.length === 0);
+        const list = el("ul", "rows");
+        list.append(...rows);
+        panel.replaceChildren(el("h2", "", "Checks of the factory, running now"), list);
+      }
       function spendTile(spend) {
         const node = spend.charged
           ? tile(
@@ -1065,6 +1101,7 @@
       function drawMain() {
         const s = snapshot;
         drawStop();
+        checksPanel(s);
 
         const alerts = s.alerts.slice(0, 6).map((a) => {
           const row = el("div", "alert-line");
@@ -1189,7 +1226,7 @@
         $("head").textContent = s.head;
         const t = s.totals;
         $("tiles").replaceChildren(
-          tile("Running now", String(t.running), "of " + t.lanes + " lanes used"),
+          runningTile(s),
           tile("Time", span(t.first_start) || "0m 00s", "since the first agent started"),
           tile("Actions", count(t.actions), "files read, written, commands run"),
           tile(

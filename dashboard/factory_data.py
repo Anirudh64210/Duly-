@@ -181,6 +181,47 @@ def health_rows(repo: Path, records: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def live_runs(repo: Path) -> list[dict[str, Any]]:
+    """Every run the registry holds whose process is alive, work and checks alike."""
+    try:
+        held = json.loads((repo / ".factory" / "registry.json").read_text()).get("runs", {})
+    except (OSError, json.JSONDecodeError):
+        return []
+    out = []
+    for run_id, run in held.items():
+        if str(run.get("lane", "")).startswith("orchestrator"):
+            continue
+        if not pid_alive(int(run.get("pid", 0))):
+            continue
+        task = str(run.get("task", ""))
+        kind = (
+            task.split("/", 1)[0] if task.startswith(("health/", "golden/", "drift/")) else "work"
+        )
+        out.append(
+            {
+                "run_id": run_id,
+                "lane": run.get("lane", ""),
+                "agent": run.get("agent", ""),
+                "task": task,
+                "kind": kind,
+                "started_at": run.get("started_at", ""),
+            }
+        )
+    return sorted(out, key=lambda r: r["started_at"])
+
+
 def factory_runs(events: list[dict[str, Any]]) -> set[str]:
     """Runs that test the factory itself: health checks, golden tasks, drift checks."""
     return {
@@ -541,6 +582,7 @@ def snapshot_json(
     snap = load(repo, ps_output=ps_output)
     return {
         "round": snap.round_line,
+        "live": live_runs(repo),
         "stopped": snap.stopped,
         "spend": {
             "today": snap.spent_today,
