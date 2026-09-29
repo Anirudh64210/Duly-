@@ -49,7 +49,8 @@ Found by comparing paragraph (f) in the 2026-09-14 and 2026-09-15 texts.
 | Rule | 2026-09-14 text | 2026-09-15 text |
 |---|---|---|
 | grace.after_completion_days | 60, (f)(5)(iv) | 30, (f)(5)(v) |
-| opt.apply_after_days | 60, (f)(11)(i)(B)(2) and (f)(11)(i)(D) | 30, same paragraphs |
+| opt.apply_after_days | 60, (f)(11)(i)(B)(2) | 30, same paragraph |
+| opt.latest_start_after_days | 60, (f)(11)(i)(D) | 30, same paragraph |
 | capgap.end_month_day | April 1, (f)(5)(vi)(A) | April 1, moved to (f)(5)(vii)(A) |
 
 Every other rule in the pack has the same words in both texts.
@@ -65,3 +66,12 @@ Every other rule in the pack has the same words in both texts.
 | calendar.federal_holidays_law | from 5 U.S.C. 6103(a), not from the regulation | the final rule does not amend the statute |
 
 None of the five has a different value under the blocked rule, so none has a row under a regime.
+
+### Rules added in the third pass
+
+| Rule | 2026-09-14 text | 2026-09-15 text |
+|---|---|---|
+| opt.latest_start_after_days | "more than 60 days after the student's program end date", (f)(11)(i)(D) | "more than 30 days after the student's program end date", (f)(11)(i)(D) |
+| stem.apply_window_closes_rule | "while in a valid period of post-completion OPT", opening text of (f)(10)(ii)(C) | same words, same paragraph |
+
+No new source was fetched in the third pass. Both rules rest on copies already in the table above.

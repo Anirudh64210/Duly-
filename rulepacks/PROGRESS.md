@@ -146,6 +146,60 @@ uv run python -m tools.diff_policy.check --base phase-2
 
 `make test BASE=phase-2` passes gates 1 to 3 and stops at gate 4. The secret scan reports one finding in web/PROGRESS.md line 85, commit 07ffcc7, from lane L-web. The founder already excused it on phase-2 in commit 8f92f1b, which adds .gitleaksignore. This branch was cut at 082326c, one commit before that, so it does not have the file. .gitleaksignore is outside this lane and I did not touch it or merge. Gates 5 and 6 pass when run one at a time. The finding goes away when this branch is merged into phase-2 or rebased on it.
 
+## 2026-09-28, iteration 3
+
+### State
+
+The two rules under Finding 5 in specs/phase-2/SPEC-fixes.md are in rulepacks/f1-us/v2026.09/parameters.yaml, each with a saved source and an exact quote. The pack now has 2 regimes and 30 parameter rows. The done command passes. Nothing is reviewed by the founder yet.
+
+### What I did
+
+1. Read paragraph (f)(11)(i)(C) and (D) in the saved 2026-09-14 and 2026-09-15 texts, and the opening text of (f)(10)(ii)(C).
+2. Checked the same sentences in the saved 2008, 2016 and 2026 Federal Register rules for the start dates.
+3. Added three rows, a table in SOURCES.md, and the CHANGELOG entry. No new source was fetched.
+
+### Where the sources differ from the SPEC table
+
+| Rule | SPEC said | Source says | What I recorded |
+|---|---|---|---|
+| opt.latest_start_after_days | 60 days, (f)(11)(i)(D) | 60 in the 2026-09-14 text, 30 in the 2026-09-15 text. The preamble of 91 FR 44976 confirms the change | Two rows, litigated: 60 under ds_2012 from 2008-04-08, 30 under fixed_admission_2026 from 2026-09-15 |
+| stem.apply_window_closes_rule | true, the words in (f)(11)(i)(C) that say the extension must be filed before the current authorization ends | (f)(11)(i)(C) has no such words. It says "up to 90 days prior to the expiration date of the student's current OPT employment authorization", which is the opening. The closing is in the opening text of (f)(10)(ii)(C): "a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)" | true, settled, cited (f)(10)(ii)(C), one row, no regime, from 2016-05-10 |
+
+### The source does state the closing, as a condition and not as a date
+
+The SPEC says to leave the rule out if the source does not state the closing. It does state it, in (f)(10)(ii)(C), so the rule is in. What the source does not state:
+
+- A date on which the window closes. The words are "while in a valid period of post-completion OPT".
+- That the valid period ends on the expiration date printed on the employment authorization document. The preamble of 81 FR 13040 says a period extended under cap-gap is a valid period, and a student may apply during it.
+
+### Limits the founder needs to know
+
+1. opt.latest_start_after_days limits the start date a student may request. The next sentence of (D) says the authorization begins on the date requested or the date it is adjudicated, whichever is later. The rule is not a limit on when employment begins.
+2. opt.latest_start_after_days starts 2008-04-08. I did not check whether an earlier rule had the same sentence.
+3. The 17-month extension rules from 2008 to 2016 are still not in the pack. stem.apply_window_closes_rule starts 2016-05-10.
+4. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read.
+
+### Requests to other lanes
+
+- L-engine: opt.latest_start_after_days has rows only under regimes, like opt.apply_after_days. opt.latest_start then has status litigated and carries alternates.
+- L-engine: stem.apply_window_closes computed as the end date of the current OPT authorization is a reading. For a student in a cap-gap extension the valid period runs past the date on the document. The item should take the end of the valid period, or say which end date it used. The founder may want this as a decision.
+- L-tests: tests/support/f1_pack.py may cite (f)(10)(ii)(C) for stem.apply_window_closes_rule and use the start dates above.
+
+### What ran
+
+```
+uv run python -m tools.sources.verify rulepacks
+  sources: 4 pack(s) checked, every quote found
+uv run pytest tests/unit/engine/test_rulepack.py -q
+  19 passed
+grep -q "opt.latest_start_after_days" rulepacks/f1-us/v2026.09/parameters.yaml
+  exit 0
+uv run python -m tools.copy_lint.lint
+  copy lint: clean
+uv run python -m tools.diff_policy.check --base phase-2
+  diff policy: lane L-content, 0 file(s), clean   (run before the commit)
+```
+
 ## Lesson
 
 ### The bash guard reads mkdir -p as a compose project flag
@@ -207,3 +261,9 @@ uv run python -m tools.diff_policy.check --base phase-2
 - Failure: gate 4 reported a secret in web/PROGRESS.md, a file from lane L-web, in a commit under this branch.
 - Fix: run `gitleaks git . --no-banner --redact -v` to see the file and commit, then check whether the base branch already has a fix with `git log phase-2`. If it does, record it and leave the ignore file alone.
 - Evidence: fingerprint 07ffcc7e66e876d0adaa288b48809611883a3d33:web/PROGRESS.md:generic-api-key:85; phase-2 commit 8f92f1b adds .gitleaksignore.
+
+### A window can open in one paragraph and close in another
+
+- Failure: the SPEC pointed to (f)(11)(i)(C) for the closing of the STEM filing window. That paragraph has only the opening, "up to 90 days prior to the expiration date".
+- Fix: search the whole section for the condition, not only the paragraph named. A paragraph that starts "Consistent with paragraph ..." points at its pair. Cite the paragraph that holds the words.
+- Evidence: 2026-09-14 text, opening of (f)(10)(ii)(C): "Consistent with paragraph (f)(11)(i)(C) of this section, a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT".
