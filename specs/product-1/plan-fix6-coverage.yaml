@@ -1,0 +1,36 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+audited: false  # a coverage repair inside fix 6; plan-fix6's own review and audit follow
+rounds:
+  - name: engine
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Gate 6 found four changed lines of engine/f1.py with no test. One is dead code: remove
+          _Working.value_of, which nothing calls (grep engine/ to confirm). Change nothing else.
+        done: >-
+          bash -c '! grep -n "def value_of" engine/f1.py
+          && uv run pytest tests/unit/engine -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Gate 6 holds changed engine lines to 95 percent. Cover the three paths of engine/f1.py
+          that no test reaches, each through compute_f1 with a case and a test pack, under
+          specs/product-1/SPEC-resolutions.md point 59: (1) _Working.show for a rule with no row in
+          force today, where the nearest row's words are shown and the verdict steps back;
+          (2) _validation_numbers when the interval or the extension rule has no row shown, where
+          no report is listed; (3) _validation_numbers with an interval of 0 in a malformed test
+          pack, which raises RulepackError. Put them in tests/unit/engine/test_f1_fix6.py.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit/engine -q -p no:cacheprovider --cov=engine
+          --cov-report=xml:.scratch/engine-coverage.xml
+          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*" --fail-under=95
+          --compare-branch=product-1'
