@@ -9,6 +9,7 @@ Sources, all plain files:
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -98,6 +99,41 @@ def read_events(repo: Path) -> list[dict[str, Any]]:
         except json.JSONDecodeError:
             continue
     return rows
+
+
+_billing: dict[str, Any] = {}
+
+
+def billing(environ: dict[str, str], auth_json: str | None = None) -> dict[str, Any]:
+    """Who pays for the agents' work: a subscription, or credits charged per use.
+
+    Credits are charged only when an API key is in use. On a subscription nothing is
+    charged per run; the work counts toward the plan's usage limits.
+    """
+    if environ.get("ANTHROPIC_API_KEY") or environ.get("ANTHROPIC_AUTH_TOKEN"):
+        return {"charged": True, "plan": "API credits"}
+    if auth_json is None:
+        if "value" not in _billing:
+            _billing["value"] = _out(["claude", "auth", "status"], Path.cwd())
+        auth_json = _billing["value"]
+    try:
+        auth = json.loads(auth_json or "{}")
+    except json.JSONDecodeError:
+        auth = {}
+    if auth.get("authMethod") == "claude.ai":
+        plan = str(auth.get("subscriptionType") or "").capitalize()
+        return {"charged": False, "plan": f"{plan} subscription".strip()}
+    if auth.get("loggedIn"):
+        return {"charged": True, "plan": "API credits"}
+    return {"charged": False, "plan": "unknown"}
+
+
+def task_cap(repo: Path) -> float:
+    path = repo / "factory" / "config.yaml"
+    found = re.search(
+        r"(?m)^\s*per_task_usd:\s*([0-9.]+)", path.read_text() if path.exists() else ""
+    )
+    return float(found.group(1)) if found else 0.0
 
 
 def health_rows(repo: Path, records: dict[str, Any]) -> list[dict[str, Any]]:
@@ -495,13 +531,23 @@ def _iso(at: datetime | None) -> str:
     return at.isoformat() if at else ""
 
 
-def snapshot_json(repo: Path, ps_output: str | None = None) -> dict[str, Any]:
+def snapshot_json(
+    repo: Path,
+    ps_output: str | None = None,
+    environ: dict[str, str] | None = None,
+    auth_json: str | None = None,
+) -> dict[str, Any]:
     """Everything the main view shows, as plain values."""
     snap = load(repo, ps_output=ps_output)
     return {
         "round": snap.round_line,
         "stopped": snap.stopped,
-        "spend": {"today": snap.spent_today, "cap": snap.day_cap},
+        "spend": {
+            "today": snap.spent_today,
+            "cap": snap.day_cap,
+            "task_cap": task_cap(repo),
+            **billing(environ if environ is not None else dict(os.environ), auth_json),
+        },
         "alerts": [
             {
                 "at": e.get("at", ""),

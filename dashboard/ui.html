@@ -223,6 +223,7 @@
         word-break: normal;
       }
       table.record th {
+        white-space: nowrap;
         text-align: right;
         font-weight: 400;
         color: var(--ink-2);
@@ -1006,12 +1007,33 @@
         return node;
       }
 
+      // Dollars are shown only when credits are really charged. On a subscription the
+      // same numbers are shown as a share of the factory's own limits.
+      function share(amount, cap) {
+        if (!cap) return "0%";
+        const part = (amount / cap) * 100;
+        return (part > 0 && part < 1 ? "<1" : Math.round(part)) + "%";
+      }
+      function usage(amount, spend, cap) {
+        return spend.charged ? "$" + amount.toFixed(2) : share(amount, cap);
+      }
+      // Log lines carry an estimate in dollars. It is hidden unless credits are charged.
+      function tidy(text) {
+        if (snapshot && snapshot.spend.charged) return text;
+        return String(text).replace(/,? ?\$?\d+(\.\d+)? USD/g, "");
+      }
       function spendTile(spend) {
-        const node = tile(
-          "Spent today",
-          "$" + spend.today.toFixed(2),
-          "of $" + spend.cap.toFixed(0) + " allowed, at API prices",
-        );
+        const node = spend.charged
+          ? tile(
+              "Charged today",
+              "$" + spend.today.toFixed(2),
+              "in API credits, of $" + spend.cap.toFixed(0) + " allowed",
+            )
+          : tile(
+              "Usage today",
+              share(spend.today, spend.cap),
+              "of the factory's daily limit. " + spend.plan + ", nothing is charged",
+            );
         const track = el("div", "spend-track");
         const fill = el("i");
         fill.style.width = Math.min(100, spend.cap ? (spend.today / spend.cap) * 100 : 0) + "%";
@@ -1047,7 +1069,7 @@
         const alerts = s.alerts.slice(0, 6).map((a) => {
           const row = el("div", "alert-line");
           const text = el("span");
-          text.append(el("b", "", a.lane + " "), a.message);
+          text.append(el("b", "", a.lane + " "), tidy(a.message));
           row.append(el("time", "mono", short(a.at)), text);
           return row;
         });
@@ -1059,7 +1081,14 @@
         if (names.length) {
           const table = el("table", "record");
           const head = el("tr");
-          for (const h of ["Agent", "Runs", "Passed", "Tries", "Cost", "Min"])
+          for (const h of [
+            "Agent",
+            "Runs",
+            "Pass",
+            "Tries",
+            s.spend.charged ? "Cost" : "Limit",
+            "Min",
+          ])
             head.append(el("th", "", h));
           table.append(head);
           for (const name of names) {
@@ -1070,7 +1099,7 @@
               m.runs,
               Math.round(m.success_rate * 100) + "%",
               m.mean_attempts,
-              "$" + m.mean_cost_usd.toFixed(2),
+              usage(m.mean_cost_usd, s.spend, s.spend.task_cap),
               m.mean_minutes,
             ])
               row.append(el("td", "num", String(v)));
@@ -1204,7 +1233,10 @@
             [a.tests_run, "test runs"],
             [a.commits, "commits"],
             [a.files_changed + a.uncommitted, "files"],
-            ["$" + a.cost_usd.toFixed(2), "cost"],
+            [
+              usage(a.cost_usd, snapshot.spend, snapshot.spend.task_cap),
+              snapshot.spend.charged ? "cost" : "of limit",
+            ],
           ]) {
             const fact = el("div", "fact");
             fact.append(el("b", "num", String(value)), el("span", "", label));
@@ -1212,8 +1244,8 @@
           }
           card.append(facts);
           if (a.last_action) {
-            const now = el("div", "now mono", a.last_action);
-            now.title = a.last_action;
+            const now = el("div", "now mono", tidy(a.last_action));
+            now.title = tidy(a.last_action);
             card.append(now);
           }
           return card;
@@ -1251,7 +1283,7 @@
 
         const lines = [...s.orchestrator].reverse().map((e) => {
           const li = el("li");
-          li.append(el("time", "mono", short(e.at)), el("span", "", e.message));
+          li.append(el("time", "mono", short(e.at)), el("span", "", tidy(e.message)));
           return li;
         });
         $("timeline").replaceChildren(
@@ -1311,7 +1343,10 @@
           [a.files_changed + a.uncommitted, "files changed"],
           [a.lessons, "lessons"],
           [count(a.tokens_in + a.tokens_out), "tokens"],
-          ["$" + a.cost_usd.toFixed(2), "cost"],
+          [
+            usage(a.cost_usd, snapshot.spend, snapshot.spend.task_cap),
+            snapshot.spend.charged ? "cost" : "of limit",
+          ],
           [a.merged ? "yes" : "no", "merged"],
         ].map(([value, label]) => {
           const box = el("div");
@@ -1361,7 +1396,7 @@
             row.append(
               el("time", "mono", clock(e.at)),
               el("span", "muted", e.kind),
-              el("span", "what mono", e.message),
+              el("span", "what mono", tidy(e.message)),
             );
             nodes.push(row);
           }

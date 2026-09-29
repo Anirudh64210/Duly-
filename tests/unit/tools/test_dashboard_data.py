@@ -296,8 +296,9 @@ def test_snapshot_carries_spend_alerts_metrics_and_the_stop_state(tmp_path):
         }
     }
     assert snap.alerts[0]["alert"] == "budget"
-    main = data.snapshot_json(repo, ps_output="")
+    main = data.snapshot_json(repo, ps_output="", environ={}, auth_json="{}")
     assert main["stopped"] is True
+    assert main["spend"]["charged"] is False
     assert main["alerts"][0]["kind"] == "budget"
     assert main["ledger"]["intact"] is True
 
@@ -326,3 +327,11 @@ def test_health_shows_every_agent_and_lane_and_goes_out_of_date(tmp_path):
     assert data.health_rows(repo, record)[0]["state"] == "passed"
     (repo / "tools" / "factory" / "sandbox.py").write_text("changed")
     assert data.health_rows(repo, record)[0]["state"] == "out of date"
+
+
+def test_dollars_are_for_credits_only():
+    sub = '{"loggedIn": true, "authMethod": "claude.ai", "subscriptionType": "max"}'
+    assert data.billing({}, sub) == {"charged": False, "plan": "Max subscription"}
+    assert data.billing({"ANTHROPIC_API_KEY": "k"}, sub) == {"charged": True, "plan": "API credits"}
+    assert data.billing({}, '{"loggedIn": true, "authMethod": "apiKey"}')["charged"] is True
+    assert data.billing({}, "not json") == {"charged": False, "plan": "unknown"}
