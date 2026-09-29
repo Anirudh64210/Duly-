@@ -12,6 +12,7 @@ import {
   legalStatusWords,
   reasonText,
   scopeLine,
+  settingName,
   statusTag,
 } from "./labels";
 
@@ -155,6 +156,20 @@ describe("reasons", () => {
   it("keeps the lines the verdict already had", () => {
     expect(reasonText("no_documents")).toBe("Nothing has been added yet.");
     expect(reasonText("rule_in_litigation")).toBe("A rule that applies here is before a court.");
+  });
+
+  it("names a missing part of the case", () => {
+    expect(reasonText("missing:opt")).toBe("Duly needs the OPT dates.");
+    expect(reasonText("missing:stem")).toBe("Duly needs the STEM OPT dates.");
+  });
+
+  it("names a setting in plain words, and never as law", () => {
+    expect(settingName("product.open_item_lookahead_days")).toBe(
+      "How far ahead a dated item is listed as an open item",
+    );
+    expect(settingName("product.some_new_setting")).toBe("Product some new setting");
+    expect(settingName("")).toBe("Setting");
+    expect(inputName("duly_settings")).toBe("Duly settings used, which are not law");
   });
 
   it("names a missing input", () => {

@@ -269,6 +269,30 @@ describe("the result", () => {
     expect(screen.queryByRole("button", { name: /Grace period ends/ })).toBeNull();
   });
 
+  it("shows the Duly settings an item used by name", async () => {
+    const withSetting = {
+      ...OUTPUT,
+      computed: OUTPUT.computed.map((item) =>
+        item.id === "opt.file_by"
+          ? {
+              ...item,
+              inputs: { ...item.inputs, duly_settings: ["product.open_item_lookahead_days"] },
+            }
+          : item,
+      ),
+    };
+    serve({ status: 200, body: withSetting });
+    await computed();
+    const row = screen.getByRole("button", { name: /Last OPT filing day/ });
+    fireEvent.click(row);
+    const item = row.closest("li");
+    if (!item) throw new Error("no item");
+    const working = within(item);
+    expect(working.getByText("Duly settings used, which are not law")).toBeDefined();
+    expect(working.getByText("How far ahead a dated item is listed as an open item")).toBeDefined();
+    expect(working.queryByText("This entry could not be shown.")).toBeNull();
+  });
+
   it("shows the working when the row is clicked, and hides it again", async () => {
     serve({ status: 200, body: OUTPUT });
     await computed();

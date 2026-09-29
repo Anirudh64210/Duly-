@@ -12,6 +12,7 @@ import {
   legalStatusWords,
   reasonText,
   scopeLine,
+  settingName,
   statusTag,
 } from "../lib/labels";
 import { headline } from "../lib/status";
@@ -41,6 +42,15 @@ function InputValue({ value }: { value: unknown }) {
   if (typeof value === "boolean") return <>{value ? "Yes" : "No"}</>;
   if (Array.isArray(value)) {
     if (value.length === 0) return <>None entered</>;
+    if (value.every((entry) => typeof entry === "string")) {
+      return (
+        <ul className="periods">
+          {value.map((entry) => (
+            <li key={entry}>{settingName(entry)}</li>
+          ))}
+        </ul>
+      );
+    }
     return (
       <ol className="periods">
         {value.map((entry, index) => (
