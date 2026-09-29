@@ -233,6 +233,42 @@ describe("the result", () => {
     expect(within(row).getByText("Before a court")).toBeDefined();
   });
 
+  it("shows the legal status the engine gave for the value in use, whatever it is", async () => {
+    const appealed = {
+      ...OUTPUT,
+      computed: OUTPUT.computed.map((item) =>
+        item.id === "grace.ends"
+          ? { ...item, operative: { regime: "ds_2012", legal_status: "appealed" } }
+          : item,
+      ),
+    };
+    serve({ status: 200, body: appealed });
+    await computed();
+    const row = screen.getByRole("button", { name: /Grace period ends/ });
+    const regimes = [...row.querySelectorAll(".regime")].map((r) => r.textContent);
+    expect(regimes).toEqual(["Jul 30, 2027under appeal", "Jun 30, 2027blocked by a court"]);
+    expect(within(row).queryByText("in effect")).toBeNull();
+  });
+
+  it("shows no items when a value with alternates comes without its legal status", async () => {
+    const bare = {
+      ...OUTPUT,
+      computed: OUTPUT.computed.map(({ operative, ...item }) =>
+        operative && item.id !== "grace.ends" ? { ...item, operative } : item,
+      ),
+    };
+    serve({ status: 200, body: bare });
+    enter("Program end date", "2026-05-15");
+    enter("Documents added", "3");
+    compute();
+    expect(
+      await screen.findByText("Duly could not read the answer from its server."),
+    ).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Can't tell yet" })).toBeDefined();
+    expect(screen.queryByText("in effect")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Grace period ends/ })).toBeNull();
+  });
+
   it("shows the working when the row is clicked, and hides it again", async () => {
     serve({ status: 200, body: OUTPUT });
     await computed();

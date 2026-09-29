@@ -35,7 +35,7 @@ const SPEC_ITEMS = [
   "stem.validation_3_due",
   "stem.validation_4_due",
   "stem.evaluation_12_month_due",
-  "stem.final_evaluation_due",
+  "stem.final_evaluation_due_from_ead_end",
   "cpt.full_time_days_used",
   "capgap.ends",
 ];

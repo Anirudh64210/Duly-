@@ -77,11 +77,13 @@ function Values({ item }: { item: ComputedItem }) {
   if (alternates.length === 0) {
     return <span className="value">{formatValue(item.value, item.unit)}</span>;
   }
+  // The status is the one the engine read from the pack. The screen holds none of its own.
+  const operative = item.operative?.legal_status ?? "";
   return (
     <span className="regimes">
       <span className="regime">
         <span className="value">{formatValue(item.value, item.unit)}</span>
-        <span className="legal">{legalStatusWords("effective")}</span>
+        <span className="legal">{legalStatusWords(operative)}</span>
       </span>
       {alternates.map((alternate) => (
         <span className="regime" key={alternate.regime}>

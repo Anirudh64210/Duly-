@@ -63,6 +63,38 @@ describe("engine output parsing", () => {
     ).toThrow();
   });
 
+  it("keeps the operative regime and its legal status as the engine gave them", () => {
+    const computed = OUTPUT.computed.map((item) =>
+      item.id === "grace.ends"
+        ? { ...item, operative: { regime: "ds_2012", legal_status: "appealed" } }
+        : item,
+    );
+    const parsed = engineOutputSchema.parse({ ...OUTPUT, computed });
+    const grace = parsed.computed.find((item) => item.id === "grace.ends");
+    expect(grace?.operative).toEqual({ regime: "ds_2012", legal_status: "appealed" });
+  });
+
+  it("refuses alternates that come without the operative regime", () => {
+    const computed = OUTPUT.computed.map(({ operative, ...item }) =>
+      operative && item.id !== "grace.ends" ? { ...item, operative } : item,
+    );
+    expect(() => engineOutputSchema.parse({ ...OUTPUT, computed })).toThrow();
+  });
+
+  it("refuses an operative regime with no legal status or with extra fields", () => {
+    const withOperative = (operative: unknown) =>
+      OUTPUT.computed.map((item) => (item.id === "grace.ends" ? { ...item, operative } : item));
+    expect(() =>
+      engineOutputSchema.parse({ ...OUTPUT, computed: withOperative({ regime: "ds_2012" }) }),
+    ).toThrow();
+    expect(() =>
+      engineOutputSchema.parse({
+        ...OUTPUT,
+        computed: withOperative({ regime: "ds_2012", legal_status: "effective", note: "fine" }),
+      }),
+    ).toThrow();
+  });
+
   it("refuses a rule without a citation", () => {
     const rule = { value: 90, unit: "days", status: "settled", url: "u", checked_on: "2026-09-28" };
     expect(() =>

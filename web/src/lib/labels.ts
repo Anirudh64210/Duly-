@@ -48,7 +48,7 @@ const ITEM_NAMES: ReadonlyMap<string, string> = new Map(
     "stem.apply_window_closes": "STEM OPT filing window closes",
     "stem.file_by": "Last STEM OPT filing day after the DSO recommendation",
     "stem.evaluation_12_month_due": "12-month evaluation due",
-    "stem.final_evaluation_due": "Final evaluation due",
+    "stem.final_evaluation_due_from_ead_end": "Final evaluation due, counted from the EAD end date",
     "cpt.full_time_days_used": "Full-time CPT days entered",
     "capgap.ends": "Cap-gap period ends",
   }),
