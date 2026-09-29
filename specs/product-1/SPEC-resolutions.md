@@ -109,6 +109,10 @@ From the review of fix 6 (reviews/product-1-fix6.md):
 63. When `whole_shown` finds no row for a rule that decides which items exist (the validation interval, the extension length), the verdict steps back with `rule_not_in_force_on_event_day`, as every other missing row does since point 59. A missing row never leaves a quiet verdict.
 64. The draft for `rule_not_in_force_on_event_day` states the employment periods as entered when a period is behind the reason (point 60), so the DSO sees the date the question is about.
 
+From the review of fix 7 (reviews/product-1-fix7.md):
+
+65. Two plain texts change, and only these (point 62). `stem.requires.previously_obtained_degree` is split into short sentences and names whom the DSO recommends: the DSO recommends the student for the 24-month OPT extension, and the earlier degree must meet the rule's conditions at that time and be granted in the 10 years before that day. `capgap.end_month_day` (2025-01-17) says the automatic extension lasts on its own only until the approved petition's start date when that comes first; it never says status ends then. The review's example words for both are the starting point; the content lane checks them against the quotes.
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.
