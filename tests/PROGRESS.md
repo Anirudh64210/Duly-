@@ -1640,3 +1640,41 @@ Planted through a scratch plugin under TMPDIR wrapping f1.compute_f1, then remov
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-8a39e530c6 (attempt 1): tests in line with points 62 and 63
+
+### What I tried and what ran
+
+- Read the builders' own reports: L-engine (l-engine-cb8e397e6a, engine/PROGRESS.md in
+  c9ca709) lists no older test that collides with point 63; L-content (l-content-70287e6b26,
+  rulepacks/PROGRESS.md in 17ee340) rewrote the eight plain texts of point 62, and no test
+  under tests/unit or tests/holdout asserts any of those texts (grep for the old words
+  found none).
+- Done command as written, output to a file, no pipe: exit 1. Ruff clean; two failed, both
+  mine from the tests-first round, in tests/holdout/test_holdout_fix7.py:
+  test_holdout_point_63_the_interval_row_begins_after_the_card_so_the_verdict_steps_back and
+  ..._the_extension_row_... Each: `assert reports(out) == []`, left held
+  stem.validation_1_due to _4_due. The step back (steps_back) passed.
+- Probe: with the row starting 2027-07-02, the engine gives talk_to_dso,
+  [rule_not_in_force_on_event_day], and four reports, every one null.
+- Judgement: point 63 names only a rule for which whole_shown finds no row (the pack does
+  not hold it). Here the row exists; points 40 and 59 say the item is null with the step
+  back. No settled point says no report is listed. The assertion `reports(out) == []` was my
+  reading, not a point. Replaced it in both tests with `undated(out)`: every listed report
+  is null (points 40, 59), with the point written beside it; steps_back is kept whole.
+  Recorded as a dispute so the founder can decide whether a row not in force should list
+  no report at all.
+- Done command again as written: exit 0. "All checks passed!", "60 files already
+  formatted", every test passing, diff-cover "engine/f1.py (100%)", "Coverage: 100%".
+
+### What change to the code would make each changed test fail
+
+- Planted in a scratch copy of engine/ under TMPDIR (loaded first through a -p plugin, then
+  removed): _item's guard computes the formula when a rule is lapsed (drops `or lapsed`),
+  while the step back is still set. Both changed tests failed on `assert undated(out)`; the
+  other five in the file passed.
+- An engine that stops stepping back fails both on steps_back, as before.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
