@@ -296,9 +296,14 @@ class _Working:
 
     def whole_shown(self, rule_id: str, day: date | None) -> int | None:
         """The whole value of the row whose words an item for the day shows. It decides
-        which items there are and never a value: each item looks its rule up for itself."""
+        which items there are and never a value: each item looks its rule up for itself.
+        None with the step back when the pack holds no row for it (SPEC-resolutions
+        point 63): a missing row never leaves a quiet verdict."""
         found = self._row_shown(rule_id, day)
-        return None if found is None else _whole({rule_id: found["value"]}, rule_id)
+        if found is None:
+            self.not_in_force = True
+            return None
+        return _whole({rule_id: found["value"]}, rule_id)
 
     def holds(self, rule_id: str) -> bool:
         """Whether the pack has the rule in force today."""

@@ -958,3 +958,24 @@ Status: done.
   "All checks passed!", "8 files already formatted".
 
 Status: done.
+
+## l-engine-cb8e397e6a (attempt 1): point 63
+
+### What was done
+
+- `_Working.whole_shown` sets `not_in_force` when `_row_shown` finds no row (a rule the pack
+  does not hold at all) and gives None, so the verdict carries
+  rule_not_in_force_on_event_day. Its only callers are the interval and extension length in
+  `_validation_reports`; no report is listed, as point 59 has it. No number in code.
+
+### What ran
+
+- Done command as written, output to a file, no pipe: exit 0. 12 passed, "engine literals:
+  every number has a source", mypy "no issues found in 58 source files", ruff "All checks
+  passed!", "8 files already formatted".
+- tests/unit/engine and tests/unit/api, a git archive of HEAD against now: HEAD exit 1, 9
+  failed (8 in test_f1_fix7.py, and test_f1_fix6.py::
+  test_point_59_a_pack_without_the_interval_lists_no_validation_report, which already asked
+  for point 63); now exit 0, none fail. No older test collides.
+
+Status: done.
