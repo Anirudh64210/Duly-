@@ -80,6 +80,11 @@ def federal_holidays(year: int) -> list[date]:
     return sorted(day for day in found if day.year == year)
 
 
+def is_weekend(d: date) -> bool:
+    """True on a Saturday or a Sunday."""
+    return d.weekday() >= SATURDAY
+
+
 def is_business_day(d: date) -> bool:
     return d.weekday() < SATURDAY and d not in federal_holidays(d.year)
 
