@@ -77,3 +77,5 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 | D44 | The first 22 lessons | All kept. 12 are filed by lane for agents to learn from; 10 are records of faults in the factory that were fixed | Decided |
 | D45 | Billing | Agents run on the subscription login only. Paid credits are never used | Decided |
 | D46 | Dated tags on main | Every change to main is tagged on GitHub | Decided |
+| D47 | What Duly is | A platform where any student logs in, sees where they stand, what comes next, and the latest verified changes in the law, for every case and every category. OPT and STEM OPT were an example. Every SPEC says what share of the whole it covers | Decided |
+| D48 | Order of work | Product round 1 finishes. Then the path model, so that the engine holds no scenario of its own. Then the desktop window, showing it. Then the updates pipeline. Then breadth, pack by pack, every rule sourced | Decided by the founder lane under D42; the founder may change it |
