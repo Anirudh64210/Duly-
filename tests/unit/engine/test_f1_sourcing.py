@@ -23,6 +23,8 @@ from hypothesis import strategies as st
 from engine import f1
 from tests.support.f1_pack import (
     SPEC_SETTINGS,
+    TIME_ZONE,
+    answered_yes,
     build_pack,
     cap_gap,
     case_problems,
@@ -83,6 +85,8 @@ def run(
 # Case A: post-completion OPT, no STEM, no cap-gap. Nothing is open on 2026-09-28.
 CASE_A: dict[str, Any] = {
     "program_end_date": "2026-05-15",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 3,
     "cpt_full_time_days": 0,
@@ -95,6 +99,8 @@ CASE_A: dict[str, Any] = {
 # Case B: OPT followed by the STEM extension, with a cap-gap petition.
 CASE_B: dict[str, Any] = {
     "program_end_date": "2024-05-10",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 5,
     "cpt_full_time_days": 100,

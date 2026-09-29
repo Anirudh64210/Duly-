@@ -21,7 +21,16 @@ from fastapi.testclient import TestClient
 from api.main import app, get_clock, get_settings
 from api.settings import Settings
 from engine.clocks import FixedClock
-from tests.support.f1_pack import contract_problems, ead, items, job, with_block, with_changes
+from tests.support.f1_pack import (
+    TIME_ZONE,
+    answered_yes,
+    contract_problems,
+    ead,
+    items,
+    job,
+    with_block,
+    with_changes,
+)
 
 URL = "/v1/compute/f1"
 UNREACHABLE = "postgresql+psycopg://duly:duly@127.0.0.1:1/duly"
@@ -31,6 +40,8 @@ TODAY = date(2026, 9, 28)
 # produces these strings.
 GOOD: dict[str, Any] = {
     "program_end_date": "2026-05-17",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 7919,
     "cpt_full_time_days": 213,
@@ -75,7 +86,16 @@ def test_a_good_case_returns_the_engine_output(client):
     response = client.post(URL, json=GOOD)
     assert response.status_code == 200
     body = response.json()
-    assert set(body) == {"verdict", "scope", "computed", "rulepacks", "rules"}
+    # specs/phase-2/SPEC-context.md, sections 2 and 4: the day used and the questions.
+    assert set(body) == {
+        "verdict",
+        "scope",
+        "computed",
+        "rulepacks",
+        "rules",
+        "questions",
+        "today",
+    }
     assert body["scope"]["documents_count"] == 7919
     assert [p["category"] for p in body["rulepacks"]] == ["f1"]
     got = items(body)
@@ -105,6 +125,7 @@ def test_the_response_validates_against_the_output_contract(client):
 def test_a_case_with_only_the_required_fields_is_a_good_case(client):
     body = {
         "program_end_date": "2026-05-17",
+        "time_zone": TIME_ZONE,
         "degree_level": "bachelor",
         "documents_count": 0,
         "employment": [],
@@ -209,6 +230,7 @@ BAD_CASES: dict[str, Any] = {
     "no_degree_level": without(GOOD, "degree_level"),
     "no_documents_count": without(GOOD, "documents_count"),
     "no_employment": without(GOOD, "employment"),
+    "no_time_zone": without(GOOD, "time_zone"),
     "unknown_field": with_changes(GOOD, notes=BAD_MARK),
     "unknown_degree_level": with_changes(GOOD, degree_level=BAD_MARK),
     "negative_documents_count": with_changes(GOOD, documents_count=-1),

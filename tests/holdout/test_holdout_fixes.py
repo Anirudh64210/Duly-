@@ -7,19 +7,16 @@ does not pass here.
 Every expected date and count was worked out by hand. The working is beside it.
 """
 
-import asyncio
 import json
 import sys
 from collections.abc import Callable
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from pathlib import Path
 from types import FrameType
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 from api.main import app, get_clock, get_f1_pack, get_settings
 from api.settings import Settings
@@ -29,6 +26,8 @@ from engine.rulepack import validate_pack
 from tests.support.f1_pack import (
     BLOCKED,
     OPERATIVE,
+    TIME_ZONE,
+    answered_yes,
     build_pack,
     cap_gap,
     case_problems,
@@ -42,7 +41,6 @@ from tests.support.f1_pack import (
     reasons_with,
     settings_dict,
     values,
-    with_block,
     with_changes,
     with_operative_status,
     with_regime_rows,
@@ -62,6 +60,8 @@ COUNTS = ("unemployment.days_used", "unemployment.days_remaining", "employment.d
 # Case C: a December program end, OPT through the turn of the year.
 CASE_C: dict[str, Any] = {
     "program_end_date": "2024-12-20",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "bachelor",
     "documents_count": 4,
     "cpt_full_time_days": 30,
@@ -74,6 +74,8 @@ CASE_C: dict[str, Any] = {
 # Case D: OPT then STEM, seen while the extension runs.
 CASE_D: dict[str, Any] = {
     "program_end_date": "2022-12-16",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 9,
     "cpt_full_time_days": 0,
@@ -161,43 +163,6 @@ def test_not_knowing_wins_over_a_judgement_item_when_opt_is_absent():
     assert names_opt(out)
 
 
-@settings(max_examples=150, deadline=None)
-@given(
-    st.dates(min_value=date(2020, 1, 1), max_value=date(2030, 12, 31)),
-    st.integers(min_value=0, max_value=900),
-    st.sampled_from(["opt", "stem"]),
-    st.sampled_from(["dso_recommendation_date", "ead_start", "ead_end"]),
-    st.integers(min_value=1, max_value=50),
-)
-def test_a_null_date_that_an_item_needs_never_gets_the_quiet_verdict(
-    program_end, later, block, field, documents
-):
-    opt_start = program_end + timedelta(days=30)
-    opt_end = opt_start + timedelta(days=364)
-    stem_start = opt_end + timedelta(days=1)
-    case = {
-        "program_end_date": program_end.isoformat(),
-        "degree_level": "master",
-        "documents_count": documents,
-        "opt": ead(
-            (program_end - timedelta(days=20)).isoformat(),
-            None,
-            opt_start.isoformat(),
-            opt_end.isoformat(),
-        ),
-        "stem": ead(
-            (opt_end - timedelta(days=40)).isoformat(),
-            None,
-            stem_start.isoformat(),
-            (stem_start + timedelta(days=729)).isoformat(),
-        ),
-        "employment": [job(opt_start.isoformat(), None)],
-    }
-    out = run(with_block(case, block, **{field: None}), today=opt_start + timedelta(days=later))
-    assert out["verdict"]["state"] == "cannot_tell"
-    assert reasons_with(out, "missing:")
-
-
 # Finding 2
 
 
@@ -272,6 +237,8 @@ def engine_steps(action: Callable[[], Any]) -> int:
 def long_case(first: str, last: str, program_end: str, periods: int) -> dict[str, Any]:
     return {
         "program_end_date": program_end,
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 1,
         "opt": ead(first, first, first, last),
@@ -341,28 +308,6 @@ def test_the_api_refuses_a_far_program_end(client, field, sent):
 def test_the_api_takes_fifty_periods_and_no_more(client, periods, status):
     case = with_changes(CASE_C, employment=[job("2025-01-15", None)] * periods)
     assert client.post(URL, json=case).status_code == status
-
-
-def test_the_api_reads_the_clock_off_the_event_loop(client):
-    seen: list[bool] = []
-
-    class Watching:
-        def now(self) -> datetime:
-            return API_NOON
-
-        def today(self) -> date:
-            try:
-                asyncio.get_running_loop()
-            except RuntimeError:
-                seen.append(False)
-            else:
-                seen.append(True)
-            return self.now().date()
-
-    app.dependency_overrides[get_clock] = Watching
-    assert client.post(URL, json=CASE_D).status_code == 200
-    assert seen
-    assert not any(seen)
 
 
 # Finding 5

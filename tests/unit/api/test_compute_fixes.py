@@ -20,6 +20,8 @@ from api.main import app, get_clock, get_f1_pack, get_settings
 from api.settings import Settings
 from engine.clocks import FixedClock
 from tests.support.f1_pack import (
+    TIME_ZONE,
+    answered_yes,
     cap_gap,
     case_problems,
     contract_problems,
@@ -37,6 +39,8 @@ JSON = {"content-type": "application/json"}
 
 GOOD: dict[str, Any] = {
     "program_end_date": "2026-05-17",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 7919,
     "cpt_full_time_days": 213,
@@ -95,14 +99,30 @@ def refused_in_plain_words(response: Any) -> str:
 # Finding 1: STEM without OPT
 
 
+# reviews/phase-2.md, finding 1, the body as the reviewer sent it, and the time zone
+# that the contract has required since.
+REVIEWERS_BODY = (
+    '{"time_zone":"UTC",'
+    '"program_end_date":"2026-05-15","degree_level":"master","documents_count":2,'
+    '"employment":[],"stem":{"dso_recommendation_date":"2026-04-01",'
+    '"i765_filed_date":null,"ead_start":"2026-06-01","ead_end":"2028-05-31"}'
+)
+
+
 def test_the_reviewers_stem_without_opt_cannot_tell(client):
-    # reviews/phase-2.md, finding 1, the body as the reviewer sent it.
-    body = (
-        '{"program_end_date":"2026-05-15","degree_level":"master","documents_count":2,'
-        '"employment":[],"stem":{"dso_recommendation_date":"2026-04-01",'
-        '"i765_filed_date":null,"ead_start":"2026-06-01","ead_end":"2028-05-31"}}'
-    )
-    response = client.post(URL, content=body.encode(), headers=JSON)
+    # specs/phase-2/SPEC-context.md, section 4: Duly asks whether the person held OPT,
+    # and cannot tell until the person answers.
+    response = client.post(URL, content=(REVIEWERS_BODY + "}").encode(), headers=JSON)
+    assert response.status_code == 200
+    out = response.json()
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "unconfirmed:held_post_completion_opt" in out["verdict"]["reasons"]
+    assert contract_problems(out) == []
+
+
+def test_the_reviewers_stem_without_opt_with_the_answer_yes_names_opt(client):
+    answer = ',"confirmations":{"held_post_completion_opt":{"answer":true,"on":"2026-09-28"}}}'
+    response = client.post(URL, content=(REVIEWERS_BODY + answer).encode(), headers=JSON)
     assert response.status_code == 200
     out = response.json()
     assert out["verdict"]["state"] == "cannot_tell"
@@ -111,6 +131,7 @@ def test_the_reviewers_stem_without_opt_cannot_tell(client):
 
 
 def test_cap_gap_with_neither_opt_nor_stem_cannot_tell(client):
+    # GOOD carries the answer yes to the question this raises.
     case = with_changes(GOOD, opt=None, employment=[], cap_gap=cap_gap("2026-10-01"))
     response = client.post(URL, json=case)
     assert response.status_code == 200
@@ -280,6 +301,8 @@ def largest_case() -> dict[str, Any]:
     """The widest window and the most periods contracts/case_f1.schema.json allows."""
     return {
         "program_end_date": "1950-06-01",
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": "doctorate",
         "documents_count": 10000,
         "cpt_full_time_days": 0,

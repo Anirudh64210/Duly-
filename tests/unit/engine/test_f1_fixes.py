@@ -25,6 +25,8 @@ from tests.support.f1_pack import (
     BLOCKED,
     OPERATIVE,
     SHIFTED,
+    TIME_ZONE,
+    answered_yes,
     build_pack,
     cap_gap,
     case_problems,
@@ -73,6 +75,8 @@ def run(
 # Case A: post-completion OPT, no STEM, no cap-gap. Nothing is open on 2026-09-28.
 CASE_A: dict[str, Any] = {
     "program_end_date": "2026-05-15",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 3,
     "cpt_full_time_days": 0,
@@ -85,6 +89,8 @@ CASE_A: dict[str, Any] = {
 # Case B: OPT followed by the STEM extension, with a cap-gap petition.
 CASE_B: dict[str, Any] = {
     "program_end_date": "2024-05-10",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 5,
     "cpt_full_time_days": 100,
@@ -94,9 +100,13 @@ CASE_B: dict[str, Any] = {
     "cap_gap": cap_gap("2026-10-01", petition_filed_on="2026-04-02"),
 }
 
-# reviews/phase-2.md, finding 1, the input as the reviewer sent it.
+# reviews/phase-2.md, finding 1, the input as the reviewer sent it, with the time zone
+# and with the answer yes to the question it raises (specs/phase-2/SPEC-context.md,
+# section 4). The same input without an answer is in test_f1_context.py.
 STEM_WITHOUT_OPT: dict[str, Any] = {
     "program_end_date": "2026-05-15",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 2,
     "employment": [],
@@ -165,6 +175,8 @@ def test_stem_without_opt_still_gives_the_items_it_can():
 def test_cap_gap_with_neither_opt_nor_stem_cannot_tell_and_names_opt(opt, stem):
     case: dict[str, Any] = {
         "program_end_date": "2026-05-15",
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 2,
         "employment": [],
@@ -201,6 +213,8 @@ def whole_cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
     today = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1000)))
     case = {
         "program_end_date": program_end.isoformat(),
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": draw(st.sampled_from(["bachelor", "master", "doctorate"])),
         "documents_count": draw(st.integers(min_value=1, max_value=20)),
         "cpt_full_time_days": draw(st.integers(min_value=0, max_value=300)),
@@ -240,15 +254,16 @@ def unfilled(block: str, field: str) -> Callable[[dict[str, Any]], dict[str, Any
     return lambda case: with_block(case, block, **{field: None}) if case.get(block) else case
 
 
+# specs/phase-2/SPEC-context.md, section 3 (D32): a recommendation date is not among
+# the gaps. It is needed only while neither a filing date nor an EAD start is recorded,
+# and a block without an EAD start is a gap of its own. See test_f1_context.py.
 GAPS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
     "opt_absent": without("opt"),
     "opt_null": emptied("opt"),
     "opt_and_stem_absent": without("opt", "stem"),
     "opt_and_stem_null": emptied("opt", "stem"),
-    "opt_recommendation_null": unfilled("opt", "dso_recommendation_date"),
     "opt_ead_start_null": unfilled("opt", "ead_start"),
     "opt_ead_end_null": unfilled("opt", "ead_end"),
-    "stem_recommendation_null": unfilled("stem", "dso_recommendation_date"),
     "stem_ead_start_null": unfilled("stem", "ead_start"),
     "stem_ead_end_null": unfilled("stem", "ead_end"),
 }
@@ -332,6 +347,8 @@ def covered_case(
     allows: 50, each from the first day on, each with its own hours."""
     return {
         "program_end_date": program_end,
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": "doctorate",
         "documents_count": 10000,
         "cpt_full_time_days": 0,
@@ -507,6 +524,8 @@ def small_windows(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         employment.append(dict(employment[0]))
     case = {
         "program_end_date": program_end.isoformat(),
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 1,
         "cpt_full_time_days": 0,

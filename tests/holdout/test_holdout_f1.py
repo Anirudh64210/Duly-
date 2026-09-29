@@ -19,6 +19,8 @@ from tests.support.f1_pack import (
     BLOCKED,
     OPERATIVE,
     SHIFTED,
+    TIME_ZONE,
+    answered_yes,
     build_pack,
     cap_gap,
     case_problems,
@@ -45,6 +47,8 @@ def run(case: dict[str, Any], today: date, **pack_changes: Any) -> dict[str, Any
 H1_TODAY = date(2024, 3, 1)
 CASE_H1: dict[str, Any] = {
     "program_end_date": "2023-12-15",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "bachelor",
     "documents_count": 2,
     "cpt_full_time_days": 364,
@@ -58,6 +62,8 @@ CASE_H1: dict[str, Any] = {
 H2_TODAY = date(2026, 9, 2)
 CASE_H2: dict[str, Any] = {
     "program_end_date": "2024-08-16",
+    "time_zone": TIME_ZONE,
+    "confirmations": answered_yes(),
     "degree_level": "doctorate",
     "documents_count": 11,
     "cpt_full_time_days": 0,
@@ -361,6 +367,8 @@ def cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
         employment.append(job(start.isoformat(), end, hours=hours, reported=draw(st.booleans())))
     case = {
         "program_end_date": program_end.isoformat(),
+        "time_zone": TIME_ZONE,
+        "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 4,
         "cpt_full_time_days": 0,
