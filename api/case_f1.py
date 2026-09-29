@@ -13,6 +13,7 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 
+from engine.clocks import zone_named
 from engine.rulepack import REPO_ROOT
 
 SCHEMA_PATH = REPO_ROOT / "contracts" / "case_f1.schema.json"
@@ -21,6 +22,10 @@ NOT_JSON = "The body is not JSON."
 NOT_A_NUMBER = (
     "The body holds a number that is not a number. "
     "NaN, Infinity and numbers too large to hold are not read."
+)
+NOT_A_ZONE = (
+    "time_zone: this is not a time zone Duly knows. "
+    "The contract asks for an IANA name, such as America/Los_Angeles."
 )
 
 TYPE_WORDS = {
@@ -88,9 +93,18 @@ def read_body(body: bytes) -> Any:
 
 
 def first_problem(raw: Any) -> str | None:
-    """The first way the case departs from the contract, in plain words, or None."""
+    """The first way the case departs from the contract, in plain words, or None.
+
+    A time zone can match the pattern of the contract and still not exist. That is
+    checked last, against the zones the engine knows."""
     errors = sorted(
         _validator().iter_errors(raw),
         key=lambda e: ([str(p) for p in e.absolute_path], str(e.validator)),
     )
-    return _in_words(errors[0]) if errors else None
+    if errors:
+        return _in_words(errors[0])
+    try:
+        zone_named(raw["time_zone"])
+    except ValueError:
+        return NOT_A_ZONE
+    return None
