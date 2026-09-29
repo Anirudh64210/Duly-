@@ -469,11 +469,16 @@ def test_point_28_the_shipped_pack_changes_nothing():
 
 def test_point_28_the_shipped_pack_gives_a_program_that_ended_in_2024_its_dates():
     # Program end 2024-05-15: 60 days on, 16 reach May 31, 30 Jun 30, 14 more 2024-07-14.
+    # Point 60: a period that starts before 2025-05-19 (the shipped row of
+    # opt.report_employer_within_days) now steps back through
+    # employment.periods_not_reported, so the case holds no period: the step back asserted
+    # absent here is the one of the OPT window rows (point 28). A blocker does not hide a
+    # judgement item (point 51).
     case = with_changes(
         ENDED_BEFORE,
         program_end_date="2024-05-15",
         opt=ead("2024-04-01", "2024-04-10", "2024-06-01", "2025-05-31"),
-        employment=[job("2024-06-01", "2025-05-31")],
+        employment=[],
     )
     out = run(case, pack=shipped())
     assert values(out)["opt.apply_window_closes"] == "2024-07-14"
