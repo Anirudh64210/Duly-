@@ -523,3 +523,55 @@ the round passes. No test was switched off, skipped, or marked as expected to fa
   Fix: judge the older tests against a reference that follows the new contract, never
   against the engine as it is.
   Evidence: 254 failed on the engine as it is, 0 on the reference.
+
+## Iteration 5, 2026-09-29: is_weekend, the factory seed task (run l-tests-0ec4e196e8)
+
+Read: tests/PROGRESS.md, specs/factory/e2e-SPEC.md, CLAUDE.md, contracts/factory_report.schema.json.
+
+### What was written
+
+tests/unit/engine/test_is_weekend.py, ten tests, from specs/factory/e2e-SPEC.md alone.
+engine/dates.py was read only for the names it holds; is_weekend is not there yet.
+
+- Seven tests, one for each day from Monday 2026-10-05 through Sunday 2026-10-11.
+  Working: January 1, 2026 is a Thursday. January through September hold
+  31+28+31+30+31+30+31+31+30 = 273 days, so October 5 is 277 days after January 1.
+  277 = 39 * 7 + 4. Thursday plus 4 is Monday. The printed calendar (`cal 10 2026`) agrees.
+- A property: for any date, is_weekend(d) is (d.weekday() >= 5).
+- A property: any seven days in a row hold exactly two weekend days.
+- One test that the function takes a date and nothing else.
+
+### What ran and what it printed
+
+- `uv run ruff check tests`: All checks passed!
+- `uv run ruff format --check tests`: 36 files already formatted
+- `uv run pytest tests/unit/engine/test_is_weekend.py`: 10 failed, each with
+  AttributeError: module 'engine.dates' has no attribute 'is_weekend'. The SPEC expects this.
+
+### What change to the code would make each test fail
+
+Shown by swapping in a function through a scratch pytest plugin under TMPDIR, removed after.
+
+| function swapped in | result |
+| --- | --- |
+| d.weekday() >= 5 (what the SPEC asks) | 10 passed |
+| Saturday only | 3 failed: Sunday, both properties |
+| Sunday only | 4 failed: Saturday, both properties, the one date test |
+| Friday counted too (>= 4) | 3 failed: Friday, both properties |
+| always True | 7 failed: Monday to Friday, both properties |
+| always False | 5 failed: Saturday, Sunday, both properties, the one date test |
+
+The one date test fails when is_weekend accepts a second argument, such as a clock.
+It does not catch a function that reads the system time inside and takes one argument;
+no test can see that from outside. Gate rules on engine.clocks cover it.
+
+### Not tested, because the SPEC does not say
+
+- What is_weekend does with a datetime, or with a value that is not a date.
+
+## Lesson
+
+- Failure: none in the work. A property over seven days in a row would overflow at
+  date.max if the first day were drawn from the whole range.
+  Fix: draw the first day from dates up to date.max minus six days.
+  Evidence: tests/unit/engine/test_is_weekend.py, `days`.
