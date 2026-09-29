@@ -27,7 +27,7 @@ SKIP_DIRS = {
     ".hypothesis",
 }
 # Raw research quotes its sources as written; the prototype is a design artifact.
-SKIP_PREFIXES = ("docs/research/", "workbook-handoff/prototype/")
+SKIP_PREFIXES = ("docs/research/", "workbook-handoff/prototype/", "design/canvas/")
 SKIP_FILES = {"uv.lock", "package-lock.json"}
 TEXT_SUFFIXES = {
     ".py",

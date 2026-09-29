@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Onboarding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F8F7F4;color:#1A1917;-webkit-font-smoothing:antialiased}
+a{color:#2B4EA2;text-decoration:none}a:hover{color:#22417F}
+@keyframes rise{from{transform:translateY(12px)}to{transform:none}}
+@keyframes drop{from{transform:translateY(-8px)}to{transform:none}}
+@keyframes cfa{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-46px,-44px) rotate(150deg);opacity:0}}
+@keyframes cfb{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-16px,-58px) rotate(90deg);opacity:0}}
+@keyframes cfc{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(12px,-54px) rotate(200deg);opacity:0}}
+@keyframes cfd{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(42px,-42px) rotate(120deg);opacity:0}}
+@keyframes cfe{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-36px,-16px) rotate(60deg);opacity:0}}
+@keyframes cff{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(36px,-18px) rotate(240deg);opacity:0}}
+@keyframes cfg{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-4px,-38px) rotate(180deg);opacity:0}}
+@keyframes cfh{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(24px,-30px) rotate(300deg);opacity:0}}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1)}
+.d1{animation-delay:.08s}.d2{animation-delay:.18s}.d3{animation-delay:.3s}
+.opt{transition:border-color .16s ease,background .16s ease,transform .12s ease}
+.opt:hover{border-color:#B8B4AA;background:#FDFCFA}
+.opt:active{transform:scale(.985)}
+.btn{transition:transform .12s ease,background .16s ease}
+.btn:hover{background:#24448C}
+.btn:active{transform:scale(.97)}
+.drop{animation:drop .3s ease-out}
+.cf{position:absolute;left:0;top:0;width:6px;height:6px;border-radius:2px;pointer-events:none;opacity:0}
+.ca{animation:cfa .7s ease-out .02s forwards}
+.cb{animation:cfb .7s ease-out .06s forwards}
+.cc{animation:cfc .7s ease-out .04s forwards}
+.cd{animation:cfd .7s ease-out .08s forwards}
+.ce{animation:cfe .65s ease-out .03s forwards}
+.cg{animation:cff .65s ease-out .07s forwards}
+.chh{animation:cfg .7s ease-out .05s forwards}
+.ci{animation:cfh .7s ease-out .09s forwards}
+</style>
+</helmet>
+<div style="width: 1280px; height: 832px; box-sizing: border-box; background: #F8F7F4; display: flex; align-items: center; justify-content: center">
+
+  <div style="width: 560px; display: flex; flex-direction: column; gap: 28px">
+
+    <div class="rise" style="display: flex; flex-direction: column; gap: 20px">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.01em">Duly<span style="color: #2B4EA2">.</span></div>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <div style="width: 22px; height: 4px; border-radius: 2px; background: #2B4EA2"></div>
+        <div style="width: 22px; height: 4px; border-radius: 2px; background: {{dot2}}"></div>
+        <div style="width: 22px; height: 4px; border-radius: 2px; background: {{dot3}}"></div>
+        <div style="width: 22px; height: 4px; border-radius: 2px; background: {{dot4}}"></div>
+        <div style="width: 22px; height: 4px; border-radius: 2px; background: {{dot5}}"></div>
+        <span style="font-size: 12px; color: #8A8780; margin-left: 8px">{{stepLabel}}</span>
+      </div>
+    </div>
+
+    <sc-if value="{{isWork}}" hint-placeholder-val="{{ true }}">
+      <div class="drop" style="display: flex; flex-direction: column; gap: 24px">
+        <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.02em">What kind of work do you do?</div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <button class="opt" onClick="{{wEmp}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{empB}}; border-radius: 12px; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between">
+            <div>
+              <div style="font-size: 15px; font-weight: 600; color: #1A1917">Employee (W-2)</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">Salaried or hourly at one employer</div>
+            </div>
+            <sc-if value="{{empOn}}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+          </button>
+          <button class="opt" onClick="{{wCon}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{conB}}; border-radius: 12px; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between">
+            <div>
+              <div style="font-size: 15px; font-weight: 600; color: #1A1917">Contractor (1099)</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">Freelance or contract work</div>
+            </div>
+            <sc-if value="{{conOn}}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+          </button>
+          <button class="opt" onClick="{{wFou}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{fouB}}; border-radius: 12px; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between">
+            <div>
+              <div style="font-size: 15px; font-weight: 600; color: #1A1917">Founder</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">Your own business, related to your degree</div>
+            </div>
+            <sc-if value="{{fouOn}}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+          </button>
+          <button class="opt" onClick="{{wUnp}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{unpB}}; border-radius: 12px; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between">
+            <div>
+              <div style="font-size: 15px; font-weight: 600; color: #1A1917">Unpaid</div>
+              <div style="font-size: 13px; color: #8A8780; margin-top: 2px">Volunteer or unpaid role in your field</div>
+            </div>
+            <sc-if value="{{unpOn}}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+          </button>
+        </div>
+        <div style="font-size: 12.5px; color: #8A8780">Your work type decides which rules apply to you. It stays on this device.</div>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <a href="#back" style="font-size: 14px; color: #8A8780">Back</a>
+          <button class="btn" onClick="{{toField}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border: none; border-radius: 99px; padding: 12px 32px; cursor: pointer">Continue</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isField}}" hint-placeholder-val="{{ false }}">
+      <div class="drop" style="display: flex; flex-direction: column; gap: 24px">
+        <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.02em">What field is your work in?</div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+          <button class="opt" onClick="{{fSw}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #1A1917; background: #FFFFFF; border: 1.5px solid {{swB}}; border-radius: 12px; padding: 15px 12px; cursor: pointer">Software</button>
+          <button class="opt" onClick="{{fMl}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #1A1917; background: #FFFFFF; border: 1.5px solid {{mlB}}; border-radius: 12px; padding: 15px 12px; cursor: pointer">Data &amp; ML</button>
+          <button class="opt" onClick="{{fDe}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #1A1917; background: #FFFFFF; border: 1.5px solid {{deB}}; border-radius: 12px; padding: 15px 12px; cursor: pointer">Design</button>
+          <button class="opt" onClick="{{fRe}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #1A1917; background: #FFFFFF; border: 1.5px solid {{reB}}; border-radius: 12px; padding: 15px 12px; cursor: pointer">Research</button>
+          <button class="opt" onClick="{{fBu}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #1A1917; background: #FFFFFF; border: 1.5px solid {{buB}}; border-radius: 12px; padding: 15px 12px; cursor: pointer">Business &amp; ops</button>
+          <button class="opt" onClick="{{fOt}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #1A1917; background: #FFFFFF; border: 1.5px solid {{otB}}; border-radius: 12px; padding: 15px 12px; cursor: pointer">Other</button>
+        </div>
+        <div style="font-size: 12.5px; color: #8A8780">The field decides which sources Duly suggests for WorkBook.</div>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <button onClick="{{toWork}}" style="font-family: inherit; font-size: 14px; color: #8A8780; background: none; border: none; cursor: pointer">Back</button>
+          <button class="btn" onClick="{{toDone}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border: none; border-radius: 99px; padding: 12px 32px; cursor: pointer">Continue</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+      <div class="drop" style="display: flex; flex-direction: column; gap: 22px; position: relative">
+        <span style="position: absolute; left: 40px; top: 6px; width: 0; height: 0">
+          <span class="cf ca" style="background: #2B4EA2"></span><span class="cf cb" style="background: #B45309"></span><span class="cf cc" style="background: #6B8AD4"></span><span class="cf cd" style="background: #2B4EA2"></span><span class="cf ce" style="background: #B45309"></span><span class="cf cg" style="background: #2B4EA2"></span><span class="cf chh" style="background: #6B8AD4"></span><span class="cf ci" style="background: #2B4EA2"></span>
+        </span>
+        <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.02em">You're set.</div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: #4A4844"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>F-1 · Post-completion OPT</div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: #4A4844"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>{{workLabel}} · {{fieldLabel}}</div>
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: #4A4844"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Watching: 90-day clock · STEM window · SEVP reporting</div>
+        </div>
+        <div style="font-size: 13px; color: #8A8780">Everything lives in Your case and can be changed any time.</div>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <button onClick="{{toField}}" style="font-family: inherit; font-size: 14px; color: #8A8780; background: none; border: none; cursor: pointer">Back</button>
+          <a href="Main.dc.html" class="btn" style="font-size: 14px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border-radius: 99px; padding: 12px 32px">Open Duly</a>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":832}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const step = s.step || 'work';
+    const work = s.work || 'emp';
+    const field = s.field || 'sw';
+    const go = (st) => () => this.setState({ step: st, work, field });
+    const setW = (w) => () => this.setState({ step, work: w, field });
+    const setF = (f) => () => this.setState({ step, work, field: f });
+    const B = (on) => on ? '#2B4EA2' : '#E5E2DA';
+    const workLabels = { emp: 'Employee (W-2)', con: 'Contractor (1099)', fou: 'Founder', unp: 'Unpaid' };
+    const fieldLabels = { sw: 'Software', ml: 'Data & ML', de: 'Design', re: 'Research', bu: 'Business & ops', ot: 'Other' };
+    const dots = { work: 2, field: 3, done: 5 }[step];
+    const dot = (n) => n <= dots ? '#2B4EA2' : '#DDD9D0';
+    return {
+      isWork: step === 'work', isField: step === 'field', isDone: step === 'done',
+      stepLabel: step === 'done' ? 'Done' : (step === 'work' ? 'Step 2 of 5' : 'Step 3 of 5'),
+      dot2: dot(2), dot3: dot(3), dot4: dot(4), dot5: dot(5),
+      toWork: go('work'), toField: go('field'), toDone: go('done'),
+      wEmp: setW('emp'), wCon: setW('con'), wFou: setW('fou'), wUnp: setW('unp'),
+      empOn: work === 'emp', conOn: work === 'con', fouOn: work === 'fou', unpOn: work === 'unp',
+      empB: B(work === 'emp'), conB: B(work === 'con'), fouB: B(work === 'fou'), unpB: B(work === 'unp'),
+      fSw: setF('sw'), fMl: setF('ml'), fDe: setF('de'), fRe: setF('re'), fBu: setF('bu'), fOt: setF('ot'),
+      swB: B(field === 'sw'), mlB: B(field === 'ml'), deB: B(field === 'de'), reB: B(field === 're'), buB: B(field === 'bu'), otB: B(field === 'ot'),
+      workLabel: workLabels[work], fieldLabel: fieldLabels[field]
+    };
+  }
+}
+</script>
+</body>
+</html>

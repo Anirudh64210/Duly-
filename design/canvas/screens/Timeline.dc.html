@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Timeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F8F7F4;color:#1A1917;-webkit-font-smoothing:antialiased}
+a{color:#2B4EA2;text-decoration:none}a:hover{color:#22417F}
+@keyframes rise{from{transform:translateY(12px)}to{transform:none}}
+@keyframes fillw{from{width:0}}
+@keyframes drop{from{transform:translateY(-6px)}to{transform:none}}
+@keyframes cfa{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-46px,-44px) rotate(150deg);opacity:0}}
+@keyframes cfb{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-16px,-58px) rotate(90deg);opacity:0}}
+@keyframes cfc{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(12px,-54px) rotate(200deg);opacity:0}}
+@keyframes cfd{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(42px,-42px) rotate(120deg);opacity:0}}
+@keyframes cfe{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-36px,-16px) rotate(60deg);opacity:0}}
+@keyframes cff{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(36px,-18px) rotate(240deg);opacity:0}}
+@keyframes cfg{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-4px,-38px) rotate(180deg);opacity:0}}
+@keyframes cfh{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(24px,-30px) rotate(300deg);opacity:0}}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1)}
+.d1{animation-delay:.05s}.d2{animation-delay:.11s}.d3{animation-delay:.17s}.d4{animation-delay:.23s}.d5{animation-delay:.29s}.d6{animation-delay:.35s}.d7{animation-delay:.41s}
+.hrow{transition:background .16s ease}
+.hrow:hover{background:#F0EEE8}
+.fillbar{animation:fillw 1.1s .4s cubic-bezier(.2,.7,.2,1)}
+.chev{transition:transform .22s ease}
+.rot{transform:rotate(90deg)}
+.drop{animation:drop .28s ease-out}
+.cf{position:absolute;left:0;top:0;width:6px;height:6px;border-radius:2px;pointer-events:none;opacity:0}
+.ca{animation:cfa .7s ease-out .02s forwards}
+.cb{animation:cfb .7s ease-out .06s forwards}
+.cc{animation:cfc .7s ease-out .04s forwards}
+.cd{animation:cfd .7s ease-out .08s forwards}
+.ce{animation:cfe .65s ease-out .03s forwards}
+.cg{animation:cff .65s ease-out .07s forwards}
+.chh{animation:cfg .7s ease-out .05s forwards}
+.ci{animation:cfh .7s ease-out .09s forwards}
+</style>
+</helmet>
+<div style="width: 1280px; height: 832px; box-sizing: border-box; display: flex; background: #F8F7F4">
+
+  <div style="width: 208px; flex-shrink: 0; box-sizing: border-box; border-right: 1px solid #ECEAE4; display: flex; flex-direction: column; gap: 2px; padding: 26px 14px">
+    <div style="padding: 0 10px; margin-bottom: 26px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em">Duly<span style="color: #2B4EA2">.</span></div>
+    <a href="Main.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Home</a>
+    <a href="Timeline.dc.html" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; font-weight: 600; color: #2B4EA2">Timeline</a>
+    <a href="Documents.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Documents</a>
+    <a href="Checklist.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Checklists</a>
+    <a href="Simulator.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Scenarios</a>
+    <a href="Updates.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Updates</a>
+    <a href="WorkBook.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">WorkBook</a>
+    <div style="flex-grow: 1"></div>
+    <a href="#case" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Your case</a>
+    <a href="#settings" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Settings</a>
+    <a href="#feedback" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Feedback</a>
+  </div>
+
+  <div style="flex-grow: 1; box-sizing: border-box; display: flex; justify-content: center; overflow: hidden">
+    <div style="width: 720px; display: flex; flex-direction: column; padding-top: 50px">
+
+      <div class="rise" style="display: flex; align-items: baseline; justify-content: space-between">
+        <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em">Timeline</div>
+        <div style="font-size: 13px; color: #6B6862">6 phases · 24 requirements tracked · nothing missed</div>
+      </div>
+
+      <div style="margin-top: 22px; display: flex; flex-direction: column">
+
+        <div class="rise d1 hrow" role="button" tabindex="0" onClick="{{tVisa}}" style="cursor: pointer; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #ECEAE4">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex-shrink: 0"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">Visa and entry</div>
+              <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">F-1 stamp · first I-94 · Aug 2023</div>
+            </div>
+            <svg class="chev {{visaRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{visaOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 10px 0 4px 30px; display: flex; flex-direction: column; gap: 8px; position: relative">
+              <span style="position: absolute; left: 46px; top: 4px; width: 0; height: 0"><span class="cf ca" style="background: #2B4EA2"></span><span class="cf cb" style="background: #B45309"></span><span class="cf cc" style="background: #6B8AD4"></span><span class="cf cd" style="background: #2B4EA2"></span><span class="cf ce" style="background: #B45309"></span><span class="cf cg" style="background: #2B4EA2"></span><span class="cf chh" style="background: #6B8AD4"></span><span class="cf ci" style="background: #2B4EA2"></span></span>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>F-1 visa stamp valid until Jul 12, 2028</div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Passport valid through Mar 2031</div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>First I-94 on record, entry Aug 9, 2023</div>
+              <a href="Documents.dc.html" style="font-size: 12.5px; font-weight: 600">3 documents →</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d2 hrow" role="button" tabindex="0" onClick="{{tMeng}}" style="cursor: pointer; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex-shrink: 0"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">M.Eng Computer Science</div>
+              <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Aug 2023 to Dec 2025 · degree conferred</div>
+            </div>
+            <svg class="chev {{mengRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{mengOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 10px 0 4px 30px; display: flex; flex-direction: column; gap: 8px; position: relative">
+              <span style="position: absolute; left: 46px; top: 4px; width: 0; height: 0"><span class="cf ca" style="background: #2B4EA2"></span><span class="cf cb" style="background: #B45309"></span><span class="cf cc" style="background: #6B8AD4"></span><span class="cf cd" style="background: #2B4EA2"></span><span class="cf ce" style="background: #B45309"></span><span class="cf cg" style="background: #2B4EA2"></span><span class="cf chh" style="background: #6B8AD4"></span><span class="cf ci" style="background: #2B4EA2"></span></span>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>F-1 status maintained, all 5 semesters</div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Full-time enrollment every term</div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Degree conferred Dec 13, 2025 · transcript in vault</div>
+              <a href="Documents.dc.html" style="font-size: 12.5px; font-weight: 600">4 documents →</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d3 hrow" role="button" tabindex="0" onClick="{{tCpt}}" style="cursor: pointer; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex-shrink: 0"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">CPT · two authorizations</div>
+              <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Summer 2024 · Spring 2025</div>
+            </div>
+            <svg class="chev {{cptRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{cptOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 10px 0 4px 30px; display: flex; flex-direction: column; gap: 8px; position: relative">
+              <span style="position: absolute; left: 46px; top: 4px; width: 0; height: 0"><span class="cf ca" style="background: #2B4EA2"></span><span class="cf cb" style="background: #B45309"></span><span class="cf cc" style="background: #6B8AD4"></span><span class="cf cd" style="background: #2B4EA2"></span><span class="cf ce" style="background: #B45309"></span><span class="cf cg" style="background: #2B4EA2"></span><span class="cf chh" style="background: #6B8AD4"></span><span class="cf ci" style="background: #2B4EA2"></span></span>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Both authorized on the I-20 before day one</div>
+              <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Employment dates match SEVIS exactly</div>
+              <a href="Documents.dc.html" style="font-size: 12.5px; font-weight: 600">2 documents →</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d4 hrow" role="button" tabindex="0" onClick="{{tNow}}" style="cursor: pointer; padding: 15px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <span style="flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #FFFFFF; background: #2B4EA2; border-radius: 5px; padding: 3px 6px">NOW</span>
+            <div style="flex-grow: 1">
+              <div style="font-size: 16px; font-weight: 600">Post-completion OPT</div>
+              <div style="font-size: 12.5px; color: #6B6862; margin-top: 3px">Day 228 of 365 · application, card and reporting, all in one place</div>
+              <div style="height: 3px; border-radius: 2px; background: #E8E6E0; overflow: hidden; margin-top: 9px; max-width: 400px"><div class="fillbar" style="width: 63%; height: 3px; background: #2B4EA2"></div></div>
+            </div>
+            <svg class="chev {{nowRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{nowOpen}}" hint-placeholder-val="{{ true }}">
+            <div class="drop" style="padding: 12px 0 4px 44px; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #4A4844">
+                <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">APPLICATION</span>
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Filed Nov 2
+                <span style="color: #C9C5BC">·</span>
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Approved Jan 21
+                <span style="color: #C9C5BC">·</span>
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>EAD delivered Feb 2
+                <span style="color: #B0ACA3">· via USCIS case status</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 7px">
+                <div style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: #8A8780">COVERED · 7 OF 8</div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 24px">
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>EAD card in the vault</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>SSN on file</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>I-94 pulled fresh after Aug 19 entry</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Employer reported in SEVP</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Travel signature valid to Feb 14</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>US address current</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A4844"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>WorkBook recording, 31 weeks</div>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A1917"><span style="width: 12px; height: 12px; border-radius: 7px; border: 1.5px solid #C9C5BC; box-sizing: border-box; flex-shrink: 0"></span>SEVP 6-month check-in · due Oct 7</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d5 hrow" role="button" tabindex="0" onClick="{{tStem}}" style="cursor: pointer; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <span style="flex-shrink: 0; width: 15px; display: flex; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #8FA6D9; box-sizing: border-box"></span></span>
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">STEM OPT extension</div>
+              <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Window opens Dec 12 · 2 of 6 steps done</div>
+            </div>
+            <svg class="chev {{stemRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{stemOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 10px 0 4px 30px; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 13px; color: #4A4844">24 more months. File between Dec 12 and Feb 9 with an E-Verify employer and a signed I-983.</div>
+              <a href="Checklist.dc.html" style="font-size: 12.5px; font-weight: 600">Open the checklist →</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d6 hrow" role="button" tabindex="0" onClick="{{tBeyond}}" style="cursor: pointer; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8; border-bottom: 1px solid #ECEAE4">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <span style="flex-shrink: 0; width: 15px; display: flex; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #C9C5BC; box-sizing: border-box"></span></span>
+            <div style="flex-grow: 1">
+              <div style="font-size: 14.5px; font-weight: 500">Beyond</div>
+              <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">H-1B · O-1 · green card paths</div>
+            </div>
+            <svg class="chev {{beyondRot}}" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#B0ACA3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+          </div>
+          <sc-if value="{{beyondOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="padding: 10px 0 4px 30px; display: flex; flex-direction: column; gap: 8px">
+              <div style="font-size: 13px; color: #4A4844">H-1B registration runs each March. O-1 and green card paths build on the same record you're keeping now. Each wakes up here when it becomes your move.</div>
+              <a href="Checklist.dc.html" style="font-size: 12.5px; font-weight: 600">See the H-1B plan →</a>
+            </div>
+          </sc-if>
+        </div>
+
+      </div>
+
+      <div style="flex-grow: 1"></div>
+      <div class="rise d7" style="padding-bottom: 24px; font-size: 12px; color: #B0ACA3">Every phase keeps its documents, checks and dates together.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":832}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const open = (this.state && this.state.open) || 'now';
+    const t = (k) => () => this.setState({ open: open === k ? '' : k });
+    const rot = (k) => open === k ? 'rot' : '';
+    return {
+      visaOpen: open === 'visa', mengOpen: open === 'meng', cptOpen: open === 'cpt', nowOpen: open === 'now', stemOpen: open === 'stem', beyondOpen: open === 'beyond',
+      visaRot: rot('visa'), mengRot: rot('meng'), cptRot: rot('cpt'), nowRot: rot('now'), stemRot: rot('stem'), beyondRot: rot('beyond'),
+      tVisa: t('visa'), tMeng: t('meng'), tCpt: t('cpt'), tNow: t('now'), tStem: t('stem'), tBeyond: t('beyond')
+    };
+  }
+}
+</script>
+</body>
+</html>

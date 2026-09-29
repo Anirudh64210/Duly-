@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Documents</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F8F7F4;color:#1A1917;-webkit-font-smoothing:antialiased}
+a{color:#2B4EA2;text-decoration:none}a:hover{color:#22417F}
+@keyframes rise{from{transform:translateY(12px)}to{transform:none}}
+@keyframes drop{from{transform:translateY(-6px)}to{transform:none}}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1)}
+.d1{animation-delay:.06s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}.d4{animation-delay:.32s}.d5{animation-delay:.4s}
+.hrow{transition:background .16s ease}
+.hrow:hover{background:#F0EEE8}
+.chev{transition:transform .22s ease}
+.rot{transform:rotate(90deg)}
+.drop{animation:drop .28s ease-out}
+</style>
+</helmet>
+<div style="width: 1280px; height: 832px; box-sizing: border-box; display: flex; background: #F8F7F4">
+
+  <div style="width: 208px; flex-shrink: 0; box-sizing: border-box; border-right: 1px solid #ECEAE4; display: flex; flex-direction: column; gap: 2px; padding: 26px 14px">
+    <div style="padding: 0 10px; margin-bottom: 26px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em">Duly<span style="color: #2B4EA2">.</span></div>
+    <a href="Main.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Home</a>
+    <a href="Timeline.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Timeline</a>
+    <a href="Documents.dc.html" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; font-weight: 600; color: #2B4EA2">Documents</a>
+    <a href="Checklist.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Checklists</a>
+    <a href="Simulator.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Scenarios</a>
+    <a href="Updates.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Updates</a>
+    <a href="WorkBook.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">WorkBook</a>
+    <div style="flex-grow: 1"></div>
+    <a href="#case" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Your case</a>
+    <a href="#settings" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Settings</a>
+    <a href="#feedback" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Feedback</a>
+  </div>
+
+  <div style="flex-grow: 1; box-sizing: border-box; display: flex; justify-content: center; overflow: hidden">
+    <div style="width: 720px; display: flex; flex-direction: column; padding-top: 50px">
+
+      <div class="rise" style="display: flex; align-items: flex-start; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 9px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#2B4EA2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M5.4 8.2l1.8 1.8 3.4-4"/></svg>
+            <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em; color: #2B4EA2">CONSISTENT</span>
+          </div>
+          <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em">15 documents, one story.</div>
+          <div style="font-size: 14px; color: #6B6862">Names, dates and SEVIS ID match everywhere. Checked today.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #8A8780; padding-top: 6px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8A8780" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0"/></svg>
+          Unlocked · locks in 4:32
+        </div>
+      </div>
+
+      <div class="rise d1" style="margin-top: 30px; display: flex; gap: 24px; font-size: 13.5px; border-bottom: 1px solid #ECEAE4; padding-bottom: 12px">
+        <a href="#all" style="color: #6B6862">All</a>
+        <a href="#identity" style="color: #6B6862">Identity</a>
+        <a href="#i20" style="font-weight: 600; color: #1A1917; border-bottom: 2px solid #2B4EA2; padding-bottom: 10px; margin-bottom: -12px">I-20 history · 6</a>
+        <a href="#employment" style="color: #6B6862">Employment</a>
+        <a href="#filings" style="color: #6B6862">Filings</a>
+        <a href="#packs" style="color: #6B6862">Evidence packs</a>
+      </div>
+
+      <div style="display: flex; flex-direction: column">
+
+        <div class="rise d2">
+          <div class="hrow" role="button" tabindex="0" onClick="{{tOpt}}" style="cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 15px 12px; margin: 0 -12px; border-radius: 10px">
+            <svg class="chev {{optRot}}" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8A8780" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+            <div style="flex-grow: 1; font-size: 14.5px; font-weight: 600">OPT</div>
+            <div style="font-size: 12.5px; color: #8A8780">3 versions</div>
+          </div>
+          <sc-if value="{{optOpen}}" hint-placeholder-val="{{ true }}">
+            <div class="drop" style="display: flex; flex-direction: column; padding-left: 25px">
+              <a href="#v6" class="hrow" style="display: flex; align-items: center; gap: 14px; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; color: #1A1917">
+                <div style="width: 128px; flex-shrink: 0; display: flex; align-items: center; gap: 8px">
+                  <span style="font-size: 11px; font-weight: 700; color: #2B4EA2">CURRENT</span>
+                  <span style="font-size: 12px; color: #8A8780">v6</span>
+                </div>
+                <div style="flex-grow: 1">
+                  <div style="font-size: 14px; font-weight: 500">OPT recommended · travel signature added</div>
+                  <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Signed Aug 14, 2026 · valid for re-entry until Feb 14, 2027</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">Open</span>
+              </a>
+              <a href="#v5" class="hrow" style="display: flex; align-items: center; gap: 14px; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; color: #1A1917; border-top: 1px solid #F0EEE8">
+                <div style="width: 128px; flex-shrink: 0; font-size: 12px; color: #8A8780">v5</div>
+                <div style="flex-grow: 1">
+                  <div style="font-size: 14px; font-weight: 500">OPT recommended · corrected end date</div>
+                  <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Reissued Jan 6, 2026 · superseded, kept for the record</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">Open</span>
+              </a>
+              <a href="#v4" class="hrow" style="display: flex; align-items: center; gap: 14px; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; color: #1A1917; border-top: 1px solid #F0EEE8">
+                <div style="width: 128px; flex-shrink: 0; font-size: 12px; color: #8A8780">v4</div>
+                <div style="flex-grow: 1">
+                  <div style="font-size: 14px; font-weight: 500">OPT recommended · original</div>
+                  <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Issued Dec 19, 2025 · the copy filed with your I-765</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">Open</span>
+              </a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d3" style="border-top: 1px solid #ECEAE4">
+          <div class="hrow" role="button" tabindex="0" onClick="{{tCpt}}" style="cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 15px 12px; margin: 0 -12px; border-radius: 10px">
+            <svg class="chev {{cptRot}}" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8A8780" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+            <div style="flex-grow: 1; font-size: 14.5px; font-weight: 600">CPT</div>
+            <div style="font-size: 12.5px; color: #8A8780">2 versions</div>
+          </div>
+          <sc-if value="{{cptOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="display: flex; flex-direction: column; padding-left: 25px">
+              <a href="#v3" class="hrow" style="display: flex; align-items: center; gap: 14px; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; color: #1A1917">
+                <div style="width: 128px; flex-shrink: 0; font-size: 12px; color: #8A8780">v3</div>
+                <div style="flex-grow: 1">
+                  <div style="font-size: 14px; font-weight: 500">CPT authorized · research assistantship</div>
+                  <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Issued Jan 8, 2025 · Spring 2025</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">Open</span>
+              </a>
+              <a href="#v2" class="hrow" style="display: flex; align-items: center; gap: 14px; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; color: #1A1917; border-top: 1px solid #F0EEE8">
+                <div style="width: 128px; flex-shrink: 0; font-size: 12px; color: #8A8780">v2</div>
+                <div style="flex-grow: 1">
+                  <div style="font-size: 14px; font-weight: 500">CPT authorized · data science internship</div>
+                  <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Issued Apr 30, 2024 · Summer 2024</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">Open</span>
+              </a>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="rise d4" style="border-top: 1px solid #ECEAE4; border-bottom: 1px solid #ECEAE4">
+          <div class="hrow" role="button" tabindex="0" onClick="{{tInit}}" style="cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 15px 12px; margin: 0 -12px; border-radius: 10px">
+            <svg class="chev {{initRot}}" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8A8780" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+            <div style="flex-grow: 1; font-size: 14.5px; font-weight: 600">Initial attendance</div>
+            <div style="font-size: 12.5px; color: #8A8780">1 version</div>
+          </div>
+          <sc-if value="{{initOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="drop" style="display: flex; flex-direction: column; padding-left: 25px">
+              <a href="#v1" class="hrow" style="display: flex; align-items: center; gap: 14px; padding: 13px 12px; margin: 0 -12px; border-radius: 10px; color: #1A1917">
+                <div style="width: 128px; flex-shrink: 0; font-size: 12px; color: #8A8780">v1</div>
+                <div style="flex-grow: 1">
+                  <div style="font-size: 14px; font-weight: 500">Initial I-20 · program start</div>
+                  <div style="font-size: 12.5px; color: #8A8780; margin-top: 2px">Issued Jun 2, 2023</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 600; color: #2B4EA2">Open</span>
+              </a>
+            </div>
+          </sc-if>
+        </div>
+
+      </div>
+
+      <div style="flex-grow: 1"></div>
+      <div class="rise d5" style="padding-bottom: 24px; font-size: 12px; color: #B0ACA3">Every version kept — old I-20s prove the chain. Encrypted on this device.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":832}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const open = (this.state && this.state.open) || { opt: true, cpt: false, init: false };
+    const t = (k) => () => this.setState({ open: { ...open, [k]: !open[k] } });
+    return {
+      optOpen: !!open.opt, cptOpen: !!open.cpt, initOpen: !!open.init,
+      optRot: open.opt ? 'rot' : '', cptRot: open.cpt ? 'rot' : '', initRot: open.init ? 'rot' : '',
+      tOpt: t('opt'), tCpt: t('cpt'), tInit: t('init')
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WorkBook</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;background:#F8F7F4;color:#1A1917;-webkit-font-smoothing:antialiased}
+a{color:#2B4EA2;text-decoration:none}a:hover{color:#0A4C41}
+@keyframes rise{from{transform:translateY(12px)}to{transform:none}}
+@keyframes fillw{from{width:0}}
+@keyframes drop{from{transform:translateY(-6px)}to{transform:none}}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1)}
+.d1{animation-delay:.06s}.d2{animation-delay:.14s}.d3{animation-delay:.22s}.d4{animation-delay:.3s}.d5{animation-delay:.38s}
+.hrow{transition:background .16s ease}
+.hrow:hover{background:#F0EEE8}
+.btn{transition:transform .12s ease,background .16s ease}
+.btn:hover{background:#24448C}
+.btn:active{transform:scale(.97)}
+.conn{cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .12s ease}
+.conn:hover{border-color:#B8B4AA}
+.conn:active{transform:scale(.97)}
+.fillbar{animation:fillw 1s .4s cubic-bezier(.2,.7,.2,1)}
+.drop{animation:drop .3s ease-out}
+</style>
+</helmet>
+<div style="width: 1280px; height: 832px; box-sizing: border-box; display: flex; background: #F8F7F4">
+
+  <div style="width: 208px; flex-shrink: 0; box-sizing: border-box; border-right: 1px solid #ECEAE4; display: flex; flex-direction: column; gap: 2px; padding: 26px 14px">
+    <div style="padding: 0 10px; margin-bottom: 26px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em">Duly<span style="color: #2B4EA2">.</span></div>
+    <a href="Main.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Home</a>
+    <a href="Timeline.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Timeline</a>
+    <a href="Documents.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Documents</a>
+    <a href="Checklist.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Checklists</a>
+    <a href="Simulator.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Scenarios</a>
+    <a href="Updates.dc.html" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Updates</a>
+    <a href="WorkBook.dc.html" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; font-weight: 600; color: #2B4EA2">WorkBook</a>
+    <div style="flex-grow: 1"></div>
+    <a href="#case" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Your case</a>
+    <a href="#settings" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Settings</a>
+    <a href="#feedback" class="hrow" style="display: block; padding: 7px 10px; border-radius: 7px; font-size: 14px; color: #6B6862">Feedback</a>
+  </div>
+
+  <div style="flex-grow: 1; box-sizing: border-box; display: flex; justify-content: center; overflow: hidden">
+    <div style="width: 720px; display: flex; flex-direction: column; padding-top: 52px">
+
+      <sc-if value="{{isIntro}}" hint-placeholder-val="{{ true }}">
+        <div class="drop" style="display: flex; flex-direction: column; flex-grow: 1; padding-top: 40px">
+          <div style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em; color: #8A8780">WORKBOOK · OPTIONAL, YOURS</div>
+          <div style="font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-top: 14px; max-width: 620px">Working a job, a contract, or your own thing?</div>
+          <div style="font-size: 15px; color: #6B6862; line-height: 1.6; margin-top: 16px; max-width: 560px">WorkBook keeps your timesheet for you: a day-by-day record of the work you already do, drawn from the tools you already use. When anyone ever asks for proof, it's already written.</div>
+          <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 11px; max-width: 560px">
+            <div style="display: flex; align-items: center; gap: 11px; font-size: 14px; color: #4A4844"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Builds itself from GitHub, Calendar, Slack and more, with no screenshots, ever</div>
+            <div style="display: flex; align-items: center; gap: 11px; font-size: 14px; color: #4A4844"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Metadata only, encrypted, never leaves this device</div>
+            <div style="display: flex; align-items: center; gap: 11px; font-size: 14px; color: #4A4844"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>You confirm every day. AI drafts, you own the record</div>
+          </div>
+          <div style="margin-top: 36px; display: flex; align-items: center; gap: 22px">
+            <button class="btn" onClick="{{goSetup}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border: none; border-radius: 99px; padding: 12px 28px; cursor: pointer">Set up WorkBook</button>
+            <a href="Main.dc.html" style="font-size: 14px; color: #8A8780">Not now</a>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isSetup}}" hint-placeholder-val="{{ false }}">
+        <div class="drop" style="display: flex; flex-direction: column; flex-grow: 1; padding-top: 12px">
+          <div style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em; color: #8A8780">SET UP · 1 OF 2</div>
+          <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 12px">Where does your work already live?</div>
+          <div style="font-size: 14px; color: #6B6862; margin-top: 8px">Read-only, metadata only: times, titles and links, never content. Nothing connects until you sign in to it.</div>
+
+          <div style="margin-top: 26px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+            <button class="conn" onClick="{{tGithub}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{githubBorder}}; border-radius: 12px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between">
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #1A1917">GitHub</div>
+                <div style="font-size: 12px; color: #8A8780; margin-top: 2px">commits, PRs</div>
+              </div>
+              <sc-if value="{{github}}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+            </button>
+            <button class="conn" onClick="{{tCal}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{calBorder}}; border-radius: 12px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between">
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #1A1917">Google Calendar</div>
+                <div style="font-size: 12px; color: #8A8780; margin-top: 2px">meetings</div>
+              </div>
+              <sc-if value="{{cal}}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+            </button>
+            <button class="conn" onClick="{{tSlack}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{slackBorder}}; border-radius: 12px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between">
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #1A1917">Slack</div>
+                <div style="font-size: 12px; color: #8A8780; margin-top: 2px">activity, daily post</div>
+              </div>
+              <sc-if value="{{slack}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+            </button>
+            <button class="conn" onClick="{{tMeet}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{meetBorder}}; border-radius: 12px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between">
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #1A1917">Google Meet</div>
+                <div style="font-size: 12px; color: #8A8780; margin-top: 2px">join and leave times</div>
+              </div>
+              <sc-if value="{{meet}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+            </button>
+            <button class="conn" onClick="{{tLinear}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{linearBorder}}; border-radius: 12px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between">
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #1A1917">Linear</div>
+                <div style="font-size: 12px; color: #8A8780; margin-top: 2px">issues shipped</div>
+              </div>
+              <sc-if value="{{linear}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+            </button>
+            <button class="conn" onClick="{{tStripe}}" style="font-family: inherit; text-align: left; background: #FFFFFF; border: 1.5px solid {{stripeBorder}}; border-radius: 12px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between">
+              <div>
+                <div style="font-size: 14px; font-weight: 600; color: #1A1917">Stripe</div>
+                <div style="font-size: 12px; color: #8A8780; margin-top: 2px">founders · business is live</div>
+              </div>
+              <sc-if value="{{stripe}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="#2B4EA2"/><path d="M5.4 8.2l1.8 1.8 3.4-4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if>
+            </button>
+          </div>
+
+          <div style="margin-top: 30px; display: flex; align-items: center; gap: 22px">
+            <button class="btn" onClick="{{goToday}}" style="font-family: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border: none; border-radius: 99px; padding: 12px 28px; cursor: pointer">Start recording · {{connCount}} sources</button>
+            <button onClick="{{goIntro}}" style="font-family: inherit; font-size: 14px; color: #8A8780; background: none; border: none; cursor: pointer">Back</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isToday}}" hint-placeholder-val="{{ false }}">
+        <div class="drop" style="display: flex; flex-direction: column; flex-grow: 1">
+          <div style="display: flex; gap: 22px; font-size: 13.5px; border-bottom: 1px solid #ECEAE4; padding-bottom: 12px">
+            <a href="#today" style="font-weight: 600; color: #1A1917">Today</a>
+            <a href="#log" style="color: #8A8780">Log</a>
+            <a href="#exports" style="color: #8A8780">Exports</a>
+          </div>
+
+          <div style="margin-top: 26px; display: flex; align-items: flex-end; justify-content: space-between">
+            <div>
+              <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Monday, September 28</div>
+              <div style="font-size: 14px; color: #6B6862; margin-top: 6px">6.2 hours so far · recording from {{connCount}} sources</div>
+            </div>
+            <div style="width: 200px; display: flex; flex-direction: column; gap: 7px; align-items: flex-end; padding-bottom: 4px">
+              <div style="font-size: 12.5px; color: #8A8780"><span style="font-weight: 600; color: #1A1917">12.6</span> of 20 h this week</div>
+              <div style="width: 200px; height: 3px; border-radius: 2px; background: #E9E6DF; overflow: hidden"><div class="fillbar" style="width: 63%; height: 3px; background: #2B4EA2"></div></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 22px; display: flex; flex-direction: column">
+            <div class="hrow" style="display: flex; align-items: center; gap: 16px; padding: 14px 12px; margin: 0 -12px; border-radius: 10px">
+              <div style="width: 96px; flex-shrink: 0; font-size: 13px; color: #8A8780">9:12 to 10:03</div>
+              <div style="flex-grow: 1; display: flex; align-items: center; gap: 8px; font-size: 14.5px">Reviewed pull requests, merged the ingest fix
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="#B45309" aria-label="Drafted by AI" role="img"><path d="M8 1.6l1.7 4 4.3.4-3.2 2.9.9 4.3L8 11l-3.7 2.2.9-4.3L2 6l4.3-.4z"/></svg>
+              </div>
+              <div style="font-size: 13px; color: #6B6862">0.9 h</div>
+            </div>
+            <div class="hrow" style="display: flex; align-items: center; gap: 16px; padding: 14px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8">
+              <div style="width: 96px; flex-shrink: 0; font-size: 13px; color: #8A8780">10:30 to 12:15</div>
+              <div style="flex-grow: 1; font-size: 14.5px">Sprint planning · Meet, joined 10:31</div>
+              <div style="font-size: 13px; color: #6B6862">1.8 h</div>
+            </div>
+            <div class="hrow" style="display: flex; align-items: center; gap: 16px; padding: 14px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8">
+              <div style="width: 96px; flex-shrink: 0; font-size: 13px; color: #8A8780">13:05 to 15:20</div>
+              <div style="flex-grow: 1; display: flex; align-items: center; gap: 8px; font-size: 14.5px">Implemented the Slack source connector
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="#B45309" aria-label="Drafted by AI" role="img"><path d="M8 1.6l1.7 4 4.3.4-3.2 2.9.9 4.3L8 11l-3.7 2.2.9-4.3L2 6l4.3-.4z"/></svg>
+              </div>
+              <div style="font-size: 13px; color: #6B6862">2.2 h</div>
+            </div>
+            <div class="hrow" style="display: flex; align-items: center; gap: 16px; padding: 14px 12px; margin: 0 -12px; border-radius: 10px; border-top: 1px solid #F0EEE8; border-bottom: 1px solid #ECEAE4">
+              <div style="width: 96px; flex-shrink: 0; font-size: 13px; color: #8A8780">15:40 to 16:58</div>
+              <div style="flex-grow: 1; display: flex; align-items: center; gap: 10px; font-size: 14.5px">Drafted I-983 self-evaluation<span style="font-size: 11.5px; color: #8A8780">edited by you</span></div>
+              <div style="font-size: 13px; color: #6B6862">1.3 h</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between">
+            <button style="font-family: inherit; font-size: 13.5px; font-weight: 600; color: #2B4EA2; background: none; border: none; padding: 8px 0; cursor: pointer">+ Add entry</button>
+            <button class="btn" style="font-family: inherit; font-size: 13.5px; font-weight: 600; color: #FFFFFF; background: #2B4EA2; border: none; border-radius: 99px; padding: 10px 20px; cursor: pointer">Mark day complete</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="flex-grow: 1"></div>
+      <div style="padding-bottom: 24px; font-size: 12px; color: #B0ACA3">The amber star marks AI-drafted lines, forever, exports included · you confirm every day</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":832}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const stage = s.stage || 'intro';
+    const conns = s.conns || { github: true, cal: true, slack: false, meet: false, linear: false, stripe: false };
+    const go = (st) => () => this.setState({ stage: st, conns });
+    const tog = (k) => () => this.setState({ stage, conns: { ...conns, [k]: !conns[k] } });
+    const b = (on) => on ? '#2B4EA2' : '#E5E2DA';
+    const connCount = Object.keys(conns).filter((k) => conns[k]).length;
+    return {
+      isIntro: stage === 'intro', isSetup: stage === 'setup', isToday: stage === 'today',
+      goSetup: go('setup'), goToday: go('today'), goIntro: go('intro'),
+      github: conns.github, cal: conns.cal, slack: conns.slack, meet: conns.meet, linear: conns.linear, stripe: conns.stripe,
+      githubBorder: b(conns.github), calBorder: b(conns.cal), slackBorder: b(conns.slack), meetBorder: b(conns.meet), linearBorder: b(conns.linear), stripeBorder: b(conns.stripe),
+      tGithub: tog('github'), tCal: tog('cal'), tSlack: tog('slack'), tMeet: tog('meet'), tLinear: tog('linear'), tStripe: tog('stripe'),
+      connCount
+    };
+  }
+}
+</script>
+</body>
+</html>

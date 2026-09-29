@@ -1,0 +1,125 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Checklist.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Checklist",
+      "w": 1280,
+      "x": 0,
+      "y": 1180
+    },
+    "Documents.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Documents",
+      "w": 1280,
+      "x": 2720,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Home",
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Phone.dc.html": {
+      "h": 844,
+      "title": "Mobile home",
+      "w": 390,
+      "x": 0,
+      "y": 2360,
+      "is_interactive": true
+    },
+    "Timeline.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Timeline",
+      "w": 1280,
+      "x": 1360,
+      "y": 0
+    },
+    "Updates.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Updates",
+      "w": 1280,
+      "x": 1360,
+      "y": 1180
+    },
+    "WorkBook.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "WorkBook",
+      "w": 1280,
+      "x": 2720,
+      "y": 1180
+    },
+    "Simulator.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Scenarios",
+      "w": 1280,
+      "x": 1360,
+      "y": 2360
+    },
+    "Onboarding.dc.html": {
+      "h": 832,
+      "is_interactive": true,
+      "title": "Onboarding",
+      "w": 1280,
+      "x": 2720,
+      "y": 2360
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-28T08:20:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "n1": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "The case: status, journey, documents",
+      "w": 240,
+      "x": 0,
+      "y": -280
+    },
+    "n2": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Assist and record: checklists, updates, WorkBook",
+      "w": 240,
+      "x": 0,
+      "y": 900
+    },
+    "n3": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Mobile · Scenarios · Onboarding",
+      "w": 240,
+      "x": 0,
+      "y": 2080
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Timeline.dc.html",
+    "Documents.dc.html",
+    "Checklist.dc.html",
+    "Updates.dc.html",
+    "WorkBook.dc.html",
+    "Phone.dc.html",
+    "Simulator.dc.html",
+    "Onboarding.dc.html"
+  ],
+  "pages": [],
+  "title": "Duly App Concept"
+}
