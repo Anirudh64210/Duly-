@@ -75,3 +75,20 @@
 - Sent the cases of points 12 and 14 to 25. Each gives what the point says. Dates were checked by hand, including four business-day validations around 2026-07-04, 2027-01-01, 2027-07-04 and 2028-01-01.
 - Found: a passed stem.new_plan_due.<n> gives no_open_items (needs_you on 2026-07-05, quiet from 2026-07-12). Seven periods make 23 questions, and 23 answers give 422 (maxProperties 20).
 - Wrote reviews/product-1-fix1.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## 2026-09-29, run l-review-54de1b7f57 (product round 1, fix 2)
+- Read SPEC-resolutions.md points 27 to 38, reviews/product-1-fix1.md, the diff 149170e..e71c8c9 (engine/f1.py, api/main.py, the contract, the pack, web Result.tsx, answers.ts, caseForm.ts, App.tsx), and every changed assertion in 67625a6 and 5b6b683, holdout and web included.
+- Ran: unit suites (exit 0), holdout --tb=no (exit 0), web vitest on a TMPDIR copy with node_modules linked from the main checkout (242 passed), sources verify, engine_literals, copy lint, mypy, ruff (all clean).
+- Fix 1 findings 1 and 2 are closed: the passed new plan is asked about from 2026-07-12; seven periods take 29 answers and give no_open_items; 256 answers give 200 and 257 give 422.
+- Found: point 27 answered yes gives the STEM list next and 120 unemployment days on a pre-completion card. An open period that begins after the last card gives no_open_items (older, SPEC.md line 27). rule_not_in_force_on_event_day shows as "Something in what you entered needs an answer". /v1/status fails the openapi Status schema. An answer the engine stopped reading is shown as standing.
+- Wrote reviews/product-1-fix2.md (VETO), REVIEW.json and REPORT.json.
+
+## Lesson
+- Failure: npx vitest from a TMPDIR copy tried the registry and failed (ENOTCACHED).
+- Fix: copy web/ into TMPDIR/root/web, link TMPDIR/root/node_modules to the main checkout's node_modules and web/node_modules to its web/node_modules, run ../node_modules/.bin/vitest run --configLoader runner.
+- Evidence: 8 files, 242 tests passed; a scratch probe test rendered Questions.
+
+## Lesson
+- Failure: tests for a new conflict checked only the open and no branches; the yes branch still ran the code the conflict was meant to stop.
+- Fix: for each conflict that gates later steps, answer it yes and look at next steps, lists and counts, not only the verdict state.
+- Evidence: reviews/product-1-fix2.md finding 1.
