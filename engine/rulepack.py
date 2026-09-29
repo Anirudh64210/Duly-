@@ -15,6 +15,9 @@ SCHEMA_PATH = REPO_ROOT / "contracts" / "rulepack.schema.json"
 PACKS_DIR = REPO_ROOT / "rulepacks"
 
 
+QUOTE_NEEDED = frozenset({"settled", "guidance", "litigated", "proposed"})
+
+
 class RulepackError(ValueError):
     pass
 
@@ -25,6 +28,42 @@ class Rulepack:
     version: str
     regimes: tuple[dict[str, Any], ...]
     parameters: tuple[dict[str, Any], ...]
+
+    @property
+    def rules_checked_on(self) -> date | None:
+        """The oldest checked_on among the parameters, or None for an empty pack."""
+        checked = [date.fromisoformat(p["source"]["checked_on"]) for p in self.parameters]
+        return min(checked, default=None)
+
+    def value(self, id: str, on: date, regime: str | None = None) -> dict[str, Any] | None:
+        """The parameter in force on a date, or None when nothing is in force.
+
+        With no regime named, the lookup runs under the operative regimes. A rule with no
+        regime of its own applies under every regime, and a row written for the regime
+        comes before it.
+        """
+        known = {r["id"] for r in self.regimes}
+        if regime is None:
+            wanted = {r["id"] for r in self.regimes if r["operative"]}
+        elif regime in known:
+            wanted = {regime}
+        else:
+            raise RulepackError(f"{id}: unknown regime {regime}")
+        day = on.isoformat()
+        in_force = [
+            p
+            for p in self.parameters
+            if p["id"] == id
+            and p["effective_from"] <= day
+            and (p.get("effective_to") is None or day <= p["effective_to"])
+        ]
+        for regimes in (wanted, {""}):
+            found = [p for p in in_force if p.get("regime", "") in regimes]
+            if len(found) > 1:
+                raise RulepackError(f"{id}: more than one operative regime holds this rule")
+            if found:
+                return found[0]
+        return None
 
 
 def _normalize(value: Any) -> Any:
@@ -54,6 +93,8 @@ def validate_pack(raw: dict[str, Any]) -> Rulepack:
         regime = p.get("regime", "")
         if regime and regime not in regimes:
             raise RulepackError(f"{p['id']}: unknown regime {regime}")
+        if p["status"] in QUOTE_NEEDED and not str(p["source"].get("quote", "")).strip():
+            raise RulepackError(f"{p['id']}: a {p['status']} rule needs a quote from its source")
         key = (p["id"], regime, p["effective_from"])
         if key in seen:
             raise RulepackError(f"{p['id']}: duplicate for the same regime and start date")
