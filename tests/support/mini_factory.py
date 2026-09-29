@@ -36,7 +36,9 @@ def build(tmp_path: Path, **limits: float) -> Path:
         (repo / name / "README.md").write_text(f"# {name}\n")
     (repo / "tests" / "holdout").mkdir()
     (repo / "tests" / "holdout" / "test_hidden.py").write_text("def test_hidden():\n    pass\n")
-    (repo / ".gitignore").write_text(".factory/\n.scratch/\n.lane\nnode_modules\n")
+    (repo / ".gitignore").write_text(
+        ".factory/\n.scratch/\n.lane\nnode_modules\n"
+    )  # no run files listed: the factory must keep them out itself
     git(repo, "init", "-q", "-b", "main")
     git(repo, "add", "-A")
     git(repo, "commit", "-q", "-m", "base")

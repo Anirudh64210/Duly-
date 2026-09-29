@@ -278,3 +278,33 @@ def test_a_rerun_of_the_same_task_leaves_no_duplicate(tmp_path, monkeypatch):
     assert first.branch != second.branch
     assert mini.git(repo, "rev-parse", "phase-x") == first.base_commit
     assert json.loads((repo / ".factory" / "registry.json").read_text())["runs"] == {}
+
+
+def test_an_agents_own_commits_never_carry_its_report(tmp_path, monkeypatch):
+    commits = [
+        {"init": mini.MODEL},
+        {"write": "engine/new.py"},
+        {"report": "engine", "files": ["engine/new.py"]},
+        {"git": ["add", "-A", "-f"]},
+        {
+            "git": [
+                "-c",
+                "user.name=a",
+                "-c",
+                "user.email=a@a.invalid",
+                "commit",
+                "-q",
+                "-m",
+                "mine",
+            ]
+        },
+        {"write": "engine/PROGRESS.md", "text": "# log\n"},
+        {"report": "engine", "files": ["engine/new.py", "engine/PROGRESS.md"]},
+        {"result": {"cost": 0.2}},
+    ]
+    repo, out = play(tmp_path, monkeypatch, [commits])
+    assert out.status == "done", out.reason
+    assert out.files_changed == ["engine/PROGRESS.md", "engine/new.py"]
+    log = mini.git(repo, "log", "--format=%an %s", f"{out.base_commit}..{out.branch}")
+    assert log.splitlines() == ["builder L-engine: Add engine/new.py. Nothing else."]
+    assert ".lane" not in mini.git(repo, "ls-tree", "-r", "--name-only", out.branch)

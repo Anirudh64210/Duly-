@@ -21,3 +21,7 @@ coverage/
 .lane
 node_modules
 PROMPT.md
+REPORT.json
+REVIEW.json
+HEALTH.txt
+ESCALATE.md
