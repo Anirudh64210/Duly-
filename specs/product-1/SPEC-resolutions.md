@@ -14,6 +14,16 @@ The engine builder built sections 1 to 6 and stopped on 66 tests that contradict
 8. New: `parse_case(raw, clock)` takes the clock, so that an answer dated after today is refused however the engine is called. The api passes its clock and turns the ValueError into a 422 in plain words.
 9. `unemployment.days_used` on a STEM card names both limit rules, because the days of the OPT card are in the count.
 10. A card whose last day is the day its months end is not a conflict.
+11. New: a recorded filing is checked against the window the regulation gives it. The rules are already in the pack, verbatim and settled: `opt.file_within_days_of_recommendation` (8 CFR 214.2(f)(11)(i)(B)(2): "The student must also file his or her Form I-765 or successor form with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record.") and `stem.file_within_days_of_recommendation` (8 CFR 214.2(f)(11)(i)(C): "The student seeking such 24-month OPT extension must properly file his or her Form I-765 or successor form with USCIS within 60 days of the date the DSO enters the recommendation for the OPT extension into his or her SEVIS record."). The words and citations are the pack's, from its saved snapshot of 2026-09-14. Four conflicts join the table of SPEC section 1 and work as every conflict there does: the verdict is `cannot_tell` with `conflict:<id>`, the question asks whether these are the dates on the person's documents, a yes makes the verdict `talk_to_dso` with the judgement item `<id>`, and Duly says nothing about what the dates mean. It never says a filing was late.
+
+| id | The facts do not fit when |
+|---|---|
+| opt.i765_filed_date.before_recommendation | The OPT filing is dated before the OPT recommendation |
+| stem.i765_filed_date.before_recommendation | The STEM filing is dated before the STEM recommendation |
+| opt.i765_filed_date.after_file_by | The OPT filing is dated after the recommendation plus `opt.file_within_days_of_recommendation` days |
+| stem.i765_filed_date.after_file_by | The STEM filing is dated after the recommendation plus `stem.file_within_days_of_recommendation` days |
+
+Each names its rule in `rule_ids`. The day count is the engine's, from the rule's value; no number is written in code. A filing on the recommendation day, or on the last day of the window, fits. When either date is missing, none of the four is raised. Why: a record that says a filing came before the recommendation it needs, or after its window, is either a typing slip or a matter for the DSO, and a quiet verdict on it is the failure PRINCIPLES.md ranks worst.
 
 ## Covers
 
