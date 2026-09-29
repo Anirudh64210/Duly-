@@ -406,3 +406,98 @@ def test_changes_that_need_the_founder_are_named():
         "contract_changed",
     }
     assert phase.needs_founder(["engine/f1.py", "web/src/App.tsx"]) == {}
+
+
+def with_remote(tmp_path: Path, repo: Path, ci: str = "pass") -> dict[str, str]:
+    """A bare remote and a stand-in for the GitHub command line on the PATH."""
+    remote = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(remote)], check=True)
+    mini.git(repo, "remote", "add", "origin", str(remote))
+    mini.git(repo, "push", "-q", "origin", "main")
+    tools = tmp_path / "bin"
+    tools.mkdir()
+    gh = tools / "gh"
+    gh.write_text(
+        f'#!/bin/sh\nexec "{sys.executable}" "{mini.REAL}/tests/support/fake_gh.py" "$@"\n'
+    )
+    gh.chmod(0o755)
+    return {
+        "PATH": f"{tools}:{os.environ['PATH']}",
+        "FAKE_GH_STATE": str(tmp_path / "gh.json"),
+        "FAKE_GH_CI": ci,
+    }
+
+
+def pr_plan(repo: Path) -> None:
+    plan_file(
+        repo,
+        [
+            {
+                "name": "A",
+                "checkpoint": False,
+                "checks": [],
+                "lanes": [job("L-tests", "test-author", "test -f tests/test_new.py")],
+            },
+            {
+                "name": "B",
+                "checks": [{"name": "landed", "run": "test -f engine/new.py"}],
+                "lanes": [job("L-engine", "builder", "test -f engine/new.py")],
+            },
+        ],
+        merge="pr",
+    )
+
+
+def test_work_reaches_the_phase_branch_only_through_a_pull_request_that_ci_passed(tmp_path):
+    repo = mini.build(tmp_path)
+    env = {
+        **mini.scenario(
+            tmp_path,
+            {
+                "L-tests": [mini.good(["tests/test_new.py"], "tests")],
+                "L-engine": [mini.good(["engine/new.py"])],
+            },
+        ),
+        **with_remote(tmp_path, repo),
+    }
+    pr_plan(repo)
+    before = mini.git(repo, "rev-parse", "phase-x")
+    done = orchestrate(repo, env)
+    assert done.returncode == 0, done.stdout + done.stderr
+
+    prs = json.loads((tmp_path / "gh.json").read_text())["prs"]
+    assert [(p["base"], p["head"], p["state"]) for p in prs] == [
+        ("phase-x", "work/phase-x", "merged")
+    ]
+    assert prs[0]["title"] == "phase-x: round B"  # round A travelled with round B
+    assert "merge(L-tests)" in prs[0]["body"] and "merge(L-engine)" in prs[0]["body"]
+    assert "Generated with [Claude Code]" in prs[0]["body"]
+
+    assert mini.git(repo, "rev-parse", "--abbrev-ref", "HEAD") == "work/phase-x"
+    assert mini.git(repo, "rev-parse", "phase-x") != before
+    assert mini.git(repo, "rev-parse", "phase-x") == mini.git(repo, "rev-parse", "origin/phase-x")
+    assert mini.git(repo, "rev-parse", "work/phase-x") == mini.git(repo, "rev-parse", "phase-x")
+    files = mini.git(repo, "ls-tree", "-r", "--name-only", "phase-x")
+    assert "engine/new.py" in files and "tests/test_new.py" in files
+    assert "engine/new.py" not in mini.git(repo, "ls-tree", "-r", "--name-only", "origin/main")
+
+
+def test_nothing_reaches_the_phase_branch_when_ci_fails(tmp_path):
+    repo = mini.build(tmp_path)
+    env = {
+        **mini.scenario(
+            tmp_path,
+            {
+                "L-tests": [mini.good(["tests/test_new.py"], "tests")],
+                "L-engine": [mini.good(["engine/new.py"])],
+            },
+        ),
+        **with_remote(tmp_path, repo, ci="fail"),
+    }
+    pr_plan(repo)
+    before = mini.git(repo, "rev-parse", "phase-x")
+    done = orchestrate(repo, env)
+    assert done.returncode == 1
+    assert mini.git(repo, "rev-parse", "phase-x") == before
+    assert any("clean CI did not pass" in row["message"] for row in ledger.read(repo))
+    assert (repo / "engine" / "new.py").exists()  # the work waits on the working branch

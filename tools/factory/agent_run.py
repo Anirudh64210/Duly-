@@ -110,6 +110,7 @@ class Task:
     done: str
     base: str
     run_id: str = ""
+    protect: str = ""
 
 
 @dataclass
@@ -468,7 +469,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     hidden = lane.kind == "implementation"
     if hidden:
         worktree.hide(tree, "tests/holdout")
-    protected = [*config["protected_branches"], task.base]
+    protected = [*config["protected_branches"], task.base, *task.protect.split()]
     settings = sandbox.write_settings(
         state_dir(repo) / "runs" / task.run_id / "settings.json",
         sandbox.settings_for(tree.path, lane, contract, hidden, repo, protected),
@@ -761,6 +762,7 @@ def main() -> int:
     for name in ("lane", "agent", "task", "spec", "mission", "done", "base"):
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--run-id", default="")
+    parser.add_argument("--protect", default="")
     parser.add_argument("--result", default="")
     args = parser.parse_args()
     outcome = run(
@@ -773,6 +775,7 @@ def main() -> int:
             args.done,
             args.base,
             args.run_id,
+            args.protect,
         ),
         cwd=Path.cwd(),
     )

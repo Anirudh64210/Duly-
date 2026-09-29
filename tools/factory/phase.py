@@ -120,7 +120,7 @@ def _gh(repo: Path, *args: str, timeout: int = 1800) -> tuple[int, str]:
 def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, Any]) -> bool:
     """Check one agent's work again and land it. True when it is on the phase branch."""
     lane = load_lane(out["lane"], repo)
-    base, head, branch = plan["branch"], out["head_commit"], out["branch"]
+    base, head, branch = working_branch(plan), out["head_commit"], out["branch"]
     code, listing = _git(repo, "diff", "--name-only", f"{out['base_commit']}...{head}")
     files = [line for line in listing.splitlines() if line] if code == 0 else []
     tree = worktree.Tree(out["run_id"], Path(out["worktree"]), branch, out["base_commit"])
@@ -154,20 +154,13 @@ def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, A
         f"Factory-Trace: {', '.join(out['sessions'])}\n"
         f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}"
     )
-    if plan["merge"] == "pr":
-        ok = _land_by_pr(repo, base, branch, lane.name, out, message)
-    else:
-        code, text = _git(repo, "merge", "--no-ff", "-q", "-m", message, head)
-        ok = code == 0
-        if not ok:
-            _git(repo, "merge", "--abort")
-            alerts.notify(
-                "failed",
-                f"{lane.name}: merge conflict: {text[:160]}",
-                lane.name,
-                out["run_id"],
-                repo,
-            )
+    code, text = _git(repo, "merge", "--no-ff", "-q", "-m", message, head)
+    ok = code == 0
+    if not ok:
+        _git(repo, "merge", "--abort")
+        alerts.notify(
+            "failed", f"{lane.name}: merge conflict: {text[:160]}", lane.name, out["run_id"], repo
+        )
     if ok:
         ledger.append(
             lane.name,
@@ -184,18 +177,35 @@ def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, A
     return ok
 
 
-def _land_by_pr(
-    repo: Path, base: str, branch: str, lane: str, out: dict[str, Any], message: str
-) -> bool:
-    """Push the branch, open a pull request, and merge it once clean CI has passed."""
-    body = "\n".join(message.splitlines()[2:-2])
-    body += f"\n\n{chr(0x1F916)} Generated with [Claude Code](https://claude.com/claude-code)"
-    results = [
-        ("push the phase branch", _git(repo, "push", "-q", "origin", base)),
-        ("push the lane branch", _git(repo, "push", "-q", "origin", branch)),
+def working_branch(plan: dict[str, Any]) -> str:
+    """Where lanes land. With pull requests, a branch of its own beside the phase branch."""
+    return f"work/{plan['branch']}" if plan["merge"] == "pr" else str(plan["branch"])
+
+
+def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
+    """Send what has landed to the phase branch through a pull request.
+
+    The phase branch only ever receives work that clean CI has passed. Rounds whose work is
+    not expected to pass yet, such as tests written before the code, set checkpoint: false
+    and travel with the next round that does.
+    """
+    target, work = plan["branch"], working_branch(plan)
+    code, ahead = _git(repo, "rev-list", "--count", f"{target}..{work}")
+    if code == 0 and ahead.strip() == "0":
+        return True
+    title = f"{target}: round {name}"
+    _, log = _git(repo, "log", "--merges", "--format=- %s", f"{target}..{work}")
+    body = (
+        f"Work landed by the factory up to round {name}.\n\n{log}\n\n"
+        f"Factory-Ledger: {ledger.head(repo)}\n\n"
+        f"{chr(0x1F916)} Generated with [Claude Code](https://claude.com/claude-code)"
+    )
+    steps = [
+        ("push the phase branch", _git(repo, "push", "-q", "origin", target)),
+        ("push the working branch", _git(repo, "push", "-q", "--force-with-lease", "origin", work)),
     ]
-    if not any(code for _, (code, _) in results):
-        results.append(
+    if not any(code for _, (code, _) in steps):
+        steps.append(
             (
                 "open the pull request",
                 _gh(
@@ -203,52 +213,51 @@ def _land_by_pr(
                     "pr",
                     "create",
                     "--base",
-                    base,
+                    target,
                     "--head",
-                    branch,
+                    work,
                     "--title",
-                    message.splitlines()[0],
+                    title,
                     "--body",
                     body,
                 ),
             )
         )
-    for name, (code, text) in results:
+    for what, (code, text) in steps:
         if code:
-            alerts.notify(
-                "failed", f"{lane}: could not {name}: {text[:160]}", lane, out["run_id"], repo
-            )
+            alerts.notify("failed", f"could not {what}: {text[:160]}", cwd=repo)
             return False
-    time.sleep(8)  # give CI a moment to register its checks
-    code, text = _gh(repo, "pr", "checks", branch, "--watch", "--fail-fast", "--interval", "15")
+    _say(repo, "step", f"pull request opened for round {name}; waiting for clean CI")
+    time.sleep(10)  # give CI a moment to register its checks
+    code, text = _gh(repo, "pr", "checks", work, "--watch", "--fail-fast", "--interval", "15")
     if code:
-        alerts.notify(
-            "failed", f"{lane}: clean CI did not pass: {text[-200:]}", lane, out["run_id"], repo
-        )
+        alerts.notify("failed", f"clean CI did not pass for round {name}: {text[-200:]}", cwd=repo)
         return False
     code, text = _gh(
         repo,
         "pr",
         "merge",
-        branch,
+        work,
         "--merge",
-        "--delete-branch",
         "--subject",
-        message.splitlines()[0],
+        title,
         "--body",
-        "\n".join(message.splitlines()[2:]),
+        f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}",
     )
     if code:
-        alerts.notify(
-            "failed",
-            f"{lane}: could not merge the pull request: {text[:160]}",
-            lane,
-            out["run_id"],
-            repo,
-        )
+        alerts.notify("failed", f"could not merge the pull request: {text[:160]}", cwd=repo)
         return False
-    code, text = _git(repo, "pull", "-q", "--ff-only", "origin", base)
-    return code == 0
+    for args in (
+        ("fetch", "-q", "origin", target),
+        ("branch", "-f", target, f"origin/{target}"),
+        ("merge", "-q", "--ff-only", f"origin/{target}"),
+    ):
+        code, text = _git(repo, *args)
+        if code:
+            alerts.notify("failed", f"could not bring {target} back: {text[:160]}", cwd=repo)
+            return False
+    _say(repo, "merge", f"round {name} is on {target}; clean CI passed")
+    return True
 
 
 def check_review(repo: Path, job: dict[str, Any], out: dict[str, Any]) -> bool:
@@ -369,6 +378,8 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
             ok = False
         ok = land(repo, plan, job, out) and ok
     ok = run_checks(repo, rnd.get("checks", [])) and ok
+    if ok and plan["merge"] == "pr" and rnd.get("checkpoint", True):
+        ok = checkpoint(repo, plan, name)
     if ok:
         _say(repo, "done", f"round {name} complete")
     else:
@@ -389,14 +400,19 @@ def main() -> int:
     except (PlanError, OSError, ValueError) as err:
         print(f"plan refused: {err}")
         return 1
-    branch = plan["branch"]
-    _, head = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
-    if head != branch:
-        print(f"check out {branch} first")
-        return 1
+    branch = working_branch(plan)
     _, dirty = _git(repo, "status", "--porcelain", "--untracked-files=no")
     if dirty:
         print("commit or put away your changes first; agents start from what is committed")
+        return 1
+    _, head = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+    if plan["merge"] == "pr" and head in {plan["branch"], branch}:
+        code, _ = _git(repo, "rev-parse", "--verify", "-q", branch)
+        step = ("checkout", "-q", branch) if code == 0 else ("checkout", "-q", "-b", branch)
+        _git(repo, *step)
+        _, head = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+    if head != branch:
+        print(f"check out {plan['branch']} first")
         return 1
     try:
         registry.claim(
@@ -428,7 +444,8 @@ def main() -> int:
         _say(
             repo,
             "done",
-            f"plan complete on {branch}. Merging into a protected branch is the founder's step.",
+            f"plan complete on {plan['branch']}. "
+            "Merging into a protected branch is the founder's step.",
         )
         return 0
     finally:
