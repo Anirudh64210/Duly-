@@ -226,7 +226,9 @@ def test_runs_cards_follow_run_ids_costs_and_merges():
             {**ev("L-api", "alert", "loop: x", agent="orchestrator"), "run_id": "l-api-1"},
             {**ev("L-api", "done", "done: passes"), "run_id": "l-api-1"},
             {**ev("L-api", "merge", "merged 2 files", agent="orchestrator"), "run_id": "l-api-1"},
-            {**ev("L-web", "start", "health"), "task": "health/builder/L-web"},
+            {**ev("L-web", "start", "health"), "task": "health/builder/L-web", "run_id": "l-web-h"},
+            {**ev("L-web", "step", "writes web/HEALTH.txt"), "run_id": "l-web-h"},
+            {**ev("L-web", "done", "done"), "run_id": "l-web-h"},
             ev("orchestrator:phase-2", "start", "x"),
         ]
     )
@@ -298,3 +300,29 @@ def test_snapshot_carries_spend_alerts_metrics_and_the_stop_state(tmp_path):
     assert main["stopped"] is True
     assert main["alerts"][0]["kind"] == "budget"
     assert main["ledger"]["intact"] is True
+
+
+def test_health_shows_every_agent_and_lane_and_goes_out_of_date(tmp_path):
+    repo = tmp_path / "duly"
+    for folder in ("factory/agents", ".claude/agents", ".claude/lanes", "tools/factory", "engine"):
+        (repo / folder).mkdir(parents=True)
+    (repo / "factory" / "agents" / "builder.yaml").write_text(
+        "name: builder\nrole_file: .claude/agents/builder.md\nlanes: [L-engine, L-desktop]\n"
+    )
+    (repo / ".claude" / "agents" / "builder.md").write_text("role")
+    (repo / ".claude" / "lanes" / "L-engine.yaml").write_text('owned: ["engine/**"]\n')
+    (repo / ".claude" / "lanes" / "L-desktop.yaml").write_text('owned: ["desktop/**"]\n')
+    (repo / "tools" / "factory" / "sandbox.py").write_text("a")
+    (repo / "tools" / "factory" / "agent_run.py").write_text("b")
+
+    rows = data.health_rows(repo, {})
+    assert [(r["agent"], r["lane"], r["state"]) for r in rows] == [
+        ("builder", "L-engine", "not checked")
+    ]  # desktop has no folder yet
+
+    parts = [(repo / "factory" / "agents" / "builder.yaml").read_bytes(), b"role", b"a", b"b"]
+    mark = data.hashlib.sha256(b"\0".join(parts)).hexdigest()[:20]
+    record = {"builder:L-engine": {"fingerprint": mark, "at": T0, "run_id": "r"}}
+    assert data.health_rows(repo, record)[0]["state"] == "passed"
+    (repo / "tools" / "factory" / "sandbox.py").write_text("changed")
+    assert data.health_rows(repo, record)[0]["state"] == "out of date"

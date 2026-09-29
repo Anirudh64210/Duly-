@@ -100,16 +100,71 @@ def read_events(repo: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def health_rows(repo: Path, records: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every agent in every lane it may work in, with whether its health check holds.
+
+    A pass holds only for the exact contract, role file, sandbox and runner it was earned
+    with. When any of them has changed since, the pass is out of date.
+    """
+    rows = []
+    factory = repo / "tools" / "factory"
+    for path in sorted((repo / "factory" / "agents").glob("*.yaml")):
+        text = path.read_text(encoding="utf-8")
+        name = path.stem
+        lanes = re.search(r"(?m)^lanes:\s*\[([^\]]*)\]", text)
+        role = re.search(r"(?m)^role_file:\s*(\S+)", text)
+        parts = [path.read_bytes()]
+        for extra in (
+            repo / role.group(1) if role else None,
+            factory / "sandbox.py",
+            factory / "agent_run.py",
+        ):
+            parts.append(extra.read_bytes() if extra and extra.exists() else b"")
+        mark = hashlib.sha256(b"\0".join(parts)).hexdigest()[:20]
+        for lane in [x.strip() for x in lanes.group(1).split(",")] if lanes else []:
+            home = repo / ".claude" / "lanes" / f"{lane}.yaml"
+            owned = re.search(r'owned:\s*\["([^"/]+)', home.read_text()) if home.exists() else None
+            if owned and not (repo / owned.group(1)).is_dir():
+                continue  # the lane has nothing to work in yet
+            record = records.get(f"{name}:{lane}")
+            if record is None:
+                state = "not checked"
+            elif record.get("fingerprint") != mark:
+                state = "out of date"
+            else:
+                state = "passed"
+            rows.append(
+                {
+                    "agent": name,
+                    "lane": lane,
+                    "state": state,
+                    "at": (record or {}).get("at", ""),
+                    "run_id": (record or {}).get("run_id", ""),
+                }
+            )
+    return rows
+
+
+def factory_runs(events: list[dict[str, Any]]) -> set[str]:
+    """Runs that test the factory itself: health checks, golden tasks, drift checks."""
+    return {
+        str(e.get("run_id"))
+        for e in events
+        if e.get("run_id") and str(e.get("task", "")).startswith(("health/", "golden/", "drift/"))
+    }
+
+
 def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
     """The latest run of each lane. A run begins at a start event."""
     agents: dict[str, Agent] = {}
+    own = factory_runs(events)
     for event in events:
+        if event.get("run_id") and event.get("run_id") in own:
+            continue
         lane = event.get("lane", "")
         if not lane or lane == ORCHESTRATOR or lane.startswith("orchestrator"):
             continue
         kind, message = event.get("kind", ""), event.get("message", "")
-        if str(event.get("task", "")).startswith("health/"):
-            continue
         at = parse_time(event.get("at", ""))
         if kind == "start" or lane not in agents:
             runs = agents[lane].runs if lane in agents else 0
@@ -184,7 +239,7 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
 def agent_metrics(runs: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
     by_agent: dict[str, list[dict[str, Any]]] = {}
     for run in runs:
-        if str(run.get("task", "")).startswith("health/"):
+        if str(run.get("task", "")).startswith(("health/", "golden/", "drift/")):
             continue
         by_agent.setdefault(run.get("agent", "?"), []).append(run)
     out = {}
@@ -406,6 +461,7 @@ def load(
         health = json.loads((factory / "health.json").read_text())
     except (OSError, json.JSONDecodeError):
         health = {}
+    own = factory_runs(events)
     skill_dirs = [p.parent for p in (repo / ".claude" / "skills").glob("*/SKILL.md")]
     order = {"working": 0, "blocked": 1, "failed": 1, "stopped": 1, "done": 2}
     return Snapshot(
@@ -427,7 +483,7 @@ def load(
             2,
         ),
         day_cap=day_cap,
-        alerts=[e for e in events if e.get("kind") == "alert"][-30:],
+        alerts=[e for e in events if e.get("kind") == "alert" and e.get("run_id") not in own][-30:],
         metrics=agent_metrics(runs),
         reviews=read_jsonl(factory / "reviews.jsonl")[-20:],
         ledger_problems=ledger_problems(events),
@@ -458,7 +514,7 @@ def snapshot_json(repo: Path, ps_output: str | None = None) -> dict[str, Any]:
         "metrics": snap.metrics,
         "reviews": snap.reviews,
         "ledger": {"intact": not snap.ledger_problems, "problems": snap.ledger_problems[:5]},
-        "health": snap.health,
+        "health": health_rows(repo, snap.health),
         "head": snap.head,
         "gates": snap.gates,
         "learning": {

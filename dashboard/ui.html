@@ -212,6 +212,20 @@
         color: var(--ink-2);
         padding: 0 0 6px 8px;
       }
+      .state {
+        white-space: nowrap;
+      }
+      #health table.record td {
+        white-space: nowrap;
+        font-size: 12px;
+      }
+      #health table.record th,
+      #health table.record td {
+        text-align: left;
+      }
+      #health table.record td:last-child {
+        text-align: right;
+      }
       table.record th:first-child,
       table.record td:first-child {
         text-align: left;
@@ -766,6 +780,10 @@
             <ul class="rows" id="reviews"></ul>
           </div>
           <div class="panel">
+            <h2>Agent health</h2>
+            <div id="health"></div>
+          </div>
+          <div class="panel">
             <h2>Integrity</h2>
             <ul class="rows" id="integrity"></ul>
           </div>
@@ -1070,12 +1088,46 @@
           el("span", "", "Record of actions"),
           okPill(s.ledger.intact, "Intact", "Changed"),
         );
+        const passed = s.health.filter((h) => h.state === "passed").length;
         const health = el("li");
         health.append(
-          el("span", "", "Agents that passed their health check"),
-          el("b", "num", String(Object.keys(s.health).length)),
+          el("span", "", "Health checks that hold"),
+          el("b", "num", passed + " of " + s.health.length),
         );
         $("integrity").replaceChildren(ledger, health);
+
+        if (s.health.length) {
+          const table = el("table", "record");
+          const head = el("tr");
+          for (const h of ["Agent", "Lane", "Checked", ""]) head.append(el("th", "", h));
+          table.append(head);
+          const rank = { "out of date": 0, "not checked": 1, passed: 2 };
+          for (const h of [...s.health].sort((a, b) => rank[a.state] - rank[b.state])) {
+            const row = el("tr");
+            const ok = h.state === "passed";
+            const pill = el("span", "state");
+            pill.append(
+              icon(ok ? "done" : "blocked", ok ? "var(--good)" : "var(--warning)"),
+              ok ? "Passed" : h.state === "out of date" ? "Out of date" : "Not checked",
+            );
+            const cell = el("td");
+            cell.append(pill);
+            row.append(
+              el("td", "", h.agent),
+              el("td", "mono", h.lane),
+              el("td", "mono muted", h.at ? short(h.at) : ""),
+              cell,
+            );
+            table.append(row);
+          }
+          const note = el(
+            "div",
+            "note",
+            "A pass holds for the exact contract, sandbox and runner it was earned with. Run make doctor after any of them changes.",
+          );
+          note.style.paddingTop = "10px";
+          $("health").replaceChildren(table, note);
+        } else $("health").replaceChildren(el("div", "muted", "No agent contracts found."));
 
         $("round").textContent = s.round || "No round has started.";
         $("head").textContent = s.head;

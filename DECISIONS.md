@@ -65,3 +65,4 @@ Amends duly-plan/ and workbook-handoff/. Where this file conflicts with them, th
 |---|---|---|---|
 | D38 | Order of work | The factory is made production grade first, against the founder's 50 item checklist, every item. Infrastructure, then the agent system, then Duly. No product agent runs until then | Decided |
 | D39 | First use of the F-1 screen | Arithmetic was right. Wording and the two-regime display were hard to read, and nothing was said about what comes next (STEM OPT). Recorded in specs/product/BACKLOG.md | Recorded |
+| D40 | Branch protection on GitHub | Left as it is for now. Raise it again when a finished version is close | Parked |
