@@ -1,0 +1,118 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+# Resolutions 62 to 64, from the review of fix 6. The 47 plain texts it accepted are frozen.
+rounds:
+  - name: content
+    checkpoint: false
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-1/SPEC-resolutions.md point 62. Rewrite ONLY the eight plain texts that
+          reviews/product-1-fix6.md findings 1 and 2 name, doing exactly what each finding asks,
+          in rulepacks/f1-us/v2026.09. Every other plain text and every other plain_terms list is
+          frozen: the review accepted them, and your done command fails if any of them changes.
+          The eight rows are: capgap.end_month_day#2025-01-17 capgap.end_month_day#2008-04-08 stem.requires.employer_reporting#2016-05-10 stem.requires.self_evaluation#2016-05-10 stem.requires.dhs_approved_degree#2016-05-10 opt.apply_after_days@ds_2012#2008-04-08 stem.extension_months#2016-05-10 stem.requires.previously_obtained_degree#2016-05-10. Keep each within point 58 (plain first, terms of art kept,
+          no citation or legal phrasing, readings said as Duly's reading). In your report, for
+          each of the eight, give the words of the quote or note each sentence rests on. Record
+          the changes in CHANGELOG.md.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -m tools.sources.plain rulepacks --require f1
+          && uv run python -m tools.sources.plain_changes product-1 --allow capgap.end_month_day#2025-01-17 capgap.end_month_day#2008-04-08 stem.requires.employer_reporting#2016-05-10 stem.requires.self_evaluation#2016-05-10 stem.requires.dhs_approved_degree#2016-05-10 opt.apply_after_days@ds_2012#2008-04-08 stem.extension_months#2016-05-10 stem.requires.previously_obtained_degree#2016-05-10'
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Write the tests, first, for specs/product-1/SPEC-resolutions.md point 63 in
+          tests/unit/engine/test_f1_fix7.py, with a hidden twin in tests/holdout/test_holdout_fix7.py:
+          the case of reviews/product-1-fix6.md finding 4 on a pack without
+          stem.validation_interval_months, and on one without stem.extension_months, is never the
+          quiet verdict and carries rule_not_in_force_on_event_day. Also strengthen
+          test_point_59_a_pack_without_the_interval_lists_no_validation_report in
+          tests/unit/engine/test_f1_fix6.py to check the verdict is not the quiet state. Name every
+          new test. They are expected to fail until the build round.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null
+          && test -f tests/unit/engine/test_f1_fix7.py && test -f tests/holdout/test_holdout_fix7.py'
+  - name: build
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md point 63 in engine/: when whole_shown finds no
+          row for the validation interval or the extension length, the verdict steps back with
+          rule_not_in_force_on_event_day. Older tests that collide are reconciled in the next
+          round; list them in your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_f1_fix7.py -q
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          The engine now has specs/product-1/SPEC-resolutions.md point 63 and the pack has eight
+          rewritten plain texts (point 62). Bring every test in tests/unit and tests/holdout in
+          line; the builder's list of collisions is in its report on its branch. Write the point
+          beside each change; never loosen an assertion a point supports; escalate any failure no
+          settled point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools
+          && uv run pytest tests/unit/engine -q -p no:cacheprovider --cov=engine
+          --cov-report=xml:.scratch/engine-coverage.xml
+          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*" --fail-under=95
+          --compare-branch=product-1'
+    checks:
+      - { name: "engine and api tests", run: "uv run pytest tests/unit/engine tests/unit/api -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: screen
+    lanes:
+      - lane: L-web
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md point 64 in web/, fixing
+          reviews/product-1-fix6.md finding 3: the draft for rule_not_in_force_on_event_day states
+          the employment periods as entered when a period is behind the reason. Tests beside the
+          code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what this plan changed (the merges since reviews/product-1-fix6.md) against
+          specs/product-1/SPEC-resolutions.md points 62 to 64, specs/plain-1/SPEC.md, PRINCIPLES.md,
+          BOUNDARY.md and CLAUDE.md, following your role file. Read the eight rewritten plain texts
+          beside their quotes and notes, and veto any that drifts in meaning or is not plain. Run
+          python -m tools.sources.plain_changes against the commit your last review read, to
+          confirm no other plain text changed. Send the inputs of findings 1 to 4 of
+          reviews/product-1-fix6.md through the api. Write reviews/product-1-fix7.md and
+          reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix7.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1, its fixes and specs/plain-1/SPEC.md
+          cover, as your role file describes, against specs/product-1/SPEC.md,
+          SPEC-resolutions.md and specs/plain-1/SPEC.md. Update docs/requirements/audits/product-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'
