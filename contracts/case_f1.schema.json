@@ -215,7 +215,8 @@
     },
     "confirmations": {
       "type": "object",
-      "maxProperties": 20,
+      "maxProperties": 256,
+      "description": "The person's answers, one for each question the output raised. Bounded to hold every question a case within this contract can raise: up to four for each of the 50 employment periods, the STEM reports whose dates have passed, the conflicts and the general questions.",
       "propertyNames": {
         "pattern": "^[a-z0-9_.:]+$"
       },
