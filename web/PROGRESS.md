@@ -636,3 +636,30 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not done, not verified
 
 - Not seen in a browser against a live api.
+
+## Run l-web-f60e65d138 (attempt 1)
+
+### Tried
+
+- Point 61, review fix 5 finding 4: in `lib/drafts.ts` a `.not_made` report whose id ends in a
+  period number (`stem.new_plan_due.<n>`, `stem.concluding_evaluation_due.<n>`) carries that
+  number, and the draft adds that period's dates as entered: "My employment period 2 runs from
+  ... to ...", or "... started on ... and has no end date." for an open period. The line is
+  added even when every period is listed, because that list carries no numbers. A number with
+  no period entered adds no line.
+- Point 61, finding 5: the `grace_with_cap_gap` ask is now "Could you tell me what comes after
+  my petition's requested start date, and whether a grace period follows it?"
+- Three tests in `drafts.test.ts`. The test that searches every draft for the old phrase builds
+  it from pieces, because the done command's grep of web/src found it in the test itself.
+
+### Ran
+
+- The done command as written, output to a file, no pipe: first exit 1 (the grep found the
+  phrase in the test), then exit 0. typecheck clean; 299 tests passed; eslint clean; prettier
+  clean; "copy lint: clean"; the grep found nothing.
+
+### Not done, not verified
+
+- Not seen in a browser against a live api.
+- `reasonText("grace_with_cap_gap")` in `lib/labels.ts` still says "A cap-gap period is
+  entered". That line is not a draft and point 61 does not name it; left as is.

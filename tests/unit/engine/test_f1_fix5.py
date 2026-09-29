@@ -337,7 +337,10 @@ def test_point_56_in_2024_an_end_reported_gives_an_output_too():
 # The row is looked up for the period's end, not for today. The test pack's row of
 # opt.report_employer_within_days moved to take effect 2025-05-19, as the shipped one does;
 # the clock is today, 2026-09-29, after it. Program end 2024-05-15, recommended 2024-04-01,
-# filed 2024-04-10, card 2024-06-01 to 2025-05-31, one period from the card start.
+# filed 2024-04-10, card 2024-06-01 to 2025-05-31. The period that ends on the row's first
+# day also starts on it (point 60: a period that starts before the row gives
+# employment.periods_not_reported null with the step back, which would hide whether the end
+# was read on its own day); the period that ends the day before runs from the card start.
 REPORT_FROM_2025 = copy.deepcopy(PACK)
 for _parameter in REPORT_FROM_2025["parameters"]:
     if _parameter["id"] == OPT_REPORT_RULE:
@@ -346,7 +349,7 @@ ENDS_ON_THE_ROW_DAY: dict[str, Any] = with_changes(
     CASE_27,
     program_end_date="2024-05-15",
     opt=ead("2024-04-01", "2024-04-10", "2024-06-01", "2025-05-31"),
-    employment=[job("2024-06-01", REPORT_ROW_FROM)],
+    employment=[job(REPORT_ROW_FROM, REPORT_ROW_FROM)],
 )
 ENDS_THE_DAY_BEFORE = with_changes(
     ENDS_ON_THE_ROW_DAY, employment=[job("2024-06-01", "2025-05-18")]
