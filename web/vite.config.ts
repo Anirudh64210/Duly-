@@ -10,6 +10,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    css: { include: [/styles\.css/] },
     coverage: { provider: "v8", reporter: ["text-summary", "lcov"], include: ["src/**"] },
   },
 });

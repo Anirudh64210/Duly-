@@ -1,9 +1,19 @@
 import { useId, useState } from "react";
 import { z } from "zod";
 
-import type { ComputedItem, Confirmations, EngineOutput, ShownRule } from "../lib/compute";
+import type {
+  About,
+  Alternate,
+  ComputedItem,
+  Confirmations,
+  EngineOutput,
+  F1Case,
+  ShownRule,
+} from "../lib/compute";
 import {
   GROUPS,
+  LIST_LINE,
+  NEXT_HEADING,
   QUESTION_NOT_SHOWN,
   READING_LABEL,
   READING_TAG,
@@ -11,14 +21,18 @@ import {
   VERBATIM_LINE,
   answerLine,
   becauseLine,
+  dsoQuestion,
+  factLine,
   formatDate,
   formatValue,
   groupOf,
   inputName,
   itemName,
-  legalStatusWords,
+  listName,
   questionCopy,
+  reasonItem,
   reasonText,
+  regimeLine,
   scopeLine,
   settingName,
   statusTag,
@@ -108,33 +122,84 @@ function RuleCard({ id, rule }: { id: string; rule: ShownRule }) {
   );
 }
 
-function Values({ item }: { item: ComputedItem }) {
-  const alternates = item.alternates ?? [];
-  if (alternates.length === 0) {
-    return <span className="value">{formatValue(item.value, item.unit)}</span>;
-  }
-  // The status is the one the engine read from the pack. The screen holds none of its own.
-  const operative = item.operative?.legal_status ?? "";
+/**
+ * SPEC section 7: a value with a rule change beside it shows the value in force, and
+ * one line that opens the other value, its legal status as the pack gives it, and the
+ * rule. The screen holds no legal status of its own.
+ */
+function RuleChange(props: {
+  alternates: readonly Alternate[];
+  operative: { regime: string; legal_status: string } | undefined;
+  unit: string;
+  ruleIds: readonly string[];
+  rules: EngineOutput["rules"];
+}) {
+  const { alternates, operative, unit, ruleIds, rules } = props;
+  const [open, setOpen] = useState(false);
+  const panel = useId();
+  const [first] = alternates;
+  if (first === undefined) return null;
   return (
-    <span className="regimes">
-      <span className="regime">
-        <span className="value">{formatValue(item.value, item.unit)}</span>
-        <span className="legal">{legalStatusWords(operative)}</span>
-      </span>
-      {alternates.map((alternate) => (
-        <span className="regime" key={alternate.regime}>
-          <span className="value">{formatValue(alternate.value, item.unit)}</span>
-          <span className="legal">{legalStatusWords(alternate.legal_status)}</span>
-        </span>
-      ))}
-    </span>
+    <div className="rule-change">
+      <button
+        type="button"
+        className="quiet"
+        aria-expanded={open}
+        aria-controls={panel}
+        onClick={() => setOpen(!open)}
+      >
+        {regimeLine(first.legal_status)}
+      </button>
+      {open && (
+        <div className="working" id={panel}>
+          <dl>
+            {alternates.map((alternate) => (
+              <div key={alternate.regime}>
+                <dt>Under the rule change</dt>
+                <dd>
+                  <span className="value">{formatValue(alternate.value, unit)}</span>
+                  <span className="legal">
+                    Legal status in the rule pack: {alternate.legal_status}
+                  </span>
+                </dd>
+              </div>
+            ))}
+            {operative && (
+              <div>
+                <dt>The value shown</dt>
+                <dd>
+                  <span className="legal">
+                    Legal status in the rule pack: {operative.legal_status}
+                  </span>
+                </dd>
+              </div>
+            )}
+          </dl>
+          <ul className="rules">
+            {ruleIds.map((id) => {
+              const rule = rules[id];
+              return rule ? <RuleCard key={id} id={id} rule={rule} /> : null;
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Marks({ status, reading }: { status: string; reading: boolean }) {
+  const tag = statusTag(status);
+  return (
+    <>
+      {tag && <span className="tag">{tag}</span>}
+      {reading && <span className="tag reading-tag">{READING_TAG}</span>}
+    </>
   );
 }
 
 function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rules"] }) {
   const [open, setOpen] = useState(false);
   const panel = useId();
-  const tag = statusTag(item.status);
 
   return (
     <li className="item">
@@ -147,10 +212,17 @@ function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rul
       >
         <span className="item-name">
           {itemName(item.id)}
-          {tag && <span className="tag">{tag}</span>}
+          <Marks status={item.status} reading={item.reading} />
         </span>
-        <Values item={item} />
+        <span className="value">{formatValue(item.value, item.unit)}</span>
       </button>
+      <RuleChange
+        alternates={item.alternates ?? []}
+        operative={item.operative}
+        unit={item.unit}
+        ruleIds={item.rule_ids}
+        rules={rules}
+      />
       {open && (
         <div className="working" id={panel}>
           <h4>Inputs used</h4>
@@ -177,16 +249,56 @@ function ItemRow({ item, rules }: { item: ComputedItem; rules: EngineOutput["rul
   );
 }
 
+// SPEC section 5: where the verdict turns on Duly's count, the words of the regulation
+// are shown beside it.
+const COUNT_BESIDE: ReadonlyMap<string, string> = new Map(
+  Object.entries({ cpt_full_time_at_or_over_bar: "cpt.full_time_bar_days" }),
+);
+
 export function Verdict(props: { output: EngineOutput; onChangeZone: () => void }) {
-  const { verdict, scope, computed, today } = props.output;
+  const { verdict, scope, computed, today, rules } = props.output;
   // Two reasons may read the same. Each line is shown once.
-  const lines = [...new Set(verdict.reasons.map((reason) => reasonText(reason, computed)))];
+  const lines = new Map<string, { reading: boolean; beside: string | undefined }>();
+  for (const reason of verdict.reasons) {
+    const text = reasonText(reason, computed);
+    const reading = reasonItem(reason, computed)?.reading ?? false;
+    const beside = COUNT_BESIDE.get(reason);
+    const held = lines.get(text);
+    lines.set(text, {
+      reading: reading || (held?.reading ?? false),
+      beside: beside ?? held?.beside,
+    });
+  }
   return (
     <section className="verdict" data-state={verdict.state}>
       <h1>{headline(verdict.state)}</h1>
-      {lines.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
+      {[...lines].map(([line, { reading, beside }]) => {
+        const rule = beside === undefined ? undefined : rules[beside];
+        return (
+          <div className="verdict-line" key={line}>
+            <p>
+              {line}
+              {reading && (
+                <>
+                  {" "}
+                  <span className="tag reading-tag">{READING_TAG}</span>
+                </>
+              )}
+            </p>
+            {beside !== undefined && rule?.quote && (
+              <figure className="quote">
+                <figcaption>Words of the regulation</figcaption>
+                <blockquote>{rule.quote}</blockquote>
+                <p>
+                  <a href={rule.url} target="_blank" rel="noreferrer">
+                    {rule.citation}
+                  </a>
+                </p>
+              </figure>
+            )}
+          </div>
+        );
+      })}
       <p className="scope">{scopeLine(scope.documents_count, scope.rules_checked_on)}</p>
       <p className="scope">
         {todayLine(today.date, today.time_zone)}{" "}
@@ -198,12 +310,29 @@ export function Verdict(props: { output: EngineOutput; onChangeZone: () => void 
   );
 }
 
+/** The values entered that raised a question, as the engine gave them. */
+function AboutValues({ about }: { about: About }) {
+  return (
+    <dl className="about">
+      {Object.entries(about).map(([key, value]) => (
+        <div key={key}>
+          <dt>{inputName(key)}</dt>
+          <dd>
+            <InputValue value={value} />
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function Questions(props: {
   output: EngineOutput;
   /** The answers sent with the case this result was computed from. */
   sent: Confirmations;
   busy: boolean;
-  onAnswer: (question: string, given: boolean) => void;
+  /** about: the values the question was raised for. The answer is kept with them. */
+  onAnswer: (question: string, given: boolean, about: About | undefined) => void;
   onWithdraw: (question: string) => void;
 }) {
   const { output, sent, busy, onAnswer, onWithdraw } = props;
@@ -219,23 +348,29 @@ export function Questions(props: {
           <ul>
             {output.questions.map((question) => {
               const copy = questionCopy(question.id);
+              const fact = factLine(question.id);
               return (
                 <li className="question" key={question.id}>
+                  {fact && <p className="fact">{fact}</p>}
                   <p className="ask">{copy ? copy.ask : QUESTION_NOT_SHOWN}</p>
-                  <p className="because">{becauseLine(question.because)}</p>
+                  {fact && question.about ? (
+                    <AboutValues about={question.about} />
+                  ) : (
+                    <p className="because">{becauseLine(question.because)}</p>
+                  )}
                   {copy && (
                     <div className="answers" role="group" aria-label={copy.ask}>
                       <button
                         type="button"
                         disabled={busy}
-                        onClick={() => onAnswer(question.id, true)}
+                        onClick={() => onAnswer(question.id, true, question.about)}
                       >
                         {copy.yes}
                       </button>
                       <button
                         type="button"
                         disabled={busy}
-                        onClick={() => onAnswer(question.id, false)}
+                        onClick={() => onAnswer(question.id, false, question.about)}
                       >
                         {copy.no}
                       </button>
@@ -256,6 +391,7 @@ export function Questions(props: {
               if (!copy) return null;
               return (
                 <li className="question" key={id}>
+                  {factLine(id) && <p className="fact">{factLine(id)}</p>}
                   <p className="ask">{copy.ask}</p>
                   <p className="given">{answerLine(copy, given)}</p>
                   <div className="answers" role="group" aria-label={copy.ask}>
@@ -263,7 +399,7 @@ export function Questions(props: {
                       type="button"
                       className="quiet"
                       disabled={busy}
-                      onClick={() => onAnswer(id, !given.answer)}
+                      onClick={() => onAnswer(id, !given.answer, given.about)}
                     >
                       Change the answer to "{given.answer ? copy.no : copy.yes}"
                     </button>
@@ -288,7 +424,9 @@ export function Questions(props: {
 
 /** Rules the engine sent that no item names: the words that go with the verdict. */
 export function VerdictRules({ output }: { output: EngineOutput }) {
-  const named = new Set(output.computed.flatMap((item) => item.rule_ids));
+  const named = new Set(
+    [...output.computed, ...output.upcoming, ...output.lists].flatMap((entry) => entry.rule_ids),
+  );
   const beside = Object.entries(output.rules).filter(([id]) => !named.has(id));
   if (beside.length === 0) return null;
   return (
@@ -321,5 +459,98 @@ export function Items({ output }: { output: EngineOutput }) {
         );
       })}
     </>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState<boolean | null>(null);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(
+      () => setCopied(true),
+      () => setCopied(false),
+    );
+  };
+  return (
+    <p>
+      <button type="button" onClick={copy}>
+        Copy the question
+      </button>{" "}
+      {copied === true && <span role="status">Copied.</span>}
+      {copied === false && (
+        <span role="status">The browser did not allow the copy. Select the words above.</span>
+      )}
+    </p>
+  );
+}
+
+/**
+ * SPEC section 6: the dates that lie ahead, soonest first, then what the regulation
+ * lists for the step the rules place next, and a drafted question for the DSO.
+ */
+export function WhatComesNext(props: { output: EngineOutput; sent: F1Case }) {
+  const { upcoming, lists, rules } = props.output;
+  if (upcoming.length === 0 && lists.length === 0) return null;
+  const first = upcoming.find((entry) => entry.id.startsWith("next."));
+  return (
+    <section className="group next" aria-labelledby="next-heading">
+      <h3 id="next-heading">{NEXT_HEADING}</h3>
+      {upcoming.length > 0 && (
+        <ol className="items upcoming">
+          {upcoming.map((entry) => (
+            <li className="item" key={entry.id}>
+              <div className="item-row static">
+                <span className="item-name">
+                  {itemName(entry.id)}
+                  <Marks status={entry.status} reading={entry.reading} />
+                </span>
+                <span className="value">{formatDate(entry.date)}</span>
+              </div>
+              <RuleChange
+                alternates={entry.alternates ?? []}
+                operative={entry.operative}
+                unit="date"
+                ruleIds={entry.rule_ids}
+                rules={rules}
+              />
+            </li>
+          ))}
+        </ol>
+      )}
+      {lists.map((list) => {
+        const shown = list.rule_ids.flatMap((id) => {
+          const rule = rules[id];
+          return rule ? [{ id, rule }] : [];
+        });
+        const citation = shown[0]?.rule.citation ?? "the regulation";
+        const draft = dsoQuestion(props.sent.opt, upcoming, citation);
+        return (
+          <div className="list" key={list.id}>
+            <h4>{listName(list.id)}</h4>
+            {first && (
+              <p className="beside">
+                {itemName(first.id)}: {formatDate(first.date)}
+              </p>
+            )}
+            <p className="list-line">{LIST_LINE}</p>
+            <ol className="listed">
+              {shown.map(({ id, rule }) => (
+                <li key={id}>
+                  {rule.quote && <blockquote>&ldquo;{rule.quote}&rdquo;</blockquote>}
+                  <p>
+                    <a href={rule.url} target="_blank" rel="noreferrer">
+                      {rule.citation}
+                    </a>
+                  </p>
+                </li>
+              ))}
+            </ol>
+            <h4>A question you can send to your DSO</h4>
+            <p>Duly drafted it from your dates. Duly never sends it.</p>
+            <pre className="draft">{draft}</pre>
+            <CopyButton text={draft} />
+          </div>
+        );
+      })}
+    </section>
   );
 }
