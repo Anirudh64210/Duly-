@@ -367,3 +367,66 @@ uv run python -m tools.copy_lint.lint
 - Failure: none, a trap. The check marks any flag as written, and finds October 1 in a quote about the Treasury. A row can pass as verbatim while the rule it stands for is Duly's own step.
 - Fix: decide the derivation from the words and the rule's meaning first, then run the check. Ask: do the quoted words, alone, say what the id says? If a second source or a step of reasoning is needed, it is a reading.
 - Evidence: tools/sources/verify.py, value_is_written returns True for every bool; capgap.fiscal_year_start_month_day reports written True and its own note says the link is a reading.
+
+## 2026-09-29, iteration 5, product round 1 (run l-content-e38efd9565, attempt 1)
+
+### State
+
+Sections 5 and 6 of specs/product-1/SPEC.md, the L-content parts, are written. The done command passes. Nothing is reviewed by the founder; no row carries reviewed_by.
+
+### What I did
+
+1. Read this log, the SPEC, CLAUDE.md, PRINCIPLES.md, BOUNDARY.md, DECISIONS.md.
+2. Cut paragraph (f)(10)(ii)(C) out of the saved 2026-09-14 and 2026-09-15 texts and compared them with diff. They are the same. Read the whole paragraph.
+3. Checked each quote with the source check's own plain() against three saved copies: both eCFR texts and 81 FR 13040. Each is found once in each (one is found twice in the Federal Register document, which also has a preamble). Checked the order of the quotes in the text.
+4. Section 5: cpt.full_time_bar_days went from status school to settled, derivation reading. What I chose: the five tags cannot say Duly's own count, so I kept the status the source supports. The quoted sentence is regulation in force, the same in both texts, so settled. The note says settled describes the sentence and not the count, and no longer says anything about how schools count, because no school document is saved.
+5. Section 6: 15 rows, ids stem.requires.*, in the order of the paragraph. No network was used.
+
+### Choices the founder may want to change
+
+1. stem.requires.all_of_the_following is the sentence before the list, not a requirement of its own. I recorded it because seven rows are requirements only when read with it, and the screen can show it first.
+2. (C)(11), Site visits, comes under the words all of the following requirements, but its own words state what DHS may do. A flag named requires would say more than the words. Left out, and said so in the note of the first row.
+3. One row for each numbered paragraph (1) to (10), plus (2)(iii) and (10)(i) to (iii). Not recorded as rows: (2)(i), (2)(ii), (7)(ii) to (iv), (9)(ii), (9)(iii), and the later sentences of (3), (6), (7)(i) and (8). Each note names what its paragraph goes on to say. (7)(ii), (7)(iii) and (9)(ii) use the word must; they state what the plan holds and what follows a change, and can be added as rows if the founder wants the list longer.
+4. Seven rows are readings because the quoted words do not themselves say must or required. Two more, employer_reporting and self_evaluation, are readings because the quote starts in the middle of the sentence.
+5. stem.requires_post_completion_opt (with an underscore) stays as it is. The engine names that id. It is not repeated under stem.requires.
+
+### What ran
+
+```
+bash -c 'uv run python -m tools.sources.verify rulepacks && uv run pytest tests/unit/engine/test_rulepack.py -q && test $(grep -c "id: stem.requires\." rulepacks/f1-us/v2026.09/parameters.yaml) -ge 3'
+  sources: 4 pack(s) checked, every quote found
+  19 passed
+  exit 0
+grep -c "id: stem.requires\." rulepacks/f1-us/v2026.09/parameters.yaml
+  15
+uv run python -m tools.copy_lint.lint
+  copy lint: clean
+uv run pytest tests/unit/engine tests/unit/api -q
+  114 failed, in 7 files. The same 114, file by file, fail on a copy of HEAD without my change
+  (git archive HEAD into TMPDIR). First error: 'lists' is a required property. The contract
+  asks for lists and upcoming and the engine does not return them yet. Not caused by this lane.
+```
+
+### Seen and not worked around
+
+- A recursive grep from the root, and git status, touched tests/holdout. The sandbox refused the read. I read nothing there.
+
+## Lesson
+
+### The source check cannot match a quote across an italic paragraph number
+
+- Failure: four quotes that hold a cross reference such as paragraph (f)(10)(ii)(C)(2) were not found. The saved XML prints the number as (<I>2</I>), and plain() turns each tag into a space, so the text reads (c)( 2 ).
+- Fix: in this lane, start or stop the quote on the other side of the cross reference, and write the missing words in the note. If the quote then lacks the main clause, mark the row a reading. The lasting fix is in tools/sources/verify.py, outside this lane.
+- Evidence: count 0 in all three saved copies for the full sentences of (C)(4), (C)(6), (C)(7)(i) and (C)(9)(i); count 1 after the quote was cut.
+
+### A list item takes its force from the sentence before the list
+
+- Failure: none, a trap. The words of (C)(1), (C)(2) and (C)(5) say is, not must. A flag marked verbatim would pass the check, because the check accepts any flag.
+- Fix: record the sentence before the list as its own row, and mark each item that has no must of its own as a reading that names that row.
+- Evidence: 2026-09-14 text, (C): "all of the following requirements must be met"; (C)(5): "The student's employer is enrolled in E-Verify".
+
+### Compare failures with the parent before blaming the diff
+
+- Failure: 114 tests under tests/unit/engine and tests/unit/api fail in this worktree.
+- Fix: git archive HEAD into TMPDIR, run the same suites there, count per file. The counts match, so the diff causes none.
+- Evidence: 20, 6, 3, 37, 32, 8, 8 in both runs.
