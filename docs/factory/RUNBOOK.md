@@ -90,6 +90,15 @@ For any merge, the full trace is:
 
 `make weekly` writes docs/factory/reviews/<year>-W<week>.md: every run that failed or escalated, and a sample of those that passed, with five questions for each. The founder reads the traces, answers, and writes what changes. Then `make drift` has the reviewer score an earlier review again, to check the judge against itself.
 
+## A change of behaviour lands in two rounds
+
+Tests written before the code cannot know which older cases the new behaviour will collide with, so a builder held to the whole suite escalates on every such case (product round 1 escalated this way four times). Plan it as:
+
+1. Tests first (test-author): the tests of the new behaviour, in a file of their own. Not expected to pass.
+2. Build (builder): held to that file and the gates, not the whole suite. The builder lists the older tests that collide in its report.
+3. Reconcile (test-author): held to the whole suite and the hidden tests on the merged code. Each changed test names the settled point that requires it; nothing a point supports is loosened; a failure no point explains is escalated as a possible engine error.
+4. The reviewer checks the reconcile diff for exactly that.
+
 ## Definition of done, by kind of task
 
 An agent cannot declare itself done. Done is a command in the plan, run by the orchestrator.

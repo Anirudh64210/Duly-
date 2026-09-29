@@ -1,0 +1,137 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+# A behaviour change lands in two rounds. The build round is held to the tests of the new
+# behaviour. The reconcile round then holds the whole suite and the hidden tests, on the
+# merged code: tests written before the code cannot know which older cases collide.
+rounds:
+  - name: engine-windows
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Your earlier run built specs/product-1/SPEC-resolutions.md points 11, 12, 14 to 19, 23
+          and 24 on branch lane/L-engine/l-engine-9492007270 and escalated on 33 older tests
+          whose cases now hold a conflict or lack the new item. You were right; the next round
+          reconciles them. Bring your work in first: git merge lane/L-engine/l-engine-9492007270.
+          Point 16 is clarified: the reading is shown through the rule in rules, with no field
+          on the question. Then pass the done command, which holds you to the tests of the new
+          behaviour.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_f1_windows.py tests/unit/engine/test_dates.py
+          tests/unit/engine/test_f1_sourcing.py -q
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile-windows
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          The engine now has specs/product-1/SPEC-resolutions.md points 11, 12, 14 to 19, 23 and
+          24. Bring every test in tests/unit and tests/holdout in line with them, except
+          tests/unit/engine/test_f1_periods_and_reports.py, which waits for points 20 to 22. The
+          builder's list of the 33 older tests that collide, each with its reason, is in
+          engine/REPORT.json on branch lane/L-engine/l-engine-9492007270 (git show). For each
+          test you change, the reason is a settled point: change the case so its facts fit
+          (point 4), or expect what the point says (a new conflict, the new item
+          unemployment.opt_card_days_used, the seven new rows in conflicts_by_the_table of
+          tests/support/f1_pack.py). Write the point in a comment beside each change. Never
+          loosen an assertion a point supports. If a failure is not explained by a settled
+          point, it may be an engine error: do not change that test; list it under disputes
+          with the case and the output, and escalate.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider
+          --ignore=tests/unit/tools --ignore=tests/unit/engine/test_f1_periods_and_reports.py'
+    checks:
+      - { name: "engine and api tests", run: "uv run pytest tests/unit/engine tests/unit/api -q --ignore=tests/unit/engine/test_f1_periods_and_reports.py" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: engine-periods
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md points 20, 21 and 22 in engine/: the
+          question about a new employer for each period that begins on the STEM card, the
+          question about reporting each period's end, the question about each STEM report
+          whose date has passed, and the dated items and judgement items each answer gives,
+          including stem.concluding_evaluation_due. The rules opt.report_interruption and
+          stem.reporting_required are in the pack. Every day count comes from a rule's value.
+          Older tests that collide are reconciled in the next round; list them in your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_f1_periods_and_reports.py
+          tests/unit/engine/test_f1_windows.py -q
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile-periods
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          The engine now has specs/product-1/SPEC-resolutions.md points 20, 21 and 22. Bring
+          every test in tests/unit and tests/holdout in line with them. Cases with an ended
+          employment period, a period beginning on the STEM card, or a STEM report date before
+          the day they run now raise questions: answer them in the case with the helpers of
+          tests/support/f1_pack.py where the test is about something else, or expect the
+          question where the test is about the answers. The builder's list of collisions is in
+          its report on its branch. Write the point beside each change; never loosen an
+          assertion a point supports; escalate any failure no settled point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "engine and api tests", run: "uv run pytest tests/unit/engine tests/unit/api -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: screen
+    lanes:
+      - lane: L-web
+        agent: builder
+        mission: >
+          The engine now raises the conflicts, questions, items and judgement items of
+          specs/product-1/SPEC-resolutions.md points 11 to 24. Give each its words in
+          web/src/lib/labels.ts beside the others: what does not fit, or what is asked, in plain
+          words, never which date is wrong and never that anything was late or missed. The line
+          for opt.ead_end.after_complete_by says the date is Duly's count from the rule (point
+          16). The report_employer item from point 22 is shown as SEVP guidance, not as the
+          regulation's words. Points 12 and 13 as each states. A conflict, question or judgement
+          id the screen has no words for is never shown as nothing: it shows a plain line that
+          some facts entered do not fit or that something needs an answer, and a test proves it.
+          Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what the fix changed (git diff product-1~1...HEAD and the merges since the
+          review of reviews/product-1.md) against specs/product-1/SPEC-resolutions.md points 11
+          to 24, PRINCIPLES.md, BOUNDARY.md and CLAUDE.md, following your role file. Send each
+          case the points name, and the four inputs of finding 1 in reviews/product-1.md,
+          through the api. Check that no verdict is no_open_items when a filing is outside its
+          window, a card runs past its date, a report date has passed unanswered, or a period's
+          end is unanswered; that no date shown is later than the words it cites; that every
+          test changed in the reconcile rounds names the point that required it and loosens
+          nothing; and that no screen line says anything was late or missed. Write
+          reviews/product-1-fix1.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix1.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1 and this fix cover, as your role
+          file describes, against specs/product-1/SPEC.md and SPEC-resolutions.md. Update
+          docs/requirements/audits/product-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'
