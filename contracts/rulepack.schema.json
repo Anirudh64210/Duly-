@@ -17,7 +17,16 @@
         "f1",
         "h1b",
         "o1",
-        "eb1a"
+        "eb1a",
+        "eb2",
+        "eb3",
+        "perm",
+        "aos",
+        "h4",
+        "f2",
+        "j1",
+        "l1",
+        "tn"
       ]
     },
     "jurisdiction": {
@@ -151,6 +160,70 @@
           }
         }
       }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "facts",
+        "stages"
+      ],
+      "description": "The category's path as data. The engine reads it and holds no scenario of its own.",
+      "properties": {
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage"
+          }
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/list"
+          }
+        },
+        "counters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "calculator",
+              "rule_ids"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "calculator": {
+                "enum": [
+                  "days_without_qualifying_period",
+                  "days_in_status",
+                  "count_of_facts"
+                ]
+              },
+              "inputs": {
+                "type": "object"
+              },
+              "rule_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              }
+            }
+          },
+          "description": "Counts that need more than date arithmetic. Each names one of a short list of calculators in the engine, and the rules it uses"
+        }
+      }
     }
   },
   "$defs": {
@@ -188,6 +261,261 @@
           "type": "string",
           "pattern": "^sources/[a-z0-9._-]+$",
           "description": "Saved copy of the source, relative to the pack folder."
+        }
+      }
+    },
+    "amount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule"
+      ],
+      "properties": {
+        "rule": {
+          "type": "string"
+        },
+        "sign": {
+          "enum": [
+            1,
+            -1
+          ],
+          "default": 1
+        }
+      },
+      "description": "A rule's value, added or taken away. Its unit (days, business_days, months) comes from the rule. A literal number is never allowed: every amount is a sourced rule."
+    },
+    "when": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A date: a fact the person entered, or the end of a span or the close of a window already computed, moved by rule amounts. Nothing else.",
+      "properties": {
+        "fact": {
+          "type": "string"
+        },
+        "window_opens": {
+          "type": "string"
+        },
+        "window_closes": {
+          "type": "string"
+        },
+        "month_day_rule": {
+          "type": "string",
+          "description": "A rule holding MM-DD, placed in the year of the fact named by in_year_of"
+        },
+        "in_year_of": {
+          "type": "string"
+        },
+        "add": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/amount"
+          }
+        },
+        "earliest_of": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/when"
+          },
+          "minItems": 2
+        },
+        "latest_of": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/when"
+          },
+          "minItems": 2
+        }
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$"
+        },
+        "kind": {
+          "enum": [
+            "date",
+            "count",
+            "flag",
+            "choice",
+            "periods"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "What the person is asked, in plain words"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "happened": {
+          "type": "boolean",
+          "default": false,
+          "description": "A date of something that already took place, such as a filing. It may not be after today."
+        },
+        "school": {
+          "type": "boolean",
+          "default": false,
+          "description": "The value depends on the person's school."
+        }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "opens",
+        "closes",
+        "rule_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "opens": {
+          "$ref": "#/$defs/when"
+        },
+        "closes": {
+          "$ref": "#/$defs/when"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "done_when": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Facts that record the step as taken. Once any is entered, the window no longer matters and is not shown as ahead."
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "entered_when",
+        "rule_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "entered_when": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Facts that, all entered, place the person in this stage"
+        },
+        "span": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "starts",
+            "ends"
+          ],
+          "properties": {
+            "starts": {
+              "$ref": "#/$defs/when"
+            },
+            "ends": {
+              "$ref": "#/$defs/when"
+            },
+            "longest": {
+              "$ref": "#/$defs/amount"
+            }
+          }
+        },
+        "follows": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Stages this one comes after. The engine checks each for a gap or an overlap the rules do not allow"
+        },
+        "gap_allowed": {
+          "$ref": "#/$defs/amount"
+        },
+        "windows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/window"
+          }
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Stages that can follow. Their windows are computed from this stage's facts and shown as what comes next"
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "The rules that define the stage itself"
+        }
+      }
+    },
+    "list": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "rule_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
         }
       }
     }
