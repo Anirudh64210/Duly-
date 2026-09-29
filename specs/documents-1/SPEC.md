@@ -6,7 +6,7 @@ No lane starts until three things are true:
 
 - Path round 1 is on main. It changes contracts/case.schema.json, which this round changes again.
 - Desktop round 1 is on main. The vault needs its main process, app protocol, guard, preload and local token. Today desktop/src holds only about.ts.
-- The founder has answered section 18 in DECISIONS.md. Where an answer differs from the recommendation, this SPEC changes first.
+- The founder has answered section 18 in DECISIONS.md. Where an answer differs from the recommendation, this SPEC changes first. F1, F3, F7 and F10 are answered (D58 to D61); the rest wait.
 
 In D54 the founder said: "A really big part of Duly is going to be document sorting and secure storing in one place." Today the only document in Duly is a number the person types. It is `documents_count`, the field "Documents added" in web/src/components/CaseForm.tsx. The screen then says "Based on 3 documents you added" when nothing was added. This round puts the documents themselves in place of that number.
 
@@ -549,7 +549,13 @@ The lines read:
 
 IMPL-028's third sentence waits for F13.
 
-**The verdict rule stays (F3).** With no confirmed document the verdict is `cannot_tell` with `no_documents`. Its reason line is "No document is attached to these dates yet."
+**Typed dates: ask once, verify, then trust or say "Can't tell yet" (F3, decided in D59).** A date whose only source is the student's typing is used for a verdict only when all three hold:
+
+1. The student answered yes to `typed_dates.from_documents`: "Did you type these dates from your documents?", with `about` holding every typed date.
+2. The student then checked each typed date against its document, one by one: the question `typed_dates.checked.<fact>`, "Check this date against your <document>: <date>", answered "Matches". A date answered "Doesn't match" or left unanswered is not checked.
+3. Nothing contradicts it: no conflict of product-1 section 1 is open on it, and where a confirmed document holds the same fact, the two agree (`documents.fact.<fact>.typed_differs` is not open).
+
+If any one fails, the verdict is `cannot_tell` with `unconfirmed:typed_dates`, and its line is "Some dates you typed are not checked against your documents yet." With no typed date checked and no confirmed document, the reason stays `no_documents`, "No document is attached to these dates yet." The scope line says which dates were typed and checked: "Based on dates from 2 documents you confirmed and 3 dates you typed and checked." A verdict that rests on typed and checked dates is never worded as if a document had been read.
 
 **The typed count is gone:**
 
@@ -1012,10 +1018,7 @@ Each item has a recommendation. No lane starts until the founder has answered in
 
 **F2. The recovery kit at setup,** required and typed back. Recommendation: yes. Without it a reset keychain loses every document. The backup later uses the same key.
 
-**F3. Typed dates alone.** Should a case with only typed dates reach any state other than "Can't tell yet"?
-
-- Recommendation: no; keep `no_documents`. On the web this means "Can't tell yet" until documents are confirmed on a computer.
-- The other choice is a question: "Did you type these dates from your documents?" Its Yes lets the verdict be decided on typed dates.
+**F3. Typed dates alone.** Decided by the founder (D59): ask once, verify, then trust; if the dates still cannot be strictly confirmed, "Can't tell yet". Section 8 holds the rule.
 
 **F4. DATES USED in place of CURRENT,** with the question `documents.i20_in_use` (DOCS-006). Recommendation: yes. Duly knows which I-20 the student chose, not which one is in force.
 
