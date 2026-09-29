@@ -141,3 +141,15 @@
 - Failure: a plain text that keeps every listed term can still drop a limit or move a condition, and the gate passes it.
 - Fix: diff each plain text against the text before the round and read each change for a dropped limit or a moved clause.
 - Evidence: reviews/product-1-fix6.md finding 1; three of four faults were right before the round.
+
+## 2026-09-29, run l-review-5ea60f3f51 (product round 1, fix 7)
+- Read SPEC-resolutions.md points 62 to 64, reviews/product-1-fix6.md, the diff d9442be..07f2b6a (the pack's eight plain texts, tools/sources/plain_changes.py, engine/f1.py whole_shown, drafts.ts, the tests), and the eight texts beside quote and note.
+- Ran: unit suites (exit 0), holdout (exit 0), test_plain and test_plain_changes (17 passed), tools.sources.plain_changes d9442be (the eight named rows, no other; exit 0 with --allow), tools.sources.plain, sources verify, engine_literals, copy lint, mypy, ruff (all clean), web vitest on a TMPDIR copy (12 files, 302 passed).
+- Sent fix 6 findings 1 to 4 through TestClient. 3 and 4 closed: the step-back draft lists the period; the shipped pack less the interval, the extension or the evaluation interval steps back on a STEM case that is quiet on the full pack. Findings 1 and 2 closed as asked, but two rewrites fail.
+- Found: stem.requires.previously_obtained_degree is not split (one 59-word sentence) and says the DSO "recommends it"; capgap.end_month_day 2025 says "they end then", where the quote says only the automatic extension runs until then.
+- Wrote reviews/product-1-fix7.md (VETO), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: the STEM case of fix 6 finding 4 already steps back for point 60 on the shipped pack, so dropping a row showed the step back without proving point 63 caused it.
+- Fix: send a control case whose period starts after 2025-05-19, check it is quiet on the full pack, then drop the row.
+- Evidence: the 2025-06-15 STEM case gives no_open_items on the shipped pack and rule_not_in_force_on_event_day with either row left out.
