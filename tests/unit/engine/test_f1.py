@@ -45,6 +45,7 @@ from tests.support.f1_pack import (
     periods_answered,
     reasons_with,
     refuse_placeholders,
+    row_in_force,
     rule_statuses,
     rule_value,
     values,
@@ -349,8 +350,13 @@ def test_case_b_has_every_item_once():
     # SPEC-resolutions.md, point 20: CASE_B's first period ends 2025-12-31, on the STEM
     # card (2025-07-01 through 2027-06-30) and before it ends, so its concluding evaluation
     # joins the items: 2025-12-31 plus 10 days is 2026-01-10.
+    # SPEC-resolutions.md, point 48: validation 4 would be due after the STEM card ends
+    # (2027-07-01 is past 2027-06-30), so it is not dated; whether it is left out or null
+    # the point does not settle.
     got = items(run(periods_answered(CASE_B)))
-    assert set(got) == ALL_IDS | {"stem.concluding_evaluation_due.1"}
+    assert got.get("stem.validation_4_due", {"value": None})["value"] is None
+    shown = set(got) - {"stem.validation_4_due"}
+    assert shown == ALL_IDS - {"stem.validation_4_due"} | {"stem.concluding_evaluation_due.1"}
     assert got["stem.concluding_evaluation_due.1"]["value"] == "2026-01-10"
 
 
@@ -389,10 +395,10 @@ def test_case_b_stem_values():
     # Plus 18 months is Friday 2027-01-01. Jan 4 (1), 5 (2), 6 (3), 7 (4), 8 (5), 11 (6),
     # 12 (7), 13 (8), 14 (9), 15 (10). The holiday on Monday Jan 18 is not reached.
     assert got["stem.validation_3_due"] == "2027-01-15"
-    # Plus 24 months is Thursday 2027-07-01. Point 24: Monday Jul 5, the observed day of
-    # a Sunday holiday, is a business day. Jul 2 (1), 5 (2), 6 (3), 7 (4), 8 (5), 9 (6),
-    # 12 (7), 13 (8), 14 (9), 15 (10).
-    assert got["stem.validation_4_due"] == "2027-07-15"
+    # Plus 24 months is Thursday 2027-07-01, the day after the card ends on 2027-06-30.
+    # SPEC-resolutions.md, point 48: validation reporting "ends when ... the 24-month OPT
+    # extension concludes" (8 CFR 214.2(f)(12)(ii)(B)), so no validation 4 is dated.
+    assert got.get("stem.validation_4_due") is None
     # 2025-07-01 plus 12 months is 2026-07-01, plus 10 calendar days.
     assert got["stem.evaluation_12_month_due"] == "2026-07-11"
     # stem.ead_end 2027-06-30 plus 10 days.
@@ -451,8 +457,8 @@ def test_case_b_under_a_pack_with_other_numbers():
     assert got["stem.validation_2_due"] == "2026-07-16"
     # Friday 2027-01-15, weekend, Monday Jan 18 is the holiday, Tuesday Jan 19.
     assert got["stem.validation_3_due"] == "2027-01-19"
-    # Thursday 2027-07-15 to Friday Jul 16.
-    assert got["stem.validation_4_due"] == "2027-07-16"
+    # Point 48: 2027-07-01 is after the card ends on 2027-06-30; no validation 4.
+    assert got.get("stem.validation_4_due") is None
     # 2026-07-01 plus 9 days.
     assert got["stem.evaluation_12_month_due"] == "2026-07-10"
     # 2027-06-30 plus 9 days.
@@ -500,9 +506,8 @@ def test_every_rule_shown_is_the_pack_rule_word_for_word(case):
     assert out["rules"], "a case with computed items shows its rules"
     for rule_id, shown in out["rules"].items():
         regime = OPERATIVE if rule_id == "grace.after_completion_days" else ""
-        source = next(
-            p for p in raw["parameters"] if p["id"] == rule_id and p.get("regime", "") == regime
-        )
+        # SPEC-resolutions.md, point 53: the row in force on the day of the case.
+        source = row_in_force(raw, rule_id, TODAY, regime)
         assert shown["value"] == source["value"], rule_id
         assert shown["unit"] == source["unit"], rule_id
         assert shown["status"] == source["status"], rule_id
@@ -526,7 +531,9 @@ def test_the_named_rules_include_the_one_in_the_formula():
         "stem.apply_window_opens": "stem.apply_before_expiry_days",
         "stem.file_by": "stem.file_within_days_of_recommendation",
         "stem.validation_1_due": "stem.validation_due_business_days",
-        "stem.validation_4_due": "stem.validation_due_business_days",
+        # SPEC-resolutions.md, point 48: CASE_B's validation 4 would fall after the card
+        # (see test_case_b_stem_values), so validation 3 stands for the last one dated.
+        "stem.validation_3_due": "stem.validation_due_business_days",
         "stem.evaluation_12_month_due": "stem.evaluation_due_days",
         "stem.final_evaluation_due_from_ead_end": "stem.evaluation_due_days",
         "capgap.ends": "capgap.end_month_day",
@@ -939,7 +946,9 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
         (
             with_changes(
                 with_block(CASE_A, "opt", ead_end="2026-06-01"),
-                employment=[job("2026-06-01", None)],
+                # SPEC-resolutions.md, point 43: work open after the one-day card would be
+                # its own conflict, so the work is that day.
+                employment=[job("2026-06-01", "2026-06-01")],
             ),
             [],
         ),
@@ -975,7 +984,9 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
             with_changes(
                 CASE_A,
                 opt=ead("2025-03-02", "2025-03-10", "2025-05-15", "2026-05-14"),
-                employment=[job("2025-05-15", None)],
+                # Point 43: work open after the card is its own conflict, so the work ends
+                # with the card.
+                employment=[job("2025-05-15", "2026-05-14")],
             ),
             [POINT_27],
         ),
@@ -986,7 +997,8 @@ def test_a_missing_recommendation_date_gives_a_null_file_by():
             with_changes(
                 CASE_A,
                 opt=ead("2025-03-02", "2025-03-10", "2025-05-16", "2026-05-15"),
-                employment=[job("2025-05-16", None)],
+                # Point 43: the work ends with the card.
+                employment=[job("2025-05-16", "2026-05-15")],
             ),
             [POINT_27],
         ),
@@ -1056,7 +1068,16 @@ def test_the_oldest_check_among_the_rules_decides():
     raw = pack_dict(TODAY)
     # One rule checked on 2026-09-19, nine days before today. Every other rule today.
     raw["parameters"][5]["source"]["checked_on"] = "2026-09-19"
-    out = f1.compute_f1(f1.parse_case(CASE_A), validate_pack(raw), clock_on(TODAY))
+    clock = clock_on(TODAY)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(
+            f1.parse_case(refuse_placeholders(sent), clock), validate_pack(raw), clock
+        )
+
+    # SPEC-resolutions.md, points 7 and 39: CASE_A's answers, among them no to
+    # opt.earlier_at_this_level, are sent as the screen sends them.
+    out = compute(with_the_about_asked(dated_on_the_day(CASE_A, clock), compute))
     assert out["scope"]["rules_checked_on"] == "2026-09-19"
     assert out["verdict"] == {"state": "cannot_tell", "reasons": ["rules_stale"]}
 
@@ -1071,7 +1092,11 @@ def test_the_oldest_check_among_the_rules_decides():
     ],
 )
 def test_after_final_end_the_verdict_depends_on_a_litigated_rule(today, litigated):
-    out = run(CASE_A, today=today)
+    # SPEC-resolutions.md, points 43 and 52: CASE_A's period open after the card would be
+    # a conflict and null grace.ends, so here the work ends with the card on 2027-05-31
+    # and its end was reported (point 22). The test is about the litigated rule.
+    closed = periods_answered(with_changes(CASE_A, employment=[job("2026-07-01", "2027-05-31")]))
+    out = run(closed, today=today)
     if litigated:
         assert out["verdict"]["state"] == "cannot_tell"
         assert "rule_in_litigation" in out["verdict"]["reasons"]
@@ -1089,7 +1114,12 @@ def test_final_end_is_the_latest_of_the_three_dates_present():
     # conflict of specs/product-1/SPEC.md, section 1, that leaves grace.ends null
     # (SPEC-resolutions.md, point 4). One open period from the first day of the card
     # has no such days: those after the last card, while open, are not outside.
-    no_stem = with_changes(CASE_B, stem=None, cap_gap=None, employment=[job("2024-07-01", None)])
+    # SPEC-resolutions.md, point 43: a period still open after the card is now a
+    # conflict too, and point 52 nulls grace.ends beside it; so the one period runs from
+    # the first day of the card to its last, and its end was reported (point 22).
+    no_stem = periods_answered(
+        with_changes(CASE_B, stem=None, cap_gap=None, employment=[job("2024-07-01", "2025-06-30")])
+    )
     out = run(no_stem)
     assert "rule_in_litigation" in out["verdict"]["reasons"]
     # 2025-06-30 plus 60 days: 31 to Jul 31, 29 to Aug 29.
@@ -1173,7 +1203,12 @@ def test_a_judgement_item_wins_over_an_open_item():
 
 def test_not_knowing_wins_over_a_judgement_item():
     out = run(with_changes(CASE_A, documents_count=0, cpt_full_time_days=400))
-    assert out["verdict"] == {"state": "cannot_tell", "reasons": ["no_documents"]}
+    # SPEC-resolutions.md, point 51: the state stays cannot_tell; the blocker comes first,
+    # then the judgement item (400 full-time CPT days is at or over the bar of 365).
+    assert out["verdict"] == {
+        "state": "cannot_tell",
+        "reasons": ["no_documents", "cpt_full_time_at_or_over_bar"],
+    }
 
 
 @pytest.mark.parametrize(
@@ -1326,12 +1361,14 @@ def counting_cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
 def periods(draw: st.DrawFn, opt_start: date, today: date, last_end: date) -> dict[str, Any]:
     """A period with no day outside every card (specs/product-1/SPEC.md, section 1,
     employment.period_outside_cards): it begins inside the cards, and a closed one ends
-    on or before the last day of the last card. An open one may run past it."""
+    on or before the last day of the last card. An open one is drawn only while today is
+    on or before that day: SPEC-resolutions.md, point 43, an open period while today is
+    after the last card's end is the conflict employment.period_open_after_last_card."""
     start = opt_start + timedelta(days=draw(st.integers(min_value=0, max_value=1200)))
     start = min(start, last_end)
     # An open period runs through today, so it starts on or before today; before the
     # first card begins there is none.
-    is_open = today >= opt_start and draw(st.booleans())
+    is_open = opt_start <= today <= last_end and draw(st.booleans())
     if is_open:
         start = min(start, today)
         end = None

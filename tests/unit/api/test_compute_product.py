@@ -37,6 +37,7 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    no_earlier_opt_on,
     question,
     question_ids,
     upcoming,
@@ -109,7 +110,9 @@ def client():
 
 def answered_200(client: TestClient, case: dict[str, Any]) -> dict[str, Any]:
     assert case_problems(case) == [], "the test case itself must match the case contract"
-    response = client.post(URL, json=case)
+    # SPEC-resolutions.md, point 39: no test here is about opt.earlier_at_this_level, so
+    # each case answers it no on 2026-09-28 for its own card (no_earlier_opt_on).
+    response = client.post(URL, json=no_earlier_opt_on(case, "2026-09-28"))
     assert response.status_code == 200, response.text
     out: dict[str, Any] = response.json()
     return out

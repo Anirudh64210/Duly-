@@ -174,7 +174,14 @@ def _candidates(root: Path) -> list[Path]:
 def _files(root: Path) -> list[Path]:
     found: list[Path] = []
     for path in _candidates(root):
-        if not path.is_file() or path.name in SKIP_FILES:
+        # The type is checked before the file is touched: a builder's sandbox denies reading
+        # the hidden tests, and a path it may not read is not copy it wrote.
+        if path.suffix not in TEXT_SUFFIXES or path.name in SKIP_FILES:
+            continue
+        try:
+            if not path.is_file():
+                continue
+        except OSError:
             continue
         rel = path.relative_to(root)
         if any(part in SKIP_DIRS for part in rel.parts):
@@ -183,8 +190,6 @@ def _files(root: Path) -> list[Path]:
             continue
         # Saved copies of sources are kept exactly as published.
         if rel.parts[0] == "rulepacks" and "sources" in rel.parts:
-            continue
-        if path.suffix not in TEXT_SUFFIXES:
             continue
         found.append(path)
     return sorted(found)
@@ -197,7 +202,7 @@ def lint(root: Path = REPO_ROOT) -> list[Finding]:
         rel = path.relative_to(root).as_posix()
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, OSError):
             continue
         product = rel.startswith(PRODUCT_PREFIXES)
         for number, line in enumerate(lines, start=1):

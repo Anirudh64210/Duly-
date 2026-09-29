@@ -33,7 +33,10 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    no_earlier_opt,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     refuse_placeholders,
@@ -57,7 +60,13 @@ def run(
     clock = clock_on(today)
     pack = build_pack(today) if raw_pack is None else validate_pack(raw_pack)
     # tests/unit/support/test_placeholders.py: the case goes through the guard.
-    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 39: a case whose opt.earlier_at_this_level is answered
+    # with no_earlier_opt is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def answered(case: dict[str, Any], today: date, **given_answers: bool) -> dict[str, Any]:
@@ -91,17 +100,20 @@ def shifted(rule_id: str, value: int) -> dict[str, Any]:
 # holiday between: 2026-09-28. The 12-month evaluation: 2027-03-14 plus 10 days,
 # 2027-03-24.
 def stem_on(employment: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
-        "program_end_date": "2025-01-15",
-        "degree_level": "master",
-        "documents_count": 2,
-        "cpt_full_time_days": 0,
-        "opt": ead("2024-12-01", "2024-12-10", "2025-03-14", "2026-03-13"),
-        "stem": ead("2026-01-10", "2026-01-20", "2026-03-14", "2028-03-13"),
-        "employment": employment,
-        "cap_gap": None,
-        "time_zone": "UTC",
-    }
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level answered no (no_earlier_opt).
+    return no_earlier_opt(
+        {
+            "program_end_date": "2025-01-15",
+            "degree_level": "master",
+            "documents_count": 2,
+            "cpt_full_time_days": 0,
+            "opt": ead("2024-12-01", "2024-12-10", "2025-03-14", "2026-03-13"),
+            "stem": ead("2026-01-10", "2026-01-20", "2026-03-14", "2028-03-13"),
+            "employment": employment,
+            "cap_gap": None,
+            "time_zone": "UTC",
+        }
+    )
 
 
 STEM_START = "2026-03-14"
@@ -285,6 +297,9 @@ OPT_ONLY: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+OPT_ONLY = no_earlier_opt(OPT_ONLY)
 TODAY = date(2026, 9, 28)
 END_REPORTED = r"employment\.[^.]+\.end_reported"
 
@@ -368,23 +383,28 @@ BLOCKED_FROM = "2026-09-15"
 # OPT 2023-06-01 to 2024-05-31, program end 2023-05-15. The window closes 2023-05-15 + 60 =
 # 2023-07-14 (16 to May 31, 30 to Jun 30, 14 more); the card begins before. Filed 9 days
 # after the recommendation. 14 months reach 2024-07-15, after the card end. grace.ends:
-# 2024-05-31 + 60 = 2024-07-30 (30 to Jun 30, 30 more), before 2026-09-15. One period open
-# from the first day of the card, so no period has a recorded end.
-ENDED_2024: dict[str, Any] = with_changes(
-    OPT_ONLY,
-    program_end_date="2023-05-15",
-    opt=ead("2023-03-01", "2023-03-10", "2023-06-01", "2024-05-31"),
-    employment=[job("2023-06-01", None)],
+# 2024-05-31 + 60 = 2024-07-30 (30 to Jun 30, 30 more), before 2026-09-15. One period
+# from the first day of the card to its last: SPEC-resolutions.md, points 43 and 52, a
+# period still open after the card would be a conflict and null grace.ends. Its end was
+# reported (point 22, periods_answered).
+ENDED_2024: dict[str, Any] = periods_answered(
+    with_changes(
+        OPT_ONLY,
+        program_end_date="2023-05-15",
+        opt=ead("2023-03-01", "2023-03-10", "2023-06-01", "2024-05-31"),
+        employment=[job("2023-06-01", "2024-05-31")],
+    )
 )
 
 # The same card three years later: OPT 2026-06-01 to 2027-05-31, program end 2026-05-15.
 # grace.ends 2027-05-31 + 60 = 2027-07-30 (30 to Jun 30, 30 more); under the blocked value
 # of 30, 2027-06-30. Both after 2026-09-15.
+# The period ends with the card, as in ENDED_2024 (points 43 and 52).
 ENDS_2027: dict[str, Any] = with_changes(
     ENDED_2024,
     program_end_date="2026-05-15",
     opt=ead("2026-03-02", "2026-03-10", "2026-06-01", "2027-05-31"),
-    employment=[job("2026-06-01", None)],
+    employment=[job("2026-06-01", "2027-05-31")],
 )
 
 

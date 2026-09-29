@@ -31,6 +31,7 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    no_earlier_opt,
     periods_answered,
     question_ids,
     with_changes,
@@ -239,7 +240,9 @@ def test_a_case_with_no_gap_carries_an_empty_list_of_questions(client):
     [
         (STEM_ONLY, HELD_OPT),
         (CAP_GAP_ONLY, CAP_GAP_ALONE),
-        (with_changes(GOOD, employment=[]), NO_EMPLOYMENT),
+        # SPEC-resolutions.md, point 39: opt.earlier_at_this_level answered no, so the
+        # question under test stands alone (no_earlier_opt).
+        (no_earlier_opt(with_changes(GOOD, employment=[])), NO_EMPLOYMENT),
     ],
     ids=[HELD_OPT, CAP_GAP_ALONE, NO_EMPLOYMENT],
 )
@@ -290,7 +293,8 @@ def test_the_answer_no_about_opt_shows_the_paragraph_on_who_may_apply(client):
 
 
 def test_no_employment_answered_yes_is_counted_and_answered_no_is_missing(client):
-    empty = with_changes(GOOD, employment=[])
+    # Point 39: opt.earlier_at_this_level answered no beside the answer under test.
+    empty = no_earlier_opt(with_changes(GOOD, employment=[]))
     yes = computed(client, with_answers(empty, answers(**{NO_EMPLOYMENT: True})))
     # OPT from 2026-06-01 through 2026-09-28 in Los Angeles: 30 + 31 + 31 + 28.
     assert items(yes)["unemployment.days_used"]["value"] == 120

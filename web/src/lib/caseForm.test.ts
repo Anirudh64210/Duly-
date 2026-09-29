@@ -119,6 +119,37 @@ describe("buildCase", () => {
     });
   });
 
+  it("starts the cap-gap choices unchosen and refuses to compute until both are chosen (point 41)", () => {
+    expect(EMPTY_CASE.cap_gap.change_of_status).toBeNull();
+    expect(EMPTY_CASE.cap_gap.status).toBe("");
+    const dated = {
+      ...filled,
+      cap_gap_on: true,
+      cap_gap: {
+        ...EMPTY_CASE.cap_gap,
+        petition_filed_on: "2026-04-01",
+        requested_start: "2026-10-01",
+      },
+    };
+    expect(problems(dated)).toEqual([
+      "Choose the petition status.",
+      "Choose whether the petition asks for a change of status.",
+    ]);
+    expect(problems({ ...dated, cap_gap: { ...dated.cap_gap, status: "pending" } })).toEqual([
+      "Choose whether the petition asks for a change of status.",
+    ]);
+    const no = buildCase({
+      ...dated,
+      cap_gap: { ...dated.cap_gap, status: "denied", change_of_status: false },
+    });
+    expect(no.ok && no.body.cap_gap).toEqual({
+      petition_filed_on: "2026-04-01",
+      requested_start: "2026-10-01",
+      change_of_status: false,
+      status: "denied",
+    });
+  });
+
   it("names every field it cannot use", () => {
     expect(problems(EMPTY_CASE)).toEqual(["Enter the program end date.", "Choose your time zone."]);
     expect(problems({ ...filled, documents_count: "" })).toEqual([
@@ -131,6 +162,8 @@ describe("buildCase", () => {
     expect(problems({ ...filled, cap_gap_on: true })).toEqual([
       "Enter the date the petition was filed.",
       "Enter the requested start date.",
+      "Choose the petition status.",
+      "Choose whether the petition asks for a change of status.",
     ]);
     expect(problems(addPeriod(filled))).toEqual([
       "Enter the hours per week for period 1 as a number from 0 to 168.",

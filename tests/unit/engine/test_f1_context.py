@@ -30,10 +30,12 @@ from tests.support.f1_pack import (
     CAP_GAP_ALONE,
     CONFLICT_IDS,
     CPT_USED,
+    EARLIER,
     HELD_OPT,
     NO_EMPLOYMENT,
     NOTHING_MORE,
     ON_THE_DAY_IT_RUNS,
+    OPEN_AFTER_LAST_CARD,
     QUESTION_IDS,
     READINGS,
     answered_yes,
@@ -50,6 +52,7 @@ from tests.support.f1_pack import (
     is_period_or_report_question,
     items,
     job,
+    no_earlier_opt,
     pack_dict,
     periods_answered,
     question_ids,
@@ -76,7 +79,8 @@ COUNTS = (
 CASE_FIELDS = ("opt", "stem", "employment", "cap_gap")
 
 # Case A: post-completion OPT, no STEM, no cap-gap. Nothing is open on 2026-09-28.
-# No question is raised, so the case carries no answer.
+# The one answer it carries is no to opt.earlier_at_this_level (SPEC-resolutions.md,
+# point 39, no_earlier_opt), so no question is raised.
 CASE_A: dict[str, Any] = {
     "program_end_date": "2026-05-15",
     "degree_level": "master",
@@ -88,6 +92,9 @@ CASE_A: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+CASE_A = no_earlier_opt(CASE_A)
 
 # Case B: OPT followed by the STEM extension, with a cap-gap petition.
 # SPEC-resolutions.md, point 21: its validations and evaluations dated before the day it
@@ -930,7 +937,10 @@ def cases_with_gaps(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
             case[part] = None
         else:
             del case[part]
-    given = draw(st.dictionaries(st.sampled_from(QUESTION_IDS), st.booleans(), max_size=3))
+    # SPEC-resolutions.md, point 39: opt.earlier_at_this_level may be answered too.
+    given = draw(
+        st.dictionaries(st.sampled_from((*QUESTION_IDS, EARLIER)), st.booleans(), max_size=3)
+    )
     if given or draw(st.booleans()):
         case["confirmations"] = answers(today.isoformat(), **given)
     return case, today
@@ -956,11 +966,13 @@ def test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict(
     asked = [
         asked_id
         for asked_id in question_ids(out)
-        if asked_id not in CONFLICT_IDS and asked_id not in later
+        # SPEC-resolutions.md, point 43: its conflict is set apart as the table's are.
+        if asked_id not in (*CONFLICT_IDS, OPEN_AFTER_LAST_CARD) and asked_id not in later
     ]
     given = case.get("confirmations", {})
     assert len(asked) == len(set(asked))
-    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED}
+    # Point 39 adds opt.earlier_at_this_level.
+    assert set(asked) <= {*QUESTION_IDS, NOTHING_MORE, CPT_USED, EARLIER}
     assert sorted(q for q in unconfirmed(out) if q not in later) == sorted(asked)
     # A question the person has answered is not asked again.
     assert set(asked).isdisjoint(given)
@@ -979,6 +991,11 @@ def test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict(
         assert NO_EMPLOYMENT in asked or NO_EMPLOYMENT in given
         if out["verdict"]["state"] != "cannot_tell":
             assert given[NO_EMPLOYMENT]["answer"] is True
+    # Point 39: an OPT card is asked about, or answered; yes is for the DSO.
+    if opt and opt["ead_start"] and opt["ead_end"]:
+        assert EARLIER in asked or EARLIER in given
+        if out["verdict"]["state"] in ("no_open_items", "needs_you"):
+            assert given[EARLIER]["answer"] is False
 
     if out["verdict"]["state"] == "no_open_items":
         assert not stem or opt

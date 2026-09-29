@@ -25,7 +25,10 @@ from tests.support.f1_pack import (
     ead,
     items,
     job,
+    no_earlier_opt,
     pack_dict,
+    periods_answered,
+    placeholders_made_real,
     question,
     question_ids,
     refuse_placeholders,
@@ -43,7 +46,13 @@ def run(
     assert case_problems(case) == [], "the test case itself must match the case contract"
     clock = clock_on(today)
     pack = build_pack(today) if raw_pack is None else validate_pack(raw_pack)
-    return f1.compute_f1(f1.parse_case(refuse_placeholders(case), clock), pack, clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), pack, clock)
+
+    # SPEC-resolutions.md, point 39: a case whose opt.earlier_at_this_level is answered
+    # with no_earlier_opt is sent as the screen sends it.
+    return compute(placeholders_made_real(case, clock, compute))
 
 
 def asked_like(out: dict[str, Any], pattern: str) -> list[str]:
@@ -70,6 +79,9 @@ CASE: dict[str, Any] = {
     "cap_gap": None,
     "time_zone": "UTC",
 }
+# SPEC-resolutions.md, point 39: the case answers opt.earlier_at_this_level no, so a
+# test about something else stays about that.
+CASE = no_earlier_opt(CASE)
 DAY = date(2026, 11, 30)
 
 # STEM 2026-02-02 to 2028-02-01 after an OPT card 2025-02-02 to 2026-02-01, program end
@@ -192,12 +204,16 @@ def blocked_grace_from(raw: dict[str, Any], effective_from: str) -> dict[str, An
 # OPT 2022-07-01 to 2023-06-30, program end 2022-05-20. The window closes 2022-05-20 + 60 =
 # 2022-07-19 (11 to May 31, 30 to Jun 30, 19 more); the card begins before. Filed 14 days
 # after the recommendation. 14 months reach 2023-07-20, after the card end. grace.ends:
-# 2023-06-30 + 60 = 2023-08-29 (31 to Jul 31, 29 more), before 2026-09-15.
-ENDED_2023: dict[str, Any] = dict(
-    CASE,
-    program_end_date="2022-05-20",
-    opt=ead("2022-04-01", "2022-04-15", "2022-07-01", "2023-06-30"),
-    employment=[job("2022-07-01", None)],
+# 2023-06-30 + 60 = 2023-08-29 (31 to Jul 31, 29 more), before 2026-09-15. The period
+# ends with the card: SPEC-resolutions.md, points 43 and 52, one still open after it
+# would be a conflict and null grace.ends. Its end was reported (point 22).
+ENDED_2023: dict[str, Any] = periods_answered(
+    dict(
+        CASE,
+        program_end_date="2022-05-20",
+        opt=ead("2022-04-01", "2022-04-15", "2022-07-01", "2023-06-30"),
+        employment=[job("2022-07-01", "2023-06-30")],
+    )
 )
 AFTER = date(2026, 9, 29)
 
@@ -225,15 +241,22 @@ def test_holdout_case_d_on_the_shipped_pack_is_no_litigation():
     # before the shipped blocked row's effective_from of 2026-09-15, so no item carries an
     # alternate. Point 21 may keep the verdict cannot_tell for its passed reports; the
     # litigation reason must go.
+    # The case is computed as it is, with no answer: nothing here turns on one (points 39
+    # and 22 keep the verdict open, which the test does not look at).
     case = dict(
         CASE,
+        confirmations={},
         program_end_date="2022-12-16",
         degree_level="doctorate",
         documents_count=9,
         cpt_full_time_days=0,
         opt=ead("2022-10-03", "2022-10-20", "2023-02-01", "2024-01-31"),
         stem=ead("2023-11-20", "2023-12-05", "2024-02-01", "2026-01-31"),
-        employment=[job("2023-02-01", None)],
+        # SPEC-resolutions.md, point 43: the reconcile round's period was open, which now
+        # raises employment.period_open_after_last_card and leaves grace.ends null. The
+        # period ends with the card, so the grace date stands: 2026-01-31 plus 60 days,
+        # 28 reach Feb 28, 31 more Mar 31, 1 more 2026-04-01.
+        employment=[job("2023-02-01", "2026-01-31")],
     )
     today = date(2026, 9, 28)
     clock = clock_on(today)

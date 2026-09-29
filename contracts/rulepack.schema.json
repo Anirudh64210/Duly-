@@ -75,6 +75,12 @@
           },
           "source": {
             "$ref": "#/$defs/source"
+          },
+          "plain": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 480,
+            "description": "What this regime's legal status means today, in calm plain words, grounded in the source the regime cites (for a court order, the order itself). Shown wherever an item depends on the regime."
           }
         }
       }
@@ -157,6 +163,12 @@
               "reading"
             ],
             "description": "verbatim: the value is written in the quoted words. reading: Duly derived the value from the quoted words; the note says how."
+          },
+          "plain": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "The rule in plain words for an average student: what the rule says, in general terms, never about a person and never an instruction. Written from the quote by the content lane, checked by tools.sources.plain, and shown first; the exact words stay one tap away."
           }
         }
       }

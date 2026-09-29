@@ -1,4 +1,4 @@
-import type { ComputedItem, Confirmation, EadBlock, ItemStatus, Upcoming } from "./compute";
+import type { ComputedItem, Confirmation, ItemStatus } from "./compute";
 import { reasonLine } from "./status";
 
 // Every word a user reads about a computed item. Names state what the item is,
@@ -112,6 +112,7 @@ const INPUT_NAMES: ReadonlyMap<string, string> = new Map(
     "cap_gap.status": "Petition status",
     "cap_gap.change_of_status": "Change of status requested",
     duly_settings: "Duly settings used, which are not law",
+    degree_level: "Degree level",
   }),
 );
 
@@ -178,36 +179,61 @@ export function inputName(key: string): string {
   return plain(key) || "Input";
 }
 
-const STATUS_TAGS: Record<Exclude<ItemStatus, "settled">, string> = {
-  guidance: "Guidance",
-  litigated: "Before a court",
-  proposed: "Proposed",
+// plain-1 section 3: the tag on an item or a rule names where the rule comes from, in
+// plain words. The status code itself is never shown.
+const STATUS_TAGS: Record<ItemStatus, string> = {
+  settled: "Regulation",
+  guidance: "Government guidance",
   school: "School policy",
+  litigated: "A court paused a change",
+  proposed: "Proposed, not in force",
 };
 
-/** The tag for a status, or null for settled, which carries no tag. */
-export function statusTag(status: string): string | null {
-  if (status === "settled") return null;
-  if (status in STATUS_TAGS && Object.hasOwn(STATUS_TAGS, status)) {
-    return STATUS_TAGS[status as keyof typeof STATUS_TAGS];
-  }
-  return plain(status) || "Status not given";
+/** The tag for a status. A status this screen has no words for is named as such. */
+export function statusTag(status: string): string {
+  if (Object.hasOwn(STATUS_TAGS, status)) return STATUS_TAGS[status as ItemStatus];
+  return "Source type not named";
 }
 
+// SPEC-resolutions point 13 and plain-1 section 3: each legal status code in plain words.
 const LEGAL_STATUS: ReadonlyMap<string, string> = new Map(
   Object.entries({
     effective: "in effect",
-    enjoined: "blocked by a court",
+    enjoined: "paused by a court",
     vacated: "set aside by a court",
     appealed: "under appeal",
     final: "final, not applied",
-    proposed: "proposed",
+    proposed: "proposed, not in force",
   }),
 );
 
 export function legalStatusWords(legalStatus: string): string {
-  return LEGAL_STATUS.get(legalStatus) ?? (plain(legalStatus).toLowerCase() || "status not given");
+  return LEGAL_STATUS.get(legalStatus) ?? "not named on this screen";
 }
+
+// The legal statuses that come from a court's order.
+const FROM_A_COURT = new Set(["enjoined", "vacated", "appealed"]);
+
+/** The link to a rule change's source: a court's order, or the source itself. */
+export function sourceLink(legalStatus: string): string {
+  return FROM_A_COURT.has(legalStatus) ? "Read the court's order" : "Read the source";
+}
+
+/** plain-1 section 3: the one tap that opens what the other rule would change. */
+export function changeButton(legalStatus: string): string {
+  if (legalStatus === "enjoined") return "What the paused rule would change";
+  if (legalStatus === "proposed") return "What the proposed rule would change";
+  return "What the other rule would change";
+}
+
+/** The line for a rule change whose source carries no plain words. */
+export function changeLine(legalStatus: string): string {
+  return `A rule change is ${legalStatusWords(legalStatus)}. The value shown is the one that applies today.`;
+}
+
+export const CHANGE_VALUE = "Under the paused rule";
+export const PLAIN_HEADING = "In plain words";
+export const EXACT_BUTTON = "Read the exact words";
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const MONTH_DAY = /^(\d{2})-(\d{2})$/;
@@ -306,6 +332,9 @@ const FACTS: ReadonlyMap<string, string> = new Map(
     // SPEC-resolutions point 27. Taking the EAD end date as the test is Duly's reading.
     "opt.ead_end.not_after_program_end":
       "The OPT EAD end date is on or before the program end date, so no day of these EAD dates is after it. The guidance below defines post-completion OPT by the program end date; taking the EAD end date as the test is Duly's reading.",
+    // SPEC-resolutions point 43: what does not fit, and nothing about what it means.
+    "employment.period_open_after_last_card":
+      "An employment period has no end date, and today is after the last EAD end date entered, or after the cap-gap period when one is entered.",
   }),
 );
 
@@ -358,6 +387,12 @@ const FINDINGS: ReadonlyMap<string, string> = new Map(
       "You answered that you had no period of post-completion OPT before the STEM OPT period. The words of the rule are shown below. This part depends on your own situation, so it is a question for your DSO.",
     cap_gap_without_training:
       "You answered that you had no period of OPT or STEM OPT. This part depends on your own situation, so it is a question for your DSO.",
+    // SPEC-resolutions point 39: why Duly steps back, and nothing about what it means.
+    "opt.months_at_this_level":
+      "You answered that you used OPT before at this degree level. The EAD dates entered here do not show that earlier OPT, so Duly does not count the months. This is a question for your DSO.",
+    // SPEC-resolutions points 40 and 44.
+    rule_not_in_force_on_event_day:
+      "The rule Duly would use was not yet in force on the day this counts from, so Duly does not compute the date. This is a question for your DSO.",
   }),
 );
 
@@ -398,6 +433,12 @@ const QUESTIONS: ReadonlyMap<string, QuestionCopy> = new Map(
       yes: "Yes, I used some",
       no: "No, I used none",
     },
+    // SPEC-resolutions point 39: the EAD dates alone cannot show earlier OPT.
+    "opt.earlier_at_this_level": {
+      ask: "Did you use OPT before at this degree level, before your program ended or after another program at the same level?",
+      yes: "Yes, I used OPT before at this level",
+      no: "No, this is my first OPT at this level",
+    },
   }),
 );
 
@@ -414,7 +455,7 @@ const MADE = /^(.+)\.made$/;
 const NOT_MADE = /^(.+)\.not_made$/;
 
 // SPEC-resolutions point 21: the reports whose date can pass, by what they are.
-function reportName(itemId: string): string | null {
+export function reportName(itemId: string): string | null {
   if (itemId === "stem.evaluation_12_month_due") return "12-month evaluation";
   if (itemId === "stem.final_evaluation_due_from_ead_end") return "final evaluation";
   const report = VALIDATION.exec(itemId);
@@ -479,9 +520,13 @@ export function conflictLine(questionId: string, reasons: readonly string[]): st
   return reasons.includes(`conflict:${questionId}`) ? FACT_NOT_NAMED : null;
 }
 
+const ABOUT_SHOWN = new Set(["opt.earlier_at_this_level"]);
+
 /** Questions whose values are shown in place of the inputs that raised them. */
 export function showsAbout(questionId: string): boolean {
-  return FACTS.has(questionId) || numberedQuestion(questionId) !== null;
+  return (
+    FACTS.has(questionId) || ABOUT_SHOWN.has(questionId) || numberedQuestion(questionId) !== null
+  );
 }
 
 export const QUESTION_NOT_SHOWN =
@@ -589,14 +634,6 @@ export function reasonItem(
   return computed.find((item) => item.id === itemId);
 }
 
-/** SPEC section 7: the one line under a value that has a rule change beside it. */
-export function regimeLine(legalStatus: string): string {
-  if (legalStatus === "enjoined") {
-    return "A rule change is blocked by a court. See what it would change.";
-  }
-  return `A rule change is ${legalStatusWords(legalStatus)}. See what it would change.`;
-}
-
 export const NEXT_HEADING = "What comes next";
 export const LIST_LINE =
   "This is what the regulation says. Whether it applies to you is a question for your DSO.";
@@ -612,37 +649,17 @@ export function listName(listId: string): string {
   return LIST_NAMES.get(listId) ?? (plain(listId) || "What the regulation lists");
 }
 
-function dayOrNot(iso: string | null | undefined): string {
-  return iso ? formatDate(iso) : "not entered";
-}
+// The verdict reasons that wait on something: a fact, an answer, or the rules.
+const WAITING = new Set([
+  "no_documents",
+  "rules_never_checked",
+  "rules_stale",
+  "rule_in_litigation",
+]);
+const WAITING_KINDS = new Set(["unconfirmed", "missing", "conflict"]);
 
-/**
- * SPEC section 6 and BOUNDARY.md: a question for the DSO, from a template and the
- * person's own dates. It asks. It states no conclusion. Duly never sends it.
- */
-export function dsoQuestion(
-  opt: EadBlock | null,
-  upcoming: readonly Upcoming[],
-  citation: string,
-): string {
-  const lines = upcoming
-    .filter((entry) => entry.id.startsWith("next.stem."))
-    .map((entry) => {
-      const reading = entry.reading ? " (Duly's reading of the regulation)" : "";
-      return `${itemName(entry.id)}: ${formatDate(entry.date)}${reading}`;
-    });
-  const computed =
-    lines.length === 0
-      ? []
-      : ["", "Duly, a record keeping tool, computed these dates from my card:", ...lines];
-  return [
-    "Hello,",
-    "",
-    `My OPT EAD card runs from ${dayOrNot(opt?.ead_start)} to ${dayOrNot(opt?.ead_end)}.`,
-    ...computed,
-    "",
-    `Could you tell me whether ${citation} applies to my case, and what your office would need from me for a 24-month STEM OPT extension?`,
-    "",
-    "Thank you.",
-  ].join("\n");
+/** plain-1 section 5: whether a verdict reason needs an answer, as opposed to a known matter. */
+export function needsAnswer(reason: string): boolean {
+  const split = reason.indexOf(":");
+  return WAITING.has(reason) || (split > 0 && WAITING_KINDS.has(reason.slice(0, split)));
 }

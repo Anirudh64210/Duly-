@@ -28,11 +28,13 @@ export type PeriodFields = {
   employer_reported: boolean;
 };
 
+// SPEC-resolutions point 41: null and "" mean not chosen yet. The form never sends a
+// cap-gap fact the person did not choose.
 export type CapGapFields = {
   petition_filed_on: string;
   requested_start: string;
-  change_of_status: boolean;
-  status: PetitionStatus;
+  change_of_status: boolean | null;
+  status: PetitionStatus | "";
 };
 
 export type CaseFields = {
@@ -78,8 +80,8 @@ export const EMPTY_CASE: CaseFields = {
   cap_gap: {
     petition_filed_on: "",
     requested_start: "",
-    change_of_status: false,
-    status: "pending",
+    change_of_status: null,
+    status: "",
   },
   time_zone: "",
   confirmations: {},
@@ -234,12 +236,22 @@ function read(fields: CaseFields): { body: F1Case; problems: string[] } {
       employer_reported: entered.employer_reported,
     };
   };
-  const capGap = (entered: CapGapFields): CapGap => ({
-    petition_filed_on: required(entered.petition_filed_on, "the date the petition was filed"),
-    requested_start: required(entered.requested_start, "the requested start date"),
-    change_of_status: entered.change_of_status,
-    status: entered.status,
-  });
+  const capGap = (entered: CapGapFields): CapGap => {
+    const petition = {
+      petition_filed_on: required(entered.petition_filed_on, "the date the petition was filed"),
+      requested_start: required(entered.requested_start, "the requested start date"),
+    };
+    if (entered.status === "") problems.push("Choose the petition status.");
+    if (entered.change_of_status === null) {
+      problems.push("Choose whether the petition asks for a change of status.");
+    }
+    // Held only to show the facts as entered. A case with a problem is never sent.
+    return {
+      ...petition,
+      change_of_status: entered.change_of_status ?? false,
+      status: entered.status === "" ? "pending" : entered.status,
+    };
+  };
 
   const body: F1Case = {
     program_end_date: required(fields.program_end_date, "the program end date"),
