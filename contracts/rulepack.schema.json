@@ -169,6 +169,16 @@
             "minLength": 1,
             "maxLength": 320,
             "description": "The rule in plain words for an average student: what the rule says, in general terms, never about a person and never an instruction. Written from the quote by the content lane, checked by tools.sources.plain, and shown first; the exact words stay one tap away."
+          },
+          "plain_terms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120
+            },
+            "maxItems": 12,
+            "description": "The quote's terms of art that the plain words must keep word for word (for example \"U.S. worker\", \"period of admission\", \"post-completion academic training\"). Each is found in the quote and in the plain words; checked by tools.sources.plain. An empty list says the quote has none."
           }
         }
       }

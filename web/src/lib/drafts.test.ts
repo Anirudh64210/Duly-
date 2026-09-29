@@ -238,4 +238,40 @@ describe("the draft for the STEM OPT step", () => {
     expect(bare).not.toContain("EAD card");
     expect(bare).not.toContain("not entered");
   });
+
+  it("states the dates of the employment period a report names (point 61)", () => {
+    const plan = dsoDraft(talk(["stem.new_plan_due.2.not_made"]), FULL) ?? "";
+    expect(plan).toContain("My employment period 2 started on Jan 10, 2027 and has no end date.");
+    expect(plan).not.toContain("My employment period 1");
+    const concluding = dsoDraft(talk(["stem.concluding_evaluation_due.1.not_made"]), FULL) ?? "";
+    expect(concluding).toContain("My employment period 1 runs from Jun 20, 2026 to Dec 31, 2026.");
+    expect(concluding).toContain("I did not submit my final evaluation for employment period 1.");
+    checkDraft(concluding, FULL, talk(["stem.concluding_evaluation_due.1.not_made"]));
+    const both = dsoDraft(
+      talk(["stem.concluding_evaluation_due.1.not_made", "stem.new_plan_due.2.not_made"]),
+      FULL,
+    );
+    expect(both).toMatch(/period 1 runs from[^]*period 2 started on/);
+  });
+
+  it("names no period dates for a report without a period, or a period not entered (point 61)", () => {
+    const validation = dsoDraft(talk(["stem.validation_1_due.not_made"]), FULL) ?? "";
+    expect(validation).not.toContain("My employment period");
+    const missing = dsoDraft(talk(["stem.new_plan_due.3.not_made"]), FULL) ?? "";
+    expect(missing).toContain("I did not submit my new Form I-983 for employment period 3.");
+    expect(missing).not.toContain("My employment period");
+  });
+
+  it("states the petition's requested start date and never a cap-gap period of the student's (point 61)", () => {
+    const draft = dsoDraft(talk(["grace_with_cap_gap"]), FULL) ?? "";
+    expect(draft).toContain(
+      "Could you tell me what comes after my petition's requested start date, and whether a grace period follows it?",
+    );
+    expect(draft).toContain("with a requested start date of Oct 1, 2027.");
+    // Built from pieces so the done command's search of web/src finds only drafts.
+    const reading = new RegExp(["my", "cap-gap", "period"].join(" "), "i");
+    for (const reason of REASONS) {
+      expect(dsoDraft(talk([reason]), FULL) ?? "").not.toMatch(reading);
+    }
+  });
 });

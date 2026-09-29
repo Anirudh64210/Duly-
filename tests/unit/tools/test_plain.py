@@ -62,6 +62,7 @@ def test_a_pack_is_checked_and_can_require_plain_words_everywhere(tmp_path):
                 "value": 90,
                 "source": {"quote": QUOTE},
                 "plain": GOOD,
+                "plain_terms": [],
             },
             {"id": "opt.max_months", "value": 12, "source": {"quote": "12 months"}},
         ],
@@ -79,3 +80,56 @@ def test_a_pack_is_checked_and_can_require_plain_words_everywhere(tmp_path):
 
 def test_the_shipped_packs_hold_no_bad_plain_words():
     assert plain.main([]) == 0
+
+
+def test_terms_of_art_are_kept_word_for_word():
+    entry = {
+        "id": "cpt.full_time_bar_days",
+        "value": 365,
+        "source": {"quote": "are ineligible for post-completion academic training"},
+        "plain_terms": ["post-completion academic training"],
+    }
+    kept = "The rule says one year of full-time CPT rules out post-completion academic training."
+    swapped = "The rule says one year of full-time CPT rules out practical training after study."
+    assert plain.term_problems(entry, kept, True) == []
+    assert plain.term_problems(entry, swapped, True) == [
+        "term 'post-completion academic training' is not kept in the plain words"
+    ]
+    invented = {**entry, "plain_terms": ["OPT"]}
+    assert plain.term_problems(invented, kept, True) == ["term 'OPT' is not in the quote"]
+    assert plain.term_problems({**entry, "plain_terms": None}, kept, True)
+    assert (
+        plain.term_problems({k: v for k, v in entry.items() if k != "plain_terms"}, kept, False)
+        == []
+    )
+
+
+def test_plain_words_leave_citations_and_legalese_to_the_exact_words():
+    cited = (
+        "During any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B), "
+        "a student may not have more than 90 days of unemployment."
+    )
+    found = plain.problems(cited, "rule", QUOTE + " 8 274")
+    assert any("cites" in p for p in found)
+    assert any("legal phrasing" in p for p in found)
+    accrued = "A student may not accrue an aggregate of more than 90 days of unemployment."
+    assert any("legal phrasing" in p for p in plain.problems(accrued, "rule", QUOTE))
+
+
+def test_terms_of_art_are_few_and_are_not_legal_phrasing():
+    entry = {
+        "id": "x",
+        "source": {
+            "quote": "may not accrue an aggregate of more than 90 days of unemployment "
+            "by a U.S. worker"
+        },
+        "plain_terms": ["accrue an aggregate of", "U.S. worker"],
+    }
+    found = plain.term_problems(
+        entry, "A U.S. worker may not have more than 90 days without a job.", True
+    )
+    assert found == [
+        "term 'accrue an aggregate of' is a citation or legal phrasing, not a term of art"
+    ]
+    many = {**entry, "plain_terms": ["a", "b", "c", "d"]}
+    assert any("at most 3" in p for p in plain.term_problems(many, "a b c d", True))

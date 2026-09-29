@@ -1466,3 +1466,136 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-cf34bb9271 (attempt 1): tests first for points 59 and 60
+
+### What I tried and what ran
+
+- Read SPEC-resolutions.md points 56, 59 and 60, reviews/product-1-fix5.md findings 2 and 3,
+  the contracts (case_f1, engine_output) and the shipped pack's row dates (earliest row
+  capgap.fiscal_year_start_month_day from 1982-09-13; STEM rows 2016-05-10; CPT, grace,
+  opt.max_months, opt.complete_within_months 2003-01-01; report row 2025-05-19).
+- Probed the engine on the review's cases through a scratch script under TMPDIR (removed):
+  STEM case at 2016-05-09 and the 2012 STEM case at 2014-01-15 raise RulepackError
+  stem.validation_interval_months; the OPT case with 400 CPT days at 2002-12-31 raises
+  cpt.full_time_bar_days; with CPT null it gives an output; finding 3 gives
+  periods_not_reported 1.
+- Wrote tests/unit/engine/test_f1_fix6.py (19 tests) and tests/holdout/test_holdout_fix6.py
+  (9 tests). ruff format, ruff check, mypy --strict on both: clean.
+- Run: 5 pass (the case-contract check, the check of the drawn range's working, and three
+  controls: CPT left blank at 2002-12-31, a period from the row's first day counted 1, two
+  periods from the row counted 2). 23 fail on the current engine, each for the point it
+  names: RulepackError (point 59), count 1 or 2 where null is due, needs_you where
+  talk_to_dso is due (point 60). They are expected to fail until the build round.
+- One slip of my own: the working of 1955-01-01 less 1500 days first said 1950-11-28; the
+  test caught it; the right day is 1950-11-23 (less 1461 days is 1951-01-01, 39 more), and
+  1950-10-24 with the 30 days of the recommendation. Fixed the working, not the bound.
+- Done command as written, no pipe: exit 0 ("All checks passed!", "57 files already
+  formatted").
+
+### What change to the code would make each new test fail
+
+- Point 59 output tests and both "any clock" properties: any lookup that raises when no row
+  is in force (today: whole_rule for stem.validation_interval_months and
+  cpt.full_time_bar_days). Shapes drawn: OPT only, OPT and STEM, cap-gap, full-time CPT.
+- The 2012/2010 STEM null tests: dating a validation or evaluation from a row that begins
+  after the event (2016-05-10), or omitting rule_not_in_force_on_event_day.
+- The CPT before-2003 tests: giving opt.complete_by or grace.ends a date from rows that
+  begin 2003-01-01, or no step back.
+- The before-every-row properties (clock to 1978 / 1975): any dated computed item, a count
+  of unreported periods, or a quiet verdict, while no row of the pack is in force.
+- Point 60: reading the count's rule for today or for the period's end (finding 3, the
+  2025-05-18 start ending 2026-04-30, the mixed pair, the property); giving null for a
+  period starting on 2025-05-19 or later (the controls and the property's else branch).
+- check_an_output / sound: any null alternate (point 55) or a quiet state beside
+  rule_not_in_force_on_event_day.
+
+### Not done
+
+- No reference engine was written, so the two before-every-row properties and the point 60
+  property have not been run against a correct engine; only against the current one.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-c239b48795 (attempt 1): bring tests in line with points 58, 59 and 60
+
+### What I tried and what ran
+
+- Read the builder's report (git show 77a3786:engine/PROGRESS.md): three point 60
+  collisions, each a case with a period that starts before 2025-05-19 (the row of
+  opt.report_employer_within_days), so the verdict now carries
+  rule_not_in_force_on_event_day through employment.periods_not_reported.
+- Done command before any change: ruff clean, pytest exit 1 with 4 failures: the three
+  collisions, and tests/holdout/test_holdout_fix6.py::test_holdout_point_59_before_every_row
+  (ValueError "Invalid isoformat string: 'pending'"). The last was my own fault from the
+  earlier run: early_case moved every string of the cap-gap block, the status too.
+- Changes (each cites its point in the file; no assertion loosened, the cases change):
+  - test_f1_fix2.py point 28 (program ended 2024): the case holds no period, so the step back
+    asserted absent is the one of the OPT window rows. Point 51: a blocker does not hide a
+    judgement item, so the absence still means something beside no_employment_to_record.
+  - test_f1_fix4.py point 40 (petition before 2025-01-17 for October 1): the case holds no
+    period, for the same reason; the cap-gap rows are the only possible step back.
+  - test_f1_fix5.py point 56 (an end on the row's first day): the period starts and ends on
+    2025-05-19, so point 60 reads the count's rule on a day the row is in force. The period
+    that ends the day before still runs from 2024-06-01 (its test wants the step back).
+  - test_holdout_fix6.py: early_case moves only values that parse as ISO days.
+- Point 58: nothing in tests/unit (outside tools) or tests/holdout pins a plain text or
+  plain_terms; tests/unit/tools/test_plain.py passes on the new pack. Other tests in
+  tests/unit/tools (test_agent_run, test_phase, test_factory_core) fail here; they run
+  processes and git and are outside the done command and this mission.
+- Holdout file with hypothesis seeds 1, 2, 3: exit 0 each.
+- Done command as written, no pipe: exit 0 ("All checks passed!", "57 files already
+  formatted", every test passing).
+
+### What change to the code would make each changed test fail
+
+Planted through scratch plugins under TMPDIR, then removed:
+- fix2 and fix4: the count read, with no period, for 2000-01-01 instead of today: both fail
+  on the NOT_IN_FORCE line.
+- fix5: Rulepack.value for opt.report_employer_within_days read one day early (a row not in
+  force on its own first day): fails, None where 2025-05-29 is due.
+- holdout point 59 before every row: a lookup that falls back to today's row when none is
+  in force: fails, six dated items where none is due.
+- A first plant (shifting only _Working.rule_on) did not bite, because the item reads its
+  row through another path; it was not counted as evidence.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-c116be8637 (attempt 1): cover the three untested point 59 paths (gate 6)
+
+### What I tried and what ran
+
+- Done command before any change: ruff clean, every test passing, diff-cover exit 1:
+  "engine/f1.py (93.9%): Missing lines 402,870" (the nearest-row branch of _Working.show,
+  and the empty list of _validation_reports). The raise for an interval of 0 is an unchanged
+  line, so gate 6 does not count it; it is tested all the same, as the mission asks.
+- The mission names _validation_numbers; the function in engine/f1.py is
+  _validation_reports. Same paths, tested through compute_f1.
+- Added to tests/unit/engine/test_f1_fix6.py, each through compute_f1 with a case and a test pack:
+  - show: STEM_ONLY (the STEM case with no OPT block, its period from the STEM card's start),
+    post-completion OPT answered not held, on a test pack whose only row of
+    stem.requires_post_completion_opt starts 2026-09-30, the day after today. The row's
+    citation and quote are shown, the verdict carries rule_not_in_force_on_event_day and is
+    not the quiet state. Control: the same case on the plain test pack does not step back.
+  - no row shown: the pack leaves out stem.validation_interval_months, then
+    stem.extension_months; no stem.validation_N_due is listed and the output meets the
+    contract. Control: the plain pack lists three (24 // 6 = 4, the fourth on 2028-03-13 after
+    the card's end 2028-03-12, point 48).
+  - interval 0: raises RulepackError naming stem.validation_interval_months.
+- Done command as written, output to a file, no pipe: exit 0, "engine/f1.py (100%)".
+
+### What change to the code would make each new test fail
+
+Planted through a scratch plugin under TMPDIR, then removed; each failed as listed:
+- show with no row today shows nothing: the show test fails (no words shown).
+- show finds the nearest row without _rule, so no step back: the show test fails.
+- _validation_reports falls back to 6 and 24 when no row is shown: both leave-out tests fail.
+- _validation_reports without the check for 0: the interval 0 test fails (ZeroDivisionError).
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

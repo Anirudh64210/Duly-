@@ -35,6 +35,18 @@ ALARM = re.compile(
     r"out of status)\b",
     re.IGNORECASE,
 )
+# Plain words are plain first. A citation lives with the exact words, one tap away, and
+# legal phrasing that an everyday word can carry without changing who or what the rule
+# covers is said in everyday words (point 58).
+CITATION = re.compile(
+    r"\b\d+\s*(?:CFR|C\.F\.R\.|U\.S\.C\.|FR)\b|\(\w{1,4}\)\(\w{1,4}\)|§", re.IGNORECASE
+)
+LEGALESE = re.compile(
+    r"\b(?:accru\w*|aggregate|pursuant|thereof|therein|herein|hereby|successor form|"
+    r"properly file\w*|engage in|described in|notwithstanding|in accordance with)\b",
+    re.IGNORECASE,
+)
+MAX_TERMS = 3
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 SENTENCE = re.compile(r"[^.!?]+[.!?]?")
 VOWELS = re.compile(r"[aeiouy]+")
@@ -76,6 +88,12 @@ def problems(plain: str, kind: str, grounds: str) -> list[str]:
     told = instructs(plain)
     if told:
         found.append(f"instructs: {told!r}")
+    cited = CITATION.search(plain)
+    if cited:
+        found.append(f"cites {cited.group(0)!r}; citations go with the exact words")
+    legal = LEGALESE.search(plain)
+    if legal:
+        found.append(f"legal phrasing {legal.group(0)!r}; say it in everyday words")
     alarm = ALARM.search(plain)
     if alarm:
         found.append(f"alarms: {alarm.group(0)!r}")
@@ -93,6 +111,44 @@ def problems(plain: str, kind: str, grounds: str) -> list[str]:
     word = _WORDS.search(plain)
     if word:
         found.append(f"forbidden phrase: {word.group(0)!r}")
+    return found
+
+
+def _flat(text: str) -> str:
+    return " ".join(text.replace("\u2019", "'").lower().split())
+
+
+def term_problems(entry: dict[str, Any], plain: str, require: bool) -> list[str]:
+    """The quote's terms of art, kept word for word in the plain words (D56, point 54).
+
+    Simplifying tempts a writer to trade a term of art for an everyday word ("academic
+    training" for "practical training", "U.S. worker" for "worker in the United States"). Each
+    rule lists its terms in plain_terms; each must be in the quote and in the plain words.
+    """
+    terms = entry.get("plain_terms")
+    if terms is None:
+        return (
+            ["no plain_terms: list the quote's terms of art, or [] if it has none"]
+            if require
+            else []
+        )
+    quote = _flat(str((entry.get("source") or {}).get("quote", "")))
+    words = _flat(plain)
+    found = []
+    if len(terms) > MAX_TERMS:
+        found.append(
+            f"{len(terms)} terms; at most {MAX_TERMS}: keep a term only where an everyday word "
+            "would change who or what the rule covers"
+        )
+    for term in terms:
+        if CITATION.search(str(term)) or LEGALESE.search(str(term)):
+            found.append(f"term {term!r} is a citation or legal phrasing, not a term of art")
+            continue
+        flat = _flat(str(term))
+        if flat not in quote:
+            found.append(f"term {term!r} is not in the quote")
+        elif flat not in words:
+            found.append(f"term {term!r} is not kept in the plain words")
     return found
 
 
@@ -118,6 +174,8 @@ def check_pack(pack: dict[str, Any], require: bool) -> list[str]:
                 found.append(f"{name}: no plain words")
             continue
         found += [f"{name}: {p}" for p in problems(str(plain), kind, _grounds(entry))]
+        if kind == "rule":
+            found += [f"{name}: {p}" for p in term_problems(entry, str(plain), require)]
     return found
 
 

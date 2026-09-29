@@ -1,0 +1,120 @@
+branch: product-1
+spec: specs/product-1/SPEC-resolutions.md
+merge: pr
+# Resolutions 58 to 61, from the review of fix 5. Build then reconcile.
+rounds:
+  - name: content
+    checkpoint: false
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-1/SPEC-resolutions.md point 58, in rulepacks/f1-us/v2026.09. Plain words
+          are plain first and faithful in meaning: keep each rule's terms of art word for word (at
+          most three, listed in plain_terms, [] if none), say everything else in everyday words
+          with no citation and no legal phrasing, add nothing beyond the quote and the rule's note,
+          drop no limit, and say any reading in words as Duly's reading. Use
+          specs/product-1/plain-sweep.json as a checklist of meaning problems to fix; do not copy
+          its rewrites as they stand, since many put the legalese back. Fix the six texts
+          reviews/product-1-fix5.md finding 1 names in any case, and the one plain text the gate
+          now refuses for a citation. Aim for words an average student reads once and understands.
+          In your report, for every plain text you wrote or changed, give the words of the quote or
+          note each sentence rests on. Record the changes in CHANGELOG.md.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -m tools.sources.plain rulepacks --require f1'
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Write the tests, first, for specs/product-1/SPEC-resolutions.md points 59 and 60 in
+          tests/unit/engine/test_f1_fix6.py, with hidden twins in tests/holdout/test_holdout_fix6.py.
+          Point 59: with the cases of reviews/product-1-fix5.md finding 2 and their clocks, and a
+          property test that draws clocks from before every row's start through today and cases of
+          every shape the contract allows (OPT only, OPT and STEM, cap-gap, full-time CPT entered),
+          the engine always gives an output and never raises; a rule with no row in force gives
+          null with rule_not_in_force_on_event_day. Point 60 with the case of finding 3. Name every
+          new test. They are expected to fail until the build round.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null
+          && test -f tests/unit/engine/test_f1_fix6.py && test -f tests/holdout/test_holdout_fix6.py'
+  - name: build
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md points 59 and 60 in engine/. No number is
+          written in code. Older tests that collide are reconciled in the next round; list them in
+          your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_f1_fix6.py -q
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          The engine now has specs/product-1/SPEC-resolutions.md points 59 and 60, and the pack
+          has new plain words and plain_terms (point 58). Bring every test in tests/unit and
+          tests/holdout in line; the builder's list of collisions is in its report on its branch.
+          Write the point beside each change; never loosen an assertion a point supports; escalate
+          any failure no settled point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "engine and api tests", run: "uv run pytest tests/unit/engine tests/unit/api -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: screen
+    lanes:
+      - lane: L-web
+        agent: builder
+        mission: >
+          Build specs/product-1/SPEC-resolutions.md point 61 in web/, fixing
+          reviews/product-1-fix5.md findings 4 and 5: a draft about a report that names an
+          employment period states that period's dates as entered; the cap-gap draft states the
+          petition's requested start date as entered and never says the student's cap-gap period.
+          Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint
+          && ! grep -rn "my cap-gap period" web/src'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review what this plan changed (the merges since reviews/product-1-fix5.md) against
+          specs/product-1/SPEC-resolutions.md points 58 to 61, specs/plain-1/SPEC.md, PRINCIPLES.md,
+          BOUNDARY.md and CLAUDE.md, following your role file. Read EVERY plain text in the F-1
+          pack beside its quote and its plain_terms, and veto any that says more, less or other
+          than its quote, drops a term of art, or turns a reading into the rule's words, and veto
+          as firmly any that is not plain: legal phrasing, a citation, or words an average student
+          would need to read twice. Check that each plain_terms list holds the terms of art that
+          matter and nothing that is only legal phrasing. Send the inputs of findings 1
+          to 5 of reviews/product-1-fix5.md through the api, with the clocks finding 2 names. Read
+          every DSO draft the screen can build. Write reviews/product-1-fix6.md and
+          reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-1-fix6.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows of the register that product round 1, its fixes and specs/plain-1/SPEC.md
+          cover, as your role file describes, against specs/product-1/SPEC.md,
+          SPEC-resolutions.md and specs/plain-1/SPEC.md. Update docs/requirements/audits/product-1.md.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-1.md
+          && uv run python -m tools.requirements.register check'

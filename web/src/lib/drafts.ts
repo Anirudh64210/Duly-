@@ -69,7 +69,8 @@ function factsOn(topic: Topic, sent: F1Case): string[] {
   }
 }
 
-type Ask = { topics: readonly Topic[]; ask: string };
+// Point 61: a report that names an employment period carries that period's number.
+type Ask = { topics: readonly Topic[]; ask: string; period?: number };
 
 // One question for each talk_to_dso reason. Each asks, and none says what the answer is.
 const ASKS: ReadonlyMap<string, Ask> = new Map(
@@ -92,7 +93,8 @@ const ASKS: ReadonlyMap<string, Ask> = new Map(
     },
     grace_with_cap_gap: {
       topics: [...CARDS, "cap_gap"],
-      ask: "Could you tell me what comes after my cap-gap period, and whether a grace period follows it?",
+      // Point 61: the petition's date as entered, never the engine's reading of it.
+      ask: "Could you tell me what comes after my petition's requested start date, and whether a grace period follows it?",
     },
     report_employer: {
       topics: ["employment"],
@@ -123,6 +125,17 @@ const OTHER_ASK =
   "Could you look at my record and tell me whether your office needs anything from me?";
 const ALL: readonly Topic[] = ["program", "degree", "opt", "stem", "employment", "cap_gap", "cpt"];
 const NOT_MADE = /^(.+)\.not_made$/;
+const PERIOD = /\.(\d+)$/;
+
+/** Point 61: the dates of the numbered employment period, as entered, or none. */
+function periodFacts(period: number, sent: F1Case): string[] {
+  const entered = sent.employment[period - 1];
+  if (entered === undefined) return [];
+  const name = `My employment period ${period}`;
+  return entered.end === null
+    ? [`${name} started on ${formatDate(entered.start)} and has no end date.`]
+    : [`${name} runs from ${formatDate(entered.start)} to ${formatDate(entered.end)}.`];
+}
 
 /** Point 57: the hours as entered, and no comparison with the rule. */
 function hoursAsk(sent: F1Case): Ask {
@@ -144,10 +157,11 @@ function askFor(reason: string, sent: F1Case): Ask {
   const notMade = NOT_MADE.exec(reason);
   const report = notMade ? reportName(notMade[1] ?? "") : null;
   if (report) {
-    return {
-      topics: ["stem"],
-      ask: `I did not submit my ${report}. Could you tell me what your office needs from me?`,
-    };
+    const numbered = PERIOD.exec(notMade?.[1] ?? "");
+    const ask = `I did not submit my ${report}. Could you tell me what your office needs from me?`;
+    return numbered
+      ? { topics: ["stem"], ask, period: Number(numbered[1]) }
+      : { topics: ["stem"], ask };
   }
   // A conflict the student answered yes to: the dates stand as the dates on the documents.
   if (factLine(reason) !== null) return { topics: ALL, ask: CONFIRMED_ASK };
@@ -175,13 +189,18 @@ function letter(subject: string, facts: readonly string[], asks: readonly string
 export function dsoDraft(output: EngineOutput, sent: F1Case): string | null {
   if (output.verdict.state !== "talk_to_dso") return null;
   const topics = new Set<Topic>();
+  const periods = new Set<number>();
   const asks: string[] = [];
   for (const reason of output.verdict.reasons) {
-    const { topics: on, ask } = askFor(reason, sent);
+    const { topics: on, ask, period } = askFor(reason, sent);
     on.forEach((topic) => topics.add(topic));
+    if (period !== undefined) periods.add(period);
     if (!asks.includes(ask)) asks.push(ask);
   }
-  const facts = ALL.filter((topic) => topics.has(topic)).flatMap((topic) => factsOn(topic, sent));
+  const facts = [
+    ...ALL.filter((topic) => topics.has(topic)).flatMap((topic) => factsOn(topic, sent)),
+    ...[...periods].sort((a, b) => a - b).flatMap((period) => periodFacts(period, sent)),
+  ];
   return letter("A question about my F-1 record", facts, asks);
 }
 

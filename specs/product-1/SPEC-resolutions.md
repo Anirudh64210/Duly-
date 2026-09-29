@@ -93,6 +93,16 @@ From the review of fix 4 (reviews/product-1-fix4.md):
 56. Every rule is looked up for the day of the event it governs, including `opt.report_employer_within_days` for a period's end (point 40). A rule with no row in force on that day gives null with the step back, never an error: no clock and no case makes the engine fail.
 57. The drafted email states no status: it opens "I have a question about my F-1 record." Every dated duty has a name in the draft, including a new Form I-983 for an employment period. A draft about hours states the hours the student entered, not Duly's comparison with the rule.
 
+From the review of fix 5 (reviews/product-1-fix5.md):
+
+58. Plain words are plain first and faithful in meaning. Two failures are both refused:
+    - Meaning drift: a term of art traded for an everyday word, a limit dropped, something added, or a reading shown as the rule's words. A term of art is a word or phrase whose everyday substitute would change who or what the rule covers: "U.S. worker" (not "worker in the United States"), "post-completion academic training", "period of admission", "recognized", "subject to section 214(g)(1)(A) of the Act", "U.S. educational institution". Each rule lists its terms of art in `plain_terms`, at most three, and the plain words keep each word for word (contracts/rulepack.schema.json; `tools.sources.plain --require f1`).
+    - Legalese: a citation, or legal phrasing an everyday word can carry without changing who or what is covered ("accrue an aggregate of", "properly file", "or successor form", "engage in", "described in", "pursuant to"). These belong to the exact words, one tap away; the gate refuses them in plain words, and refuses them as terms.
+    Plain words rest on the quote and on the rule's note (the note says which paragraph the quote is from, so "for OPT" may rest on it). A sweep of all 55 plain texts found the meaning problems listed in specs/product-1/plain-sweep.json; its rewrites went too far toward legalese in 14 of 51 cases and are not to be copied as they stand. The six texts reviews/product-1-fix5.md finding 1 names are fixed.
+59. No rule lookup ever raises. Where no row is in force on the day a rule is read, `whole_rule`, `value_of` and `show` give null with the step back (`rule_not_in_force_on_event_day`), as the report row does since point 56. A property test draws clocks and cases across the whole range the contract allows, including before every row's start.
+60. `employment.periods_not_reported` reads its rule for each period's start (point 56). A period that starts before the rule's row gives null with `rule_not_in_force_on_event_day`, never a count from a rule that came later.
+61. A draft about a report that names an employment period states that period's dates as the student entered them. The cap-gap draft states the petition's requested start date as entered, and never calls it the student's cap-gap period.
+
 ## Covers
 
 Register rows: DEC-D41-001, BACK-003, BACK-006, DEC-D05-001, PRIN-008. That is 5 of 1623 requirements; the rest of product round 1 is listed in SPEC.md.

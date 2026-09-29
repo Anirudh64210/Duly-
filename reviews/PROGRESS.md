@@ -110,3 +110,21 @@
 - Failure: the plain words gate passes plain texts whose meaning differs from the quote.
 - Fix: print quote, note and plain side by side for every row and read each; check which rows the output's rules carry before naming an input.
 - Evidence: reviews/product-1-fix4.md findings 1 and 2.
+
+## 2026-09-29, run l-review-271b0fb1e7 (product round 1, fix 5)
+- Read SPEC-resolutions.md points 54 to 57, specs/plain-1/SPEC.md, reviews/product-1-fix4.md, the diff fa1837d..ccfdcbb (engine/f1.py, parameters.yaml, drafts.ts, labels.ts, Result.tsx, the tests), and all 53 rows and 2 regimes with quote, note and plain side by side.
+- Ran: unit suites (exit 0), holdout (exit 0), tools.sources.plain, sources verify, engine_literals, copy lint (all clean), web vitest on a TMPDIR copy (11 files, 296 passed).
+- Sent the inputs of fix 4 findings 1 to 7 through TestClient: 1, 3, 4, 5 and 7 closed. In 2 the new texts of the grace row (30) and min hours bring new term swaps. 6 is closed for 2016-10-01 and 2024-09-01 only.
+- Printed 17 drafts from a scratch vitest file on api outputs: every one opens "I have a question about my F-1 record."
+- Found: six plain texts swap or drop terms (U.S. worker, 214(g)(1)(A), U.S. institution, recognized, period of admission). A STEM case with a clock before 2016-05-10 gives a 500, and so does a case with CPT days and a clock before 2003. The unreported count reads a 2025 row for a 2015 period. The new-plan draft gives no period dates.
+- Wrote reviews/product-1-fix5.md (VETO), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: the point 56 tests drew clocks from 2009 on and OPT cases only, so a STEM case on a past clock still gave a 500.
+- Fix: scan the clock over every few days from the earliest row's start, for an OPT, a STEM and a CPT case, calling compute_f1 directly and grouping errors by rule id.
+- Evidence: 1049 failing clocks for each STEM case, all before 2016-05-10; 73 for the OPT case with CPT days, all in 2002.
+
+## Lesson
+- Failure: a rewrite for point 54 kept the numbers and the limits but swapped a defined term for an everyday one ("U.S. workers" to "workers in the United States").
+- Fix: for each plain text, list the quote's nouns that carry a legal meaning (U.S. worker, period of admission, recognized, subject to section ...) and check that each is kept or marked as a reading.
+- Evidence: reviews/product-1-fix5.md finding 1.

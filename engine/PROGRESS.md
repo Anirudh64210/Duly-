@@ -908,3 +908,53 @@ Status: done.
   the failing case is the point 55 skip. A point 55 collision, for the next round.
 
 Status: done.
+
+## Run l-engine-746e3edbcc (attempt 1): points 59 and 60
+
+### What was done
+
+- Point 59: `_Working._rule` returns None and sets the step back instead of raising.
+  `whole_rule` and `value_of` give None with the step back; `show` shows the nearest row's
+  words (today's, else the first later, else the last earlier) and steps back.
+  `_row_shown` no longer falls back to `_rule`: after the first later row it takes the
+  last earlier one, and gives None only for a rule the pack does not hold at all, which
+  `_item` drops (status then the last of STATUS_ORDER, value null, step back).
+  `_item` reads a rule with no event day for today, so a rule with no row today gives
+  null with the step back. `_validation_reports` counts the reports from the rows the
+  items show (`whole_shown`, for the card's start), so each report is listed and null.
+  `_judgement_items` skips the CPT bar when no row is in force today.
+- Point 60: `employment.periods_not_reported` reads opt.report_employer_within_days for
+  each period's start: the first start with no row in force gives null with the step
+  back; else the row for the earliest start. No period: read for today. No number in code.
+
+### What ran
+
+- test_f1_fix6.py before: 13 failed (RulepackError on stem.validation_interval_months at
+  2016-05-09, cpt.full_time_bar_days at 2002-12-31, and the point 60 counts).
+- Done command as written, output to a file, no pipe: exit 0. 17 passed, "engine
+  literals: every number has a source", mypy "no issues found in 57 source files", ruff
+  "All checks passed!", "8 files already formatted".
+- tests/unit/engine and tests/unit/api, a git archive of HEAD against now: HEAD 13 failed
+  (all test_f1_fix6.py); now 3 fail, each a point 60 collision (a period that starts
+  before 2025-05-19, the shipped row of opt.report_employer_within_days, so the verdict
+  now carries rule_not_in_force_on_event_day):
+  test_f1_fix2.py::test_point_28_the_shipped_pack_gives_a_program_that_ended_in_2024_its_dates
+  (period from 2024-06-01),
+  test_f1_fix4.py::test_point_40_a_petition_before_2025_01_17_for_october_1_is_read_with_the_october_row,
+  test_f1_fix5.py::test_point_56_an_end_on_the_rows_first_day_is_dated. A spy plugin
+  under TMPDIR showed the only lapsing item in all three is employment.periods_not_reported.
+
+Status: done.
+
+## l-engine-1f55dd3fc6 (attempt 1): remove the dead _Working.value_of
+
+- Mission: gate 6 found untested changed lines in engine/f1.py; one is `_Working.value_of`,
+  which nothing calls.
+- `grep -rn value_of --include='*.py' .`: the only hits were the definition in engine/f1.py
+  and a mention in the module docstring of tests/unit/engine/test_f1_fix6.py (text, not a call).
+- Removed the method (5 lines). Nothing else changed.
+- Done command as written, output to a file, no pipe: exit 0. pytest all dots, "engine
+  literals: every number has a source", mypy "no issues found in 57 source files", ruff
+  "All checks passed!", "8 files already formatted".
+
+Status: done.

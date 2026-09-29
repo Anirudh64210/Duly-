@@ -288,13 +288,17 @@ class _Working:
     def setting(self, setting_id: str) -> int:
         return whole_setting(self.settings, setting_id)
 
-    def whole_rule(self, rule_id: str) -> int:
-        """The operative value of a rule that decides which items there are."""
-        return _whole({rule_id: self._rule(rule_id)["value"]}, rule_id)
+    def whole_rule(self, rule_id: str) -> int | None:
+        """The whole operative value of a rule in force today. None with the step back
+        when no row is in force today (SPEC-resolutions point 59)."""
+        found = self._rule(rule_id)
+        return None if found is None else _whole({rule_id: found["value"]}, rule_id)
 
-    def value_of(self, rule_id: str) -> Any:
-        """The operative value of a rule in force today."""
-        return self._rule(rule_id)["value"]
+    def whole_shown(self, rule_id: str, day: date | None) -> int | None:
+        """The whole value of the row whose words an item for the day shows. It decides
+        which items there are and never a value: each item looks its rule up for itself."""
+        found = self._row_shown(rule_id, day)
+        return None if found is None else _whole({rule_id: found["value"]}, rule_id)
 
     def holds(self, rule_id: str) -> bool:
         """Whether the pack has the rule in force today."""
@@ -357,38 +361,47 @@ class _Working:
             raise RulepackError(f"{rules}: the engine needs one operative regime for the value")
         return {"regime": held[0]["id"], "legal_status": held[0]["legal_status"]}
 
-    def _rule(self, rule_id: str) -> dict[str, Any]:
+    def _rule(self, rule_id: str) -> dict[str, Any] | None:
+        """The row in force today. With none, the verdict steps back (point 59)."""
         found = self.pack.value(rule_id, self.today)
         if found is None:
-            raise RulepackError(f"{rule_id}: no rule in force on {self.today.isoformat()}")
+            self.not_in_force = True
         return found
 
-    def _row_shown(self, rule_id: str, day: date | None) -> dict[str, Any]:
+    def _row_shown(self, rule_id: str, day: date | None) -> dict[str, Any] | None:
         """The row whose words an item shows when no row is in force on its event's day:
         the row in force today, else the first operative row that takes effect after the
-        day (today, for an item with no event day). A value measured from the event is
-        null all the same (SPEC-resolutions point 56): no clock and no case makes the
-        engine fail for a rule that has a row at all."""
+        day (today, for an item with no event day), else the last one before it. A value
+        measured from the event is null all the same (SPEC-resolutions points 56 and 59):
+        no clock and no case makes the engine fail. None only for a rule the pack does
+        not hold at all."""
         found = self.pack.value(rule_id, self.today)
         if found is not None:
             return found
         after = (self.today if day is None else day).isoformat()
         operative = {r["id"] for r in self.pack.regimes if r["operative"]}
-        later = sorted(
+        rows = sorted(
             (
                 p
                 for p in self.pack.parameters
-                if p["id"] == rule_id
-                and p.get("regime", "") in {*operative, ""}
-                and p["effective_from"] > after
+                if p["id"] == rule_id and p.get("regime", "") in {*operative, ""}
             ),
             key=lambda p: str(p["effective_from"]),
         )
-        return later[0] if later else self._rule(rule_id)
+        later = [p for p in rows if p["effective_from"] > after]
+        if later:
+            return later[0]
+        return rows[-1] if rows else None
 
     def show(self, rule_id: str) -> None:
-        """A rule whose words the screen shows beside a judgement for the DSO."""
-        self._show_rule(self._rule(rule_id))
+        """A rule whose words the screen shows beside a judgement for the DSO. With no
+        row in force today the words of the nearest row are shown and the verdict steps
+        back (SPEC-resolutions point 59)."""
+        found = self._rule(rule_id)
+        if found is None:
+            found = self._row_shown(rule_id, None)
+        if found is not None:
+            self._show_rule(found)
 
     def _show_rule(self, parameter: dict[str, Any]) -> None:
         source = parameter["source"]
@@ -511,18 +524,18 @@ class _Working:
         on: On = None,
     ) -> tuple[dict[str, Any], Value]:
         days = [_event_day(rule_id, on) for rule_id in rule_ids]
+        # A rule with no event day is read for today (SPEC-resolutions point 59).
         on_day = [
-            None if day is None else self.pack.value(rule_id, day)
+            self.pack.value(rule_id, self.today if day is None else day)
             for rule_id, day in zip(rule_ids, days, strict=True)
         ]
-        # A rule with no row in force on the day of its event gives no value for it.
-        lapsed = any(
-            day is not None and found is None for day, found in zip(days, on_day, strict=True)
-        )
-        parameters = [
+        # A rule with no row in force on the day it is read gives no value for it.
+        lapsed = any(found is None for found in on_day)
+        shown_rows = [
             self._row_shown(rule_id, day) if found is None else found
             for rule_id, day, found in zip(rule_ids, days, on_day, strict=True)
         ]
+        parameters = [p for p in shown_rows if p is not None]
         for parameter in parameters:
             self._show_rule(parameter)
         absent = [name for name in needs if inputs[name] is None]
@@ -542,7 +555,13 @@ class _Working:
             "unit": unit,
             "inputs": {name: _shown(entered) for name, entered in inputs.items()},
             "rule_ids": list(rule_ids),
-            "status": max((p["status"] for p in parameters), key=STATUS_ORDER.index),
+            # A rule the pack does not hold at all shows no row; its status is not known,
+            # so the item takes the last of the order.
+            "status": max(
+                (p["status"] for p in parameters),
+                key=STATUS_ORDER.index,
+                default=next(reversed(STATUS_ORDER)),
+            ),
             "reading": any(p.get("derivation") == "reading" for p in parameters),
         }
         # The look-ahead decides whether a dated item of this kind is an open item.
@@ -813,12 +832,19 @@ def _add_counts(
         settings=checked,
         on=card_start,
     )
+    # SPEC-resolutions point 60: the rule is read for each period's start. The first start
+    # with no row in force gives the count null with the step back; with every start
+    # covered the row shown is the one for the earliest start. No period: read for today.
+    starts = sorted(p.start for p in case.employment)
+    uncovered = [day for day in starts if work.rule_on(REPORT_EMPLOYER, day) is None]
+    report_day = uncovered[0] if uncovered else min(starts, default=None)
     work.add(
         "employment.periods_not_reported",
         "count",
         {"employment": _employment_shown(case)},
         (REPORT_EMPLOYER,),
         lambda v: sum(1 for p in case.employment if not p.employer_reported) if listed else None,
+        on={REPORT_EMPLOYER: report_day},
     )
 
 
@@ -831,13 +857,20 @@ def _final_end(case: F1Case) -> tuple[date, dict[str, Any]]:
     return max(day for day in inputs.values() if day is not None), inputs
 
 
-def _validation_reports(work: _Working, extension: str, interval: str) -> Iterator[int]:
+def _validation_reports(
+    work: _Working, extension: str, interval: str, start: date | None
+) -> Iterator[int]:
     """The number of each validation report: one for each whole interval in the
-    extension. The count is derived from the two rules and written nowhere."""
-    months = work.whole_rule(interval)
+    extension. The count is derived from the two rules and written nowhere. It is read
+    from the rows the items show, so that with no row in force each report is still
+    listed, null with the step back (SPEC-resolutions point 59)."""
+    months = work.whole_shown(interval, start)
+    length = work.whole_shown(extension, start)
+    if months is None or length is None:
+        return iter(())
     if months <= 0:
         raise RulepackError(f"{interval}: the engine needs a number over zero")
-    return iter(range(1, work.whole_rule(extension) // months + 1))
+    return iter(range(1, length // months + 1))
 
 
 def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> None:
@@ -892,7 +925,7 @@ def _add_stem_items(work: _Working, opt: EadBlock | None, stem: EadBlock) -> Non
 
     # Point 48: a validation or an evaluation dated after the card's end is not given
     # (8 CFR 214.2(f)(12)(ii)(B)).
-    for report in _validation_reports(work, extension, interval):
+    for report in _validation_reports(work, extension, interval, start):
         item_id = f"stem.validation_{report}_due"
         if work.add(
             item_id,
@@ -1400,7 +1433,7 @@ def _judgement_items(
     remaining = work.numbers.get("unemployment.days_remaining")
     if remaining is not None and remaining <= 0:
         found.append("unemployment_at_or_over_limit")
-    if cpt_days is not None and cpt_days >= work.whole_rule(CPT_BAR):
+    if cpt_days is not None and (bar := work.whole_rule(CPT_BAR)) is not None and cpt_days >= bar:
         found.append("cpt_full_time_at_or_over_bar")
     if case.cap_gap is not None and "capgap.ends" not in work.dated and not unreached:
         found.append("cap_gap_petition_not_active")
