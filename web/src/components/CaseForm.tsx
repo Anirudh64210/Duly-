@@ -159,6 +159,12 @@ function PeriodRows(props: {
   );
 }
 
+const CHANGE_CHOICES: readonly (readonly [string, boolean | null])[] = [
+  ["", null],
+  ["yes", true],
+  ["no", false],
+];
+
 function CapGapSection(props: {
   on: boolean;
   fields: CapGapFields;
@@ -197,6 +203,8 @@ function CapGapSection(props: {
                   })
                 }
               >
+                {/* SPEC-resolutions point 41: no status is chosen for the person. */}
+                {fields.status === "" && <option value="">Choose the petition status</option>}
                 {PETITION_STATUSES.map((status) => (
                   <option key={status} value={status}>
                     {PETITION_NAMES[status]}
@@ -204,12 +212,20 @@ function CapGapSection(props: {
                 ))}
               </select>
             </Field>
+            <Field label="Does the petition ask for a change of status?">
+              <select
+                value={CHANGE_CHOICES.find(([, given]) => given === fields.change_of_status)?.[0]}
+                onChange={(event) => {
+                  const chosen = CHANGE_CHOICES.find(([value]) => value === event.target.value);
+                  onChange({ ...fields, change_of_status: chosen ? chosen[1] : null });
+                }}
+              >
+                {fields.change_of_status === null && <option value="">Choose yes or no</option>}
+                <option value="yes">Yes, it asks for a change of status</option>
+                <option value="no">No, it does not</option>
+              </select>
+            </Field>
           </div>
-          <Check
-            label="The petition asks for a change of status"
-            checked={fields.change_of_status}
-            onChange={(checked) => onChange({ ...fields, change_of_status: checked })}
-          />
         </>
       )}
     </fieldset>

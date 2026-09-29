@@ -129,6 +129,8 @@ export const engineOutputSchema = z
         regime: z.string().optional(),
         derivation: z.enum(DERIVATIONS).optional(),
         note: z.string().optional(),
+        // plain-1 section 1: the pack's plain words for the rule.
+        plain: z.string().optional(),
       }),
     ),
     questions: z.array(
@@ -156,6 +158,22 @@ export const engineOutputSchema = z
         rule_ids: z.array(z.string()).min(1),
       }),
     ),
+    // plain-1 section 3: every regime an item depends on, with its plain words and source.
+    regimes: z
+      .record(
+        z.string(),
+        z.strictObject({
+          legal_status: z.string(),
+          operative: z.boolean(),
+          plain: z.string().optional(),
+          citation: z.string(),
+          url: z.string(),
+          checked_on: z.string().optional(),
+        }),
+      )
+      .optional(),
+    // SPEC-resolutions point 46: the questions whose answers the engine read.
+    answers_read: z.array(z.string().regex(/^[a-z0-9_.:]+$/)).optional(),
   })
   // An item is never shown without the source of every rule it used.
   .refine(
@@ -193,6 +211,8 @@ export type ShownRule = EngineOutput["rules"][string];
 export type Question = EngineOutput["questions"][number];
 export type Upcoming = EngineOutput["upcoming"][number];
 export type ListEntry = EngineOutput["lists"][number];
+export type Regimes = NonNullable<EngineOutput["regimes"]>;
+export type Regime = Regimes[string];
 
 const COMPUTE_PATH = "/v1/compute/f1" satisfies keyof paths;
 

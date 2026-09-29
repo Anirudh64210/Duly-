@@ -120,7 +120,7 @@ describe("SPEC-resolutions points 20, 21 and 22: questions about a period and a 
     const report = screen.getByText(
       "Day to report the end of employment period 1, from SEVP guidance",
     );
-    expect(within(report).getByText("Guidance")).toBeDefined();
+    expect(within(report).getByText("Government guidance")).toBeDefined();
     fireEvent.click(report);
     expect(screen.getByText(/Study in the States/)).toBeDefined();
   });
@@ -147,7 +147,7 @@ describe("SPEC-resolutions point 19: unemployment on the OPT card", () => {
         "Unemployment days counted inside the OPT EAD dates: 1 day. This is at or over the limit in the rule for the OPT period, shown below.",
       ),
     ).toBeDefined();
-    expect(screen.getByText("Words of the regulation")).toBeDefined();
+    expect(screen.getByText("opt.unemployment_limit_days")).toBeDefined();
   });
 });
 
@@ -321,7 +321,9 @@ describe("SPEC-resolutions point 33: an answer the engine did not read is never 
     expect(
       screen.queryByRole("heading", { name: "Your answers, sent with these dates" }),
     ).toBeNull();
-    expect(screen.getByRole("heading", { name: "Answers Duly did not read" })).toBeDefined();
+    expect(
+      screen.getByRole("heading", { name: "Answers not used for the facts entered now" }),
+    ).toBeDefined();
     expect(screen.queryByText(/^You answered/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Remove the answer" }));
     expect(onWithdraw).toHaveBeenCalledWith("opt.i765_filed_date.after_today");

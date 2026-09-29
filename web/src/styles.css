@@ -304,6 +304,23 @@ button.quiet {
   margin: 0 0 8px;
 }
 
+/* plain-1 section 3: what is true today, calm, before the paused change. */
+.court p {
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+
+/* plain-1 section 2: the plain words first, the exact words one tap away. */
+.plain {
+  margin: 8px 0;
+}
+
+.exact {
+  margin: 4px 0 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--accent-tint);
+}
+
 .item-row.static {
   cursor: default;
 }
@@ -454,6 +471,7 @@ button.quiet {
 }
 
 .quote figcaption,
+.plain-label,
 .reading-label {
   font-size: 12px;
   font-weight: 600;

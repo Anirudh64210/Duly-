@@ -2,7 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { engineOutputSchema } from "./compute";
-import { CASE, CPT_OVER, NEXT, OUTPUT } from "./fixtures";
+import { CPT_OVER, OUTPUT } from "./fixtures";
 import {
   FACT_NOT_NAMED,
   JUDGEMENT_NOT_NAMED,
@@ -20,16 +20,18 @@ import {
   groupOf,
   inputName,
   itemName,
-  dsoQuestion,
+  changeButton,
+  changeLine,
   factLine,
   legalStatusWords,
+  needsAnswer,
   listName,
   questionCopy,
   reasonItem,
   reasonText,
-  regimeLine,
   scopeLine,
   settingName,
+  sourceLink,
   statusTag,
   todayLine,
   zoneName,
@@ -110,27 +112,42 @@ describe("item names", () => {
   });
 });
 
-describe("status words", () => {
-  it("gives settled no tag and every other status a plain one", () => {
-    expect(statusTag("settled")).toBeNull();
-    expect(statusTag("guidance")).toBe("Guidance");
-    expect(statusTag("litigated")).toBe("Before a court");
-    expect(statusTag("proposed")).toBe("Proposed");
+describe("status words (plain-1 section 3)", () => {
+  it("tags each of the five statuses in the words of the SPEC", () => {
+    expect(statusTag("settled")).toBe("Regulation");
+    expect(statusTag("guidance")).toBe("Government guidance");
     expect(statusTag("school")).toBe("School policy");
+    expect(statusTag("litigated")).toBe("A court paused a change");
+    expect(statusTag("proposed")).toBe("Proposed, not in force");
   });
 
-  it("never hides a status it does not know", () => {
-    expect(statusTag("under_review")).toBe("Under review");
-    expect(statusTag("constructor")).toBe("Constructor");
-    expect(statusTag("")).toBe("Status not given");
+  it("never shows a status code it does not know", () => {
+    expect(statusTag("under_review")).toBe("Source type not named");
+    expect(statusTag("constructor")).toBe("Source type not named");
+    expect(statusTag("")).toBe("Source type not named");
   });
 
-  it("puts a regime's legal status in plain words", () => {
+  it("puts a legal status in plain words and never shows the code", () => {
     expect(legalStatusWords("effective")).toBe("in effect");
-    expect(legalStatusWords("enjoined")).toBe("blocked by a court");
+    expect(legalStatusWords("enjoined")).toBe("paused by a court");
     expect(legalStatusWords("vacated")).toBe("set aside by a court");
-    expect(legalStatusWords("stayed_in_part")).toBe("stayed in part");
-    expect(legalStatusWords("")).toBe("status not given");
+    expect(legalStatusWords("proposed")).toBe("proposed, not in force");
+    expect(legalStatusWords("stayed_in_part")).toBe("not named on this screen");
+  });
+
+  it("links a court's order for a court's status, and the source otherwise", () => {
+    expect(sourceLink("enjoined")).toBe("Read the court's order");
+    expect(sourceLink("vacated")).toBe("Read the court's order");
+    expect(sourceLink("proposed")).toBe("Read the source");
+  });
+
+  it("puts what the paused rule would change behind one named tap", () => {
+    expect(changeButton("enjoined")).toBe("What the paused rule would change");
+    expect(changeButton("proposed")).toBe("What the proposed rule would change");
+    expect(changeButton("final")).toBe("What the other rule would change");
+    expect(changeLine("final")).toBe(
+      "A rule change is final, not applied. The value shown is the one that applies today.",
+    );
   });
 });
 
@@ -183,7 +200,9 @@ describe("reasons", () => {
 
   it("keeps the lines the verdict already had", () => {
     expect(reasonText("no_documents")).toBe("Nothing has been added yet.");
-    expect(reasonText("rule_in_litigation")).toBe("A rule that applies here is before a court.");
+    expect(reasonText("rule_in_litigation")).toBe(
+      "A court paused a change to a rule that applies here, and the two rules give different dates.",
+    );
   });
 
   it("names a missing part of the case", () => {
@@ -409,13 +428,6 @@ describe("SPEC section 7: item names", () => {
     expect(itemName("next.grace.ends")).toBe("Next grace ends");
     expect(itemName("grace.ends")).toBe("Grace period ends");
   });
-
-  it("says a rule change is blocked by a court only for the status enjoined", () => {
-    expect(regimeLine("enjoined")).toBe(
-      "A rule change is blocked by a court. See what it would change.",
-    );
-    expect(regimeLine("proposed")).toBe("A rule change is proposed. See what it would change.");
-  });
 });
 
 describe("SPEC section 1: facts that do not fit", () => {
@@ -504,31 +516,7 @@ describe("SPEC section 5: Duly's count", () => {
   });
 });
 
-describe("SPEC section 6: the question for the DSO", () => {
-  const output = engineOutputSchema.parse(NEXT);
-  const draft = dsoQuestion(CASE.opt, output.upcoming, "8 CFR 214.2(f)(10)(ii)(C)");
-
-  it("is built from the person's own dates and the engine's dates", () => {
-    expect(draft).toContain("My OPT EAD card runs from Jun 1, 2026 to May 31, 2027.");
-    expect(draft).toContain("STEM OPT filing window opens: Mar 2, 2027");
-    expect(draft).toContain(
-      "STEM OPT filing window closes: May 31, 2027 (Duly's reading of the regulation)",
-    );
-    expect(draft).toContain("8 CFR 214.2(f)(10)(ii)(C)");
-  });
-
-  it("asks and states no conclusion", () => {
-    expect(draft).toMatch(/Could you tell me whether/);
-    expect(draft).not.toMatch(/\b(you (must|should|can|may)|I (can|may|must))\b/i);
-    expect(draft).not.toContain("next.opt.card_ends");
-  });
-
-  it("says a date is not entered rather than guess it", () => {
-    const bare = dsoQuestion(null, [], "the regulation");
-    expect(bare).toContain("My OPT EAD card runs from not entered to not entered.");
-    expect(bare).not.toContain("Duly, a record keeping tool, computed");
-  });
-
+describe("SPEC section 6: the list", () => {
   it("names the list in words", () => {
     expect(listName("stem.extension.what_the_regulation_lists")).toBe(
       "What the regulation lists for the 24-month STEM OPT extension",
@@ -630,7 +618,7 @@ describe("SPEC-resolutions points 11 to 24", () => {
   });
 
   it("names a legal status from one fixed list (point 13)", () => {
-    expect(legalStatusWords("enjoined")).toBe("blocked by a court");
+    expect(legalStatusWords("enjoined")).toBe("paused by a court");
   });
 });
 
@@ -647,7 +635,9 @@ describe("an id with no words is never shown as nothing", () => {
 
   it("reads an unknown judgement item as something that needs an answer", () => {
     expect(reasonText("some_new_judgement")).toBe(JUDGEMENT_NOT_NAMED);
-    expect(reasonText("rule_in_litigation")).toBe("A rule that applies here is before a court.");
+    expect(reasonText("rule_in_litigation")).toBe(
+      "A court paused a change to a rule that applies here, and the two rules give different dates.",
+    );
   });
 
   it("gives every conflict id, known or not, a line with no code in it", () => {
@@ -707,5 +697,58 @@ describe("SPEC-resolutions point 34: an employment period as its start and end",
     expect(periodSpan("2025-12-01", "2026-06-30")).toBe("Dec 1, 2025 to Jun 30, 2026");
     expect(periodSpan("2025-12-01", null)).toBe("Dec 1, 2025, no end date entered");
     expect(periodSpan("2025-12-01", undefined)).toBe("Starts Dec 1, 2025");
+  });
+});
+
+describe("plain-1 section 5: known matters before what needs an answer", () => {
+  it("names the reasons that wait on an answer, a fact or the rules", () => {
+    expect(needsAnswer("unconfirmed:opt.earlier_at_this_level")).toBe(true);
+    expect(needsAnswer("missing:opt")).toBe(true);
+    expect(needsAnswer("conflict:opt_end")).toBe(true);
+    expect(needsAnswer("rule_in_litigation")).toBe(true);
+    expect(needsAnswer("rules_stale")).toBe(true);
+    expect(needsAnswer("hours_under_threshold")).toBe(false);
+    expect(needsAnswer("rule_not_in_force_on_event_day")).toBe(false);
+    expect(needsAnswer("stem.validation_1_due.not_made")).toBe(false);
+  });
+});
+
+describe("SPEC-resolutions points 39, 40, 43 and 44", () => {
+  it("asks about earlier OPT at the same level and shows the values asked about (39)", () => {
+    const copy = questionCopy("opt.earlier_at_this_level");
+    expect(copy?.ask).toBe(
+      "Did you use OPT before at this degree level, before your program ended or after another program at the same level?",
+    );
+    expect(copy?.yes).toBe("Yes, I used OPT before at this level");
+    expect(copy?.no).toBe("No, this is my first OPT at this level");
+    expect(inputName("degree_level")).toBe("Degree level");
+  });
+
+  it("says why Duly steps back for earlier OPT, and nothing of what it means (39)", () => {
+    const line = reasonText("opt.months_at_this_level");
+    expect(line).toContain("You answered that you used OPT before at this degree level.");
+    expect(line).toContain("Duly does not count the months");
+    expect(line).toContain("a question for your DSO");
+    expect(line).not.toMatch(/\bover\b|\bmore than\b|\bused up\b/);
+  });
+
+  it("gives the rule not yet in force its own words (40, 44)", () => {
+    const line = reasonText("rule_not_in_force_on_event_day");
+    expect(line).toBe(
+      "The rule Duly would use was not yet in force on the day this counts from, so Duly does not compute the date. This is a question for your DSO.",
+    );
+    expect(line).not.toBe(JUDGEMENT_NOT_NAMED);
+    expect(line).not.toContain("needs an answer");
+  });
+
+  it("names the open period after the last card as facts that do not fit (43)", () => {
+    const id = "employment.period_open_after_last_card";
+    expect(factLine(id)).toBe(
+      "An employment period has no end date, and today is after the last EAD end date entered, or after the cap-gap period when one is entered.",
+    );
+    expect(questionCopy(id)?.ask).toBe("Are these the dates on your documents?");
+    expect(reasonText(`conflict:${id}`)).toBe(factLine(id));
+    expect(reasonText(id)).toContain("What they mean is a question for your DSO.");
+    expect(factRule(id)).toBeNull();
   });
 });
