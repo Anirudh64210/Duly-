@@ -586,7 +586,12 @@ def test_point_40_a_petition_before_2025_01_17_for_october_1_is_read_with_the_oc
     # The October 1 row: status runs until October 1 of the fiscal year asked for. The start
     # asked for, 2024-10-01, is the first day of fiscal year 2025, so capgap.ends is
     # 2024-10-01.
-    _, out = settle(capgap_case("2024-04-02", "2024-10-01"), pack=shipped())
+    # Point 60: the card's period, from 2023-06-01, starts before 2025-05-19 (the shipped row
+    # of opt.report_employer_within_days) and would step back through
+    # employment.periods_not_reported, so the case holds no period: the step back asserted
+    # absent here is the one of the cap-gap rows (point 40).
+    case = with_changes(capgap_case("2024-04-02", "2024-10-01"), employment=[])
+    _, out = settle(case, pack=shipped())
     assert values(out)["capgap.ends"] == "2024-10-01"
     assert NOT_IN_FORCE not in out["verdict"]["reasons"]
 

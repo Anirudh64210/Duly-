@@ -281,6 +281,16 @@ def test_holdout_point_59_any_clock_and_any_case_give_an_output(
 # 1 October after a filing within 200 days of the card, so before 1979-01-01.
 
 
+def is_day(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
 @st.composite
 def early_case(draw: st.DrawFn) -> tuple[date, dict[str, Any]]:
     today = draw(st.dates(min_value=date(1953, 1, 1), max_value=date(1975, 12, 31)))
@@ -293,9 +303,10 @@ def early_case(draw: st.DrawFn) -> tuple[date, dict[str, Any]]:
         return None if day is None else iso(date.fromisoformat(day) - shift)
 
     def moved_block(block: dict[str, Any] | None) -> dict[str, Any] | None:
+        # Only the days move; a word such as the petition's status "pending" stays.
         if block is None:
             return None
-        return {k: moved(v) if isinstance(v, str) else v for k, v in block.items()}
+        return {k: moved(v) if is_day(v) else v for k, v in block.items()}
 
     periods = [
         {**p, "start": moved(p["start"]), "end": moved(p["end"])} for p in case["employment"]

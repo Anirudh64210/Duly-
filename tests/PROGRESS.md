@@ -1518,3 +1518,49 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-c239b48795 (attempt 1): bring tests in line with points 58, 59 and 60
+
+### What I tried and what ran
+
+- Read the builder's report (git show 77a3786:engine/PROGRESS.md): three point 60
+  collisions, each a case with a period that starts before 2025-05-19 (the row of
+  opt.report_employer_within_days), so the verdict now carries
+  rule_not_in_force_on_event_day through employment.periods_not_reported.
+- Done command before any change: ruff clean, pytest exit 1 with 4 failures: the three
+  collisions, and tests/holdout/test_holdout_fix6.py::test_holdout_point_59_before_every_row
+  (ValueError "Invalid isoformat string: 'pending'"). The last was my own fault from the
+  earlier run: early_case moved every string of the cap-gap block, the status too.
+- Changes (each cites its point in the file; no assertion loosened, the cases change):
+  - test_f1_fix2.py point 28 (program ended 2024): the case holds no period, so the step back
+    asserted absent is the one of the OPT window rows. Point 51: a blocker does not hide a
+    judgement item, so the absence still means something beside no_employment_to_record.
+  - test_f1_fix4.py point 40 (petition before 2025-01-17 for October 1): the case holds no
+    period, for the same reason; the cap-gap rows are the only possible step back.
+  - test_f1_fix5.py point 56 (an end on the row's first day): the period starts and ends on
+    2025-05-19, so point 60 reads the count's rule on a day the row is in force. The period
+    that ends the day before still runs from 2024-06-01 (its test wants the step back).
+  - test_holdout_fix6.py: early_case moves only values that parse as ISO days.
+- Point 58: nothing in tests/unit (outside tools) or tests/holdout pins a plain text or
+  plain_terms; tests/unit/tools/test_plain.py passes on the new pack. Other tests in
+  tests/unit/tools (test_agent_run, test_phase, test_factory_core) fail here; they run
+  processes and git and are outside the done command and this mission.
+- Holdout file with hypothesis seeds 1, 2, 3: exit 0 each.
+- Done command as written, no pipe: exit 0 ("All checks passed!", "57 files already
+  formatted", every test passing).
+
+### What change to the code would make each changed test fail
+
+Planted through scratch plugins under TMPDIR, then removed:
+- fix2 and fix4: the count read, with no period, for 2000-01-01 instead of today: both fail
+  on the NOT_IN_FORCE line.
+- fix5: Rulepack.value for opt.report_employer_within_days read one day early (a row not in
+  force on its own first day): fails, None where 2025-05-29 is due.
+- holdout point 59 before every row: a lookup that falls back to today's row when none is
+  in force: fails, six dated items where none is due.
+- A first plant (shifting only _Working.rule_on) did not bite, because the item reads its
+  row through another path; it was not counted as evidence.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
