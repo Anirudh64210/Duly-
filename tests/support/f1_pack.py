@@ -14,6 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 from engine.clocks import FixedClock
@@ -33,6 +34,8 @@ URL = "https://www.ecfr.gov/current/title-8/section-214.2"
 EFFECTIVE_FROM = "2000-01-01"
 
 # SPEC, "The rules": id, value, unit, status, regime, where to look.
+# The last five rows are from specs/phase-2/SPEC-sourcing.md, "Rules to find and source",
+# with the assumed values. They come last so that the position of every earlier row holds.
 SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
     ("opt.apply_before_days", 90, "days", "settled", "", "8 CFR 214.2(f)(11)(i)(B)"),
     ("opt.apply_after_days", 60, "days", "settled", "", "8 CFR 214.2(f)(11)(i)(B)"),
@@ -75,7 +78,28 @@ SPEC_RULES: tuple[tuple[str, int | str, str, str, str, str], ...] = (
     ("grace.after_completion_days", 30, "days", "litigated", BLOCKED, "8 CFR 214.2(f)(5)"),
     ("opt.min_hours_per_week", 20, "hours_per_week", "guidance", "", "SEVP guidance"),
     ("capgap.end_month_day", "04-01", "date", "settled", "", "8 CFR 214.2(f)(5)(vi)"),
+    (
+        "stem.evaluation_interval_months",
+        12,
+        "months",
+        "settled",
+        "",
+        "8 CFR 214.2(f)(10)(ii)(C)(9)",
+    ),
+    ("cpt.full_time_bar_days", 365, "days", "school", "", "8 CFR 214.2(f)(10)(i)"),
+    ("capgap.fiscal_year_start_month_day", "10-01", "date", "settled", "", "31 U.S.C. 1102"),
+    ("opt.report_employer_within_days", 10, "days", "guidance", "", "SEVP guidance"),
+    ("calendar.federal_holidays_law", True, "flag", "settled", "", "5 U.S.C. 6103(a)"),
 )
+
+# specs/phase-2/SPEC-sourcing.md, "Duly's own choices": id, value, unit. The values are
+# those of contracts/product_settings.yaml, written here so that a test never depends on
+# the shipped file unless it says so.
+SPEC_SETTINGS: tuple[tuple[str, int, str], ...] = (
+    ("product.open_item_lookahead_days", 14, "days"),
+    ("product.opt_start_earliest_years_before_program_end", 1, "years"),
+)
+SETTINGS_PATH = REPO_ROOT / "contracts" / "product_settings.yaml"
 
 # A second pack where every number the engine uses differs from the SPEC value. An engine
 # that writes a rule value in its own code gives the wrong answer under this pack.
@@ -159,6 +183,39 @@ def build_pack(
     statuses: dict[str, str] | None = None,
 ) -> Rulepack:
     return validate_pack(pack_dict(checked_on, values, statuses))
+
+
+def settings_dict(values: dict[str, int] | None = None) -> dict[str, Any]:
+    """Test settings in the shape of contracts/product_settings.yaml once parsed.
+
+    values replaces single entries by id.
+    """
+    return {
+        "settings": [
+            {
+                "id": setting_id,
+                "value": (values or {}).get(setting_id, value),
+                "unit": unit,
+                "decided_in": f"placeholder decision for {setting_id} in test settings",
+                "meaning": f"placeholder meaning for {setting_id} in test settings",
+            }
+            for setting_id, value, unit in SPEC_SETTINGS
+        ]
+    }
+
+
+def shipped_settings() -> dict[str, Any]:
+    """contracts/product_settings.yaml as parsed."""
+    found: dict[str, Any] = yaml.safe_load(SETTINGS_PATH.read_text())
+    return found
+
+
+def settings_named(output: dict[str, Any]) -> dict[str, list[str]]:
+    """The ids under duly_settings in each item's inputs, by item id. Empty when absent."""
+    return {
+        item_id: list(item["inputs"].get("duly_settings", []))
+        for item_id, item in items(output).items()
+    }
 
 
 def rule_value(raw_pack: dict[str, Any], rule_id: str, regime: str = "") -> Any:

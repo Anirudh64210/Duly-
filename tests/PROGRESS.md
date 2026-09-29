@@ -147,3 +147,96 @@ before Phase 2. The tests are left as written.
   chance.
   Fix: search the message, its template, and its arguments only.
   Evidence: tests/unit/api/test_compute.py, `logged`.
+
+## Iteration 2, 2026-09-28: every number has a source
+
+Work under "The test pack (L-tests)" in specs/phase-2/SPEC-sourcing.md.
+
+### What was written
+
+| File | What it covers |
+|---|---|
+| tests/support/f1_pack.py | The five new rule ids with the assumed values, added after the existing rows so that no earlier row moves. `SPEC_SETTINGS`, `settings_dict` (test settings built in code), `shipped_settings` (the contract file as parsed), `settings_named`. SHIFTED is unchanged, so no earlier test changes its meaning |
+| tests/unit/engine/test_f1_sourcing.py | Each new rule and each setting: change the value, the result changes with it. The derived number of validation reports. `settings=None` means the shipped file. `duly_settings`. Four properties |
+| tests/holdout/test_holdout_sourcing.py | The same rules on other cases (C and D), another day (2026-11-02), and other values |
+
+No existing test was changed.
+
+### What ran and what it printed
+
+- The done command for this lane: exit 0. `ruff check`: All checks passed. `ruff format --check`: 23 files already formatted.
+- Against the engine as it is now, the two new files: `137 failed, 7 passed`. Every failure I looked at is
+  `TypeError: compute_f1() got an unexpected keyword argument 'settings'`. Expected: round T has not run.
+  The 7 that pass check the test pack and the test settings, or do not reach compute_f1 with the keyword.
+- Against the engine as it is now, every other test in tests/unit and tests/holdout: `503 passed`.
+  Adding the five rules to the test pack broke nothing.
+- Satisfiability check, as in iteration 1. I made a throwaway copy of engine/f1.py in a scratch
+  folder under tests/, applied the addendum to it, and loaded it as a pytest plugin
+  (`PYTEST_PLUGINS=...`). Result over tests/unit and tests/holdout: `8 failed, 639 passed`.
+  All 8 are in tests/unit/api/test_compute.py and all say
+  `RulepackError: <new id>: no rule in force on 2026-09-28`: the api runs on the shipped pack,
+  which does not hold the new ids until L-content's lane lands. Every engine test and every
+  hidden test passed. The scratch folder was deleted before the commit.
+- The check found one mistake of mine: a property said ten business days take at least 14
+  calendar days. Counted from a Sunday they take 12. Fixed in both files.
+- Planted faults in the scratch copy, to see the new tests go red: look-ahead fixed at 14 (red);
+  fiscal year compared by month only and CPT bar fixed at 365 (red).
+
+### Order of landing (needs the orchestrator)
+
+tests/unit/api/test_compute.py uses the shipped pack. Once the engine reads the new ids, those
+api tests pass only if rulepacks/f1-us/v2026.09/parameters.yaml holds all five. The SPEC lets
+L-content leave a rule out when no primary source states it
+(opt.report_employer_within_days is the likely one). If a rule is left out, the engine cannot
+name it, and these tests fail as written: `test_each_new_rule_is_named_...`,
+`test_periods_not_reported_names_the_reporting_rule` (unit and hidden). That is a decision for
+the founder, not something the tests should bend around.
+
+### Questions (continued; the tests take the side stated)
+
+16. The shape of `settings`. The SPEC gives `dict[str, Any] | None` and "None means the
+    shipped file". The tests pass the shape of contracts/product_settings.yaml once parsed:
+    `{"settings": [{"id", "value", "unit", "decided_in", "meaning"}, ...]}`. If a flat
+    `{id: value}` mapping was meant, `settings_dict` and `shipped_settings` in
+    tests/support/f1_pack.py are the only two places to change.
+17. Which item lists a setting under `duly_settings`? Neither setting feeds the value of an
+    item: one decides what is an open item, the other what is a conflict. The tests require
+    that every id listed is a known setting, that a list has no repeats, and that across the
+    items of a case with an OPT start date both ids are listed somewhere. They do not say
+    which item, and they do not say whether an item that used no setting omits the key or
+    carries an empty list.
+18. Which item names cpt.full_time_bar_days, stem.evaluation_interval_months, and
+    capgap.fiscal_year_start_month_day? The tests require stem.evaluation_12_month_due to
+    name the evaluation interval and capgap.ends to name the fiscal year rule, because their
+    values turn on them. For the CPT bar they require only that some item names it.
+19. An extension that the interval does not divide evenly (24 and 5). Not tested.
+20. calendar.federal_holidays_law set to false. Not tested. The SPEC gives the flag no
+    meaning beyond being cited.
+21. A requested start on the fiscal year's first day counts as inside the new fiscal year
+    (tested). This follows the main SPEC, where October 1 does.
+22. A settings mapping that lacks an id the engine needs. Not tested.
+23. product.opt_start_earliest_years_before_program_end with a program end on February 29.
+    Not tested.
+24. The blocked regime. The SPEC asks L-content to give a changed value a row under each
+    regime. The test pack holds one row for each new rule, with no regime.
+
+### Requests for files this lane does not own
+
+- The mission says "Do not read tests/holdout/" and the SPEC says "add the same to the hidden
+  tests". I added a new file there and did not open the two that exist. I ran them, with
+  the traceback switched off, to see that they still pass.
+
+## Lesson
+
+- Failure: a property bound written from memory ("ten business days take at least 14
+  calendar days") was wrong, and the engine lane cannot edit a test to fix it.
+  Fix: run every new test against a throwaway reference before the commit, and delete the
+  reference.
+  Evidence: tests/unit/engine/test_f1_sourcing.py,
+  `test_there_is_one_report_for_each_interval_in_the_extension`, failed on the reference
+  with 2026-02-01 (a Sunday) to 2026-02-13.
+- Failure: none seen, but close. Adding the new ids to SHIFTED would have changed what the
+  hidden tests mean without my reading them.
+  Fix: new rows go at the end of SPEC_RULES; new values are passed by the test that needs
+  them; shared tables that other files import stay as they are.
+  Evidence: `503 passed` for every earlier test after the change to the pack.
