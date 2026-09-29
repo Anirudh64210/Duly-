@@ -256,7 +256,7 @@ def test_an_agent_can_escalate_and_is_not_asked_again(tmp_path, monkeypatch):
     assert "contradicts the SPEC" in out.reason
 
 
-def test_lessons_from_a_report_are_kept_once(tmp_path, monkeypatch):
+def test_an_agents_lessons_wait_for_the_founder(tmp_path, monkeypatch):
     lesson = {
         "failure": "The done command was piped through tail and hid its exit code.",
         "fix": "Run it unpiped.",
@@ -266,8 +266,12 @@ def test_lessons_from_a_report_are_kept_once(tmp_path, monkeypatch):
     steps[-2]["lessons"] = [lesson, lesson]
     repo, out = play(tmp_path, monkeypatch, [steps])
     assert out.status == "done"
-    assert len(memory.read(repo)) == 1
-    assert "piped through tail" in memory.for_prompt("L-engine", 40, 12000, repo)
+    # An agent's lessons go to the founder's inbox once, and reach no agent until accepted.
+    inbox = list((repo / ".claude" / "LESSONS" / "proposals").glob("*.md"))
+    assert len(inbox) == 1
+    assert "piped through tail" in inbox[0].read_text()
+    assert memory.read(repo) == []
+    assert "piped through tail" not in memory.for_prompt("L-engine", 40, 12000, repo)
 
 
 def test_a_rerun_of_the_same_task_leaves_no_duplicate(tmp_path, monkeypatch):

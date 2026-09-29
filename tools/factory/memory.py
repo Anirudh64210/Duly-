@@ -97,3 +97,27 @@ def for_prompt(lane: str, max_items: int, max_chars: int, cwd: Path | None = Non
         out.append(text)
         used += len(text)
     return "\n".join(out)
+
+
+def propose(lane: str, run_id: str, lessons: list[dict[str, str]], cwd: Path | None = None) -> int:
+    """File an agent's lessons in the founder's inbox. They are not handed to any agent."""
+    if not lessons:
+        return 0
+    folder = main_repo(cwd) / ".claude" / "LESSONS" / "proposals"
+    folder.mkdir(parents=True, exist_ok=True)
+    stamp = SystemClock().now().strftime("%Y-%m-%d")
+    written = 0
+    for n, lesson in enumerate(lessons, start=1):
+        mark = fingerprint(lesson.get("failure", ""))
+        if any(mark in p.name for p in folder.glob("*.md")):
+            continue
+        body = (
+            f"date: {stamp}\nlane: {lane}\ncommit: run {run_id}\n"
+            f"failure: {redact(lesson.get('failure', ''))[:600]}\n"
+            f"fix: {redact(lesson.get('fix', ''))[:400]}\n"
+            f"evidence: {redact(lesson.get('evidence', ''))[:300]}\n"
+            "verification_task: \n"
+        )
+        (folder / f"{stamp}-{lane.lower()}-{mark}-{n}.md").write_text(body)
+        written += 1
+    return written

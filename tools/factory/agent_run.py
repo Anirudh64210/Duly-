@@ -693,15 +693,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 if report["status"] != "done":
                     outcome.report = report
                     return finish("escalated", report["summary"][:300])
-                for lesson in report["lessons"]:
-                    memory.record(
-                        task.lane,
-                        lesson["failure"],
-                        lesson["fix"],
-                        lesson["evidence"],
-                        f"agent report, run {task.run_id}",
-                        repo,
-                    )
+                # An agent's own lessons are proposals. They reach later agents only after the
+                # founder accepts them into .claude/LESSONS/ (D44); nothing an agent writes about
+                # itself is handed on unchecked.
+                memory.propose(task.lane, task.run_id, report["lessons"], repo)
                 outcome.report = report
                 outcome.head_commit = (
                     worktree.commit_all(tree, _message(task, outcome, contract), task.agent)
