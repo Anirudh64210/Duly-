@@ -4,24 +4,57 @@
   "title": "Engine output",
   "type": "object",
   "additionalProperties": false,
-  "required": ["verdict", "scope", "computed", "rulepacks"],
+  "required": [
+    "verdict",
+    "scope",
+    "computed",
+    "rulepacks",
+    "rules"
+  ],
   "properties": {
     "verdict": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "reasons"],
+      "required": [
+        "state",
+        "reasons"
+      ],
       "properties": {
-        "state": { "enum": ["no_open_items", "needs_you", "talk_to_dso", "cannot_tell"] },
-        "reasons": { "type": "array", "items": { "type": "string" } }
+        "state": {
+          "enum": [
+            "no_open_items",
+            "needs_you",
+            "talk_to_dso",
+            "cannot_tell"
+          ]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "scope": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["documents_count", "rules_checked_on"],
+      "required": [
+        "documents_count",
+        "rules_checked_on"
+      ],
       "properties": {
-        "documents_count": { "type": "integer", "minimum": 0 },
-        "rules_checked_on": { "type": ["string", "null"], "format": "date" }
+        "documents_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rules_checked_on": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
       }
     },
     "computed": {
@@ -29,13 +62,75 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "value", "unit", "inputs", "rule_ids"],
+        "required": [
+          "id",
+          "value",
+          "unit",
+          "inputs",
+          "rule_ids",
+          "status"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "value": { "type": ["number", "string"] },
-          "unit": { "type": "string" },
-          "inputs": { "type": "object" },
-          "rule_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          "id": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "object"
+          },
+          "rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "status": {
+            "enum": [
+              "settled",
+              "guidance",
+              "litigated",
+              "proposed",
+              "school"
+            ],
+            "description": "The weakest status among the rules used."
+          },
+          "alternates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "regime",
+                "legal_status",
+                "value"
+              ],
+              "properties": {
+                "regime": {
+                  "type": "string"
+                },
+                "legal_status": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -44,10 +139,63 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["category", "version"],
+        "required": [
+          "category",
+          "version"
+        ],
         "properties": {
-          "category": { "type": "string" },
-          "version": { "type": "string" }
+          "category": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "description": "Every rule named in computed, keyed by id.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "unit",
+          "status",
+          "citation",
+          "url",
+          "checked_on"
+        ],
+        "properties": {
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "boolean"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "citation": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "checked_on": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string"
+          },
+          "regime": {
+            "type": "string"
+          }
         }
       }
     }

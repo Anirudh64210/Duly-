@@ -1,0 +1,110 @@
+branch: phase-2
+spec: specs/phase-2/SPEC.md
+rounds:
+  - name: A
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Write the Phase 2 tests described under "The tests (L-tests)" in the SPEC, from the
+          SPEC and the contracts only. The implementation does not exist yet, so the new tests
+          cannot pass now; that is expected. They must be correct against the SPEC, import
+          from the module paths it names, and be clean under ruff. Follow
+          .claude/agents/test-author.md. Work out every expected date by hand and state the
+          working in a comment beside it.
+        done: >-
+          bash -c 'test -f tests/unit/engine/test_dates.py && test -f tests/unit/engine/test_f1.py
+          && test -f tests/unit/engine/test_rulepack_values.py && test -f tests/unit/api/test_compute.py
+          && ls tests/holdout/test_*.py >/dev/null && uv run ruff check tests
+          && uv run ruff format --check tests'
+        max_iterations: 4
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          Write the F-1 rule pack described under "The rules (L-content)" in the SPEC. Fetch
+          each primary source, save it under the pack's sources folder, and record the exact
+          quote for every rule. Follow .claude/agents/rulepack-drafter.md and the skills
+          add-effective-dated-parameter and law-update-claim. Never record a value you could
+          not find in the saved source.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run pytest tests/unit/engine/test_rulepack.py -q
+          && test $(grep -c "^  - id:" rulepacks/f1-us/v2026.09/parameters.yaml) -ge 15'
+        max_iterations: 4
+    checks:
+      - { name: "sources: every quote found", run: "uv run python -m tools.sources.verify rulepacks" }
+      - { name: "copy lint", run: "uv run python -m tools.copy_lint.lint" }
+  - name: B
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          Build the engine described under "The engine (L-engine)" in the SPEC:
+          engine/dates.py, engine/f1.py, and the additions to engine/rulepack.py. The tests
+          in tests/unit/engine are already written and are your target. You cannot edit
+          them. If a test contradicts the SPEC, do not work around it: write the test name,
+          the SPEC line, and your reasoning in your progress log under "Test disputes".
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine -q && uv run mypy
+          && uv run ruff check engine && uv run ruff format --check engine'
+        max_iterations: 6
+    checks:
+      - { name: "engine tests", run: "uv run pytest tests/unit/engine -q" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+      - { name: "types", run: "uv run mypy" }
+  - name: C
+    lanes:
+      - lane: L-api
+        agent: builder
+        mission: >
+          Build POST /v1/compute/f1 as described under "The api (L-api)" in the SPEC. The
+          tests in tests/unit/api are your target. You cannot edit them.
+        done: >-
+          bash -c 'uv run pytest tests/unit/api -q && uv run mypy
+          && uv run ruff check api && uv run ruff format --check api'
+        max_iterations: 5
+      - lane: L-web
+        agent: builder
+        mission: >
+          Build the plain screen described under "The screen (L-web)" in the SPEC, replacing
+          the placeholder in web/src/App.tsx. Keep the four verdict headlines in
+          web/src/lib/status.ts exactly as they are. Regenerate web/src/lib/api-types.ts
+          with npx openapi-typescript contracts/openapi.yaml -o web/src/lib/api-types.ts.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+        max_iterations: 5
+    checks:
+      - { name: "gates 1 to 6", run: "make test BASE=main" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+      - { name: "sources: every quote found", run: "uv run python -m tools.sources.verify rulepacks" }
+  - name: D
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review everything on this branch that is not on main (git diff main...HEAD) against
+          specs/phase-2/SPEC.md, BOUNDARY.md and CLAUDE.md, following
+          .claude/agents/reviewer.md. Check by hand at least six computed dates against the
+          saved sources in rulepacks/f1-us/v2026.09/sources. Write your review to
+          reviews/phase-2.md, ending with APPROVE or VETO on its own line.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/phase-2.md'
+        max_iterations: 2
+      - lane: L-factory
+        agent: skill-curator
+        slug: curation
+        merge: false
+        mission: >
+          Run the curation described in .claude/agents/skill-curator.md. Read every
+          PROGRESS.md on this branch (engine/, api/, web/, tests/, rulepacks/) and the files
+          in .claude/LESSONS/proposals/. Write one proposal file per distinct lesson. Where a
+          lesson repeats or cost an agent more than three rounds, change or add a skill, with
+          a verification block. Replay the five starter skills if you can and record each
+          result in a REPLAY.md beside the skill. Your branch is not merged; the founder
+          reviews it.
+        done: bash -c 'ls .claude/LESSONS/proposals/*.md | wc -l | grep -Eqv "^ *[01]$"'
+        max_iterations: 2
+    checks:
+      - { name: "reviewer approved", run: "grep -Eq '^APPROVE$' reviews/phase-2.md" }

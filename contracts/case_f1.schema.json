@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/case_f1.schema.json",
+  "title": "F-1 case, as entered by the user",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "program_end_date",
+    "degree_level",
+    "documents_count",
+    "employment"
+  ],
+  "properties": {
+    "program_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "degree_level": {
+      "enum": [
+        "bachelor",
+        "master",
+        "doctorate"
+      ]
+    },
+    "documents_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cpt_full_time_days": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "opt": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "dso_recommendation_date",
+        "i765_filed_date",
+        "ead_start",
+        "ead_end"
+      ],
+      "properties": {
+        "dso_recommendation_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "i765_filed_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "ead_start": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "ead_end": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      }
+    },
+    "stem": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "dso_recommendation_date",
+        "i765_filed_date",
+        "ead_start",
+        "ead_end"
+      ],
+      "properties": {
+        "dso_recommendation_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "i765_filed_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "ead_start": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "ead_end": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      }
+    },
+    "employment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "start",
+          "end",
+          "hours_per_week",
+          "employer_reported"
+        ],
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "hours_per_week": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 168
+          },
+          "employer_reported": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "cap_gap": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "petition_filed_on",
+        "requested_start",
+        "change_of_status",
+        "status"
+      ],
+      "properties": {
+        "petition_filed_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "requested_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "change_of_status": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "approved",
+            "denied",
+            "rejected",
+            "withdrawn",
+            "revoked"
+          ]
+        }
+      }
+    }
+  }
+}

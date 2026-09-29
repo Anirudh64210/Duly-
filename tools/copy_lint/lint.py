@@ -152,6 +152,9 @@ def _files(root: Path) -> list[Path]:
             continue
         if rel.as_posix().startswith(SKIP_PREFIXES):
             continue
+        # Saved copies of sources are kept exactly as published.
+        if rel.parts[0] == "rulepacks" and "sources" in rel.parts:
+            continue
         if path.suffix not in TEXT_SUFFIXES:
             continue
         found.append(path)

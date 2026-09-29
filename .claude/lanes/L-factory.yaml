@@ -1,0 +1,6 @@
+name: L-factory
+kind: guard
+review: high
+owned: [".claude/LESSONS/**", ".claude/skills/**"]
+test: uv run python -m tools.copy_lint.lint
+spec: ""

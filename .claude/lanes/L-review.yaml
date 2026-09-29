@@ -1,0 +1,6 @@
+name: L-review
+kind: guard
+review: high
+owned: ["reviews/**"]
+test: ""
+spec: ""

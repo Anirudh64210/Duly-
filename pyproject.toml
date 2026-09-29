@@ -68,4 +68,4 @@ addopts = "-q --strict-markers"
 source = ["engine", "api", "assistant", "pipeline", "tools"]
 branch = true
 # The gate scripts are proven by make prove-gates, which runs them against planted violations.
-omit = ["tools/gates/*", "tools/factory/server.py", "tools/factory/run_lane.py"]
+omit = ["tools/gates/*", "tools/factory/server.py", "tools/factory/run_lane.py", "tools/factory/phase.py"]

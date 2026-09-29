@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Duly API
-  version: 0.0.0
-  description: Phase 0 surface. Health, version, and stack status only.
+  version: 0.1.0
+  description: Health, version, stack status, and the stateless F-1 computation.
 paths:
   /health:
     get:
@@ -34,6 +34,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Status"
+  /v1/compute/f1:
+    post:
+      operationId: computeF1
+      description: >
+        Stateless. Computes dates and counts for an F-1 case from the dates the user
+        entered. Nothing is stored. The request body follows contracts/case_f1.schema.json
+        and the response follows contracts/engine_output.schema.json.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Engine output.
+          content:
+            application/json:
+              schema:
+                type: object
+        "422":
+          description: The case does not match the contract.
   /ops/v1/status:
     get:
       operationId: getOpsStatus

@@ -4,28 +4,69 @@
   "title": "Rule pack",
   "type": "object",
   "additionalProperties": false,
-  "required": ["category", "jurisdiction", "version", "regimes", "parameters"],
+  "required": [
+    "category",
+    "jurisdiction",
+    "version",
+    "regimes",
+    "parameters"
+  ],
   "properties": {
-    "category": { "enum": ["f1", "h1b", "o1", "eb1a"] },
-    "jurisdiction": { "const": "us" },
-    "version": { "type": "string", "pattern": "^v[0-9]{4}\\.[0-9]{2}(\\.[0-9]+)?$" },
+    "category": {
+      "enum": [
+        "f1",
+        "h1b",
+        "o1",
+        "eb1a"
+      ]
+    },
+    "jurisdiction": {
+      "const": "us"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]{4}\\.[0-9]{2}(\\.[0-9]+)?$"
+    },
     "regimes": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "legal_status", "operative", "source"],
+        "required": [
+          "id",
+          "legal_status",
+          "operative",
+          "source"
+        ],
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
           "legal_status": {
             "enum": [
-              "announced", "proposed", "comment_period", "omb_review", "final",
-              "effective", "enjoined", "stayed", "vacated", "appealed", "rescinded"
+              "announced",
+              "proposed",
+              "comment_period",
+              "omb_review",
+              "final",
+              "effective",
+              "enjoined",
+              "stayed",
+              "vacated",
+              "appealed",
+              "rescinded"
             ]
           },
-          "operative": { "type": "boolean" },
-          "note": { "type": "string" },
-          "source": { "$ref": "#/$defs/source" }
+          "operative": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/$defs/source"
+          }
         }
       }
     },
@@ -34,18 +75,73 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "value", "unit", "status", "effective_from", "source"],
+        "required": [
+          "id",
+          "value",
+          "unit",
+          "status",
+          "effective_from",
+          "source"
+        ],
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z0-9_.]+$" },
-          "value": { "type": ["number", "string", "boolean"] },
-          "unit": { "enum": ["days", "business_days", "months", "hours_per_week", "count", "date", "flag"] },
-          "status": { "enum": ["settled", "guidance", "litigated", "proposed", "school"] },
-          "regime": { "type": "string" },
-          "effective_from": { "type": "string", "format": "date" },
-          "effective_to": { "type": ["string", "null"], "format": "date" },
-          "source": { "$ref": "#/$defs/source" },
-          "reviewed_by": { "type": "string" },
-          "reviewed_on": { "type": "string", "format": "date" }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$"
+          },
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "boolean"
+            ]
+          },
+          "unit": {
+            "enum": [
+              "days",
+              "business_days",
+              "months",
+              "hours_per_week",
+              "count",
+              "date",
+              "flag"
+            ]
+          },
+          "status": {
+            "enum": [
+              "settled",
+              "guidance",
+              "litigated",
+              "proposed",
+              "school"
+            ]
+          },
+          "regime": {
+            "type": "string"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date"
+          },
+          "effective_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "source": {
+            "$ref": "#/$defs/source"
+          },
+          "reviewed_by": {
+            "type": "string"
+          },
+          "reviewed_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "note": {
+            "type": "string"
+          }
         }
       }
     }
@@ -54,12 +150,38 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["citation", "url", "checked_on"],
+      "required": [
+        "citation",
+        "url",
+        "checked_on"
+      ],
       "properties": {
-        "citation": { "type": "string", "minLength": 3 },
-        "url": { "type": "string", "pattern": "^https://" },
-        "snapshot_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "checked_on": { "type": "string", "format": "date" }
+        "citation": {
+          "type": "string",
+          "minLength": 3
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "checked_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 8,
+          "description": "Exact words from the source that support the value."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^sources/[a-z0-9._-]+$",
+          "description": "Saved copy of the source, relative to the pack folder."
+        }
       }
     }
   }
