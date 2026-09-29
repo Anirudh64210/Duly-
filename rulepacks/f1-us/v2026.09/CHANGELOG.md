@@ -72,3 +72,11 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
   - stem.requires.employer_attests_training_goals, reading, (C)(10)(iii).
 - Not recorded: (C)(11), Site visits. Its words state what DHS may do.
 - No rule was removed. No new source was fetched. Every quote was read in the saved 2026-09-14 text and found in the 2026-09-15 text and in 81 FR 13040.
+
+### 2026-09-29, lane L-content, product round 1, resolutions 20 to 24, drafted for founder review
+
+- Point 20, stem.new_plan_due_days: the quote is now the whole sentence of 8 CFR 214.2(f)(10)(ii)(C)(7)(iv), which begins If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension. The old quote left the condition out. Value 10, status settled and derivation verbatim did not change. checked_on is 2026-09-29.
+- Point 22: added opt.report_interruption, true, flag, settled, verbatim, the first sentence of 8 CFR 214.2(f)(12)(i): report any change of name or address, or interruption of such employment. The words state no number of days, and the row carries none.
+- Point 21: added stem.reporting_required, true, flag, settled, verbatim, from 8 CFR 214.2(f)(12)(ii): Compliance with these reporting requirements is required to maintain F-1 status.
+- Point 24, calendar.federal_holidays_law: the note now says that business days skip the days 6103(a) lists, on those days, and not observed days, and gives the words of 6103(b) that limit observed days to statutes relating to pay and leave of employees. Value, status, quote and derivation did not change.
+- No rule was removed. No new source was fetched. Every new quote was found once in the saved 2026-09-14 text, once in the 2026-09-15 text and once in 81 FR 13040. The words of 6103(b) were found once in the saved usc-5-6103 copy.
