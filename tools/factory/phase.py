@@ -125,6 +125,86 @@ def _gh(repo: Path, *args: str, timeout: int = 1800) -> tuple[int, str]:
     return done.returncode, (done.stdout + done.stderr).strip()
 
 
+# How long CI may take to register checks on a pushed commit, and to finish them.
+CI_REGISTER_SECONDS = 600
+CI_FINISH_SECONDS = 3600
+PASSED = {"SUCCESS", "NEUTRAL", "SKIPPED"}
+
+
+def open_pull_request(repo: Path, target: str, work: str, title: str, body: str) -> tuple[int, str]:
+    """Open the pull request from work into target, or bring the one already open up to date.
+
+    A round that is run again after a failure finds its first pull request still open;
+    GitHub allows one per pair of branches, so that one is used.
+    """
+    code, text = _gh(
+        repo, "pr", "list", "--head", work, "--base", target, "--state", "open", "--json", "number"
+    )
+    if code:
+        return code, text
+    try:
+        already = json.loads(text or "[]")
+    except json.JSONDecodeError:
+        return 1, f"gh pr list gave no JSON: {text[:120]}"
+    if already:
+        return _gh(repo, "pr", "edit", work, "--title", title, "--body", body)
+    return _gh(
+        repo, "pr", "create", "--base", target, "--head", work, "--title", title, "--body", body
+    )
+
+
+def _check_state(check: dict[str, Any]) -> str:
+    """pending, passed or failed, for a check run or a commit status of statusCheckRollup."""
+    if check.get("__typename") == "StatusContext":
+        state = str(check.get("state", "")).upper()
+        return (
+            "pending"
+            if state in {"PENDING", "EXPECTED", ""}
+            else ("passed" if state in PASSED else "failed")
+        )
+    if str(check.get("status", "")).upper() != "COMPLETED":
+        return "pending"
+    return "passed" if str(check.get("conclusion", "")).upper() in PASSED else "failed"
+
+
+def wait_for_ci(repo: Path, work: str, sha: str) -> tuple[bool, str]:
+    """Wait for every check on the commit sha, the head of work, and say whether all passed.
+
+    Only the checks of that exact commit are read. Right after a push, GitHub may still
+    show the pull request at its earlier head, with that commit's results; those are never
+    taken for the new commit's.
+    """
+    poll = float(os.environ.get("DULY_CI_POLL_SECONDS", "15"))
+    began = time.monotonic()
+    seen = False
+    while True:
+        waited = time.monotonic() - began
+        code, text = _gh(repo, "pr", "view", work, "--json", "headRefOid,statusCheckRollup")
+        if code == 0:
+            view = json.loads(text or "{}")
+            checks = view.get("statusCheckRollup") or []
+            if view.get("headRefOid") == sha and checks:
+                seen = True
+                states = [_check_state(c) for c in checks]
+                if "failed" in states:
+                    names = [
+                        str(c.get("name") or c.get("context"))
+                        for c, st in zip(checks, states, strict=True)
+                        if st == "failed"
+                    ]
+                    return False, f"failed on {sha[:10]}: {', '.join(names)}"
+                if all(st == "passed" for st in states):
+                    return True, f"{len(checks)} checks passed on {sha[:10]}"
+        if not seen and waited > CI_REGISTER_SECONDS:
+            return (
+                False,
+                f"no CI checks registered on {sha[:10]} in {CI_REGISTER_SECONDS // 60} minutes",
+            )
+        if waited > CI_FINISH_SECONDS:
+            return False, f"CI did not finish on {sha[:10]} in {CI_FINISH_SECONDS // 60} minutes"
+        time.sleep(poll)
+
+
 def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, Any]) -> bool:
     """Check one agent's work again and land it. True when it is on the phase branch."""
     lane = load_lane(out["lane"], repo)
@@ -213,34 +293,18 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
         ("push the working branch", _git(repo, "push", "-q", "--force-with-lease", "origin", work)),
     ]
     if not any(code for _, (code, _) in steps):
-        steps.append(
-            (
-                "open the pull request",
-                _gh(
-                    repo,
-                    "pr",
-                    "create",
-                    "--base",
-                    target,
-                    "--head",
-                    work,
-                    "--title",
-                    title,
-                    "--body",
-                    body,
-                ),
-            )
-        )
+        steps.append(("open the pull request", open_pull_request(repo, target, work, title, body)))
     for what, (code, text) in steps:
         if code:
             alerts.notify("failed", f"could not {what}: {text[:160]}", cwd=repo)
             return False
-    _say(repo, "step", f"pull request opened for round {name}; waiting for clean CI")
-    time.sleep(10)  # give CI a moment to register its checks
-    code, text = _gh(repo, "pr", "checks", work, "--watch", "--fail-fast", "--interval", "15")
-    if code:
-        alerts.notify("failed", f"clean CI did not pass for round {name}: {text[-200:]}", cwd=repo)
+    _, sha = _git(repo, "rev-parse", work)
+    _say(repo, "step", f"pull request ready for round {name}; waiting for clean CI on {sha[:10]}")
+    passed, detail = wait_for_ci(repo, work, sha.strip())
+    if not passed:
+        alerts.notify("failed", f"clean CI did not pass for round {name}: {detail}", cwd=repo)
         return False
+    _say(repo, "step", f"clean CI for round {name}: {detail}")
     code, text = _gh(
         repo,
         "pr",
