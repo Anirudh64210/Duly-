@@ -111,6 +111,24 @@ still passes against the current loader, so L-content's done command is not affe
   command, so `mkdir -p` and `pytest -p` are blocked with a message about compose
   projects. Matching only after `docker compose` would fix it.
 
+### Stop hook and the mission disagree (needs the founder)
+
+The stop hook runs this lane's test from .claude/lanes/L-tests.yaml: `uv run pytest -q`.
+It failed with 2 errors during collection:
+`ImportError: cannot import name 'dates' from 'engine'` and the same for `f1`.
+The mission says the new tests cannot pass before the engine exists, and that this is
+expected. Both cannot hold in round A.
+
+What I did not do, and why:
+- Skip or xfail the new tests, or guard the imports with importorskip. That would turn
+  the tests green by switching them off, which is weakening them.
+- Add engine/dates.py or engine/f1.py. This lane does not own engine/.
+- Edit .claude/lanes/L-tests.yaml. This lane does not own .claude/.
+
+Request: for round A, set the L-tests lane test to the done command from
+specs/phase-2/plan.yaml, or to `uv run pytest -q` limited to the tests that existed
+before Phase 2. The tests are left as written.
+
 ## Lesson
 
 - Failure: `ruff check` reported I001 on a test that imports a module the engine lane
