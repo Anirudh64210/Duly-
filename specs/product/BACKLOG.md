@@ -25,3 +25,15 @@ The founder entered their own dates. The arithmetic was right.
 ## Open question for the founder
 
 A student still in their program, with no OPT, STEM or cap-gap entered: quiet verdict, or does Duly ask first?
+
+## 2026-09-29, the founder on scope
+
+"These should apply for all cases all across, not just the one I have outlined. That is the whole point of the product: it understands all the different scenarios and is ready to answer and compute what comes next."
+
+| # | What it asks for | Where things stand |
+|---|---|---|
+| B5 | Every rule of behaviour holds for every case: confirm and never assume, a question for facts that do not fit, readings marked, the four verdicts, what comes next | The rules of behaviour are general. What the engine can compute is not: it covers F-1 post-completion OPT, STEM OPT, cap-gap, the CPT bar and the grace period. The packs for H-1B, O-1 and EB-1A are empty |
+| B6 | What comes next for any stage, not only from OPT to STEM OPT | Written by hand for one step. It must come from the rule packs: each pack declares its stages, the dated windows of each, and the steps that can follow |
+| B7 | Facts that do not fit, found in any case | Thirteen checks written by hand for F-1. The general checks (a done event dated after today, an end before its start, a span longer than its rule allows, a gap or an overlap between periods that must follow each other) must run over every dated fact in every pack |
+
+Proposed next, after product round 1 and the desktop window: the path model. Rule packs declare stages and steps as data, each with sourced rules; the engine reads them and holds no scenario of its own. Then the scenarios are filled in pack by pack, each rule found in a primary source, in this order: the rest of F-1 (CPT, pre-completion OPT, program extension, transfer, change of level, travel, the rule in litigation), H-1B, O-1, EB-1A and the immigrant path, dependents.
