@@ -324,17 +324,18 @@ def test_an_item_is_open_on_the_persons_own_day():
     # recorded as done is no open item, so this test uses an item whose step is never
     # recorded. (No case the SPEC allows makes opt.apply_window_closes an open item: see
     # tests/REPORT.json, disputes.) CASE_B's STEM card begins 2025-07-01; 12 months on is
-    # 2026-07-01, and 10 business days after it, with 2026-07-03 the observed holiday for
-    # July 4 (a Saturday), are Jul 2, 6, 7, 8, 9, 10, 13, 14, 15, 16: stem.validation_2_due
-    # is 2026-07-16. It is an open item from today through 14 days on. At 01:30 UTC on
-    # 2026-07-17 it is still July 16 in Los Angeles (7 hours behind), and July 17 in
-    # Kolkata (5 hours 30 minutes ahead), the day after.
-    instant = "2026-07-17T01:30"
+    # 2026-07-01, and 10 business days after it, with Friday 2026-07-03 a business day
+    # (SPEC-resolutions.md, point 24: the observed day of July 4 is not skipped), are
+    # Jul 2, 3, 6, 7, 8, 9, 10, 13, 14, 15: stem.validation_2_due is 2026-07-15. It is an
+    # open item from today through 14 days on. At 01:30 UTC on 2026-07-16 it is still
+    # July 15 in Los Angeles (7 hours behind), and July 16 in Kolkata (5 hours 30 minutes
+    # ahead), the day after.
+    instant = "2026-07-16T01:30"
     west = run(
-        in_zone(CASE_B, "America/Los_Angeles"), clock=clock_at(instant), checked_on="2026-07-16"
+        in_zone(CASE_B, "America/Los_Angeles"), clock=clock_at(instant), checked_on="2026-07-15"
     )
-    east = run(in_zone(CASE_B, "Asia/Kolkata"), clock=clock_at(instant), checked_on="2026-07-16")
-    assert values(west)["stem.validation_2_due"] == "2026-07-16"
+    east = run(in_zone(CASE_B, "Asia/Kolkata"), clock=clock_at(instant), checked_on="2026-07-15")
+    assert values(west)["stem.validation_2_due"] == "2026-07-15"
     assert "stem.validation_2_due" in west["verdict"]["reasons"]
     assert east["verdict"]["state"] != "cannot_tell"
     assert "stem.validation_2_due" not in east["verdict"]["reasons"]

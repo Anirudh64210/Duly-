@@ -371,12 +371,18 @@ def cases(draw: st.DrawFn) -> tuple[dict[str, Any], date]:
     # past the last card).
     stem = None
     last_card_day = opt_end
-    if draw(st.booleans()):
+    # SPEC-resolutions.md, points 11 and 14: the STEM filing lies inside its window
+    # (from 90 days before the OPT card ends) and within 60 days of its recommendation.
+    # Recommended 80 days and filed 50 days before the OPT card ends; a STEM block is
+    # drawn only on a day on or after that filing, so nothing is dated after today.
+    # (Before, the filing was min(opt_end - 50, today), which could fall before the
+    # window opened.)
+    if draw(st.booleans()) and today >= opt_end - timedelta(days=50):
         stem_start = opt_end + timedelta(days=1)
         last_card_day = stem_start + timedelta(days=729)
         stem = ead(
-            min(opt_end - timedelta(days=80), today).isoformat(),
-            min(opt_end - timedelta(days=50), today).isoformat(),
+            (opt_end - timedelta(days=80)).isoformat(),
+            (opt_end - timedelta(days=50)).isoformat(),
             stem_start.isoformat(),
             last_card_day.isoformat(),
         )

@@ -94,8 +94,9 @@ NEXT_IDS = (
     "next.stem.apply_window_opens",
     "next.stem.apply_window_closes",
     "next.opt.card_ends",
-    "next.grace.ends",
 )
+# SPEC-resolutions.md, point 12: next.grace.ends is removed. grace.ends is in upcoming
+# whenever it lies after today, once.
 
 
 def parsed(case: dict[str, Any], clock: Any) -> Any:
@@ -1166,8 +1167,9 @@ def test_with_opt_and_no_stem_the_dates_of_the_next_step_are_ahead():
     assert ahead["next.stem.apply_window_closes"]["date"] == "2027-05-31"
     assert ahead["next.opt.card_ends"]["date"] == "2027-05-31"
     # 60 days after 2027-05-31: 30 days reach June 30, 30 more reach 2027-07-30.
-    assert ahead["next.grace.ends"]["date"] == "2027-07-30"
-    assert ahead["next.grace.ends"]["date"] == values(out)["grace.ends"]
+    assert ahead["grace.ends"]["date"] == "2027-07-30"
+    assert ahead["grace.ends"]["date"] == values(out)["grace.ends"]
+    assert "next.grace.ends" not in ahead
     assert contract_problems(out) == []
 
 
@@ -1177,7 +1179,7 @@ def test_each_date_of_the_next_step_names_its_rules():
     assert ahead["next.stem.apply_window_opens"]["rule_ids"] == ["stem.apply_before_expiry_days"]
     assert ahead["next.stem.apply_window_closes"]["rule_ids"] == ["stem.apply_window_closes_rule"]
     assert "opt.max_months" in ahead["next.opt.card_ends"]["rule_ids"]
-    assert ahead["next.grace.ends"]["rule_ids"] == ["grace.after_completion_days"]
+    assert ahead["grace.ends"]["rule_ids"] == ["grace.after_completion_days"]
     for entry in ahead.values():
         for rule_id in entry["rule_ids"]:
             assert out["rules"][rule_id]["quote"], rule_id
@@ -1185,7 +1187,7 @@ def test_each_date_of_the_next_step_names_its_rules():
 
 def test_the_grace_date_ahead_carries_its_status_and_both_regimes():
     out = run(NEXT)
-    entry = upcoming(out)["next.grace.ends"]
+    entry = upcoming(out)["grace.ends"]
     assert entry["status"] == "litigated"
     assert entry["operative"] == {"regime": "ds_2012", "legal_status": "effective"}
     # Under the blocked text, 30 days after 2027-05-31 is 2027-06-30.
@@ -1202,7 +1204,7 @@ def test_the_numbers_of_the_next_step_come_from_the_pack():
     # 92 days before 2027-05-31 is two days before 2027-03-02: 2027-02-28.
     assert ahead["next.stem.apply_window_opens"]["date"] == "2027-02-28"
     # 61 days after 2027-05-31 is one day after 2027-07-30: 2027-07-31.
-    assert ahead["next.grace.ends"]["date"] == "2027-07-31"
+    assert ahead["grace.ends"]["date"] == "2027-07-31"
     assert ahead["next.opt.card_ends"]["date"] == "2027-05-31"
 
 
