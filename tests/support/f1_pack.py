@@ -10,9 +10,11 @@ The quotes below are placeholders for a test pack. They are not the words of any
 import calendar
 import copy
 import json
+from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
@@ -370,10 +372,18 @@ def answers(on: str = ANSWERED_ON, **given: bool) -> dict[str, Any]:
     return {question: {"answer": answer, "on": on} for question, answer in given.items()}
 
 
-def answered_yes(on: str = ANSWERED_ON) -> dict[str, Any]:
+# The day of an answer given on the day the case is run, whatever day that is (the first
+# day the case contract takes, which no real answer holds). A case
+# computed on many days carries it; dated_on_the_day puts the day in before the case is
+# computed. SPEC-resolutions.md, points 2 and 3: an answer dated after today is refused,
+# and a yes to no_employment_to_record covers the days through the day it was given only.
+ON_THE_DAY_IT_RUNS = "1950-01-01"
+
+
+def answered_yes(on: str = ON_THE_DAY_IT_RUNS) -> dict[str, Any]:
     """Yes to every question of the round. A case written before the questions existed
     carries this, so that it still says what it said: the person held OPT, and the
-    employment entered is all there is."""
+    employment entered is all there is, up to the day the case is run."""
     return answers(on, **dict.fromkeys(QUESTION_IDS, True))
 
 
@@ -577,9 +587,9 @@ def conflicts_by_the_table(
     """specs/product-1/SPEC.md, section 1, row by row, written apart from the engine.
 
     Returns the ids that the table raises for certain, and the ids the SPEC leaves
-    open. One point is open: a card whose last day is the same day of the month as its
-    first day, the given number of months later. It runs that many months and a day when
-    both ends are counted, and that many months when they are not.
+    open. SPEC-resolutions.md, point 10, settled the one open point: a card whose last
+    day is the day its months end is not a conflict. Nothing is left open, so the second
+    set is empty; it is kept so that the callers read the same.
     """
     sure: set[str] = set()
     unsure: set[str] = set()
@@ -598,10 +608,9 @@ def conflicts_by_the_table(
             sure.add(f"{part}.i765_filed_date.after_card")
         if start is not None and end is not None:
             limit = months_later(start, months)
+            # The day the months end is not past them: point 10.
             if end > limit:
                 sure.add(f"{part}.card_longer_than_rule")
-            elif end == limit:
-                unsure.add(f"{part}.card_longer_than_rule")
     cards = [card for card in (_card(opt), _card(stem)) if card is not None]
     if gap:
         filed_on = date.fromisoformat(gap["petition_filed_on"])
@@ -629,3 +638,49 @@ def conflicts_by_the_table(
                     break
                 day += timedelta(days=1)
     return sure, unsure
+
+
+def with_the_about_asked(
+    case: dict[str, Any], compute: Callable[[dict[str, Any]], dict[str, Any]]
+) -> dict[str, Any]:
+    """The case as the screen sends it: each answer given without `about` carries the
+    about of the question it answers, as the output asked it.
+
+    specs/product-1/SPEC-resolutions.md, point 7: an answer with no `about` is not an
+    answer. The cases written before that point give their answers with no about; this
+    is the step the screen takes for them. It answers only what is asked, in the order
+    it is asked (an answer can raise another question), and gives the answer unchanged
+    when its question is never asked, since an answer to a question not raised is not
+    read. An answer that already carries about is sent as it is.
+
+    compute is the engine or the api, called on a case and giving the output."""
+    given = case.get("confirmations") or {}
+    pending = {name: answer for name, answer in given.items() if "about" not in answer}
+    if not pending:
+        return case
+    sent = {name: answer for name, answer in given.items() if "about" in answer}
+    for _ in range(len(pending)):
+        out = compute(with_changes(case, confirmations=sent))
+        asked = [q for q in out["questions"] if q["id"] in pending and q["id"] not in sent]
+        if not asked:
+            break
+        for q in asked:
+            sent[q["id"]] = {**pending[q["id"]], "about": copy.deepcopy(q["about"])}
+    for name, answer in pending.items():
+        sent.setdefault(name, answer)
+    return with_changes(case, confirmations=sent)
+
+
+def dated_on_the_day(case: dict[str, Any], clock: Any) -> dict[str, Any]:
+    """The case with each answer dated ON_THE_DAY_IT_RUNS dated on the person's own day:
+    the instant of the clock seen from the case's zone. Worked here with zoneinfo, apart
+    from the engine."""
+    given = case.get("confirmations") or {}
+    if not any(answer.get("on") == ON_THE_DAY_IT_RUNS for answer in given.values()):
+        return case
+    today = clock.now().astimezone(ZoneInfo(case["time_zone"])).date().isoformat()
+    dated = {
+        name: {**answer, "on": today} if answer.get("on") == ON_THE_DAY_IT_RUNS else answer
+        for name, answer in given.items()
+    }
+    return with_changes(case, confirmations=dated)
