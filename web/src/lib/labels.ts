@@ -54,11 +54,29 @@ const ITEM_NAMES: ReadonlyMap<string, string> = new Map(
     "next.stem.apply_window_opens": "STEM OPT filing window opens",
     "next.stem.apply_window_closes": "STEM OPT filing window closes",
     "next.opt.card_ends": "OPT EAD card ends",
-    "next.grace.ends": "Grace period ends, counted from the OPT EAD end date",
+    "unemployment.opt_card_days_used": "Unemployment days used inside the OPT EAD dates",
   }),
 );
 
 const VALIDATION = /^stem\.validation_(\d+)_due$/;
+// SPEC-resolutions points 20 and 22: items for one employment period, numbered as entered.
+const NEW_PLAN = /^stem\.new_plan_due\.(\d+)$/;
+const CONCLUDING = /^stem\.concluding_evaluation_due\.(\d+)$/;
+const END_REPORT = /^employment\.(\d+)\.end_report_by$/;
+const PERIOD_DAY = /^employment\.(\d+)\.(start|end)$/;
+
+/** A name for an item whose id holds a number, or null. */
+function numberedItem(itemId: string): string | null {
+  const report = VALIDATION.exec(itemId);
+  if (report) return `Validation report ${report[1]} due`;
+  const plan = NEW_PLAN.exec(itemId);
+  if (plan) return `New training plan (Form I-983) due for employment period ${plan[1]}`;
+  const concluding = CONCLUDING.exec(itemId);
+  if (concluding) return `Final evaluation due for employment period ${concluding[1]}`;
+  const ended = END_REPORT.exec(itemId);
+  if (ended) return `Day to report the end of employment period ${ended[1]}, from SEVP guidance`;
+  return null;
+}
 
 function plain(code: string): string {
   const words = code.replaceAll(/[._:]+/g, " ").trim();
@@ -68,9 +86,7 @@ function plain(code: string): string {
 export function itemName(itemId: string): string {
   const known = ITEM_NAMES.get(itemId);
   if (known) return known;
-  const report = VALIDATION.exec(itemId);
-  if (report) return `Validation report ${report[1]} due`;
-  return plain(itemId) || "Item";
+  return numberedItem(itemId) ?? (plain(itemId) || "Item");
 }
 
 const INPUT_NAMES: ReadonlyMap<string, string> = new Map(
@@ -124,7 +140,11 @@ const MISSING_PARTS: ReadonlyMap<string, string> = new Map(
 );
 
 export function inputName(key: string): string {
-  return INPUT_NAMES.get(key) ?? (plain(key) || "Input");
+  const known = INPUT_NAMES.get(key) ?? ITEM_NAMES.get(key) ?? numberedItem(key);
+  if (known) return known;
+  const day = PERIOD_DAY.exec(key);
+  if (day) return `Employment period ${day[1]} ${day[2]} date`;
+  return plain(key) || "Input";
 }
 
 const STATUS_TAGS: Record<Exclude<ItemStatus, "settled">, string> = {
@@ -236,8 +256,46 @@ const FACTS: ReadonlyMap<string, string> = new Map(
       "The STEM OPT EAD start date is more than one day after the OPT EAD end date.",
     "employment.period_outside_cards":
       "An employment period has days outside the EAD dates entered.",
+    // SPEC-resolutions points 11, 14, 15 and 16. The days are the rule's, shown beside
+    // the question; no line says a filing was late.
+    "opt.i765_filed_date.before_recommendation":
+      "The OPT I-765 filed date is before the OPT DSO recommendation date.",
+    "stem.i765_filed_date.before_recommendation":
+      "The STEM OPT I-765 filed date is before the STEM OPT DSO recommendation date.",
+    "opt.i765_filed_date.after_file_by":
+      "The OPT I-765 filed date is more days after the OPT DSO recommendation date than the rule gives for filing.",
+    "stem.i765_filed_date.after_file_by":
+      "The STEM OPT I-765 filed date is more days after the STEM OPT DSO recommendation date than the rule gives for filing.",
+    "stem.i765_filed_date.before_window_opens":
+      "The STEM OPT I-765 filed date is more days before the OPT EAD end date than the rule gives for filing.",
+    "opt.i765_filed_date.after_window_closes":
+      "The OPT I-765 filed date is more days after the program end date than the rule gives for filing.",
+    "opt.ead_end.after_complete_by":
+      "The OPT EAD end date is after the date OPT is to be completed by. That date is Duly's count from the months in the rule, counted from the program end date.",
   }),
 );
+
+// SPEC-resolutions point 26: the rule a conflict names is in the output's rules. The
+// screen shows it beside the question, with its derivation.
+const FACT_RULES: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    "opt.i765_filed_date.after_file_by": "opt.file_within_days_of_recommendation",
+    "opt.i765_filed_date.before_recommendation": "opt.file_within_days_of_recommendation",
+    "stem.i765_filed_date.after_file_by": "stem.file_within_days_of_recommendation",
+    "stem.i765_filed_date.before_recommendation": "stem.file_within_days_of_recommendation",
+    "stem.i765_filed_date.before_window_opens": "stem.apply_before_expiry_days",
+    "opt.i765_filed_date.after_window_closes": "opt.apply_after_days",
+    "opt.ead_end.after_complete_by": "opt.complete_within_months",
+  }),
+);
+
+/** The rule a conflict is checked against, or null. */
+export function factRule(factId: string): string | null {
+  return FACT_RULES.get(factId) ?? null;
+}
+
+/** SPEC section 1 for a conflict this screen has no words for. It is never shown as nothing. */
+export const FACT_NOT_NAMED = "Some facts entered do not fit together.";
 
 /** What does not fit, for a conflict of SPEC section 1, or null for another id. */
 export function factLine(factId: string): string | null {
@@ -256,7 +314,11 @@ const FINDINGS: ReadonlyMap<string, string> = new Map(
       "The full-time CPT days entered are at or over Duly's count of one year in days. The words of the regulation are beside this line.",
     cap_gap_petition_not_active:
       "The petition entered is not pending or approved with a change of status.",
-    report_employer: "An employment period is not marked as reported.",
+    // SPEC-resolutions point 22: the days to report come from SEVP, not the regulation.
+    report_employer:
+      "An employment period, or its end, is not marked as reported to your DSO. The day to report it by is SEVP guidance, not the words of the regulation.",
+    grace_with_cap_gap:
+      "A cap-gap period is entered that runs past the last EAD end date. Duly shows no grace period end date with it. What comes after is a question for your DSO.",
     stem_without_post_completion_opt:
       "You answered that you had no period of post-completion OPT before the STEM OPT period. The words of the rule are shown below. This part depends on your own situation, so it is a question for your DSO.",
     cap_gap_without_training:
@@ -311,14 +373,90 @@ const FACT_QUESTION: QuestionCopy = {
   no: "No, I will correct them",
 };
 
+const NEW_EMPLOYER = /^employment\.(\d+)\.new_employer$/;
+const END_REPORTED = /^employment\.(\d+)\.end_reported$/;
+const MADE = /^(.+)\.made$/;
+const NOT_MADE = /^(.+)\.not_made$/;
+
+// SPEC-resolutions point 21: the reports whose date can pass, by what they are.
+function reportName(itemId: string): string | null {
+  if (itemId === "stem.evaluation_12_month_due") return "12-month evaluation";
+  if (itemId === "stem.final_evaluation_due_from_ead_end") return "final evaluation";
+  const report = VALIDATION.exec(itemId);
+  if (report) return `validation report ${report[1]}`;
+  const concluding = CONCLUDING.exec(itemId);
+  if (concluding) return `final evaluation for employment period ${concluding[1]}`;
+  return null;
+}
+
+/** SPEC-resolutions points 20, 21 and 22: questions whose id holds a number or an item. */
+function numberedQuestion(questionId: string): QuestionCopy | null {
+  const employer = NEW_EMPLOYER.exec(questionId);
+  if (employer) {
+    return {
+      ask: `Employment period ${employer[1]} begins inside the STEM OPT EAD dates. Is this period with a new employer?`,
+      yes: "Yes, a new employer",
+      no: "No, the same employer",
+    };
+  }
+  const ended = END_REPORTED.exec(questionId);
+  if (ended) {
+    return {
+      ask: `Employment period ${ended[1]} has an end date. Has the end of this period been reported to your DSO?`,
+      yes: "Yes, it has been reported",
+      no: "No, it has not been reported",
+    };
+  }
+  const made = MADE.exec(questionId);
+  const report = made ? reportName(made[1] ?? "") : null;
+  if (report) {
+    return {
+      ask: `The date for the ${report} is before today. Did you submit this report?`,
+      yes: "Yes, I submitted it",
+      no: "No, I did not submit it",
+    };
+  }
+  return null;
+}
+
 /** The words for a question, or null for one this screen has no words for. */
 export function questionCopy(questionId: string): QuestionCopy | null {
   if (FACTS.has(questionId)) return FACT_QUESTION;
-  return QUESTIONS.get(questionId) ?? null;
+  return QUESTIONS.get(questionId) ?? numberedQuestion(questionId);
+}
+
+/**
+ * The words for a question the verdict holds as a conflict. A conflict this screen
+ * has no line for still asks the one thing every conflict asks.
+ */
+export function conflictQuestionCopy(
+  questionId: string,
+  reasons: readonly string[],
+): QuestionCopy | null {
+  if (reasons.includes(`conflict:${questionId}`)) return FACT_QUESTION;
+  return questionCopy(questionId);
+}
+
+/** What does not fit, for a question the verdict holds as a conflict, or null. */
+export function conflictLine(questionId: string, reasons: readonly string[]): string | null {
+  const known = factLine(questionId);
+  if (known) return known;
+  return reasons.includes(`conflict:${questionId}`) ? FACT_NOT_NAMED : null;
+}
+
+/** Questions whose values are shown in place of the inputs that raised them. */
+export function showsAbout(questionId: string): boolean {
+  return FACTS.has(questionId) || numberedQuestion(questionId) !== null;
 }
 
 export const QUESTION_NOT_SHOWN =
   "Duly has a question that this screen does not have the words for yet.";
+
+export const ANSWER_NOT_SHOWN =
+  "You gave an answer that is sent with these dates. This screen does not have the words for its question yet.";
+
+/** A judgement item this screen has no words for. It is never shown as nothing. */
+export const JUDGEMENT_NOT_NAMED = "Something in what you entered needs an answer.";
 
 export function becauseLine(because: readonly string[]): string {
   return `Asked because of: ${because.map(inputName).join(", ")}.`;
@@ -350,6 +488,8 @@ export function reasonText(reason: string, computed: readonly ComputedItem[] = [
   // A conflict the person answered yes to: the dates stand, and the matter is the DSO's.
   const confirmed = FACTS.get(reason);
   if (confirmed) return `${confirmed} ${CONFIRMED_FACT}`;
+  const judgement = judgementLine(reason, computed);
+  if (judgement) return judgement;
 
   const item = computed.find((candidate) => candidate.id === reason);
   if (item && item.value !== null) {
@@ -372,8 +512,28 @@ export function reasonText(reason: string, computed: readonly ComputedItem[] = [
     if (known) return known;
     const period = EMPLOYMENT_CONFLICT.exec(name);
     if (period) return `Employment period ${period[1]} ends before it starts.`;
+    if (name) return FACT_NOT_NAMED;
   }
-  return reasonLine(reason);
+  const known = reasonLine(reason);
+  // A reason with no kind that nothing here names: a judgement item, an open item, or
+  // a conflict the person confirmed. It is never shown as nothing.
+  return kind === "" && known === reasonLine("") ? JUDGEMENT_NOT_NAMED : known;
+}
+
+/** SPEC-resolutions points 19 and 21: judgement items built from a count or an item. */
+function judgementLine(reason: string, computed: readonly ComputedItem[]): string | null {
+  if (reason === "unemployment_opt_card_at_or_over_limit") {
+    const count = computed.find((item) => item.id === "unemployment.opt_card_days_used");
+    const counted =
+      count && count.value !== null ? `: ${formatValue(count.value, count.unit)}` : "";
+    return `Unemployment days counted inside the OPT EAD dates${counted}. This is at or over the limit in the rule for the OPT period, shown below.`;
+  }
+  const notMade = NOT_MADE.exec(reason);
+  const report = notMade ? reportName(notMade[1] ?? "") : null;
+  if (report) {
+    return `You answered that you did not submit the ${report}. What that means is a question for your DSO.`;
+  }
+  return null;
 }
 
 export function scopeLine(documentsCount: number, rulesCheckedOn: string | null): string {

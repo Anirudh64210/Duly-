@@ -1,0 +1,117 @@
+{
+  "verdict": {
+    "state": "cannot_tell",
+    "reasons": [
+      "unconfirmed:employment.1.end_reported",
+      "unconfirmed:employment.2.new_employer",
+      "unconfirmed:stem.concluding_evaluation_due.1.made"
+    ]
+  },
+  "scope": {
+    "documents_count": 3,
+    "rules_checked_on": "2026-09-28"
+  },
+  "computed": [
+    {
+      "id": "unemployment.opt_card_days_used",
+      "value": 1,
+      "unit": "days",
+      "inputs": {
+        "opt.ead_start": "2025-06-01",
+        "opt.ead_end": "2026-05-31",
+        "today": "2026-09-29",
+        "employment": [
+          {
+            "start": "2025-06-02",
+            "end": "2026-07-01",
+            "hours_per_week": 40,
+            "employer_reported": true
+          },
+          {
+            "start": "2026-07-02",
+            "end": null,
+            "hours_per_week": 40,
+            "employer_reported": true
+          }
+        ],
+        "duly_settings": ["product.opt_start_earliest_years_before_program_end"]
+      },
+      "rule_ids": ["opt.unemployment_limit_days"],
+      "status": "settled",
+      "reading": false
+    },
+    {
+      "id": "stem.concluding_evaluation_due.1",
+      "value": "2026-07-11",
+      "unit": "date",
+      "inputs": {
+        "employment.1.end": "2026-07-01",
+        "stem.ead_start": "2026-06-01",
+        "stem.ead_end": "2028-05-31",
+        "duly_settings": ["product.open_item_lookahead_days"]
+      },
+      "rule_ids": ["stem.evaluation_due_days"],
+      "status": "settled",
+      "reading": true
+    }
+  ],
+  "rulepacks": [
+    {
+      "category": "f1",
+      "version": "v2026.09"
+    }
+  ],
+  "rules": {
+    "opt.unemployment_limit_days": {
+      "value": 90,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(E)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "Students may not accrue an aggregate of more than 90 days of unemployment during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B).",
+      "derivation": "verbatim"
+    },
+    "stem.evaluation_due_days": {
+      "value": 10,
+      "unit": "days",
+      "status": "settled",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(9)(i)",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "checked_on": "2026-09-28",
+      "quote": "no later than 10 days following the conclusion of the reporting period or conclusion of his or her practical training opportunity, respectively",
+      "derivation": "verbatim"
+    }
+  },
+  "questions": [
+    {
+      "id": "employment.1.end_reported",
+      "because": ["employment.1.start", "employment.1.end"],
+      "about": {
+        "employment.1.start": "2025-06-02",
+        "employment.1.end": "2026-07-01"
+      }
+    },
+    {
+      "id": "employment.2.new_employer",
+      "because": ["employment.2.start", "stem.ead_start"],
+      "about": {
+        "employment.2.start": "2026-07-02",
+        "stem.ead_start": "2026-06-01"
+      }
+    },
+    {
+      "id": "stem.concluding_evaluation_due.1.made",
+      "because": ["stem.concluding_evaluation_due.1"],
+      "about": {
+        "stem.concluding_evaluation_due.1": "2026-07-11"
+      }
+    }
+  ],
+  "today": {
+    "date": "2026-09-29",
+    "time_zone": "UTC"
+  },
+  "upcoming": [],
+  "lists": []
+}
