@@ -13,7 +13,7 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +52,8 @@ class Agent:
     run_id: str = ""
     cost_usd: float = 0.0
     merged: bool = False
+    kind: str = "work"  # work, or a check of the factory: health, golden, drift
+    key: str = ""
 
 
 @dataclass
@@ -231,21 +233,33 @@ def factory_runs(events: list[dict[str, Any]]) -> set[str]:
     }
 
 
-def agents_from_events(events: list[dict[str, Any]]) -> dict[str, Agent]:
-    """The latest run of each lane. A run begins at a start event."""
+def agents_from_events(
+    events: list[dict[str, Any]], live: dict[str, str] | None = None
+) -> dict[str, Agent]:
+    """The latest run of each lane, and every check of the factory that is running now.
+
+    A run begins at a start event. `live` maps the id of each running check to its kind.
+    Checks that have ended are left out: they test the factory and are not work.
+    """
     agents: dict[str, Agent] = {}
     own = factory_runs(events)
+    live = live or {}
     for event in events:
-        if event.get("run_id") and event.get("run_id") in own:
+        run = str(event.get("run_id") or "")
+        if run in own and run not in live:
             continue
         lane = event.get("lane", "")
+        if run in live:
+            lane = f"{lane}, {live[run]} check"
         if not lane or lane == ORCHESTRATOR or lane.startswith("orchestrator"):
             continue
         kind, message = event.get("kind", ""), event.get("message", "")
         at = parse_time(event.get("at", ""))
         if kind == "start" or lane not in agents:
             runs = agents[lane].runs if lane in agents else 0
-            agents[lane] = Agent(lane=lane, started_at=at, runs=runs + 1)
+            agents[lane] = Agent(
+                lane=lane, started_at=at, runs=runs + 1, kind=live.get(run, "work"), key=lane
+            )
             if kind == "start":
                 agents[lane].mission = message
         agent = agents[lane]
@@ -479,13 +493,18 @@ def load(
     now: datetime | None = None,
 ) -> Snapshot:
     events = read_events(repo)
-    agents = agents_from_events(events)
+    running = live_runs(repo)
+    checks = {r["run_id"]: r["kind"] for r in running if r["kind"] != "work"}
+    agents = agents_from_events(events, checks)
     if ps_output is None:
         ps_output = _out(["ps", "-axo", "command"], repo)
     alive = running_lanes(ps_output)
     base = _out(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo).strip() or "main"
     for agent in agents.values():
-        agent.alive = agent.lane in alive
+        if agent.run_id:
+            agent.alive = agent.run_id in {r["run_id"] for r in running}
+        else:  # a run from before runs had ids
+            agent.alive = agent.lane in alive
         if agent.state == "working" and not agent.alive:
             agent.state = "stopped"
         agent.worktree = worktree_for(repo, agent.lane, agent.run_id)
@@ -540,9 +559,18 @@ def load(
         health = {}
     own = factory_runs(events)
     skill_dirs = [p.parent for p in (repo / ".claude" / "skills").glob("*/SKILL.md")]
-    order = {"working": 0, "blocked": 1, "failed": 1, "stopped": 1, "done": 2}
+    never = datetime.min.replace(tzinfo=UTC)
     return Snapshot(
-        agents=sorted(agents.values(), key=lambda a: (order.get(a.state, 3), a.lane)),
+        # Whoever is at work comes first, the longest at work first. Then the rest, the
+        # most recently active first.
+        agents=[
+            *sorted((a for a in agents.values() if a.alive), key=lambda a: a.started_at or never),
+            *sorted(
+                (a for a in agents.values() if not a.alive),
+                key=lambda a: a.last_at or never,
+                reverse=True,
+            ),
+        ],
         round_line=round_line,
         orchestrator=orchestrator,
         gates=gates,
@@ -624,6 +652,7 @@ def snapshot_json(
         "agents": [
             {
                 "lane": a.lane,
+                "kind": a.kind,
                 "agent": a.agent,
                 "mission": a.mission,
                 "state": a.state,

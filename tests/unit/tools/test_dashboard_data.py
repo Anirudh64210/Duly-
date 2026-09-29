@@ -377,3 +377,59 @@ def test_running_counts_every_live_run_and_names_its_kind(tmp_path):
     live = data.live_runs(repo)
     assert [(r["run_id"], r["kind"]) for r in live] == [("a", "work"), ("b", "health")]
     assert data.live_runs(tmp_path / "nowhere") == []
+
+
+def test_whoever_is_working_comes_first_and_running_checks_are_shown(tmp_path):
+    import os
+
+    repo = tmp_path / "duly"
+    (repo / ".factory").mkdir(parents=True)
+    me = os.getpid()
+    events = [
+        {**ev("L-api", "start", "old work", at="2026-09-29T08:00:00+00:00"), "run_id": "a"},
+        {**ev("L-api", "done", "done", at="2026-09-29T08:10:00+00:00"), "run_id": "a"},
+        {
+            **ev("L-web", "start", "finished check", at="2026-09-29T08:20:00+00:00"),
+            "run_id": "h0",
+            "task": "health/builder/L-web",
+        },
+        {**ev("L-web", "done", "done", at="2026-09-29T08:21:00+00:00"), "run_id": "h0"},
+        {**ev("L-tests", "start", "newer work", at="2026-09-29T09:00:00+00:00"), "run_id": "t"},
+        {**ev("L-tests", "done", "done", at="2026-09-29T09:30:00+00:00"), "run_id": "t"},
+        {**ev("L-engine", "start", "work now", at="2026-09-29T10:05:00+00:00"), "run_id": "e"},
+        {
+            **ev("L-ops", "start", "check now", at="2026-09-29T10:00:00+00:00", agent="builder"),
+            "run_id": "h1",
+            "task": "health/builder/L-ops",
+        },
+        {
+            **ev("L-ops", "step", "writes ops/HEALTH.txt", at="2026-09-29T10:00:30+00:00"),
+            "run_id": "h1",
+        },
+    ]
+    (repo / ".factory" / "events.jsonl").write_text("\n".join(json.dumps(e) for e in events))
+    runs = {
+        "e": {
+            "lane": "L-engine",
+            "agent": "builder",
+            "task": "p/B/L-engine",
+            "pid": me,
+            "started_at": "2026-09-29T10:05:00+00:00",
+        },
+        "h1": {
+            "lane": "L-ops",
+            "agent": "builder",
+            "task": "health/builder/L-ops",
+            "pid": me,
+            "started_at": "2026-09-29T10:00:00+00:00",
+        },
+    }
+    (repo / ".factory" / "registry.json").write_text(json.dumps({"runs": runs}))
+    snap = data.load(repo, with_tokens=False, ps_output="")
+    assert [(a.lane, a.alive, a.kind) for a in snap.agents] == [
+        ("L-ops, health check", True, "health"),
+        ("L-engine", True, "work"),
+        ("L-tests", False, "work"),
+        ("L-api", False, "work"),
+    ]
+    assert snap.agents[0].last_action == "writes ops/HEALTH.txt"
