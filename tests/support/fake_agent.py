@@ -7,7 +7,7 @@ by FAKE_AGENT_SCENARIO. It is not sandboxed, so it can also play an agent that m
 Steps: {"init": model} {"tool": name, "input": {...}, "times": n} {"write": path, "text": t}
        {"report": home, "status": s, "files": [...]} {"raw": text} {"sleep": seconds}
        {"git": [args]} {"result": {"cost": c, "turns": n}} {"exit": code}
-       {"usage": {"in": n, "out": n}}
+       {"usage": {"in": n, "out": n, "cached": n}}   ("cached" is optional)
 """
 
 import json
@@ -66,6 +66,7 @@ for step in steps:
                     "usage": {
                         "input_tokens": step["usage"]["in"],
                         "output_tokens": step["usage"]["out"],
+                        "cache_read_input_tokens": step["usage"].get("cached", 0),
                     },
                 },
             }

@@ -59,14 +59,21 @@ def hide(tree: Tree, rel: str) -> None:
         (tree.path / name).unlink(missing_ok=True)
 
 
-def commit_all(tree: Tree, message: str, author: str) -> str:
-    """The orchestrator commits an agent's work. The agent never writes to the repository."""
+def commit_all(tree: Tree, message: str, author: str, exclude: tuple[str, ...] = ()) -> str:
+    """The orchestrator commits an agent's work. The agent never writes to the repository.
+
+    Files named in exclude are left out, as the report and run files always are.
+    """
     # Whatever the agent committed itself is folded into one commit made here, so that the
     # report and other run files never land, and every lane arrives as a single change.
     git(["reset", "-q", "--soft", tree.base_commit], tree.path)
     git(["add", "-A"], tree.path)
     staged_now = git(["diff", "--cached", "--name-only"], tree.path).split()
-    never = [f for f in staged_now if f.endswith(("REPORT.json", "HEALTH.txt")) or f == ".lane"]
+    never = [
+        f
+        for f in staged_now
+        if f.endswith(("REPORT.json", "HEALTH.txt")) or f == ".lane" or f in exclude
+    ]
     if never:
         git(["reset", "-q", "--", *never], tree.path)
     staged = git(["diff", "--cached", "--name-only"], tree.path).split()
