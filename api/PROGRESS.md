@@ -93,3 +93,40 @@ Not run
 - Fix: name it with the Error suffix from the start.
 - Evidence: `N818 Exception name NotANumber should be named with an Error suffix`
   at api/case_f1.py, gone after the rename; ruff check reports all checks passed.
+
+## 2026-09-29, iteration 3
+
+Goal: the api part of section 2 of specs/phase-2/SPEC-context.md. An unknown zone is
+refused with a 422 in plain words.
+
+What was built
+- api/case_f1.py: `first_problem` now ends with a check of `time_zone` against
+  `engine.clocks.zone_named`, after the contract check finds nothing. A name that matches
+  the pattern of the contract and is no zone gets `NOT_A_ZONE`, words that name the field
+  and never repeat what was sent.
+- api/main.py: no change. `today`, `questions` and the derivation of each rule come from
+  the engine and pass through as they are.
+
+Choices
+- The zone is checked by name in the api and the ValueError of `parse_case` is not caught
+  as a whole. A wide catch would turn any later ValueError of the engine into a 422, and
+  would show the engine's words without anyone having read them.
+- The zone list is the engine's. The api keeps no list of its own, so the two cannot
+  disagree.
+
+What ran
+- Before: 7 failures in tests/unit/api/test_compute_context.py, all from one cause. The
+  ValueError of `zone_named` left `parse_case` and became a 500.
+- Done command, first try after the change: green, exit code 0. pytest all passed, mypy
+  "no issues found in 34 source files", ruff check "All checks passed!", ruff format
+  "8 files already formatted".
+- Copy lint: clean.
+
+Not run
+- Gates 1 to 6 (`make test`) were not run in this iteration.
+
+Seen, not changed
+- A `time_zone` or a `confirmations` entry that breaks a pattern, a length or a count in
+  the contract is refused with the general words "this does not match the contract",
+  after the place of the problem. The tests accept this. Words for each of those checks
+  could be added to `_in_words` later.
