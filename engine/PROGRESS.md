@@ -406,3 +406,28 @@ More readings:
   `dict[str, Sequence[str]]`, and refused `question["id"]` as a string.
   Fix: give the list its type, `list[dict[str, Any]]`.
   Evidence: mypy then printed "no issues found in 34 source files".
+
+## Run l-engine-5a03087828, 2026-09-29: is_weekend (specs/factory/e2e-SPEC.md)
+
+### What was written
+
+- engine/dates.py: `is_weekend(d: date) -> bool`, placed before `is_business_day`. It
+  returns `d.weekday() >= SATURDAY`, with the SATURDAY name the module already holds. It
+  takes a date only and reads no clock. Nothing else in the engine changed.
+
+### What ran and what it printed
+
+- tests/unit/engine/test_is_weekend.py is not in this worktree. It is in commit a58226f,
+  on the branch work/factory-e2e, which is not an ancestor of this branch.
+- The file was read from that commit into a scratch folder under TMPDIR and run there
+  with PYTHONPATH set to the worktree: `10 passed in 0.09s`, exit 0. The scratch folder
+  was then removed. Nothing was written under tests/.
+- The done command, as written: 556 dots of passing tests under tests/unit/engine,
+  `Success: no issues found in 53 source files`, `All checks passed!`,
+  `8 files already formatted`, `engine literals: every number has a source`, exit 0.
+  This run did not include test_is_weekend.py, since the file is not on this branch.
+
+### Requests
+
+- The orchestrator: bring commit a58226f (the L-tests file) onto the branch that this
+  lane is merged with, so that the done command covers is_weekend.
