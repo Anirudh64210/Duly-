@@ -1153,9 +1153,9 @@
               "in API credits, of $" + spend.cap.toFixed(0) + " allowed",
             )
           : tile(
-              "Usage today",
+              "Safety cap used today",
               share(spend.today, spend.cap),
-              "of the factory's daily limit. " + spend.plan + ", nothing is charged",
+              "A cap that stops runaway agents. It is not your subscription's limit. Nothing is charged.",
             );
         const track = el("div", "spend-track");
         const fill = el("i");
@@ -1210,7 +1210,7 @@
             "Runs",
             "Pass",
             "Tries",
-            s.spend.charged ? "Cost" : "Limit",
+            s.spend.charged ? "Cost" : "Cap",
             "Min",
           ])
             head.append(el("th", "", h));
@@ -1363,7 +1363,7 @@
             [a.files_changed + a.uncommitted, "files"],
             [
               usage(a.cost_usd, snapshot.spend, snapshot.spend.task_cap),
-              snapshot.spend.charged ? "cost" : "of limit",
+              snapshot.spend.charged ? "cost" : "of task cap",
             ],
           ]) {
             const fact = el("div", "fact");
@@ -1477,7 +1477,7 @@
           [count(a.tokens_in + a.tokens_out), "tokens"],
           [
             usage(a.cost_usd, snapshot.spend, snapshot.spend.task_cap),
-            snapshot.spend.charged ? "cost" : "of limit",
+            snapshot.spend.charged ? "cost" : "of task cap",
           ],
           [a.merged ? "yes" : "no", "merged"],
         ].map(([value, label]) => {
