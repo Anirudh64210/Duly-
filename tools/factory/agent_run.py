@@ -126,6 +126,7 @@ class Outcome:
     cost_usd: float = 0.0
     tokens_in: int = 0
     tokens_out: int = 0
+    tokens_charged: int = 0  # what counts against the budget; see charged()
     turns: int = 0
     seconds: int = 0
     started_at: str = ""
@@ -138,6 +139,7 @@ class Outcome:
     branch: str = ""
     worktree: str = ""
     files_changed: list[str] = field(default_factory=list)
+    kept_commit: str = ""  # unaccepted work saved on the run's own branch, never merged
     report: dict[str, Any] | None = None
 
 
@@ -148,9 +150,26 @@ class Attempt:
     cost_usd: float = 0.0
     tokens_in: int = 0
     tokens_out: int = 0
+    tokens_charged: int = 0
     turns: int = 0
     session: str = ""
     model: str = ""
+
+
+def charged(usage: dict[str, Any]) -> int:
+    """The tokens one model call counts against a task's budget.
+
+    Every turn reads the whole conversation again from the cache. Those reads are billed at
+    a tenth of fresh input, so counting them in full stopped a healthy run at 6 million
+    tokens when it had used under 0.8 million of real work (run l-web-d1622b0c58, where
+    97 percent of the count was cache reads). Raw counts still go to telemetry.
+    """
+    return (
+        int(usage.get("input_tokens") or 0)
+        + int(usage.get("cache_creation_input_tokens") or 0)
+        + int(usage.get("cache_read_input_tokens") or 0) // 10
+        + int(usage.get("output_tokens") or 0)
+    )
 
 
 def new_run_id(lane: str) -> str:
@@ -267,7 +286,9 @@ def watch(
                         "cache_read_input_tokens",
                     )
                 )
-            if out.tokens_in + out.tokens_out > tokens_left:
+                out.tokens_charged += charged(usage)
+                out.turns = len(seen_messages)
+            if out.tokens_charged > tokens_left:
                 out.ended, out.detail = "tokens", "the token budget is used up"
                 _kill(proc)
                 return out
@@ -288,7 +309,7 @@ def watch(
                     return out
         elif kind == "result":
             out.cost_usd = float(event.get("total_cost_usd") or 0.0)
-            out.turns = int(event.get("num_turns") or 0)
+            out.turns = int(event.get("num_turns") or out.turns)
             out.session = str(event.get("session_id") or out.session)
 
 
@@ -357,9 +378,12 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         started_at=clock.now().isoformat(timespec="seconds"),
     )
     began = time.monotonic()
+    live: dict[str, Any] = {}  # the worktree and lane, once the run has them
 
     def finish(status: str, reason: str) -> Outcome:
         outcome.status, outcome.reason = status, reason
+        if status in {"failed", "escalated", "stopped"} and "tree" in live:
+            outcome.kept_commit = keep_unaccepted(live["tree"], live["lane"], task, status, repo)
         outcome.seconds = int(time.monotonic() - began)
         outcome.ended_at = clock.now().isoformat(timespec="seconds")
         kind = {
@@ -471,6 +495,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             alerts.notify("budget", str(err), task.lane, task.run_id, repo)
         return finish("refused", str(err))
 
+    live.update(tree=tree, lane=lane)
     outcome.base_commit, outcome.branch, outcome.worktree = (
         tree.base_commit,
         tree.branch,
@@ -506,7 +531,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         if registry.stopped(repo):
             return finish("stopped", "the factory was stopped")
         left = round(allowed - outcome.cost_usd, 2)
-        tokens_left = contract.token_budget - outcome.tokens_in - outcome.tokens_out
+        tokens_left = contract.token_budget - outcome.tokens_charged
         if left <= 0 or tokens_left <= 0:
             alerts.notify(
                 "budget",
@@ -595,6 +620,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         outcome.cost_usd = round(outcome.cost_usd + result.cost_usd, 4)
         outcome.tokens_in += result.tokens_in
         outcome.tokens_out += result.tokens_out
+        outcome.tokens_charged += result.tokens_charged
         outcome.turns += result.turns
         outcome.model = result.model or outcome.model
         if result.session:
@@ -741,6 +767,47 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     return finish(
         "failed", f"{contract.max_attempts} attempts, none accepted: {last_failure}"[:400]
     )
+
+
+def keep_unaccepted(tree: worktree.Tree, lane: Lane, task: Task, status: str, repo: Path) -> str:
+    """Save the work of a run that ended without being accepted, on its own branch only.
+
+    A run cut off by a budget or a limit used to leave its work uncommitted in a worktree
+    that the next run never sees, so the next run began again from nothing. The work is
+    committed to the run's branch, marked as not accepted, and never merged: only a later
+    run that passes its done command can carry it forward. Files outside the lane are left
+    out. Nothing here may stop the run from ending, so a failure is recorded and passed.
+    """
+    try:
+        outside = tuple(violations(lane, _all_changes(tree)))
+        sha = worktree.commit_all(
+            tree,
+            f"wip({task.lane}): not accepted ({status}); kept for the next run\n\n"
+            f"Factory-Run: {task.run_id}\nFactory-Task: {task.task}\n"
+            f"Factory-Base: {tree.base_commit}\n",
+            task.agent,
+            exclude=outside,
+        )
+    except worktree.WorktreeError as err:
+        ledger.append(
+            task.lane,
+            "orchestrator",
+            "step",
+            f"work not kept: {err}"[:400],
+            repo,
+            run_id=task.run_id,
+        )
+        return ""
+    if sha:
+        ledger.append(
+            task.lane,
+            "orchestrator",
+            "step",
+            f"unaccepted work kept on {tree.branch} at {sha[:10]}; not merged",
+            repo,
+            run_id=task.run_id,
+        )
+    return sha
 
 
 def _all_changes(tree: worktree.Tree) -> list[str]:

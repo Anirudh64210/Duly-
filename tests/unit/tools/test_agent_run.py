@@ -160,6 +160,35 @@ def test_a_token_budget_stops_the_run(tmp_path, monkeypatch):
     assert "budget" in out.reason
 
 
+def test_cache_reads_count_at_a_tenth_against_the_budget(tmp_path, monkeypatch):
+    # Nine million tokens read from the cache charge 900,000, well inside the budget.
+    steps = mini.good(["engine/new.py"])
+    steps.insert(1, {"usage": {"in": 100, "out": 10, "cached": 9_000_000}})
+    _, out = play(tmp_path, monkeypatch, [steps])
+    assert out.status == "done"
+    assert out.tokens_charged == 100 + 10 + 900_000
+    assert out.tokens_in == 9_000_100  # telemetry keeps the raw count
+
+
+def test_work_cut_off_by_the_budget_is_kept_on_its_branch_and_not_merged(tmp_path, monkeypatch):
+    greedy = [
+        {"init": mini.MODEL},
+        {"write": "engine/new.py"},
+        {"write": "tests/cheat.py"},
+        {"usage": {"in": 9_000_000, "out": 10}},
+        {"sleep": 30},
+    ]
+    repo, out = play(tmp_path, monkeypatch, [greedy])
+    assert out.status == "failed"
+    assert out.kept_commit
+    kept = mini.git(repo, "show", "--stat", "--format=%B", out.kept_commit)
+    assert "not accepted" in kept
+    assert "engine/new.py" in kept
+    assert "tests/cheat.py" not in kept  # nothing outside the lane is kept
+    assert out.head_commit == ""
+    assert mini.git(repo, "rev-parse", "phase-x") == out.base_commit  # nothing was merged
+
+
 def test_writes_outside_the_lane_are_never_accepted(tmp_path, monkeypatch):
     strays = [
         {"init": mini.MODEL},
