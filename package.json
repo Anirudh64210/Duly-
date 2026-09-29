@@ -4,12 +4,13 @@
   "version": "0.0.0",
   "workspaces": [
     "web",
-    "ops"
+    "ops",
+    "desktop"
   ],
   "scripts": {
-    "lint": "eslint . && prettier --check \"{web,ops}/**/*.{ts,tsx,css,html,json}\"",
-    "typecheck": "npm run typecheck -w web && npm run typecheck -w ops",
-    "test": "npm run test -w web && npm run test -w ops",
+    "lint": "eslint . && prettier --check \"{web,ops,desktop}/**/*.{ts,tsx,css,html,json}\"",
+    "typecheck": "npm run typecheck -w web && npm run typecheck -w ops && npm run typecheck -w desktop",
+    "test": "npm run test -w web && npm run test -w ops && npm run test -w desktop",
     "build": "npm run build -w web && npm run build -w ops"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation desktop desktop-smoke
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -28,7 +28,7 @@ gate-1:
 	uv run ruff check .
 	uv run ruff format --check .
 	npx eslint . --max-warnings 0
-	npx prettier --check "{web,ops}/**/*.{ts,tsx,css,html,json}"
+	npx prettier --check "{web,ops,desktop}/**/*.{ts,tsx,css,html,json}"
 	uv run python -m tools.copy_lint.lint
 
 gate-2:
@@ -111,6 +111,17 @@ weekly:
 
 mutation:
 	uv run python -m tools.gates.mutation $(FILES)
+
+desktop:
+	npm run build -w web
+	npm run start -w desktop
+
+desktop-smoke:
+	npm run build -w web
+	npm run build -w desktop
+	rm -rf .scratch/smoke && mkdir -p .scratch/smoke
+	cd desktop && npx electron . --smoke $(CURDIR)/.scratch/smoke
+	@cat .scratch/smoke/screen.json
 
 lane:
 	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)

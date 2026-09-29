@@ -1,0 +1,64 @@
+branch: desktop-1
+spec: specs/desktop-1/SPEC.md
+merge: pr
+rounds:
+  - name: shell
+    lanes:
+      - lane: L-desktop
+        agent: builder
+        mission: >
+          Build the desktop shell the SPEC describes, in desktop/src, with its tests beside
+          the code. You cannot start Electron inside your sandbox; the founder runs the
+          smoke run. Keep every decision in plain functions that your tests can call.
+        done: >-
+          bash -c 'npm run typecheck -w desktop && npm test -w desktop
+          && npx eslint desktop --max-warnings 0
+          && npx prettier --check "desktop/**/*.{ts,json}"
+          && uv run python -m tools.copy_lint.lint
+          && test -f desktop/src/main.ts && test -f desktop/src/preload.ts
+          && test -f desktop/src/smoke.ts'
+      - lane: L-api
+        agent: builder
+        mission: >
+          Do the api work under "The api (L-api)" in the SPEC. Tests belong to the test
+          lane, which is writing them in this same round; keep the existing api tests
+          green.
+        done: >-
+          bash -c 'uv run pytest tests/unit/api -q && uv run mypy
+          && uv run ruff check api && uv run ruff format --check api'
+      - lane: L-web
+        agent: builder
+        mission: >
+          Do the screen work under "The screen (L-web)" in the SPEC, with tests beside the
+          code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web && npm run build -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint
+          && ! grep -q "src=\"/assets" web/dist/index.html'
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Write tests/unit/api/test_local_token.py for the behaviour under "The api (L-api)"
+          in the SPEC, from the SPEC alone. The behaviour is being built in this same round,
+          so your tests cannot pass in your own worktree; that is expected.
+        done: >-
+          bash -c 'test -f tests/unit/api/test_local_token.py
+          && uv run ruff check tests && uv run ruff format --check tests'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=desktop-1" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review everything on this branch that is not on the branch product-1
+          (git diff product-1...HEAD) against specs/desktop-1/SPEC.md, PRINCIPLES.md,
+          BOUNDARY.md, CLAUDE.md and security/threat-model.md, following your role file.
+          Look hardest at the app protocol: try to read a file outside web/dist, to reach
+          the engine without the token, and to open a link to a host that is not a primary
+          source. Write reviews/desktop-1.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/desktop-1.md && test -f reviews/REVIEW.json'
+    checks: []
