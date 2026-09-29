@@ -172,7 +172,8 @@ def test_parse_case_cannot_be_changed_afterwards():
 
 
 def test_parse_case_fills_what_the_contract_lets_a_case_leave_out():
-    # The contract requires five fields. cpt_full_time_days defaults to 0 there.
+    # The contract requires five fields. specs/product-1/SPEC.md, section 2, and the
+    # case contract: CPT days that are absent were not entered, and are never taken as 0.
     case = f1.parse_case(
         {
             "program_end_date": "2026-05-15",
@@ -182,7 +183,7 @@ def test_parse_case_fills_what_the_contract_lets_a_case_leave_out():
             "employment": [],
         }
     )
-    assert case.cpt_full_time_days == 0
+    assert case.cpt_full_time_days is None
     assert case.opt is None
     assert case.stem is None
     assert case.cap_gap is None

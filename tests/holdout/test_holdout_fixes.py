@@ -241,6 +241,7 @@ def long_case(first: str, last: str, program_end: str, periods: int) -> dict[str
         "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 1,
+        "cpt_full_time_days": 0,
         "opt": ead(first, first, first, last),
         "employment": [
             job(first, None if number % 2 else last, hours=number) for number in range(periods)

@@ -109,6 +109,7 @@ STEM_WITHOUT_OPT: dict[str, Any] = {
     "confirmations": answered_yes(),
     "degree_level": "master",
     "documents_count": 2,
+    "cpt_full_time_days": 0,
     "employment": [],
     "stem": {
         "dso_recommendation_date": "2026-04-01",
@@ -179,6 +180,7 @@ def test_cap_gap_with_neither_opt_nor_stem_cannot_tell_and_names_opt(opt, stem):
         "confirmations": answered_yes(),
         "degree_level": "master",
         "documents_count": 2,
+        "cpt_full_time_days": 0,
         "employment": [],
         "cap_gap": cap_gap("2026-10-01"),
     }
