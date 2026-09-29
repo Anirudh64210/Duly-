@@ -16,6 +16,8 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -125,6 +127,40 @@ def _gh(repo: Path, *args: str, timeout: int = 1800) -> tuple[int, str]:
     return done.returncode, (done.stdout + done.stderr).strip()
 
 
+# Errors from the network or GitHub that pass on their own; a remote step is tried again.
+TRANSIENT = (
+    "Permission denied (publickey)",
+    "Could not read from remote repository",
+    "Connection reset",
+    "Connection closed",
+    "Connection refused",
+    "timed out",
+    "Could not resolve host",
+    "error connecting to api.github.com",
+    "HTTP 502",
+    "HTTP 503",
+    "HTTP 504",
+    "unexpected EOF",
+)
+
+
+def _remote(call: Callable[[], tuple[int, str]]) -> tuple[int, str]:
+    """Run a step that talks to the remote, again after a wait while it fails transiently.
+
+    A push was once refused with Permission denied (publickey) and passed a minute later
+    with nothing changed. Three more tries, 5, 20 and 60 seconds apart, before the step is
+    reported as failed; an error that is not on the list is reported at once.
+    """
+    waits = [float(w) for w in os.environ.get("DULY_RETRY_SECONDS", "5,20,60").split(",") if w]
+    code, text = call()
+    for wait in waits:
+        if code == 0 or not any(sign in text for sign in TRANSIENT):
+            break
+        time.sleep(wait)
+        code, text = call()
+    return code, text
+
+
 # How long CI may take to register checks on a pushed commit, and to finish them.
 CI_REGISTER_SECONDS = 600
 CI_FINISH_SECONDS = 3600
@@ -137,8 +173,20 @@ def open_pull_request(repo: Path, target: str, work: str, title: str, body: str)
     A round that is run again after a failure finds its first pull request still open;
     GitHub allows one per pair of branches, so that one is used.
     """
-    code, text = _gh(
-        repo, "pr", "list", "--head", work, "--base", target, "--state", "open", "--json", "number"
+    code, text = _remote(
+        lambda: _gh(
+            repo,
+            "pr",
+            "list",
+            "--head",
+            work,
+            "--base",
+            target,
+            "--state",
+            "open",
+            "--json",
+            "number",
+        )
     )
     if code:
         return code, text
@@ -147,9 +195,11 @@ def open_pull_request(repo: Path, target: str, work: str, title: str, body: str)
     except json.JSONDecodeError:
         return 1, f"gh pr list gave no JSON: {text[:120]}"
     if already:
-        return _gh(repo, "pr", "edit", work, "--title", title, "--body", body)
-    return _gh(
-        repo, "pr", "create", "--base", target, "--head", work, "--title", title, "--body", body
+        return _remote(lambda: _gh(repo, "pr", "edit", work, "--title", title, "--body", body))
+    return _remote(
+        lambda: _gh(
+            repo, "pr", "create", "--base", target, "--head", work, "--title", title, "--body", body
+        )
     )
 
 
@@ -289,8 +339,11 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
         f"{chr(0x1F916)} Generated with [Claude Code](https://claude.com/claude-code)"
     )
     steps = [
-        ("push the phase branch", _git(repo, "push", "-q", "origin", target)),
-        ("push the working branch", _git(repo, "push", "-q", "--force-with-lease", "origin", work)),
+        ("push the phase branch", _remote(lambda: _git(repo, "push", "-q", "origin", target))),
+        (
+            "push the working branch",
+            _remote(lambda: _git(repo, "push", "-q", "--force-with-lease", "origin", work)),
+        ),
     ]
     if not any(code for _, (code, _) in steps):
         steps.append(("open the pull request", open_pull_request(repo, target, work, title, body)))
@@ -305,16 +358,9 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
         alerts.notify("failed", f"clean CI did not pass for round {name}: {detail}", cwd=repo)
         return False
     _say(repo, "step", f"clean CI for round {name}: {detail}")
-    code, text = _gh(
-        repo,
-        "pr",
-        "merge",
-        work,
-        "--merge",
-        "--subject",
-        title,
-        "--body",
-        f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}",
+    merge_body = f"Factory-Ledger: {ledger.head(repo)}\n\n{TRAILER}"
+    code, text = _remote(
+        lambda: _gh(repo, "pr", "merge", work, "--merge", "--subject", title, "--body", merge_body)
     )
     if code:
         alerts.notify("failed", f"could not merge the pull request: {text[:160]}", cwd=repo)
@@ -324,7 +370,7 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
         ("branch", "-f", target, f"origin/{target}"),
         ("merge", "-q", "--ff-only", f"origin/{target}"),
     ):
-        code, text = _git(repo, *args)
+        code, text = _remote(partial(_git, repo, *args))
         if code:
             alerts.notify("failed", f"could not bring {target} back: {text[:160]}", cwd=repo)
             return False
