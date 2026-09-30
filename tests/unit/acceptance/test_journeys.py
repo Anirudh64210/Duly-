@@ -1466,7 +1466,9 @@ def test_j04_the_concluding_evaluation_is_dated_from_the_release_date(client: Te
 
 
 def test_j04_no_validation_is_dated_after_the_stem_card_ended(client: TestClient) -> None:
-    # resolutions point 15: "No validation is dated after the card or the training ends."
+    # resolutions point 16 (correcting point 15's "or the training ends"), 8 CFR
+    # 214.2(f)(12)(ii)(B): validation reporting "ends when the student's F-1 status expires or
+    # the 24-month OPT extension concludes, whichever is first"; the release ends the card.
     # a2 starts 2021-06-22 and ends 2022-08-15. Validations every 6 months from the start:
     # 2021-12-22, 2022-06-22, 2022-12-22 and 2023-06-22. The last two lie after 2022-08-15
     # (finding 1 saw them in the output), so no validation of a2 holds a date after it.
@@ -1888,9 +1890,10 @@ def test_j19_stem_validations_stop_at_the_card_end(client: TestClient) -> None:
     # Was test_j19_stem_validations_skip_juneteenth. a2 starts 2026-06-09. Plus 6 months:
     # 2026-12-09 (a Wednesday); plus 10 business days: 10, 11, 14, 15, 16, 17, 18, 21, 22,
     # 23 -> 2026-12-23. Plus 24 months would be 2028-06-09, the day after the card ends
-    # 2028-06-08: resolutions point 15, "No validation is dated after the card or the
-    # training ends", and 8 CFR 214.2(f)(12)(ii)(B), reporting "ends when ... the 24-month
-    # OPT extension concludes", so validation_4 holds no date. The Juneteenth skip moved to
+    # 2028-06-08: resolutions point 16 (correcting point 15's "or the training ends":
+    # validations exist only while a STEM card exists), and 8 CFR 214.2(f)(12)(ii)(B),
+    # reporting "ends when ... the 24-month OPT extension concludes", so validation_4 holds
+    # no date. The Juneteenth skip moved to
     # a validation inside its card (holdout, test_twin_j19_validation_skips_juneteenth).
     out = _send(client, j19())
     assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
