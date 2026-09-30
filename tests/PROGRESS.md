@@ -2526,3 +2526,54 @@ formatted, all dots, exit 0.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-1ab03b9f83: resolutions point 18, J19 twins in acceptance and holdout
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 17 and 18,
+reviews/product-2-fix4.md, the pack's stem_validation_end petition line
+(rulepacks/f1-us/v2026.09/parameters.yaml near line 1790).
+
+Point 18 test used: approved and validity_start on or after the start of the current
+post-completion OPT or STEM card. Every validity start chosen is on or after a2's start or
+before a1's start, so the tests hold whether "current card" means a2 or a1.
+
+tests/unit/acceptance/test_journeys.py (J19: a1 2025-06-09 to 2026-06-08, a2 2026-06-09 to
+2028-06-08; grace.p2 without a petition 2028-06-09 to 2028-08-07, 60 days from 2028-06-08):
+- _j19_with_petition takes outcome (default approved, None leaves it out). Existing cases unchanged.
+- Changed: ..._filed_the_day_before_the_card_began_keeps_the_validations is now
+  ..._ends_validations_at_its_start. Point 18 says point 17's "filed while the card runs" test
+  "was the wrong test and is replaced". validity_start 2027-03-01 is after 2026-06-09, so the
+  petition belongs. The old assertion is reversed because the SPEC reversed it, not loosened.
+- New: old approved petition (2020): grace.p2 stands, no cap_gap stage, no h9 conflict.
+  Filed during OPT (2026-04-01), validity 2026-10-01: no validation or grace after 2026-09-30.
+  validity_start on the card's first day 2026-06-09: nothing after 2026-06-08. Denied on card:
+  validations 2 (2027-06-09) and 3 (2027-12-09 to 12-23) stay. Pending: same, and
+  h9.validity_start is not asked. Approved, no validity_start: h9.validity_start is asked. No
+  outcome: h9.outcome is asked.
+tests/holdout/test_holdout_journeys.py (a1 2024-12-12 to 2025-12-11, a2 2025-12-12 to
+2027-12-11; grace.p1 2027-12-12 to 2028-02-09): _twin_j19_with_petition takes outcome. New:
+old petition (grace, no cap_gap, no conflict), filed during OPT 2025-06-02 for 2026-10-01,
+denied on card, pending on card, approved with no validity_start (asked).
+
+What ran:
+- Worktree, tests/unit/acceptance and tests/holdout: exactly 8 tests fail, all of them point 18
+  tests: day-before (flipped), old petition grace (both files), filed during OPT (both), first
+  day edge, no validity_start (both). Every other test passes.
+- Scratch copy (git archive HEAD into TMPDIR) with the validation petition line moved to point
+  18 (validity_start on_or_after outer.card_start in place of the two filed_on bounds): every
+  validation test passes. Only the grace/cap_gap and validity_start question tests still fail,
+  and those need the cap_gap, grace and question parts of point 18, which the build lane owns.
+- Mutants on that reference: outcome filter removed (m4): both denied twins fail. Strict
+  `after`: the first-day edge fails. requested_start read as the start with no outcome filter:
+  both pending twins fail. Scratch folder removed.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: a cap_gap for_each or grace exclusion that counts any
+change-of-status petition (old petition tests). Keeping point 17's filed_on bounds (day before,
+filed during OPT). Strict after (first day). No outcome filter (denied). Reading
+requested_start (pending). No question for a missing validity_start (no validity start). No
+question for a missing outcome (no outcome; this one passes today, so it only guards against a
+regression).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
