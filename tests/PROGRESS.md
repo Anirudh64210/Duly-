@@ -2577,3 +2577,29 @@ regression).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-09fb9c5eeb: tests/unit and tests/holdout checked against resolutions point 17
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md (points 17 and 18), the J19
+petition tests in tests/unit/acceptance/test_journeys.py and the twins in
+tests/holdout/test_holdout_journeys.py.
+
+What ran first: the done command as written, no pipe: All checks passed!, 73 files already
+formatted, pytest all dots, exit 0.
+
+Point 17 against the tests:
+- Validations end only for an approved petition whose change of status did not end before the
+  start: covered by the old petition, cos_ended_on and "ends at its start" tests in both files.
+- "A journey twin holds such an older petition": test_twin_j19_an_old_petition_before_this_f1_status_keeps_the_validations.
+- The web samples and heading text bullets have no test in tests/unit or tests/holdout; point 18
+  replaces the heading text check with data-landmark.
+- Point 18 replaces point 17's "filed while the card runs" test. The day-before test follows
+  point 18 (l-tests-1ab03b9f83). Putting it back to point 17 would go against the later
+  resolution, so it is left as it is and listed under disputes.
+
+Changed: one comment in test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_start
+saying point 18 gives the same answer. No assertion changed, no test added. The faults that make
+these tests fail are the same as in l-tests-9c0a169aa5 and l-tests-1ab03b9f83.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
