@@ -33,6 +33,16 @@ describe("status parsing", () => {
     await expect(fetchStatus(reply(good))).resolves.toEqual(good);
   });
 
+  it("asks for the status path relative to the page", async () => {
+    const urls: unknown[] = [];
+    const get = ((url: unknown) => {
+      urls.push(url);
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(good) });
+    }) as unknown as typeof fetch;
+    await fetchStatus(get);
+    expect(urls).toEqual(["api/v1/status"]);
+  });
+
   it("throws on a failed response", async () => {
     await expect(fetchStatus(reply({}, false, 503))).rejects.toThrow("503");
   });
