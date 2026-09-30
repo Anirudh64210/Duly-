@@ -323,9 +323,8 @@ def working_branch(plan: dict[str, Any]) -> str:
 def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
     """Send what has landed to the phase branch through a pull request.
 
-    The phase branch only ever receives work that clean CI has passed. Rounds whose work is
-    not expected to pass yet, such as tests written before the code, set checkpoint: false
-    and travel with the next round that does.
+    The phase branch only ever receives work that clean CI has passed. By default a plan
+    reaches it once, at its last round; a round may set checkpoint: true to land sooner.
     """
     target, work = plan["branch"], working_branch(plan)
     code, ahead = _git(repo, "rev-list", "--count", f"{target}..{work}")
@@ -498,7 +497,10 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
             ok = False
         ok = land(repo, plan, job, out) and ok
     ok = run_checks(repo, rnd.get("checks", [])) and ok
-    if ok and plan["merge"] == "pr" and rnd.get("checkpoint", True):
+    # One pull request and one CI run per plan, at its last round, unless a round asks for
+    # its own: a CI run after every round cost 13 waits in one day for one feature.
+    last = rnd is plan["rounds"][-1]
+    if ok and plan["merge"] == "pr" and rnd.get("checkpoint", last):
         ok = checkpoint(repo, plan, name)
     if ok:
         _say(repo, "done", f"round {name} complete")

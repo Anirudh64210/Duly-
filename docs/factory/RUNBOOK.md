@@ -90,6 +90,26 @@ For any merge, the full trace is:
 
 `make weekly` writes docs/factory/reviews/<year>-W<week>.md: every run that failed or escalated, and a sample of those that passed, with five questions for each. The founder reads the traces, answers, and writes what changes. Then `make drift` has the reviewer score an earlier review again, to check the judge against itself.
 
+## Checks scale with the risk of the change
+
+One feature once took fifteen hours: every change, even two sentences of plain words, went
+through the full test suite, a pull request and a CI run, a review and an audit. Checks are
+now chosen by what a change can break.
+
+| Kind of change | Rounds | Checks |
+|---|---|---|
+| Words only (plain words, labels, copy) | content or screen, then review | the text gates (plain words, freeze, copy lint, the pack loads) and the reviewer's read. No test suite, no build round |
+| Behaviour (engine, api, screen logic) | tests first, build, reconcile, then review and audit | the lane's own tests while it works; the full suite, the hidden tests and the gates once, in the plan's last build round |
+| Contract | its own commit, first and alone | schema checks and the tests that read it |
+| Factory (tools, runner, gates) | the founder lane, with tests | `make factory-test` and diff coverage on the changed lines before merging |
+
+- A plan reaches the phase branch once, at its last round: one pull request and one CI run per plan (phase.py; a round may still set `checkpoint: true`).
+- Heavy checks (`make test-offline`) go in one round of a plan, the last that builds.
+- Independent work runs in parallel lanes of the same round, not in plans one after another.
+- A reviewer reads everything in one pass and names every finding; a fix plan answers all of them together.
+- Before a phase is built, real student journeys are run against its data model, so a gap in the model is found before code is written, not after.
+- `make efficiency SINCE=<time>` reports wall time, agent time by lane, CI waits, stops and the time from each stop to the restart, and reviews with vetoes. Every status report carries it.
+
 ## A change of behaviour lands in two rounds
 
 Tests written before the code cannot know which older cases the new behaviour will collide with, so a builder held to the whole suite escalates on every such case (product round 1 escalated this way four times). Plan it as:
