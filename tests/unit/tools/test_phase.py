@@ -513,6 +513,44 @@ def test_nothing_reaches_the_phase_branch_when_ci_fails(tmp_path):
     assert (repo / "engine" / "new.py").exists()  # the work waits on the working branch
 
 
+def test_a_plan_reaches_the_phase_branch_once_at_its_last_round(tmp_path):
+    repo = mini.build(tmp_path)
+    env = {
+        **mini.scenario(
+            tmp_path,
+            {
+                "L-tests": [mini.good(["tests/test_new.py"], "tests")],
+                "L-engine": [mini.good(["engine/new.py"])],
+                "L-web": [mini.good(["web/new.ts"], "web")],
+            },
+        ),
+        **with_remote(tmp_path, repo),
+    }
+    plan_file(
+        repo,
+        [
+            {
+                "name": "A",
+                "checks": [],
+                "lanes": [job("L-tests", "test-author", "test -f tests/test_new.py")],
+            },
+            {
+                "name": "B",
+                "checks": [],
+                "lanes": [job("L-engine", "builder", "test -f engine/new.py")],
+            },
+            {"name": "C", "checks": [], "lanes": [job("L-web", "builder", "test -f web/new.ts")]},
+        ],
+        merge="pr",
+    )
+    done = orchestrate(repo, env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    prs = json.loads((tmp_path / "gh.json").read_text())["prs"]
+    assert [(p["title"], p["state"]) for p in prs] == [("phase-x: round C", "merged")]
+    assert "merge(L-tests)" in prs[0]["body"]
+    assert "merge(L-engine)" in prs[0]["body"]
+
+
 def test_a_round_run_again_reuses_its_open_pull_request(tmp_path):
     repo = mini.build(tmp_path)
     env = {
