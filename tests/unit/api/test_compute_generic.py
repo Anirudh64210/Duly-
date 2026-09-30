@@ -7,7 +7,9 @@ cannot_tell with category_not_covered:<id> (path-1)." Also specs/path-1/contract
 point 10 (it takes the new case.schema.json) and point 12 (scope.documents_count is filled
 by the engine, since the new case has no field for it).
 
-Expected to fail until the build round: the route does not exist yet.
+Every post goes through tests/support/api_client.CheckedClient, which refuses a placeholder
+answer before it is sent (specs/product-1/SPEC-resolutions.md, points 2, 3 and 7; guarded by
+tests/unit/support/test_placeholders.py).
 """
 
 import json
@@ -22,6 +24,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from api import case_f1 as refusals
 from api.main import app, get_clock
 from engine.clocks import FixedClock
+from tests.support.api_client import CheckedClient
 
 URL = "/v1/compute"
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -48,7 +51,7 @@ def _case(**changes: Any) -> dict[str, Any]:
 def client() -> Any:
     app.dependency_overrides[get_clock] = lambda: CLOCK
     try:
-        yield TestClient(app)
+        yield CheckedClient(app)
     finally:
         app.dependency_overrides.pop(get_clock, None)
 
