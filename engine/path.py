@@ -825,7 +825,7 @@ class _Run:
             virtual = None
         saved = self._snapshot()
         self._enter(stage, virtual, entry)
-        if self._closed(self.stages[-1]):
+        if self._closed(stage, self.stages[-1]):
             self._restore(saved)
 
     _KEPT = (
@@ -854,10 +854,13 @@ class _Run:
         for name, value in saved.items():
             setattr(self, name, value)
 
-    def _closed(self, entry: Json) -> bool:
-        """A next stage whose every known window closed before today is not shown (resolution
-        6). A stage with no known close is kept."""
-        closes = [_as_date(w["closes"]) for w in entry["windows"]]
+    def _closed(self, stage: Json, entry: Json) -> bool:
+        """A next stage is shown only while a window in which something can be filed has not
+        closed (resolutions 6 and 15). Such a window names the facts that record the step as
+        taken (done_when); a window without them, such as a date to complete by, is no filing
+        and does not keep the stage. A stage with no known close of a filing window is kept."""
+        filing = [w.get("done_when") for w in stage.get("windows", [])]
+        closes = [_as_date(w["closes"]) for w, d in zip(entry["windows"], filing, strict=True) if d]
         known = [c for c in closes if c is not None]
         return bool(known) and all(c < self.today for c in known)
 
