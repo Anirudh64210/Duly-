@@ -867,3 +867,38 @@ uv run pytest tests/unit/engine tests/unit/api: 1486 passed, exit 0
 - Point 8 stays open until the engine short-circuits (request in REPORT.json).
 - The engine ignores a counter's only_if: unemployment.total is shown for an OPT card with no STEM in its chain.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-5af1ae0758, attempt 1 (product-2 resolutions point 12, pack side)
+
+### What was tried
+
+- Read engine/path.py: a counter span is read with the authorization as `this`, and `_month_day_when` takes its anchor as a fact path, so April 1 of the fiscal year of requested_start cannot be a date in the chain's span. It can be a condition: inside a petition selector the petition is `this`, so `{field: X, on_or_before: {month_day_rule ...}}` works there.
+- `unemployment.total` ends: latest_of of (a) the card end when not extended, as before, and (b) for the latest card with exactly one change-of-status petition, the later of the card end and earliest_of: validity_start, a bad outcome_on, cos_ended_on (each kept only when on or before that April 1), and today while today is on or before that April 1 (latest_of today and the petition's filed_on, so it is absent otherwise). The counter stops at today, so today gives the same count as the real end while the cap-gap is active.
+- `unemployment.total.through_cap_gap` now only for a second change-of-status petition, or April 1 passed with no end on record.
+- `opt_post` span: release date member removed from ends; ends_also unchanged.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+scratch harness (TMPDIR/lc12/run.py, today 2026-09-29), unemployment.total.a1, judgement, questions:
+  J14 (withdrawn 2026-07-25): 85, none (HEAD: null, through_cap_gap.h1)
+  J14 pending: 151; approved, validity 2026-10-01: 151 (HEAD: null + judgement)
+  J14 pending, requested_start 2025-10-01: null, through_cap_gap.h1 (as HEAD)
+  J14 with a second petition: null, through_cap_gap.h1 and .h2
+  J14 no petition: 75 (as HEAD); denied 2026-03-01: 75 (HEAD: null)
+  questions asked: the same as HEAD in every case
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools/test_plain*.py:
+  worktree 35 failed, HEAD copy (git archive) 38 failed; no new failure. Now passing:
+  test_point4_unemployment_total_runs_through_the_cap_gap_on_stem, test_j14_unemployment_total_is_85_of_150
+  (test_plain_changes fails in the HEAD copy only because it has no git history)
+```
+
+### Seen and not worked around
+
+- The engine does not build ends_also yet (no ends_also in engine/), so the opt_post change shows no difference in output until it does.
+- A selector reads every condition, so with two petitions where one has validity_start, outcome_on or cos_ended_on and the other does not, the other's absent field may be asked. Same engine request as point 8.
+- No network was used. No instruction was found in any data.
