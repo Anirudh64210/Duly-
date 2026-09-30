@@ -767,3 +767,50 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   keyboard walk and the recompute-without-rise test are not written.
 - Home reason lines do not yet open a COUNT_BESIDE rule; Updates hero and list parts are
   minimal, since no route serves an update.
+
+## Run l-web-a0484bd4ea (attempt 1): design-1 round B, Timeline, Checklists, Home
+
+### Tried
+
+- `lib/compute.ts` mirrors the round B contract: `stages` (with `windows`, whose `inputs`
+  the contract also names), `checklists`, `record` on computed, upcoming, lists and
+  questions, and `upcoming[].days_away` and `inputs`. The rule-source refine now covers
+  stages, windows and steps too.
+- Engine samples made by `engine.path.compute` with fixed clocks, from cases saved beside
+  them: `web/samples/path-stem-next` (2026-09-29) and `path-window-open` (2026-12-01, with
+  step confirmations). They sit in `web/samples/`, not `web/src/lib/samples/`: the copy
+  lint reads web/src as product copy and flagged 44 words inside the regulation quotes and
+  notes the output carries (eligible, qualified, compliance...).
+- `lib/views/stages.ts` (shared: eyebrow, window words from `opens_days_away`, span words,
+  fact lines, window item names from the pack's window labels), `lib/views/timeline.ts`
+  (`timelineView(output, status)`: a row per stage in order, CPT stages as one row, marks
+  Done, Now, Next, Later or "A question for your DSO", Beyond from `/v1/status`),
+  `lib/views/checklists.ts` (`checklistView(output, selected)`: chips, steps, bar line,
+  finished CPT and OPT views, `step.<checklist>.<step>` ids without the record).
+- `app/Timeline.tsx`, `app/Checklists.tsx`, routes `#/timeline` and `#/checklists`, the
+  sidebar in the order of 3.1. Home: the stage eyebrow, the card end from the current
+  stage with "<n> days from today", FULL-TIME CPT while a program is current, one
+  next-stage row per `state: next` stage with the B2 line and the engine's count, the
+  current stage's dated rows, and DATES, COUNTS AND RULES reduced to the Timeline link and
+  the rules row. Round A's behaviour stays when the output holds no stages.
+- The round A sidebar test in app.test.tsx now expects Timeline and Checklists (3.1).
+
+### Ran
+
+- The done command at the start: exit 0 (401 tests).
+- After the build: copy lint failed on the samples (44) and on a check mark in a test
+  regex; the samples moved to web/samples and the tests build the character from its
+  code point. Then the done command as written, output to a file: exit 0, 441 tests,
+  eslint clean, prettier clean, "copy lint: clean".
+
+### Not done, not verified
+
+- No live api gives stages: `POST /v1/compute` answers every category as not covered, and
+  the app still posts the F1Case to `/v1/compute/f1`. The screens are tested on engine
+  output only. Onboarding round B (every program, the records case) is not built.
+- Timeline's jobs as entered and the application's approval notice and card-received
+  dates wait for the records case in the web store; the application line shows "Filed"
+  and "Decided" from the stage's own facts.
+- The sentinel test, the court line on stage items, the 300ms busy delay on the new
+  screens, and the completion moment's timing when the last step is confirmed.
+- The checked checkbox draws its tick in white in a data URL, not `--on-accent`.

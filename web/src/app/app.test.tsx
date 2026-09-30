@@ -89,13 +89,22 @@ afterEach(() => {
 });
 
 describe("the shell (design-1 sections 3.1 and 14.2)", () => {
-  it("lists exactly the screens that exist, in canvas order, without Timeline or Checklists", async () => {
+  // design-1 section 3.1: round B adds Timeline and Checklists in their canvas place.
+  it("lists exactly the screens that exist, in canvas order, with Timeline and Checklists", async () => {
     mount({ path: "/" });
     const nav = await screen.findByRole("navigation", { name: "Duly" });
     const names = within(nav)
       .getAllByRole("link")
       .map((link) => link.textContent);
-    expect(names).toEqual(["Home", "Updates", "Your case", "Settings", "Feedback"]);
+    expect(names).toEqual([
+      "Home",
+      "Timeline",
+      "Checklists",
+      "Updates",
+      "Your case",
+      "Settings",
+      "Feedback",
+    ]);
   });
 
   it("marks the active item with aria-current", async () => {

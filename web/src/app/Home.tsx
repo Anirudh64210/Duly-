@@ -28,6 +28,19 @@ import { headline, type VerdictState } from "../lib/status";
 import { useStore } from "./caseStore";
 import { Disclose, DraftPill, Footer, HeroMark, OneOpen, RuleBlocks, Row, Working } from "./parts";
 import { refusalLines } from "./refusal";
+import {
+  B2_LINE,
+  CHECKLIST_LINK,
+  TIMELINE_LINK,
+  confirmedWords,
+  currentStage,
+  filingWindow,
+  stageEyebrow,
+  stageItemName,
+  stageKind,
+  stagesOf,
+  windowSpanLine,
+} from "../lib/views/stages";
 
 const STEM_LIST = "stem.extension.what_the_regulation_lists";
 const CARD_ENDS = "next.opt.card_ends";
@@ -130,8 +143,20 @@ function Metrics({ output }: { output: EngineOutput }) {
   const [open, setOpen] = useState<string | null>(null);
   const used = output.computed.find((item) => item.id === "unemployment.days_used");
   const limit = output.computed.find((item) => item.id === "unemployment.limit");
-  const card = output.upcoming.find((entry) => entry.id === CARD_ENDS);
-  if (used === undefined && card === undefined) return null;
+  const stage = currentStage(output);
+  // Round B: the current stage's end; round A: next.opt.card_ends.
+  const staged = stagesOf(output).length > 0;
+  const upcomingCard = output.upcoming.find((entry) => entry.id === CARD_ENDS);
+  const card = staged
+    ? stage?.ends
+      ? { date: stage.ends, rule_ids: stage.rule_ids, days: stage.ends_days_away ?? null }
+      : undefined
+    : upcomingCard && { date: upcomingCard.date, rule_ids: upcomingCard.rule_ids, days: null };
+  const cpt =
+    stage !== null && stageKind(stage) === "program"
+      ? output.computed.find((item) => item.id === "cpt.full_time_days_used")
+      : undefined;
+  if (used === undefined && card === undefined && cpt === undefined) return null;
   const toggle = (id: string) => setOpen((now) => (now === id ? null : id));
   const share =
     typeof used?.value === "number" && typeof limit?.value === "number"
@@ -172,12 +197,32 @@ function Metrics({ output }: { output: EngineOutput }) {
               EAD CARD ENDS
             </button>
             <p className="metric-value date-value">{formatDate(card.date)}</p>
+            {card.days !== null && <p className="metric-meta">{card.days} days from today</p>}
+          </div>
+        )}
+        {cpt !== undefined && (
+          <div className="metric">
+            <button
+              type="button"
+              className="metric-eyebrow"
+              aria-expanded={open === "cpt"}
+              onClick={() => toggle("cpt")}
+            >
+              FULL-TIME CPT
+            </button>
+            <p className="metric-value">{formatValue(cpt.value, "")}</p>
+            <p className="metric-meta">days in what you entered</p>
           </div>
         )}
       </div>
       {open === "unemployment" && used !== undefined && (
         <div className="drop-in">
           <Working item={used} output={output} />
+        </div>
+      )}
+      {open === "cpt" && cpt !== undefined && (
+        <div className="drop-in">
+          <Working item={cpt} output={output} />
         </div>
       )}
       {open === "card" && card !== undefined && (
@@ -240,7 +285,56 @@ function QuestionsSection({ output, sent }: { output: EngineOutput; sent: F1Case
   );
 }
 
+/** design-1 section 6, round B: next-stage rows from the stages, then the current dates. */
+function StagedNext({ output }: { output: EngineOutput }) {
+  const next = stagesOf(output).filter((stage) => stage.state === "next");
+  const current = currentStage(output);
+  const own = new Set(current?.items ?? []);
+  const dated = output.upcoming.filter((entry) => own.has(entry.id));
+  if (next.length === 0 && dated.length === 0) return null;
+  return (
+    <section className="section rise d3" aria-labelledby="next-heading">
+      <h2 className="eyebrow" id="next-heading">
+        WHAT COMES NEXT
+      </h2>
+      {next.map((stage) => {
+        const window = filingWindow(stage);
+        const span = window === null ? "" : windowSpanLine(window);
+        const confirmed = confirmedWords(output, stage);
+        return (
+          <Row
+            key={stage.id}
+            id={`next:${stage.id}`}
+            title={stage.label}
+            {...(span === "" ? {} : { meta: span })}
+          >
+            <p>{B2_LINE}</p>
+            {confirmed !== null && <p>{confirmed} in the list.</p>}
+            {window !== null && <RuleBlocks ids={window.rule_ids} output={output} />}
+            {stage.checklist && (
+              <a className="link" href="#/checklists">
+                {CHECKLIST_LINK}
+              </a>
+            )}
+          </Row>
+        );
+      })}
+      {dated.map((entry) => (
+        <Row
+          key={entry.id}
+          id={`next:${entry.id}`}
+          title={current === null ? itemName(entry.id) : stageItemName(entry.id, current)}
+          meta={formatDate(entry.date) + (entry.reading ? ` · ${READING_TAG}` : "")}
+        >
+          <RuleBlocks ids={entry.rule_ids} output={output} />
+        </Row>
+      ))}
+    </section>
+  );
+}
+
 function NextSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
+  if (stagesOf(output).length > 0) return <StagedNext output={output} />;
   const opens = output.upcoming.find((entry) => entry.id === "next.stem.apply_window_opens");
   const closes = output.upcoming.find((entry) => entry.id === "next.stem.apply_window_closes");
   const list = output.lists.find((entry) => entry.id === STEM_LIST);
@@ -298,7 +392,15 @@ function periodLine(start: string, end: string | null, reported: boolean): strin
 
 function DataSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
   const named = new Set<string>();
-  for (const entry of [...output.computed, ...output.upcoming, ...output.lists]) {
+  const stages = stagesOf(output);
+  for (const entry of [
+    ...output.computed,
+    ...output.upcoming,
+    ...output.lists,
+    ...stages,
+    ...stages.flatMap((stage) => stage.windows ?? []),
+    ...(output.checklists ?? []).flatMap((list) => list.steps),
+  ]) {
     entry.rule_ids.forEach((id) => named.add(id));
   }
   for (const question of output.questions) {
@@ -310,6 +412,26 @@ function DataSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
     group,
     items: output.computed.filter((item) => groupOf(item.id) === group),
   })).filter((entry) => entry.items.length > 0);
+  if (stages.length > 0) {
+    // Round B: Timeline holds every item under its stage (RQ-P3).
+    return (
+      <section className="section rise d3" aria-labelledby="data-heading">
+        <h2 className="eyebrow" id="data-heading">
+          DATES, COUNTS AND RULES
+        </h2>
+        <p className="section-end">
+          <a className="link" href="#/timeline">
+            {TIMELINE_LINK}
+          </a>
+        </p>
+        {other.length > 0 && (
+          <Row id="rules:other" title="Other rules Duly read for this verdict">
+            <RuleBlocks ids={other} output={output} />
+          </Row>
+        )}
+      </section>
+    );
+  }
   if (groups.length === 0 && other.length === 0) return null;
   return (
     <section className="section rise d3" aria-labelledby="data-heading">
@@ -406,7 +528,7 @@ export function Home() {
               {state === "no_open_items" && <span className="halo" data-testid="halo" />}
               <HeroMark state={state} name={headline(state)} />
             </span>
-            <span className="hero-eyebrow">F-1</span>
+            <span className="hero-eyebrow">{stageEyebrow(output)}</span>
           </div>
           <h1 className="hero-headline">{headline(state)}</h1>
           <Reasons output={output} />

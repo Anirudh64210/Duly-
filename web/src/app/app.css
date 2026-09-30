@@ -1027,3 +1027,325 @@ p {
     transition: none !important;
   }
 }
+
+/* design-1 section 7: Timeline. */
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-meta {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.phases {
+  margin-top: 22px;
+}
+
+.phase {
+  margin: 0 -12px;
+  border-top: 1px solid var(--hairline-inner);
+}
+
+.phase:first-child {
+  border-top-color: var(--hairline);
+}
+
+.phase:last-child {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.phase-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 13px 12px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s var(--ease);
+}
+
+.phase-head:hover {
+  background: var(--row-hover);
+}
+
+.phase[data-mark="now"] .phase-head,
+.phase[data-mark="dso"] .phase-head {
+  padding: 15px 12px;
+}
+
+.phase-mark-col {
+  display: flex;
+  justify-content: center;
+  width: 15px;
+  flex: none;
+}
+
+.phase-title {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.phase[data-mark="now"] .phase-title,
+.phase[data-mark="dso"] .phase-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.now-tag {
+  position: absolute;
+  left: -44px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.phase-mark .ring-next {
+  fill: none;
+  stroke: var(--ring-next);
+  stroke-width: 1.5;
+}
+
+.phase-mark .ring-later {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+}
+
+.phase-bar {
+  margin-top: 8px;
+}
+
+.phase-open {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 13px 42px;
+  font-size: 13px;
+  color: var(--ink-body);
+}
+
+.phase-open.current {
+  gap: 12px;
+  padding-left: 56px;
+}
+
+.application-eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+}
+
+/* design-1 section 8: Checklists. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 7px 15px;
+  border: 1px solid var(--chip-border);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.16s var(--ease),
+    transform 0.12s var(--ease);
+}
+
+.chip:hover {
+  border-color: var(--control-border-hover);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--chip-selected-border);
+  background: var(--row-hover);
+  color: var(--ink);
+}
+
+.chip[data-next="true"] {
+  font-weight: 600;
+}
+
+.chip-check {
+  color: var(--accent);
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  margin-top: 30px;
+}
+
+.checklist-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checklist-eyebrow {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+}
+
+.checklist-title {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.b2-line,
+.checklist-bar-line,
+.step-meta {
+  color: var(--ink-2);
+}
+
+.b2-line,
+.checklist-bar-line {
+  font-size: 13px;
+}
+
+.checklist-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.checklist-bar {
+  width: 180px;
+}
+
+.checklist-bar .bar-fill {
+  transition: width 0.35s var(--ease);
+  animation: none;
+}
+
+.all-confirmed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.steps {
+  margin-top: 24px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 -12px;
+  padding: 14px 12px;
+  border-top: 1px solid var(--hairline-inner);
+}
+
+.step:last-child {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.step-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-label > .disclose {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  text-align: left;
+}
+
+.step-label.struck > .disclose {
+  color: var(--ink-2);
+  text-decoration: line-through;
+}
+
+.step-meta {
+  font-size: 12.5px;
+}
+
+.step-confirmed {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.caution-line {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--caution);
+}
+
+.finished-line {
+  margin-top: 10px;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+
+.finished-lines p {
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline-inner);
+  font-size: 14px;
+  color: var(--ink-body);
+}
+
+/* design-1 section 3.11: the checkbox, an 18px circle. */
+.checkbox {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 50%;
+  background: var(--surface);
+  appearance: none;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease);
+}
+
+.checkbox:checked {
+  border-color: var(--accent);
+  background: var(--accent)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.3l2.6 2.6 5.4-5.6' fill='none' stroke='white' stroke-width='1.8'/%3E%3C/svg%3E")
+    center / 18px no-repeat;
+}
+
+.checkbox:active {
+  transform: scale(0.92);
+}
