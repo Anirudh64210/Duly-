@@ -155,3 +155,16 @@ it. Duly's Documents must beat that for speed:
 9. **Applications is its own page in the sidebar.** Each application shows its receipt number,
    status as of a date, the key dates and the next step. It is updated manually for now; USCIS case
    status is parked (BACKLOG B8).
+10. **Your school's steps, generic, not per-school integration (v1).** The federal checklist
+    stays standard. Any checklist has "Add your school's step":
+    - a title, an optional link and an optional document, with quick-add kinds (request form in
+      the school portal, upload the I-983 to the school, OPT or STEM workshop, school fee, DSO
+      meeting) or free text;
+    - placed against a federal step as **Before** (a prerequisite), **Alongside**, or **After**;
+    - a Before step blocks its federal step, which shows "Waiting on: <school step>" while its
+      dates keep counting;
+    - an After step appears once the federal step is done;
+    - every school step carries a quiet "Your school" mark and appears in the checklist, the
+      Timeline and Applications, and is kept for reuse.
+    State University's STEM OPT request shows as the worked example, added by the student.
+    School profiles and school partnerships are later (BACKLOG).
