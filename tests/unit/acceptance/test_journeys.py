@@ -130,7 +130,7 @@ def j01() -> dict[str, Any]:
             ),
             rec("w2", "work", employer="e2", under="a2", start="2026-08-01", hours_per_week=40),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work"),
+        whole("program", "authorization:p1", "authorization:p2", "move", "work", "trip"),
     )
 
 
@@ -251,7 +251,7 @@ def j03() -> dict[str, Any]:
                 split_noted="yes",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move"),
+        whole("program", "authorization:p1", "authorization:p2", "move", "trip"),
     )
 
 
@@ -331,7 +331,7 @@ def j04() -> dict[str, Any]:
                 card_end="2024-08-09",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "end_date_change"),
+        whole("program", "authorization:p1", "authorization:p2", "move", "end_date_change", "trip"),
     )
 
 
@@ -387,7 +387,7 @@ def j05() -> dict[str, Any]:
                 card_end="2027-01-14",
             ),
         ],
-        whole("program", "authorization:p1"),
+        whole("program", "authorization:p1", "trip"),
     )
 
 
@@ -535,8 +535,10 @@ def j07() -> dict[str, Any]:
     )
 
 
-def j08() -> dict[str, Any]:
-    # reviews/product-2.md finding 2 names this input.
+def j08(trips_whole: bool = True) -> dict[str, Any]:
+    # reviews/product-2.md finding 2 names this input. The timeline holds every trip (none),
+    # so the student states the trip list whole (resolutions point 13); False leaves it out.
+    trips = ("trip",) if trips_whole else ()
     return case(
         [
             rec(
@@ -584,7 +586,7 @@ def j08() -> dict[str, Any]:
             ),
             rec("w2", "work", on_campus="p2", start="2025-01-13", hours_per_week=20),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work"),
+        whole("program", "authorization:p1", "authorization:p2", "move", "work", *trips),
     )
 
 
@@ -625,7 +627,7 @@ def j09(requested_on: str = "2025-04-21") -> dict[str, Any]:
                 card_end="2027-01-11",
             ),
         ],
-        whole("program", "authorization:p1", "end_date_change"),
+        whole("program", "authorization:p1", "end_date_change", "trip"),
     )
 
 
@@ -765,7 +767,7 @@ def j12() -> dict[str, Any]:
                 validity_start="2026-10-01",
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition"),
+        whole("program", "authorization:p1", "work", "petition", "trip"),
     )
 
 
@@ -815,7 +817,7 @@ def j13() -> dict[str, Any]:
                 outcome_on="2026-08-14",
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition"),
+        whole("program", "authorization:p1", "work", "petition", "trip"),
     )
 
 
@@ -887,7 +889,7 @@ def j14() -> dict[str, Any]:
                 outcome_on="2026-07-25",
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition"),
+        whole("program", "authorization:p1", "work", "petition", "trip"),
     )
 
 
@@ -969,7 +971,7 @@ def j15() -> dict[str, Any]:
                 hours_changes=[{"start": "2026-01-05", "end": "2026-01-25", "hours_per_week": 15}],
             ),
         ],
-        whole("program", "authorization:p1", "work"),
+        whole("program", "authorization:p1", "work", "trip"),
     )
 
 
@@ -1155,7 +1157,9 @@ def j19() -> dict[str, Any]:
                 card_end="2028-06-08",
             ),
         ],
-        whole("program", "authorization:p0", "authorization:p1", "authorization:p2", "move"),
+        whole(
+            "program", "authorization:p0", "authorization:p1", "authorization:p2", "move", "trip"
+        ),
     )
 
 
@@ -1200,7 +1204,7 @@ def j20() -> dict[str, Any]:
                 card_end="2027-06-14",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2"),
+        whole("program", "authorization:p1", "authorization:p2", "trip"),
     )
 
 
@@ -1313,11 +1317,9 @@ def test_j02_stem_on_the_earlier_bachelors_is_next(client: TestClient) -> None:
     assert stage(out, "stem.a1")["state"] == "next"
 
 
-def test_j02_the_ten_years_after_the_bachelors_end_on_2028_05_19(client: TestClient) -> None:
-    # programs.md section 14 and resolutions point 7: stem.basis_ten_years_end.<program>,
-    # the conferral date plus 10 years: 2018-05-19 plus 10 years is 2028-05-19.
-    out = _send(client, j02())
-    assert value(out, "stem.basis_ten_years_end.p1") == "2028-05-19"
+# The ten years after the bachelor's (stem.basis_ten_years_end.p1, 2018-05-19 plus 10 years
+# is 2028-05-19) waits for a contract construct for a computed date in the path, and its
+# test waits with it (resolutions points 7 and 13).
 
 
 # J03
@@ -1470,9 +1472,17 @@ def test_j08_the_bachelors_opt_ends_the_day_before_the_masters_starts(
 
 def test_j08_unemployment_on_the_bachelors_card_is_35_days(client: TestClient) -> None:
     # 2024-06-03 to 2024-07-07 without work: June 3-30 (28), July 1-7 (7) = 35. The work
-    # list is whole and the job covers the rest of the span to 2025-01-12.
+    # and trip lists are whole and the job covers the rest of the span to 2025-01-12.
     out = _send(client, j08())
     assert value(out, "unemployment.opt_card.a1") == 35
+
+
+def test_j08_unemployment_is_null_until_the_trip_list_is_whole(client: TestClient) -> None:
+    # Resolutions point 13 (point 5 read strictly): the counter reads trips, and a trip
+    # changes the count, so with no statement that the trip list is whole there is no count.
+    # Stated whole, the same case gives the 35 worked out above.
+    assert value(_send(client, j08(trips_whole=False)), "unemployment.opt_card.a1") is None
+    assert value(_send(client, j08()), "unemployment.opt_card.a1") == 35
 
 
 def test_j08_no_stem_extension_of_a_card_the_change_of_level_ended(client: TestClient) -> None:
@@ -1556,16 +1566,18 @@ def test_j12_cap_gap_runs_to_the_validity_start(client: TestClient) -> None:
 def test_j12_grace_begins_after_the_cap_gap(client: TestClient) -> None:
     # Section 14 grace: from the latest end of the program, its cards and its cap-gap:
     # 2026-10-01, so grace starts 2026-10-02 and is not done today (finding 3, point 4).
+    # Resolutions point 12: the cap-gap grace is grace.<petition>, here grace.h1.
     out = _send(client, j12())
-    grace = stage(out, "grace.p1")
+    grace = stage(out, "grace.h1")
     assert grace["starts"] == "2026-10-02"
     assert grace["state"] != "done"
 
 
 def test_j12_no_unemployment_while_employed_through_the_cap_gap(client: TestClient) -> None:
     # The job runs from the card start with no end; the span runs to 2026-10-01. 0 days.
+    # Resolutions point 12: the cap-gap count is unemployment.opt_card.<petition>, here h1.
     out = _send(client, j12())
-    assert value(out, "unemployment.opt_card.a1") == 0
+    assert value(out, "unemployment.opt_card.h1") == 0
 
 
 # J13
