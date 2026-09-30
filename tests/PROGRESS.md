@@ -1978,3 +1978,50 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-1d552cbca8 (attempt 1): resolutions points 1, 7, 9 and 12, test side
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md and the builder's report. engine/REPORT.json is not in
+  commit 9711d19 (the name is ignored by git), so I read it from the lane's worktree on disk.
+- Checked the pack before renaming (engine.rulepack.load_all): the cap-gap grace stage is
+  for_each petition, and the second unemployment.opt_card counter is scoped on petition,
+  group record. J12 and J13 hold one petition, h1.
+- tests/unit/engine/test_path_fix1.py (point 12): grace.p1 to grace.h1 (J12); 
+  unemployment.opt_card.a1 to .h1 in the three tests on J12 and J13, and the at_or_over id
+  to .at_or_over_limit.h1. Values and working unchanged (2026-10-02 later, 45, None, 486).
+  J01's unemployment.opt_card.a2 stays: J01 has no petition.
+- test_path_fix1.py (point 7): removed test_point7_the_ten_years_after_a_basis_degree_are_shown
+  and test_point7_ten_years_from_a_leap_day_is_28_february; a comment says they wait for a
+  contract construct for a computed date. No other assertion changed.
+- Kept test_point4_unemployment_total_runs_through_the_cap_gap_on_stem (85) and
+  test_point7_ends_also_two_readings_of_an_end_give_the_judgement_item: point 12 asks the
+  pack to change for both, so they fail until L-content does it.
+- tests/unit/engine/test_path_reach.py (point 9): test_a_litigated_rule_in_use_is_cannot_tell
+  replaced by three tests on a toy pack with two regimes (toy_old operative, toy_new
+  enjoined): a litigated rule with no alternate raises no rule_in_litigation; toy.bar 30
+  against 60 raises it and cannot_tell (window closes 2026-10-20 + 30 = 2026-11-19); 30
+  against 30 raises nothing. _pack_dict takes regimes.
+- Scratch copy of lane/L-engine/l-engine-b9ea448ead (git archive into TMPDIR) with the two
+  files: 2 failures, the unemployment.total 85 and ends_also tests (pack side). Everything
+  else in both files passed. Removed afterwards.
+- Same tests against this worktree's engine: the no-alternate and same-value tests fail (it
+  raises the reason for any litigated rule).
+- Done command as written, no pipe: exit 0 (ruff clean, 71 files formatted, collection ok).
+
+### What change would make each new test fail
+
+- grace.h1 / unemployment.opt_card.h1 tests: the pack or engine keying the cap-gap grace or
+  count by the program or the card again, or the span not reaching the cap-gap end.
+- test_a_litigated_rule_with_no_alternate_is_not_the_litigation_reason: litigation raised on
+  status litigated alone (this worktree's engine fails it).
+- test_a_shown_window_whose_rule_has_a_different_alternate_is_cannot_tell: the alternate
+  check always false (planted in the scratch copy: failed).
+- test_an_alternate_with_the_same_value_is_not_the_litigation_reason: the alternate check
+  always true, or comparing rows and not values (planted: failed).
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action. The builder's report makes requests of
+L-tests; I followed only the mission.

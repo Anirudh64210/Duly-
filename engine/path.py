@@ -94,6 +94,8 @@ class _Trace:
     rules: list[str] = field(default_factory=list)
     inputs: Json = field(default_factory=dict)
     lapsed: list[str] = field(default_factory=list)
+    differ: list[str] = field(default_factory=list)
+    optional_used: bool = False
 
     def merge(self, other: "_Trace") -> None:
         self.missing += other.missing
@@ -101,6 +103,8 @@ class _Trace:
         self.rules += other.rules
         self.inputs.update(other.inputs)
         self.lapsed += other.lapsed
+        self.differ += other.differ
+        self.optional_used = self.optional_used or other.optional_used
 
 
 class _Run:
@@ -132,6 +136,8 @@ class _Run:
         self.used_kinds: list[str] = []
         self.span_ends: list[date | None] = []
         self.virtual: set[int] = set()
+        self.lists: list[Json] = []
+        self.differ: list[str] = []
 
     # Reading the record.
 
@@ -211,6 +217,8 @@ class _Run:
         row = self.pack.value(rule_id, on)
         if row is not None:
             self.rows_used.setdefault(rule_id, row)
+            if self._alternate_differs(rule_id, on, row):
+                tr.differ.append(rule_id)
             return row
         rows = [p for p in self.pack.parameters if p[ID] == rule_id]
         later = [p for p in rows if p["effective_from"] > on.isoformat()]
@@ -220,6 +228,17 @@ class _Run:
         else:
             tr.lapsed.append(NOT_IN_FORCE)
         return None
+
+    def _alternate_differs(self, rule_id: str, on: date, row: Json) -> bool:
+        """True when a row of another regime, in force on the same day, gives another value
+        (product-1 points 25 and 49)."""
+        for regime in self.pack.regimes:
+            if regime[ID] == row.get("regime"):
+                continue
+            other = self.pack.value(rule_id, on, regime[ID])
+            if other is not None and other is not row and other["value"] != row["value"]:
+                return True
+        return False
 
     def _amount(self, day: date, amount: Json, tr: _Trace) -> date | None:
         row = self._row(amount["rule"], day, tr)
@@ -260,6 +279,8 @@ class _Run:
                     whole = False
                 else:
                     found.append(got)
+                    if member.get("optional"):
+                        tr.optional_used = True
             if not whole or not found:
                 return None
             day = min(found) if w.get("earliest_of") else max(found)
@@ -321,7 +342,9 @@ class _Run:
     def _first(self, first: Json, outer: Json | None, tr: _Trace) -> date | None:
         found = self._select(first["of"], outer, tr)
         days = [
-            d for r in found or [] if (d := _as_date(r["fields"].get(first["field"]))) is not None
+            d
+            for r in found or []
+            if (d := _as_date(self._resolve(f"{THIS}.{first['field']}", r, outer)[0])) is not None
         ]
         if not days:
             return None
@@ -347,12 +370,19 @@ class _Run:
     def _all(
         self, conditions: list[Json], this: Json | None, outer: Json | None, tr: _Trace
     ) -> bool | None:
-        results = [self._cond(c, this, outer, tr) for c in conditions]
-        if False in results:
-            return False
-        if None in results:
-            return None
-        return True
+        # A condition known to fail settles the whole: nothing the others read is asked.
+        subs: list[_Trace] = []
+        unknown = False
+        for c in conditions:
+            sub = _Trace()
+            result = self._cond(c, this, outer, sub)
+            if result is False:
+                return False
+            unknown = unknown or result is None
+            subs.append(sub)
+        for sub in subs:
+            tr.merge(sub)
+        return None if unknown else True
 
     def _cond(self, c: Json, this: Json | None, outer: Json | None, tr: _Trace) -> bool | None:
         results: list[bool | None] = []
@@ -402,8 +432,7 @@ class _Run:
                 else:
                     results.append(len(found) <= limit)
         if "any_of" in c:
-            parts = [self._cond(p, this, outer, tr) for p in c["any_of"]]
-            results.append(True if True in parts else None if None in parts else False)
+            results.append(self._any(c["any_of"], this, outer, tr))
         if "all_of" in c:
             results.append(self._all(c["all_of"], this, outer, tr))
         if "not" in c:
@@ -414,6 +443,23 @@ class _Run:
         if False in results:
             return False
         return None if None in results else True
+
+    def _any(
+        self, conditions: list[Json], this: Json | None, outer: Json | None, tr: _Trace
+    ) -> bool | None:
+        # A condition known to hold settles the whole: nothing the others read is asked.
+        subs: list[_Trace] = []
+        unknown = False
+        for c in conditions:
+            sub = _Trace()
+            result = self._cond(c, this, outer, sub)
+            if result is True:
+                return True
+            unknown = unknown or result is None
+            subs.append(sub)
+        for sub in subs:
+            tr.merge(sub)
+        return None if unknown else False
 
     def _compare_dates(
         self, key: str, value: Any, w: Json, this: Json | None, outer: Json | None, tr: _Trace
@@ -474,6 +520,9 @@ class _Run:
         self.questions.setdefault(qid, question)
 
     def _need(self, tr: _Trace) -> None:
+        for rule_id in tr.differ:
+            if rule_id not in self.differ:
+                self.differ.append(rule_id)
         for name, record in tr.missing:
             if name not in self.missing:
                 self.missing.append(name)
@@ -534,6 +583,7 @@ class _Run:
         ends = self._when(span["ends"], record, record, tr) if span else None
         rule_ids = list(stage["rule_ids"])
         if next_of is None and span:
+            ends = self._ends_also(stage, span, ends, record, rule_ids, tr)
             self._span_conflicts(sid, span, starts, ends, rid, tr)
             self.span_ends.append(ends)
         items: list[str] = []
@@ -543,7 +593,7 @@ class _Run:
         if next_of is None:
             self._need(tr)
         else:
-            self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed))
+            self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed, differ=tr.differ))
         self._rules(rule_ids)
         if next_of is not None:
             state = "next"
@@ -574,9 +624,47 @@ class _Run:
             entry["record"] = rid
         self._checklist(stage, entry, rid)
         self.stages.append(entry)
+        for list_id in stage.get("lists", []):
+            self._list(list_id, rid)
         if next_of is None:
             for step in stage.get("next", []):
                 self._next(step, record)
+
+    def _ends_also(
+        self,
+        stage: Json,
+        span: Json,
+        ends: date | None,
+        record: Json | None,
+        rule_ids: list[str],
+        tr: _Trace,
+    ) -> date | None:
+        """programs.md section 11: another source's reading of the end. A reading speaks only
+        through a fact of its own (an optional member found); when it gives another day, the
+        end is null and the judgement item is raised."""
+        for other in span.get("ends_also", []):
+            sub = _Trace()
+            day = self._when(other["when"], record, record, sub)
+            rule_ids += other["rule_ids"]
+            if day is None or not sub.optional_used:
+                continue
+            tr.merge(sub)
+            if ends is not None and day != ends:
+                rid = "" if record is None else f".{record[ID]}"
+                self._judge(f"{stage[ID]}.end_by_source{rid}")
+                return None
+        return ends
+
+    def _list(self, list_id: str, rid: str | None) -> None:
+        found = [d for d in self.path.get("lists", []) if d[ID] == list_id]
+        if not found:
+            return
+        entry: Json = {ID: list_id, "rule_ids": list(found[0]["rule_ids"])}
+        if rid is not None:
+            entry["record"] = rid
+        if entry not in self.lists:
+            self._rules(entry["rule_ids"])
+            self.lists.append(entry)
 
     def _facts_of(self, record: Json) -> Json:
         return {f"{record[ID]}.{name}": value for name, value in record["fields"].items()}
@@ -625,7 +713,7 @@ class _Run:
             day = self._when(window[end], record, record, tr)
             dates[end] = day
             if is_next:
-                self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed))
+                self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed, differ=tr.differ))
             else:
                 self._need(tr)
             rules = _unique([*window["rule_ids"], *tr.rules])
@@ -706,7 +794,12 @@ class _Run:
             return
         bound: Json = {}
         for name, source in entry.get("bind", {}).items():
-            value, _, _ = self._resolve(source, record, record)
+            # A path is read; a choice written in the pack is taken as itself.
+            head = str(source).split(".")[0]
+            if head in (THIS, OUTER, TODAY) or source in self.facts:
+                value, _, _ = self._resolve(source, record, record)
+            else:
+                value = source
             if value is not ABSENT:
                 bound[name] = value
         selector = stage.get("for_each")
@@ -721,7 +814,43 @@ class _Run:
             self.virtual.add(id(virtual))
         else:
             virtual = None
+        saved = self._snapshot()
         self._enter(stage, virtual, entry)
+        if self._closed(self.stages[-1]):
+            self._restore(saved)
+
+    _KEPT = (
+        "computed",
+        "upcoming",
+        "stages",
+        "checklists",
+        "missing",
+        "conflicts",
+        "judgements",
+        "open_items",
+        "answers_read",
+        "used_rules",
+        "used_kinds",
+        "lists",
+        "differ",
+    )
+
+    def _snapshot(self) -> Json:
+        saved: Json = {name: list(getattr(self, name)) for name in self._KEPT}
+        saved["questions"] = dict(self.questions)
+        saved["rows_used"] = dict(self.rows_used)
+        return saved
+
+    def _restore(self, saved: Json) -> None:
+        for name, value in saved.items():
+            setattr(self, name, value)
+
+    def _closed(self, entry: Json) -> bool:
+        """A next stage whose every known window closed before today is not shown (resolution
+        6). A stage with no known close is kept."""
+        closes = [_as_date(w["closes"]) for w in entry["windows"]]
+        known = [c for c in closes if c is not None]
+        return bool(known) and all(c < self.today for c in known)
 
     def _checklist(self, stage: Json, entry: Json, rid: str | None) -> None:
         name = stage.get("checklist")
@@ -803,16 +932,49 @@ class _Run:
     # Counters.
 
     def run_counters(self) -> None:
+        over: dict[str, dict[str, bool]] = {}
         for counter in self.path.get("counters", []):
-            self._counter(counter)
+            over.setdefault(counter[ID], {}).update(self._counter(counter))
+        self._bars_disagree(over)
 
-    def _counter(self, counter: Json) -> None:
+    def _bars_disagree(self, over: dict[str, dict[str, bool]]) -> None:
+        """Two counters over the same scope, one at or over its bar and one under it, step
+        back (programs.md section 14, J06)."""
+        counters = self.path.get("counters", [])
+        for index, first in enumerate(counters):
+            for second in counters[index + 1 :]:
+                if first[ID] == second[ID] or first["scope"] != second["scope"]:
+                    continue
+                for key, first_over in over.get(first[ID], {}).items():
+                    second_over = over.get(second[ID], {}).get(key)
+                    if second_over is not None and second_over != first_over:
+                        self._judge(f"{first[ID]}.bars_disagree.{key}")
+
+    def _stated(self, kind: str) -> bool:
+        """The person said the list of this kind is whole, on a day that still covers today."""
+        stated: Json = self.case.get("complete", {}) or {}
+        grows = bool(self.kinds.get(kind, {}).get("grows_with_time", False))
+        for key, statement in stated.items():
+            if key != kind and not key.startswith(f"{kind}:"):
+                continue
+            on = _as_date(statement.get("on")) if isinstance(statement, dict) else None
+            if on is not None and not (grows and on < self.today):
+                return True
+        return False
+
+    def _counter(self, counter: Json) -> dict[str, bool]:
+        """The counter's items. Gives, for each group with a known count, whether it is at or
+        over the limit."""
+        result: dict[str, bool] = {}
         tr = _Trace()
         scope = counter["scope"]
         found = self._select(scope["of"], None, tr)
         self._need(tr)
         if found is None:
-            return
+            return result
+        # A count over a list the person has not stated whole is not known (PRINCIPLES 2).
+        qualifying = counter.get("qualifying")
+        whole = qualifying is None or self._stated(qualifying["record"])
         groups: dict[str, list[Json]] = {}
         for record in found:
             key = self._group_key(scope, record)
@@ -824,11 +986,16 @@ class _Run:
             gtr = _Trace()
             limit = _number(self._rule_value(counter["limit_rule"], self.today, gtr))
             value, unit, over = self._calculate(counter, members, limit, gtr)
+            if not whole:
+                value, over = None, False
             self._need(gtr)
             rules = _unique([*counter["rule_ids"], counter["limit_rule"], *gtr.rules])
             self._item(f"{counter[ID]}.{key}", value, unit, gtr.inputs, rules, None)
+            if value is not None and limit is not None:
+                result[key] = over
             if over:
                 self._judge(f"{counter[ID]}.at_or_over_limit.{key}")
+        return result
 
     def _group_key(self, scope: Json, record: Json) -> str | None:
         group = scope["group"]
@@ -884,27 +1051,38 @@ class _Run:
             return total, "days", limit is not None and total >= limit
         total_days = 0
         for record, (starts, ends) in zip(members, known, strict=True):
-            total_days += self._days_without(counter, record, starts, min(ends, self.today), tr)
+            without = self._days_without(counter, record, starts, min(ends, self.today), tr)
+            if without is None:
+                return None, "days", False
+            total_days += without
         over = limit is not None and total_days >= limit
         return total_days, "days", over
 
     def _days_without(
         self, counter: Json, record: Json, starts: date, ends: date, tr: _Trace
-    ) -> int:
+    ) -> int | None:
+        """Days in the span no qualifying record covers. None when it is not known which
+        records qualify: an unknown selection is never read as none."""
         if ends < starts:
             return 0
         covered: set[date] = set()
         hours_limit = None
         if "hours_rule" in counter:
             hours_limit = _number(self._rule_value(counter["hours_rule"], self.today, tr))
-        for job in self._select(counter["qualifying"], record, tr) or []:
+        jobs = self._select(counter["qualifying"], record, tr)
+        if jobs is None:
+            return None
+        for job in jobs:
             if hours_limit is not None:
                 hours = _number(self._read(f"{THIS}.{PERIOD_HOURS}", job, record, tr))
                 if hours is None or hours < hours_limit:
                     continue
             covered |= self._days_of(job, starts, ends, tr)
         if "not_qualifying" in counter:
-            for other in self._select(counter["not_qualifying"], record, tr) or []:
+            others = self._select(counter["not_qualifying"], record, tr)
+            if others is None:
+                return None
+            for other in others:
                 covered -= self._days_of(other, starts, ends, tr)
         return sum(
             1 for n in range((ends - starts).days + 1) if starts + timedelta(days=n) not in covered
@@ -1027,10 +1205,9 @@ class _Run:
         return out
 
     def litigated(self) -> bool:
-        return any(
-            row is not None and row["status"] == "litigated"
-            for row in (self._row_shown(r) for r in self.used_rules)
-        )
+        """Product-1 points 25 and 49: only an item shown whose rule has an alternate with a
+        different value."""
+        return bool(self.differ)
 
 
 def _covered(pack: Rulepack | None) -> bool:
@@ -1114,7 +1291,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
             "rules_checked_on": None if rules_checked_on is None else rules_checked_on.isoformat(),
         },
         "computed": [c for run in runs for c in run.computed],
-        "lists": [],
+        "lists": [entry for run in runs for entry in run.lists],
         "questions": list(questions.values()),
         "rulepacks": [
             {"category": p.category, "version": p.version}

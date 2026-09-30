@@ -1583,7 +1583,6 @@ path:
         ends:
           earliest_of:
             - {fact: this.card_end}
-            - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}
             - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
         ends_also:
           - when: {earliest_of: [{fact: this.card_end}, {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}]}
@@ -1963,6 +1962,15 @@ path:
         where:
           - {field: this.change_of_status, in: ["yes"]}
           - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
+          - any_of:
+              - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.id, differs_from: outer.id}]}
+              - all_of:
+                  - {field: today, after: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
+                  - not:
+                      any_of:
+                        - all_of: [{field: this.validity_start, present: true}, {field: this.validity_start, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]
+                        - all_of: [{field: this.outcome, in: [rejected, denied, revoked, withdrawn]}, {field: this.outcome_on, present: true}, {field: this.outcome_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]
+                        - all_of: [{field: this.cos_ended_on, present: true}, {field: this.cos_ended_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]
       holds:
         - none: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
       rule_ids: [stem.unemployment_limit_days, opt.unemployment_in_cap_gap]
@@ -2058,23 +2066,45 @@ path:
       span:
         starts: {fact: this.card_start}
         ends:
-          first:
-            of:
-              record: authorization
-              where:
-                - {field: this.id, same_as: outer.id}
-                - any_of:
-                    - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
-                    - {field: outer.card_end, before: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
-            field: card_end
-            pick: latest
+          latest_of:
+            - optional: true
+              first:
+                of:
+                  record: authorization
+                  where:
+                    - {field: this.id, same_as: outer.id}
+                    - any_of:
+                        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+                        - {field: outer.card_end, before: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
+                field: card_end
+                pick: latest
+            - optional: true
+              latest_of:
+                - first:
+                    of:
+                      record: authorization
+                      where:
+                        - {field: this.id, same_as: outer.id}
+                        - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+                        - {field: outer.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
+                        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.id, differs_from: outer.id}]}}]}
+                    field: card_end
+                    pick: latest
+                - earliest_of:
+                    - {optional: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.validity_start, present: true}, {field: this.validity_start, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: validity_start, pick: earliest}}
+                    - {optional: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.outcome, in: [rejected, denied, revoked, withdrawn]}, {field: this.outcome_on, present: true}, {field: this.outcome_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: outcome_on, pick: earliest}}
+                    - {optional: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.cos_ended_on, present: true}, {field: this.cos_ended_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: cos_ended_on, pick: earliest}}
+                    - optional: true
+                      latest_of:
+                        - {fact: today}
+                        - {first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: today, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: filed_on, pick: earliest}}
       qualifying: {record: work, where: [{field: this.under, same_as: outer.id}]}
       hours_rule: stem.min_hours_per_week
       not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
       only_if:
         - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.extends, same_as: outer.id}]}
       limit_rule: stem.unemployment_limit_days
-      rule_ids: [stem.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap]
+      rule_ids: [stem.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap, capgap.end_month_day, capgap.ends_on_outcome]
     - id: cpt.full_time_days_at_level
       calculator: sum_of_days
       scope: {of: {record: authorization, where: [{field: this.type, in: [cpt]}, {field: this.time, in: [full_time]}]}, group: same_value, value_of: this.program.level}
