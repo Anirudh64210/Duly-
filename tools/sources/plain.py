@@ -58,7 +58,7 @@ VOWELS = re.compile(r"[aeiouy]+")
 # Abbreviations whose periods do not end a sentence. "U.S." once split one sentence into
 # three, so a text at a real reading grade of 24 was scored under 9 (review of fix 8).
 ABBREVIATIONS = re.compile(
-    r"\b(?:U\.S\.|e\.g\.|i\.e\.|etc\.|No\.|Dr\.|Mr\.|Ms\.|Mrs\.)", re.IGNORECASE
+    r"\b(?:[Uu]\.[Ss]\.|[Ee]\.g\.|[Ii]\.e\.|No\.(?=\s*\d)|(?:Dr|Mr|Ms|Mrs)\.(?=\s+[A-Z])|etc\.(?=\s*[,;a-z]))"
 )
 
 

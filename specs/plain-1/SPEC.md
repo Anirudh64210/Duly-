@@ -23,7 +23,7 @@ Every rule and every regime of the F-1 pack carries `plain` (contracts/rulepack.
 - keep a reading a reading: where a rule's derivation is `reading`, the plain words say that this is how Duly reads the rule, in those words;
 - keep the rule's terms of art word for word (at most three a rule, listed in `plain_terms`), and say everything else in everyday words: no citation and no legal phrasing in plain words (specs/product-1/SPEC-resolutions.md point 58).
 
-`python -m tools.sources.plain rulepacks --require f1` checks every one of these and runs in gate 7. The reviewer reads each plain text beside its quote and vetoes any that says more, less or other than the quote.
+`python -m tools.sources.plain rulepacks --require f1` checks every one of these and runs in gate 7. Its count of sentences, words and syllables is the measure of record for the reading grade, so every review measures the same way; a text a reviewer finds hard to read is named for its words, not for a different count. The reviewer reads each plain text beside its quote and vetoes any that says more, less or other than the quote.
 
 A regime's plain words say what its legal status means today, from the source the regime cites. For the paused rule, from the court's own order: what the new rule would change, that a federal court paused it on the date of the order while the case goes on, and that the earlier rule applies today.
 
