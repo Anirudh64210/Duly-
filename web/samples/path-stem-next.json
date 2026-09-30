@@ -1,0 +1,1771 @@
+{
+  "answers_read": [],
+  "checklists": [
+    {
+      "confirmed": 0,
+      "id": "opt_post.a2",
+      "label": "Post-completion OPT filing",
+      "reading": true,
+      "record": "a2",
+      "stage": "opt_post.a2",
+      "steps": [
+        {
+          "confirmed_on": null,
+          "id": "dso_recommendation",
+          "label": "The DSO's OPT recommendation, put in SEVIS",
+          "rule_ids": ["opt.file_within_days_of_recommendation"],
+          "school": true,
+          "who": "school"
+        },
+        {
+          "confirmed_on": null,
+          "id": "i765_in_window",
+          "label": "Form I-765 for post-completion OPT, filed in the window around the program end date",
+          "rule_ids": ["opt.apply_before_days", "opt.apply_after_days"],
+          "school": false,
+          "who": "student"
+        },
+        {
+          "confirmed_on": null,
+          "id": "i765_after_recommendation",
+          "label": "Form I-765, filed within the rule's days of the DSO's recommendation",
+          "rule_ids": ["opt.file_within_days_of_recommendation"],
+          "school": false,
+          "who": "student"
+        },
+        {
+          "confirmed_on": null,
+          "id": "start_date",
+          "label": "A requested start date no later than the rule allows after the program end date",
+          "rule_ids": ["opt.latest_start_after_days"],
+          "school": false,
+          "who": "student"
+        }
+      ],
+      "total": 4
+    },
+    {
+      "confirmed": 0,
+      "id": "stem_opt.a2",
+      "label": "STEM OPT extension filing",
+      "reading": true,
+      "record": "a2",
+      "stage": "stem.a2",
+      "steps": [
+        {
+          "confirmed_on": null,
+          "id": "i983",
+          "label": "A completed and signed Form I-983, the training plan",
+          "rule_ids": ["stem.requires.training_plan"],
+          "school": false,
+          "who": "student"
+        },
+        {
+          "confirmed_on": null,
+          "id": "dso_recommendation",
+          "label": "The DSO's STEM OPT recommendation, put in SEVIS",
+          "rule_ids": ["stem.file_within_days_of_recommendation", "stem.requires.training_plan"],
+          "school": true,
+          "who": "school"
+        },
+        {
+          "confirmed_on": null,
+          "id": "i765_after_recommendation",
+          "label": "Form I-765, filed within the rule's days of the DSO's recommendation",
+          "rule_ids": ["stem.file_within_days_of_recommendation"],
+          "school": false,
+          "who": "student"
+        },
+        {
+          "confirmed_on": null,
+          "id": "i765_before_card_end",
+          "label": "Form I-765, filed before the current OPT card ends",
+          "rule_ids": ["stem.apply_before_expiry_days", "stem.apply_window_closes_rule"],
+          "school": false,
+          "who": "student"
+        },
+        {
+          "confirmed_on": null,
+          "id": "degree_on_list",
+          "label": "A degree on the STEM list at the time the DSO recommends the extension",
+          "rule_ids": [
+            "stem.requires.degree_on_designated_list",
+            "stem.requires.dhs_approved_degree"
+          ],
+          "school": false,
+          "who": "student"
+        },
+        {
+          "confirmed_on": null,
+          "id": "accredited_school",
+          "label": "A degree from an accredited U.S. school",
+          "rule_ids": ["stem.requires.accreditation"],
+          "school": false,
+          "who": "school"
+        },
+        {
+          "confirmed_on": null,
+          "id": "e_verify",
+          "label": "An employer in E-Verify, with an employer ID number (EIN) for tax",
+          "rule_ids": ["stem.requires.employer_qualification"],
+          "school": false,
+          "who": "employer"
+        },
+        {
+          "confirmed_on": null,
+          "id": "directly_related",
+          "label": "Training that is directly related to the degree",
+          "rule_ids": ["stem.requires.eligible_practical_training_opportunity"],
+          "school": false,
+          "who": "employer"
+        },
+        {
+          "confirmed_on": null,
+          "id": "employer_attests",
+          "label": "The employer's attestations, signed on Form I-983",
+          "rule_ids": [
+            "stem.requires.employer_attestation",
+            "stem.requires.employer_attests_resources",
+            "stem.requires.employer_attests_no_replacement",
+            "stem.requires.employer_attests_training_goals"
+          ],
+          "school": false,
+          "who": "employer"
+        },
+        {
+          "confirmed_on": null,
+          "id": "employer_reporting",
+          "label": "The employer's agreement, on Form I-983, to tell the DSO if the student leaves early",
+          "rule_ids": ["stem.requires.employer_reporting"],
+          "school": false,
+          "who": "employer"
+        },
+        {
+          "confirmed_on": null,
+          "id": "commensurate_terms",
+          "label": "Duties, hours and compensation like those of similar U.S. workers at the employer",
+          "rule_ids": ["stem.requires.duties_hours_and_compensation", "stem.min_hours_per_week"],
+          "school": false,
+          "who": "employer"
+        }
+      ],
+      "total": 11
+    }
+  ],
+  "computed": [
+    {
+      "id": "opt.apply_window.opens.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.apply_before_days", "opt.apply_after_days"],
+      "status": "litigated",
+      "unit": "date",
+      "value": "2025-09-14"
+    },
+    {
+      "id": "opt.apply_window.closes.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.apply_before_days", "opt.apply_after_days"],
+      "status": "litigated",
+      "unit": "date",
+      "value": "2026-02-11"
+    },
+    {
+      "id": "opt.latest_start.opens.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.latest_start_after_days"],
+      "status": "litigated",
+      "unit": "date",
+      "value": "2025-12-13"
+    },
+    {
+      "id": "opt.latest_start.closes.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.latest_start_after_days"],
+      "status": "litigated",
+      "unit": "date",
+      "value": "2026-02-11"
+    },
+    {
+      "id": "opt.file_by.opens.a2",
+      "inputs": {
+        "a2.dso_on": "2025-10-01"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.file_within_days_of_recommendation"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2025-10-01"
+    },
+    {
+      "id": "opt.file_by.closes.a2",
+      "inputs": {
+        "a2.dso_on": "2025-10-01"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.file_within_days_of_recommendation"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2025-10-31"
+    },
+    {
+      "id": "opt.complete_by.opens.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.complete_within_months"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2025-12-13"
+    },
+    {
+      "id": "opt.complete_by.closes.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.complete_within_months"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2027-02-13"
+    },
+    {
+      "id": "stem.apply_window.opens.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09"
+      },
+      "reading": true,
+      "record": "a2",
+      "rule_ids": ["stem.apply_before_expiry_days", "stem.apply_window_closes_rule"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2026-11-11"
+    },
+    {
+      "id": "stem.apply_window.closes.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09"
+      },
+      "reading": true,
+      "record": "a2",
+      "rule_ids": ["stem.apply_before_expiry_days", "stem.apply_window_closes_rule"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2027-02-09"
+    },
+    {
+      "id": "stem.file_by.opens.a2",
+      "inputs": {},
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["stem.file_within_days_of_recommendation"],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.file_by.closes.a2",
+      "inputs": {},
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["stem.file_within_days_of_recommendation"],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_1.opens.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_1.closes.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_2.opens.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_2.closes.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_3.opens.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_3.closes.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_4.opens.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.validation_4.closes.a2",
+      "inputs": {},
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.evaluation_12_month.opens.a2",
+      "inputs": {},
+      "reading": false,
+      "record": "a2",
+      "rule_ids": [
+        "stem.evaluation_interval_months",
+        "stem.evaluation_due_days",
+        "stem.reporting_required"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.evaluation_12_month.closes.a2",
+      "inputs": {},
+      "reading": false,
+      "record": "a2",
+      "rule_ids": [
+        "stem.evaluation_interval_months",
+        "stem.evaluation_due_days",
+        "stem.reporting_required"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.evaluation_final.opens.a2",
+      "inputs": {},
+      "reading": false,
+      "record": "a2",
+      "rule_ids": [
+        "stem.evaluation_interval_months",
+        "stem.evaluation_due_days",
+        "stem.reporting_required"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.evaluation_final.closes.a2",
+      "inputs": {},
+      "reading": false,
+      "record": "a2",
+      "rule_ids": [
+        "stem.evaluation_interval_months",
+        "stem.evaluation_due_days",
+        "stem.reporting_required"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "unemployment.opt_card.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09",
+        "a2.card_start": "2026-02-10",
+        "a2.id": "a2",
+        "w1.hours_per_week": 40,
+        "w1.start": "2026-02-15",
+        "w1.under": "a2"
+      },
+      "reading": true,
+      "rule_ids": [
+        "opt.unemployment_limit_days",
+        "opt.unemployment_each_period",
+        "opt.unemployment_abroad",
+        "opt.unemployment_in_cap_gap",
+        "opt.min_hours_per_week"
+      ],
+      "status": "guidance",
+      "unit": "days",
+      "value": 5
+    },
+    {
+      "id": "unemployment.total.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09",
+        "a2.card_start": "2026-02-10",
+        "a2.id": "a2",
+        "w1.hours_per_week": 40,
+        "w1.start": "2026-02-15",
+        "w1.under": "a2"
+      },
+      "reading": true,
+      "rule_ids": [
+        "stem.unemployment_limit_days",
+        "opt.unemployment_each_period",
+        "opt.unemployment_abroad",
+        "opt.unemployment_in_cap_gap",
+        "stem.min_hours_per_week"
+      ],
+      "status": "guidance",
+      "unit": "days",
+      "value": 5
+    },
+    {
+      "id": "opt.months_at_level.master",
+      "inputs": {
+        "a2.card_end": "2027-02-09",
+        "a2.card_start": "2026-02-10",
+        "days": 0
+      },
+      "reading": true,
+      "rule_ids": ["opt.max_months", "opt.split_same_level", "levels.higher_order"],
+      "status": "guidance",
+      "unit": "months",
+      "value": 12
+    },
+    {
+      "id": "stem.extensions.all",
+      "inputs": {},
+      "reading": false,
+      "rule_ids": ["stem.max_lifetime_extensions", "stem.seventeen_month_counts_as_one"],
+      "status": "settled",
+      "unit": "count",
+      "value": 0
+    }
+  ],
+  "lists": [],
+  "questions": [
+    {
+      "because": ["missing:a1.dso_on"],
+      "id": "a1.dso_on",
+      "record": "a1"
+    },
+    {
+      "because": ["missing:p1.first_year_before_training"],
+      "id": "p1.first_year_before_training",
+      "record": "p1"
+    },
+    {
+      "because": ["missing:p1.immediate_cpt"],
+      "id": "p1.immediate_cpt",
+      "record": "p1"
+    },
+    {
+      "because": ["missing:t1.signature_on"],
+      "id": "t1.signature_on",
+      "record": "t1"
+    },
+    {
+      "because": ["missing:t1.job_on_return"],
+      "id": "t1.job_on_return",
+      "record": "t1"
+    },
+    {
+      "because": ["missing:p1.coursework_done_on"],
+      "id": "p1.coursework_done_on",
+      "record": "p1"
+    },
+    {
+      "because": ["missing:a1.decision"],
+      "id": "a1.decision",
+      "record": "a1"
+    },
+    {
+      "because": ["missing:t1.purpose"],
+      "id": "t1.purpose",
+      "record": "t1"
+    },
+    {
+      "because": ["missing:a2.time"],
+      "id": "a2.time",
+      "record": "a2"
+    },
+    {
+      "because": ["unconfirmed:complete.authorization"],
+      "id": "complete.authorization"
+    },
+    {
+      "because": ["unconfirmed:complete.end_date_change"],
+      "id": "complete.end_date_change"
+    },
+    {
+      "because": ["unconfirmed:complete.program"],
+      "id": "complete.program"
+    },
+    {
+      "because": ["unconfirmed:complete.move"],
+      "id": "complete.move"
+    },
+    {
+      "because": ["unconfirmed:complete.work"],
+      "id": "complete.work"
+    },
+    {
+      "because": ["unconfirmed:complete.trip"],
+      "id": "complete.trip"
+    },
+    {
+      "because": ["unconfirmed:complete.petition"],
+      "id": "complete.petition"
+    },
+    {
+      "because": ["unconfirmed:complete.withdrawal"],
+      "id": "complete.withdrawal"
+    },
+    {
+      "about": {
+        "a1.card_end": "2024-08-15",
+        "a1.card_start": "2024-06-01",
+        "a2.card_end": "2027-02-09",
+        "a2.card_start": "2026-02-10",
+        "a2.decided_on": "2025-12-20",
+        "a2.dso_on": "2025-10-01",
+        "a2.filed_on": "2025-10-10",
+        "p1.conferred_on": "2025-12-13",
+        "p1.end_date": "2025-12-13",
+        "p1.start_date": "2023-08-21",
+        "t1.left_on": "2026-05-01",
+        "t1.returned_on": "2026-05-15",
+        "w1.start": "2026-02-15"
+      },
+      "because": ["unconfirmed:typed_dates"],
+      "id": "typed_dates.from_documents"
+    }
+  ],
+  "rulepacks": [
+    {
+      "category": "f1",
+      "version": "v2026.09"
+    }
+  ],
+  "rules": {
+    "calendar.federal_holidays_law": {
+      "checked_on": "2026-09-28",
+      "citation": "5 U.S.C. 6103(a)",
+      "derivation": "reading",
+      "note": "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays, recorded in the row of this id that ends 2021-06-16, read from this saved copy and its amendment note. Business days skip the days 6103(a) lists, on those days, and not observed days. Subsection (b) in the saved copy begins with the words 'For the purpose of statutes relating to pay and leave of employees', and only then moves a holiday that falls on a Saturday to the Friday before; the day off for a holiday on a Sunday is in Executive Order 11582, printed in the notes of the saved copy, which applies it in administering the provisions of law relating to pay and leave of absence. 8 CFR 214.2(f) is not a statute relating to pay and leave of employees, so Duly does not skip an observed day. The words of 6103(b) are in the note and not in the quote, which stays the list in (a). Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source.",
+      "plain": "The law lists eleven legal public holidays, including Juneteenth National Independence Day on June 19. Duly skips these days when it counts business days, on the holiday itself and not on a weekday off in its place. This is Duly's reading, not the rule's exact words.",
+      "quote": "The following are legal public holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Juneteenth National Independence Day, June 19. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim",
+      "value": true
+    },
+    "capgap.travel_while_pending": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.2",
+      "derivation": "verbatim",
+      "note": "Agency guidance, not regulation. The sentence begins SEVP recommends that a student not travel outside the United States during the cap gap extension, if possible, as. The path raises a trip while a change of status is pending as a judgement item for the DSO; it never says what the trip means. The snapshot is text extracted from the saved PDF.",
+      "plain": "SEVP's guidance says USCIS will take a change-of-status application as abandoned if the person leaves the country while it is still open. This is guidance, not a rule.",
+      "quote": "USCIS will consider a change-of-status application to be abandoned if the applicant leaves the country while the application remains pending.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
+      "value": true
+    },
+    "cpt.after_endorsed_i20": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(i)",
+      "derivation": "verbatim",
+      "note": "No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The path reads this as a check that a CPT card starts on or after dso_on, the day the DSO signed the Form I-20 for it. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "A student may begin curricular practical training only after getting a Form I-20 with the DSO endorsement. The DSO signs the form first.",
+      "quote": "A student may begin curricular practical training only after receiving their Form I-20 or successor form with the DSO endorsement.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "cpt.dso_marks_time": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(i)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The path asks full or part time for each CPT as the DSO marked it, and never works it out. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "The DSO will indicate whether the training is full-time or part-time. The DSO also gives the employer and location, and the start and end date of the work.",
+      "quote": "The DSO will indicate whether the training is full-time or part-time, the employer and location, and the employment start and end date.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "cpt.graduate_immediate": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(i)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a program requires immediate participation is the school's fact; the path asks it as immediate_cpt and never computes it. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "The rule of one academic year has an exception. It is for graduate studies that need the student to start curricular practical training at once.",
+      "quote": "Exceptions to the one academic year requirement are provided for students enrolled in graduate studies that require immediate participation in curricular practical training.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "grace.after_completion_days": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(5)(iv), text of 2026-09-14",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text. On 2026-09-29 the quote was widened to the whole first sentence of (f)(5)(iv), so that who is allowed the period is in the quote. Paragraph (f)(8), named in the quote, is headed School transfer.",
+      "plain": "This is the rule in force today. An F-1 student gets 60 more days after a course of study and any authorized practical training after it are done. The time is to get ready to leave the United States, or to move to a new school under the transfer rules.",
+      "quote": "An F-1 student who has completed a course of study and any authorized practical training following completion of studies will be allowed an additional 60-day period to prepare for departure from the United States or to transfer in accordance with paragraph (f)(8) of this section.",
+      "regime": "ds_2012",
+      "status": "litigated",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 60
+    },
+    "levels.higher_order": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "derivation": "reading",
+      "note": "Reading. Agency guidance, not regulation. The quote is from the table of OPT types on the saved page. It gives one example of a higher level of study, a master's degree after a bachelor's degree. 8 CFR 214.2(f)(10), recorded as opt.max_months, says a student becomes eligible for another 12 months when they change to a higher educational level, and gives no order of levels. The full order of levels in path.order (associate, bachelor, master, doctorate) is Duly's reading, not the words of either source; secondary, language_training, professional and other have no place in it, and a comparison with one of them is unknown. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.",
+      "plain": "SEVP's guidance says 12 months of regular OPT is open for each higher level of study, such as a master's after a bachelor's. The full order of levels is Duly's reading. This is agency guidance, not a regulation.",
+      "quote": "Twelve months of Regular OPT is available for each higher level of study. (for example a student may have 12 months for a bachelor's degree and another 12 months for a master's degree.)",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": true
+    },
+    "opt.apply_after_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(11)(i)(B)(2), text of 2026-09-14",
+      "derivation": "verbatim",
+      "note": "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The SPEC listed this rule as settled with no regime. The final rule at 91 FR 44976 changes 60 to 30 in this paragraph and in (f)(11)(i)(D), so it is recorded under both regimes. The sentence begins For post-completion OPT, not including a 24-month OPT extension under paragraph (f)(10)(ii)(C)(2) of this section; those words are not in the quote because the saved copy prints the paragraph number 2 in italics, and the plain words rest on them for post-completion OPT. The plain words say properly file as correctly file.",
+      "plain": "Under the rule in force today, the last day to correctly file Form I-765 for post-completion OPT is 60 days after the program end date. Filing may begin 90 days before the program end date. This does not cover a 24-month OPT extension.",
+      "quote": "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date",
+      "regime": "ds_2012",
+      "status": "litigated",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 60
+    },
+    "opt.apply_before_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(11)(i)(B)(2)",
+      "derivation": "verbatim",
+      "note": "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps 90 days. The sentence begins For post-completion OPT, not including a 24-month OPT extension under paragraph (f)(10)(ii)(C)(2) of this section; those words are not in the quote because the saved copy prints the paragraph number 2 in italics, and the plain words rest on them for post-completion OPT. The plain words say properly file as correctly file.",
+      "plain": "A student may correctly file Form I-765 for post-completion OPT as early as 90 days before the program end date. This does not cover a 24-month OPT extension.",
+      "quote": "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 90
+    },
+    "opt.complete_within_months": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(A)(3)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text on 2026-09-29. The quote is the whole sentence of (f)(10)(ii)(A)(3), with its exception for the 24-month extension under (f)(10)(ii)(C), so the 14 months are never shown without the exception (SPEC-resolutions point 30). The same sentence is in the 2026-09-15 text and in 81 FR 13040 (FR Doc. 2016-04828), both saved. Paragraph (f)(10)(ii)(C) is headed 24-month extension of post-completion OPT for a science, technology, engineering, or mathematics (STEM) degree; that heading is why the plain words say STEM.",
+      "plain": "A student must complete all practical training within a 14-month period after the completion of study. A 24-month STEM extension does not need to be completed within those 14 months.",
+      "quote": "A student must complete all practical training within a 14-month period following the completion of study, except that a 24-month extension pursuant to paragraph (f)(10)(ii)(C) of this section does not need to be completed within such 14-month period.",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 14
+    },
+    "opt.ends_on_transfer_or_new_level": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(B)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. For a change of level, Duly takes the end as the day before the new program starts. For a transfer the words name no day; Duly reads it as the release date, and that is a reading. The plain check refuses the words engage in and terminated, so the plain words say ends on its own.",
+      "plain": "Permission for OPT work ends on its own when the student transfers to another school or begins study at another educational level. The rule names no day for a transfer. Duly reads it as the release date, and that is Duly's reading.",
+      "quote": "Authorization to engage in optional practical training employment is automatically terminated when the student transfers to another school or begins study at another educational level.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "opt.file_within_days_of_recommendation": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(11)(i)(B)(2)",
+      "derivation": "verbatim",
+      "note": "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps 30 days. The sentence comes right after the one that sets the filing dates for post-completion OPT, recorded as opt.apply_before_days and opt.apply_after_days; the word also ties the two.",
+      "plain": "The student must also file Form I-765 with USCIS within 30 days after the DSO puts the OPT recommendation in the student's SEVIS record. This is on top of the dates to file for post-completion OPT.",
+      "quote": "The student must also file his or her Form I-765 or successor form with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record.",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 30
+    },
+    "opt.latest_start_after_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(11)(i)(D), text of 2026-09-14",
+      "derivation": "verbatim",
+      "note": "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which has the same sentence. Words checked in the 2026-09-14 text. The final rule at 91 FR 44976 replaces 60 with 30 in this sentence, so the rule is recorded under both regimes. The next sentence of the paragraph says employment authorization will begin on the date requested or the date the employment authorization is adjudicated, whichever is later; this row limits the date a student may request, not the date the authorization begins. The sentence is in paragraph (f)(11)(i)(D), headed Start of OPT employment, so the start date is the start date of OPT employment.",
+      "plain": "Under the rule in force today, a student may not request an OPT start date more than 60 days after the program end date.",
+      "quote": "A student may not request a start date that is more than 60 days after the student's program end date.",
+      "regime": "ds_2012",
+      "status": "litigated",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 60
+    },
+    "opt.max_months": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml. The rule is older than this start date; this is the earliest rule document saved with the pack that carries the same words. Words checked in the 2026-09-14 text.",
+      "plain": "A student may be authorized 12 months of practical training. After a move up to a higher educational level, there can be 12 more months of it.",
+      "quote": "A student may be authorized 12 months of practical training, and becomes eligible for another 12 months of practical training when they change to a higher educational level.",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 12
+    },
+    "opt.min_hours_per_week": {
+      "checked_on": "2026-09-28",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "derivation": "verbatim",
+      "note": "Agency guidance, not regulation. Start date from SEVP Policy Guidance 1004-03 of 2010-04-23, section 7.2.1, which says a student must work at least 20 hours per week in a qualifying position to be considered employed. Saved as sources/ice-sevp-policy-guidance-1004-03.pdf, with extracted text beside it, from https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf.",
+      "plain": "SEVP's guidance says post-completion OPT must be at least 20 hours per week or full time. This is agency guidance, not a regulation.",
+      "quote": "Post-Completion OPT: Any portion of OPT used after the student's Program End Date. It must be at least 20 hours per week or full-time.",
+      "status": "guidance",
+      "unit": "hours_per_week",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": 20
+    },
+    "opt.post_completion_definition": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "derivation": "verbatim",
+      "note": "Agency guidance, not regulation. The quote is SEVP's definition in the table of OPT types on the saved page; the next sentence says it must be at least 20 hours per week or full-time, and the row before it defines pre-completion OPT as any portion of OPT used before the student's Program End Date. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. Taking the end of the OPT card as the test of whether any post-completion OPT exists is Duly's reading (SPEC-resolutions point 27), not these words. The flag records what the guidance says. It says nothing about any one person.",
+      "plain": "SEVP's guidance says post-completion OPT is any portion of OPT used after the program end date. This is agency guidance, not a regulation.",
+      "quote": "Post-Completion OPT: Any portion of OPT used after the student's Program End Date.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": true
+    },
+    "opt.report_interruption": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(12)(i)",
+      "derivation": "verbatim",
+      "note": "The quote is the first sentence of paragraph (f)(12)(i), headed General. It states no number of days; the 10 days in opt.report_employer_within_days are SEVP guidance, not these words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, the earliest saved copy with these exact words. Older words with the same duty are in 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, and 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, both saved; no earlier row is recorded. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "An F-1 student granted employment authorization by USCIS for OPT must report to the DSO any change of name or address, or any interruption of that work. This lasts for the whole of the OPT. The rule gives no number of days.",
+      "quote": "An F-1 student who is granted employment authorization by USCIS to engage in optional practical training is required to report any change of name or address, or interruption of such employment to the DSO for the duration of the optional practical training.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "opt.split_same_level": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "derivation": "verbatim",
+      "note": "Agency guidance, not regulation. The sentence goes on with an example of six months after one master's degree and six after another. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.",
+      "plain": "SEVP's guidance says a student can split OPT time between degree programs at the same education level. This is agency guidance, not a regulation.",
+      "quote": "A student can split their OPT time between degree programs at the same education level",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": true
+    },
+    "opt.unemployment_abroad": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.8",
+      "derivation": "reading",
+      "note": "Reading. Agency guidance, not regulation. The saved text breaks post-completion across a line, and the quote keeps that. The sentence goes on: unless the student is either employed during a period of leave authorized by an employer, or traveling as part of his or her employment. The 120 days were the limit for the 17-month extension of 2008; the limit for a 24-month extension is 150 days (stem.unemployment_limit_days). Using this guidance for the 150 days is Duly's reading. The snapshot is text extracted from the saved PDF.",
+      "plain": "SEVP's guidance says time outside the United States during approved post-completion OPT counts as unemployment. It does not count on leave the employer allowed, or on travel for the job. Duly also uses this for the 150-day limit, as a reading.",
+      "quote": "Time spent outside the United States during an approved period of post- completion OPT counts as unemployment against the 90/120-day limits",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
+      "value": true
+    },
+    "opt.unemployment_each_period": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.4",
+      "derivation": "reading",
+      "note": "Reading. Agency guidance, not regulation. The question it answers is about a student who splits OPT between two degrees at the same level. The preamble of 81 FR 13040, saved as sources/fr-2016-04828.xml, says a student who pursues a second period of OPT at a higher educational level will benefit from the 90- and 150-day periods of unemployment (as appropriate) at both educational levels. That each post-completion OPT, with the STEM extensions that extend it, starts its own count is Duly's reading of both. The snapshot is text extracted from the saved PDF.",
+      "plain": "SEVP's guidance says each new period of post-completion OPT comes with the full 90-day period of unemployment. Duly reads this as a new count for each period. This is Duly's reading of agency guidance.",
+      "quote": "For each new period of post-completion OPT, the student will have the full 90-day period of unemployment.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
+      "value": true
+    },
+    "opt.unemployment_in_cap_gap": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.3",
+      "derivation": "reading",
+      "note": "Reading. Agency guidance, not regulation. The question it answers is: do the limits on unemployment time apply to a student with a cap gap extension? Using this guidance for the 150-day limit of stem.unemployment_limit_days is Duly's reading. The snapshot is text extracted from the saved PDF.",
+      "plain": "SEVP's guidance says the 90 day limit on unemployment goes on during the cap gap extension. Duly also uses it for the 150-day limit, as a reading. This is agency guidance, not a regulation.",
+      "quote": "Yes, the 90 day limitation on unemployment continues during the cap gap extension.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
+      "value": true
+    },
+    "opt.unemployment_limit_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)(ii)(E)",
+      "derivation": "verbatim",
+      "note": "Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml. Words checked in the 2026-09-14 text. The next sentence of the paragraph gives students granted a 24-month OPT extension a limit counted over a total OPT period, recorded as stem.unemployment_limit_days. The plain words say accrue an aggregate of as have, added together.",
+      "plain": "During a post-completion OPT period, a student may not have more than 90 days of unemployment in all. A student granted a 24-month OPT extension has a separate limit.",
+      "quote": "Students may not accrue an aggregate of more than 90 days of unemployment during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B).",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 90
+    },
+    "practical_training.language_programs": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The plain check refuses the word ineligible, so the plain words say cannot have. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "A student in an English language training program can not have practical training. The rule says so for all such students.",
+      "quote": "Students in English language training programs are ineligible for practical training.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "practical_training.one_academic_year": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)",
+      "derivation": "verbatim",
+      "note": "The quote is the first sentence of paragraph (f)(10), headed Practical training. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly never computes a school's academic year; the path asks the school's date as first_year_done_on and the answer first_year_before_training. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "An F-1 student may be given practical training after one full academic year. In that year the student must have been lawfully enrolled full time. It must be at a SEVP-certified school of the kinds the rule lists.",
+      "quote": "Practical training may be authorized to an F-1 student who has been lawfully enrolled on a full-time basis, in an approved SEVP-certified college, university, conservatory, or seminary for one full academic year.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "practical_training.study_abroad": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)",
+      "derivation": "verbatim",
+      "note": "The sentence begins This paragraph (f)(10) also includes; the quote starts after those words. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "The rule on practical training also counts a student who went to study abroad. Before that, the student must have spent at least one full academic term in a full course of study in the United States.",
+      "quote": "students who, during their course of study, were enrolled in a study abroad program, if the student had spent at least one full academic term enrolled in a full course of study in the United States prior to studying abroad.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "program.extension_new_i20": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(7)(iv), text of 2026-09-14",
+      "derivation": "verbatim",
+      "note": "No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text has no such sentence, so no row is recorded under fixed_admission_2026.",
+      "plain": "Under the rule in force today, a DSO grants a program extension by updating SEVIS and issuing a new Form I-20. The new form shows the current program end date.",
+      "quote": "A DSO may grant a program extension only by updating SEVIS and issuing a new Form I-20 or successor form reflecting the current program end date.",
+      "regime": "ds_2012",
+      "status": "litigated",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.apply_before_expiry_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(11)(i)(C)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. On 2026-09-29 the quote was widened to the whole sentence, so that who may file, and what is filed, is in the quote. Eligibility is the regulation's word; the plain check refuses it, so the plain words say meets the terms.",
+      "plain": "A student who meets the terms for a 24-month OPT extension may ask for it by filing Form I-765 with the fee and papers needed. The filing may come up to 90 days before the student's current OPT employment authorization ends.",
+      "quote": "A student meeting the eligibility requirements for a 24-month OPT extension under paragraph (f)(10)(ii)(C) of this section may request an extension of employment authorization by filing Form I-765 or successor form, with the required fee and supporting documents, up to 90 days prior to the expiration date of the student's current OPT employment authorization.",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 90
+    },
+    "stem.apply_window_closes_rule": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)",
+      "derivation": "reading",
+      "note": "Reading: the regulation says a qualified student may apply while in a valid period of post-completion OPT, and Duly reads those words as the closing of the filing window. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text; the 2026-09-15 text has the same words, so the rule sits under no regime. The SPEC pointed to (f)(11)(i)(C). That paragraph states only the opening of the window, up to 90 days prior to the expiration date of the current OPT employment authorization, and states no closing. The closing is in the opening text of (f)(10)(ii)(C), quoted here, which begins with the words Consistent with paragraph (f)(11)(i)(C) of this section. The regulation states the closing as a condition, while in a valid period of post-completion OPT, and names no date. The preamble of 81 FR 13040 says a student may file only if the student is in a valid period of post-completion OPT at the time of filing, and that a period extended under cap-gap is a valid period. So the window can close later than the expiration date on the employment authorization document. That the window closes on that expiration date is a reading, not the words of the source. The plain words say qualified student as a student who meets its terms, because the plain check refuses the word qualified.",
+      "plain": "The rule lets a student who meets its terms apply for an extension of OPT while in a valid period of post-completion OPT. Duly reads this as closing the window when the OPT card ends, though a cap-gap period may keep it open longer. This is Duly's reading, not the rule's exact words.",
+      "quote": "a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.evaluation_due_days": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(9)(i)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. On 2026-09-29 the quote was widened to the whole sentence, so that the word respectively pairs the 12-month evaluation with the reporting period and the final evaluation with the end of the practical training opportunity.",
+      "plain": "The student is the one who must see that the DSO gets two evaluations on time. The 12-month evaluation is due within 10 days after the reporting period ends. The final evaluation is due within 10 days after the practical training opportunity ends.",
+      "quote": "The student is responsible for ensuring the DSO receives his or her 12-month evaluation and final evaluation no later than 10 days following the conclusion of the reporting period or conclusion of his or her practical training opportunity, respectively.",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 10
+    },
+    "stem.evaluation_interval_months": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(9)(i)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text. The 2026-09-15 text has the same words. The regulation does not state a repeating interval. It names two evaluations: one within 12 months of the approved starting date on the employment authorization document, and one at the conclusion. The word annual appears in the preamble of 81 FR 13040, not in the regulation. The 12 months run from the approved starting date on the document, for each practical training opportunity.",
+      "plain": "Each STEM practical training opportunity needs an initial evaluation. It is due within 12 months of the start date on the 24-month OPT extension card. A concluding evaluation is also needed.",
+      "quote": "All STEM practical training opportunities require an initial evaluation within 12 months of the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application, and a concluding evaluation.",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 12
+    },
+    "stem.extension_months": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. On 2026-09-29 the quote was widened to the words dual degree program, so that the thesis exclusion is in the quote. The sentence goes on: subject to the requirement in paragraph (f)(10)(ii)(C)(3) of this section that previously obtained degrees must have been conferred; the quote stops before that number because the saved copy prints it in italics. Qualifying is the regulation's word; the plain check refuses it, so the plain words say a degree that meets the STEM terms, the terms of paragraph (f)(10)(ii)(C), headed 24-month extension of post-completion OPT for a science, technology, engineering, or mathematics (STEM) degree.",
+      "plain": "The extension lasts 24 months. It is for the first degree that meets the STEM terms and for which the student has completed all course requirements, apart from a thesis or its equivalent. A degree in a dual degree program can count.",
+      "quote": "An extension will be for 24 months for the first qualifying degree for which the student has completed all course requirements (excluding thesis or equivalent), including any qualifying degree as part of a dual degree program",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 24
+    },
+    "stem.file_within_days_of_recommendation": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(11)(i)(C)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The plain words say properly file as correctly file.",
+      "plain": "A student seeking the 24-month OPT extension must correctly file Form I-765 with USCIS. It is due within 60 days after the DSO puts the recommendation for it in the student's SEVIS record.",
+      "quote": "The student seeking such 24-month OPT extension must properly file his or her Form I-765 or successor form with USCIS within 60 days of the date the DSO enters the recommendation for the OPT extension into his or her SEVIS record.",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 60
+    },
+    "stem.max_lifetime_extensions": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word two.",
+      "plain": "A student may not be authorized for more than two lifetime STEM OPT extensions.",
+      "quote": "In no event may a student be authorized for more than two lifetime STEM OPT extensions.",
+      "status": "settled",
+      "unit": "count",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 2
+    },
+    "stem.min_hours_per_week": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(8)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The sentence is the second one of paragraph (f)(10)(ii)(C)(8), under (f)(10)(ii)(C), headed 24-month extension of post-completion OPT for a science, technology, engineering, or mathematics (STEM) degree; that heading is why the plain words name the extension. The time off left out is only time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment.",
+      "plain": "On a 24-month extension, practical training may not be less than 20 hours a week. Some time off is not counted. It is time off that follows the leave policies for the employer's similarly situated U.S. workers in the area of employment.",
+      "quote": "A student may not engage in practical training for less than 20 hours per week, excluding time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment.",
+      "status": "settled",
+      "unit": "hours_per_week",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 20
+    },
+    "stem.pending_card_extended": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(11)(i)(C)",
+      "derivation": "verbatim",
+      "note": "The sentence says that where a student timely files for the 24-month extension and the card in hand expires before the decision, the card is extended automatically; the quote is its last part. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 274a.12(b)(6)(iv) is not saved and was not read, so the pack states no length for the extension and Duly computes none.",
+      "plain": "If the card ends while the application for the extension is still open, the card is extended automatically. The terms are in a rule Duly has not saved. So Duly gives no length.",
+      "quote": "is extended automatically pursuant to the terms and conditions specified in 8 CFR 274a.12(b)(6)(iv).",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.reporting_required": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(12)(ii)",
+      "derivation": "verbatim",
+      "note": "The quote is the second sentence of paragraph (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension. The sentence before it says those students have additional reporting obligations, and the reporting requirements are the ones the paragraph then lists. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence for the 24-month extension. The same sentence is in 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved, where it applies to the 17-month extension; no row is recorded for that. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "A student with an approved 24-month OPT extension has more reporting duties, which the rule lists. The rule says these reporting requirements must be met to maintain F-1 status.",
+      "quote": "Compliance with these reporting requirements is required to maintain F-1 status.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.accreditation": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(1)",
+      "derivation": "reading",
+      "note": "Reading: the quoted sentence says the degree is from an accredited institution and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is Accreditation. The words at the time of application are the regulation's; the regulation does not say in this sentence which application. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person. The words at the time of application close the sentence; they may limit the accreditation, the recognition, or both, and the plain words keep that open.",
+      "plain": "As Duly reads it, this is one of the things on the list that must be met. The degree is from a U.S. educational institution. The school is accredited by an agency that the Department of Education has recognized at the time of application.",
+      "quote": "The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution accredited by an accrediting agency recognized by the Department of Education at the time of application.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.degree_on_designated_list": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(2)(iii)",
+      "derivation": "verbatim",
+      "note": "The quoted sentence is the whole of paragraph (f)(10)(ii)(C)(2)(iii). It names a point in time, the time the DSO recommends the extension in SEVIS. The STEM Designated Degree Program List is not saved with this pack and was not read; the pack does not say which degrees are on it. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "This rule looks at the time the DSO recommends the 24-month OPT extension in SEVIS. At that time, the degree it is based on must be in a category on the STEM Designated Degree Program List.",
+      "quote": "At the time the DSO recommends a 24-month OPT extension under this paragraph (f)(10)(ii)(C) in SEVIS, the degree that is the basis for the application for the OPT extension must be contained within a category on the STEM Designated Degree Program List.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.dhs_approved_degree": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(2)",
+      "derivation": "reading",
+      "note": "Reading: the quoted sentence says what the degree is and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is DHS-approved degree. Paragraph (2)(i) defines the term science, technology, engineering or mathematics field, and paragraph (2)(ii) says the Secretary will maintain the STEM Designated Degree Program List; neither is recorded as a row. The list itself is not saved with this pack and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person. The words or his or her designee are the regulation's; the plain words say a person the Secretary names.",
+      "plain": "Duly reads this as one of the listed requirements. The degree for the 24-month OPT extension is a bachelor's, master's or doctoral degree. The Secretary, or a person the Secretary names, has found its field to be a STEM field.",
+      "quote": "The degree that is the basis for the 24-month OPT extension is a bachelor's, master's, or doctoral degree in a field determined by the Secretary, or his or her designee, to qualify within a science, technology, engineering, or mathematics field.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.duties_hours_and_compensation": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(8)",
+      "derivation": "verbatim",
+      "note": "The quoted sentence is the first one of paragraph (f)(10)(ii)(C)(8), headed Duties, hours, and compensation for training. The second sentence of the paragraph is the source of stem.min_hours_per_week. The paragraph goes on to say what similarly situated U.S. workers includes and when duties, hours, and compensation are commensurate, and that the student must disclose his or her compensation on the Form I-983 or successor form; those sentences are not recorded as rows. The words speak of the period of the 24-month OPT extension. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "During the 24-month OPT extension, the training has terms and conditions. These include duties, hours and compensation. They must be commensurate with those of the employer's similarly situated U.S. workers in the area of employment.",
+      "quote": "The terms and conditions of a STEM practical training opportunity during the period of the 24-month OPT extension, including duties, hours, and compensation, must be commensurate with terms and conditions applicable to the employer's similarly situated U.S. workers in the area of employment.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.eligible_practical_training_opportunity": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(4)",
+      "derivation": "verbatim",
+      "note": "The quoted words are the first part of the one sentence of paragraph (f)(10)(ii)(C)(4), headed Eligible practical training opportunity. The sentence goes on: which may be the previously obtained degree described in paragraph (f)(10)(ii)(C)(3) of this section. The quote stops before those words because the saved copy prints the paragraph number 3 in italics and the source check cannot match a quote across it. The regulation says directly related and gives no test for it in this paragraph; whether a training opportunity is directly related to a degree is not something this pack states. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "The 24-month OPT extension rests on a STEM practical training opportunity. It must be directly related to the degree that meets the terms for the extension.",
+      "quote": "The STEM practical training opportunity that is the basis for the 24-month OPT extension under this paragraph (f)(10)(ii)(C) must be directly related to the degree that qualifies the student for such extension",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.employer_attestation": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(10)",
+      "derivation": "verbatim",
+      "note": "The quoted words are the whole of the opening text of paragraph (f)(10)(ii)(C)(10), headed Additional STEM opportunity obligations. They end with a colon. The three things the employer attests follow at (10)(i), (10)(ii) and (10)(iii), recorded in the next three rows. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "A student may only take part in a STEM practical training opportunity where the employer attests to three things the rule lists. Signing Form I-983 is one way the employer attests.",
+      "quote": "A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that:",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.employer_attests_no_replacement": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(10)(ii)",
+      "derivation": "reading",
+      "note": "Reading: the quoted words are the second of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(ii), with the word and that ends it in the source. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "Duly reads this as one of the things the employer attests. The student on a STEM OPT extension will not replace a U.S. worker, whether full- or part-time, temporary or permanent.",
+      "quote": "The student on a STEM OPT extension will not replace a full- or part-time, temporary or permanent U.S. worker; and",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.employer_attests_resources": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(10)(i)",
+      "derivation": "reading",
+      "note": "Reading: the quoted words are the first of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(i). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "Duly reads this as one of the things the employer attests. The employer has enough resources and staff and is prepared to give appropriate training for the opportunity. The training is at the places named in Form I-983.",
+      "quote": "The employer has sufficient resources and personnel available and is prepared to provide appropriate training in connection with the specified opportunity at the location(s) specified in the Form I-983 or successor form;",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.employer_attests_training_goals": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(10)(iii)",
+      "derivation": "reading",
+      "note": "Reading: the quoted words are the third of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(iii). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "Duly reads this as one of the things the employer attests. It is that the student's opportunity helps the student reach the training goals.",
+      "quote": "The student's opportunity assists the student in reaching his or her training goals.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.employer_qualification": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(5)",
+      "derivation": "reading",
+      "note": "Reading: the first quoted sentence says the employer is enrolled in E-Verify and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The second quoted sentence has its own must: an employer must also have an employer identification number. The quote is the whole of paragraph (f)(10)(ii)(C)(5), headed Employer qualification. The words as determined by USCIS are the regulation's. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "Duly reads this as one of the listed requirements. The employer is in E-Verify, shown by its valid company ID, or its client company ID if an agent runs its cases. It stays in good standing as USCIS decides, and must have an employer identification number (EIN) for tax.",
+      "quote": "The student's employer is enrolled in E-Verify, as evidenced by either a valid E-Verify Company Identification number or, if the employer is using an employer agent to create its E-Verify cases, a valid E-Verify Client Company Identification number, and the employer remains a participant in good standing with E-Verify, as determined by USCIS. An employer must also have an employer identification number (EIN) used for tax purposes.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.employer_reporting": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(6)",
+      "derivation": "reading",
+      "note": "Reading: the quote is the second part of a sentence, and the first part is needed to say what it states. The whole sentence begins A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section, and then the quoted words follow. The quote starts at unless because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The sentence is the first one of paragraph (f)(10)(ii)(C)(6), headed Employer reporting. The paragraph goes on to say such reporting must be made within five business days of the termination or departure, and when an employer shall consider a student to have departed; the number five is not recorded as a value in this pack. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person. The paragraph is under (f)(10)(ii)(C), headed 24-month extension of post-completion OPT for a science, technology, engineering, or mathematics (STEM) degree. The plain words say the termination or departure as the student leaves or the job is ended, the words reviews/product-1-fix6.md finding 1 asks for; the plain check refuses the word termination. The condition if the termination or departure is prior to the end of the authorized period of OPT stays a condition on when the student leaves or the job ends.",
+      "plain": "A student may be authorized to work for an employer on a 24-month OPT extension only if the employer agrees to tell the DSO if the student leaves or the job is ended before the authorized period of OPT ends. The employer agrees by signing Form I-983. This is Duly's reading, not the rule's exact words.",
+      "quote": "unless the employer agrees, by signing the Training Plan for STEM OPT Students, Form I-983 or successor form, to report the termination or departure of an OPT student to the DSO at the student's school, if the termination or departure is prior to the end of the authorized period of OPT.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.training_plan": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(7)(i)",
+      "derivation": "verbatim",
+      "note": "The quoted words are the first part of the first sentence of paragraph (f)(10)(ii)(C)(7)(i), under the heading Training Plan for STEM OPT Students, Form I-983 or successor form. The sentence goes on: under paragraph (f)(10)(ii)(C)(2) of this section in SEVIS. The quote stops before those words because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The same paragraph says the student must submit the form to the student's DSO prior to the new DSO recommendation. Paragraphs (7)(ii) and (7)(iii) say what the training plan must identify, describe and explain; they are not recorded as rows. Paragraph (7)(iv) is the source of stem.new_plan_due_days. Form I-983 and its instructions are not saved with this pack and were not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "Before the DSO may recommend a 24-month OPT extension, the student must fully complete an individualized Form I-983. The student must also get it signed by the right person at the employer. Both steps follow the form's instructions.",
+      "quote": "A student must fully complete an individualized Form I-983 or successor form and obtain requisite signatures from an appropriate individual in the employer's organization on the form, consistent with form instructions, before the DSO may recommend a 24-month OPT extension",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires_post_completion_opt": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)",
+      "derivation": "reading",
+      "note": "Reading: the regulation says a qualified student may apply for the extension while in a valid period of post-completion OPT, and Duly reads those words as saying the extension follows a period of post-completion OPT. The sentence is the first one of paragraph (f)(10)(ii)(C), whose heading is 24-month extension of post-completion OPT. The words are may apply while in; the regulation does not use the word only and does not say must. The preamble of 81 FR 13040 (FR Doc. 2016-04828), saved as sources/fr-2016-04828.xml, says a student may file for a STEM OPT extension only if the student is in a valid period of post-completion OPT at the time of filing; that is the agency explaining the rule, not the regulation. The same preamble says a period extended under cap-gap is a valid period. The second extension is stated with the same words, while in a valid period of post-completion OPT. The regulatory text printed in 81 FR 13040 at 8 CFR 214.16 excepted students then on a 17-month extension from this requirement; whether 8 CFR 214.16 is still in the Code was not checked and no copy is saved. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040, effective 2016-05-10, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. The flag records what the regulation says about who may apply. It says nothing about any one person.",
+      "plain": "The rule lets a student who meets its terms apply for an extension of OPT while in a valid period of post-completion OPT. Duly reads this to mean the extension follows a period of post-completion OPT. This is Duly's reading, not the rule's exact words.",
+      "quote": "Consistent with paragraph (f)(11)(i)(C) of this section, a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B).",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.seventeen_month_counts_as_one": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)",
+      "derivation": "verbatim",
+      "note": "The sentence begins A student who was granted a 17-month OPT extension under the rule issued at 73 FR 18944, whether or not such student requests an additional 7-month period of STEM OPT under 8 CFR 214.16; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 214.16 is not saved and was not read. The plain check refuses the word eligible.",
+      "plain": "A student granted a 17-month OPT extension under the older rule counts as having had one STEM OPT extension. That student may be able to have only one more.",
+      "quote": "is considered to have been authorized for one STEM OPT extension, and may be eligible for only one more STEM OPT extension.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.unemployment_limit_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(10)(ii)(E)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The limit for the earlier 17-month extension was a different number and is not recorded in this pack. The subject of the sentence in the saved text is Students granted a 24-month OPT extension under paragraph (f)(10)(ii)(C)(2) of this section; the quote starts after those words because the saved copy prints the paragraph number 2 in italics.",
+      "plain": "A student granted a 24-month OPT extension may not have more than 150 days of unemployment in all. The count runs over a total OPT period. That takes in any post-completion OPT period and any later 24-month extension period.",
+      "quote": "may not accrue an aggregate of more than 150 days of unemployment during a total OPT period, including any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B) and any subsequent 24-month extension period",
+      "status": "settled",
+      "unit": "days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 150
+    },
+    "stem.validation_due_business_days": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(12)(ii)(B)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text.",
+      "plain": "A validation report is due to the DSO within 10 business days. The days count from each reporting date.",
+      "quote": "The validation report is due to the student's DSO within 10 business days of each reporting date.",
+      "status": "settled",
+      "unit": "business_days",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 10
+    },
+    "stem.validation_interval_months": {
+      "checked_on": "2026-09-28",
+      "citation": "8 CFR 214.2(f)(12)(ii)(B)",
+      "derivation": "verbatim",
+      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The source writes the number as the word six. The same paragraph says the requirement starts on the date the 24-month OPT extension begins. The sentence is (f)(12)(ii)(B), under (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension; that heading is why the plain words name the extension. The source does not call the report short. Paragraph (f)(12)(ii)(A), named in the quote, requires a report of a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment; that is the information the validation report confirms has not changed (quoted in stem.report_change_within_days).",
+      "plain": "A student with an approved 24-month OPT extension must complete a validation report every six months. It confirms that the facts the student must report have not changed. These are legal name, home or mailing address, employer name and address, and loss of employment.",
+      "quote": "The student must complete a validation report, confirming that the information required by paragraph (f)(12)(ii)(A) of this section has not changed, every six months.",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 6
+    },
+    "travel.absence_months": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(4)",
+      "derivation": "verbatim",
+      "note": "No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents.",
+      "plain": "An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted. This is to attend an SEVP-certified school, with the papers the rule lists.",
+      "quote": "An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 5
+    },
+    "travel.opt_signature_months": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(13)(ii)",
+      "derivation": "verbatim",
+      "note": "The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six.",
+      "plain": "A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.",
+      "quote": "endorsed for reentry by the DSO within the last six months",
+      "status": "settled",
+      "unit": "months",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": 6
+    }
+  },
+  "scope": {
+    "documents_count": 0,
+    "rules_checked_on": "2026-09-28"
+  },
+  "stages": [
+    {
+      "category": "f1",
+      "checklist": null,
+      "days_in": 1136,
+      "days_total": 846,
+      "ends": "2025-12-13",
+      "ends_days_away": -290,
+      "facts": {
+        "p1.conferred_on": "2025-12-13",
+        "p1.end_date": "2025-12-13",
+        "p1.field_name": "Computer Science",
+        "p1.level": "master",
+        "p1.school_name": "State University",
+        "p1.start_date": "2023-08-21",
+        "p1.state": "completed",
+        "p1.stem_list": "on_list",
+        "p1.where": "us_on_f1"
+      },
+      "id": "program.p1",
+      "items": [],
+      "label": "Program of study",
+      "record": "p1",
+      "rule_ids": [
+        "program.extension_new_i20",
+        "levels.higher_order",
+        "practical_training.language_programs"
+      ],
+      "stage": "program",
+      "starts": "2023-08-21",
+      "state": "done",
+      "windows": []
+    },
+    {
+      "category": "f1",
+      "checklist": null,
+      "days_in": 851,
+      "days_total": 76,
+      "ends": "2024-08-15",
+      "ends_days_away": -775,
+      "facts": {
+        "a1.card_end": "2024-08-15",
+        "a1.card_start": "2024-06-01",
+        "a1.program": "p1",
+        "a1.time": "part_time",
+        "a1.type": "cpt"
+      },
+      "id": "cpt.a1",
+      "items": [],
+      "label": "Curricular practical training",
+      "record": "a1",
+      "rule_ids": ["cpt.after_endorsed_i20", "cpt.dso_marks_time"],
+      "stage": "cpt",
+      "starts": "2024-06-01",
+      "state": "done",
+      "windows": []
+    },
+    {
+      "category": "f1",
+      "checklist": "opt_post.a2",
+      "days_in": 232,
+      "days_total": 365,
+      "ends": "2027-02-09",
+      "ends_days_away": 133,
+      "facts": {
+        "a2.card_end": "2027-02-09",
+        "a2.card_start": "2026-02-10",
+        "a2.decided_on": "2025-12-20",
+        "a2.decision": "approved",
+        "a2.dso_on": "2025-10-01",
+        "a2.filed_on": "2025-10-10",
+        "a2.program": "p1",
+        "a2.type": "opt_post_completion"
+      },
+      "id": "opt_post.a2",
+      "items": [
+        "opt.apply_window.opens.a2",
+        "opt.apply_window.closes.a2",
+        "opt.latest_start.opens.a2",
+        "opt.latest_start.closes.a2",
+        "opt.file_by.opens.a2",
+        "opt.file_by.closes.a2",
+        "opt.complete_by.opens.a2",
+        "opt.complete_by.closes.a2"
+      ],
+      "label": "Post-completion OPT",
+      "record": "a2",
+      "rule_ids": [
+        "opt.post_completion_definition",
+        "opt.ends_on_transfer_or_new_level",
+        "opt.apply_before_days",
+        "opt.apply_after_days",
+        "opt.latest_start_after_days",
+        "opt.file_within_days_of_recommendation",
+        "opt.complete_within_months"
+      ],
+      "stage": "opt_post",
+      "starts": "2026-02-10",
+      "state": "current",
+      "windows": [
+        {
+          "closes": "2026-02-11",
+          "closes_days_away": -230,
+          "id": "opt.apply_window.a2",
+          "inputs": {
+            "p1.end_date": "2025-12-13"
+          },
+          "label": "Filing window for Form I-765",
+          "opens": "2025-09-14",
+          "opens_days_away": -380,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["opt.apply_before_days", "opt.apply_after_days"],
+          "status": "litigated"
+        },
+        {
+          "closes": "2026-02-11",
+          "closes_days_away": -230,
+          "id": "opt.latest_start.a2",
+          "inputs": {
+            "p1.end_date": "2025-12-13"
+          },
+          "label": "Latest start date that may be requested",
+          "opens": "2025-12-13",
+          "opens_days_away": -290,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["opt.latest_start_after_days"],
+          "status": "litigated"
+        },
+        {
+          "closes": "2025-10-31",
+          "closes_days_away": -333,
+          "id": "opt.file_by.a2",
+          "inputs": {
+            "a2.dso_on": "2025-10-01"
+          },
+          "label": "Form I-765 filed after the DSO's recommendation",
+          "opens": "2025-10-01",
+          "opens_days_away": -363,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["opt.file_within_days_of_recommendation"],
+          "status": "settled"
+        },
+        {
+          "closes": "2027-02-13",
+          "closes_days_away": 137,
+          "id": "opt.complete_by.a2",
+          "inputs": {
+            "p1.end_date": "2025-12-13"
+          },
+          "label": "Practical training completed after the completion of study",
+          "opens": "2025-12-13",
+          "opens_days_away": -290,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["opt.complete_within_months"],
+          "status": "settled"
+        }
+      ]
+    },
+    {
+      "category": "f1",
+      "checklist": "stem_opt.a2",
+      "days_in": null,
+      "days_total": null,
+      "ends": null,
+      "ends_days_away": null,
+      "facts": {},
+      "id": "stem.a2",
+      "items": [
+        "stem.apply_window.opens.a2",
+        "stem.apply_window.closes.a2",
+        "stem.file_by.opens.a2",
+        "stem.file_by.closes.a2",
+        "stem.validation_1.opens.a2",
+        "stem.validation_1.closes.a2",
+        "stem.validation_2.opens.a2",
+        "stem.validation_2.closes.a2",
+        "stem.validation_3.opens.a2",
+        "stem.validation_3.closes.a2",
+        "stem.validation_4.opens.a2",
+        "stem.validation_4.closes.a2",
+        "stem.evaluation_12_month.opens.a2",
+        "stem.evaluation_12_month.closes.a2",
+        "stem.evaluation_final.opens.a2",
+        "stem.evaluation_final.closes.a2"
+      ],
+      "label": "STEM OPT extension",
+      "record": "a2",
+      "rule_ids": [
+        "stem.extension_months",
+        "stem.requires_post_completion_opt",
+        "opt.ends_on_transfer_or_new_level",
+        "stem.pending_card_extended",
+        "stem.apply_before_expiry_days",
+        "stem.apply_window_closes_rule",
+        "stem.file_within_days_of_recommendation",
+        "stem.validation_interval_months",
+        "stem.validation_due_business_days",
+        "calendar.federal_holidays_law",
+        "stem.evaluation_interval_months",
+        "stem.evaluation_due_days",
+        "stem.reporting_required"
+      ],
+      "stage": "stem",
+      "starts": null,
+      "state": "next",
+      "windows": [
+        {
+          "closes": "2027-02-09",
+          "closes_days_away": 133,
+          "id": "stem.apply_window.a2",
+          "inputs": {
+            "a2.card_end": "2027-02-09"
+          },
+          "label": "Filing window for the STEM OPT extension",
+          "opens": "2026-11-11",
+          "opens_days_away": 43,
+          "reading": true,
+          "record": "a2",
+          "rule_ids": ["stem.apply_before_expiry_days", "stem.apply_window_closes_rule"],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.file_by.a2",
+          "inputs": {},
+          "label": "Form I-765 filed after the DSO's recommendation",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["stem.file_within_days_of_recommendation"],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.validation_1.a2",
+          "inputs": {},
+          "label": "First validation report",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": true,
+          "record": "a2",
+          "rule_ids": [
+            "stem.validation_interval_months",
+            "stem.validation_due_business_days",
+            "calendar.federal_holidays_law"
+          ],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.validation_2.a2",
+          "inputs": {},
+          "label": "Second validation report",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": true,
+          "record": "a2",
+          "rule_ids": [
+            "stem.validation_interval_months",
+            "stem.validation_due_business_days",
+            "calendar.federal_holidays_law"
+          ],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.validation_3.a2",
+          "inputs": {},
+          "label": "Third validation report",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": true,
+          "record": "a2",
+          "rule_ids": [
+            "stem.validation_interval_months",
+            "stem.validation_due_business_days",
+            "calendar.federal_holidays_law"
+          ],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.validation_4.a2",
+          "inputs": {},
+          "label": "Fourth validation report",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": true,
+          "record": "a2",
+          "rule_ids": [
+            "stem.validation_interval_months",
+            "stem.validation_due_business_days",
+            "calendar.federal_holidays_law"
+          ],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.evaluation_12_month.a2",
+          "inputs": {},
+          "label": "Initial evaluation",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": [
+            "stem.evaluation_interval_months",
+            "stem.evaluation_due_days",
+            "stem.reporting_required"
+          ],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.evaluation_final.a2",
+          "inputs": {},
+          "label": "Concluding evaluation",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": [
+            "stem.evaluation_interval_months",
+            "stem.evaluation_due_days",
+            "stem.reporting_required"
+          ],
+          "status": "settled"
+        }
+      ]
+    },
+    {
+      "category": "f1",
+      "checklist": null,
+      "days_in": -133,
+      "days_total": 60,
+      "ends": "2027-04-10",
+      "ends_days_away": 193,
+      "facts": {
+        "p1.conferred_on": "2025-12-13",
+        "p1.end_date": "2025-12-13",
+        "p1.field_name": "Computer Science",
+        "p1.level": "master",
+        "p1.school_name": "State University",
+        "p1.start_date": "2023-08-21",
+        "p1.state": "completed",
+        "p1.stem_list": "on_list",
+        "p1.where": "us_on_f1"
+      },
+      "id": "grace.p1",
+      "items": [],
+      "label": "Time after the program ends",
+      "record": "p1",
+      "rule_ids": ["grace.after_completion_days"],
+      "stage": "grace",
+      "starts": "2027-02-10",
+      "state": "later",
+      "windows": []
+    },
+    {
+      "category": "f1",
+      "checklist": null,
+      "days_in": 152,
+      "days_total": 15,
+      "ends": "2026-05-15",
+      "ends_days_away": -137,
+      "facts": {
+        "t1.left_on": "2026-05-01",
+        "t1.returned_on": "2026-05-15"
+      },
+      "id": "trip.t1",
+      "items": [],
+      "label": "Trip abroad",
+      "record": "t1",
+      "rule_ids": ["travel.absence_months", "practical_training.study_abroad"],
+      "stage": "trip",
+      "starts": "2026-05-01",
+      "state": "done",
+      "windows": []
+    }
+  ],
+  "today": {
+    "date": "2026-09-29",
+    "time_zone": "America/New_York"
+  },
+  "upcoming": [
+    {
+      "date": "2026-11-11",
+      "days_away": 43,
+      "id": "stem.apply_window.opens.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09",
+        "today": "2026-09-29"
+      },
+      "reading": true,
+      "record": "a2",
+      "rule_ids": ["stem.apply_before_expiry_days", "stem.apply_window_closes_rule"],
+      "status": "settled"
+    },
+    {
+      "date": "2027-02-09",
+      "days_away": 133,
+      "id": "stem.apply_window.closes.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09",
+        "today": "2026-09-29"
+      },
+      "reading": true,
+      "record": "a2",
+      "rule_ids": ["stem.apply_before_expiry_days", "stem.apply_window_closes_rule"],
+      "status": "settled"
+    },
+    {
+      "date": "2027-02-13",
+      "days_away": 137,
+      "id": "opt.complete_by.closes.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13",
+        "today": "2026-09-29"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.complete_within_months"],
+      "status": "settled"
+    }
+  ],
+  "verdict": {
+    "reasons": [
+      "no_documents",
+      "unconfirmed:typed_dates",
+      "missing:a1.dso_on",
+      "missing:p1.first_year_before_training",
+      "missing:p1.immediate_cpt",
+      "missing:t1.signature_on",
+      "missing:t1.job_on_return",
+      "missing:p1.coursework_done_on",
+      "missing:a1.decision",
+      "missing:t1.purpose",
+      "missing:a2.time",
+      "unconfirmed:complete.authorization",
+      "unconfirmed:complete.end_date_change",
+      "unconfirmed:complete.program",
+      "unconfirmed:complete.move",
+      "unconfirmed:complete.work",
+      "unconfirmed:complete.trip",
+      "unconfirmed:complete.petition",
+      "unconfirmed:complete.withdrawal",
+      "rule_in_litigation",
+      "rule_not_in_force_on_event_day",
+      "rule_copy_not_saved_for_event_day",
+      "opt.months_at_level.at_or_over_limit.master"
+    ],
+    "state": "cannot_tell"
+  }
+}

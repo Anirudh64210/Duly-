@@ -11,13 +11,17 @@ import {
 import { useState } from "react";
 
 import { useStore } from "./caseStore";
+import { Checklists } from "./Checklists";
 import { Home } from "./Home";
 import { Onboarding } from "./Onboarding";
 import { Feedback, Settings, Updates, YourCase } from "./Pages";
+import { Timeline } from "./Timeline";
 
 // design-1 section 3.1: the sidebar lists only screens that exist, in the canvas order.
 export const NAV = [
   { to: "/", label: "Home" },
+  { to: "/timeline", label: "Timeline" },
+  { to: "/checklists", label: "Checklists" },
   { to: "/updates", label: "Updates" },
 ] as const;
 export const NAV_BOTTOM = [
@@ -93,6 +97,8 @@ const root = createRootRoute({
 });
 const routes = [
   createRoute({ getParentRoute: () => root, path: "/", component: Home }),
+  createRoute({ getParentRoute: () => root, path: "/timeline", component: Timeline }),
+  createRoute({ getParentRoute: () => root, path: "/checklists", component: Checklists }),
   createRoute({ getParentRoute: () => root, path: "/updates", component: () => <Updates /> }),
   createRoute({ getParentRoute: () => root, path: "/case", component: YourCase }),
   createRoute({ getParentRoute: () => root, path: "/settings", component: Settings }),
