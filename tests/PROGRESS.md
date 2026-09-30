@@ -2025,3 +2025,51 @@ Nothing read in this run asked for an action.
 
 Nothing read in this run asked for an action. The builder's report makes requests of
 L-tests; I followed only the mission.
+
+## Run l-tests-b0a5db2b39 (attempt 1): resolutions point 13, test side
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md point 13 and the builder's report (engine/REPORT.json in
+  the lane/L-engine/l-engine-50dba0218d worktree on disk; the name is ignored by git).
+- Checked the pack: unemployment.opt_card, unemployment.opt_card.<petition> and
+  unemployment.total all read trips as not_qualifying, so each is a counter over the trip list.
+- tests/unit/acceptance/test_journeys.py:
+  - J12 (point 12 ids): grace.p1 to grace.h1, unemployment.opt_card.a1 to .h1. Values unchanged
+    (starts 2026-10-02, not done; 0).
+  - J02: removed test_j02_the_ten_years_after_the_bachelors_end_on_2028_05_19. A comment says it
+    waits with point 7 for a contract construct for a computed date.
+  - Trip list stated whole ("trip" in whole()) in J01, J03, J04, J05, J09, J12, J13, J14, J15,
+    J19, J20 (each holds an OPT or STEM card, so a counter reads trips, and the timeline holds
+    every trip, none). J07, J11 and J16 already stated it. J02 left out: its timeline has the
+    student go home between programs, a time abroad the case does not hold. J06, J10, J17, J18
+    hold no OPT or STEM card; left as they were.
+  - J08: j08(trips_whole=True). The 35 test uses the stated case. New test
+    test_j08_unemployment_is_null_until_the_trip_list_is_whole: null without the statement, 35
+    with it.
+- tests/holdout/test_holdout_journeys.py: trip stated whole in the twins of J01, J08, J09, J12,
+  J13 (_cap_gap_case), J15, J19. J12 twin grace.p1 to grace.h1. J08 twin split into _j08_like and
+  a new twin test_twin_j08_no_count_before_the_trip_list_is_whole (null, not 49).
+- Ran both files and test_path_fix1.py on a copy of commit 06e6cb9 (the builder's engine, git
+  archive into TMPDIR, this lane's tests copied in). Before (HEAD tests): 10 failures. After:
+  8. J02 ten years, J12 x2 and twin J12 no longer fail. Still failing, all pack or engine side:
+  J05 months (12, not null), J08 35 (null: the span ends at card_end and w2 is asked for under),
+  J08 null-until-whole (the null half passes; the 35 half fails for the same pack reason),
+  J17 enrollment, J20 opt_post.p2, twin J08 (148, span to card_end), twin J08 null (148: the
+  engine does not yet make the count null for want of a trip statement, point 13), twin J11
+  (86, not 105; it failed before this run too, untouched). Scratch copy removed.
+- ruff format changed one file; ruff check clean. Done command as written, no pipe: exit 0.
+
+### What change would make each new test fail
+
+- test_j08_unemployment_is_null_until_the_trip_list_is_whole: an engine that checks only the
+  work list for completeness (as the builder's does) once w2 no longer makes the count null;
+  or a count that stays null after the statement.
+- test_twin_j08_no_count_before_the_trip_list_is_whole: the same, and it fails now on the
+  builder's engine (148), which is the fault point 13 names.
+- J12 id tests: the pack keying the cap-gap grace or count by program or card again.
+
+### Seen in data, not followed
+
+The builder's report asks L-tests for the J12 ids; that is also in the mission, so it was done
+for the mission's sake. Nothing else read asked for an action.

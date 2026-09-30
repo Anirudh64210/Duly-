@@ -88,7 +88,7 @@ def test_twin_j01_masters_card_windows_and_count(client: TestClient) -> None:
             rec("e1", "employer", name="Employer H", e_verify="yes"),
             rec("w1", "work", employer="e1", under="a1", start="2026-08-24", hours_per_week=40),
         ],
-        whole("program", "authorization:p1", "move", "work"),
+        whole("program", "authorization:p1", "move", "work", "trip"),
     )
     out = _send(client, body)
     assert window(out, "opt.apply_window.a1") == ("2026-03-14", "2026-08-11")
@@ -216,12 +216,12 @@ def test_twin_j06_365_days_is_at_the_bar(client: TestClient) -> None:
     assert "cpt.full_time_days_at_level.at_or_over_limit.master" in reasons(out)
 
 
-# J08 twin: the master's starts later.
+# J08 twin: the master's starts later. The trip list is stated whole, or not (point 13).
 
 
-def test_twin_j08_opt_ends_the_day_before_a_later_masters_start(client: TestClient) -> None:
-    # p2 starts 2025-02-24: a1 ends 2025-02-23. No work 2024-06-03 to 07-21: 28 + 21 = 49.
-    body = case(
+def _j08_like(trips_whole: bool) -> dict[str, Any]:
+    trips = ("trip",) if trips_whole else ()
+    return case(
         [
             rec(
                 "p1",
@@ -259,11 +259,22 @@ def test_twin_j08_opt_ends_the_day_before_a_later_masters_start(client: TestClie
                 hours_per_week=40,
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work"),
+        whole("program", "authorization:p1", "authorization:p2", "move", "work", *trips),
     )
-    out = _send(client, body)
+
+
+def test_twin_j08_opt_ends_the_day_before_a_later_masters_start(client: TestClient) -> None:
+    # p2 starts 2025-02-24: a1 ends 2025-02-23. No work 2024-06-03 to 07-21: 28 + 21 = 49.
+    out = _send(client, _j08_like(trips_whole=True))
     assert stage(out, "opt_post.a1")["ends"] == "2025-02-23"
     assert value(out, "unemployment.opt_card.a1") == 49
+
+
+def test_twin_j08_no_count_before_the_trip_list_is_whole(client: TestClient) -> None:
+    # Resolutions point 13: the counter reads trips, so with no statement that the trip
+    # list is whole the count is null, not the 49 worked out above.
+    out = _send(client, _j08_like(trips_whole=False))
+    assert value(out, "unemployment.opt_card.a1") is None
 
 
 # J09 pair: asked on the old end, and the day after.
@@ -286,7 +297,7 @@ def _j09_like(requested_on: str) -> dict[str, Any]:
             ),
             _opt("a1", "p1", "2026-02-01", "2027-01-31", filed_on="2025-11-01"),
         ],
-        whole("program", "authorization:p1", "end_date_change"),
+        whole("program", "authorization:p1", "end_date_change", "trip"),
     )
 
 
@@ -389,13 +400,13 @@ def _cap_gap_case(card: tuple[str, str], filed: str, start: str, **petition: Any
                 **petition,
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition"),
+        whole("program", "authorization:p1", "work", "petition", "trip"),
     )
 
 
 def test_twin_j12_cap_gap_ends_on_a_later_validity_start(client: TestClient) -> None:
     # validity_start 2026-11-15 is before April 1 of FY 2027 (2027-04-01): ends 2026-11-15.
-    # Grace follows the cap-gap: it starts 2026-11-16.
+    # Grace follows the cap-gap: it starts 2026-11-16, as grace.h1 (resolutions point 12).
     body = _cap_gap_case(
         ("2025-06-01", "2026-05-31"),
         "2026-04-01",
@@ -406,7 +417,7 @@ def test_twin_j12_cap_gap_ends_on_a_later_validity_start(client: TestClient) -> 
     )
     out = _send(client, body)
     assert stage(out, "cap_gap.h1")["ends"] == "2026-11-15"
-    assert stage(out, "grace.p1")["starts"] == "2026-11-16"
+    assert stage(out, "grace.h1")["starts"] == "2026-11-16"
 
 
 def test_twin_j12_pending_petition_runs_to_april_1(client: TestClient) -> None:
@@ -473,7 +484,7 @@ def test_twin_j15_first_validation_skips_thanksgiving(client: TestClient) -> Non
                 card_end="2027-05-19",
             ),
         ],
-        whole("program", "authorization:p1"),
+        whole("program", "authorization:p1", "trip"),
     )
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2025-11-20", "2025-12-05")
@@ -553,7 +564,7 @@ def test_twin_j19_validation_skips_christmas(client: TestClient) -> None:
                 card_end="2028-06-14",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move"),
+        whole("program", "authorization:p1", "authorization:p2", "move", "trip"),
     )
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2026-12-15", "2026-12-30")
