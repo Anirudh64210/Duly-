@@ -9,7 +9,7 @@ import { createAppRouter } from "./app/Shell";
 import { engineOutputSchema } from "./lib/compute";
 import type { RecordsCase } from "./lib/records";
 import { SHOT_SIZE, heldFromCase, shotAsked } from "./lib/shots";
-import "./styles.css";
+import "./app/app.css";
 
 const files = import.meta.glob<{ default: unknown }>("../samples/*.json", { eager: true });
 const sample = (name: string): unknown => files[`../samples/${name}.json`]?.default;

@@ -126,7 +126,7 @@ samples:
 	cd web && uv run python samples/make.py && npx prettier --write --log-level warn "samples/*.json"
 
 design-shots: samples
-	npm run build -w web
+	DULY_SHOTS=1 npm run build -w web
 	npm run build -w desktop
 	rm -rf .scratch/shots && mkdir -p .scratch/shots
 	cd desktop && npx electron . --shots $(CURDIR)/.scratch/shots

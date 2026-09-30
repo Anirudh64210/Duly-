@@ -6,6 +6,10 @@ export default defineConfig({
   // specs/desktop-1/SPEC.md: the build loads from duly://app/, so asset paths are relative.
   base: "./",
   plugins: [react(), tailwindcss()],
+  // make design-shots sets DULY_SHOTS so shots.html (engine samples) is built; the app never ships it.
+  build: process.env.DULY_SHOTS
+    ? { rollupOptions: { input: { index: "index.html", shots: "shots.html" } } }
+    : {},
   server: {
     port: 5173,
     proxy: { "/api": { target: "http://localhost:8000", rewrite: (p) => p.replace(/^\/api/, "") } },
