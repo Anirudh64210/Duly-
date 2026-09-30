@@ -1,0 +1,103 @@
+{
+  "run_id": "l-review-3a41706e57",
+  "reviewed_commit": "6585ae9e975b877cdf521998ff64d9b762a646fb",
+  "scores": {
+    "correct": {
+      "score": 2,
+      "evidence": "Hand checks show wrong concluding-evaluation dates on J04 (2023-07-01, should be 2022-08-25) and J14 (2026-06-10, should be 2026-07-25). J06 keeps opt_post.p1 as next after its filing window closed on 2026-02-10. Onboarding cannot take J08's on-campus job. The other seventeen journeys are right by hand."
+    },
+    "sourced": {
+      "score": 4,
+      "evidence": "Every value traces to a saved quote. The evaluation windows cite (f)(10)(ii)(C)(9)(i) but count from the card end, not from the end of the training the quote names."
+    },
+    "never_assumes": {
+      "score": 3,
+      "evidence": "Counts are null until lists are stated whole, and gaps become questions. But Onboarding forces coursework, recommendation, decision and move dates with no not-sure choice, and forces a wrong permission for an on-campus job."
+    },
+    "inside_the_boundary": {
+      "score": 4,
+      "evidence": "No string read states a conclusion about the person; at-or-over and bars_disagree go to the DSO. The wrong evaluation day is shown as a fact."
+    },
+    "secure": {
+      "score": 4,
+      "evidence": "A record outside the pack gets a fixed 422 that does not repeat the body; all twenty journeys and three onboarded cases return 200. path.py was not fuzzed."
+    },
+    "tested": {
+      "score": 3,
+      "evidence": "90 acceptance tests and the holdout twins pass, but none asserts the J04 or J14 evaluation days, J06's closed next stage, or the on-campus choice in Onboarding."
+    }
+  },
+  "findings": [
+    {
+      "severity": "blocking",
+      "title": "Concluding evaluation and validations counted from the card, not from the end of the training",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
+      "input": "J04 (STEM card ended 2022-08-15 by transfer) and J14 (STEM job ended 2026-07-15 in the cap-gap) through POST /v1/compute",
+      "what_happens": "stem.evaluation_final is 2023-06-21 to 2023-07-01 (J04) and 2026-05-31 to 2026-06-10 (J14). The source and the journeys give 2022-08-25 and 2026-07-25. J04 also lists validation_3 and validation_4 after the card ended."
+    },
+    {
+      "severity": "blocking",
+      "title": "A job on campus cannot be chosen in Onboarding",
+      "file": "web/src/lib/views/onboarding.ts",
+      "input": "J08 walk: second job at School A from 2025-01-13, pick 'A job on campus', press Continue",
+      "what_happens": "setField writes under to an empty string, so the view shows 'Choose an answer.' and stays. The student must tie the job to the ended bachelor's OPT card, or leave it out and state the job list whole."
+    },
+    {
+      "severity": "should_fix",
+      "title": "A next stage with closed filing windows is still next",
+      "file": "engine/path.py",
+      "input": "J06 through POST /v1/compute",
+      "what_happens": "opt_post.p1 is next. Its apply and latest-start windows closed on 2026-02-10, but opt.complete_by (2027-02-12) counts as an open window in _closed."
+    },
+    {
+      "severity": "should_fix",
+      "title": "Onboarding views without a why line",
+      "file": "web/src/lib/views/onboarding.ts",
+      "input": "J16 walk through Onboarding",
+      "what_happens": "28 of the 48 views logged show no why line, for example the end-date change, where the degree was, jobs, trips and the H-1B views. Section 18 and design-1 ask for one on every view."
+    },
+    {
+      "severity": "should_fix",
+      "title": "Onboarding forces dates the student may not know",
+      "file": "web/src/lib/views/onboarding.ts",
+      "input": "J01, J08, J16 walks: leave the recommendation day, the decision day, the course-requirements day or the move dates empty",
+      "what_happens": "Continue is refused with 'Enter ...' and no not-sure or not-yet choice is offered. The engine asks for dso_on and contacted_new_dso_on itself when they are missing."
+    },
+    {
+      "severity": "should_fix",
+      "title": "Design shots of point 11 not built",
+      "file": "Makefile",
+      "input": "make design-shots; ls desktop/src/shots.ts tests/design/landmarks.json",
+      "what_happens": "There is no target and neither file exists. Only web/src/shots.tsx draws a screen, and nothing renders or compares it."
+    },
+    {
+      "severity": "note",
+      "title": "Grace shown after an approved change of status",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
+      "input": "J12",
+      "what_happens": "grace.h1 is 2026-10-02 to 2026-11-30 though H-1B status begins 2026-10-01. It follows the programs.md table; the question is for the SPEC owner."
+    },
+    {
+      "severity": "note",
+      "title": "Stages stay current years later when a close is null",
+      "file": "engine/path.py",
+      "input": "J01, J08, J14, J15, J19",
+      "what_happens": "opt_job_end and transfer stages are current with a null close, because no copy of the rule is saved for that day."
+    },
+    {
+      "severity": "note",
+      "title": "Conferral day asked for a program in progress",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
+      "input": "J08 onboarded case",
+      "what_happens": "missing:p1.conferred_on for the master's still in progress; the question cannot be answered until conferral."
+    },
+    {
+      "severity": "note",
+      "title": "Field problems lowercase DSO and I-20",
+      "file": "web/src/app/Onboarding.tsx",
+      "input": "J16 and J01 walks, empty recommendation and move dates",
+      "what_happens": "'Enter the day your dso recommended it.', 'Enter the new i-20's date.'"
+    }
+  ],
+  "decision": "VETO"
+}
