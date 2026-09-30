@@ -35,6 +35,7 @@ from tests.support.f1_pack import (
     question,
     refuse_placeholders,
     with_changes,
+    with_the_about_asked,
 )
 
 URL = "/v1/compute/f1"
@@ -114,6 +115,17 @@ def test_a_case_with_no_answer_or_real_answers_passes_unchanged():
     real = {NO_EMPLOYMENT: {"answer": True, "on": "2026-09-28", "about": {"x": "2026-07-10"}}}
     case = with_changes(NO_JOBS, confirmations=real)
     assert refuse_placeholders(case) is case
+
+
+def test_the_about_step_answers_a_question_asked_with_no_about_with_none():
+    # specs/path-1/programs.md section 13 and product-2 resolution 14: the path asks
+    # complete.<kind> with no about. The answer goes with no about, and no marker.
+    marker = about_asked("complete.work")
+    given = {"complete.work": {"answer": True, "on": "2026-09-28", "about": marker}}
+    asked = {"questions": [{"id": "complete.work", "because": ["unconfirmed:complete.work"]}]}
+    sent = with_the_about_asked(with_changes(NO_JOBS, confirmations=given), lambda _: asked)
+    assert sent["confirmations"] == {"complete.work": {"answer": True, "on": "2026-09-28"}}
+    assert refuse_placeholders(sent) is sent
 
 
 def test_a_run_helper_refuses_a_placeholder_before_the_engine_sees_it(monkeypatch):

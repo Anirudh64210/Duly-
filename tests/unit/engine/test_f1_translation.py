@@ -3,6 +3,10 @@
 Specified in specs/path-1/programs.md section 19 ("The F-1 case of today, translated") and
 specs/product-2/resolutions.md point 1: "`compute_f1_records` is the translation of today's
 case onto records and path.py (programs.md section 19). `compute_f1` stays as it is".
+Point 14: the translation answers the path's own questions. A list is whole by the path's
+`complete.<kind>` statement, never by an answer to a question the path does not ask
+(`nothing_more_to_record`, `opt.earlier_at_this_level`, on any case); the tests
+compare with the case as sent, with the abouts the guard puts in, and hold no placeholder.
 
 Three groups:
 - each row of the section 19 table: a case_f1 field lands in the records case as the row says;
@@ -24,11 +28,12 @@ from engine.rulepack import Rulepack, load_all
 from tests.support.f1_pack import (
     EARLIER,
     NOTHING_MORE,
-    about_asked,
     cap_gap,
     clock_on,
     ead,
     job,
+    refuse_placeholders,
+    with_the_about_asked,
 )
 
 TODAY = date(2026, 9, 30)
@@ -37,9 +42,9 @@ ON = "2026-09-30"
 
 
 def _answers(on: str, given: dict[str, bool]) -> dict[str, Any]:
-    """Answers as tests.support.f1_pack.answers gives them: each dated `on`, each with the
-    about naming its question."""
-    return {q: {"answer": a, "on": on, "about": about_asked(q)} for q, a in given.items()}
+    """Answers dated `on` and given with no about: the guard's about step puts in the about
+    of the question as the output asked it, and leaves out an answer never asked."""
+    return {q: {"answer": a, "on": on} for q, a in given.items()}
 
 
 def _pack() -> Rulepack:
@@ -68,8 +73,23 @@ def _raw(**changes: Any) -> dict[str, Any]:
     return raw
 
 
+def _sent(**changes: Any) -> dict[str, Any]:
+    """The case as the screen sends it: each answer carries the about its question was asked
+    with (specs/product-1/SPEC-resolutions.md, point 7), and an answer to a question neither
+    engine asks is left out (resolutions point 14). The questions are those of compute_f1
+    and of compute_f1_records, so the case sent is the same for both."""
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        case = f1.parse_case(refuse_placeholders(sent), CLOCK)
+        asked = f1.compute_f1(case, PACK, CLOCK)["questions"]
+        return {"questions": asked + f1.compute_f1_records(case, PACK, CLOCK)["questions"]}
+
+    return with_the_about_asked(_raw(**changes), compute)
+
+
 def _records(**changes: Any) -> dict[str, Any]:
-    out: dict[str, Any] = f1.to_records(f1.parse_case(_raw(**changes), CLOCK), PACK)
+    case = f1.parse_case(refuse_placeholders(_sent(**changes)), CLOCK)
+    out: dict[str, Any] = f1.to_records(case, PACK)
     return out
 
 
@@ -79,7 +99,7 @@ def _by_id(records_case: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 def _both(**changes: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     """(compute_f1_records, compute_f1) for the same case, pack and clock."""
-    case = f1.parse_case(_raw(**changes), CLOCK)
+    case = f1.parse_case(refuse_placeholders(_sent(**changes)), CLOCK)
     return f1.compute_f1_records(case, PACK, CLOCK), f1.compute_f1(case, PACK, CLOCK)
 
 
@@ -98,7 +118,10 @@ OPT = ead("2026-03-01", "2026-03-10", "2026-06-01", "2027-05-31")
 # recommended 2026-03-01, filed 2026-03-15, card 2026-06-01 to 2028-05-31.
 OPT_2025 = ead("2025-03-01", "2025-03-10", "2025-06-01", "2026-05-31")
 STEM = ead("2026-03-01", "2026-03-15", "2026-06-01", "2028-05-31")
-WHOLE = _answers(ON, {NOTHING_MORE: True, EARLIER: False})
+# Every list stated whole with the path's complete.<kind> (programs.md section 13), and no
+# earlier OPT at this level, which compute_f1 asks on a case with OPT (point 39). The guard
+# leaves out the statement of a kind the path does not ask about on the case.
+WHOLE = _answers(ON, {**{f"complete.{kind}": True for kind in KINDS}, EARLIER: False})
 
 
 # Section 19, row "program_end_date, degree_level": p1: where us_on_f1, level, end_date.
@@ -288,45 +311,97 @@ def test_a_petition_with_no_change_of_status_says_no() -> None:
     assert fields["outcome"] == "denied"
 
 
-# Row "confirmations": same ids; nothing_more_to_record and opt.earlier_at_this_level stand
-# for the completeness statements they replace.
+# Row "confirmations": same ids. Resolutions point 14: a list is whole by the path's
+# complete.<kind>; nothing_more_to_record and opt.earlier_at_this_level, which the path
+# never asks, state nothing whole on any case (point 14 as clarified).
 
 
 def test_answers_keep_their_ids_answers_days_and_about() -> None:
+    # held_post_completion_opt carries an about of its own and is sent as it is;
+    # full_time_cpt_used is asked by compute_f1 on this case (cpt days not entered) and is
+    # sent with the about it was asked with. The records case holds the answers as sent.
     given = {
         "held_post_completion_opt": {"answer": True, "on": "2026-09-28", "about": {"x": "1"}},
         "full_time_cpt_used": {"answer": False, "on": "2026-09-29"},
     }
-    assert _records(confirmations=given)["confirmations"] == given
+    sent = _sent(confirmations=given)["confirmations"]
+    assert sent["held_post_completion_opt"] == given["held_post_completion_opt"]
+    assert sent["full_time_cpt_used"]["about"] == {"cpt_full_time_days": None}
+    assert _records(confirmations=given)["confirmations"] == sent
 
 
-def test_yes_to_nothing_more_states_every_record_list_whole_on_the_day_it_was_given() -> None:
+def test_yes_to_complete_kind_states_that_list_whole_on_the_day_it_was_given() -> None:
+    # The path asks complete.work and complete.trip on every case (programs.md section 13).
+    body = _records(confirmations=_answers("2026-09-29", {"complete.work": True}))
+    assert body["complete"] == {"work": {"on": "2026-09-29"}}
+    body = _records(
+        confirmations=_answers("2026-09-28", {"complete.work": True, "complete.trip": True})
+    )
+    assert body["complete"] == {"work": {"on": "2026-09-28"}, "trip": {"on": "2026-09-28"}}
+
+
+def test_no_to_complete_kind_states_no_list_whole() -> None:
+    assert _records(confirmations=_answers(ON, {"complete.work": False}))["complete"] == {}
+
+
+def test_yes_to_every_complete_kind_asked_states_each_of_those_lists_whole() -> None:
+    # The kinds the path asks about on a case with no OPT (read from the path's output on
+    # 2026-09-30): authorization, program, move, work, end_date_change, trip, petition,
+    # withdrawal. A kind not asked is left out by the guard and stated nowhere.
+    body = _records(program_end_date="2027-05-14", confirmations=WHOLE)
+    asked = ["authorization", "program", "move", "work", "end_date_change", "trip"]
+    asked += ["petition", "withdrawal"]
+    assert body["complete"] == {kind: {"on": ON} for kind in asked}
+
+
+def test_yes_to_nothing_more_states_no_list_whole() -> None:
+    # compute_f1 asks nothing_more_to_record on a case with no OPT, STEM or cap-gap, so the
+    # answer is sent; the path never asks it, so it is never a completeness statement.
     body = _records(confirmations=_answers("2026-09-29", {NOTHING_MORE: True}))
-    assert body["complete"] == {kind: {"on": "2026-09-29"} for kind in KINDS}
-    assert "work" in body["complete"]
-    assert "trip" in body["complete"]
+    assert NOTHING_MORE in body["confirmations"]
+    assert body["complete"] == {}
 
 
 def test_no_to_nothing_more_states_no_list_whole() -> None:
     assert _records(confirmations=_answers(ON, {NOTHING_MORE: False}))["complete"] == {}
 
 
-def test_no_to_earlier_opt_at_this_level_states_p1_authorizations_whole() -> None:
+def test_no_to_earlier_opt_on_a_case_with_opt_states_nothing_whole() -> None:
+    # compute_f1 asks it on a case with OPT (point 39), so the answer is sent with the card's
+    # about; the path never asks it, so it states nothing whole (point 14 as clarified).
+    body = _records(opt=OPT, confirmations=_answers("2026-09-28", {EARLIER: False}))
+    assert body["confirmations"][EARLIER]["about"] == {
+        "degree_level": "master",
+        "opt.ead_start": "2026-06-01",
+        "opt.ead_end": "2027-05-31",
+    }
+    assert body["complete"] == {}
+
+
+def test_no_to_earlier_opt_on_a_case_with_no_opt_states_nothing_whole() -> None:
+    # Point 14: on a case with no OPT the question is not asked; the answer is not read.
     body = _records(confirmations=_answers("2026-09-28", {EARLIER: False}))
-    assert body["complete"] == {"authorization:p1": {"on": "2026-09-28"}}
+    assert EARLIER not in body["confirmations"]
+    assert body["complete"] == {}
 
 
 def test_yes_to_earlier_opt_at_this_level_states_nothing_whole() -> None:
     # A yes says there is more at this level than the case holds.
-    assert _records(confirmations=_answers(ON, {EARLIER: True}))["complete"] == {}
+    assert _records(opt=OPT, confirmations=_answers(ON, {EARLIER: True}))["complete"] == {}
 
 
 # compute_f1_records is path.py on the records the table writes (resolutions point 1).
 
 
 def _hand_written_opt_case() -> dict[str, Any]:
-    """The records case section 19 writes for the OPT case, by hand from the table."""
+    """The records case section 19 writes for the OPT case as sent, by hand from the table
+    and resolutions point 14. The path asks complete.<kind> for eight kinds on this case
+    (program, move, end_date_change, authorization, work, trip, petition, withdrawal), each
+    answered yes today; opt.earlier_at_this_level no, which the path never asks, states
+    nothing whole (point 14 as clarified), so the case holds no authorization:p1."""
     whole = {"on": ON}
+    asked = ["program", "move", "end_date_change", "authorization", "work", "trip"]
+    asked += ["petition", "withdrawal"]
     return {
         "categories": ["f1"],
         "time_zone": "UTC",
@@ -366,8 +441,8 @@ def _hand_written_opt_case() -> dict[str, Any]:
                 },
             },
         ],
-        "complete": {**dict.fromkeys(KINDS, whole), "authorization:p1": whole},
-        "confirmations": WHOLE,
+        "complete": dict.fromkeys(asked, whole),
+        "confirmations": _sent(**_opt_case())["confirmations"],
     }
 
 
@@ -377,6 +452,25 @@ def _opt_case() -> dict[str, Any]:
         "cpt_full_time_days": 0,
         "employment": [job("2026-06-15", None)],
         "confirmations": WHOLE,
+    }
+
+
+def test_the_opt_case_is_sent_with_each_asked_answer_and_its_about() -> None:
+    # The eight complete.<kind> the path asks, with no about; EARLIER with the card's about.
+    sent = _sent(**_opt_case())["confirmations"]
+    kinds = ["program", "move", "end_date_change", "authorization", "work", "trip"]
+    kinds += ["petition", "withdrawal"]
+    assert sent == {
+        **{f"complete.{kind}": {"answer": True, "on": ON} for kind in kinds},
+        EARLIER: {
+            "answer": False,
+            "on": ON,
+            "about": {
+                "degree_level": "master",
+                "opt.ead_start": "2026-06-01",
+                "opt.ead_end": "2027-05-31",
+            },
+        },
     }
 
 
