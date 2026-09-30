@@ -6445,8 +6445,8 @@
   "text": "Duly never answers a personal legal question directly.",
   "kind": "legal",
   "status": "partial",
-  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py::test_personal_questions_always_step_back",
-  "note": "The classifier floor is built and tested; no assistant is wired to it and nothing calls it from the api.",
+  "evidence": "assistant/boundary.py; tests/unit/assistant/test_boundary_evals.py::test_personal_questions_always_step_back; web/src/lib/drafts.ts",
+  "note": "Audit product-1: the screen states no conclusion and drafts the DSO question for each talk_to_dso verdict. The assistant's classifier is built and tested, but api/settings.py keeps assistant_provider at none and no route calls it, so no personal question can yet be put to Duly.",
   "part": "founder-decisions"
  },
  {
@@ -6464,9 +6464,9 @@
   "source": "DECISIONS.md D5",
   "text": "For a personal question Duly shows a drafted question for the DSO.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No template or code drafts a question for the DSO; it is specified in specs/product-1/SPEC.md section 6 only.",
+  "status": "partial",
+  "evidence": "web/src/lib/drafts.ts dsoDraft, stemDraft; web/src/lib/drafts.test.ts",
+  "note": "Audit product-1: the screen drafts a question for the DSO for every talk_to_dso verdict and for the STEM next step. A personal question typed to the assistant gets no draft, because no assistant is wired (DEC-D05-001).",
   "part": "founder-decisions"
  },
  {
@@ -6576,7 +6576,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "engine/f1.py; rulepacks/f1-us/v2026.09/parameters.yaml; tests/unit/engine/test_f1.py",
-  "note": "Windows, filing dates and unemployment counts are computed; the portal employer clock and other nuances are missing. On work/product-1 324 engine and api tests fail, because the round 1 contract and tests landed before the engine work.",
+  "note": "Audit product-1: OPT, STEM and cap-gap are computed and the 1710 engine, api and holdout tests pass. Nuances still missing: the portal employer clock, and the card that straddles the program end (PRIN-011).",
   "part": "founder-decisions"
  },
  {
@@ -7134,9 +7134,9 @@
   "source": "DECISIONS.md D41",
   "text": "A student with no OPT, STEM OPT or cap-gap entered is asked first; no quiet verdict until the person says there is nothing more to record.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 2; tests/unit/engine/test_f1_product.py",
-  "note": "The SPEC, contract and tests exist; engine/f1.py has no nothing_more_to_record question and the 184 tests in test_f1_product.py fail.",
+  "status": "met",
+  "evidence": "engine/f1.py (NOTHING_MORE, compute_f1); tests/unit/engine/test_f1_product.py::test_review_4_the_body_with_nothing_entered_asks_twice_and_cannot_tell; tests/unit/engine/test_f1_product.py::test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_answer",
+  "note": "Audit product-1: with no OPT, STEM or cap-gap the shipped pack gives cannot_tell with unconfirmed:nothing_more_to_record; yes with its about gives the verdict on what was entered, no gives missing:training, yes with no about stays open. The suite passes (1710 engine, api and holdout tests).",
   "part": "founder-decisions"
  },
  {
@@ -7145,8 +7145,8 @@
   "text": "The product backlog is built through the factory.",
   "kind": "factory",
   "status": "partial",
-  "evidence": "specs/product-1/plan.yaml; git log (merge(L-tests), merge(L-content))",
-  "note": "The tests and content lanes have merged; the engine, api and web lanes of round 1 have not.",
+  "evidence": "specs/product-1/plan*.yaml; git log (merge(L-engine), merge(L-api), merge(L-web), merge(L-content), merge(L-review))",
+  "note": "Audit product-1: product round 1 (B1 to B4 and the second review) was built through the factory lanes and approved in reviews/product-1-fix10.md. B5 to B7 (BACK-013 to BACK-015) are not built.",
   "part": "founder-decisions"
  },
  {
@@ -7235,8 +7235,8 @@
   "text": "A student sees what comes next.",
   "kind": "product",
   "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 6; tests/unit/engine/test_f1_product.py",
-  "note": "Specified and tested; the engine returns no upcoming list and the tests fail.",
+  "evidence": "engine/f1.py compute_f1 upcoming; web/src/components/Result.tsx (What comes next)",
+  "note": "Audit product-1: a student with F-1 OPT or STEM sees what comes next. No other stage or category has a next step (BACK-014).",
   "part": "founder-decisions"
  },
  {
@@ -7275,8 +7275,8 @@
   "text": "Step 1: product round 1 finishes.",
   "kind": "product",
   "status": "partial",
-  "evidence": "specs/product-1/plan.yaml; work/product-1",
-  "note": "Tests and content are merged; engine, api and web work remain and the suite is red.",
+  "evidence": "reviews/product-1-fix10.md (APPROVE); specs/product-1/SPEC.md Done for the round",
+  "note": "Audit product-1: the reviewer approved the round and the offline checks rerun here pass. Not whole: the work sits on work/product-1 and is not on main, and no clean CI run on a pull request was seen by this audit (Done item 2).",
   "part": "founder-decisions"
  },
  {
@@ -7384,9 +7384,9 @@
   "source": "PRINCIPLES.md section 1",
   "text": "A reading is marked as a reading everywhere it is shown.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/components/Result.tsx (READING_TAG); specs/product-1/SPEC.md section 5",
-  "note": "The mark shows only after the row is opened; the row, the verdict line and the list of what comes next do not carry it.",
+  "status": "met",
+  "evidence": "engine/f1.py (reading on items and upcoming); tests/unit/engine/test_f1_product.py::test_each_item_and_each_date_ahead_carries_reading_as_its_rules_say; web/src/components/Result.tsx READING_TAG",
+  "note": "Audit product-1: the engine marks every item and date ahead that rests on a reading, and the screen marks the row, the verdict line and the next list.",
   "part": "founder-decisions"
  },
  {
@@ -7425,8 +7425,8 @@
   "text": "Two facts that do not fit become a question to the person.",
   "kind": "engine",
   "status": "partial",
-  "evidence": "engine/f1.py _conflicts; specs/product-1/SPEC.md section 1",
-  "note": "Four conflicts give cannot_tell with no question; the thirteen conflicts of round 1 and their questions are not built.",
+  "evidence": "engine/f1.py _facts, _window_facts; tests/unit/engine/test_f1_product.py::test_facts_that_do_not_fit_raise_a_question_with_the_same_id",
+  "note": "Audit product-1: the 22 conflicts of the SPEC and its resolutions each become a question. Not whole: an OPT recommendation dated after the OPT card begins (rec 2026-06-15, card 2026-06-01) raises no question; and an OPT card that begins before the program end and ends after it (program end 2027-01-01, card 2026-06-01 to 2027-05-31) raises no question and counts the 121 days of study as unemployment against the post-completion limit (days remaining -31). The general checks of BACK-015 are not built.",
   "part": "founder-decisions"
  },
  {
@@ -7455,8 +7455,8 @@
   "text": "An answer is recorded as the person's own statement, with the date, and shown as such.",
   "kind": "engine",
   "status": "partial",
-  "evidence": "engine/f1.py Confirmation; specs/product-1/SPEC.md section 3",
-  "note": "An answer carries a date, but the day is never checked and nothing is stored beyond the request.",
+  "evidence": "engine/f1.py Confirmation, answers_read; web/src/lib/labels.ts (You answered ... on ...); web/src/components/Result.test.tsx (is shown as the person's answer and its day)",
+  "note": "Audit product-1: an answer carries its day, is refused when dated after today, and is shown as the person's own statement with its day. Nothing stores it: the api keeps no case or answer beyond the request (api/db.py only checks the database is reachable).",
   "part": "founder-decisions"
  },
  {
@@ -7484,9 +7484,9 @@
   "source": "PRINCIPLES.md section 3",
   "text": "A date matters only while it can still matter; a passed deadline with the filing recorded blocks nothing.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "engine/f1.py _add_file_by; specs/product-1/SPEC.md section 4",
-  "note": "Done for the recommendation date; filing windows still show as open after the filing is recorded.",
+  "status": "met",
+  "evidence": "engine/f1.py (done steps, D32); tests/unit/engine/test_f1_product.py::test_the_opt_steps_are_done_when_the_filing_or_the_card_is_recorded; tests/unit/engine/test_f1_product.py::test_the_stem_steps_are_done_when_the_filing_or_the_card_is_recorded",
+  "note": "Audit product-1: a filing or card recorded marks the window steps done; they block nothing and leave upcoming.",
   "part": "founder-decisions"
  },
  {
@@ -8054,9 +8054,9 @@
   "source": "specs/product/BACKLOG.md B1",
   "text": "Item names say what the number is in a person's words, such as Unemployment days remaining; the working stays behind the row.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 7; web/src/lib/labels.ts",
-  "note": "The screen still reads 'Limit minus days with no employment period'.",
+  "status": "met",
+  "evidence": "web/src/lib/labels.ts (unemployment.days_remaining Unemployment days remaining); web/src/lib/labels.test.ts (names the unemployment items as a person would)",
+  "note": "Audit product-1: the three names of SPEC section 7 are on the screen and the working sits behind the row.",
   "part": "founder-decisions"
  },
  {
@@ -8064,9 +8064,9 @@
   "source": "specs/product/BACKLOG.md B2",
   "text": "A row shows one value, the one in force; the other regime sits behind one plain line about the court block.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 7; web/src/components/Result.tsx",
-  "note": "The screen still shows both regime values side by side on the row.",
+  "status": "met",
+  "evidence": "web/src/components/Result.tsx; web/src/components/Plain.test.tsx (says what is true today first, and the paused change only behind one tap)",
+  "note": "Audit product-1: the row shows the operative value; the paused regime's value sits behind What the paused rule would change, shown only where an alternate holds a value (resolution 55).",
   "part": "founder-decisions"
  },
  {
@@ -8074,9 +8074,9 @@
   "source": "specs/product/BACKLOG.md B3",
   "text": "A what comes next view computed from the dates entered: the dates ahead, each with its rule and quote.",
   "kind": "product",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 6; rulepacks/f1-us/v2026.09/parameters.yaml (stem.requires.*)",
-  "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail.",
+  "status": "met",
+  "evidence": "engine/f1.py compute_f1 (upcoming, lists); tests/unit/engine/test_f1_product.py::test_what_comes_next_is_every_date_ahead_soonest_first; tests/unit/engine/test_f1_product.py::test_each_date_of_the_next_step_names_its_rules; web/src/components/Result.tsx (What comes next); web/src/components/Plain.test.tsx",
+  "note": "Audit product-1: the engine returns upcoming soonest first, each entry with rule_ids, status and reading; the screen lists them under What comes next and each opens to its rule, plain words first and the quote one tap away. Shown for F-1 OPT and STEM only; the general form is BACK-014.",
   "part": "founder-decisions"
  },
  {
@@ -8084,9 +8084,9 @@
   "source": "specs/product/BACKLOG.md B3",
   "text": "What comes next states the date a window opens and what the official source lists, and never whether the person can or should apply.",
   "kind": "legal",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 6",
-  "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail.",
+  "status": "met",
+  "evidence": "engine/f1.py _add_next_step, _lists; tests/unit/engine/test_f1_product.py::test_with_opt_and_no_stem_the_engine_names_what_the_regulation_lists; web/src/lib/labels.ts NEXT_HEADING",
+  "note": "Audit product-1: the next step gives dates only and the 12 stem.requires.* rules in the regulation's words, under the line This is what the regulation says. Whether it applies to you is a question for your DSO.",
   "part": "founder-decisions"
  },
  {
@@ -8094,9 +8094,9 @@
   "source": "specs/product/BACKLOG.md B4",
   "text": "The screen carries its own purpose: a person who enters dates leaves with the dates ahead of them.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 6",
-  "note": "Depends on the what comes next view, which is not built.",
+  "status": "met",
+  "evidence": "web/src/components/Result.tsx (What comes next); engine/f1.py compute_f1 upcoming",
+  "note": "Audit product-1: for an F-1 case with OPT, the screen lists every date ahead that is not done. Only F-1 is covered.",
   "part": "founder-decisions"
  },
  {
@@ -8104,9 +8104,9 @@
   "source": "specs/product/BACKLOG.md second review 1",
   "text": "Dates that contradict each other never get the quiet verdict and raise a question. Blocking.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 1; tests/unit/engine/test_f1_product.py",
-  "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail.",
+  "status": "met",
+  "evidence": "engine/f1.py _facts, _window_facts, _conflicts; tests/unit/engine/test_f1_product.py::test_facts_that_do_not_fit_are_cannot_tell_with_the_reason; tests/unit/engine/test_f1_product.py::test_one_day_to_the_safe_side_the_facts_fit; tests/unit/engine/test_f1_product.py::test_the_answer_yes_sends_the_person_to_the_dso",
+  "note": "Audit product-1: every row of SPEC section 1 and resolutions 11, 14, 15, 16, 27 and 43 gives cannot_tell with conflict:<id> and a question; a yes gives talk_to_dso. Probed through the shipped pack for after_today, after_card, card_longer_than_rule, before_recommendation, after_file_by, not_after_program_end and period_outside_cards. Facts outside the table can still go unasked; see PRIN-011.",
   "part": "founder-decisions"
  },
  {
@@ -8114,9 +8114,9 @@
   "source": "specs/product/BACKLOG.md second review 2",
   "text": "A reading is marked on the row, not only after the row is opened.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 5; web/src/components/Result.tsx",
-  "note": "The mark still appears only inside the opened rule.",
+  "status": "met",
+  "evidence": "web/src/components/Result.tsx READING_TAG on the row, verdict line and next list; web/src/lib/labels.test.ts (finds the item a reason rests on, so the line carries its reading mark)",
+  "note": "Audit product-1: the mark Duly's reading is on the row before it opens.",
   "part": "founder-decisions"
  },
  {
@@ -8124,9 +8124,9 @@
   "source": "specs/product/BACKLOG.md second review 3",
   "text": "The screen never calls 365 the number in the rule.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 5",
-  "note": "Specified; the screen wording is not yet changed and no test in web/ guards it.",
+  "status": "met",
+  "evidence": "web/src/lib/labels.ts; web/src/lib/labels.test.ts (never calls Duly's count the number in the rule)",
+  "note": "Audit product-1: the CPT line says the days entered are at or over Duly's count of one year in days, beside the regulation's words.",
   "part": "founder-decisions"
  },
  {
@@ -8134,9 +8134,9 @@
   "source": "specs/product/BACKLOG.md second review 4",
   "text": "CPT days do not default to 0 when nothing was entered; Duly asks.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 2; engine/f1.py",
-  "note": "The engine has no full_time_cpt_used question. Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail.",
+  "status": "met",
+  "evidence": "engine/f1.py CPT_USED; tests/unit/engine/test_f1_product.py::test_cpt_days_not_entered_asks_whether_full_time_cpt_was_used; tests/unit/engine/test_f1_product.py::test_the_answer_no_makes_the_cpt_days_zero_as_the_persons_own_statement",
+  "note": "Audit product-1: with cpt_full_time_days absent the shipped pack raises full_time_cpt_used and the verdict is cannot_tell.",
   "part": "founder-decisions"
  },
  {
@@ -8144,9 +8144,9 @@
   "source": "specs/product/BACKLOG.md second review 5",
   "text": "The day of an answer is checked.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 3; tests/unit/engine/test_f1_context.py::test_the_day_of_the_answer_changes_nothing",
-  "note": "The engine still ignores the day of an answer.",
+  "status": "met",
+  "evidence": "engine/f1.py parse_case(raw, clock); tests/unit/engine/test_f1_product.py::test_an_answer_is_refused_when_and_only_when_it_is_dated_after_today; tests/unit/api/test_compute_product.py (422 in plain words)",
+  "note": "Audit product-1: an answer dated 2026-09-30 on a clock of 2026-09-29 raised ValueError in parse_case.",
   "part": "founder-decisions"
  },
  {
@@ -8154,9 +8154,9 @@
   "source": "specs/product/BACKLOG.md second review 6",
   "text": "A filing window does not show as open after the filing is recorded.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "specs/product-1/SPEC.md section 4",
-  "note": "Specified in specs/product-1/SPEC.md and tested in tests/unit/engine/test_f1_product.py; the engine and screen work is not merged and those tests fail.",
+  "status": "met",
+  "evidence": "engine/f1.py (done steps); tests/unit/engine/test_f1_product.py::test_the_opt_steps_are_done_when_the_filing_or_the_card_is_recorded; tests/unit/engine/test_f1_product.py::test_review_6_a_filing_window_is_not_open_once_the_card_is_in_hand",
+  "note": "Audit product-1: with the OPT filing recorded no opt window date is in upcoming.",
   "part": "founder-decisions"
  },
  {
@@ -8176,7 +8176,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "engine/verdict.py; engine/f1.py",
-  "note": "The verdict is general; everything else is written for part of F-1 and three packs are empty.",
+  "note": "Audit product-1: every behaviour holds for F-1 OPT, STEM and cap-gap, but the H-1B, O-1 and EB-1A packs hold no rules and nothing is computed for them; the F-1 gap in PRIN-011 also stands.",
   "part": "founder-decisions"
  },
  {
@@ -9194,9 +9194,9 @@
   "source": "DECISIONS.md, D56",
   "text": "Every rule on the screen leads with plain words, calm and short, and the exact words, citation and source are one tap away.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Decided 2026-09-29; nothing built yet.",
+  "status": "met",
+  "evidence": "web/src/components/Result.tsx; web/src/lib/labels.ts PLAIN_HEADING, EXACT_BUTTON; web/src/components/Plain.test.tsx (shows the plain words under their heading and keeps the quote behind one tap; puts the plain words before the exact words on the page)",
+  "note": "Audit product-1: every rule the screen shows leads with In plain words; Read the exact words opens the quote, citation, link and the day checked. All 55 F-1 rules carry plain words. The H-1B, O-1 and EB-1A packs hold no rules, and no screen shows them.",
   "part": "founder-decisions"
  },
  {
@@ -9204,9 +9204,9 @@
   "source": "DECISIONS.md, D56",
   "text": "Plain words say what a rule says in general: never about the person, never an instruction, no number the rule does not hold, calm, readable.",
   "kind": "legal",
-  "status": "partial",
-  "evidence": "tools/sources/plain.py; tests/unit/tools/test_plain.py; Makefile gate-7",
-  "note": "The checker is built and runs in gate 7; no pack carries plain words yet.",
+  "status": "met",
+  "evidence": "tools/sources/plain.py; rulepacks/f1-us/v2026.09/parameters.yaml (plain, plain_terms); tests/unit/tools/test_plain.py; Makefile gate-7",
+  "note": "Audit product-1: uv run python -m tools.sources.plain rulepacks --require f1 printed that every plain text is general, calm, readable and grounded, exit 0. reviews/product-1-fix10.md read each changed text beside its quote and approved.",
   "part": "founder-decisions"
  },
  {
@@ -9214,9 +9214,9 @@
   "source": "DECISIONS.md, D56",
   "text": "A rule change paused by a court is described in plain words about what the court did, backed by the court's own order.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Decided 2026-09-29; nothing built yet.",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (regime fixed_admission_2026 plain, source D. Mass. order doc. 51); web/src/lib/labels.ts; web/src/components/Plain.test.tsx (shows the paused rule's plain words, with a link to the court's order; never shows a status word, with every tap on the screen opened)",
+  "note": "Audit product-1: the paused regime's plain words say what the rule would change, that a federal court paused it on 2026-09-14 while the case goes on, and that the earlier rule applies today; the link reads Read the court's order and points to the saved order.",
   "part": "founder-decisions"
  },
  {
@@ -9224,9 +9224,9 @@
   "source": "DECISIONS.md, D57",
   "text": "The drafted DSO email is in the student's own voice and never mentions Duly.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Decided 2026-09-29; nothing built yet.",
+  "status": "met",
+  "evidence": "web/src/lib/drafts.ts; web/src/lib/drafts.test.ts (for each reason, speaks as the student and passes the checks)",
+  "note": "Audit product-1: every draft is first person, opens I have a question about my F-1 record, has a subject line, ends Thank you, and [Your name], and holds no word Duly. 301 web tests pass.",
   "part": "founder-decisions"
  },
  {
@@ -9234,9 +9234,139 @@
   "source": "DECISIONS.md, D57",
   "text": "The drafted DSO email states only the student's own facts and asks; it never states a date Duly computed or a reading as the student's claim.",
   "kind": "legal",
+  "status": "met",
+  "evidence": "web/src/lib/drafts.ts factsOn; web/src/lib/drafts.test.ts (holds the student's own dates and no date the engine computed; states the hours entered and no comparison with the rule)",
+  "note": "Audit product-1: drafts are built only from the case as entered (card dates, program end, periods, petition dates); none reads output.computed or upcoming for a date. The one line that states a status fact, I did not have a period of post-completion OPT, is sent only after the student answered no to that question.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D49-001",
+  "source": "DECISIONS.md D49",
+  "text": "The Phase 0 changes made without a decision (React 19, npm, one compose profile) are recorded for the founder to overrule.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "DECISIONS.md D49; web/package.json (react ^19.3.0); package-lock.json; infra/docker-compose.yml (no profiles)",
+  "note": "Audit product-1: each of the three is true of the repository today.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D50-001",
+  "source": "DECISIONS.md D50",
+  "text": "docs/requirements/ holds every requirement in the project's documents and in the decisions.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "docs/requirements/register.json; tools/requirements/register.py",
+  "note": "Audit product-1: decisions D49 to D53 and D58 to D61 had no rows until this audit added them.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D50-002",
+  "source": "DECISIONS.md D50",
+  "text": "Every new SPEC names what it covers and what share of the whole that is.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "tools/requirements/register.py spec_problems; tests/unit/tools/test_requirements.py",
+  "note": "Audit product-1: register check exits 0; SPECs from specs/path-1 on are held to it, and product-1 and desktop-1 are exempt by name.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D50-003",
+  "source": "DECISIONS.md D50",
+  "text": "The register is audited again when work lands, by an agent that did not build it.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "docs/requirements/audits/product-1.md",
+  "note": "Audit product-1: this is the first plan audit; audits/ held only its README before it.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D51-001",
+  "source": "DECISIONS.md D51",
+  "text": "The factory's agents are pinned to claude-opus-5-5.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml (model.pinned, model.reviewer)",
+  "note": "Audit product-1: both are claude-opus-5-5. Whether every health check was run again before the next plan was not checked.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D52-001",
+  "source": "DECISIONS.md D52",
+  "text": "The canvas and the research reports are kept verbatim in design/canvas/ and docs/research/founder/.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "design/canvas/; docs/research/founder/",
+  "note": "Audit product-1: both folders hold the received files.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D52-002",
+  "source": "DECISIONS.md D52",
+  "text": "Each place where the canvas crosses BOUNDARY.md or a later decision is listed for the founder.",
+  "kind": "design",
+  "status": "met",
+  "evidence": "docs/requirements/canvas-conflicts.md",
+  "note": "Audit product-1: the list exists.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D53-001",
+  "source": "DECISIONS.md D53",
+  "text": "Layout, tokens, motion and structure follow the canvas; where its copy crosses BOUNDARY.md the boundary wins.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "web/src/design/tokens.css; tools/copy_lint/lint.py",
+  "note": "Audit product-1: tokens follow the canvas and copy lint holds the boundary, but none of the nine canvas screens is built (CANVAS-001).",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D58-001",
+  "source": "DECISIONS.md D58",
+  "text": "Documents open with the computer's own unlock (Touch ID or the Mac's password), with a recovery kit made once at setup.",
+  "kind": "security",
   "status": "not_started",
   "evidence": "none",
-  "note": "Decided 2026-09-29; nothing built yet.",
+  "note": "Audit product-1: no documents code exists in desktop/src.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D59-001",
+  "source": "DECISIONS.md D59",
+  "text": "Duly asks whether typed dates came from the student's documents and has the student check each against its document.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit product-1: no question about the source of a typed date exists in engine/, contracts/ or web/src.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D59-002",
+  "source": "DECISIONS.md D59",
+  "text": "A typed date is used only when it is checked and nothing contradicts it; otherwise the verdict is cannot_tell.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit product-1: the engine uses every typed date as entered; only the conflicts of product round 1 stop it.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D60-001",
+  "source": "DECISIONS.md D60",
+  "text": "No value from a document reaches any model, including the assistant on Duly's own AWS; files, names and identifiers never do.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit product-1: no document is read anywhere yet, so there is nothing to test; no guard for it exists in assistant/providers.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D61-001",
+  "source": "DECISIONS.md D61",
+  "text": "Order of work: product round 1 and its fixes, the path model, the desktop window, then documents-1; the updates pipeline either side.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "specs/path-1; specs/desktop-1; specs/documents-1; specs/updates-1",
+  "note": "Audit product-1: the SPECs exist in that order; product round 1 is approved and not on main, and path-1 is not built (DEC-D48-002).",
   "part": "founder-decisions"
  },
  {
