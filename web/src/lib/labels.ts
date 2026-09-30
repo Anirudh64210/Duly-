@@ -390,6 +390,10 @@ const FINDINGS: ReadonlyMap<string, string> = new Map(
     // SPEC-resolutions point 39: why Duly steps back, and nothing about what it means.
     "opt.months_at_this_level":
       "You answered that you used OPT before at this degree level. The EAD dates entered here do not show that earlier OPT, so Duly does not count the months. This is a question for your DSO.",
+    // specs/product-2/resolutions.md point 19: Duly steps back from every date a petition
+    // could change, and says why, and nothing about what the petition means.
+    "cap_gap.for_dso":
+      "An H-1B petition is entered. An H-1B petition can change these dates: the grace period, the counts from the day it was filed, and any cap-gap period. So Duly does not show them. Which dates it changes in your case is a question for your DSO. The rule is 8 CFR 214.2(f)(5)(vi).",
     // SPEC-resolutions points 40 and 44.
     rule_not_in_force_on_event_day:
       "The rule Duly would use was not yet in force on the day this counts from, so Duly does not compute the date. This is a question for your DSO.",

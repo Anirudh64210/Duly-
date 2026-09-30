@@ -1,7 +1,7 @@
 import type { AppCase } from "../app/caseStore";
 import type { DraftRecord, RecordKind, RecordsCase } from "./records";
 
-// resolutions point 11: each built screen, drawn at the canvas size from an engine sample
+// resolutions point 11: each built screen, and the routes the router is built from, drawn at the canvas size from an engine sample
 // (web/samples). desktop/src/shots.ts loads shots.html?screen=<route>&sample=<name> for
 // each pair and captures the window.
 
@@ -21,20 +21,14 @@ export const SHOT_SCREENS = [
 export type ShotScreen = (typeof SHOT_SCREENS)[number];
 
 /**
- * resolutions point 18: the value of data-landmark on a screen's own heading, the name the
- * shot run gives the screen ("/" is home, the others lose their slash). No error screen
- * carries one, so a shot that holds it drew the screen.
+ * resolutions point 20: the value of data-landmark on a screen's own heading is its route,
+ * read from SHOT_SCREENS, the table the router is built from (app/Shell.tsx). The shot run
+ * (desktop/src/shots.ts) looks for [data-landmark="<route>"]. No error screen carries one,
+ * so a shot that holds it drew the screen.
  */
-export const LANDMARKS = {
-  "/welcome": "welcome",
-  "/": "home",
-  "/timeline": "timeline",
-  "/checklists": "checklists",
-  "/updates": "updates",
-  "/case": "case",
-  "/settings": "settings",
-  "/feedback": "feedback",
-} as const satisfies Record<ShotScreen, string>;
+export const LANDMARKS = Object.fromEntries(SHOT_SCREENS.map((route) => [route, route])) as {
+  readonly [Route in ShotScreen]: Route;
+};
 
 /** The screen and sample a shot asks for, or null when either is not one Duly has. */
 export function shotAsked(
