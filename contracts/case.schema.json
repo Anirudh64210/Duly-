@@ -2,13 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://duly.local/contracts/case.schema.json",
   "title": "A case, for any category",
-  "description": "What a person entered, as facts named by the category's rule pack. The engine reads the pack to know what each fact means.",
+  "description": "What a person entered: facts about the person, and records of what happened, each named by the category's rule pack. The engine reads the pack to know what each fact, record kind and field means, and refuses a record whose kind or field the pack does not declare. A field left out is not known: it is never read as no, none or zero. Dates run from 1950 through 2099. Numbers must be finite; NaN and Infinity are refused before validation.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "categories",
     "time_zone",
-    "facts"
+    "facts",
+    "records",
+    "complete"
   ],
   "properties": {
     "categories": {
@@ -24,20 +26,8 @@
     "time_zone": {
       "type": "string",
       "pattern": "^[A-Za-z]+(/[A-Za-z0-9_+-]+){1,2}$|^UTC$",
-      "maxLength": 64
-    },
-    "school": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "maxLength": 120,
-      "description": "The school's id in the schools register, when the person has named one"
-    },
-    "documents_count": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10000
+      "maxLength": 64,
+      "description": "The person's own time zone, as an IANA name. Today is the calendar day in this zone."
     },
     "facts": {
       "type": "object",
@@ -46,65 +36,183 @@
         "pattern": "^[a-z0-9_.]+$"
       },
       "additionalProperties": {
-        "anyOf": [
-          {
-            "type": "string",
-            "format": "date",
-            "pattern": "^(19[5-9][0-9]|20[0-9]{2})-[0-9]{2}-[0-9]{2}$"
+        "$ref": "#/$defs/scalar"
+      },
+      "description": "Facts about the person as a whole, named by the pack. Anything that can happen more than once is a record, never a fact."
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 600,
+      "items": {
+        "$ref": "#/$defs/record"
+      },
+      "description": "One record for each program, authorization, move, job, trip, petition, report and the rest. Record ids are unique in the case. The pack sets how many of each kind a case may hold."
+    },
+    "complete": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,31}(:[a-z]{1,3}[0-9]{1,4})?$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "on"
+        ],
+        "properties": {
+          "on": {
+            "$ref": "#/$defs/date"
           },
-          {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100000
-          },
-          {
-            "type": "boolean"
-          },
-          {
-            "type": "string",
-            "maxLength": 80
-          },
-          {
-            "type": "null"
-          },
-          {
-            "type": "array",
-            "maxItems": 50,
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "start",
-                "end"
-              ],
-              "properties": {
-                "start": {
-                  "type": "string",
-                  "format": "date"
-                },
-                "end": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date"
-                },
-                "hours_per_week": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 168
-                },
-                "reported": {
-                  "type": "boolean"
-                }
-              }
-            }
+          "from": {
+            "$ref": "#/$defs/date"
           }
-        ]
-      }
+        }
+      },
+      "description": "The person's statements that a list is whole, each with the day it was given. The key is a record kind, or a kind and the record its items link to: authorization:p2 is every authorization for program p2. For a kind whose list grows with time, a statement covers the days from `from`, when given, through `on`, and no later day."
     },
     "confirmations": {
-      "$ref": "case_f1.schema.json#/properties/confirmations"
+      "type": "object",
+      "maxProperties": 1024,
+      "propertyNames": {
+        "pattern": "^[a-z0-9_.:]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "answer",
+          "on"
+        ],
+        "properties": {
+          "answer": {
+            "type": "boolean"
+          },
+          "on": {
+            "$ref": "#/$defs/date"
+          },
+          "about": {
+            "type": "object",
+            "description": "The input values the answer was given for, as the question carried them."
+          }
+        }
+      },
+      "description": "The person's own answers to yes or no questions Duly asked, each with the day it was given. A question about a record's field is answered by entering the field, including not_sure where the pack allows it."
+    }
+  },
+  "$defs": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^(19[5-9][0-9]|20[0-9]{2})-[0-9]{2}-[0-9]{2}$"
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+      "description": "Made on the person's computer: the kind's prefix from the pack, then a number, such as p1, a3, mv1, w12"
+    },
+    "scalar": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/date"
+        },
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start"
+      ],
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/date"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hours_per_week": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 168
+        },
+        "full_time": {
+          "type": "boolean",
+          "description": "The period was full time, as the document that granted it marks it. A pack that holds a grant of permission as its own record, as the F-1 pack does for CPT and pre-completion OPT, asks this through that record's own field instead."
+        },
+        "reported_on": {
+          "$ref": "#/$defs/date",
+          "description": "The day the change this period records was reported, when the person reported it."
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/record_id"
+        },
+        "category": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+$",
+          "description": "The pack that declares this kind. Absent means the first of categories."
+        },
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "fields": {
+          "type": "object",
+          "maxProperties": 40,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]{0,39}$"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/scalar"
+              },
+              {
+                "type": "array",
+                "maxItems": 24,
+                "items": {
+                  "$ref": "#/$defs/period"
+                }
+              }
+            ]
+          },
+          "description": "Values named by the pack's declaration of this kind. A link holds the id of another record in this case. A choice holds one of the pack's values, or not_sure where the pack allows it."
+        }
+      }
     }
   }
 }
