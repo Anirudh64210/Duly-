@@ -31,3 +31,7 @@ Register rows: the rows specs/path-1/programs.md section 22 and specs/design-1/S
     - A final evaluation is due for each practical training opportunity on the STEM card that ends, dated from that job's end ((f)(10)(ii)(C)(9)(i)), including a job that ends before a later one begins (J15, Job B).
     - Onboarding never preselects an answer: "Which program did you withdraw from?" opens with nothing chosen.
     - The engine samples the shots and web tests read are made from the engine by a script kept in web/ and rerun in the build, so they never drift; the shot run counts a screen as drawn only when it holds the screen's own landmark, never an error screen.
+17. From the review of product-2 fix 3 (reviews/product-2-fix3.md):
+    - A change-of-status petition ends validations only when it belongs to this STEM card: filed while the card runs, approved, and its change of status not ended (`cos_ended_on` empty) before the start. An older petition from before this F-1 status never drops a report. A journey twin holds such an older petition.
+    - The web samples are made by web/samples/make.py through the founder's `make samples`, run before design-shots; web/package.json is not changed for it.
+    - The shot run's landmark check compares a screen's own heading text as well as its type.
