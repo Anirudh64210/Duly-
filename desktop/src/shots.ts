@@ -125,10 +125,159 @@ export function refusedInApp(relative: string): boolean {
   return relative === SHOTS_PAGE;
 }
 
+/** Where the canvas landmarks are kept (specs/design-1/SPEC.md 14.1). */
+export function designLandmarks(root: string): string {
+  return join(root, "tests", "design", "landmarks.json");
+}
+
+/**
+ * The canvas screen in tests/design/landmarks.json that each built screen is drawn from.
+ * A built screen with no canvas screen (Your case, Settings, Feedback) has no landmark, so
+ * its shot is never counted as drawn (resolutions point 16).
+ */
+export const SHOT_CANVAS: Readonly<Record<string, string>> = {
+  "/welcome": "Onboarding",
+  "/": "Main",
+  "/timeline": "Timeline",
+  "/checklists": "Checklist",
+  "/updates": "Updates",
+};
+
+/**
+ * A screen's own landmark: the first landmark its canvas screen draws in its largest type,
+ * the screen's heading. Text is never compared (SPEC 14.1), so the landmark is found on the
+ * page by its type: size, weight and letter spacing. Colour is left out, since dark shots
+ * take the dark tokens.
+ */
+export interface ScreenLandmark {
+  canvas: string;
+  index: number;
+  fontSize: number;
+  fontWeight: string;
+  letterSpacing: number;
+}
+
+const WEIGHTS: Readonly<Record<string, string>> = { normal: "400", bold: "700" };
+
+function weight(value: string): string {
+  return WEIGHTS[value] ?? value;
+}
+
+function pixels(value: string): number | null {
+  const match = /^(-?\d*\.?\d+)px$/.exec(value.trim());
+  return match === null ? null : Number(match[1]);
+}
+
+/** Letter spacing in pixels at a font size: "normal" is 0, em is a share of the size. */
+export function spacing(value: string, fontSize: number): number | null {
+  const text = value.trim();
+  if (text === "normal") return 0;
+  const em = /^(-?\d*\.?\d+)em$/.exec(text);
+  if (em !== null) return Number(em[1]) * fontSize;
+  return pixels(text);
+}
+
+function record(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function text(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+/**
+ * The landmark of a built screen, read from the parsed tests/design/landmarks.json, or null
+ * when the screen has no canvas screen, the file does not hold it, or no type can be read.
+ */
+export function screenLandmark(landmarks: unknown, screen: string): ScreenLandmark | null {
+  const canvas = SHOT_CANVAS[screen];
+  if (canvas === undefined) return null;
+  const marks = record(record(record(landmarks)?.screens)?.[canvas])?.landmarks;
+  if (!Array.isArray(marks)) return null;
+  let found: ScreenLandmark | null = null;
+  for (const [index, mark] of marks.entries()) {
+    const type = record(record(mark)?.type);
+    const size = pixels(text(type?.["font-size"]) ?? "");
+    const fontWeight = text(type?.["font-weight"]);
+    if (size === null || fontWeight === null) continue;
+    const letterSpacing = spacing(text(type?.["letter-spacing"]) ?? "normal", size);
+    if (letterSpacing === null) continue;
+    if (found === null || size > found.fontSize) {
+      found = { canvas, index, fontSize: size, fontWeight: weight(fontWeight), letterSpacing };
+    }
+  }
+  return found;
+}
+
+/** How a landmark is named in shots.json and on stderr. */
+export function landmarkName(landmark: ScreenLandmark | null): string | null {
+  return landmark === null ? null : `${landmark.canvas} landmark ${String(landmark.index)}`;
+}
+
+/** The type of one element on the page that draws text of its own, as the page computed it. */
+export interface PageText {
+  fontSize: string;
+  fontWeight: string;
+  letterSpacing: string;
+  width: number;
+  height: number;
+}
+
+/** Type may differ by rounding only; boxes are the landmark check's business, not this one's. */
+const TYPE_TOLERANCE_PX = 0.05;
+
+/** Whether the page holds the landmark: a visible text in exactly the landmark's type. */
+export function holdsLandmark(
+  texts: readonly PageText[],
+  landmark: ScreenLandmark | null,
+): boolean {
+  if (landmark === null) return false;
+  return texts.some((drawn) => {
+    const size = pixels(drawn.fontSize);
+    if (size === null || drawn.width <= 0 || drawn.height <= 0) return false;
+    const letters = spacing(drawn.letterSpacing, size);
+    return (
+      Math.abs(size - landmark.fontSize) <= TYPE_TOLERANCE_PX &&
+      weight(drawn.fontWeight) === landmark.fontWeight &&
+      letters !== null &&
+      Math.abs(letters - landmark.letterSpacing) <= TYPE_TOLERANCE_PX
+    );
+  });
+}
+
+/** The page script's answer as a list of PageText, or null when it is anything else. */
+export function pageTexts(value: unknown): PageText[] | null {
+  if (!Array.isArray(value)) return null;
+  const texts: PageText[] = [];
+  for (const item of value) {
+    const entry = record(item);
+    const fontSize = text(entry?.fontSize);
+    const fontWeight = text(entry?.fontWeight);
+    const letterSpacing = text(entry?.letterSpacing);
+    const width = entry?.width;
+    const height = entry?.height;
+    if (
+      fontSize === null ||
+      fontWeight === null ||
+      letterSpacing === null ||
+      typeof width !== "number" ||
+      typeof height !== "number"
+    ) {
+      return null;
+    }
+    texts.push({ fontSize, fontWeight, letterSpacing, width, height });
+  }
+  return texts;
+}
+
 /**
  * Run inside the page. It sets the theme the way the design shots use it (SPEC 3, the
- * `data-theme` attribute), waits for the webfont and two frames, and says whether the
- * screen drew anything.
+ * `data-theme` attribute), waits for the webfont and two frames, and gives back the type of
+ * every visible element under the root that draws text of its own. Whether that holds the
+ * screen's landmark is decided outside the page (holdsLandmark), so an error screen is never
+ * counted as drawn.
  */
 export function drawScript(theme: ShotTheme): string {
   return `(async () => {
@@ -136,7 +285,25 @@ export function drawScript(theme: ShotTheme): string {
   await document.fonts.ready;
   await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
   const root = document.getElementById("root");
-  return root !== null && root.childElementCount > 0;
+  if (root === null) return [];
+  const texts = [];
+  for (const element of root.querySelectorAll("*")) {
+    const own = Array.from(element.childNodes).some(
+      (node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== "",
+    );
+    if (!own) continue;
+    const style = getComputedStyle(element);
+    if (style.visibility !== "visible" || Number(style.opacity) === 0) continue;
+    const box = element.getBoundingClientRect();
+    texts.push({
+      fontSize: style.fontSize,
+      fontWeight: style.fontWeight,
+      letterSpacing: style.letterSpacing,
+      width: box.width,
+      height: box.height,
+    });
+  }
+  return texts;
 })()`;
 }
 
@@ -145,25 +312,27 @@ export interface ShotResult {
   screen: string;
   sample: string;
   theme: ShotTheme;
+  landmark: string | null;
   drawn: boolean;
 }
 
-/** shots.json: what each shot was, and whether its screen drew. */
+/** shots.json: what each shot was, the landmark it looked for, and whether it held it. */
 export function shotsJson(results: readonly ShotResult[]): string {
   const report = {
     size: SHOT_SIZE,
-    shots: results.map(({ file, screen, sample, theme, drawn }) => ({
+    shots: results.map(({ file, screen, sample, theme, landmark, drawn }) => ({
       file,
       screen,
       sample,
       theme,
+      landmark,
       drawn,
     })),
   };
   return `${JSON.stringify(report, null, 2)}\n`;
 }
 
-/** 0 when every planned shot drew, 1 when none were planned or any did not draw. */
+/** 0 when every planned shot held its landmark, 1 when none were planned or any did not. */
 export function shotsExitCode(results: readonly ShotResult[]): 0 | 1 {
   return results.length > 0 && results.every((result) => result.drawn) ? 0 : 1;
 }

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { BrowserWindow } from "electron";
@@ -10,10 +10,15 @@ import {
   SHOT_SIZE,
   SHOT_WAIT_MS,
   drawScript,
+  holdsLandmark,
+  landmarkName,
+  pageTexts,
   planShots,
   sampleNames,
+  screenLandmark,
   shotsExitCode,
   shotsJson,
+  type PageText,
   type Shot,
   type ShotResult,
 } from "./shots";
@@ -22,31 +27,41 @@ export interface ShotsRun {
   folder: string;
   webDist: string;
   samples: string;
+  landmarks: string;
   preload: string;
   version: string;
 }
 
-async function drawn(window: BrowserWindow, shot: Shot): Promise<boolean> {
+/** The type of each text the page drew, or null when the page did not load or answer. */
+async function drawnTexts(window: BrowserWindow, shot: Shot): Promise<PageText[] | null> {
   try {
     await window.loadURL(shot.url);
-    const waited = new Promise<boolean>((done) => setTimeout(() => done(false), SHOT_WAIT_MS));
+    const waited = new Promise<null>((done) => setTimeout(() => done(null), SHOT_WAIT_MS));
     const draw = window.webContents
       .executeJavaScript(drawScript(shot.theme), false)
-      .then((value: unknown) => value === true);
+      .then((value: unknown) => pageTexts(value));
     return await Promise.race([draw, waited]);
   } catch (error) {
     process.stderr.write(`shots: ${shot.file} did not load: ${String(error)}\n`);
-    return false;
+    return null;
   }
 }
 
 /**
  * Draws every planned shot in a hidden window of the shot size, writes each picture and
- * shots.json into the folder, and gives the exit code.
+ * shots.json into the folder, and gives the exit code. A shot counts as drawn only when the
+ * page holds its screen's landmark from tests/design/landmarks.json (resolutions point 16).
  */
 export async function runShots(run: ShotsRun): Promise<number> {
   if (!existsSync(join(run.webDist, SHOTS_PAGE))) {
     process.stderr.write(`shots: ${SHOTS_PAGE} is not in ${run.webDist}\n`);
+    return 1;
+  }
+  let landmarks: unknown;
+  try {
+    landmarks = JSON.parse(await readFile(run.landmarks, "utf8"));
+  } catch (error) {
+    process.stderr.write(`shots: cannot read ${run.landmarks}: ${String(error)}\n`);
     return 1;
   }
   const shots = planShots(sampleNames(await readdir(run.samples)));
@@ -61,8 +76,17 @@ export async function runShots(run: ShotsRun): Promise<number> {
   const results: ShotResult[] = [];
   try {
     for (const shot of shots) {
-      let ok = await drawn(window, shot);
-      if (ok) {
+      const landmark = screenLandmark(landmarks, shot.screen);
+      const texts = await drawnTexts(window, shot);
+      let ok = texts !== null && holdsLandmark(texts, landmark);
+      if (landmark === null) {
+        process.stderr.write(`shots: ${shot.screen} has no landmark in ${run.landmarks}\n`);
+      } else if (texts !== null && !ok) {
+        process.stderr.write(
+          `shots: ${shot.file} does not hold ${String(landmarkName(landmark))}\n`,
+        );
+      }
+      if (texts !== null) {
         try {
           const picture = await window.webContents.capturePage();
           await writeFile(join(run.folder, shot.file), picture.toPNG());
@@ -72,7 +96,7 @@ export async function runShots(run: ShotsRun): Promise<number> {
         }
       }
       const { file, screen, sample, theme } = shot;
-      results.push({ file, screen, sample, theme, drawn: ok });
+      results.push({ file, screen, sample, theme, landmark: landmarkName(landmark), drawn: ok });
     }
   } finally {
     window.destroy();

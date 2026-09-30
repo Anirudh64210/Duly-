@@ -8,20 +8,29 @@ import { createAppHandler, readInside } from "./protocol";
 import {
   NO_ENGINE,
   SHOTS_PAGE,
+  SHOT_CANVAS,
   SHOT_SCREENS,
   SHOT_SIZE,
   SHOT_THEMES,
+  designLandmarks,
   drawScript,
+  holdsLandmark,
+  landmarkName,
+  pageTexts,
   planShots,
   refusedInApp,
   sampleNames,
+  screenLandmark,
   screenName,
   shotFile,
   shotUrl,
   shotsExitCode,
   shotsFolder,
   shotsJson,
+  spacing,
   webSamples,
+  type PageText,
+  type ScreenLandmark,
   type ShotResult,
 } from "./shots";
 
@@ -160,9 +169,130 @@ describe("drawScript", () => {
     }
   });
 
-  it("says whether the root drew anything", () => {
-    expect(drawScript("light")).toContain('getElementById("root")');
-    expect(drawScript("light")).toContain("childElementCount > 0");
+  it("gives back the type of each text under the root, not a verdict of its own", () => {
+    const script = drawScript("light");
+    expect(script).toContain('getElementById("root")');
+    expect(script).toContain("getComputedStyle");
+    expect(script).not.toContain("childElementCount");
+  });
+});
+
+const LANDMARKS: unknown = JSON.parse(readFileSync(designLandmarks(ROOT), "utf8"));
+
+describe("each screen's landmark (resolutions point 16)", () => {
+  it("names only built screens, and only canvas screens landmarks.json holds", () => {
+    const screens = (LANDMARKS as { screens: Record<string, unknown> }).screens;
+    for (const [screen, canvas] of Object.entries(SHOT_CANVAS)) {
+      expect(SHOT_SCREENS).toContain(screen);
+      expect(Object.keys(screens)).toContain(canvas);
+    }
+  });
+
+  it("is the heading of the screen's canvas, read from landmarks.json", () => {
+    expect(screenLandmark(LANDMARKS, "/")).toEqual({
+      canvas: "Main",
+      index: 20,
+      fontSize: 40,
+      fontWeight: "600",
+      letterSpacing: expect.closeTo(-0.8, 5) as number,
+    });
+    expect(screenLandmark(LANDMARKS, "/timeline")).toMatchObject({
+      canvas: "Timeline",
+      index: 15,
+      fontSize: 32,
+    });
+    for (const screen of Object.keys(SHOT_CANVAS)) {
+      expect(screenLandmark(LANDMARKS, screen)).not.toBeNull();
+    }
+  });
+
+  it("is missing for a screen with no canvas screen, which then never counts as drawn", () => {
+    for (const screen of ["/case", "/settings", "/feedback"]) {
+      expect(screenLandmark(LANDMARKS, screen)).toBeNull();
+      expect(holdsLandmark([text("40px", "600", "-0.8px")], null)).toBe(false);
+    }
+  });
+
+  it("is missing when the file does not hold the screen or its type", () => {
+    expect(screenLandmark(null, "/")).toBeNull();
+    expect(screenLandmark({ screens: {} }, "/")).toBeNull();
+    expect(screenLandmark({ screens: { Main: { landmarks: "no" } } }, "/")).toBeNull();
+    expect(screenLandmark({ screens: { Main: { landmarks: [{ tag: "div" }] } } }, "/")).toBeNull();
+    const odd = { type: { "font-size": "2rem", "font-weight": "600" } };
+    expect(screenLandmark({ screens: { Main: { landmarks: [odd] } } }, "/")).toBeNull();
+  });
+
+  it("takes the first of the largest type", () => {
+    const mark = (size: string, spacingValue?: string): unknown => ({
+      type: { "font-size": size, "font-weight": "bold", "letter-spacing": spacingValue },
+    });
+    const file = {
+      screens: { Main: { landmarks: [mark("14px"), mark("30px", "1px"), mark("30px")] } },
+    };
+    expect(screenLandmark(file, "/")).toEqual({
+      canvas: "Main",
+      index: 1,
+      fontSize: 30,
+      fontWeight: "700",
+      letterSpacing: 1,
+    });
+    expect(landmarkName(screenLandmark(file, "/"))).toBe("Main landmark 1");
+    expect(landmarkName(null)).toBeNull();
+  });
+});
+
+function text(fontSize: string, fontWeight: string, letterSpacing: string, width = 300): PageText {
+  return { fontSize, fontWeight, letterSpacing, width, height: width === 0 ? 0 : 44 };
+}
+
+describe("holdsLandmark", () => {
+  const heading: ScreenLandmark = {
+    canvas: "Timeline",
+    index: 15,
+    fontSize: 32,
+    fontWeight: "600",
+    letterSpacing: -0.64,
+  };
+  const sidebar = [text("17px", "700", "-0.17px"), text("14px", "400", "normal")];
+
+  it("holds when a visible text is in the landmark's type", () => {
+    expect(holdsLandmark([...sidebar, text("32px", "600", "-0.64px")], heading)).toBe(true);
+    expect(holdsLandmark([text("32.02px", "600", "-0.62px")], heading)).toBe(true);
+  });
+
+  it("does not hold on an error screen: the shell and a message, but no heading", () => {
+    expect(holdsLandmark([...sidebar, text("16px", "400", "normal")], heading)).toBe(false);
+    expect(holdsLandmark([], heading)).toBe(false);
+  });
+
+  it("does not hold when size, weight or spacing differ, or the text has no box", () => {
+    expect(holdsLandmark([text("30px", "600", "-0.6px")], heading)).toBe(false);
+    expect(holdsLandmark([text("32px", "700", "-0.64px")], heading)).toBe(false);
+    expect(holdsLandmark([text("32px", "600", "normal")], heading)).toBe(false);
+    expect(holdsLandmark([text("32px", "600", "-0.64px", 0)], heading)).toBe(false);
+    expect(holdsLandmark([text("2rem", "600", "-0.64px")], heading)).toBe(false);
+    expect(holdsLandmark([text("32px", "600", "wide")], heading)).toBe(false);
+  });
+
+  it("reads letter spacing in em, px or normal", () => {
+    expect(spacing("-0.02em", 32)).toBeCloseTo(-0.64, 5);
+    expect(spacing(".5em", 10)).toBe(5);
+    expect(spacing("1.5px", 32)).toBe(1.5);
+    expect(spacing("normal", 32)).toBe(0);
+    expect(spacing("wide", 32)).toBeNull();
+  });
+});
+
+describe("pageTexts", () => {
+  it("takes a list of texts and refuses anything else", () => {
+    const good = text("32px", "600", "normal");
+    expect(pageTexts([good])).toEqual([good]);
+    expect(pageTexts([])).toEqual([]);
+    expect(pageTexts(true)).toBeNull();
+    expect(pageTexts(null)).toBeNull();
+    expect(pageTexts([{ ...good, width: "300" }])).toBeNull();
+    expect(pageTexts([{ ...good, fontSize: 32 }])).toBeNull();
+    expect(pageTexts(["32px"])).toBeNull();
   });
 });
 
@@ -172,13 +302,23 @@ describe("the shots report", () => {
     screen: "/",
     sample: "a",
     theme: "light",
+    landmark: "Main landmark 20",
     drawn,
   });
 
-  it("writes the size and each shot", () => {
+  it("writes the size, each shot and the landmark it looked for", () => {
     expect(JSON.parse(shotsJson([result(true)]))).toEqual({
       size: { width: 1280, height: 832 },
-      shots: [{ file: "home-a-light.png", screen: "/", sample: "a", theme: "light", drawn: true }],
+      shots: [
+        {
+          file: "home-a-light.png",
+          screen: "/",
+          sample: "a",
+          theme: "light",
+          landmark: "Main landmark 20",
+          drawn: true,
+        },
+      ],
     });
     expect(shotsJson([])).toMatch(/\n$/);
   });
