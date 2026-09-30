@@ -1144,3 +1144,93 @@ Stop hook ran the done command: same 8 failures. Escalated; see engine/ESCALATE.
   itself succeeded.
 
 Status: done.
+
+## l-engine-50dba0218d (attempt 1): the twenty journeys through POST /v1/compute
+
+### What was done
+
+- POST /v1/compute now reaches engine/path.py (api/case.py). 45 of the 52 journey tests pass.
+- engine/path.py `_counter`: a counter's `only_if` was never read. It is now read on the group's
+  own record: false gives no item, unknown gives a null count. The pack's `unemployment.total`
+  used to show for a card with no STEM card in its chain (J08 showed `unemployment.total.a1`);
+  it no longer does.
+
+### What ran
+
+- Done command as written: exit 1. The pytest step has 7 failures, all in test_journeys.py.
+  engine literals clean, mypy 62 files clean, ruff check clean, ruff format 9 files formatted.
+- tests/unit/engine, tests/unit/api and tests/unit/acceptance before and after the only_if fix:
+  the same 7 failures, no new ones.
+
+### Why the 7 fail (none is an engine fault)
+
+- J02 ten years: resolution 7 says `stem.basis_ten_years_end` waits for a contract construct,
+  and its tests wait with it.
+- J05 months null: the pack's opt.months_at_level has no rule that makes the count null for a
+  part_time opt_pre (programs.md section 14, IMPL-017), and the counter contract has no place to
+  say it.
+- J08 35 days: the pack's span for unemployment.opt_card ends at card_end (2025-06-02), not at the
+  opt_post end (2025-01-12, day_before the change of level). The qualifying selector also reads
+  `under` on the on-campus job w2, which has `on_campus` instead, so w2.under is asked and the count
+  is null. The pack could add `{field: this.on_campus, present: false}` before the under test.
+- J12 grace and unemployment: the engine gives grace.h1 starting 2026-10-02 (later) and
+  unemployment.opt_card.h1 = 0, the values asked, under the ids of resolution 12. The tests ask
+  for grace.p1 and unemployment.opt_card.a1.
+- J17 enrollment: no check in the pack reads full_course_each_term or online_within_limit.
+- J20: the pack's opt_post next step has no "months at this level below opt.max_months"
+  condition, and the condition contract cannot read a counter.
+
+Status: blocked on L-content (pack), L-tests (J12 ids) and a contracts change (J02, J05, J20).
+
+Stop hook ran the done command: the same 7 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-15a74d8b15 (attempt 1): resolution 13, engine side
+
+### What was done
+
+- Merged lane/L-engine/l-engine-50dba0218d (the merge printed "tests/holdout/...: Operation not
+  permitted", the sandbox read wall; the merge itself succeeded).
+- engine/path.py `_counter`: a count is given only when every list the counter reads is stated
+  whole: the `qualifying` list (work) and the `not_qualifying` list (trips). Before, only the
+  qualifying list was checked, so a trip list with no statement still gave a count. The
+  `complete.trip` question was already asked (J12 shows `unconfirmed:complete.trip`).
+
+### What ran
+
+- Done command as written: exit 1. test_path_fix1.py: 20 passed, 3 failed
+  (test_point4_unemployment_runs_through_the_cap_gap, test_point4_unemployment_total_runs_through_the_cap_gap_on_stem,
+  test_point5_the_count_is_given_once_the_list_is_stated_whole). engine literals clean, mypy 62
+  files clean, ruff check clean, ruff format 9 files formatted.
+- tests/unit/engine, api and acceptance, compared with HEAD (git archive under TMPDIR): 6 new
+  failures, the 3 above plus J01 unemployment, J14 total 85 and J15 opt card 86.
+- The same tests with a scratch plugin under TMPDIR that adds "trip" to every `whole(...)`
+  statement: test_path_fix1 passes in full, and test_journeys is back to the 7 failures from
+  before (J02, J05, J08, J12 x2, J17, J20), which belong to other lanes.
+
+### Why it fails
+
+The journeys J12, J13, J14 (and J01, J15) state work whole but not trips. Point 13 says the count
+is null until the trip list is stated whole, and that "a journey test whose timeline holds every
+trip states that list whole". That part is on the test side (L-tests): add "trip" to those `whole(...)` calls.
+The engine cannot give the count without assuming that no trips were taken.
+
+Status: blocked on L-tests.
+
+Stop hook ran the done command: the same 3 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-e72466ef9c (attempt 1): bring in 15a74d8b15 after the reconcile round
+
+### What was done
+
+- Merged lane/L-engine/l-engine-15a74d8b15 (engine/path.py `_counter`: the count needs every
+  list it reads stated whole, trips as well as work; `only_if` on a counter group). The merge
+  printed "tests/holdout/...: Operation not permitted" (sandbox read wall); it succeeded.
+- No further engine change.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. test_path.py 57 passed; engine literals
+  clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+- test_path_fix1.py alone: exit 0, 23 passed (the three older tests now state the trip list).
+
+Status: done.
