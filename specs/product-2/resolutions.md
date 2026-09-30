@@ -35,3 +35,8 @@ Register rows: the rows specs/path-1/programs.md section 22 and specs/design-1/S
     - A change-of-status petition ends validations only when it belongs to this STEM card: filed while the card runs, approved, and its change of status not ended (`cos_ended_on` empty) before the start. An older petition from before this F-1 status never drops a report. A journey twin holds such an older petition.
     - The web samples are made by web/samples/make.py through the founder's `make samples`, run before design-shots; web/package.json is not changed for it.
     - The shot run's landmark check compares a screen's own heading text as well as its type.
+18. From the review of product-2 fix 4 (reviews/product-2-fix4.md). Point 17's test "filed while the card runs" was the wrong test and is replaced:
+    - A change-of-status petition belongs to the student's current F-1 status when it is approved and its validity start is on or after the start of the current post-completion OPT or STEM card. Only such a petition ends validations, opens the cap_gap stage, or takes the grace away. An older petition does none of these and raises no conflict (finding 1). A petition filed during OPT for a start after it (the usual cap-gap) belongs (finding 2).
+    - When the facts that decide it (the outcome, the validity start) are missing, Duly asks for them and never reads the gap as "does not belong" (PRINCIPLES 2).
+    - Twins hold a denied and a pending petition on the card, and one with no validity start.
+    - The shot run counts a screen as drawn when the page holds the element the app marks as that screen's landmark (data-landmark="<screen>"), which no error screen carries. Text is not compared (design-1 section 14.1 stands).
