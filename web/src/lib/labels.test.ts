@@ -759,7 +759,10 @@ describe("resolutions point 19: the words for cap_gap.for_dso", () => {
   it("says a petition can change these dates and the question is the DSO's, citing the rule", () => {
     const line = reasonText("cap_gap.for_dso");
     expect(line).not.toBe(JUDGEMENT_NOT_NAMED);
-    expect(line).toContain("An H-1B petition can change these dates");
+    // Point 24 replaced "An H-1B petition" with the general words.
+    expect(line).toContain("A petition to change your status is entered");
+    expect(line).toContain("can change these dates");
+    expect(line).not.toMatch(/an H-1B petition/i);
     expect(line).toContain("a question for your DSO");
     expect(line).toContain("8 CFR 214.2(f)(5)(vi)");
     expect(line).not.toMatch(/\d{4}-\d{2}-\d{2}|\b\d+ days\b/);

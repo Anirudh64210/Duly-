@@ -1132,3 +1132,32 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   sandbox refusing a read of tests/holdout, as the contract says.
 - Done command, as written, output to a file: exit 0. 28 files, 554 tests passed, lines
   97.59 percent.
+
+## l-web-377d652969: plan-fix7, points 22, 23a, 24 and 26
+
+### Tried
+
+- Copied tests/web/fix7.test.ts to web/src/lib/views/fix7.test.ts unchanged (the original stays).
+- Point 22 and 23a: compute.ts stage state takes "unknown". timeline.ts gives an unknown stage
+  the mark "none" (MARK_NAMES none is empty; Timeline.tsx PhaseMark draws nothing for it), no
+  meta, no bar, no items, and the lines "Your DSO can tell you these dates." and the words of
+  cap_gap.for_dso when the verdict holds it. Row order is the engine's. currentStage already
+  took state current only, so the eyebrow names no unknown stage.
+- Point 24: labels.ts cap_gap.for_dso now says "A petition to change your status is entered"
+  and names the grace period, the counts from the day it was filed, the STEM reports and
+  evaluations, and any cap-gap period. The output holds no petition type, so there are no
+  H-1B words.
+- Point 26: the outcome step has notSure and a why line pointing to the DSO. The outcome-day
+  step is skipped when the outcome is not sure. records.ts leaves petition.outcome "not_sure"
+  out of the case. The requested start is still required.
+- web/src/lib/labels.test.ts (L-web's own point 19 test) pinned "An H-1B petition can change
+  these dates". Changed it to point 24's words and added a not-H-1B check.
+
+### Ran
+
+- Done command, as written, output to a file: exit 0. typecheck clean, fix7 13 of 13 passed,
+  eslint clean, "copy lint: clean".
+- Full web suite: 567 passed after the labels.test.ts change. One run had
+  Onboarding.test.tsx "lets a day the engine asks for stay unknown" fail on its first title;
+  7 later runs of that file passed with no change, so it is timing-dependent and not caused by
+  this change.
