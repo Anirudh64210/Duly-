@@ -1,20 +1,75 @@
 {
-  "run_id": "l-review-1d6afd8368",
-  "reviewed_commit": "0dddf62",
+  "run_id": "l-review-9682244b00",
+  "reviewed_commit": "0c55967",
   "scores": {
-    "correct": {"score": 1, "evidence": "Point 18's shot bullet fails on every screen: web writes data-landmark=\"timeline\" (web/src/lib/shots.ts:28), desktop looks for [data-landmark=\"/timeline\"] (desktop/src/shots.ts:136,149); 8 of 8 fail in a scratch test. The SPEC's pending twin gets an invented cap_gap.h9.ends_before_starts conflict. A belonging petition starting 2026-06-09 or 2027-05-03 keeps grace.h9 2028-06-09 to 2028-08-07. Twenty journeys unchanged from fix 4; T1, T3, T4, P1 right by hand."},
-    "sourced": {"score": 4, "evidence": "verify, plain, engine_literals exit 0; capgap.status_ends_on_h1b_start note states point 18. The April 1 cut on the petition grace (parameters.yaml:2001) has no source for a start that is not a cap-gap start."},
-    "never_assumes": {"score": 3, "evidence": "Missing outcome and validity_start are asked and validation dates go null. But a pending petition or an approved one without validity_start opens cap_gap with a conflict no record holds, and an old denied or withdrawn 2020 petition takes the grace."},
-    "inside_the_boundary": {"score": 4, "evidence": "No new string states a conclusion about a person; the invented conflict is shown as 'Two documents disagree on ...' (web/src/lib/status.ts:65), untrue of the record."},
-    "secure": {"score": 4, "evidence": "Nothing new takes outside input; twenty journeys, all twins, sixteen probes and three walked cases returned 200."},
-    "tested": {"score": 2, "evidence": "Mutants m3 (null-while-unsettled member) and m5 (cap_gap card-end filter) pass every acceptance and holdout test; m1, m2, m6 caught; m4 equivalent. No test joins the web landmark value to the desktop selector; first-day and pending twins assert only validations."}
+    "correct": {
+      "score": 2,
+      "evidence": "Every date on the twenty journeys (all 200), the point 17 to 19 twins and the J12/J14 filing-day boundaries is right by hand. But on SPEC-named J12, J13 and J14 the nulled grace.p1 comes back state current with null span (engine/path.py:608-614), and Home's eyebrow reads 'F-1 · TIME AFTER THE PROGRAM ENDS, FROM THE DATES YOU ENTERED'."
+    },
+    "sourced": {
+      "score": 4,
+      "evidence": "verify, plain and engine_literals exit 0; capgap.petition_for_dso quotes (f)(5)(vi)(A) verbatim and is marked a reading. The web words (labels.ts:395) name fewer taken-away dates than the pack's plain words."
+    },
+    "never_assumes": {
+      "score": 3,
+      "evidence": "Missing filed_on and change_of_status are asked and dates wait null. A 2020 petition hides conflict:stem.filed_while_opt_in_force.a2 on J19 with a2.filed_on 2026-07-20 and stops asking a2.filed_on (parameters.yaml:2161). The null grace is assumed current."
+    },
+    "inside_the_boundary": {
+      "score": 3,
+      "evidence": "Home and Timeline state the person is in the time after the program ends, which the petition may have changed; the step-back words say 'An H-1B petition is entered' for a petition of type other."
+    },
+    "secure": {
+      "score": 4,
+      "evidence": "Twenty journeys, all twins, probes and three walked Onboarding cases gave 200; the route takes petition type 'o1', not a pack choice, in silence."
+    },
+    "tested": {
+      "score": 3,
+      "evidence": "Mutants on validations 1-3, both evaluations, card grace, unemployment count and cap_gap.for_dso are caught; the desktop join test catches a planted web spelling. Survivors: stem_job_end evaluation petition member (:2041), program-end grace member (:1963/:1979), on_or_before to before on the filing day; the filed_while skip is unpinned."
+    }
   },
   "findings": [
-    {"severity": "blocking", "title": "Web and desktop spell the landmark differently, so no shot is ever counted as drawn", "file": "desktop/src/shots.ts:136", "input": "holdsLandmark([{landmark: LANDMARKS[screen], width: 300, height: 40}], screen) for each of the 8 SHOT_SCREENS, LANDMARKS from web/src/lib/shots.ts:28", "what_happens": "False for all 8 (web writes \"home\", \"timeline\"; run looks for \"/\", \"/timeline\"); every make design-shots exits 1."},
-    {"severity": "blocking", "title": "A belonging petition starting after April 1 of its fiscal year keeps a grace dated after the card", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1998", "input": "J19 plus h9 {h1b, change_of_status yes, cap_subject no, approved, filed_on 2026-07-01, validity_start 2027-05-03}; also the acceptance twin with validity_start 2026-06-09 (test_journeys.py:2114)", "what_happens": "Validations after the start go null, yet grace.h9 2028-06-09 to 2028-08-07 is shown, long after H-1B status began; point 18 says a belonging petition takes the grace away."},
-    {"severity": "should_fix", "title": "Pending or unapproved petitions open cap_gap with an invented conflict or take the grace, at any date", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1952", "input": "J19 plus h9 pending filed 2026-07-01 requested_start 2027-03-01 (SPEC-named twin); J19 plus h9 denied filed 2020-04-01 validity_start 2020-10-01; J19 plus h9 withdrawn 2020", "what_happens": "Pending: cap_gap.h9 2028-06-09 to 2027-04-01 with conflict cap_gap.h9.ends_before_starts. Old denied: grace.p2 gone, judgement grace.after_cap_gap_outcome.h9. Old withdrawn: grace gone plus cap_gap.h9 2028-06-09 to 2020-06-01 with the conflict."},
-    {"severity": "should_fix", "title": "Two point 18 rules pass every test when removed", "file": "tests/unit/acceptance/test_journeys.py:2175", "input": "m3: remove the stem_validation_end member that nulls dates while belonging is unsettled; m5: remove the cap_gap validity-start-after-card-end filter", "what_happens": "m3: validations shown as due for a petition with no validity_start or outcome; m5: conflict returns on T3, T4, P1 and the denied twin. Acceptance and holdout pass under both."},
-    {"severity": "note", "title": "An approved start before the current card is silently ignored", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1793", "input": "J19 plus h9 approved validity_start 2025-10-01 (inside a1) or 2026-06-08", "what_happens": "No conflict and no question, though by the pack's reading F-1 status ended then and a2 followed; point 18 says an older petition raises no conflict. Under disputes."}
+    {
+      "severity": "blocking",
+      "title": "The grace point 19 nulls is still shown as the person's current stage",
+      "file": "engine/path.py:608",
+      "input": "J12, J13, J14 through POST /v1/compute (clock 2026-09-29); also J19 plus any change-of-status petition, J11 plus a petition filed 2026-03-02",
+      "what_happens": "grace.p1 state current, starts and ends null; stageEyebrow gives 'F-1 · TIME AFTER THE PROGRAM ENDS, FROM THE DATES YOU ENTERED' on Home and the Timeline marks it now. J19: grace.p2 goes from later to current beside stem.a2 running to 2028-06-08. J11: current while p1 runs to 2026-09-30."
+    },
+    {
+      "severity": "should_fix",
+      "title": "A petition of any age hides the late STEM filing conflict and the a2.filed_on question",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2161",
+      "input": "J19 with a2.filed_on 2026-07-20 (a1 ended 2026-06-08), plus h9 h1b change_of_status yes filed 2020-04-01 approved validity_start 2020-10-01",
+      "what_happens": "Without h9: conflict:stem.filed_while_opt_in_force.a2. With h9: no conflict, only cap_gap.for_dso; plain J19 with any petition no longer asks a2.filed_on."
+    },
+    {
+      "severity": "should_fix",
+      "title": "The step-back words omit STEM reports and say H-1B for any petition",
+      "file": "web/src/lib/labels.ts:395",
+      "input": "J14 (final evaluation null); J19 plus a petition of type other with change_of_status yes",
+      "what_happens": "The words list the grace, the counts and any cap-gap period but not the validation and evaluation reports also left out; for type other they begin 'An H-1B petition is entered.'"
+    },
+    {
+      "severity": "should_fix",
+      "title": "Three point 19 pack mutants pass every acceptance and holdout test",
+      "file": "tests/unit/acceptance/test_journeys.py:1736",
+      "input": "Remove parameters.yaml:2041 (stem_job_end evaluation petition member); remove :1963 and :1979 (program-end grace member); on_or_before to before on every validation filing test",
+      "what_happens": "All acceptance and holdout pass. On HEAD, J15 plus a petition filed 2025-09-02 nulls Job B's evaluation and J06 plus a petition filed 2025-11-03 nulls the grace, but no test holds either."
+    },
+    {
+      "severity": "should_fix",
+      "title": "Onboarding still requires the petition outcome and says each outcome leads to different dates",
+      "file": "web/src/lib/views/onboarding.ts:1072",
+      "input": "Onboarding with a petition entered",
+      "what_happens": "'What has happened with it so far?' has no I'm not sure, and its why line 'Each outcome leads to different dates.' is untrue under points 19 and 21."
+    },
+    {
+      "severity": "note",
+      "title": "Job-end reports dated for jobs ending after the card end",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
+      "input": "J13 (w1 ends 2026-08-14, card end 2026-06-30); J14 (w2 ends 2026-07-15, card end 2026-05-31)",
+      "what_happens": "opt_job_end.report.w1 2026-08-14 to 08-24 and stem_job_end.report.w2 2026-07-15 to 07-25 are dated, with or without the petition; older behaviour, a cap-gap question for the next round."
+    }
   ],
   "decision": "VETO"
 }
