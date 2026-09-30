@@ -1285,3 +1285,19 @@ Stop hook ran the done command: the same 2 J08 failures. Escalated; see engine/E
   clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
 
 Status: done.
+
+## l-engine-8f7735f031 (attempt 1): every journey through POST /v1/compute, all lanes merged
+
+### What was done
+
+- Read PROGRESS.md and specs/product-2/resolutions.md. The J08 block recorded by c5fe743a12
+  was a pack matter (L-content); the branch now holds the L-content merge (719c770).
+- No engine change was needed.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. Acceptance 90 passed (no skip, no xfail);
+  engine literals clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+- tests/unit/acceptance/test_journeys.py alone: all passed.
+
+Status: done.
