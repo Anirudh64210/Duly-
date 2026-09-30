@@ -119,8 +119,20 @@ it. Duly's Documents must beat that for speed:
 
 "feels much better, but..." Each note and what it means:
 
-1. **Navigation.** Every link lands somewhere sensible. A drilled-in page has a back link to where
-   the student came from, and there are no dead ends. Moving between pages never loses the thread.
+1. **Moving between pages is smooth and does not break the flow** ("the pages jump between each
+   other awkwardly, and the workflow is disruptive"). The cause is in app.js render(): every click
+   rebuilds the whole app, sidebar included, and replays the slide-in on every page. The fix:
+   - the shell and sidebar are drawn once; only the content column changes, and the current nav
+     item moves instantly;
+   - a page change is a quiet crossfade of about 120ms with no slide; the rise stagger plays only
+     on first launch;
+   - a change inside a page (a checkbox, an answer, a disclosure) updates that part in place,
+     never redrawing the page or moving the scroll;
+   - Back and Forward bring back the scroll position; a new page starts at the top;
+   - where an answer can be given in place, it is (for example, the STEM OPT choice answered on
+     Home), instead of sending the student to another page;
+   - a drilled-in page (an update, an application, a document) has a back link to where the
+     student came from.
 2. **Titles mean something.** Each page has its title and one line saying what it does for the
    student. The value is stronger on Welcome and Home: why Duly, in one breath.
 3. **Updates can be read.** Each update and news item opens to its own page, in plain words:
