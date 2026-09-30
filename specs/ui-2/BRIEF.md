@@ -114,3 +114,32 @@ it. Duly's Documents must beat that for speed:
 - the right document is found in one search or one tap;
 - it can be opened, shared or sent from the phone in one tap;
 - it is never dug out of an inbox again.
+
+## Round 2: the founder's notes on the prototype (2026-09-30)
+
+"feels much better, but..." Each note and what it means:
+
+1. **Navigation.** Every link lands somewhere sensible. A drilled-in page has a back link to where
+   the student came from, and there are no dead ends. Moving between pages never loses the thread.
+2. **Titles mean something.** Each page has its title and one line saying what it does for the
+   student. The value is stronger on Welcome and Home: why Duly, in one breath.
+3. **Updates can be read.** Each update and news item opens to its own page, in plain words:
+   - what is happening;
+   - does this affect you, for this student ("Not yet: your next Form I-765 is for STEM OPT, filed
+     after Nov 15");
+   - anything to do ("Nothing now");
+   - the source, tucked away.
+   Home and Updates rows show the "affects you?" answer inline.
+4. **The DSO email is dynamic.** It opens only when asked. Copy or Open in Mail closes it, and the
+   step shows "Email sent? Mark done" or "Reopen the draft". It is never a panel stuck open.
+5. **Three text sizes: big, small, and medium only when needed.** No fourth or fifth size, no odd
+   weights. Spacing only from the scale.
+6. **Confetti is slower and nicer** (about 1.2 to 1.6 seconds, soft arcs, the canvas colours). It
+   fires only the first time something is completed, never on reopening a finished checklist.
+7. **Documents are sorted at a high level,** by what the student looks for: Status and permits
+   (I-20s, EAD, approval notices), Work, School, Identity. The most important come first. Any file
+   is two clicks away, one to the group and one to the file, or one search.
+8. **Your case and Settings are reworked** on the same system: fewer, clearer groups.
+9. **Applications is its own page in the sidebar.** Each application shows its receipt number,
+   status as of a date, the key dates and the next step. It is updated manually for now; USCIS case
+   status is parked (BACKLOG B8).
