@@ -1,61 +1,21 @@
 {
-  "run_id": "l-review-0ba3ea5fce",
-  "reviewed_commit": "ca6abcdfb0ae29eef70c432c97499d12c2dba689",
+  "run_id": "l-review-8040618df7",
+  "reviewed_commit": "3e3bda7ae53b900189eba992aa4a91eb07e08e94",
   "scores": {
-    "correct": {
-      "score": 4,
-      "evidence": "All twenty journeys through POST /v1/compute match the fix 6 run in every date, window, item, question and verdict reason. They differ only as point 22b says: null-day stages are unknown, and window-placed job ends are done. Every Timeline row without a petition keeps its dates and items, and cap_gap.for_dso sits only on the grace stages a petition nulled (J12, J13, J14 and J19 twins B to K). One row with too little on it, beyond the SPEC's inputs (finding 1)."
-    },
-    "sourced": {
-      "score": 5,
-      "evidence": "verify, plain and engine_literals exit 0. The diff adds no rule, number or quote. The row words are the existing DSO line and the point 24a pack words citing 8 CFR 214.2(f)(5)(vi)."
-    },
-    "never_assumes": {
-      "score": 4,
-      "evidence": "No gap is read as an answer: missing petition facts are asked and the dates wait null, and the verdict is cannot_tell. But with h1.change_of_status or h1.filed_on missing, J13's grace row gives neither the reason nor the question that would close it."
-    },
-    "inside_the_boundary": {
-      "score": 5,
-      "evidence": "The petition's words appear only on grace rows a petition nulled. None of the 20 journeys and 20 petition cases puts them on a transfer or a job report, and none names a petition-changeable stage as now."
-    },
-    "secure": {
-      "score": 5,
-      "evidence": "Forty route calls and seven probes, with missing, 'no' and duplicate petition facts, all return 200. The recompute in _step_backs restores the run state, and a mutant without the restore changes no output. No crash or stall found."
-    },
-    "tested": {
-      "score": 4,
-      "evidence": "All three fix 7 survivor mutants are killed by test_fix8.py. 8 of 10 Python mutants are caught; the 2 survivors (sb_starts_only, sb_no_restore) change no output on any input I have. 2 of 3 web timeline mutants are caught; the fact lines of an unknown row are not pinned."
-    }
+    "correct": {"score": 3, "evidence": "Points 1, 3, 4 work on path-stem-next; on the same sample the Why reduces 17 question reasons to one line naming none, and the questions meta on Home still shows ids such as 'Missing a1 dso on.'"},
+    "sourced": {"score": 5, "evidence": "No rule, number or quote added; the count line uses output.questions.length from the engine."},
+    "never_assumes": {"score": 4, "evidence": "cannot_tell kept; the line says 'go on with your dates' rather than 'finish' since litigated and not-in-force reasons remain; the DSO line moved one tap away under Why."},
+    "inside_the_boundary": {"score": 5, "evidence": "Every new string read (count line, Why, next move, Your case pointer, Onboarding failure line); none is a conclusion about the person."},
+    "secure": {"score": 5, "evidence": "No new input path; failed status fetch renders Try again and refetches; empty rulepacks do not crash."},
+    "tested": {"score": 3, "evidence": "Mutant making questionTitle show 'Duly needs your a1 dso on.' passes all 7 ui1 tests; point 2 has no test or measurement."}
   },
   "findings": [
-    {
-      "severity": "should_fix",
-      "title": "A grace row nulled by a petition's missing fact shows no reason and no question",
-      "file": "engine/path.py:645",
-      "input": "J13 with h1.change_of_status (or h1.filed_on) left out, POST /v1/compute on 2026-09-29",
-      "what_happens": "h1.change_of_status is asked, and grace.p1 is unknown with null days, items [] and no reasons (the verdict has no cap_gap.for_dso). The Timeline row shows only the program facts: no dates, no mark, no DSO line and no question. Point 22b says the row keeps its items, including the questions that would close it."
-    },
-    {
-      "severity": "note",
-      "title": "Two _step_backs mutants are equivalent on every input I have",
-      "file": "engine/path.py:684",
-      "input": "sb_starts_only (test only the null start) and sb_no_restore (no _restore after the recompute), on the twenty journeys and 20 petition cases",
-      "what_happens": "Every span a petition nulls loses both days, and the output without the restore is byte for byte HEAD's. No test fails. A future span with one petition-nulled day would need a test."
-    },
-    {
-      "severity": "note",
-      "title": "An unknown row's fact lines are not pinned by a web test",
-      "file": "web/src/lib/views/timeline.ts:142",
-      "input": "timeline.ts mutant: row.lines = [] for unknown rows",
-      "what_happens": "All 575 web tests pass. The known start stays in the meta, which is tested."
-    },
-    {
-      "severity": "note",
-      "title": "Cap-gap round: stages with petition-nulled windows carry no step back on their row",
-      "file": "engine/path.py:645",
-      "input": "J19 twin D (pending petition, start 2026-06-09); J14",
-      "what_happens": "stem.a2 stays current while validations 1 to 3 are null. J14 stem_job_end.w2's final evaluation is null. Neither stage has the reason, so their rows do not say why, as point 22b states. Fix 7 note 1 (twin B, program grace dated from p2's end) and fix 6 note 1 (job-end reports after the card end) are also still open for specs/capgap-1."
-    }
+    {"severity": "should_fix", "title": "Why collapses 17 question reasons into one generic line", "file": "web/src/app/Home.tsx", "input": "web/samples/path-stem-next.json, Why opened", "what_happens": "questionCopy is null for all 17 question ids, so every question reason becomes 'Duly has a question about what you entered.' and the dedupe keeps one; eight missing inputs and nine confirmations are not named. Fix: plain question copy for these ids in web/src/lib/labels.ts."},
+    {"severity": "should_fix", "title": "Home questions section still shows field ids", "file": "web/src/lib/labels.ts", "input": "web/samples/path-stem-next.json, Home", "what_happens": "becauseLine gives 'Asked because of: Missing a1 dso on.', 'Missing p1 immediate cpt.' and so on for 17 rows, all titled the same generic line."},
+    {"severity": "should_fix", "title": "id test misses the SPEC's own defect", "file": "web/src/app/ui1.test.tsx", "input": "questionTitle fallback mutated to `Duly needs your ${questionId.replaceAll(/[._]/g, ' ')}.`", "what_happens": "All 7 tests pass while the Why shows 'Duly needs your a1 dso on.'; the expected lines are built with the same formula as the code."},
+    {"severity": "should_fix", "title": "point 2 untested and unmeasured", "file": "web/src/app/app.css", "input": "any sidebar screen at 1280x832 or 390 wide", "what_happens": "No test or shot check fails if a screen grows wider than the window; the builder and the reviewer could not start a browser in the sandbox."},
+    {"severity": "note", "title": "next move sits above the metrics, canvas puts it below", "file": "web/src/app/Home.tsx", "input": "Home with questions open, compared with design/canvas/png/Main.png", "what_happens": "Order is headline, line, Why, scope, YOUR NEXT MOVE, metrics; the canvas has metrics before YOUR NEXT MOVE."},
+    {"severity": "note", "title": "overbuilding: openQuestionsLine and .why margins", "file": "web/src/lib/labels.ts", "input": "openQuestionsLine, app.css .why and .why .reason", "what_happens": "A helper with one app caller whose plural branch no sample reaches, which the test only uses to rebuild the same string; could be a literal in Home. Two margin rules could be dropped."}
   ],
-  "decision": "APPROVE"
+  "decision": "VETO"
 }

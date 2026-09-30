@@ -324,3 +324,11 @@
 - Failure: a zsh loop over quoted commands ran each string as one command name, and every gate printed exit 127.
 - Fix: eval each command in the loop and print its last output line beside the exit code.
 - Evidence: TMPDIR/rv8/gates.txt.
+
+## 2026-09-30, run l-review-8040618df7 (ui-1)
+- Read specs/ui-1/SPEC.md and plan.yaml, D56, Main.png, and the diff f52fb37..3e3bda7 (Home, Onboarding, Pages, app.css, labels, shots, ui1.test.tsx).
+- Ran on a HEAD copy in TMPDIR: tsc 0, vitest 0, eslint 0, copy lint clean.
+- Probes: Home on both samples shows no raw id in the hero; Why opens to 5 lines, 17 question reasons are one generic line (questionCopy null for all 17 ids); questions meta still reads "Missing a1 dso on.". Your case with a stale answer shows the existing unused-answers part. Onboarding failure shows Try again.
+- Mutant: questionTitle showing "Duly needs your a1 dso on." passes all 7 ui1 tests.
+- chrome-headless-shell refused by the sandbox (Permission denied 1100); point 2 read from CSS only.
+- Wrote reviews/ui-1.md (VETO, mean 4.17), REVIEW.json and REPORT.json, both valid.
