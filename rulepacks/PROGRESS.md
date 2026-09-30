@@ -771,3 +771,36 @@ done command (as written): exit 0
 
 - git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-fb764d0557, attempt 1 (SPEC-resolutions point 67)
+
+### What was tried
+
+Point 67 is not written in specs/product-1/SPEC-resolutions.md in this worktree (the last point there is 66). Its words are in specs/product-1/plan-fix10.yaml (the mission) and reviews/product-1-fix9.md findings 1 and 2. Worked from those.
+
+A scratch script in TMPDIR scored the review's example words with tools.sources.plain.problems, grade and term_problems:
+- accreditation, example words: 238 characters, grade 8.63, no problem, plain_terms kept.
+- older degree, example words: 307 characters, grade 8.97, no problem, plain_terms kept.
+- older degree with "the extension may rest on" in place of "it may rest on": grade 9.42, fails.
+- the same plus "If so, at that time the degree must be": 332 characters, grade 9.56, fails.
+The example words were used as they stand. Only the two plain: lines changed.
+
+What each sentence rests on (Q = quote, N = note):
+- stem.requires.accreditation. S1 "As Duly reads it, this is one of the things on the list that must be met": N "Duly reads it as a requirement because of the sentence before the list", "all of the following requirements must be met". S2 "The degree is from a U.S. educational institution": Q "The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution". S3 "The school is accredited by an agency that the Department of Education has recognized at the time of application": Q "accredited by an accrediting agency recognized by the Department of Education at the time of application"; N "The words at the time of application close the sentence; they may limit the accreditation, the recognition, or both, and the plain words keep that open". With the phrase back at the end, both readings stay open (fix 9 finding 1).
+- stem.requires.previously_obtained_degree. S1 "When the DSO recommends the student for a 24-month OPT extension, it may rest on a degree older than the one for post-completion OPT": Q "If an application for a 24-month OPT extension ... is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT", "the student's DSO recommends the student for the 24-month OPT extension"; "may" from N "may be, but is not required to be, the degree that is the basis for the post-completion OPT period". S2 "Then that degree must be from an accredited and SEVP-certified U.S. educational institution and in a category on the STEM list": Q "that previously obtained degree must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation"; "Then" carries both the If (N "They begin with If") and "at the time". S3 "It must be from the 10 years before that day": Q "That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension"; N "The number 10 in the quote is a count of years". "that day" is the day of S1's recommendation (fix 9 finding 2).
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  changed: stem.requires.accreditation#2016-05-10
+  changed: stem.requires.previously_obtained_degree#2016-05-10
+  plain changes: 2 row(s) changed, each one allowed
+```
+
+### Seen and not worked around
+
+- git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
+- No network was used. No instruction was found in any data.
