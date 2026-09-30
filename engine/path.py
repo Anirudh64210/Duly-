@@ -35,10 +35,10 @@ UNCONFIRMED_TYPED = "unconfirmed:typed_dates"
 NO_DOCUMENTS = "no_documents"
 NOT_COVERED = "category_not_covered:"
 
-# The period of a record kind with a start, an end and hours (contracts/case.schema.json).
-PERIOD_START = "start"
-PERIOD_END = "end"
+# The hours of a period (contracts/case.schema.json). A period's start and end are the
+# first two date fields its kind declares, in the pack's order (programs.md sections 10, 13).
 PERIOD_HOURS = "hours_per_week"
+DATE_KIND = "date"
 
 
 class _Absent:
@@ -1103,9 +1103,21 @@ class _Run:
             1 for n in range((ends - starts).days + 1) if starts + timedelta(days=n) not in covered
         )
 
+    def _span_fields(self, kind: str) -> tuple[str, str] | None:
+        """The fields that hold a record's first and last day: the first two date fields
+        its kind declares (work: start, end; trip: left_on, returned_on). A reading."""
+        dates = [
+            f[ID] for f in self.kinds.get(kind, {}).get("fields", []) if f["kind"] == DATE_KIND
+        ]
+        first, last = dates[:1], dates[1:][:1]
+        return (first[0], last[0]) if first and last else None
+
     def _days_of(self, record: Json, starts: date, ends: date, tr: _Trace) -> set[date]:
-        first = _as_date(self._read(f"{THIS}.{PERIOD_START}", record, None, tr))
-        last = _as_date(record["fields"].get(PERIOD_END)) or ends
+        span = self._span_fields(record["kind"])
+        if span is None:
+            return set()
+        first = _as_date(self._read(f"{THIS}.{span[0]}", record, None, tr))
+        last = _as_date(record["fields"].get(span[1])) or ends
         if first is None:
             return set()
         first, last = max(first, starts), min(last, ends)
