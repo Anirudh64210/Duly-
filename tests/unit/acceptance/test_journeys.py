@@ -1493,9 +1493,10 @@ def test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed(
     # can be filed is open; opt.complete_by is not such a window." p1 ends 2025-12-12; the
     # filing window is 2025-09-13 to 2026-02-10 (J06 timeline), closed 231 days before
     # 2026-09-29. opt.complete_by (2025-12-12 plus 14 months, 2027-02-12) is still open but
-    # nothing can be filed in it (reviews/product-2-fix1.md finding 3).
+    # nothing can be filed in it (reviews/product-2-fix1.md finding 3). The same point means
+    # the stage, and with it opt.apply_window.p1, is not shown, so the window is not asked
+    # for here (engine/REPORT.json, l-engine-90c06e929c, disputes).
     out = _send(client, j06())
-    assert window(out, "opt.apply_window.p1") == ("2025-09-13", "2026-02-10")
     assert all(s["state"] != "next" for s in out["stages"] if s["id"] == "opt_post.p1")
 
 
@@ -1767,13 +1768,17 @@ def test_j18_the_program_ends_on_the_extended_date(client: TestClient) -> None:
 # J19
 
 
-def test_j19_stem_validations_skip_juneteenth(client: TestClient) -> None:
-    # a2 starts 2026-06-09. Plus 6 months: 2026-12-09 (a Wednesday); plus 10 business days:
-    # 10, 11, 14, 15, 16, 17, 18, 21, 22, 23 -> 2026-12-23. Plus 24 months: 2028-06-09 (a
-    # Friday); 12, 13, 14, 15, 16, (19 Juneteenth skipped) 20, 21, 22, 23, 26 -> 2028-06-26.
+def test_j19_stem_validations_stop_at_the_card_end(client: TestClient) -> None:
+    # Was test_j19_stem_validations_skip_juneteenth. a2 starts 2026-06-09. Plus 6 months:
+    # 2026-12-09 (a Wednesday); plus 10 business days: 10, 11, 14, 15, 16, 17, 18, 21, 22,
+    # 23 -> 2026-12-23. Plus 24 months would be 2028-06-09, the day after the card ends
+    # 2028-06-08: resolutions point 15, "No validation is dated after the card or the
+    # training ends", and 8 CFR 214.2(f)(12)(ii)(B), reporting "ends when ... the 24-month
+    # OPT extension concludes", so validation_4 holds no date. The Juneteenth skip moved to
+    # a validation inside its card (holdout, test_twin_j19_validation_skips_juneteenth).
     out = _send(client, j19())
     assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
-    assert window(out, "stem.validation_4.a2") == ("2028-06-09", "2028-06-26")
+    assert _dated_after(out, "stem.validation_", "a2", "2028-06-08") == []
 
 
 def test_j19_the_associates_opt_is_not_next_after_its_window_closed(client: TestClient) -> None:
