@@ -1,0 +1,104 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+  - name: parts
+    checkpoint: false
+    lanes:
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-2/resolutions.md point 19 in rulepacks/f1-us/v2026.09: take out the petition
+          rules that change dates (the cap_gap stage, the petition grace, stem_validation_end's
+          petition member, petition_may_belong and the rest), and add the judgement check
+          cap_gap.for_dso over petitions with change of status, whose items make null what a
+          petition could change, with plain words and 8 CFR 214.2(f)(5)(vi) as its rule. Existing
+          plain words of other rules are frozen.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
+          && uv run python -m tools.sources.plain rulepacks --require f1'
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          specs/product-2/resolutions.md point 19: the journeys and twins that hold a change-of-status
+          petition (J12, J13, J14, the twins of points 17 and 18) expect the step back: talk_to_dso
+          with cap_gap.for_dso, the items a petition could change null, no cap_gap stage, no conflict.
+          Remove assertions on petition-derived dates and say which. Every journey with no petition
+          stays as it is. In tests/unit/acceptance and tests/holdout.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null'
+      - lane: L-web
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md points 19 and 20: the words for cap_gap.for_dso beside the
+          other judgement items; each screen's data-landmark is its route, read from the same table
+          the router uses, with a test. Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web -- --exclude src/lib/samples.test.ts
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}" && uv run python -m tools.copy_lint.lint'
+      - lane: L-desktop
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 20: the shot run looks for data-landmark equal to the
+          route, with a test that uses the web app's own landmark table (read web/src/lib/shots.ts)
+          so the two sides cannot differ again.
+        done: >-
+          bash -c 'npm run typecheck -w desktop && npm test -w desktop
+          && npx eslint desktop --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+  - name: integrate
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          All parts are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py
+          pass through POST /v1/compute, fixing engine/. A journey asserting what the saved words do
+          not support is a finding in your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/acceptance -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Bring every test in tests/unit and tests/holdout in line with specs/product-2/resolutions.md
+          points 19 and 20; write the point beside each change; never loosen an assertion; escalate
+          any failure no point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+      - lane: L-web
+        agent: builder
+        mission: >
+          Regenerate the engine samples: run make samples from the repository root and commit what it
+          changes under web/samples. Change nothing else.
+        done: >-
+          bash -c 'make samples && npm test -w web'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-2" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review product-2 against specs/product-2/resolutions.md, following your role file, in ONE
+          pass. Send all twenty journeys through POST /v1/compute and check every date against the
+          saved words; for a case with a petition, check that nothing a petition could change is
+          dated and that the step back is given. Walk Onboarding for J01, J08 and J16. Close or name
+          every finding of reviews/product-2-fix5.md. Write reviews/product-2-fix6.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix6.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+          name; cap-gap rows stay not met (point 19). Update docs/requirements/audits/product-2.md and
+          report the share met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register check'
