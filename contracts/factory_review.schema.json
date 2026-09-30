@@ -5,20 +5,50 @@
   "description": "The reviewer's rubric, scored 1 to 5 on each line, with the evidence for each score. The thresholds are in factory/config.yaml.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["run_id", "reviewed_commit", "scores", "findings", "decision"],
+  "required": [
+    "run_id",
+    "reviewed_commit",
+    "scores",
+    "findings",
+    "decision"
+  ],
   "properties": {
-    "run_id": { "type": "string" },
-    "reviewed_commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "run_id": {
+      "type": "string"
+    },
+    "reviewed_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
     "scores": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["correct", "sourced", "never_assumes", "inside_the_boundary", "secure", "tested"],
+      "required": [
+        "correct",
+        "sourced",
+        "never_assumes",
+        "inside_the_boundary",
+        "secure",
+        "tested"
+      ],
       "patternProperties": {
         "^[a-z_]+$": {
-          "type": "object", "additionalProperties": false, "required": ["score", "evidence"],
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "score",
+            "evidence"
+          ],
           "properties": {
-            "score": { "type": "integer", "minimum": 1, "maximum": 5 },
-            "evidence": { "type": "string", "minLength": 10 }
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "evidence": {
+              "type": "string",
+              "minLength": 10
+            }
           }
         }
       }
@@ -26,17 +56,52 @@
     "findings": {
       "type": "array",
       "items": {
-        "type": "object", "additionalProperties": false,
-        "required": ["severity", "title", "file", "input", "what_happens"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "title",
+          "file",
+          "input",
+          "what_happens"
+        ],
         "properties": {
-          "severity": { "enum": ["blocking", "should_fix", "note"] },
-          "title": { "type": "string" },
-          "file": { "type": "string" },
-          "input": { "type": "string" },
-          "what_happens": { "type": "string" }
+          "severity": {
+            "enum": [
+              "blocking",
+              "should_fix",
+              "note"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "input": {
+            "type": "string"
+          },
+          "what_happens": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "The kind of fault, a short snake_case name reused across reviews (for example regression, missing_negative_test, id_leak, wrong_date, wording); three of a kind become a check (FINAL.md item 13)"
+          },
+          "spec_point": {
+            "type": "string",
+            "description": "The SPEC point, BOUNDARY rule or cited source the finding breaks; a blocking finding must name one (FINAL.md item 6)"
+          }
         }
       }
     },
-    "decision": { "enum": ["APPROVE", "VETO"] }
+    "decision": {
+      "enum": [
+        "APPROVE",
+        "VETO"
+      ]
+    }
   }
 }
