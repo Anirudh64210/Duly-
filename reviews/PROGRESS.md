@@ -252,3 +252,17 @@
 - Failure: a lane's fix sat unmerged while the plan counted the lane as done.
 - Fix: check each plan lane's commit with git merge-base --is-ancestor before reviewing.
 - Evidence: reviews/product-2-fix3.md finding 1.
+
+## 2026-09-30, run l-review-e8924056e5 (product round 2, fix 4)
+- Read resolutions.md point 17, reviews/product-2-fix3.md, plan-fix4, and the diff 317ad86..fa26e0c (pack stem_validation_end petition member, web/samples/make.py and samples, Makefile samples, onboarding withdrawal fix and walk test, samples.test.ts, desktop shots.ts heading text, point 17 twins).
+- Ran: unit and holdout suites (exit 0); verify, plain, load_all, copy lint, ruff, engine_literals, make.py --check (all exit 0); planted sample drift caught (exit 1); web tsc and vitest on a HEAD copy (523 passed), samples.test.ts in the worktree (passed); desktop tsc and vitest (143 passed).
+- TMPDIR/rve89/journeys.py: twenty journeys, output byte for byte the fix 3 run; J19 validations checked by hand again. twins.py: five acceptance and three holdout twins right; probes P1 to P8.
+- Walks J01, J08, J16: same cases and counts as fix 3. Withdrawal view opens unchosen and Continue stays.
+- Mutants: m1 and m3 caught, m2 equivalent, m4 (approved filter removed) survives.
+- Found: the old-petition twin loses grace.p2 and gets an invented cap_gap.h9.ends_before_starts conflict; a petition filed during the first OPT keeps validations while grace is dropped; the shot heading check compares canvas copy that /welcome, / and /updates never draw; a missing filed_on is not asked.
+- Wrote reviews/product-2-fix4.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a twin that asserts only the rows its point names hid another stage the same input broke.
+- Fix: diff every stage, question and reason of a twin against the case without the added record.
+- Evidence: reviews/product-2-fix4.md finding 1.
