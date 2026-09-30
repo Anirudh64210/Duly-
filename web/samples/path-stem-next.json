@@ -304,8 +304,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -322,8 +321,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -340,8 +338,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -358,8 +355,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -376,8 +372,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -394,8 +389,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -412,8 +406,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -430,8 +423,7 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.status_ends_on_h1b_start"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -439,7 +431,10 @@
     },
     {
       "id": "stem.evaluation_12_month.opens.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.id": "a2",
+        "outer.id": "a2"
+      },
       "reading": false,
       "record": "a2",
       "rule_ids": [
@@ -453,7 +448,10 @@
     },
     {
       "id": "stem.evaluation_12_month.closes.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.id": "a2",
+        "outer.id": "a2"
+      },
       "reading": false,
       "record": "a2",
       "rule_ids": [
@@ -467,7 +465,10 @@
     },
     {
       "id": "stem.evaluation_final.opens.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.id": "a2",
+        "outer.id": "a2"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -476,9 +477,7 @@
         "stem.reporting_required",
         "stem.opportunity_ends_with_job",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.end_month_day",
-        "capgap.ends_on_outcome"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -486,7 +485,10 @@
     },
     {
       "id": "stem.evaluation_final.closes.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.id": "a2",
+        "outer.id": "a2"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -495,9 +497,7 @@
         "stem.reporting_required",
         "stem.opportunity_ends_with_job",
         "opt.ends_on_release_date",
-        "opt.ends_on_transfer_or_new_level",
-        "capgap.end_month_day",
-        "capgap.ends_on_outcome"
+        "opt.ends_on_transfer_or_new_level"
       ],
       "status": "guidance",
       "unit": "date",
@@ -518,7 +518,6 @@
         "opt.unemployment_limit_days",
         "opt.unemployment_each_period",
         "opt.unemployment_abroad",
-        "opt.unemployment_in_cap_gap",
         "opt.ends_on_transfer_or_new_level",
         "opt.min_hours_per_week"
       ],
@@ -690,40 +689,16 @@
       "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim",
       "value": true
     },
-    "capgap.end_month_day": {
-      "checked_on": "2026-09-29",
-      "citation": "8 CFR 214.2(f)(5)(vi)(A)",
-      "derivation": "verbatim",
-      "note": "Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps April 1 and moves the paragraph to (f)(5)(vii)(A). On 2026-09-29 the quote was widened to the start of paragraph (A), so that what is extended, and for whom, is in the quote. The conditions follow the colon and are not recorded as rows here. 8 CFR 274a.12(c)(3)(i)(B) and (C), named in the quote, are not saved and were not read; the plain words say only the employment authorization the rule names. The preamble of 89 FR 103054 calls the extension the cap-gap extension and speaks of a cap-subject H-1B petition; the preamble of 81 FR 13040 calls a petition not subject to the annual numerical cap on H-1B visas cap-exempt. Duly reads subject to section 214(g)(1)(A) of the Act as under the yearly H-1B cap; that is a reading of those preambles, not the words of the regulation.",
-      "plain": "It is for an F-1 student whose H-1B petition to change status is under the cap, as Duly reads it, and meets the terms. Duration of status and the employment authorization the rule names last on their own till April 1 of the H-1B fiscal year. If the approved petition starts first, they last on their own only until then.",
-      "quote": "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier, where such petition:",
-      "status": "settled",
-      "unit": "date",
-      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
-      "value": "04-01"
-    },
-    "capgap.ends_on_outcome": {
-      "checked_on": "2026-09-29",
-      "citation": "8 CFR 214.2(f)(5)(vi)(B)",
-      "derivation": "verbatim",
-      "note": "The sentence begins The automatic extension of an F-1 student's duration of status and employment authorization under paragraph (f)(5)(vi)(A) of this section; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(B). The preamble of 89 FR 103054 calls the extension the cap-gap extension. The plain check refuses the word terminate, so the plain words say ends on its own.",
-      "plain": "For an F-1 student with an H-1B petition, the extra time ends on its own if the H-1B petition is rejected, denied, revoked or withdrawn. It also ends if the change of status is denied or withdrawn.",
-      "quote": "shall automatically terminate upon the rejection, denial, revocation, or withdrawal of the H-1B petition filed on such F-1 student's behalf or upon the denial or withdrawal of the request for change of nonimmigrant status",
-      "status": "settled",
-      "unit": "flag",
-      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
-      "value": true
-    },
-    "capgap.status_ends_on_h1b_start": {
+    "capgap.petition_for_dso": {
       "checked_on": "2026-09-30",
-      "citation": "81 FR 13040 (preamble), FR Doc. 2016-04828",
+      "citation": "8 CFR 214.2(f)(5)(vi)(A)",
       "derivation": "reading",
-      "note": "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12), and no validation report is dated on or after that day (stem.validation_ends_with_extension, resolutions point 16). A change-of-status petition belongs to the F-1 status the student holds now when it is approved and its validity start is on or after the start of the latest post-completion OPT or STEM card (resolutions point 18, anchor petition_belongs). Only such a petition ends validations (with its change of status not ended, cos_ended_on, before the validity start), and only a petition that is not an older approved one (anchor petition_may_belong) opens the cap_gap stage, takes the grace away or ends an unemployment span. A pending, denied, rejected, withdrawn or revoked petition keeps the cap-gap reading of 8 CFR 214.2(f)(5)(vi). A missing outcome or validity start is asked (check petition.belongs_to_this_status) and never read as not belonging. A cap_gap stage opens only when the validity start is unknown or after the latest card end. An approved start before this card began did not end the F-1 status the student holds now. The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work.",
-      "plain": "Agency words from 2016 say that once an H-1B change-of-status petition is approved, F-1 status ends the day H-1B status begins. As Duly reads it, no 60-day period follows the H-1B start. This is guidance, not a regulation.",
-      "quote": "If an H-1B change-of-status petition requesting a start date of October 1 has been approved, the F-1 status will expire on the same day as the H-1B status begins.",
-      "status": "guidance",
+      "note": "Reading, resolutions point 19. The quote is from the sentence of (f)(5)(vi)(A) that begins The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), the sentence recorded as capgap.end_month_day; it ends before where such petition and the conditions that follow. (f)(5)(vi)(B), recorded as capgap.ends_on_outcome, ends the extension on the rejection, denial, revocation or withdrawal of the petition, or the denial or withdrawal of the change of status. So a change-of-status petition can move the end of F-1 status and of the employment authorization the rule names, and so the dates that follow from them. Until the cap-gap round, the path computes none of this: while a petition with change_of_status yes is on the record, the judgement check cap_gap.for_dso goes to the DSO, and the path leaves null the grace of a program when the petition was filed on or before that program's end plus grace.after_completion_days, or on or before the end of its post-completion OPT or STEM card plus those days; each validation report and evaluation whose due day is on or after the day the petition was filed (for the concluding evaluation of the stage, due by the card end plus stem.evaluation_due_days, a conservative bound); and each unemployment count over a card that ends on or after the day the petition was filed less grace.after_completion_days. No petition opens a stage, raises a conflict, or moves a date. A missing filing day or change_of_status answer is asked, and the items wait null. Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the quote, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(A). The older words of 73 FR 18944 and 81 FR 13040 extend status to October 1 (capgap.end_month_day, closed rows); a petition under them is treated the same way. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "With an H-1B petition that asks for a change of status, F-1 status and the employment authorization the rule names can last longer, or end sooner. So it can change the dates of the time after a program, of STEM reports, and of days without work. Duly leaves those dates out, and the question is one for the DSO.",
+      "quote": "of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier",
+      "status": "settled",
       "unit": "flag",
-      "url": "https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": true
     },
     "capgap.travel_while_pending": {
@@ -1041,18 +1016,6 @@
       "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
       "value": true
     },
-    "opt.unemployment_in_cap_gap": {
-      "checked_on": "2026-09-29",
-      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.3",
-      "derivation": "reading",
-      "note": "Reading. Agency guidance, not regulation. The question it answers is: do the limits on unemployment time apply to a student with a cap gap extension? Using this guidance for the 150-day limit of stem.unemployment_limit_days is Duly's reading. The snapshot is text extracted from the saved PDF.",
-      "plain": "SEVP's guidance says the 90 day limit on unemployment goes on during the cap gap extension. Duly also uses it for the 150-day limit, as a reading. This is agency guidance, not a regulation.",
-      "quote": "Yes, the 90 day limitation on unemployment continues during the cap gap extension.",
-      "status": "guidance",
-      "unit": "flag",
-      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
-      "value": true
-    },
     "opt.unemployment_limit_days": {
       "checked_on": "2026-09-28",
       "citation": "8 CFR 214.2(f)(10)(ii)(E)",
@@ -1214,7 +1177,7 @@
       "checked_on": "2026-09-30",
       "citation": "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)",
       "derivation": "reading",
-      "note": "Reading. The regulation does not say in so many words when a practical training opportunity concludes. The quoted sentence ties an opportunity to one employer, so Duly reads the opportunity under a STEM card as ending on the last day of the job with that employer, or on the day the employment authorization ends if that is sooner. The authorization ends at the card end, at the transfer release date (opt.ends_on_release_date), or the day before a program at another level starts (opt.ends_on_transfer_or_new_level). A job that ends after the card end counts only while a cap-gap extension covers that day: the petition asks for a change of status, was filed on or before the card end, and the day is on or before April 1 of the fiscal year of the requested start (capgap.end_month_day) and before any validity start, outcome day or day the change of status ended (capgap.ends_on_outcome). For the concluding evaluation of the stage, the path uses the last job's end only when every job under the card has an end and no job under the card ends after it; while one runs on, the card end is used. Each other job under the card that ends on or before the authorization ends (or inside a cap-gap extension that covers it), while another job under the card runs on or ends later, gets its own final evaluation dated from its own end (stem_job_end.evaluation_final, resolutions point 16, J15 Job B). The path dates no validation report from a job's end (stem.validation_ends_with_extension). Paragraph (f)(10)(ii)(C)(9)(i) dates the final evaluation from the conclusion of the practical training opportunity (stem.evaluation_due_days). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-30; the 2026-09-15 text has the same sentence. The same quote is the source of stem.new_plan_due_days.",
+      "note": "Reading. The regulation does not say in so many words when a practical training opportunity concludes. The quoted sentence ties an opportunity to one employer, so Duly reads the opportunity under a STEM card as ending on the last day of the job with that employer, or on the day the employment authorization ends if that is sooner. The authorization ends at the card end, at the transfer release date (opt.ends_on_release_date), or the day before a program at another level starts (opt.ends_on_transfer_or_new_level). A job that ends after the authorization ends does not count; resolutions point 19 took out the cap-gap reading that let it, and while a petition with change_of_status yes is on the record a final evaluation due on or after the day the petition was filed is null (capgap.petition_for_dso). For the concluding evaluation of the stage, the path uses the last job's end only when every job under the card has an end and no job under the card ends after it; while one runs on, the card end is used. Each other job under the card that ends on or before the authorization ends, while another job under the card runs on or ends later, gets its own final evaluation dated from its own end (stem_job_end.evaluation_final, resolutions point 16, J15 Job B). The path dates no validation report from a job's end (stem.validation_ends_with_extension). Paragraph (f)(10)(ii)(C)(9)(i) dates the final evaluation from the conclusion of the practical training opportunity (stem.evaluation_due_days). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-30; the 2026-09-15 text has the same sentence. The same quote is the source of stem.new_plan_due_days.",
       "plain": "Duly reads each STEM practical training opportunity as a job with one employer. It ends on the last day of that job, or sooner if the permission to work ends first. This is Duly's reading, not the words of the rule.",
       "quote": "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation.",
       "status": "settled",
@@ -1466,7 +1429,7 @@
       "checked_on": "2026-09-30",
       "citation": "8 CFR 214.2(f)(12)(ii)(B)",
       "derivation": "verbatim",
-      "note": "The quote is the second sentence of (f)(12)(ii)(B), the paragraph of stem.validation_interval_months. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the same sentence, so the rule sits under no regime. The path dates a validation report only while a STEM card exists (resolutions point 16): a next STEM stage with no card has no report dates. A reporting date is dated only when it falls on or before the earliest of the card end, the transfer release date (opt.ends_on_release_date), the day before a program at another level starts (opt.ends_on_transfer_or_new_level), and the day before the validity start of an approved change-of-status petition (capgap.status_ends_on_h1b_start, a reading of guidance, for the day F-1 status expires). A job's end is neither the expiry of F-1 status nor the conclusion of the extension, so it does not end validation reporting.",
+      "note": "The quote is the second sentence of (f)(12)(ii)(B), the paragraph of stem.validation_interval_months. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the same sentence, so the rule sits under no regime. The path dates a validation report only while a STEM card exists (resolutions point 16): a next STEM stage with no card has no report dates. A reporting date is dated only when it falls on or before the earliest of the card end, the transfer release date (opt.ends_on_release_date), the day before a program at another level starts (opt.ends_on_transfer_or_new_level), and the day before a program at another level starts. Resolutions point 19: the path no longer ends reporting on the validity start of an approved change-of-status petition; while a petition with change_of_status yes is on the record, a report whose due day is on or after the day the petition was filed is null and the judgement cap_gap.for_dso goes to the DSO (capgap.petition_for_dso). A job's end is neither the expiry of F-1 status nor the conclusion of the extension, so it does not end validation reporting.",
       "plain": "Validation reporting starts on the day the 24-month OPT extension begins. It stops when the student's F-1 status ends or the extension ends, whichever comes first.",
       "quote": "The requirement for validation reporting starts on the date the 24-month OPT extension begins and ends when the student's F-1 status expires or the 24-month OPT extension concludes, whichever is first.",
       "status": "settled",
@@ -1720,13 +1683,10 @@
         "calendar.federal_holidays_law",
         "stem.validation_ends_with_extension",
         "opt.ends_on_release_date",
-        "capgap.status_ends_on_h1b_start",
         "stem.evaluation_interval_months",
         "stem.evaluation_due_days",
         "stem.reporting_required",
-        "stem.opportunity_ends_with_job",
-        "capgap.end_month_day",
-        "capgap.ends_on_outcome"
+        "stem.opportunity_ends_with_job"
       ],
       "stage": "stem",
       "starts": null,
@@ -1776,8 +1736,7 @@
             "calendar.federal_holidays_law",
             "stem.validation_ends_with_extension",
             "opt.ends_on_release_date",
-            "opt.ends_on_transfer_or_new_level",
-            "capgap.status_ends_on_h1b_start"
+            "opt.ends_on_transfer_or_new_level"
           ],
           "status": "guidance"
         },
@@ -1797,8 +1756,7 @@
             "calendar.federal_holidays_law",
             "stem.validation_ends_with_extension",
             "opt.ends_on_release_date",
-            "opt.ends_on_transfer_or_new_level",
-            "capgap.status_ends_on_h1b_start"
+            "opt.ends_on_transfer_or_new_level"
           ],
           "status": "guidance"
         },
@@ -1818,8 +1776,7 @@
             "calendar.federal_holidays_law",
             "stem.validation_ends_with_extension",
             "opt.ends_on_release_date",
-            "opt.ends_on_transfer_or_new_level",
-            "capgap.status_ends_on_h1b_start"
+            "opt.ends_on_transfer_or_new_level"
           ],
           "status": "guidance"
         },
@@ -1839,8 +1796,7 @@
             "calendar.federal_holidays_law",
             "stem.validation_ends_with_extension",
             "opt.ends_on_release_date",
-            "opt.ends_on_transfer_or_new_level",
-            "capgap.status_ends_on_h1b_start"
+            "opt.ends_on_transfer_or_new_level"
           ],
           "status": "guidance"
         },
@@ -1848,7 +1804,10 @@
           "closes": null,
           "closes_days_away": null,
           "id": "stem.evaluation_12_month.a2",
-          "inputs": {},
+          "inputs": {
+            "a2.id": "a2",
+            "outer.id": "a2"
+          },
           "label": "Initial evaluation",
           "opens": null,
           "opens_days_away": null,
@@ -1865,7 +1824,10 @@
           "closes": null,
           "closes_days_away": null,
           "id": "stem.evaluation_final.a2",
-          "inputs": {},
+          "inputs": {
+            "a2.id": "a2",
+            "outer.id": "a2"
+          },
           "label": "Concluding evaluation",
           "opens": null,
           "opens_days_away": null,
@@ -1877,9 +1839,7 @@
             "stem.reporting_required",
             "stem.opportunity_ends_with_job",
             "opt.ends_on_release_date",
-            "opt.ends_on_transfer_or_new_level",
-            "capgap.end_month_day",
-            "capgap.ends_on_outcome"
+            "opt.ends_on_transfer_or_new_level"
           ],
           "status": "guidance"
         }
