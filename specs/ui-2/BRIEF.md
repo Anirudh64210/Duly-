@@ -168,3 +168,15 @@ it. Duly's Documents must beat that for speed:
       Timeline and Applications, and is kept for reuse.
     State University's STEM OPT request shows as the worked example, added by the student.
     School profiles and school partnerships are later (BACKLOG).
+11. **The federal steps are live, not a saved draft.** They come from the sourced rule pack, and
+    every student's dates and checklists are recomputed from it. The prototype must show this:
+    - a quiet "Rules checked Sep 30" on checklists;
+    - on an update's page, "What changed in your checklist" when a rule change touched a step, with
+      the step marked "Updated Sep 30" in the checklist.
+    The pipeline behind it is updates-1: watch the primary sources and the news, draft the change
+    from the source with its quote, run the checks, get human approval in Ops (D22), then bump the
+    pack and recompute every case. Each affected student gets a personal update, with no need to
+    ask.
+12. **The product name is used sparingly.** "Duly" appears at most twice on a page, usually once,
+    and never as a character talking to the student. Write "Counted from your EAD card", not "Duly
+    counted"; "You'll get a reminder", not "Duly will remind you". Onboarding especially.
