@@ -175,9 +175,9 @@
     "source": "duly-plan/01-master-plan.md, Locked decisions",
     "text": "Web frontend: TanStack Router and Query.",
     "kind": "product",
-    "status": "partial",
-    "evidence": "web/package.json",
-    "note": "TanStack Query is used; TanStack Router is not installed and the app has one screen with no routes."
+    "status": "met",
+    "evidence": "web/package.json @tanstack/react-router, @tanstack/react-query; web/src/app/Shell.tsx; web/src/App.tsx",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
   },
   {
     "id": "PLAN01-007",
@@ -418,9 +418,9 @@
     "source": "duly-plan/01-master-plan.md, v0 scope",
     "text": "Full student app: Onboarding.",
     "kind": "product",
-    "status": "not_started",
-    "evidence": "web/src/components/CaseForm.tsx",
-    "note": "A single stateless date form exists; there is no onboarding flow or account."
+    "status": "met",
+    "evidence": "web/src/app/Onboarding.tsx; web/src/app/Onboarding.test.tsx; web/src/app/OnboardingWalk.test.tsx",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
   },
   {
     "id": "PLAN01-034",
@@ -454,9 +454,9 @@
     "source": "duly-plan/01-master-plan.md, v0 scope",
     "text": "Full student app: Checklists (stateful).",
     "kind": "product",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No checklist data or screen exists."
+    "status": "met",
+    "evidence": "web/src/app/Checklists.tsx; web/src/app/roundB.test.tsx (records a tick with the engine)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
   },
   {
     "id": "PLAN01-038",
@@ -490,9 +490,9 @@
     "source": "duly-plan/01-master-plan.md, v0 scope",
     "text": "Full student app: Feedback.",
     "kind": "product",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No feedback screen or endpoint exists."
+    "status": "met",
+    "evidence": "web/src/app/Pages.tsx Feedback; web/src/app/Pages.test.tsx",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F8 (D62)."
   },
   {
     "id": "PLAN01-042",

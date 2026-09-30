@@ -22,9 +22,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, The nine; design/canvas/CANVAS-README.md",
   "text": "Case, Settings and Feedback are nav destinations never drawn on the canvas; design them from the nine using the same system.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "None of the three pages exists in web/src."
+  "status": "met",
+  "evidence": "web/src/app/Pages.tsx YourCase, Settings, Feedback; web/src/app/Pages.test.tsx",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Designed from the canvas system; tests pass."
  },
  {
   "id": "CANVAS-004",
@@ -40,18 +40,18 @@
   "source": "design/canvas/CANVAS-README.md, Why the plan says nine plus; every desktop screen",
   "text": "Desktop sidebar lists Home, Timeline, Documents, Checklists, Scenarios, Updates, WorkBook at the top and Your case, Settings, Feedback pinned at the bottom.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The web app has no sidebar or navigation."
+  "status": "met",
+  "evidence": "web/src/app/Shell.tsx NAV, NAV_BOTTOM; web/src/app/app.test.tsx (lists exactly the screens that exist, in canvas order)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F2 (adopted in D62): only screens that exist."
  },
  {
   "id": "CANVAS-006",
   "source": "design/canvas/screens/*.dc.html, sidebar",
   "text": "Sidebar: wordmark Duly with a blue period at 17px 700; items 14px with 7px 10px padding; active item 600 in visa blue; others secondary grey with row hover; right hairline #ECEAE4.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No sidebar exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .sidebar, .wordmark (17px 700), .nav-item (14px, 7px 10px), [aria-current] 600 --accent, border-right --hairline; web/src/app/app.test.tsx (marks the active item with aria-current)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-007",
@@ -112,27 +112,27 @@
   "source": "design/canvas/CANVAS-README.md, Design tokens",
   "text": "Second secondary text #4A4844, used for expanded row body text.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No such token exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --ink-body #4a4844; web/src/app/app.css .row-open",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-014",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Tertiary text #8A8780.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No tertiary token exists."
+  "status": "met",
+  "evidence": "web/src/design/contrast.test.ts (holds no --faint token and no ink-3 in a color property)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F5 (D62): tertiary text becomes --ink-2."
  },
  {
   "id": "CANVAS-015",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Faint text #B0ACA3 (footers, chevrons).",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No faint token exists."
+  "status": "met",
+  "evidence": "web/src/design/contrast.test.ts",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F5 (D62): faint text becomes --ink-2; chevrons --ink-3."
  },
  {
   "id": "CANVAS-016",
@@ -148,18 +148,18 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Hairline inside lists #F0EEE8.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The web app uses one hairline everywhere."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --hairline-inner #f0eee8",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-018",
   "source": "design/canvas/CANVAS-README.md, Design tokens",
   "text": "Card and chip border #E5E2DA.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No such token exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --chip-border #e5e2da; web/src/app/app.css .chip, .option",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-019",
@@ -175,9 +175,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors; design/canvas/CANVAS-README.md",
   "text": "Blue hover #22417F for links (and #24448C for filled buttons).",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No hover token exists; three canvas screens also use a green link hover #0A4C41, which looks like a slip."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --accent-hover #22417f, --button-hover #24448c; web/src/app/app.css .link:hover, .pill-primary:hover",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-021",
@@ -202,9 +202,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Muted mark #8FA6D9 for the ring on the next phase.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No such token exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --ring-next #6f86c4; web/src/design/contrast.test.ts (marks at least 3:1)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F5 (D62)."
  },
  {
   "id": "CANVAS-024",
@@ -220,54 +220,54 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Amber #B45309 is reserved for the AI-drafted star and nothing else.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/design/tokens.css (--ai-mark)",
-  "note": "The token is named for the AI mark, but nothing checks its use; the canvas itself also uses amber for impact dots and confetti, and the README calls it the warnings color."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --ai-mark #b45309; web/src/styles.test.ts (holds no amber, which is kept for the AI star)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. No AI star is drawn yet; no other element uses amber."
  },
  {
   "id": "CANVAS-026",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Caution text #8A6A2A for the honest-caveat and varies-by-university lines.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No caution token exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --caution #8a6a2a; web/src/app/app.css .caution-line; web/src/app/roundB.test.tsx (puts the school line in the caution colour)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-027",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Progress bar track #E8E6E0.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No bar track token exists; Checklist and WorkBook markup use #E9E6DF instead."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --track #e8e6e0; web/src/app/app.css .bar",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-028",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Colors",
   "text": "Row hover background #F0EEE8.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No row hover exists in the web app."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --row-hover #f0eee8; web/src/app/app.css .row:hover",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-029",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Instrument Sans is the only typeface.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css",
-  "note": "Instrument Sans is the UI font, but values and rule ids are set in a system monospace (--font-mono)."
+  "status": "met",
+  "evidence": "web/src/app/app.css @fontsource/instrument-sans; web/src/design/contrast.test.ts (imports only the four Instrument Sans weights and uses no mono font)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-030",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Instrument Sans loaded at weights 400, 500, 600 and 700.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css",
-  "note": "Only the 400 and 600 weights are imported."
+  "status": "met",
+  "evidence": "web/src/app/app.css imports 400, 500, 600, 700; web/src/design/contrast.test.ts",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-031",
@@ -283,18 +283,18 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Page titles are 30 to 34px.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No page title exists; the case form heading is 22px."
+  "status": "met",
+  "evidence": "web/src/app/app.css .page-title 32px, .onb-title 30px, .checklist-title 30px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-033",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Hero verdict is 40 to 42px on desktop.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css (.verdict h1)",
-  "note": "A verdict heading exists but is 28px."
+  "status": "met",
+  "evidence": "web/src/app/app.css .hero-headline 40px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-034",
@@ -319,81 +319,81 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Row titles are 14.5px at weight 500.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Rows use the inherited 16px at 400."
+  "status": "met",
+  "evidence": "web/src/app/app.css .row-title 14.5px 500",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-037",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Meta lines are 12.5 to 13px.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No meta line style exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .row-meta 13px, .step-meta 12.5px, .metric-meta 13px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-038",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Type",
   "text": "Eyebrow labels are 11 to 11.5px, weight 600, 0.10 to 0.14em tracking, uppercase.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No eyebrow style exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .eyebrow 11px 600 0.12em, .hero-eyebrow 11.5px 0.14em uppercase, .metric-eyebrow 0.1em; web/src/app/Home.tsx eyebrow text in capitals",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-039",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Sidebar is 208px wide.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No sidebar exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .sidebar width 208px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-040",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Content column is 720px wide and centered.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css (.page)",
-  "note": "The column is centered but 640px wide."
+  "status": "met",
+  "evidence": "web/src/app/app.css .page width 720px, margin 0 auto",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-041",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Top padding of the content is 50 to 54px.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css (.page)",
-  "note": "Top padding is 48px."
+  "status": "met",
+  "evidence": "web/src/app/app.css .page padding-top 52px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-042",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Rows have 13 to 17px vertical padding and negative 12px side margins so the hover extends past the text.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css (.item-row)",
-  "note": "Rows have 10px vertical padding and no negative margins."
+  "status": "met",
+  "evidence": "web/src/app/app.css .row margin 0 -12px, .row-head padding 16px 12px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-043",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Nav items have a 7px radius.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No nav exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --radius-nav 7px; web/src/app/app.css .nav-item",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-044",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Rows have a 10px radius.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Rows have no radius."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --radius-row 10px; web/src/app/app.css .row",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-045",
@@ -409,81 +409,81 @@
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Pills (chips, pill buttons, tags) have a 99px radius.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css (.tag)",
-  "note": "Tags are pills, but buttons use an 8px radius where the canvas uses pill buttons."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --radius-pill 99px; web/src/app/app.css .pill-primary, .pill-secondary, .chip",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "CANVAS-047",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Metrics",
   "text": "Touch targets are at least 44px.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/design/tokens.css (--target), web/src/styles.css (button, .field input)",
-  "note": "Buttons and inputs use the 44px minimum, but .scope button.quiet sets min-height to 0."
+  "status": "met",
+  "evidence": "web/src/app/app.css ::before 44px hit areas, pointer: coarse padding",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F13 (D62)."
  },
  {
   "id": "CANVAS-048",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion; design/canvas/CANVAS-README.md",
   "text": "Entrance: rise 0.55s cubic-bezier(.2,.7,.2,1) from translateY 12px, staggered 60 to 90ms down the page.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No entrance animation exists."
+  "status": "partial",
+  "evidence": "web/src/design/tokens.css --rise 0.55s, --ease; web/src/app/app.css .rise, .d1 .06s, .d2 .16s, .d3 .28s, footer .42s",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Rise, curve and 12px are as stated. The Home stagger follows the canvas file's delays (design-1 3.5): steps of 60, 100, 120 and 140ms, not 60 to 90ms."
  },
  {
   "id": "CANVAS-049",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
   "text": "Entrance motion uses transform only, so nothing depends on animation to be visible.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No entrance animation exists to check."
+  "status": "met",
+  "evidence": "web/src/app/app.css @keyframes rise, drop-in, step-drop (transform only); web/src/styles.test.ts (moves a disclosure by transform only)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-050",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
   "text": "Row hover background transitions over 0.16s.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No row hover exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --hover 0.16s; web/src/app/app.css .row transition",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-051",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
   "text": "Button press scales to 0.97.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No press transform exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css :active scale(0.97); web/src/styles.test.ts (presses a button to 0.97 and eases a row)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-052",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
   "text": "Chevrons rotate 90 degrees over 0.22s when a row opens.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The web disclosure rows have no chevron."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --turn 0.22s; web/src/app/app.css .chevron rotate(90deg)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-053",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion",
   "text": "Progress bars fill once from 0 over 1.1s with a 0.4 to 0.5s delay.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No progress bar exists."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --fill 1.1s, --fill-delay 0.5s, --fill-delay-timeline 0.4s; web/src/app/app.css .bar-fill @keyframes fill",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-054",
   "source": "design/canvas/DESIGN-SPEC.md, Tokens, Motion; design/canvas/CANVAS-README.md",
   "text": "Disclosure content drops in over 0.28s from translateY -6px.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Disclosed working appears with no motion."
+  "status": "met",
+  "evidence": "web/src/design/tokens.css --drop 0.28s; web/src/styles.test.ts (opens a disclosure over 0.28s with the entrance curve)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CANVAS-055",
@@ -589,18 +589,18 @@
   "source": "design/canvas/DESIGN-SPEC.md, Laws every screen obeys",
   "text": "Motion is additive: with animations off the design is complete.",
   "kind": "design",
-  "status": "partial",
-  "evidence": "web/src/styles.css (prefers-reduced-motion)",
-  "note": "The halo is switched off under reduced motion; no other motion exists yet."
+  "status": "met",
+  "evidence": "web/src/app/app.css no keyframe starts from opacity 0; web/src/design/contrast.test.ts (turns every animation and transition off under reduced motion)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "HOME-001",
   "source": "design/canvas/screens/Main.dc.html, date line",
   "text": "A date line opens the page, 12px tertiary, naming the person's day, for example Monday, September 28.",
   "kind": "product",
-  "status": "partial",
-  "evidence": "web/src/components/Result.tsx (todayLine), web/src/lib/labels.ts",
-  "note": "The person's day in their own zone (D33) is shown inside the verdict after a computation, not as a date line above the hero."
+  "status": "met",
+  "evidence": "web/src/app/app.css .date-line 12px --ink-2",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F5 (D62)."
  },
  {
   "id": "HOME-002",
@@ -643,18 +643,18 @@
   "source": "design/canvas/screens/Main.dc.html, metrics; design/canvas/DESIGN-SPEC.md, 1 Home",
   "text": "Three metrics side by side divided by 1px vertical hairlines: 11px eyebrow label, 28px value (24px for a date), 13px tertiary meta.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No metric row exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .metric border-left --hairline, .metric-eyebrow 11px, .metric-value 28px (24px date), .metric-meta 13px",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F5 and F6 (D62)."
  },
  {
   "id": "HOME-007",
   "source": "design/canvas/screens/Main.dc.html, metric 1",
   "text": "90-DAY UNEMPLOYMENT CLOCK: days used, days left, and a 3px bar filled to the share used (12 used, 78 left, 13 percent).",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "engine/f1.py (unemployment.days_used, unemployment.days_remaining, unemployment.limit), web/src/components/Result.tsx",
-  "note": "The engine computes the counts and the web shows them as rows; there is no metric or bar, and the limit label must come from the engine since STEM OPT uses a different limit."
+  "status": "met",
+  "evidence": "web/src/app/Home.tsx UNEMPLOYMENT COUNT; web/src/app/app.test.tsx (draws the bar from two engine values)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F7 (D62)."
  },
  {
   "id": "HOME-008",
@@ -670,9 +670,9 @@
   "source": "design/canvas/screens/Main.dc.html, metric 3",
   "text": "EAD VALID UNTIL: the EAD end date and the days left (Feb 9 2027, 134 days left).",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "engine/f1.py (opt.ead_end, stem.ead_end)",
-  "note": "The engine returns the EAD end date; no days-left count and no metric exist."
+  "status": "met",
+  "evidence": "web/src/app/Home.tsx EAD CARD ENDS, days from today",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F7 (D62)."
  },
  {
   "id": "HOME-010",
@@ -697,9 +697,9 @@
   "source": "design/canvas/screens/Main.dc.html, renderVals",
   "text": "The three rows are an accordion: all closed at first, one open at a time, a second click closes, the chevron rotates and the content drops in.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The web rows are independent disclosures with no chevron, and there is no Home accordion."
+  "status": "met",
+  "evidence": "web/src/app/app.test.tsx (keeps one row open at a time across the page, and only the header toggles)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F14: as many rows as the engine gives."
  },
  {
   "id": "HOME-013",
@@ -715,9 +715,9 @@
   "source": "design/canvas/screens/Main.dc.html, row 1 expanded",
   "text": "Row 1 open: \"2 of 6 steps done. Up next: the I-983 with your supervisor.\" and a link \"Open the checklist\" to Checklists.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The count must come from the person's confirmed checklist steps."
+  "status": "met",
+  "evidence": "web/src/app/roundB.test.tsx ('0 of 11 confirmed by you in the list.', 'Open the checklist')",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "HOME-015",
@@ -778,18 +778,18 @@
   "source": "design/canvas/DESIGN-SPEC.md, 1 Home, Rule",
   "text": "Every date and number on Home comes from the engine, never the client and never the model.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "web/src/components/Result.tsx, tools/gates/engine_literals.py",
-  "note": "The web only formats engine values, but no test asserts the client computes none."
+  "status": "met",
+  "evidence": "web/src/app/app.test.tsx (draws the bar from two engine values); web/src/lib/views/timeline.test.ts (writes no count of its own); tools/gates/engine_literals.py (exit 0)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
  },
  {
   "id": "TIME-001",
   "source": "design/canvas/screens/Timeline.dc.html, header",
   "text": "Title \"Timeline\" at 32px with a right-aligned 13px meta of phase and requirement counts (\"6 phases · 24 requirements tracked\").",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No Timeline screen exists; the counts must come from the path model (D48)."
+  "status": "met",
+  "evidence": "web/src/app/app.css .page-title 32px, .page-meta 13px; web/src/lib/views/timeline.ts TIMELINE_META",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "TIME-002",
@@ -814,45 +814,45 @@
   "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
   "text": "Completed phases carry a filled blue check icon.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No phase rows exist."
+  "status": "met",
+  "evidence": "web/src/app/Timeline.tsx; web/src/app/roundB.test.tsx (opens the current phase by default and names every mark); web/src/lib/views/timeline.test.ts (shows a done stage)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "TIME-005",
   "source": "design/canvas/screens/Timeline.dc.html, NOW row",
   "text": "The current phase carries a NOW tag (10px 700, white on blue, 5px radius) in the left gutter, a 16px 600 title, a meta line such as \"Day 228 of 365\", and a 3px progress bar up to 400px.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No phase rows exist; the day count must be engine arithmetic."
+  "status": "met",
+  "evidence": "web/src/app/app.css .now-tag 10px 5px radius, .phase-title 16px for now, .bar 400px 3px; web/src/lib/views/timeline.ts ('Day N of M')",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "TIME-006",
   "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
   "text": "Future phases carry a hollow ring: #8FA6D9 for the next phase, #C9C5BC for later ones.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No phase rows exist."
+  "status": "met",
+  "evidence": "web/src/app/app.css .ring-next, .ring-later; web/src/design/contrast.test.ts",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F5 (D62)."
  },
  {
   "id": "TIME-007",
   "source": "design/canvas/DESIGN-SPEC.md, 2 Timeline",
   "text": "Every phase title is full-strength ink; history is never greyed.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No phase rows exist."
+  "status": "met",
+  "evidence": "web/src/app/app.css .phase-title color --ink",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "TIME-008",
   "source": "design/canvas/screens/Timeline.dc.html, renderVals",
   "text": "Phases are an accordion, one open at a time, with the NOW phase open by default; a second click closes it.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No accordion exists."
+  "status": "met",
+  "evidence": "web/src/app/roundB.test.tsx (opens the current phase by default; keeps one row open at a time, and a second click closes it)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "TIME-009",
@@ -913,9 +913,9 @@
   "source": "design/canvas/screens/Timeline.dc.html, NOW expanded; design/canvas/DESIGN-SPEC.md, 2 Timeline",
   "text": "The OPT phase shows the application tracker inline: APPLICATION, Filed Nov 2, Approved Jan 21, EAD delivered Feb 2, \"via USCIS case status\".",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No USCIS case status link is planned; the dates would be the person's entries."
+  "status": "met",
+  "evidence": "web/src/lib/views/timeline.test.ts (shows the application dates only as entered)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "TIME-016",
@@ -931,9 +931,9 @@
   "source": "design/canvas/screens/Timeline.dc.html, STEM row",
   "text": "STEM OPT row meta \"Window opens Dec 12 · 2 of 6 steps done\"; open, it links \"Open the checklist\".",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "engine/f1.py (stem.apply_window_opens, stem.file_by)",
-  "note": "The engine computes the STEM window dates; no row exists."
+  "status": "met",
+  "evidence": "web/src/app/roundB.test.tsx (gives each next stage a row with the B2 line, the count and the checklist)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F7 (D62)."
  },
  {
   "id": "TIME-018",
@@ -958,18 +958,18 @@
   "source": "design/canvas/screens/Timeline.dc.html, footer",
   "text": "Footer \"Every phase keeps its documents, checks and dates together.\"",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No Timeline screen exists."
+  "status": "met",
+  "evidence": "web/src/lib/views/timeline.ts TIMELINE_FOOTER",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "TIME-021",
   "source": "design/canvas/screens/Timeline.dc.html, rows",
   "text": "Phase rows use 13px padding (15px for NOW), the first border #ECEAE4, inner borders #F0EEE8, a closing #ECEAE4 border, and a staggered rise.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No phase rows exist."
+  "status": "met",
+  "evidence": "web/src/app/app.css .phase-head 13px, 15px for now; .phase borders --hairline first and last, --hairline-inner inside; rise",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "DOCS-001",
@@ -1102,9 +1102,9 @@
   "source": "design/canvas/screens/Checklist.dc.html, path chips; design/canvas/DESIGN-SPEC.md, 4 Checklists",
   "text": "A pill chip row CPT, OPT, STEM OPT, H-1B switches the whole view; STEM OPT is the default; the selected chip is ink on #F0EEE8 with a #C9C5BC border.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No Checklists screen exists."
+  "status": "partial",
+  "evidence": "web/src/lib/views/checklists.test.ts (offers a chip for each stage; selects the stage with the next filing by default); web/src/app/app.css .chip[aria-pressed]",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Chips come from the engine's stages. No H-1B chip: the h1b pack is empty (CHECK-014 to CHECK-017)."
  },
  {
   "id": "CHECK-002",
@@ -1120,72 +1120,72 @@
   "source": "design/canvas/screens/Checklist.dc.html, STEM view",
   "text": "STEM view eyebrow \"YOUR NEXT FILING · WINDOW OPENS DEC 12\" with the date from the engine.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "engine/f1.py (stem.apply_window_opens)",
-  "note": "The engine computes the window opening; no screen shows it."
+  "status": "met",
+  "evidence": "web/src/lib/views/checklists.ts eyebrow; web/src/lib/views/checklists.test.ts (reads opens or opened from the engine)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F7 (D62)."
  },
  {
   "id": "CHECK-004",
   "source": "design/canvas/screens/Checklist.dc.html, STEM view",
   "text": "STEM view title \"STEM OPT extension\" at 30px.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No Checklists screen exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .checklist-title 30px; web/src/lib/views/checklists.test.ts ('STEM OPT extension')",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CHECK-005",
   "source": "design/canvas/screens/Checklist.dc.html, STEM view; renderVals",
   "text": "A 180px 3px progress bar at done/6 with \"N of 6 done · you confirm each step\"; the bar width animates over 0.35s as steps change.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No checklist exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .checklist-bar 180px, width transition 0.35s; web/src/app/roundB.test.tsx (bar line)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "CHECK-006",
   "source": "design/canvas/screens/Checklist.dc.html, STEM steps",
   "text": "Two completed steps are struck through in tertiary with their citations at right: \"Degree CIP code is on the DHS STEM list\" (DHS list, 2026) and \"Employer enrolled in E-Verify, company ID noted\" (8 CFR 214.2(f)).",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Citations must be primary and pinpointed (D34)."
+  "status": "met",
+  "evidence": "web/src/lib/views/checklists.test.ts (shows a confirmation as standing only when the engine read it); web/src/app/app.css .step-label.struck --ink-2",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "CHECK-007",
   "source": "design/canvas/screens/Checklist.dc.html, STEM steps; renderVals",
   "text": "Four open steps have 18px circular checkboxes that toggle on click, recompute the count and bar, scale 1.08 on hover and 0.92 on press, and carry an aria-label.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No checklist exists."
+  "status": "partial",
+  "evidence": "web/src/app/app.css .checkbox 18px, :active scale(0.92); web/src/app/roundB.test.tsx (records a tick with the engine)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. No scale 1.08 on hover."
  },
  {
   "id": "CHECK-008",
   "source": "design/canvas/screens/Checklist.dc.html, I-983 step",
   "text": "Step \"Complete Form I-983 with your supervisor\", source Study in the States.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "A5 allows listing what a source says a process requires."
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml checklist label 'A completed and signed Form I-983, the training plan'",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "CHECK-009",
   "source": "design/canvas/screens/Checklist.dc.html, DSO step",
   "text": "Step \"Request your STEM OPT I-20 from your DSO\" with the caution line \"This step varies by university. Your school's process is the authority here.\"",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Per-school records (D3, D24) would back this line."
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml checklist label; web/src/lib/views/checklists.ts caution line; web/src/app/roundB.test.tsx",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "CHECK-010",
   "source": "design/canvas/screens/Checklist.dc.html, DSO step",
   "text": "A pill button \"Draft the question for your DSO\" drafts an editable question the person sends from their own mail.",
   "kind": "legal",
-  "status": "not_started",
-  "evidence": "assistant/boundary.py",
-  "note": "The boundary code exists but no draft or button is in the web app."
+  "status": "met",
+  "evidence": "web/src/app/parts.tsx DraftPill; web/src/app/parts.test.tsx (opens under its pill, takes edits and copies what was typed)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
  },
  {
   "id": "CHECK-011",
@@ -1193,8 +1193,8 @@
   "text": "Step \"File I-765 within 60 days of the recommendation\" with \"And before your EAD expires Feb 9, 2027 · Source: USCIS I-765\".",
   "kind": "engine",
   "status": "partial",
-  "evidence": "engine/f1.py (stem.file_by, stem.apply_window_closes)",
-  "note": "The engine computes the filing dates; the source shown should be the regulation (D34)."
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml checklist labels 'Form I-765, filed within the rule's days of the DSO's recommendation' and 'filed before the current OPT card ends'",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): F7 asks for the number of days in the label; the label says the rule's days."
  },
  {
   "id": "CHECK-012",
@@ -1264,9 +1264,9 @@
   "source": "design/canvas/screens/Checklist.dc.html, OPT view",
   "text": "OPT view lists completed items with checks: DSO recommendation on I-20 before filing; I-765 filed online, complete on the first pass; EAD received, employer reported within 10 days.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "These must be the person's recorded dates."
+  "status": "met",
+  "evidence": "web/src/app/roundB.test.tsx (draws the finished path)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62): plain lines, no checks."
  },
  {
   "id": "CHECK-020",
@@ -1282,9 +1282,9 @@
   "source": "design/canvas/screens/Checklist.dc.html, footer",
   "text": "Footer \"Every step cites its source. Nothing files itself. Records, not legal advice.\"",
   "kind": "legal",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The web footer has different words on a different screen."
+  "status": "met",
+  "evidence": "web/src/lib/views/checklists.ts CHECKLIST_FOOTER",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F7 (D62)."
  },
  {
   "id": "UPD-001",
@@ -1885,18 +1885,18 @@
   "source": "design/canvas/DESIGN-SPEC.md, 9 Onboarding",
   "text": "Onboarding is a centered 560px column on the ground color with no sidebar and a 19px wordmark.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No onboarding exists."
+  "status": "met",
+  "evidence": "web/src/app/app.css .onboarding (560px), .onb-wordmark (19px); web/src/app/app.test.tsx (opens Onboarding with no case, and has no sidebar there)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Header fixed at the work step's position rather than centred (design-1 F14, adopted under D62)."
  },
  {
   "id": "ONB-002",
   "source": "design/canvas/screens/Onboarding.dc.html, pips; renderVals",
   "text": "Five progress pips (22 by 4px) fill blue up to the current step, #DDD9D0 after, with a step label (\"Step 2 of 5\", \"Done\").",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Steps 1, 4 and 5 are never drawn; under D9 they hold the status tagging."
+  "status": "met",
+  "evidence": "web/src/app/app.css .pip (22 by 4px, --pip-empty #ddd9d0, filled --accent); web/src/app/Onboarding.tsx step label; web/src/app/Onboarding.test.tsx ('Step 2 of 5')",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Five sections, five pips."
  },
  {
   "id": "ONB-003",
@@ -1939,9 +1939,9 @@
   "source": "design/canvas/screens/Onboarding.dc.html, renderVals",
   "text": "Every step remembers its selection and has a working Back and Continue.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No onboarding exists; the step 2 Back is a placeholder in the markup."
+  "status": "met",
+  "evidence": "web/src/app/app.test.tsx (keeps answers across Back and Continue, and shows problems without red); web/src/app/OnboardingWalk.test.tsx",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Vitest 575 passed."
  },
  {
   "id": "ONB-008",
@@ -1957,17 +1957,17 @@
   "source": "design/canvas/screens/Onboarding.dc.html, done",
   "text": "Final screen \"You're set.\" summarises the actual choices (status, work and field, watched items: 90-day clock, STEM window, SEVP reporting), says \"Everything lives in Your case and can be changed any time.\", with Back and a blue pill \"Open Duly\" to Home.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The status line is hard-coded in the canvas and must come from the person's tagging."
+  "status": "partial",
+  "evidence": "web/src/app/Onboarding.tsx (Done view 'What you entered', completion line); web/src/app/app.test.tsx",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Done summarises the choices under the F7 words. Work and field go to WorkBook setup, which does not exist (design-1 section 16)."
  },
  {
   "id": "ONB-010",
   "source": "design/canvas/DESIGN-SPEC.md, 9 Onboarding",
   "text": "Every step carries its why-we-ask line.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No onboarding exists."
+  "status": "met",
+  "evidence": "web/src/app/OnboardingWalk.test.tsx (gives every view Onboarding can build a why line)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Vitest 575 passed."
  }
 ]
