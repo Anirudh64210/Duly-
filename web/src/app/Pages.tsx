@@ -13,6 +13,7 @@ import {
 } from "../lib/labels";
 import { STORAGE_SENTENCE } from "../lib/privacy";
 import { fetchStatus } from "../lib/status";
+import { LANDMARKS } from "../lib/shots";
 import { updatesTitle, type UpdatesResponse } from "../lib/views/updates";
 import { authLabel, programLabel, removeRecords, setField, value } from "../lib/views/onboarding";
 import { useStore, type AppCase } from "./caseStore";
@@ -32,7 +33,9 @@ export function Updates({
   return (
     <OneOpen>
       <div className="page">
-        <h1 className="page-title rise">{updatesTitle(response.matching)}</h1>
+        <h1 className="page-title rise" data-landmark={LANDMARKS["/updates"]}>
+          {updatesTitle(response.matching)}
+        </h1>
         {response.updates.length === 0 ? (
           <p className="page-lead rise d1">{UPDATES_EMPTY}</p>
         ) : (
@@ -158,7 +161,9 @@ export function YourCase() {
   return (
     <OneOpen>
       <div className="page">
-        <h1 className="page-title rise">Your case</h1>
+        <h1 className="page-title rise" data-landmark={LANDMARKS["/case"]}>
+          Your case
+        </h1>
         <p className="page-lead rise">Everything here is as you entered it.</p>
         <section className="section" aria-labelledby="c-status">
           <h2 className="eyebrow" id="c-status">
@@ -301,7 +306,9 @@ export function Settings() {
   const zone = held?.time_zone ?? "";
   return (
     <div className="page">
-      <h1 className="page-title rise">Settings</h1>
+      <h1 className="page-title rise" data-landmark={LANDMARKS["/settings"]}>
+        Settings
+      </h1>
       <section className="section" aria-labelledby="s-zone">
         <h2 className="eyebrow" id="s-zone">
           TIME ZONE
@@ -385,7 +392,9 @@ export function Feedback() {
   const [copied, setCopied] = useState("");
   return (
     <div className="page">
-      <h1 className="page-title rise">Feedback</h1>
+      <h1 className="page-title rise" data-landmark={LANDMARKS["/feedback"]}>
+        Feedback
+      </h1>
       <p className="page-lead">
         Tell us what works and what does not. Nothing from your record is attached.
       </p>

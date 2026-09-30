@@ -988,6 +988,27 @@ function tripViews(held: AppCase): View[] {
   return views;
 }
 
+const PETITION_OUTCOMES: Option[] = [
+  { value: "pending", title: "Waiting for a decision" },
+  { value: "approved", title: "Approved" },
+  { value: "denied", title: "Denied" },
+  { value: "rejected", title: "Rejected" },
+  { value: "withdrawn", title: "Withdrawn" },
+  { value: "revoked", title: "Revoked" },
+];
+
+/** A petition named by its employer and the day it was filed, as far as they are entered. */
+export function petitionLabel(held: AppCase, id: string): string {
+  const employer = value(held, value(held, id, "employer"), "name").trim();
+  const filed = value(held, id, "filed_on");
+  const parts = [
+    "H-1B petition",
+    employer === "" ? "" : `from ${employer}`,
+    /^\d{4}-\d{2}-\d{2}$/.test(filed) ? `filed ${formatDate(filed)}` : "",
+  ];
+  return parts.filter((part) => part !== "").join(", ");
+}
+
 function petitionViews(held: AppCase): View[] {
   const section = 4;
   const views: View[] = [
@@ -1056,14 +1077,7 @@ function petitionViews(held: AppCase): View[] {
         why: "Each outcome leads to different dates.",
         record: petition.id,
         field: "outcome",
-        options: [
-          { value: "pending", title: "Waiting for a decision" },
-          { value: "approved", title: "Approved" },
-          { value: "denied", title: "Denied" },
-          { value: "rejected", title: "Rejected" },
-          { value: "withdrawn", title: "Withdrawn" },
-          { value: "revoked", title: "Revoked" },
-        ],
+        options: PETITION_OUTCOMES,
       },
     );
     if (outcome !== "" && outcome !== "pending") {
@@ -1661,7 +1675,20 @@ const ASKED_CHOICES: Record<string, { options: Option[]; notSure: boolean }> = {
     ],
     notSure: true,
   },
+  // resolutions point 18: whether a petition belongs to the F-1 status held now turns on its
+  // outcome, so a petition entered without one is asked about, never read as not belonging.
+  "petition.outcome": { options: PETITION_OUTCOMES, notSure: true },
 };
+
+const ASKED_WORDS: Record<string, string> = {
+  "authorization.time": "full or part time",
+  "authorization.decision": "the decision",
+  "petition.outcome": "what has happened with it so far",
+};
+
+function recordLabel(held: AppCase, id: string, kind: RecordKind): string {
+  return kind === "petition" ? petitionLabel(held, id) : authLabel(held, id);
+}
 
 /**
  * programs.md section 10: the engine asks for a record's field as <record id>.<field>. The
@@ -1686,10 +1713,11 @@ export function fieldQuestion(held: AppCase, question: string): View | null {
   }
   const known = ASKED_CHOICES[`${record.kind}.${field}`];
   if (known !== undefined) {
+    const words = ASKED_WORDS[`${record.kind}.${field}`] ?? field.replaceAll("_", " ");
     return {
       ...base,
       kind: "choice",
-      title: `${authLabel(held, id)}: ${field === "time" ? "full or part time" : "the decision"}`,
+      title: `${recordLabel(held, id, record.kind)}: ${words}`,
       record: id,
       field,
       options: known.options,
@@ -1697,7 +1725,8 @@ export function fieldQuestion(held: AppCase, question: string): View | null {
     };
   }
   if (isDateField(record.kind, field)) {
-    const label = DATE_WORDS[field] ?? field.replaceAll("_", " ");
+    const label =
+      DATE_WORDS[`${record.kind}.${field}`] ?? DATE_WORDS[field] ?? field.replaceAll("_", " ");
     return {
       ...base,
       kind: "fields",
@@ -1716,6 +1745,11 @@ const DATE_WORDS: Record<string, string> = {
   decided_on: "day of the decision",
   first_year_done_on: "day the first full academic year was done",
   outcome_on: "day it happened",
+  // resolutions point 18: the validity start decides whether a petition belongs to the F-1
+  // status held now, so it is asked for even before the outcome is entered.
+  "petition.validity_start": "approved start date of the H-1B petition",
+  "petition.filed_on": "day the H-1B petition was filed",
+  "petition.requested_start": "start date the H-1B petition asks for",
 };
 
 const LIST_WORDS: Record<string, string> = {

@@ -4,6 +4,7 @@ import { stemStepDraft } from "../lib/drafts";
 import type { EngineOutput } from "../lib/compute";
 import type { Sent } from "../lib/drafts";
 import { formatDate } from "../lib/labels";
+import { LANDMARKS } from "../lib/shots";
 import {
   B2_LINE,
   CHECKLIST_FOOTER,
@@ -83,7 +84,9 @@ function Steps(props: { view: StepsView; output: EngineOutput; sent: Sent }) {
     <>
       <div className="checklist-head">
         {view.eyebrow !== "" && <p className="checklist-eyebrow">{view.eyebrow}</p>}
-        <h1 className="checklist-title">{view.title}</h1>
+        <h1 className="checklist-title" data-landmark={LANDMARKS["/checklists"]}>
+          {view.title}
+        </h1>
         {view.b2 && <p className="b2-line">{B2_LINE}</p>}
         <div className="checklist-bar-row">
           <span className="bar checklist-bar" aria-hidden="true">
@@ -151,7 +154,9 @@ export function Checklists() {
             <Steps view={shown.view} output={output} sent={sent} />
           ) : (
             <>
-              <h1 className="checklist-title">{shown.view.title}</h1>
+              <h1 className="checklist-title" data-landmark={LANDMARKS["/checklists"]}>
+                {shown.view.title}
+              </h1>
               {shown.view.line !== "" && <p className="finished-line">{shown.view.line}</p>}
               <div className="finished-lines">
                 {shown.view.lines.map((line) => (

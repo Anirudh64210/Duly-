@@ -1045,3 +1045,40 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   samples/make.py; npx prettier --write "samples/*.json"): exit 0.
 - Done command again: exit 0. 26 files, 524 tests passed, eslint clean, prettier clean,
   "copy lint: clean".
+
+## l-web-8c58f29547: resolutions point 18, web side
+
+### Tried
+
+- Landmarks: web/src/lib/shots.ts `LANDMARKS` names each built screen as the shot run does
+  ("/" is home, the others lose their slash). Each screen's h1 carries
+  `data-landmark="<screen>"`: welcome (Onboarding's title), home (the verdict's headline, and
+  the hero for a status Duly has no rules for), timeline, checklists, updates, case, settings,
+  feedback. Home's refusal hero (server refused, network failed) and Home's busy hero carry
+  none. Timeline marks its heading only once the phases are drawn, not over the busy line.
+- Petition questions: `fieldQuestion` now asks `<petition>.outcome` as a choice (every
+  outcome, none chosen, "I'm not sure") titled by `petitionLabel` ("H-1B petition, from Acme,
+  filed Mar 30, 2026: what has happened with it so far") when no Onboarding view holds it,
+  as in a case held from records alone. `<petition>.validity_start` asked before the outcome
+  is known reads "The approved start date of the H-1B petition" and may stay unknown. A
+  petition's `filed_on` is no longer called the I-765's filing day. The outcome options are
+  one list shared with Onboarding's own view.
+- Tests beside the code: web/src/app/landmarks.test.tsx (each of the 8 screens from each of
+  the 2 samples holds exactly one landmark, an h1 with its own name; none on the refusal
+  hero, the network failure, or a busy Home, Timeline or Checklists).
+  web/src/lib/views/petition.test.ts (6 tests).
+
+### Ran
+
+- With the landmark put on every Home hero: the two refusal tests fail; restored.
+- petition.test.ts against HEAD's onboarding.ts: 4 of 6 fail (the 2 that pass cover the
+  views Onboarding already had); restored.
+- Done command, as written, output to a file: exit 0. 28 files, 550 tests passed, lines
+  97.59 percent, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done
+
+- desktop/src/shots.ts and shotrun.ts still find the landmark by heading type from
+  tests/design/landmarks.json; reading `[data-landmark="<screen>"]` is desktop's part.
+- Home lists a field question such as h1.outcome as "Duly has a question about what you
+  entered." with no answer there; it is answered in Onboarding's questions view.
