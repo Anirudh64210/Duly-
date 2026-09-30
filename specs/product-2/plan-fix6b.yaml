@@ -29,6 +29,11 @@ rounds:
       points 19 and 20; write the point beside each change; never loosen an assertion; escalate any failure
       no point explains.
 
+
+      Also apply specs/product-2/resolutions.md point 21 to the two J19 twins in tests/unit/acceptance/test_journeys.py
+      (test_j19_an_approved_petition_with_no_validity_start_is_asked_for_it, test_j19_a_petition_with_no_outcome_is_asked_for_it),
+      and to any holdout pair that asks the same.
+
       '
     done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
       tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
