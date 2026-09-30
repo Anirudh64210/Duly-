@@ -1,0 +1,107 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+  - name: parts
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          specs/product-2/resolutions.md point 15, tests first: in tests/unit/acceptance/test_journeys.py
+          the final evaluation and validations of J04 and J14 from the training's end, J06 with no
+          stale next stage, J12 with no grace after an approved change of status; hidden twins in
+          tests/holdout; tests/design/landmarks.json with each canvas landmark of
+          design/canvas/screens. Expected to fail until the build.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null
+          && test -f tests/design/landmarks.json'
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-2/resolutions.md point 15, pack side, in rulepacks/f1-us/v2026.09: the STEM
+          final evaluation and validations dated from the end of the practical training
+          opportunity; no grace after an approved change of status petition's start. Each from the
+          saved words. Existing plain words are frozen.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
+          && uv run python -m tools.sources.plain rulepacks --require f1'
+      - lane: L-engine
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 15: a next stage is shown only while a window in which
+          something can be filed is open (engine/path.py _closed). The next round holds the
+          journeys; here, the gates.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_path.py -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+      - lane: L-web
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 15, Onboarding, fixing reviews/product-2-fix1.md
+          findings 2, 4 and 5 and notes 4 and 5. Tests beside the code that press Continue through
+          each view as a student would, including "A job on campus" and "I'm not sure".
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+      - lane: L-desktop
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 15, the shots: desktop/src/shots.ts and the --shots
+          flag the Makefile's design-shots target calls, rendering each built screen at 1280x832
+          from engine samples into the folder given. Decisions in plain functions with tests, as
+          desktop-1 does.
+        done: >-
+          bash -c 'npm run typecheck -w desktop && npm test -w desktop
+          && npx eslint desktop --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+  - name: integrate
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          All parts are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py
+          pass through POST /v1/compute, fixing engine/. A journey asserting what the saved words do
+          not support is a finding in your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/acceptance -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Bring every test in tests/unit and tests/holdout in line with specs/product-2/resolutions.md
+          point 15; write the point beside each change; never loosen an assertion; escalate any
+          failure no point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-2" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review product-2 against specs/product-2/resolutions.md, following your role file, in ONE
+          pass. Send all twenty journeys through POST /v1/compute. Walk Onboarding for J01, J08 and
+          J16 by pressing Continue. Run make design-shots if you can and compare each shot with its
+          canvas PNG. Close or name every finding of reviews/product-2-fix1.md. Write
+          reviews/product-2-fix2.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix2.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+          name. Update docs/requirements/audits/product-2.md and report the share met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-2.md
+          && uv run python -m tools.requirements.register check'
