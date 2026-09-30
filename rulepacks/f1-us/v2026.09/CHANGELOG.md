@@ -188,3 +188,9 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - New judgement check `program.enrollment`: for each program on F-1, full_course_each_term and online_within_limit must be yes; no or not sure goes to the DSO (J17).
 - `program` next `opt_post`: new only_if, no approved OPT card at the same level whose card alone spans opt.max_months. A level used up by two or more cards together is not caught; that needs a condition that reads a counter (J20).
 - No existing row, value, quote, note, plain text or plain_terms changed. No network was used.
+
+### 2026-09-30, lane L-content, run l-content-342a9981c1 (J08, pack side)
+
+- `unemployment.opt_card`, the declaration keyed on the authorization: the span now ends where the `opt_post` stage span ends, the earlier of the card end and the day before a program at another level starts (8 CFR 214.2(f)(10)(ii)(B), opt.ends_on_transfer_or_new_level, now in its rule_ids). Before, it ran to the card end, and days after a change of level counted as unemployment. The release-date reading stays in the stage's `ends_also` only; a counter span has no `ends_also`.
+- Its qualifying selector now first requires `on_campus` to be absent, so a job on campus is not read as work under the card and its `under` is not asked.
+- No row, value, quote, note, plain text or plain_terms changed. No network was used.

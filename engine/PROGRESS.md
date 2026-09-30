@@ -1234,3 +1234,70 @@ Stop hook ran the done command: the same 3 failures. Escalated; see engine/ESCAL
 - test_path_fix1.py alone: exit 0, 23 passed (the three older tests now state the trip list).
 
 Status: done.
+
+## l-engine-c5fe743a12 (attempt 1): every journey through POST /v1/compute
+
+### What was done
+
+- engine/path.py: a judgement check whose id is `<kind>.<name>` and runs over records of that
+  kind now raises the item `<record>.<name>` (new helper `_judgement_id`). programs.md section 14
+  names the enrollment item `<program>.enrollment`; the engine gave `program.enrollment.p1`, the
+  test asks `p1.enrollment`. The rule also renames `trip.job_on_return.<t>` to `<t>.job_on_return`
+  and `withdrawal.dso_authorized.<wd>` to `<wd>.dso_authorized`; no test outside the holdout
+  reads those ids (grep of tests, evals, api, web/src, desktop/src). Judgements go only to
+  verdict reasons, so the new ids do not collide with question ids.
+
+### What ran
+
+- Acceptance before the change: 3 failures (J08 x2, J17).
+- Acceptance, tests/unit/engine and tests/unit/api after: 2 failures, both J08.
+- Done command as written: exit 1 (pytest, J08 x2). Each later step run alone: engine literals
+  clean, mypy 62 files clean, ruff check clean, ruff format 9 files already formatted.
+- A scratch copy of rulepacks under TMPDIR with the two pack changes below, loaded through
+  engine.rulepack.load_all: unemployment.opt_card.a1 is 35 with the trip list whole and null
+  without it, and w2.under is no longer asked. The engine needs no change for J08.
+
+### Why J08 fails (pack, L-content)
+
+- The first `unemployment.opt_card` counter's span ends at `this.card_end` (2025-06-02). programs.md
+  J08 says "unemployment only through that end (35 days)", the end of opt_post.a1, the day before
+  the master's starts (2025-01-12). The span end needs the same `earliest_of` as the opt_post stage.
+- Its `qualifying` selector reads `this.under` on w2, an on-campus job with `on_campus` and no
+  `under`, so `w2.under` is asked and the count is null. Adding `{field: this.on_campus, present: false}`
+  before the `under` test ends it (programs.md section 11: "A job on campus is never counted as OPT work").
+
+Status: blocked on L-content.
+
+Stop hook ran the done command: the same 2 J08 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-ea028b2435 (attempt 1): bring in the J17 work from c5fe743a12
+
+### What was done
+
+- `git merge --no-edit lane/L-engine/l-engine-c5fe743a12`: exit 0, ort merge, 2 files
+  (engine/path.py `_judgement_id`, engine/PROGRESS.md). It printed
+  "tests/holdout/...: Operation not permitted" (sandbox read wall); the merge succeeded.
+- No other change.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. test_path.py 57 passed; engine literals
+  clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+
+Status: done.
+
+## l-engine-8f7735f031 (attempt 1): every journey through POST /v1/compute, all lanes merged
+
+### What was done
+
+- Read PROGRESS.md and specs/product-2/resolutions.md. The J08 block recorded by c5fe743a12
+  was a pack matter (L-content); the branch now holds the L-content merge (719c770).
+- No engine change was needed.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. Acceptance 90 passed (no skip, no xfail);
+  engine literals clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+- tests/unit/acceptance/test_journeys.py alone: all passed.
+
+Status: done.
