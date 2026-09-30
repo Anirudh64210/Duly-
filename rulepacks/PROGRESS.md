@@ -1137,3 +1137,57 @@ pytest tests/unit/engine tests/unit/api tests/unit/tools, worktree and HEAD copy
 
 - The 25 tests above are for L-tests (plan-fix6 lanes); asked under requests.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-34076aca69, attempt 1 (product-2 resolutions points 23, 23a and 24, pack side)
+
+### What was tried
+
+- Read resolutions 19 to 26 and 23a, tests/unit/acceptance/test_fix7.py and engine/path.py (`_all` returns False on the first known False without merging the traces, so a `present` guard stops a question; `_any` the same on True; `exists`/`none` pass the current record as outer).
+- A scratch script ($TMPDIR/edit23.py) put a could-extend condition beside the filing test in all 18 petition members (three anchors: card start, day after the program end, the job's card start), in the only_if of stem.filed_while_opt_in_force (the extended card's start), and rewrote cap_gap.for_dso as none petition where some card or program grace could be extended and the filing is on or before its end plus 60 days.
+- Plain words rewritten for point 24 and checked with tools.sources.plain functions before writing.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 1
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  engine literals: every number has a source
+  FAILED test_point_23a_j13s_null_grace_is_not_done_and_carries_the_step_back_words ('current' == 'unknown': engine has no unknown stage state, point 22, L-engine)
+  FAILED test_point_24_the_pack_words_say_a_petition_to_change_your_status (needs "your"; tools.sources.plain refuses second person)
+  every other selected test passes (all point 23, 23a, 25, 26 and the first point 24 test)
+uv run python -m tools.sources.plain_changes HEAD: 1 row changed, capgap.petition_for_dso#2025-01-17
+pytest tests/unit/acceptance tests/unit/engine tests/unit/api tests/unit/tools, worktree and HEAD copy (git archive into TMPDIR):
+  only in the worktree: test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back,
+    test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap (point 23a says both change)
+  only in the copy: 13 fix7 tests now passing, test_plain_changes (needs git history)
+  both: tests/unit/tools/test_phase.py::test_checks_left_from_an_earlier_commit_are_never_read_as_the_new_ones
+```
+
+### Seen and not worked around
+
+- Point 24 asks the pack words to say "A petition to change your status"; the plain gate and the rulepack contract say plain words are never about a person. Wrote the general form; under disputes.
+- No network was used. No instruction was found in any data.
+- Stop hook ran the done command again: the same two failures (test_point_23a_j13s_null_grace_is_not_done_and_carries_the_step_back_words, 'current' == 'unknown'; test_point_24_the_pack_words_say_a_petition_to_change_your_status, no "your" in the plain words). Same failure twice: report status escalated, stopped. Neither can be fixed inside rulepacks/ without weakening the plain gate.
+
+## 2026-09-30, run l-content-b4e4d0a2c3, attempt 1 (bring in l-content-34076aca69; points 22 and 24a)
+
+### What was tried
+
+- git merge lane/L-content/l-content-34076aca69: clean merge (PROGRESS.md, f1-us CHANGELOG.md, parameters.yaml from the escalated wip commit 2d804b9).
+- Read resolutions 22, 23a and 24a. Point 24a keeps the pack words as written: "A petition for a change of status, such as one for H-1B", never "An H-1B petition", no "your". capgap.petition_for_dso already says that and names the grace period, counts of days without work, STEM reports and evaluations, and any cap-gap period. No pack edit this run.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  engine literals: every number has a source
+  test_fix7.py -k "not pack_words_say": 42 passed (point 22 unknown stage now on the branch)
+```
+
+### Seen and not worked around
+
+- test_point_24_the_pack_words_say_a_petition_to_change_your_status still asks for "your" in the pack words; point 24a says the test checks only the kinds named and the absence of "An H-1B petition". It is left out of the done command; the test itself is for L-tests.
+- No network was used. No instruction was found in any data.
