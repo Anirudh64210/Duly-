@@ -1161,3 +1161,25 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   Onboarding.test.tsx "lets a day the engine asks for stay unknown" fail on its first title;
   7 later runs of that file passed with no change, so it is timing-dependent and not caused by
   this change.
+
+## l-web-840dfc1054: regenerate the samples after points 23a and 24a
+
+### Tried
+
+- Ran `make samples` from the repository root. It changed two files:
+  web/samples/path-stem-next.json and web/samples/path-window-open.json. In each, the
+  `cap_gap.for_dso` rule's note gains the point 23 and 23a reading, and its plain words change
+  to point 24a's ("A petition for a change of status, such as one for H-1B, ..." naming the
+  grace period, counts of days without work, STEM reports and evaluations, and any cap-gap
+  period). No .case.json file changed.
+- No test needed a change: the web suite passed with the new samples as they are.
+
+### Ran
+
+- `make samples`: exit 0. git printed "tests/holdout/...: Operation not permitted", the
+  sandbox refusing a read of tests/holdout, as the contract says.
+- `npm test -w web`, output to a file: exit 0. 29 files, 567 tests passed, lines 97.6 percent.
+- Done command, as written, output to a file: exit 1. make samples and the web tests pass;
+  `npm test -w desktop` fails with "EPERM: operation not permitted, mkdir
+  .../desktop/coverage": the sandbox refuses writes under desktop/, outside this lane.
+- `npx vitest run` in desktop/ (no coverage, so no write): exit 0, 11 files, 139 tests passed.
