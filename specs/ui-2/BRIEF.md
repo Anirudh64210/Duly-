@@ -180,3 +180,33 @@ it. Duly's Documents must beat that for speed:
 12. **The product name is used sparingly.** "Duly" appears at most twice on a page, usually once,
     and never as a character talking to the student. Write "Counted from your EAD card", not "Duly
     counted"; "You'll get a reminder", not "Duly will remind you". Onboarding especially.
+
+## Round 3: the founder's notes (2026-09-30)
+
+The theme: less explaining, more intent. "why are you explaining everything explicitly, one it
+should always be self explanatory and easy to walk through and intentional to a human." Any
+explanation goes behind an ⓘ, only when it is needed, and is minimal. The rest is cut.
+
+1. **Home.** The explanatory line under the hero goes behind an ⓘ. The three numbers stay. "Your
+   next move" is one line with a date and one action; no four or five lines. "What's new" becomes
+   big, skimmable headlines, each with its date and at most one short line. "Updated for you when a
+   rule changes" moves behind an ⓘ; "Rules checked Sep 30" stays as a small line.
+2. **What's next and Checklists are one page, rebuilt from scratch.** The old two pages repeated
+   each other and were "trashy". The new page, "Next steps", shows the path the student is on, its
+   key dates, and short tasks. It has no subtext except behind an ⓘ.
+3. **Applications is renamed** to something human and distinct from the other labels, for example
+   "USCIS status". It says what it does: live tracking once connected (BACKLOG B8), and "Recheck by
+   logging in to USCIS" until then. It is removed from Checklists entirely.
+4. **School steps are never typed in by hand.** The student pastes their school's OPT or STEM OPT
+   page link, or drops the school's instructions PDF. The steps appear, marked "Your school" and
+   placed in the checklist, and the student confirms them once. This is public school information,
+   not the student's documents.
+5. **Documents** gets label chips that filter in one click, plus "All documents", which opens every
+   document in one place, ready to open.
+6. **Updates are articles**, like a good news app: headline, date, source, and several short
+   paragraphs (what happened, the background, what comes next). Then one short "For you" box
+   combining whether it affects the student and what to do. Remove the buttons that jump to other
+   parts of the app. Write articles only from sources saved in rulepacks/f1-us/v2026.09/sources and
+   from the legal notes on the 2026 regime. An item with no saved source is removed, never
+   invented.
+7. **Navigation labels** are human, intentional and distinct from each other.
