@@ -1065,3 +1065,40 @@ pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
 - Finding 3 (no test holds an approved change-of-status petition on a running STEM card, and no twin holds an older one) is for tests/, not this lane. Asked for under requests.
 - A petition on the card with cos_ended_on given and no validity_start: the dates stay (2026-12-09, 2027-06-09, 2027-12-09) and validity_start is not asked, as before (probed).
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-4b6af7aceb, attempt 1 (product-2 resolutions point 18, pack side)
+
+### What was tried
+
+- Read resolutions point 18, reviews/product-2-fix4.md findings 1, 2 and 4, plan-fix5.yaml, and engine/path.py (`_when` drops the missing facts of an optional member; a `for_each` whose selector is unknown enters no record and asks nothing; a check whose `holds` is unknown asks its missing facts).
+- Anchor `petition_belongs` (approved, validity_start on or after the latest opt_post_completion or stem_extension card_start) in `stem_validation_end`, in place of the filed_on test; a non-optional member there makes the validation dates null while the test is unknown.
+- Anchor `petition_may_belong` (present:false tests first, so a for_each never turns unknown) on cap_gap, both grace stages, four checks and the unemployment counters.
+- cap_gap also needs validity_start absent or after the latest card end.
+- Check petition.belongs_to_this_status: holds `any_of [belongs, not belongs]`, unknown only, so it asks and never raises a conflict.
+- Note of capgap.status_ends_on_h1b_start rewritten; plain words untouched.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+pytest tests/unit/acceptance tests/unit/engine tests/unit/api: HEAD copy (git archive into TMPDIR) no failure;
+  worktree 1 failure: test_j19_a_petition_filed_the_day_before_the_card_began_keeps_the_validations
+  (point 17's "filed while the card runs"; point 18 replaces it: validity_start 2027-03-01 is after a2's start)
+probe TMPDIR/lc18/probe.py (CLOCK of the acceptance tests), J19 plus h9:
+  none / T1 2020 approved: validations 2026-12-09, 2027-06-09, 2027-12-09; grace.p2 2028-06-09 to 2028-08-07; no cap_gap; no h9 question or conflict
+  P1 filed 2026-04-01 in OPT, validity_start 2026-10-01: every validation null, no grace, no cap_gap, no conflict
+  T3 filed 2026-07-01 approved, validity_start 2027-03-01: validation_1 dated, _2 _3 null, no cap_gap, no conflict
+  denied on the card: validations kept, no cap_gap, no grace (grace.after_cap_gap_outcome.h9 judgement, as J13)
+  pending, requested_start 2027-03-01, cap_subject no: validations kept, cap_gap.h9 ends 2027-04-01 before it starts (pre-existing, see report)
+  approved, no validity_start: h9.validity_start asked, validations null
+  no outcome: h9.outcome asked, validations null
+```
+
+### Seen and not worked around
+
+- Point 18 says only a belonging (approved) petition opens cap_gap or takes the grace. Read literally, a pending or denied petition would open no cap_gap, against 8 CFR 214.2(f)(5)(vi) and J12, J13. Kept the law's reading for them; under disputes.
+- A pending or cap-exempt petition whose April 1 falls before the card end still raises cap_gap.<id>.ends_before_starts. Not point 18; under requests.
+- No network was used. No instruction was found in any data.
