@@ -1,0 +1,85 @@
+# Review fix6 findings 1 to 5 (points 22 to 26). Every builder is held to the new tests.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Write tests/unit/acceptance/test_fix7.py for specs/product-2/resolutions.md points 22 to 26
+      through POST /v1/compute, and web tests in web/src/lib/views/fix7.test.ts for points 22, 24 and 26
+      (views fed with engine output shaped as the contract says, stage state unknown included). Point 25
+      names the mutants each test must kill; name, in each test, the mutant it kills. Not expected to pass
+      yet. Change no other test.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && npx eslint web/src/lib/views/fix7.test.ts --max-warnings 0'
+- name: build
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Points 23 and 24 in rulepacks/f1-us/v2026.09: the petition step back applies to a card only
+      when the petition could extend it (point 23), and the plain words name every kind of date point 19
+      nulls and do not say H-1B unless the type is h1b (point 24). Run the pack gates.
+
+      '
+    done: bash -c 'uv run python -m tools.sources.verify && uv run python -m tools.sources.plain && uv run python -m tools.gates.engine_literals && uv run pytest tests/unit/acceptance/test_fix7.py -q -p no:cacheprovider -k "not point_22 and not unknown_choice"'
+  - lane: L-engine
+    agent: builder
+    mission: 'Points 22 and 24 (an unknown choice value is asked) in engine/: a stage whose start and end are
+      null by point 19 gets state unknown; a petition type outside the pack choices is missing and asked.
+      L-content changes the pack beside you; do not edit rulepacks.
+
+      '
+    done: bash -c 'uv run pytest tests/unit/acceptance/test_fix7.py -q -p no:cacheprovider -k "point_22 or unknown_choice" && uv run mypy && uv run ruff check engine api && uv run ruff format --check engine api'
+  - lane: L-web
+    agent: builder
+    mission: 'Points 22, 24 and 26 in web/: stage state unknown is never now or the eyebrow and shows the DSO
+      line in place; the step-back words of labels.ts name every nulled kind and say H-1B only for h1b; the
+      petition outcome step offers I am not sure and may be left. Match the canvas (specs/design-1).
+
+      '
+    done: bash -c 'npm run typecheck -w web && npx vitest run --root web src/lib/views/fix7.test.ts && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with points 22 to 26; write the point
+      beside each change; never loosen an assertion; escalate any failure no point explains.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and make
+      npm test -w web pass, changing only tests that points 22 to 26 require, with the point beside each.
+
+      '
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 against specs/product-2/resolutions.md in ONE pass. Close or name every finding
+      and note of reviews/product-2-fix6.md. Send all twenty journeys and their twins through POST /v1/compute;
+      for J12, J13, J14 and J19 with a petition, check Home and the Timeline views name no stage the petition
+      could change as now. Try the point 25 mutants. Write reviews/product-2-fix7.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix7.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers name;
+      cap-gap rows stay not met (point 19). Update docs/requirements/audits/product-2.md and report the
+      share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register check'
