@@ -218,3 +218,12 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 
 - `stem_validation_end`, the petition member: a change-of-status petition now ends validations only when it belongs to this STEM card. It must be filed on or after the card start and on or before the card end, approved, and its change of status not ended before its validity start (`cos_ended_on` absent, or on or after `validity_start`). An approved petition from before this card never drops a report (reviews/product-2-fix3.md finding 2). The anchor is used by all four validation windows, so all four change together.
 - Note of capgap.status_ends_on_h1b_start says the same. No value, quote, plain text or plain_terms changed. No network was used.
+
+### 2026-09-30, lane L-content, run l-content-4b6af7aceb (product-2 resolutions point 18, pack side)
+
+- One test of belonging, anchor `petition_belongs`: a change-of-status petition that is approved, with a validity start on or after the start of the latest post-completion OPT or STEM card. It replaces point 17's "filed while the card runs" (filed_on is no longer read).
+- `stem_validation_end`: the petition member uses `petition_belongs` (and still needs `cos_ended_on` absent or on or after the validity start). A new member makes the validation dates null while that test cannot be settled (outcome or validity start missing), so the gap is not read as "does not belong".
+- Anchor `petition_may_belong` (not an older approved petition: outcome unknown, not approved, validity start unknown, or `petition_belongs`) now filters every petition read by the `cap_gap` stage, both `grace` stages, the checks stem.filed_while_opt_in_force, stem.filed_during_cap_gap, grace.after_cap_gap_outcome and unemployment.total.through_cap_gap, and the counters unemployment.opt_card and unemployment.total. An approved petition from before the current card keeps the grace, opens no cap_gap and raises no conflict (reviews/product-2-fix4.md finding 1).
+- `cap_gap` opens only when the validity start is unknown or after the latest card end: an approved start inside the card leaves no gap to extend, and no longer raises `cap_gap.<petition>.ends_before_starts` (P1, T3 of the review).
+- New check `petition.belongs_to_this_status`: asks for a missing outcome or validity start of a change-of-status petition; it never fails, so it raises no conflict.
+- Note of capgap.status_ends_on_h1b_start says the same. No value, quote, plain text or plain_terms changed. No network was used.

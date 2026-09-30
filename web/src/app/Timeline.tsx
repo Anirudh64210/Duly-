@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 
 import type { EngineOutput, Stage } from "../lib/compute";
 import { READING_TAG, formatDate, formatValue } from "../lib/labels";
+import { LANDMARKS } from "../lib/shots";
 import { fetchStatus } from "../lib/status";
 import { stageItemName } from "../lib/views/stages";
 import {
@@ -199,7 +200,13 @@ export function Timeline() {
   return (
     <div className="page">
       <header className="page-head">
-        <h1 className="page-title">Timeline</h1>
+        {/* The landmark waits for the phases, so a shot of the busy line is not counted. */}
+        <h1
+          className="page-title"
+          data-landmark={busy || output === undefined ? undefined : LANDMARKS["/timeline"]}
+        >
+          Timeline
+        </h1>
         <p className="page-meta">{TIMELINE_META}</p>
       </header>
       {busy || output === undefined ? (

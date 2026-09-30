@@ -7,30 +7,26 @@ import { webDist } from "./engine";
 import { createAppHandler, readInside } from "./protocol";
 import {
   NO_ENGINE,
+  LANDMARK_ATTRIBUTE,
   SHOTS_PAGE,
-  SHOT_CANVAS,
   SHOT_SCREENS,
   SHOT_SIZE,
   SHOT_THEMES,
-  designLandmarks,
   drawScript,
   holdsLandmark,
-  landmarkName,
-  pageTexts,
+  landmarkSelector,
+  pageMarks,
   planShots,
   refusedInApp,
   sampleNames,
-  screenLandmark,
   screenName,
   shotFile,
   shotUrl,
   shotsExitCode,
   shotsFolder,
   shotsJson,
-  spacing,
   webSamples,
-  type PageText,
-  type ScreenLandmark,
+  type PageMark,
   type ShotResult,
 } from "./shots";
 
@@ -169,187 +165,76 @@ describe("drawScript", () => {
     }
   });
 
-  it("gives back the text and type of each text under the root, not a verdict of its own", () => {
+  it("gives back each marked element under the root, not a verdict of its own", () => {
     const script = drawScript("light");
     expect(script).toContain('getElementById("root")');
-    expect(script).toContain("textContent");
-    expect(script).toContain("getComputedStyle");
-    expect(script).not.toContain("childElementCount");
+    expect(script).toContain('querySelectorAll("[data-landmark]")');
+    expect(script).toContain('getAttribute("data-landmark")');
+    expect(script).not.toContain("textContent");
   });
 });
 
-const LANDMARKS: unknown = JSON.parse(readFileSync(designLandmarks(ROOT), "utf8"));
-
-describe("each screen's landmark (resolutions point 16)", () => {
-  it("names only built screens, and only canvas screens landmarks.json holds", () => {
-    const screens = (LANDMARKS as { screens: Record<string, unknown> }).screens;
-    for (const [screen, canvas] of Object.entries(SHOT_CANVAS)) {
-      expect(SHOT_SCREENS).toContain(screen);
-      expect(Object.keys(screens)).toContain(canvas);
-    }
+describe("each screen's landmark (resolutions point 18)", () => {
+  it("is the element marked data-landmark with the route the shot asks for", () => {
+    expect(LANDMARK_ATTRIBUTE).toBe("data-landmark");
+    expect(landmarkSelector("/timeline")).toBe('[data-landmark="/timeline"]');
+    expect(landmarkSelector("/")).toBe('[data-landmark="/"]');
   });
 
-  it("is the heading of the screen's canvas, read from landmarks.json", () => {
-    expect(screenLandmark(LANDMARKS, "/")).toEqual({
-      canvas: "Main",
-      index: 20,
-      text: "Everything is in order.",
-      fontSize: 40,
-      fontWeight: "600",
-      letterSpacing: expect.closeTo(-0.8, 5) as number,
-    });
-    expect(screenLandmark(LANDMARKS, "/timeline")).toMatchObject({
-      canvas: "Timeline",
-      index: 15,
-      text: "Timeline",
-      fontSize: 32,
-    });
-    for (const screen of Object.keys(SHOT_CANVAS)) {
-      expect(screenLandmark(LANDMARKS, screen)).not.toBeNull();
-    }
-  });
-
-  it("is missing for a screen with no canvas screen, which then never counts as drawn", () => {
-    for (const screen of ["/case", "/settings", "/feedback"]) {
-      expect(screenLandmark(LANDMARKS, screen)).toBeNull();
-      expect(holdsLandmark([text("40px", "600", "-0.8px", "Your case")], null)).toBe(false);
-    }
-  });
-
-  it("is missing when the file does not hold the screen or its type", () => {
-    expect(screenLandmark(null, "/")).toBeNull();
-    expect(screenLandmark({ screens: {} }, "/")).toBeNull();
-    expect(screenLandmark({ screens: { Main: { landmarks: "no" } } }, "/")).toBeNull();
-    expect(screenLandmark({ screens: { Main: { landmarks: [{ tag: "div" }] } } }, "/")).toBeNull();
-    const odd = { label: "Heading", type: { "font-size": "2rem", "font-weight": "600" } };
-    expect(screenLandmark({ screens: { Main: { landmarks: [odd] } } }, "/")).toBeNull();
-  });
-
-  it("is missing when the heading has no text to compare (resolutions point 17)", () => {
-    const type = { "font-size": "30px", "font-weight": "600" };
-    for (const label of [undefined, "", "  ", 7]) {
-      const file = { screens: { Main: { landmarks: [{ label, type }] } } };
-      expect(screenLandmark(file, "/")).toBeNull();
-    }
-  });
-
-  it("takes each built screen's heading text from landmarks.json", () => {
-    const labels = Object.fromEntries(
-      Object.keys(SHOT_CANVAS).map((screen) => [screen, screenLandmark(LANDMARKS, screen)?.text]),
-    );
-    expect(labels).toEqual({
-      "/welcome": "What kind of work do you do?",
-      "/": "Everything is in order.",
-      "/timeline": "Timeline",
-      "/checklists": "STEM OPT extension",
-      "/updates": "One thing worth knowing.",
-    });
-  });
-
-  it("takes the first of the largest type", () => {
-    const mark = (size: string, spacingValue?: string): unknown => ({
-      label: ` Size\n ${size} `,
-      type: { "font-size": size, "font-weight": "bold", "letter-spacing": spacingValue },
-    });
-    const file = {
-      screens: { Main: { landmarks: [mark("14px"), mark("30px", "1px"), mark("30px")] } },
-    };
-    expect(screenLandmark(file, "/")).toEqual({
-      canvas: "Main",
-      index: 1,
-      text: "Size 30px",
-      fontSize: 30,
-      fontWeight: "700",
-      letterSpacing: 1,
-    });
-    expect(landmarkName(screenLandmark(file, "/"))).toBe("Main landmark 1");
-    expect(landmarkName(null)).toBeNull();
+  it("gives every built screen a landmark of its own", () => {
+    const selectors = SHOT_SCREENS.map(landmarkSelector);
+    expect(new Set(selectors).size).toBe(SHOT_SCREENS.length);
   });
 });
 
-function text(
-  fontSize: string,
-  fontWeight: string,
-  letterSpacing: string,
-  drawn = "Timeline",
-  width = 300,
-): PageText {
-  return { text: drawn, fontSize, fontWeight, letterSpacing, width, height: width === 0 ? 0 : 44 };
+function mark(landmark: string, width = 300): PageMark {
+  return { landmark, width, height: width === 0 ? 0 : 44 };
 }
 
 describe("holdsLandmark", () => {
-  const heading: ScreenLandmark = {
-    canvas: "Timeline",
-    index: 15,
-    text: "Timeline",
-    fontSize: 32,
-    fontWeight: "600",
-    letterSpacing: -0.64,
-  };
-  const sidebar = [text("17px", "700", "-0.17px", "Duly."), text("14px", "400", "normal")];
-
-  it("holds when a visible text reads as the heading, in the landmark's type", () => {
-    expect(holdsLandmark([...sidebar, text("32px", "600", "-0.64px")], heading)).toBe(true);
-    expect(holdsLandmark([text("32.02px", "600", "-0.62px")], heading)).toBe(true);
-    expect(holdsLandmark([text("32px", "600", "-0.64px", "\n  Timeline ")], heading)).toBe(true);
-  });
-
-  it("does not hold on another screen's heading in the same type (resolutions point 17)", () => {
-    const checklist: ScreenLandmark = {
-      canvas: "Checklist",
-      index: 22,
-      text: "STEM OPT extension",
-      fontSize: 30,
-      fontWeight: "600",
-      letterSpacing: -0.6,
-    };
-    const updates = text("30px", "600", "-0.6px", "One thing worth knowing.");
-    expect(holdsLandmark([...sidebar, updates], checklist)).toBe(false);
-    const own = text("30px", "600", "-0.6px", "STEM OPT extension");
-    expect(holdsLandmark([...sidebar, own], checklist)).toBe(true);
-  });
-
-  it("does not hold when the heading text differs in any letter", () => {
-    for (const drawn of ["timeline", "Timelines", "Time line", "", "Something went wrong."]) {
-      expect(holdsLandmark([text("32px", "600", "-0.64px", drawn)], heading)).toBe(false);
+  it("holds when a visible element is marked with the screen", () => {
+    expect(holdsLandmark([mark("/timeline")], "/timeline")).toBe(true);
+    expect(holdsLandmark([mark("/"), mark("/timeline")], "/timeline")).toBe(true);
+    for (const screen of SHOT_SCREENS) {
+      expect(holdsLandmark([mark(screen)], screen)).toBe(true);
     }
   });
 
-  it("does not hold on an error screen: the shell and a message, but no heading", () => {
-    expect(holdsLandmark([...sidebar, text("16px", "400", "normal")], heading)).toBe(false);
-    expect(holdsLandmark([], heading)).toBe(false);
+  it("does not hold on another screen's landmark", () => {
+    expect(holdsLandmark([mark("/updates")], "/checklists")).toBe(false);
+    expect(holdsLandmark([mark("/")], "/welcome")).toBe(false);
   });
 
-  it("does not hold when size, weight or spacing differ, or the text has no box", () => {
-    expect(holdsLandmark([text("30px", "600", "-0.6px")], heading)).toBe(false);
-    expect(holdsLandmark([text("32px", "700", "-0.64px")], heading)).toBe(false);
-    expect(holdsLandmark([text("32px", "600", "normal")], heading)).toBe(false);
-    expect(holdsLandmark([text("32px", "600", "-0.64px", "Timeline", 0)], heading)).toBe(false);
-    expect(holdsLandmark([text("2rem", "600", "-0.64px")], heading)).toBe(false);
-    expect(holdsLandmark([text("32px", "600", "wide")], heading)).toBe(false);
+  it("does not hold on a mark that differs in any letter", () => {
+    for (const drawn of ["timeline", "/Timeline", "/timeline ", "/timelines", ""]) {
+      expect(holdsLandmark([mark(drawn)], "/timeline")).toBe(false);
+    }
   });
 
-  it("reads letter spacing in em, px or normal", () => {
-    expect(spacing("-0.02em", 32)).toBeCloseTo(-0.64, 5);
-    expect(spacing(".5em", 10)).toBe(5);
-    expect(spacing("1.5px", 32)).toBe(1.5);
-    expect(spacing("normal", 32)).toBe(0);
-    expect(spacing("wide", 32)).toBeNull();
+  it("does not hold on an error screen, which carries no mark", () => {
+    expect(holdsLandmark([], "/timeline")).toBe(false);
+  });
+
+  it("does not hold when the marked element has no box", () => {
+    expect(holdsLandmark([mark("/timeline", 0)], "/timeline")).toBe(false);
+    expect(holdsLandmark([{ landmark: "/timeline", width: 300, height: 0 }], "/timeline")).toBe(
+      false,
+    );
   });
 });
 
-describe("pageTexts", () => {
-  it("takes a list of texts and refuses anything else", () => {
-    const good = text("32px", "600", "normal");
-    expect(pageTexts([good])).toEqual([good]);
-    expect(pageTexts([])).toEqual([]);
-    expect(pageTexts(true)).toBeNull();
-    expect(pageTexts(null)).toBeNull();
-    expect(pageTexts([{ ...good, width: "300" }])).toBeNull();
-    expect(pageTexts([{ ...good, fontSize: 32 }])).toBeNull();
-    expect(pageTexts([{ ...good, text: undefined }])).toBeNull();
-    expect(pageTexts([{ ...good, text: 1 }])).toBeNull();
-    expect(pageTexts(["32px"])).toBeNull();
+describe("pageMarks", () => {
+  it("takes a list of marks and refuses anything else", () => {
+    const good = mark("/timeline");
+    expect(pageMarks([good])).toEqual([good]);
+    expect(pageMarks([])).toEqual([]);
+    expect(pageMarks(true)).toBeNull();
+    expect(pageMarks(null)).toBeNull();
+    expect(pageMarks([{ ...good, width: "300" }])).toBeNull();
+    expect(pageMarks([{ ...good, height: undefined }])).toBeNull();
+    expect(pageMarks([{ ...good, landmark: undefined }])).toBeNull();
+    expect(pageMarks([{ ...good, landmark: 1 }])).toBeNull();
+    expect(pageMarks(["/timeline"])).toBeNull();
   });
 });
 
@@ -359,7 +244,7 @@ describe("the shots report", () => {
     screen: "/",
     sample: "a",
     theme: "light",
-    landmark: "Main landmark 20",
+    landmark: '[data-landmark="/"]',
     drawn,
   });
 
@@ -372,7 +257,7 @@ describe("the shots report", () => {
           screen: "/",
           sample: "a",
           theme: "light",
-          landmark: "Main landmark 20",
+          landmark: '[data-landmark="/"]',
           drawn: true,
         },
       ],
