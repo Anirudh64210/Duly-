@@ -8,8 +8,9 @@ import {
   useRouterState,
   type RouterHistory,
 } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 
+import { SHOT_SCREENS, type ShotScreen } from "../lib/shots";
 import { useStore } from "./caseStore";
 import { Checklists } from "./Checklists";
 import { Home } from "./Home";
@@ -95,16 +96,22 @@ const root = createRootRoute({
   component: Frame,
   notFoundComponent: () => <Navigate to="/" />,
 });
-const routes = [
-  createRoute({ getParentRoute: () => root, path: "/", component: Home }),
-  createRoute({ getParentRoute: () => root, path: "/timeline", component: Timeline }),
-  createRoute({ getParentRoute: () => root, path: "/checklists", component: Checklists }),
-  createRoute({ getParentRoute: () => root, path: "/updates", component: () => <Updates /> }),
-  createRoute({ getParentRoute: () => root, path: "/case", component: YourCase }),
-  createRoute({ getParentRoute: () => root, path: "/settings", component: Settings }),
-  createRoute({ getParentRoute: () => root, path: "/feedback", component: Feedback }),
-  createRoute({ getParentRoute: () => root, path: "/welcome", component: Onboarding }),
-];
+// resolutions point 20: the router is built from SHOT_SCREENS, the table each screen's
+// landmark is read from, so a screen's landmark is its route.
+const SCREENS = {
+  "/": Home,
+  "/timeline": Timeline,
+  "/checklists": Checklists,
+  "/updates": () => <Updates />,
+  "/case": YourCase,
+  "/settings": Settings,
+  "/feedback": Feedback,
+  "/welcome": Onboarding,
+} as const satisfies Record<ShotScreen, ComponentType>;
+
+const routes = SHOT_SCREENS.map((path) =>
+  createRoute({ getParentRoute: () => root, path, component: SCREENS[path] }),
+);
 
 export function createAppRouter(history: RouterHistory) {
   return createRouter({ routeTree: root.addChildren(routes), history });

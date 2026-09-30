@@ -2603,3 +2603,57 @@ these tests fail are the same as in l-tests-9c0a169aa5 and l-tests-1ab03b9f83.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-ffcce0aed7: resolutions point 19, the petition journeys and twins step back
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md (points 17 to 20), the J12, J13,
+J14 and J19-petition tests in tests/unit/acceptance/test_journeys.py and the J12, J13 and J19
+petition twins in tests/holdout/test_holdout_journeys.py. tests/holdout/test_holdout_product.py
+holds petitions only in the old compute_f1 cap_gap block (/v1/compute/f1, point 1 keeps it as it
+is), so it is not changed.
+
+Changed:
+- Both files: helpers _not_the_step_back (cap_gap.for_dso in the reasons; verdict talk_to_dso or
+  cannot_tell, since the journeys leave typed dates unconfirmed and not knowing wins; no cap_gap
+  stage; no other reason naming cap_gap; no conflict naming the petition; no cap_gap question),
+  _reports_dated_from (STEM validation and evaluation windows, and stem_job_end evaluations,
+  holding a date on or after the filing), _grace_dated, _null_or_absent. The unused
+  _grace_after helper is removed from both.
+- J12, J13, J14 (petition h1 filed 2026-04-01) and every J19 petition test and twin now expect
+  the step back. Removed as petition-derived: J12 cap_gap.h1 2026-06-01 to 2026-10-01 and
+  current, no grace after 2026-10-01, unemployment.opt_card.h1 0; J13 cap_gap.h1 2026-07-01 to
+  2026-08-14 and grace.after_cap_gap_outcome; J14 cap_gap.h1 2026-06-01 to 2026-07-25,
+  unemployment.total.a1 85, grace.after_cap_gap_outcome, stem.evaluation_final.a2 2026-07-15 to
+  2026-07-25; J19 (unit) validations 1 to 3 kept beside an old, ended, denied or pending petition,
+  validation_1 kept before an approved start, grace.p2 2028-06-09 to 2028-08-07 beside an old
+  petition; twins J12 cap_gap ends 2026-11-15, 2027-04-01, 2024-06-01 to 2024-10-01, grace.h1 from
+  2027-04-02, no grace after 2026-11-15; twin J13 cap_gap 2026-07-01 to 2026-09-02 and
+  grace.after_cap_gap_outcome; twins J19 validations 1 to 3 beside an old, ended, denied or
+  pending petition, validation_1 before the start, grace.p1 2027-12-12 to 2028-02-09.
+- Kept (not petition-derived, before the filing): J14 validation_3 2025-12-01 to 2025-12-15, J14
+  12-month evaluation closing 2025-06-11, J14 unemployment.opt_card.a1 40. Kept (point 18,
+  PRINCIPLES 2): h9.validity_start asked when approved and missing, h9.outcome asked, not asked
+  for a pending petition.
+- New holdout twins: J12 with no petition (grace.p1 2026-06-01 to 2026-07-30, no cap_gap.for_dso)
+  and J19 filed 2026-07-06, after validation_1 closed (validation_1 2026-06-12 to 06-29 stays).
+
+What ran:
+- Against today's engine: 32 tests fail in the two files, every one on the missing step back
+  (no cap_gap.for_dso, a cap_gap stage or grace.after_cap_gap_outcome still given, a final
+  evaluation still dated, a grace still dated). Every other test passes.
+- Scratch plugin under TMPDIR wrapping each module's _send with point 19 applied to today's
+  output: all tests in both files pass. Faults planted in it, each caught: no cap_gap.for_dso
+  (28 tests), cap_gap stage kept (11), grace kept (6), every report nulled whatever the filing
+  day (J14 reports before the filing, twin J19 filed after validation_1), step back on a case
+  with no petition (20, among them the no-petition twin), counts kept (3), a quiet verdict (31).
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+- rm -rf of the scratch files under TMPDIR was refused by the permission mode; they are left
+  there (p19/ref19.py, peek*.py, j19.txt, hhelp.txt, hj12.txt, hj19.txt).
+
+What makes each new test fail: no cap_gap.for_dso; a cap_gap stage, cap_gap item or petition
+conflict; a grace date with a petition entered; a validation or evaluation dated on or after the
+filing; a count spanning the filing that is still given; nulling reports before the filing;
+stepping back with no petition.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

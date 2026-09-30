@@ -1102,3 +1102,38 @@ probe TMPDIR/lc18/probe.py (CLOCK of the acceptance tests), J19 plus h9:
 - Point 18 says only a belonging (approved) petition opens cap_gap or takes the grace. Read literally, a pending or denied petition would open no cap_gap, against 8 CFR 214.2(f)(5)(vi) and J12, J13. Kept the law's reading for them; under disputes.
 - A pending or cap-exempt petition whose April 1 falls before the card end still raises cap_gap.<id>.ends_before_starts. Not point 18; under requests.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-49195b07fd, attempt 1 (product-2 resolutions point 19, pack side)
+
+### What was tried
+
+- Read resolutions point 19, plan-fix6.yaml, the f1 path and engine/path.py (`_when` returns null when a non-optional member is null; `_first` passes `this` as the outer of its selector; a check with no for_each gives its own id as the judgement item; the check contract has no field that nulls items).
+- So the nulls are written in the pack: a non-optional member, a `first` of the record itself whose where holds `none` over change-of-status petitions filed on or before the item's due day, is null once such a petition is there. With no petition it gives the same day as the other members (card_start, end_date guarded by earliest_of, card_end), so no date moves.
+- Removed the cap_gap stage, the petition grace, the petition opt_card counter, both anchors and four checks; added the check cap_gap.for_dso and the row capgap.petition_for_dso (quote of (f)(5)(vi)(A), found in the 2026-09-14 and 2026-09-15 texts).
+- A single-member any_of is refused by the schema (minItems 2); unwrapped it in stem_job_before_another.
+- Plain words were refused twice by the instruction check: "keep ... going" and a clause that began with "work" after "and". Fixed with the rule's own term, employment authorization.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 1 row changed, capgap.petition_for_dso#2025-01-17 (new)
+acceptance with a TMPDIR plugin that dumps every /v1/compute response, HEAD pack and new pack:
+  HEAD 117 passed; new 18 failed, every one a petition case (J12, J13, J14, the J19 twins)
+  91 no-petition computes: no date, count, verdict, question, conflict or judgement changed;
+    only rule_ids (the dropped ones), rules (capgap.petition_for_dso added) and inputs (a<n>.id, card_end, w<n>.end added)
+  27 petition computes: cap_gap.for_dso in every verdict, no cap_gap stage, grace null, no conflict;
+    J14 validations 1 to 3 kept (due before the filing), validation_4 and the evaluations null, opt_card.a1 40, total null;
+    J19 twins: every validation and evaluation null, both counts null
+pytest tests/unit/engine tests/unit/api tests/unit/tools, worktree and HEAD copy (git archive into TMPDIR):
+  only in the worktree: test_f1_translation change_4 (denied petition grace), test_path_fix1 point4 x3, point5 x2, point13 x1,
+  all J12 petition cases on point 12's grace.<petition> / unemployment.opt_card.<petition>
+  only in the copy: test_plain_changes (needs git history)
+```
+
+### Seen and not worked around
+
+- The 25 tests above are for L-tests (plan-fix6 lanes); asked under requests.
+- No network was used. No instruction was found in any data.
