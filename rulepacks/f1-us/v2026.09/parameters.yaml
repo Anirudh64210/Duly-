@@ -1022,6 +1022,66 @@ parameters:
     note: Agency guidance, not regulation. The sentence goes on with an example of six months after one master's degree and six after another. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.
     plain: SEVP's guidance says a student can split OPT time between degree programs at the same education level. This is agency guidance, not a regulation.
     plain_terms: [same education level]
+  - id: opt.part_time_pre_completion_counts
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2010-04-23
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.6', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: the six months of part-time OPT used by the student would account for three months of the total amount available at that education level, snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    derivation: reading
+    note: Reading. Agency guidance, not regulation. The snapshot is text extracted from the saved PDF, sources/ice-sevp-policy-guidance-1004-03.pdf. Start date is the date of the guidance. The quote ends an example in the answer to question 6.6, part-time pre-completion OPT from January 02, 2008, to January 01, 2009, with study finished on June 1, 2008, which leaves nine months. The example counts part-time pre-completion OPT against the total at the education level, at half its months. No saved source states a general rule or a number for the part-time deduction; 8 CFR 214.2(f)(10), recorded as opt.max_months, and (f)(11)(iii)(A), recorded as opt.post_completion_remaining_time, name none. So Duly does not compute it (IMPL-017). A level whose count holds a pre-completion card not marked full time has no count, and the judgement opt.months_at_level.part_time goes to the DSO. The flag records what the guidance says. It says nothing about any one person.
+    plain: SEVP's guidance gives an example where six months of part-time OPT count as three months of the total at that education level. It states no general rule. This is agency guidance, not a regulation.
+    plain_terms: [part-time OPT, education level]
+  - id: opt.post_completion_remaining_time
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2008-04-08
+    source: {citation: 8 CFR 214.2(f)(11)(iii)(A), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'the employment authorization period for post-completion OPT begins on the requested date of commencement or the date the Form I-765 or successor form is approved, whichever is later, and ends at the conclusion of the remaining time period of post-completion OPT eligibility.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence begins If granted. Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The words name no length for the remaining time. Duly takes the card end as printed and does not compute the time left (IMPL-017). The flag records what the regulation says. It says nothing about any one person.
+    plain: Post-completion OPT starts on the start date asked for or the day Form I-765 is approved, whichever is later. It ends when the time left for post-completion OPT runs out.
+    plain_terms: [post-completion OPT]
+  - id: enrollment.full_course_required
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(6)(iii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A student who drops below a full course of study without the prior approval of the DSO will be considered out of status., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly does not check terms in this round; the path asks full_course_each_term for each program, and an answer of no or not sure is the judgement program.enrollment for the DSO. The plain check refuses the words out of status, so the plain words say having lost status. The flag records what the regulation says. It says nothing about any one person.
+    plain: A student may not drop below a full course of study without the DSO's approval first. The rule treats a student who does so as having lost status.
+    plain_terms: [full course of study]
+  - id: enrollment.online_limit
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(6)(i)(G), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'no more than the equivalent of one class or three credits per session, term, semester, trimester, or quarter may be counted toward the full course of study requirement if the class is taken on-line or through distance education and does not require the student''s physical attendance for classes, examination or other purposes integral to completion of the class.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence begins For F-1 students enrolled in classes for credit or classroom hours. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly does not count classes or credits in this round; the path asks online_within_limit for each program, and an answer of no or not sure is the judgement program.enrollment. Whether one online class can be the whole load of a final term with a reduced course load is not settled by the saved words (J17). The flag records what the regulation says. It says nothing about any one person.
+    plain: In each term, at most one class or three credits taken online or through distance education may count toward the full course of study. This is for classes that need no attendance in person.
+    plain_terms: [distance education, full course of study]
+  - id: enrollment.online_language_program
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(6)(i)(G), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'If the F-1 student''s course of study is in a language study program, no on-line or distance education classes may be considered to count toward a student''s full course of study requirement.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.
+    plain: This rule is for a language study program. There, no online or distance education class counts toward the full course of study.
+    plain_terms: [language study program, distance education, full course of study]
+  - id: enrollment.final_term_reduced_load
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(6)(iii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'The DSO may authorize a reduced course load in the student''s final term, semester, or session if fewer courses are needed to complete the course of study.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a final term was approved is the school's fact; Duly holds reduced_load records and does not compute them in this round. The flag records what the regulation says. It says nothing about any one person.
+    plain: The DSO may allow a reduced course load in the last term. This is when fewer courses are needed to complete the course of study.
+    plain_terms: [reduced course load, course of study]
   - id: opt.unemployment_each_period
     value: true
     unit: flag
@@ -1515,6 +1575,7 @@ path:
                 - {field: this.level, in: [associate]}
                 - {field: this.level, level_above: associate}
             - none: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.program, same_as: outer.id}]}
+            - none: {record: authorization, where: [{field: this.type, in: [opt_pre_completion, opt_post_completion]}, {field: this.program.level, same_as: outer.level}, {field: this.decision, in: [approved]}, {field: this.card_end, on_or_after: {fact: this.card_start, add: [{rule: opt.max_months}], day_before: true}}]}
             - not: {field: this.state, in: [left_before_completing]}
     - id: move
       label: "Move to a new program"
@@ -1867,6 +1928,19 @@ path:
       holds:
         - {field: this.hours_per_week, at_most: {rule: opt.pre_completion_in_session_hours}}
       rule_ids: [opt.pre_completion_in_session_hours]
+    - id: opt.months_at_level.part_time
+      kind: judgement
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion]}, {field: this.decision, in: [approved]}]}
+      holds:
+        - {field: this.time, in: [full_time]}
+      rule_ids: [opt.part_time_pre_completion_counts, opt.max_months]
+    - id: program.enrollment
+      kind: judgement
+      for_each: {record: program, where: [{field: this.where, in: [us_on_f1]}]}
+      holds:
+        - {field: this.full_course_each_term, in: ["yes"]}
+        - {field: this.online_within_limit, in: ["yes"]}
+      rule_ids: [enrollment.full_course_required, enrollment.online_limit, enrollment.online_language_program, enrollment.final_term_reduced_load]
     - id: opt_post.filed_in_window
       for_each: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}
       holds:
@@ -2126,9 +2200,19 @@ path:
       scope: {of: {record: authorization, where: [{field: this.type, in: [opt_pre_completion, opt_post_completion]}, {field: this.decision, in: [approved]}]}, group: same_value, value_of: this.program.level}
       span:
         starts: {fact: this.card_start}
-        ends: {fact: this.card_end}
+        ends:
+          first:
+            of:
+              record: authorization
+              where:
+                - {field: this.id, same_as: outer.id}
+                - any_of:
+                    - {field: this.type, in: [opt_post_completion]}
+                    - {field: this.time, in: [full_time]}
+            field: card_end
+            pick: latest
       limit_rule: opt.max_months
-      rule_ids: [opt.max_months, opt.split_same_level, levels.higher_order]
+      rule_ids: [opt.max_months, opt.split_same_level, levels.higher_order, opt.part_time_pre_completion_counts, opt.post_completion_remaining_time]
     - id: stem.extensions
       calculator: count_of_records
       scope: {of: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.decision, in: [pending, approved]}]}, group: all}

@@ -902,3 +902,34 @@ pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools/t
 - The engine does not build ends_also yet (no ends_also in engine/), so the opt_post change shows no difference in output until it does.
 - A selector reads every condition, so with two petitions where one has validity_start, outcome_on or cos_ended_on and the other does not, the other's absent field may be asked. Same engine request as point 8.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-1a2b0cd812, attempt 1 (product-2 resolutions point 13, pack side)
+
+### What was tried
+
+- Read the saved 8 CFR 214.2 text (2026-09-14 and 2026-09-15), the saved FR documents and 1004-03 for the part-time deduction, the enrollment rules and the remaining months. The half deduction appears only as an example in 1004-03 section 6.6 (guidance); no regulation text states it. (f)(11)(iii)(A) says post-completion OPT ends at the conclusion of the remaining time period, with no length.
+- Six new rows (each quote found in both point-in-time texts or in the saved guidance, none under a regime): opt.part_time_pre_completion_counts (guidance, reading), opt.post_completion_remaining_time, enrollment.full_course_required, enrollment.online_limit, enrollment.online_language_program, enrollment.final_term_reduced_load.
+- opt.months_at_level: span end is `first` of the same card when it is post-completion or full_time, so a part-time or not sure pre-completion card leaves the level with no count. Judgement check opt.months_at_level.part_time.
+- Judgement check program.enrollment. The engine names it program.enrollment.p1; the J17 test asks for p1.enrollment (request and dispute).
+- program next opt_post: no approved OPT card at the same level whose own span reaches opt.max_months (end on or after start plus 12 months less a day, as sum_of_months counts). Only a single card; splits need an engine condition that reads a counter.
+
+### What ran
+
+```
+done command (as written, no pipe): first run exit 1, plain words: 5 problems (grade over 9, 'in status'); fixed the new plain words; second run exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 6 rows changed, all six new rows; no existing row changed
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 32 failed, 1779 passed; HEAD copy (git archive into TMPDIR) 35 failed; no new failure.
+  Now passing: test_j05_months_at_level_is_null_with_a_part_time_pre_completion_card, test_j20_opt_on_the_mba_and_no_second_masters_opt
+  (test_plain_changes fails in the HEAD copy only because it has no git history)
+  Still failing: test_j17_a_term_below_a_full_course_goes_to_the_dso (reason is program.enrollment.p1, test wants p1.enrollment)
+probe (TMPDIR/lc13_probe.py): J05 cannot_tell, opt.months_at_level.master null, judgement opt.months_at_level.part_time.a2;
+  J17 cannot_tell, judgement program.enrollment.p1; J20 months 12, opt_post.p2 not shown.
+  New questions: <program>.full_course_each_term and <program>.online_within_limit for every program on F-1 (programs.md section 3 table).
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
