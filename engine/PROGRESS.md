@@ -1301,3 +1301,120 @@ Status: done.
 - tests/unit/acceptance/test_journeys.py alone: all passed.
 
 Status: done.
+
+## l-engine-b37d57c967 (attempt 1): trips are counted by their own dates
+
+### What was done
+
+- engine/path.py `_days_of` read every record's days from the literal fields `start` and `end`
+  (PERIOD_START, PERIOD_END). A trip holds `left_on` and `returned_on`, so a not_qualifying
+  trip read as having no start and added no day.
+- Now `_span_fields(kind)` takes the first two date fields the kind declares in the pack, in
+  the pack's order: work gives start, end; trip gives left_on, returned_on (programs.md
+  section 10 lists each kind's first and last day first). PERIOD_START and PERIOD_END are gone;
+  no field name of any pack is written in the engine for this. A kind with fewer than two date
+  fields covers no day. This is a reading: the contract's record_kind has no explicit span.
+- First try used `len(dates) >= 2`; test_path.py refuses the number 2 in path.py. Rewritten
+  with slices.
+
+### The test (not written into tests/: the lane owns engine/** only)
+
+Written and run from $TMPDIR/l-engine-scratch/test_path_trip_days.py with PYTHONPATH at the
+worktree. On HEAD's engine (git archive into TMPDIR): 2 failed ([0] == [5], [0] == [10]),
+1 passed. On this engine: 3 passed. Proposed for tests/unit/engine/test_path_trip_days.py:
+
+```python
+"""A trip inside a job adds its days (specs/path-1/programs.md sections 10, 11 and 13 point 11).
+
+A record's first and last day come from the fields its kind declares, not from names in the
+engine: a trip holds left_on and returned_on, a job start and end.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from jsonschema import Draft202012Validator
+
+from engine.rulepack import validate_pack
+from tests.unit.engine.test_path_reach import (
+    PACK_SCHEMA,
+    UNEMPLOYMENT,
+    _card,
+    _case,
+    _compute,
+    _counted,
+    _course,
+    _course_stage,
+    _pack_dict,
+    _rec,
+)
+
+TRIP_FIELDS = [
+    {"id": "left_on", "kind": "date", "label": "Left on", "happened": True},
+    {"id": "returned_on", "kind": "date", "label": "Returned on", "happened": True},
+    {"id": "purpose", "kind": "choice", "label": "Purpose", "choices": ["personal", "job_travel"]},
+    {"id": "signature_on", "kind": "date", "label": "Signature on", "happened": True},
+]
+
+
+def _trip_pack(counter: dict[str, Any]) -> Any:
+    raw = _pack_dict([_course_stage()], counters=[counter])
+    for kind in raw["path"]["records"]:
+        if kind["id"] == "trip":
+            kind["fields"] = TRIP_FIELDS
+    problems = [e.message for e in Draft202012Validator(PACK_SCHEMA).iter_errors(raw)]
+    assert problems == [], problems
+    return validate_pack(raw)
+
+
+PERSONAL = {"record": "trip", "where": [{"field": "this.purpose", "in": ["personal"]}]}
+
+
+def test_a_personal_trip_inside_a_job_adds_its_days() -> None:
+    # k1 from 2026-09-01; through today 2026-09-29 is 29 days. w1 from 2026-09-01 at 20 hours
+    # covers all 29. t1 left 2026-09-10 and returned 2026-09-14: its 5 days count. 5.
+    pack = _trip_pack(dict(UNEMPLOYMENT, not_qualifying=PERSONAL))
+    k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    t1 = _rec(
+        "t1",
+        "trip",
+        left_on="2026-09-10",
+        returned_on="2026-09-14",
+        purpose="personal",
+        signature_on="2026-08-01",
+    )
+    out = _compute(_case([_course(), k1, w1, t1]), pack)
+    assert _counted(out, "toy.unemployment", "k1") == [5]
+
+
+def test_a_trip_not_yet_returned_counts_through_today() -> None:
+    # t1 left 2026-09-20 with no return: 2026-09-20 through today 2026-09-29 is 10 days.
+    pack = _trip_pack(dict(UNEMPLOYMENT, not_qualifying=PERSONAL))
+    k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    t1 = _rec("t1", "trip", left_on="2026-09-20", purpose="personal")
+    out = _compute(_case([_course(), k1, w1, t1]), pack)
+    assert _counted(out, "toy.unemployment", "k1") == [10]
+
+
+def test_a_trip_that_is_not_personal_adds_no_day() -> None:
+    pack = _trip_pack(dict(UNEMPLOYMENT, not_qualifying=PERSONAL))
+    k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    t1 = _rec("t1", "trip", left_on="2026-09-10", returned_on="2026-09-14", purpose="job_travel")
+    out = _compute(_case([_course(), k1, w1, t1]), pack)
+    assert _counted(out, "toy.unemployment", "k1") == [0]
+```
+
+### What ran
+
+- Done command as written, output to a file: exit 0. Acceptance and test_path.py all passed;
+  engine literals clean; mypy 62 files clean; ruff check clean; 9 files already formatted.
+- tests/unit/engine plus the scratch test: 1209 passed.
+
+Status: done.
+
+- Stop hook: `ruff format --check engine` also formats Python code blocks in engine/PROGRESS.md
+  and refused the test text above. `uv run ruff format engine` fixed it; done command exit 0.
