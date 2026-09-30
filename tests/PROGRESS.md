@@ -2073,3 +2073,38 @@ L-tests; I followed only the mission.
 
 The builder's report asks L-tests for the J12 ids; that is also in the mission, so it was done
 for the mission's sake. Nothing else read asked for an action.
+
+## Run l-tests-dde022b67d (attempt 1): resolution 13 in the engine, tests brought in line
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md (point 13) and the end of this log. The engine at HEAD
+  (8e749cc) makes a count null until every list it reads is stated whole
+  (engine/path.py, the counter's `whole` check over qualifying and not_qualifying records).
+- Done command on HEAD before any change: exit 0. Nothing failed.
+- The three count tests in tests/unit/engine/test_path_fix1.py (point 4 on J13 = 45, point 4
+  on J14 = 85, point 5 on J12 = 486) already pass: run l-tests-b0a5db2b39 stated the trip list
+  whole in J12, J13 and J14 in tests/unit/acceptance/test_journeys.py, which fix1 reads. Their
+  comments did not say so; each now carries a note citing resolution 13. No assertion changed.
+- The shipped pack has three counters, all reading work (qualifying) and trip (not_qualifying):
+  unemployment.opt_card, unemployment.opt_card.<petition>, unemployment.total.
+- Scratch plugin under TMPDIR wrapped engine.path.compute over tests/unit and tests/holdout and
+  listed each test's cases by trip records and trip statement. No test builds trip records
+  without stating the trip list whole. Cases with no trip statement: J02, J06 and the twins of
+  J02, J03, J06, J16 (no unemployment count asserted, so point 13 does not touch them), and the
+  two J08 null tests that leave it out on purpose. Scratch removed.
+- New in test_path_fix1.py, point 13 at the engine: J13 (w1 ends 2026-06-30) without the trip
+  statement gives unemployment.opt_card.h1 null, reason unconfirmed:complete.trip, question
+  complete.trip; J14 without it gives unemployment.total.a1 null and the reason. The other side
+  of each line is the 45 and 85 tests on the same case with trips stated.
+- ruff format: 71 files unchanged; ruff check clean. Done command as written, no pipe: exit 0.
+
+### What change would make each new test fail
+
+- Both point 13 tests: an engine that checks only the work list (planted through a scratch
+  plugin making _Run._stated true for trip: both failed, the rest of the file passed); or a
+  count that is null without saying why.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

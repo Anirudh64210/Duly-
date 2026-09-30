@@ -91,12 +91,16 @@ def test_point4_unemployment_runs_through_the_cap_gap() -> None:
     # cap-gap runs 2026-07-01 to 2026-08-14 (denied). Days without work: July (31) and
     # August 1-14 (14) = 45. On the card alone the count would be 0. Resolution 12: the
     # cap-gap count is unemployment.opt_card.<petition>, here h1.
+    # Resolution 13: the count reads the trip list too, so it is given only because the
+    # journey states that list whole (the timeline holds every trip, none).
     out = _compute(_set(journeys.j13(), "w1", end="2026-06-30"))
     assert value(out, "unemployment.opt_card.h1") == 45
 
 
 def test_point4_unemployment_total_runs_through_the_cap_gap_on_stem() -> None:
     # J14: 40 on OPT, 35 on STEM, and 2026-07-16 to 2026-07-25 in the cap-gap (10): 85.
+    # Resolution 13: the count reads the trip list too, so it is given only because the
+    # journey states that list whole (the timeline holds every trip, none).
     out = _compute(journeys.j14())
     assert value(out, "unemployment.total.a1") == 85
 
@@ -122,8 +126,36 @@ def test_point5_the_count_is_given_once_the_list_is_stated_whole() -> None:
     # (31 + 31 + 30 + 31 + 30 + 31 = 184) + January to August 2026 (31 + 28 + 31 + 30 + 31 +
     # 30 + 31 + 31 = 243) + September 1-29 (29) = 486.
     # The id is unemployment.opt_card.h1, the petition's (resolution 12).
+    # Resolution 13: the count reads the trip list too, so it is given only because the
+    # journey states that list whole (the timeline holds every trip, none).
     out = _compute(_without(journeys.j12(), "w1"))
     assert value(out, "unemployment.opt_card.h1") == 486
+
+
+# Point 13: every list a count reads needs a statement, trips as well as work. The other
+# side of each line is the test above on the same case with the trip list stated whole.
+
+
+def test_point13_no_cap_gap_count_while_the_trip_list_is_not_stated_whole() -> None:
+    # The input of test_point4_unemployment_runs_through_the_cap_gap (45 with trips stated)
+    # with the trip statement taken out and the work statement kept. A trip changes the
+    # count, so the count is null and the person is asked (resolution 13, PRINCIPLES 2).
+    body = _set(journeys.j13(), "w1", end="2026-06-30")
+    del body["complete"]["trip"]
+    out = _compute(body)
+    assert value(out, "unemployment.opt_card.h1") is None
+    assert "unconfirmed:complete.trip" in reasons(out)
+    assert "complete.trip" in question_ids(out)
+
+
+def test_point13_no_total_count_while_the_trip_list_is_not_stated_whole() -> None:
+    # J14 gives 85 with trips stated (test_point4_unemployment_total_runs_through_the_cap_gap
+    # _on_stem); without the trip statement unemployment.total is null (resolution 13).
+    body = journeys.j14()
+    del body["complete"]["trip"]
+    out = _compute(body)
+    assert value(out, "unemployment.total.a1") is None
+    assert "unconfirmed:complete.trip" in reasons(out)
 
 
 def test_point5_no_at_or_over_item_on_j01_without_a_work_statement() -> None:
