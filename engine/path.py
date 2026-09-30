@@ -642,6 +642,10 @@ class _Run:
         if rid is not None:
             entry["stage"] = stage[ID]
             entry["record"] = rid
+        if span and (starts is None or ends is None):
+            stepped = self._step_backs(span, starts, ends, record)
+            if stepped:
+                entry["reasons"] = stepped
         self._checklist(stage, entry, rid)
         self.stages.append(entry)
         for list_id in stage.get("lists", []):
@@ -649,6 +653,41 @@ class _Run:
         if next_of is None:
             for step in stage.get("next", []):
                 self._next(step, record)
+
+    def _step_backs(
+        self, span: Json, starts: date | None, ends: date | None, record: Json | None
+    ) -> list[str]:
+        """Resolutions point 22b: a raised judgement that steps back while no record of a kind
+        exists (a check with no for_each holding only `none` over that kind) rests on a stage
+        only when records of that kind made its start or end null: computed without them, a
+        null day of the span is known."""
+        found: list[str] = []
+        for check in self.path.get("checks", []):
+            holds = check.get("holds", [])
+            if (
+                check.get("kind") != "judgement"
+                or "for_each" in check
+                or len(holds) != 1
+                or set(holds[0]) != {"none"}
+                or check[ID] not in self.judgements
+            ):
+                continue
+            kind = holds[0]["none"]["record"]
+            if not any(r["kind"] == kind for r in self.records.values()):
+                continue
+            saved, records = self._snapshot(), self.records
+            self.records = {k: r for k, r in records.items() if r["kind"] != kind}
+            try:
+                without_starts = self._when(span["starts"], record, record, _Trace())
+                without_ends = self._when(span["ends"], record, record, _Trace())
+            finally:
+                self.records = records
+                self._restore(saved)
+            if (starts is None and without_starts is not None) or (
+                ends is None and without_ends is not None
+            ):
+                found.append(check[ID])
+        return found
 
     def _state(
         self, span: Json, starts: date | None, ends: date | None, windows: list[Json]
