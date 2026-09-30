@@ -814,3 +814,82 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - The sentinel test, the court line on stage items, the 300ms busy delay on the new
   screens, and the completion moment's timing when the last step is confirmed.
 - The checked checkbox draws its tick in white in a data URL, not `--on-accent`.
+
+## Run l-web-a0ebffda52 (attempt 1): coverage repair for the app screens
+
+### Tried
+
+- Tests beside the code, walked as a student uses the screens:
+  - `app/Onboarding.test.tsx`: an F-1 walk through every view kind (two programs, CPT days,
+    OPT dates and card, STEM OPT dates and card, cap-gap petition, status and change of
+    status, two jobs, one still held and one ended), every problem line on Continue, Back,
+    the No answers that drop an earlier program and the jobs, the time zone change, Duly's
+    questions (one, and two in a row), another status with and without a name, and a
+    category from /v1/status with no rules (H-1B), with duplicate packs offered once.
+  - `app/Pages.test.tsx`: Updates empty and with rows; Your case programs (name, level,
+    none), edit with Cancel and Save, Remove with Keep, OPT, STEM OPT and cap-gap choices,
+    jobs, answers changed and removed, answers the engine did not read, another status;
+    Settings zone, rule packs with and without a check day, server not reached, Keep;
+    Feedback copy and a refused copy.
+  - `app/parts.test.tsx`: Row, Disclose, RuleBlock (verbatim, reading with note, bare),
+    RuleBlocks, Working with every input kind, DraftPill and DraftView copy and refusal,
+    OptionCards arrow keys and tab stop, DateField, splitDate, TextField, HeroMark, CompletionMark.
+  - `app/refusal.test.ts`: CaseRefused with and without a reason, a ZodError, any other error.
+  - `app/Home.test.tsx`: the 300ms busy state, a refused case with Try again, server not
+    reached, a category with no rules, the metric toggles, full-time CPT on a current
+    program stage, the question pills Yes and No, the hero's jump to the first question,
+    a STEM window that only closes, and the job lines under periods not marked as reported.
+  - `entry.test.tsx`: main.tsx and bench.tsx mount into #root and refuse to start without one.
+
+### Faults found by a test, and the code changed
+
+- Onboarding, two questions: after the first answer the output is recomputed, the questions
+  view dropped out of the list while it was pending, and the student was sent back to
+  "Which visa status do you hold now?". Onboarding now keeps the questions view (with its
+  busy line) while it waits. The test fails on the old code and passes on the new.
+- The done command passes `-- --coverage` and the web test script already held
+  `--coverage`; vitest refused the flag twice and ran no test. Coverage moved into
+  vite.config.ts (`enabled: true`) and the script is `vitest run`, so gate 5's `npm test`
+  still writes web/coverage/lcov.info for gate 6.
+
+### Ran
+
+- Baseline coverage at start: 441 tests, exit 0. Onboarding 28.6, Pages 53.5, parts 51.6,
+  refusal, bench and main 0 (lines).
+- Done command first: exit 2 (tsc: mock calls typed as empty tuples; fixed with typed vi.fn).
+  Second: exit 1 (duplicate --coverage, above). Third and fourth: exit 0, 504 tests,
+  lines 98.15 percent, eslint clean, prettier clean, "copy lint: clean".
+- After: Onboarding 100, Pages 100, parts 100, Home 98.2, refusal, bench and main 100 (lines).
+
+### Not done, not verified
+
+- Gate 6 itself was not run here: it needs coverage.xml from the Python suite.
+- Home's "Show every reason" button cannot be reached: the hero that uses it never holds
+  more than two lines. A continue on the questions view while the answer is still
+  computing goes to Done; the question is still shown on Home.
+- A prettier write run from inside web/ reformatted the generated api-types.ts (the root
+  .prettierignore is not read there); reverted before the commit.
+
+## Run l-web-1653a00fc9 (attempt 1): bring in the coverage tests, script back to --coverage
+
+### Tried
+
+- Merged lane/L-web/l-web-a0ebffda52 (the tests beside the code, and the Onboarding fix for
+  two questions in a row). The merge printed "Operation not permitted" for tests/holdout/,
+  which the sandbox keeps from this lane; the merge itself completed.
+- Put the web test script back to "vitest run --coverage" and vite.config.ts back to main's
+  coverage block (no `enabled: true`): the done command no longer passes `-- --coverage`,
+  so the script is the one place the flag is given. Nothing else in package.json changed.
+
+### Ran
+
+- Done command, as written, no pipe: exit 0. 23 files, 504 tests passed; lines 98.15,
+  statements 96.56, branches 86.64, functions 96.88 percent; eslint clean, prettier clean,
+  "copy lint: clean". web/coverage/lcov.info written.
+- Lines per file from lcov: Onboarding 263/263, Pages 71/71, parts 95/95, refusal 6/6,
+  bench 4/4, main 5/5, Home 111/113.
+
+### Not done, not verified
+
+- Gate 6 was not run here (it needs the Python coverage.xml). Home's two lines left are the
+  "Show every reason" button the hero cannot reach, as written in the run above.
