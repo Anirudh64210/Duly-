@@ -1678,3 +1678,42 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-0c5dbafa90 (attempt 1): the local token, tests first
+
+### What I tried and what ran
+
+- Read specs/desktop-1/SPEC.md, "The api (L-api)" and "The engine process". Wrote
+  tests/unit/api/test_local_token.py from those alone: 24 tests. /health open with and
+  without a header; 403 without the header on GET, POST, ops, an unknown path, /healthz
+  and /health/../version; 403 for a wrong, empty, prefix, longer and last-char-changed
+  value, for the token in Authorization or the query; the right value let through (GET,
+  POST, ops); the refusal in plain words (a sentence, no long dash, emoji or lint word)
+  and not repeating the token; the comparison through hmac.compare_digest (spy put in
+  before api.main is loaded again); with the variable not set, nothing changes (no
+  header needed, header ignored, unknown path 404, same /version body).
+- Each fixture sets the environment, clears get_settings and reloads api.main, so an api
+  that reads the variable at start and one that reads it per request are both covered.
+- First run in the worktree: the ops test passed with no check at all, because the ops
+  guard refused the "testclient" address first. Fixed: the client calls from 127.0.0.1
+  (inside the default ops list), and a control test shows ops answers 200 with the token.
+- Second run in the worktree (new file and test_api.py): exit 1, the 12 refusal tests fail
+  (no check yet, as expected); the others and all of test_api.py pass.
+- Done command as written: exit 0, "All checks passed!", "62 files already formatted".
+
+### What change to the code would make each test fail
+
+Scratch copy of HEAD under TMPDIR (git archive), with a reference middleware appended to
+api/main.py and a REF_FAULT switch; removed afterwards.
+- Reference: 36 passed, exit 0 (this file and test_api.py).
+- Exempt by prefix: the /healthz test fails. Ops left out: the ops test fails. GET only:
+  the POST test fails. Compared with ==: the constant time test fails. Prefix compare:
+  the prefix test and the constant time test fail. Token in the message: the no-repeat
+  test fails. Body "403": the plain words test fails.
+- The worktree api as it stands (no check): the 12 refusal tests fail.
+- The "not set" tests fail if the check runs with no token (e.g. refusing when the value
+  is None): that is the plain worktree state inverted; not planted separately.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
