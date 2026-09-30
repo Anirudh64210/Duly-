@@ -216,3 +216,23 @@ What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0.
 vitest 11 files, 139 tests passed (the three point 20 tests among them); eslint clean; copy lint clean.
 git printed "tests/holdout: Operation not permitted" during the merge and status: the sandbox denies
 reads there, as the contract says. Not run: Electron itself.
+
+## 2026-09-30, run l-desktop-c0e365aa13, attempt 1
+
+specs/ui-1/SPEC.md point 7 (review finding 4): the shot run fails when a screen is wider than its window.
+
+- shots.ts: SHOT_WINDOWS (1280x832, the canvas frame, and 390x844), widthScript (document
+  scrollWidth and window innerWidth after two frames), pageWidth (parses the answer), fitsWindows
+  (every window measured, at its own width, scroll <= inner). ShotResult gains widths; shots.json
+  writes windows, and per shot widths and fits; shotsExitCode is 0 only when every shot drew and fits.
+- shotrun.ts: after each drawn shot is captured at 1280, the same window is set to each size in
+  SHOT_WINDOWS, measured, then set back to 1280x832. A window not measured, or whose inner width is
+  not the width asked, counts as not fitting (never the quiet state). Picture file names unchanged.
+- shots.test.ts: a block for point 7 and the report block updated for widths and fits.
+
+What ran: prettier --write on the three files, then the done command once, unpiped, output to a
+file under TMPDIR, exit 0. typecheck clean; vitest 11 files, 146 tests passed; eslint clean.
+git printed "tests/holdout: Operation not permitted" (sandbox denies reads there, as the contract says).
+Not run: Electron itself or make design-shots. Note: web/src/shots.tsx sets the shot root to
+1280px wide; unless L-web gives it max-width 100% (review finding 4 says it does), the 390 measure
+will fail the shot run, which is what point 7 asks for.
