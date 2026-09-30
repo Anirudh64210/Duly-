@@ -122,6 +122,13 @@ desktop:
 	npm run build -w web
 	npm run start -w desktop
 
+design-shots:
+	npm run build -w web
+	npm run build -w desktop
+	rm -rf .scratch/shots && mkdir -p .scratch/shots
+	cd desktop && npx electron . --shots $(CURDIR)/.scratch/shots
+	@ls .scratch/shots
+
 desktop-smoke:
 	npm run build -w web
 	npm run build -w desktop
