@@ -156,3 +156,13 @@ def test_a_text_longer_than_the_contract_allows_is_refused():
         "characters; the contract allows 320" in p for p in plain.problems(long, "rule", QUOTE)
     )
     assert not any("characters" in p for p in plain.problems(long, "regime", QUOTE))
+
+
+def test_a_sentence_that_ends_in_no_or_etc_is_still_a_sentence():
+    # The review of fix 9: "No." and "etc." ending a sentence were read as abbreviations.
+    four = "A student may work. The rule says no. It ends then. It stops there."
+    assert len(plain._sentences(four)) == 4
+    assert any("4 sentences" in p for p in plain.problems(four, "rule", four))
+    assert len(plain._sentences("It lists forms, etc. It ends there.")) == 2
+    assert len(plain._sentences("See No. 5 on the list. It ends there.")) == 2
+    assert len(plain._sentences("It names tools, etc., and stops.")) == 1
