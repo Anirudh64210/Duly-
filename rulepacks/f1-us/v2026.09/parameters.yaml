@@ -2104,12 +2104,15 @@ path:
         group: record
       span:
         starts: {fact: this.card_start}
-        ends: {fact: this.card_end}
-      qualifying: {record: work, where: [{field: this.under, same_as: outer.id}]}
+        ends:
+          earliest_of:
+            - {fact: this.card_end}
+            - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
+      qualifying: {record: work, where: [{field: this.on_campus, present: false}, {field: this.under, same_as: outer.id}]}
       hours_rule: opt.min_hours_per_week
       not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
       limit_rule: opt.unemployment_limit_days
-      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap]
+      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap, opt.ends_on_transfer_or_new_level]
     - id: unemployment.opt_card
       calculator: days_without_qualifying_period
       scope:
