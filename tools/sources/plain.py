@@ -28,6 +28,9 @@ from tools.copy_lint.lint import _WORDS, DASHES, EMOJI
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GRADE = 9.0
 SENTENCES = {"rule": 3, "regime": 4}
+# The contract's limits (contracts/rulepack.schema.json, plain maxLength); a longer text
+# makes the pack fail to load.
+CHARACTERS = {"rule": 320, "regime": 480}
 SECOND_PERSON = re.compile(r"\b(?:you|your|yours|yourself|yourselves)\b", re.IGNORECASE)
 ALARM = re.compile(
     r"\b(?:urgent\w*|danger\w*|warning\w*|immediately|deport\w*|illegal\w*|unlawful\w*|"
@@ -116,6 +119,8 @@ def problems(plain: str, kind: str, grounds: str) -> list[str]:
     new = sorted(_numbers(plain) - _numbers(grounds))
     if new:
         found.append(f"numbers not in the rule's own words: {', '.join(new)}")
+    if len(plain) > CHARACTERS[kind]:
+        found.append(f"{len(plain)} characters; the contract allows {CHARACTERS[kind]}")
     count = len(_sentences(plain))
     if count > SENTENCES[kind]:
         found.append(f"{count} sentences; at most {SENTENCES[kind]}")
