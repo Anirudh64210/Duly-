@@ -46,3 +46,12 @@ Register rows: the rows specs/path-1/programs.md section 22 and specs/design-1/S
     - The journeys that hold a petition (J12, J13, J14 and the twins of points 17 and 18) expect exactly this step back.
     - The register rows on cap-gap stay not met until that round.
 20. The landmark each screen carries is its route (`data-landmark="/timeline"`), written by the web app and read by the shot run, with one test that joins the two sides.
+
+## 21. While cap-gap is deferred, the petition's outcome and validity start are not asked
+
+Point 19 steps back for any change-of-status petition whatever its outcome, so the outcome and
+the validity start decide nothing yet. Asking for them keeps a question open that no answer can
+close (review finding 9). The two J19 twins that expect `h9.outcome` and `h9.validity_start`
+as questions keep their step-back assertions as passing tests; the question assertions move to
+`pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")`, so the
+cap-gap round turns them back on.
