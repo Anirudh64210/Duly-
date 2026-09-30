@@ -25,6 +25,7 @@ import {
   questionCopy,
   reasonItem,
 } from "../lib/labels";
+import { LANDMARKS } from "../lib/shots";
 import { headline, type VerdictState } from "../lib/status";
 import { useStore } from "./caseStore";
 import { Disclose, DraftPill, Footer, HeroMark, OneOpen, RuleBlocks, Row, Working } from "./parts";
@@ -57,6 +58,8 @@ function Hero(props: {
   eyebrow: string;
   lines: readonly string[];
   scope?: string;
+  /** Only a verdict carries Home's landmark; the refusal hero never does. */
+  landmark?: boolean;
   children?: ReactNode;
 }) {
   const [every, setEvery] = useState(false);
@@ -71,7 +74,9 @@ function Hero(props: {
         </span>
         <span className="hero-eyebrow">{props.eyebrow}</span>
       </div>
-      <h1 className="hero-headline">{title}</h1>
+      <h1 className="hero-headline" data-landmark={props.landmark ? LANDMARKS["/"] : undefined}>
+        {title}
+      </h1>
       {shown.map((line) => (
         <p key={line} className="reason-line">
           {line}
@@ -487,6 +492,7 @@ export function Home() {
       <div className="page">
         <Hero
           state="cannot_tell"
+          landmark
           eyebrow={name || "YOUR STATUS"}
           lines={[
             name === "" ? NAMED_STATUS_LINE : appReasonLine(`category_not_covered:${held.status}`),
@@ -531,7 +537,9 @@ export function Home() {
             </span>
             <span className="hero-eyebrow">{stageEyebrow(output)}</span>
           </div>
-          <h1 className="hero-headline">{headline(state)}</h1>
+          <h1 className="hero-headline" data-landmark={LANDMARKS["/"]}>
+            {headline(state)}
+          </h1>
           <Reasons output={output} />
           <p className="scope-line">{datesScopeLine(output.scope.rules_checked_on)}</p>
           {showNext && (

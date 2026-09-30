@@ -20,6 +20,22 @@ export const SHOT_SCREENS = [
 
 export type ShotScreen = (typeof SHOT_SCREENS)[number];
 
+/**
+ * resolutions point 18: the value of data-landmark on a screen's own heading, the name the
+ * shot run gives the screen ("/" is home, the others lose their slash). No error screen
+ * carries one, so a shot that holds it drew the screen.
+ */
+export const LANDMARKS = {
+  "/welcome": "welcome",
+  "/": "home",
+  "/timeline": "timeline",
+  "/checklists": "checklists",
+  "/updates": "updates",
+  "/case": "case",
+  "/settings": "settings",
+  "/feedback": "feedback",
+} as const satisfies Record<ShotScreen, string>;
+
 /** The screen and sample a shot asks for, or null when either is not one Duly has. */
 export function shotAsked(
   search: string,

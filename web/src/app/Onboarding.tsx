@@ -5,6 +5,7 @@ import { useState } from "react";
 import { reportedZone, zoneChoices } from "../lib/caseForm";
 import { becauseLine, categoryName, formatDate, groupOf, questionCopy } from "../lib/labels";
 import { typedDates } from "../lib/records";
+import { LANDMARKS } from "../lib/shots";
 import { fetchStatus } from "../lib/status";
 import {
   NOT_SURE,
@@ -481,7 +482,9 @@ export function Onboarding() {
       </header>
       <main className="onb-view step-drop" key={view.id}>
         <p className="meta">{view.kind === "done" ? "" : SECTIONS[view.section - 1]}</p>
-        <h1 className="onb-title">{title}</h1>
+        <h1 className="onb-title" data-landmark={LANDMARKS["/welcome"]}>
+          {title}
+        </h1>
         {problems.choice !== undefined && (
           <p className="problem" role="alert">
             {problems.choice}
