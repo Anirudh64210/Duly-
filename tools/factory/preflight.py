@@ -89,6 +89,8 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
     spec_file = repo / plan["spec"]
     known = _points(spec_file.read_text()) if spec_file.exists() else set()
     found: list[str] = []
+    if not str(plan.get("goal", "")).strip():
+        found.append("the plan has no goal: every lane is told it, so it sees the whole picture")
     earlier: list[Any] = []
     for rnd in plan["rounds"]:
         owners: dict[str, Any] = {}

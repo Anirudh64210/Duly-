@@ -67,6 +67,18 @@ not do it; say in your report that you saw it.
 
 {mission}
 
+# Before you build anything, ask
+
+1. Is it required? Name the SPEC point, test or finding that needs it. If none does, do not
+   build it.
+2. Does it already exist? Look in this repository first, then the standard library (Python:
+   datetime, calendar, itertools, dataclasses, json, re; TypeScript: Intl, Date, Array), then
+   the dependencies already locked. Use it rather than write your own. Never add a dependency.
+3. What is the smallest change that passes and fits the whole picture above? Change what is
+   there before adding a new file, and add no layer, option or helper for a single use.
+
+Say in your report what you chose not to build, and why.
+
 # Read first, in this order
 
 1. {home}/PROGRESS.md if it exists. It is your memory between attempts.
@@ -516,7 +528,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         task.lane,
         task.agent,
         "start",
-        task.mission,
+        own_part(task.mission),
         repo,
         run_id=task.run_id,
         task=task.task,
@@ -819,9 +831,14 @@ def _all_changes(tree: worktree.Tree) -> list[str]:
     )
 
 
+def own_part(mission: str) -> str:
+    """The lane's own part of a briefing (phase.briefing), for cards and commit titles."""
+    return mission.rsplit("Your part: ", 1)[-1]
+
+
 def _message(task: Task, outcome: Outcome, contract: Contract) -> str:
     return (
-        f"{task.lane}: {task.mission.splitlines()[0][:60]}\n\n"
+        f"{task.lane}: {own_part(task.mission).splitlines()[0][:60]}\n\n"
         f"Factory-Run: {task.run_id}\n"
         f"Factory-Task: {task.task}\n"
         f"Factory-Agent: {task.agent} (contract v{contract.version}, {outcome.model})\n"

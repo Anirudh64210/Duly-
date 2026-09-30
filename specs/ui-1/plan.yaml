@@ -1,0 +1,36 @@
+branch: product-2
+spec: specs/ui-1/SPEC.md
+goal: 'The founder tests Duly next. Home, the one screen that does not yet look like the approved canvas,
+  and three smaller gaps are fixed, so every screen matches design/canvas/png. No engine or pack change.'
+merge: pr
+rounds:
+- name: build
+  lanes:
+  - lane: L-web
+    agent: builder
+    mission: 'Fix specs/ui-1/SPEC.md points 1 to 4 in web/. Write the tests in web/src/app/ui1.test.tsx: Home
+      with the path-stem-next sample shows no field id and no repeated reason line, and has the count line
+      and the next move row; Your case with no answers shows the pointer line; step 1 with a failed rule
+      list shows Try again and not only Another status. Keep every other test passing.
+
+      '
+    done: bash -c 'npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint && make samples'
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review the web change against specs/ui-1/SPEC.md and design-1 in ONE pass: read Home, Your
+      case, Onboarding and app.css against design/canvas/png/Main.png; check no reason is dropped and no
+      id is shown; name overbuilding. Write reviews/ui-1.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/ui-1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the design-1 Covers rows for Home, Your case and Onboarding after specs/ui-1; update
+      docs/requirements/audits/product-2.md and report the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register check'

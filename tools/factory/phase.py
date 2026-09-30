@@ -443,6 +443,24 @@ def run_checks(repo: Path, checks: list[dict[str, str]]) -> bool:
     return all(v == "pass" for v in results.values())
 
 
+def briefing(plan: dict[str, Any], rnd: dict[str, Any], job: dict[str, Any]) -> str:
+    """A lane's mission with the whole picture before it: what the plan is for, and what the
+    lanes beside it are doing. A lane that sees only its own slice solves it in full, even
+    when the whole needs much less."""
+    beside = [
+        f"{j['lane']}: {' '.join(str(j['mission']).split())[:160]}"
+        for j in rnd["lanes"]
+        if j["lane"] != job["lane"]
+    ]
+    parts = (
+        [f"The whole picture: {' '.join(str(plan['goal']).split())}"] if plan.get("goal") else []
+    )
+    if beside:
+        parts.append("Beside you in this round: " + " | ".join(beside))
+    parts.append("Your part: " + " ".join(str(job["mission"]).split()))
+    return "\n\n".join(parts)
+
+
 def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents: bool) -> bool:
     name = rnd["name"]
     jobs = [] if skip_agents else rnd["lanes"]
@@ -466,7 +484,7 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
             "--spec",
             plan["spec"],
             "--mission",
-            " ".join(job["mission"].split()),
+            briefing(plan, rnd, job),
             "--done",
             job["done"],
             "--base",

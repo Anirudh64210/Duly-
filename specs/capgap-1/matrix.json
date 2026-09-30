@@ -1,0 +1,7001 @@
+{
+ "spec": "capgap-1/SPEC.md",
+ "conventions": {
+  "today": "Each row runs on clock_on(today). Default today is 2026-09-30 unless the row says otherwise. The acceptance journeys run on 2026-09-29; a row that names a journey states its own day.",
+  "regime": "Rows dated after 2026-10-02 assume the pack's regime check was rerun and recheck_on moved past the row's today, unless the row is about staleness (g1.14b).",
+  "facts": "A row's facts are either a full case (records, complete, confirmations) or a delta on a named base or journey: set sets <record>.<field>; unset removes a field; add appends records; remove drops records; complete and confirmations replace those keys. Base records are in bases below.",
+  "verdict": "Verdicts are stated for the cap-gap part. The test clears every reason that is not about a petition, a capgap_i20, a trip in a cap-gap, or a cap-gap stage (by supplying those fields, as the journey tests do). It then asserts the state, that each listed reason is present, and that no other reason, question or item id starts with cap_gap, capgap, grace.after_cap_gap_outcome, current., h1b., or names a petition or capgap_i20 record.",
+  "stages": "starts and ends are the stage's own days. ends_included says whether the ends day is inside the stage (true, false, or null for unsettled). reading true means a boundary rests on a reading. state is as engine_output (current, done, later, unknown).",
+  "ids": "Ids end with the record id (programs.md 13.3). Judgement ids appear in verdict reasons and in the judgements array (contract C6). Conflicts appear as conflict:<check id>.<record>. Questions are <record>.<field>, complete.<kind>, or <record>.still_current (the reconfirm of contract C9).",
+  "provisions": "Ids are the merged register of SPEC.md Appendix A.",
+  "shorthand": "'complete': 'all whole on D' means every record kind the pack declares is stated whole on D. complete_add adds statements to the base's. set_after_add sets fields after the add. case_facts sets case.facts. pack describes a pack state the test builds (a changed regime or recheck day). setting names an engine setting the test fixes."
+ },
+ "bases": {
+  "BASE-OPT": {
+   "records": [
+    {
+     "id": "p1",
+     "kind": "program",
+     "fields": {
+      "where": "us_on_f1",
+      "school_name": "School A",
+      "level": "master",
+      "field_name": "Marketing",
+      "stem_list": "not_on_list",
+      "end_date": "2025-05-16",
+      "state": "completed"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "authorization",
+     "fields": {
+      "type": "opt_post_completion",
+      "program": "p1",
+      "dso_on": "2025-02-20",
+      "filed_on": "2025-03-01",
+      "decision": "approved",
+      "decided_on": "2025-04-20",
+      "card_start": "2025-06-01",
+      "card_end": "2026-05-31"
+     }
+    },
+    {
+     "id": "e1",
+     "kind": "employer",
+     "fields": {
+      "name": "Employer One"
+     }
+    },
+    {
+     "id": "w1",
+     "kind": "work",
+     "fields": {
+      "employer": "e1",
+      "under": "a1",
+      "start": "2025-06-01",
+      "end": "2026-05-31",
+      "hours_per_week": 40
+     }
+    }
+   ],
+   "complete": {
+    "program": {
+     "on": "2026-09-30"
+    },
+    "authorization:p1": {
+     "on": "2026-09-30"
+    },
+    "work": {
+     "on": "2026-09-30"
+    },
+    "trip": {
+     "on": "2026-09-30"
+    },
+    "move": {
+     "on": "2026-09-30"
+    },
+    "petition": {
+     "on": "2026-09-30"
+    },
+    "capgap_i20": {
+     "on": "2026-09-30"
+    }
+   },
+   "confirmations": {}
+  },
+  "H-STD": {
+   "id": "h1",
+   "kind": "petition",
+   "fields": {
+    "filed": "yes",
+    "type": "h1b",
+    "cap_subject": "yes",
+    "cap_basis": "regular",
+    "fiscal_year": 2027,
+    "employer": "e1",
+    "filed_on": "2026-04-01",
+    "receipt": "received",
+    "receipt_on": "2026-04-03",
+    "requested_start": "2026-10-01",
+    "change_of_status": "yes",
+    "outcome": "pending"
+   }
+  },
+  "I20-STD": {
+   "id": "i1",
+   "kind": "capgap_i20",
+   "fields": {
+    "petition": "h1",
+    "program": "p1",
+    "issued_on": "2026-04-20",
+    "shows_until": "2027-04-01",
+    "shows": "status_and_work"
+   }
+  },
+  "BASE-CG": {
+   "from": "BASE-OPT",
+   "add": [
+    "H-STD",
+    "I20-STD"
+   ],
+   "unset": [
+    "w1.end"
+   ],
+   "confirmations": {
+    "current.h1": {
+     "answer": "yes",
+     "on": "2026-09-30"
+    }
+   }
+  }
+ },
+ "rows": [
+  {
+   "id": "g1.01",
+   "facts": {
+    "base": "BASE-OPT"
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.*",
+     "cap_gap.rule_end.*",
+     "capgap.*"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-30",
+      "state": "done"
+     }
+    },
+    "questions": [
+     "record.ends_before_today"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:record.ends_before_today"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.grace.1",
+    "cg.grace.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.02",
+   "facts": {
+    "base": "BASE-OPT",
+    "complete": {
+     "program": {
+      "on": "2026-09-30"
+     },
+     "authorization:p1": {
+      "on": "2026-09-30"
+     },
+     "work": {
+      "on": "2026-09-30"
+     },
+     "trip": {
+      "on": "2026-09-30"
+     },
+     "move": {
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "complete.petition"
+    ],
+    "nulls": [
+     "grace.p1.ends"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "absent": [
+     "cap_gap.*"
+    ],
+    "words": "complete_label: Is this every petition filed for this person to change or extend status, of any kind?",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:complete.petition"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.8"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.03",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "other",
+       "employer": "e1",
+       "filed_on": "2026-04-01",
+       "receipt": "received",
+       "receipt_on": "2026-04-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "cap_gap.rule_end.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-30",
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.not_cap_gap_kind.h1"
+    ],
+    "words": "Pack: The saved rules extend F-1 duration of status only for a petition for H-1B status subject to section 214(g)(1)(A), which Duly reads as the yearly cap, that asks for a change of status. A petition for another kind of status gets no such extension from them. What applies after the 60-day period while the petition is pending is for the DSO.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.not_cap_gap_kind.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.11",
+    "cg.capsubj.1",
+    "cg.grace.1",
+    "cg.grace.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.03b",
+   "facts": {
+    "base": "g1.03",
+    "set": {
+     "h1.requested_start": "2026-07-01",
+     "h1.filed_on": "2026-01-15",
+     "h1.receipt_on": "2026-01-20"
+    }
+   },
+   "expected": {
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-30",
+      "state": "done",
+      "reading": true
+     }
+    },
+    "judgements": [
+     "cap_gap.not_cap_gap_kind.h1"
+    ],
+    "words": "grace.p1 carries the conditional words of capgap.status_ends_on_h1b_start: if the petition had been approved with a start inside the period, F-1 would end that day.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.not_cap_gap_kind.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.pending.1",
+    "cg.fr24.11"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.04",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "no",
+       "employer": "e1",
+       "filed_on": "2026-04-01",
+       "receipt": "received",
+       "receipt_on": "2026-04-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "cap_gap.rule_end.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-30",
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.not_cap_gap_kind.h1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.not_cap_gap_kind.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.capsubj.1",
+    "cg.scope.1",
+    "cg.fr24.5",
+    "cg.grace.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.05",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.cap_subject": "not_sure"
+    },
+    "unset": [
+     "h1.cap_basis"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.cap_subject"
+    ],
+    "nulls": [
+     "cap_gap.rule_end.h1",
+     "unemployment.opt_card.a1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown",
+      "starts": null,
+      "ends": null
+     }
+    },
+    "absent": [
+     "grace.p1"
+    ],
+    "words": "labels: The selection notice or the employer can tell whether the petition is under the yearly cap.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.cap_subject"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.capsubj.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.05b",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.cap_subject",
+     "h1.cap_basis"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.cap_subject"
+    ],
+    "nulls": [
+     "cap_gap.rule_end.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.cap_subject"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.06",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.cap_basis": "advanced_degree"
+    },
+    "remove": [
+     "i1"
+    ]
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown",
+      "starts": null,
+      "ends": null
+     }
+    },
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest",
+      "reading": true
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "absent": [
+     "grace.p1"
+    ],
+    "judgements": [
+     "cap_gap.cap_basis.h1",
+     "cap_gap.ask_dso_for_i20.h1"
+    ],
+    "words": "cap_basis words quote (f)(5)(vi)(A) 'subject to section 214(g)(1)(A)' and (h)(8)(iii)(A)(1) 'H-1B advanced degree exemption' and say the saved rules do not settle it. rule_end words: no later than Apr 1, 2027; earlier on approval with an earlier start, or on a rejection, denial, revocation or withdrawal.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.cap_basis.h1",
+      "cap_gap.ask_dso_for_i20.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.capsubj.2",
+    "cg.capsubj.1",
+    "cg.guid.19",
+    "cg.fy.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.07",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.cap_basis": "advanced_degree"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "reading": true,
+      "status": "guidance",
+      "state": "current"
+     }
+    },
+    "judgements": [
+     "cap_gap.cap_basis.h1"
+    ],
+    "words": "Stage words: as the Form I-20 of Apr 20, 2026 shows; the petition's cap basis is for the DSO. The I-20 does not close the cap-basis question.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.cap_basis.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.capsubj.2",
+    "cg.guid.22",
+    "cg.guid.14",
+    "cg.guid.11"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.07b",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.cap_basis": "not_sure"
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.cap_basis"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "cap_gap.rule_end.h1"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.cap_basis"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.capsubj.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.08",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e1",
+       "filed_on": "2026-04-01",
+       "receipt": "received",
+       "receipt_on": "2026-04-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "no",
+       "outcome": "approved",
+       "approved_on": "2026-06-20",
+       "outcome_on": "2026-06-20",
+       "validity_start": "2026-10-01"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "cap_gap.rule_end.h1",
+     "cap_gap.*.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-30",
+      "state": "done"
+     }
+    },
+    "questions": [
+     "record.ends_before_today"
+    ],
+    "words": "change_of_status label: When it was filed, did the petition ask for a change of status in the US? Pack (capgap.requires_cos): the extension reaches only a petition that asks for a change of status.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:record.ends_before_today"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.5",
+    "cg.term.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.08b",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.cos_ended_on": "2026-08-15",
+     "h1.cos_ended_how": "consular_only",
+     "h1.outcome": "approved",
+     "h1.approved_on": "2026-08-15",
+     "h1.outcome_on": "2026-08-15",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2026-10-01",
+     "h1.cos_granted": "no"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-08-15",
+      "ends_included": null,
+      "reading": true,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "grace.after_cap_gap_outcome.h1",
+     "work.outside_span.w1"
+    ],
+    "absent": [
+     "grace.p1"
+    ],
+    "words": "work.outside_span words state only the rule and the days 2026-08-16 to 2026-09-30 (the event day 2026-08-15 is unsettled). Nothing says the work was unauthorized.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "grace.after_cap_gap_outcome.h1",
+      "work.outside_span.w1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.grace.3",
+    "cg.grace.4",
+    "cg.fr24.12",
+    "cg.guid.7",
+    "cg.guid.21"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.09",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.change_of_status"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.change_of_status"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "cap_gap.rule_end.h1",
+     "unemployment.opt_card.a1"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.change_of_status"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.10a",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.type": "o1"
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.type"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "words": "labels say A petition to change your status, never An H-1B petition.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.type"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.11"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.10b",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.type"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.type"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.type"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.11",
+   "facts": {
+    "base": "BASE-CG",
+    "remove": [
+     "i1"
+    ]
+   },
+   "expected": {
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest",
+      "reading": true
+     }
+    },
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown",
+      "starts": null,
+      "ends": null
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "absent": [
+     "grace.p1"
+    ],
+    "judgements": [
+     "cap_gap.ask_dso_for_i20.h1"
+    ],
+    "words": "Drafted DSO question: My employer filed an H-1B petition for me on Apr 1, 2026, receipt Apr 3, 2026, asking for a change of status. Could you print a Form I-20 showing the cap-gap extension, or tell me what SEVIS shows?",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.ask_dso_for_i20.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.19",
+    "cg.guid.18",
+    "cg.guid.22",
+    "cg.fr24.2",
+    "cg.fy.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.11b",
+   "facts": {
+    "base": "BASE-CG",
+    "remove": [
+     "i1"
+    ],
+    "complete": {
+     "program": {
+      "on": "2026-09-30"
+     },
+     "authorization:p1": {
+      "on": "2026-09-30"
+     },
+     "work": {
+      "on": "2026-09-30"
+     },
+     "trip": {
+      "on": "2026-09-30"
+     },
+     "move": {
+      "on": "2026-09-30"
+     },
+     "petition": {
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "complete.capgap_i20"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:complete.capgap_i20"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.19"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.12",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "i1.issued_on": "2026-04-25",
+     "i1.shows_until": "2026-10-01"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.i20_earlier.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest"
+     }
+    },
+    "words": "The Form I-20 of Apr 25, 2026 shows Oct 1, 2026. The rule allows no later than Apr 1, 2027 for this pending petition. The words quote cg.fr24.3 on the change from October 1 to April 1 and state no cause.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.i20_earlier.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.3",
+    "cg.sits.1",
+    "cg.guid.4",
+    "cg.hist.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.12b",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "i1.shows_until": "2027-10-01"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.i20_after_rule.h1"
+    ],
+    "questions": [
+     "conflict:cap_gap.i20_after_rule.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "conflict:cap_gap.i20_after_rule.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fy.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.13",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.outcome": "approved",
+     "h1.approved_on": "2026-06-20",
+     "h1.outcome_on": "2026-06-20",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2026-10-01",
+     "h1.cos_granted": "yes"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "reading": true,
+      "status": "guidance",
+      "state": "current"
+     }
+    },
+    "absent": [
+     "grace.p1",
+     "conflict:cap_gap.i20_after_rule.h1",
+     "cap_gap.i20_earlier.h1"
+    ],
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2026-10-01",
+      "rule_ids": [
+       "capgap.status_ends_on_h1b_start"
+      ]
+     }
+    ],
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 0,
+      "status": "guidance"
+     }
+    },
+    "words": "The I-20 of Apr 20, 2026 predates the approval, so it is compared only with the bound as it stood then (Apr 1, 2027): consistent. Standing words of capgap.terms_decided_by_uscis on the stage.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3",
+    "cg.guid.4",
+    "cg.guid.14",
+    "cg.pending.1",
+    "cg.guid.22"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g1.14a",
+   "facts": {
+    "base": "BASE-CG",
+    "pack": "fixed_admission_2026 operative (a changed order loaded into the pack)"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "operative": "fixed_admission_2026"
+     }
+    },
+    "judgements": [
+     "cap_gap.regime_transition.h1"
+    ],
+    "words": "The end rule is the same in both texts. What is extended changes from duration of status to status, and no saved source says how a student admitted for duration of status is treated.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.regime_transition.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.regime.1",
+    "cg.regime.2",
+    "cg.regime.3",
+    "cg.regime.5"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g1.14b",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2026-10-05",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-10-05"
+     }
+    },
+    "pack": "regime ds_2012 recheck_on 2026-10-02, not rerun"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "operative": "ds_2012"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "stale:regime.ds_2012"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.regime.5",
+    "cg.regime.6"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.01",
+   "facts": {
+    "journey": "J19",
+    "today": "2026-09-29",
+    "add": [
+     {
+      "id": "h9",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2021,
+       "filed_on": "2020-04-01",
+       "receipt": "received",
+       "receipt_on": "2020-04-03",
+       "requested_start": "2020-10-01",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2020-07-01",
+       "outcome_on": "2020-07-01",
+       "outcome_on_from": "notice",
+       "validity_start": "2020-10-01",
+       "cos_granted": "no",
+       "cos_ended_on": "2020-07-01",
+       "cos_ended_how": "consular_only"
+      }
+     }
+    ],
+    "complete": {
+     "petition": {
+      "on": "2026-09-29"
+     },
+     "capgap_i20": {
+      "on": "2026-09-29"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "grace.p2": {
+      "starts": "2028-06-09",
+      "ends": "2028-08-07"
+     }
+    },
+    "absent": [
+     "cap_gap.h9",
+     "cap_gap.rule_end.h9",
+     "cap_gap.*.h9",
+     "current.h9"
+    ],
+    "conflicts": [
+     "conflict:stem.filed_while_opt_in_force.a2"
+    ],
+    "questions": [
+     "a2.filed_on"
+    ],
+    "words": "h9 takes nothing (point 23a); its 2016-row end is Oct 1, 2020, before any period on the record."
+   },
+   "provisions": [
+    "cg.hist.2",
+    "cg.fr24.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.02",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.end_date": "2026-05-15",
+     "a1.card_start": "2026-06-01",
+     "a1.card_end": "2027-05-31",
+     "a1.decided_on": "2026-04-20",
+     "w1.start": "2026-06-01"
+    },
+    "unset": [
+     "w1.end"
+    ],
+    "add": [
+     "H-STD"
+    ],
+    "set_after_add": {
+     "h1.outcome": "approved",
+     "h1.approved_on": "2026-06-20",
+     "h1.outcome_on": "2026-06-20",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2026-10-01",
+     "h1.cos_granted": "yes"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "grace.p1",
+     "cap_gap.ask_dso_for_i20.h1"
+    ],
+    "stages": {
+     "opt_post.a1": {
+      "starts": "2026-06-01",
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "reading": true,
+      "state": "current"
+     }
+    },
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2026-10-01",
+      "rule_ids": [
+       "capgap.status_ends_on_h1b_start"
+      ]
+     }
+    ],
+    "words": "Rule words: if the approval is withdrawn or revoked before Oct 1, 2026, the card's own dates apply (to May 31, 2027). The F-1 end on the H-1B start is agency words read by Duly.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.pending.1",
+    "cg.stem.2",
+    "cg.petition.3",
+    "cg.petition.5"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.03",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.end_date": "2026-05-15",
+     "a1.filed_on": "2026-02-10",
+     "a1.decided_on": "2026-04-15",
+     "a1.card_start": "2026-06-01",
+     "a1.card_end": "2027-02-28",
+     "w1.start": "2026-06-01"
+    },
+    "unset": [
+     "w1.end"
+    ],
+    "add": [
+     "H-STD",
+     "I20-STD"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "opt_post.a1": {
+      "starts": "2026-06-01",
+      "ends": "2027-02-28",
+      "state": "current"
+     },
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest"
+     }
+    },
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2026-10-01"
+     }
+    ],
+    "judgements": [
+     "cap_gap.opt_not_running_at_filing.h1"
+    ],
+    "words": "Quotes 1004-03 9.1.2 (in an approved period of OPT on the eligibility date) and 9.2.2 (approved current or future post-completion OPT) as 2010 guidance that does not settle a card approved after the filing day, and names the receipt day Apr 3, 2026. The card's own dates stand.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.opt_not_running_at_filing.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.3",
+    "cg.guid.1",
+    "cg.guid.15"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.04",
+   "facts": {
+    "base": "g2.03",
+    "set": {
+     "a1.decided_on": "2026-03-20"
+    }
+   },
+   "expected": {
+    "stages": {
+     "opt_post.a1": {
+      "ends": "2027-02-28",
+      "state": "current"
+     },
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "judgements": [
+     "cap_gap.opt_not_running_at_filing.h1"
+    ],
+    "words": "Card approved before filing but starting after it: 9.1.2 and 9.2.2 disagree for a card not yet begun. The I-20 is shown as what SEVIS recorded; it does not close the point.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.opt_not_running_at_filing.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.3",
+    "cg.guid.15",
+    "cg.guid.2",
+    "cg.guid.14"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.05",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.end_date": "2026-05-15"
+    },
+    "remove": [
+     "a1",
+     "w1"
+    ],
+    "add": [
+     "H-STD"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-05-16",
+      "ends": null,
+      "state": "unknown"
+     },
+     "cap_gap.h1": {
+      "state": "unknown",
+      "starts": null,
+      "ends": null
+     }
+    },
+    "absent": [
+     "unemployment.opt_card.*"
+    ],
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "words": "No work is extended: the rule extends only authorization granted under 274a.12(c)(3)(i)(B) or (C), and the record holds none (regulation, cg.scope.1). The start after the grace is 2010 guidance (1004-03 9.1, not in a period of authorized post-completion OPT on the eligibility date).",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.status_only.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.2",
+    "cg.guid.3",
+    "cg.cond.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.05b",
+   "facts": {
+    "base": "g2.05",
+    "complete": {
+     "program": {
+      "on": "2026-09-30"
+     },
+     "work": {
+      "on": "2026-09-30"
+     },
+     "trip": {
+      "on": "2026-09-30"
+     },
+     "move": {
+      "on": "2026-09-30"
+     },
+     "petition": {
+      "on": "2026-09-30"
+     },
+     "capgap_i20": {
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "complete.authorization:p1"
+    ],
+    "absent": [
+     "cap_gap.status_only.h1"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:complete.authorization"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.06",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.end_date": "2026-05-15",
+     "a1.filed_on": "2026-03-01",
+     "a1.decision": "pending"
+    },
+    "unset": [
+     "a1.decided_on",
+     "a1.card_start",
+     "a1.card_end"
+    ],
+    "remove": [
+     "w1"
+    ],
+    "add": [
+     "H-STD"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "a1.decision"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "judgements": [
+     "cap_gap.opt_not_running_at_filing.h1"
+    ],
+    "words": "The record shows the OPT application pending on the filing day. If a decided_on before Apr 1, 2026 is entered, the row moves to the g2.04 path.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:a1.decision",
+      "cap_gap.opt_not_running_at_filing.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.3",
+    "cg.guid.15"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.07",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     "H-STD"
+    ],
+    "set": {
+     "h1.filed_on": "2026-06-10",
+     "h1.receipt_on": "2026-06-12"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     },
+     "cap_gap.h1": {
+      "state": "unknown",
+      "starts": null,
+      "ends": null
+     }
+    },
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 0
+     }
+    },
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "words": "Counts cover the card only (to May 31, 2026). Words quote 1004-03 9.1.4 (cg.guid.12) and 9.1.2, and name 'timely filed' as undefined.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.status_only.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.3",
+    "cg.guid.12",
+    "cg.cond.1",
+    "cg.grace.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.08",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     "H-STD"
+    ],
+    "set": {
+     "h1.filed_on": "2026-08-05",
+     "h1.receipt_on": "2026-08-07"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "cap_gap.rule_end.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-30",
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.filed_after_status.h1"
+    ],
+    "words": "States the rule opt.post_completion_ds_end_days ((f)(10)(ii)(D), ending 60 days after the OPT employment authorization expires) and the two dates Jul 30, 2026 and Aug 5, 2026. No statement about the person.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.filed_after_status.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.grace.2",
+    "cg.cond.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.08b",
+   "facts": {
+    "base": "g2.08",
+    "set": {
+     "h1.filed_on": "2026-07-31",
+     "h1.receipt_on": "2026-07-31"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.filed_after_status.h1"
+    ],
+    "absent": [
+     "cap_gap.status_only.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "ends": "2026-07-30"
+     }
+    },
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.grace.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.09",
+   "facts": {
+    "base": "g2.07",
+    "set": {
+     "h1.filed_on": "2026-07-30",
+     "h1.receipt_on": "2026-07-30"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "absent": [
+     "cap_gap.filed_after_status.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "The boundary day (the 60th day) is marked as a reading of 'ending 60 days after'.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.grace.2",
+    "cg.guid.12"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.09b",
+   "facts": {
+    "base": "g2.07",
+    "set": {
+     "h1.filed_on": "2026-07-30",
+     "h1.receipt_on": "2026-08-03"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.filing_day_unsettled.h1"
+    ],
+    "absent": [
+     "cap_gap.status_only.h1",
+     "cap_gap.filed_after_status.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Names both days: the regulation says filed; 1004-03 9.1 keys the eligibility date to receipt.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.filing_day_unsettled.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.1",
+    "cg.fr24.2",
+    "cg.grace.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.09c",
+   "facts": {
+    "base": "g2.07",
+    "set": {
+     "h1.filed_on": "2026-07-28"
+    },
+    "unset": [
+     "h1.receipt_on",
+     "h1.receipt"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.receipt"
+    ],
+    "stages": {
+     "grace.p1": {
+      "ends": null
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.receipt"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.10",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2023-05-12",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2023-06-01",
+       "card_end": "2024-05-31"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2023-06-01",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2025,
+       "employer": "e1",
+       "filed_on": "2024-04-01",
+       "receipt": "received",
+       "receipt_on": "2024-04-03",
+       "requested_start": "2024-10-01",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2024-07-15",
+       "outcome_on": "2024-07-15",
+       "outcome_on_from": "notice",
+       "validity_start": "2024-10-01",
+       "cos_granted": "yes",
+       "h1b_began_on": "2024-10-01"
+      }
+     },
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2024-04-20",
+       "shows_until": "2024-10-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2024-06-01",
+      "ends": "2024-10-01",
+      "ends_included": false,
+      "reading": true,
+      "state": "done"
+     }
+    },
+    "rule_row": "capgap.end_month_day 10-01 (2016 row), chosen by filed_on 2024-04-01",
+    "absent": [
+     "grace.p1",
+     "current.h1"
+    ],
+    "words": "Stage carries capgap.fourteen_months_reading (program end plus 14 months is Jul 12, 2024) as a reading, not a step back.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:h1b"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.hist.2",
+    "cg.fr24.2",
+    "cg.pending.1",
+    "cg.opt.2",
+    "cg.fy.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.11a",
+   "facts": {
+    "base": "g2.10",
+    "today": "2024-09-15",
+    "set": {
+     "h1.filed_on": "2024-05-20",
+     "h1.receipt_on": "2024-05-22",
+     "h1.requested_start": "2024-11-15",
+     "h1.outcome": "pending",
+     "i1.issued_on": "2024-06-05"
+    },
+    "unset": [
+     "h1.approved_on",
+     "h1.outcome_on",
+     "h1.outcome_on_from",
+     "h1.validity_start",
+     "h1.cos_granted",
+     "h1.h1b_began_on"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2024-09-15"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2024-06-01",
+      "ends": "2024-07-30",
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.start_condition.h1"
+    ],
+    "words": "Quotes the 2016 condition 'Requests an H-1B employment start date of October 1 of the following fiscal year.' and, for the time from Jul 31, 2024, the 2016 preamble on authorized stay as agency words.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.start_condition.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.hist.2",
+    "cg.fr24.2",
+    "cg.pending.2",
+    "cg.grace.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.11b",
+   "facts": {
+    "base": "g2.11a",
+    "today": "2026-09-30",
+    "set": {
+     "h1.outcome": "approved",
+     "h1.approved_on": "2024-10-20",
+     "h1.outcome_on": "2024-10-20",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2024-11-15",
+     "h1.cos_granted": "yes"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.h1b_began_on"
+    ],
+    "judgements": [
+     "cap_gap.start_condition.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2024-06-01",
+      "ends": "2024-07-30"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.h1b_began_on",
+      "cap_gap.start_condition.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.hist.2",
+    "cg.petition.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.12a",
+   "facts": {
+    "base": "g2.10",
+    "today": "2025-02-01",
+    "unset": [
+     "h1.approved_on",
+     "h1.outcome_on",
+     "h1.outcome_on_from",
+     "h1.validity_start",
+     "h1.cos_granted",
+     "h1.h1b_began_on"
+    ],
+    "set": {
+     "h1.outcome": "pending"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2025-02-01"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2024-06-01",
+      "ends": "2024-10-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.after_end_pending.h1",
+     "cap_gap.rule_transition.h1"
+    ],
+    "words": "The 2016 row governs by filed_on. No saved source has a cap-gap transition statement for a petition pending on Jan 17, 2025. The 2016 preamble's authorized-stay words are quoted as agency words.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.after_end_pending.h1",
+      "cap_gap.rule_transition.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.hist.2",
+    "cg.fr24.1",
+    "cg.fr24.2",
+    "cg.pending.2",
+    "cg.guid.13"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.12b",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.filed_on": "2025-01-15",
+     "h1.receipt_on": "2025-01-21",
+     "h1.requested_start": "2025-10-01",
+     "h1.fiscal_year": 2026
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:h1b.filed_within_six_months.h1"
+    ],
+    "questions": [
+     "conflict:h1b.filed_within_six_months.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "words": "Asks whether these are the dates on the documents: filed Jan 15, 2025 for a start of Oct 1, 2025, and the 6-month rule of (h)(2)(i)(J). A yes gives cap_gap.start_condition.h1 and cap_gap.rule_transition.h1.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "conflict:h1b.filed_within_six_months.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.xref.2",
+    "cg.petition.1",
+    "cg.fy.3",
+    "cg.fr24.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.13",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.requested_start": "2026-12-01"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:h1b.filed_within_six_months.h1"
+    ],
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest"
+     }
+    },
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown",
+      "ends": null
+     }
+    },
+    "after_yes": {
+     "judgements": [
+      "cap_gap.start_condition.h1"
+     ],
+     "verdict": "talk_to_dso"
+    },
+    "words": "rule_end: no later than Apr 1, 2027; on approval before Dec 1, 2026 the end would be the validity start. The I-20 i1 does not close the start condition.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "conflict:h1b.filed_within_six_months.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.cond.2",
+    "cg.xref.1",
+    "cg.xref.2",
+    "cg.xref.3",
+    "cg.xref.4",
+    "cg.petition.2",
+    "cg.petition.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g2.14a",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e1",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.filed"
+    ],
+    "stages": {
+     "grace.p1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.filed"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.fr24.6",
+    "cg.petition.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.14b",
+   "facts": {
+    "base": "g2.14a",
+    "set": {
+     "h1.filed": "not_yet"
+    }
+   },
+   "expected": {
+    "same_as": "g1.01",
+    "absent": [
+     "cap_gap.*"
+    ],
+    "words": "Rule capgap.no_start_from_registration shown: the verbatim sentence of cg.fr24.6 and of (h)(8)(iii)(A)(4), with Duly's summary marked as a reading."
+   },
+   "provisions": [
+    "cg.fr24.6",
+    "cg.petition.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g2.14c",
+   "facts": {
+    "base": "g2.14a",
+    "set": {
+     "h1.filed": "not_sure"
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.filed"
+    ],
+    "words": "Your employer can give you the receipt notice (Form I-797) date. (1004-03 9.1.7: only the petitioning employer will know until receipt notices issue.)",
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.guid.25"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.01",
+   "facts": {
+    "journey": "J12",
+    "today": "2026-09-30",
+    "set": {
+     "h1.filed": "yes",
+     "h1.cap_basis": "regular",
+     "h1.fiscal_year": 2027,
+     "h1.receipt": "received",
+     "h1.receipt_on": "2026-04-03",
+     "h1.approved_on": "2026-06-20",
+     "h1.outcome_on_from": "notice",
+     "h1.cos_granted": "yes"
+    },
+    "add": [
+     "I20-STD"
+    ],
+    "complete": "J12 whole plus capgap_i20 on 2026-09-30",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "reading": true,
+      "status": "guidance",
+      "state": "current",
+      "operative": "ds_2012"
+     }
+    },
+    "absent": [
+     "grace.p1",
+     "cap_gap.for_dso"
+    ],
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 0,
+      "status": "guidance"
+     }
+    },
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2026-10-01",
+      "rule_ids": [
+       "capgap.status_ends_on_h1b_start"
+      ]
+     }
+    ],
+    "words": "Start day tagged guidance and reading (cg.guid.11, cg.guid.2). End day: Oct 1, 2026 is the H-1B start, the day before is the last covered day (reading, cg.pending.1). The I-20 predates the approval and is not compared with the validity start. Standing words: capgap.terms_decided_by_uscis.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3",
+    "cg.pending.1",
+    "cg.fy.1",
+    "cg.guid.5",
+    "cg.guid.2",
+    "cg.guid.11",
+    "cg.guid.22",
+    "cg.guid.14"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.01b",
+   "facts": {
+    "base": "g3.01",
+    "remove": [
+     "i1"
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.ask_dso_for_i20.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.ask_dso_for_i20.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.19"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g3.02",
+   "facts": {
+    "base": "g3.01",
+    "today": "2026-10-02",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-10-02"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.h1b_began_on"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2026-10-01",
+      "bound": "latest"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.h1b_began_on"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.pending.1",
+    "cg.term.1",
+    "cg.petition.5",
+    "cg.guid.8"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.03",
+   "facts": {
+    "base": "g3.02",
+    "set": {
+     "h1.h1b_began_on": "2026-10-01"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "absent": [
+     "grace.p1",
+     "current.h1"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:h1b"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.pending.1",
+    "cg.stem.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.04",
+   "facts": {
+    "base": "g3.02",
+    "today": "2026-10-20",
+    "set": {
+     "h1.h1b_began_on": "2026-10-15"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.new_status_day.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Asks whether these are the dates on the documents (validity start Oct 1, 2026; H-1B status took effect Oct 15, 2026). The label says the day H-1B status took effect, not the first day at work. No claim that the law makes them contradict.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "conflict:cap_gap.new_status_day.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.05",
+   "facts": {
+    "base": "BASE-CG"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "reading": true,
+      "status": "guidance",
+      "state": "current",
+      "operative": "ds_2012"
+     }
+    },
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest",
+      "reading": true
+     },
+     "unemployment.opt_card.a1": {
+      "value": 0,
+      "status": "guidance"
+     }
+    },
+    "absent": [
+     "grace.p1"
+    ],
+    "upcoming": [
+     {
+      "id": "cap_gap.rule_end.h1",
+      "date": "2027-04-01",
+      "rule_ids": [
+       "capgap.end_month_day",
+       "capgap.pending_on_april_1"
+      ]
+     }
+    ],
+    "words": "Stage words quote (B) in full: ends sooner on approval with an earlier start, on a rejection, denial, revocation or withdrawal of the petition, or on a denial or withdrawal of the change of status, even with approval for consular processing. Rule capgap.travel_while_pending words are on the stage.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.term.1",
+    "cg.fr24.5",
+    "cg.guid.8",
+    "cg.guid.19",
+    "cg.guid.22",
+    "cg.travel.2",
+    "cg.fy.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.06",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2024-12-13",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2025-01-15",
+       "card_end": "2026-01-14"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2025-01-15",
+       "end": "2026-03-31",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2026,
+       "employer": "e1",
+       "filed_on": "2025-04-01",
+       "receipt": "received",
+       "receipt_on": "2025-04-03",
+       "requested_start": "2025-10-01",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     },
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2025-04-20",
+       "shows_until": "2026-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-01-15",
+      "ends": "2026-04-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 0,
+      "through": "2026-03-31"
+     }
+    },
+    "absent": [
+     "grace.p1"
+    ],
+    "judgements": [
+     "cap_gap.after_end_pending.h1"
+    ],
+    "words": "Quotes cg.fr24.8 as agency words the agency declined to codify. No date after Mar 31, 2026 is stated. 14-month reading note (program end plus 14 months is Feb 13, 2026).",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.after_end_pending.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.8",
+    "cg.fr24.7",
+    "cg.pending.2",
+    "cg.guid.13",
+    "cg.opt.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g3.07",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2025-12-12",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2026-02-01",
+       "card_end": "2027-01-31"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2026-02-01",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e1",
+       "filed_on": "2026-11-05",
+       "receipt": "received",
+       "receipt_on": "2026-11-07",
+       "requested_start": "2027-05-10",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2027-01-10",
+       "outcome_on": "2027-01-10",
+       "outcome_on_from": "notice",
+       "validity_start": "2027-05-10",
+       "cos_granted": "yes"
+      }
+     },
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2026-11-20",
+       "shows_until": "2027-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "today": "2027-02-15",
+    "complete": "all whole on 2027-02-15",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-02-15"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2027-02-01",
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "state": "current"
+     }
+    },
+    "computed": {
+     "cap_gap.gap_starts.h1": {
+      "value": "2027-04-01",
+      "reading": true
+     },
+     "cap_gap.gap_ends.h1": {
+      "value": "2027-05-09",
+      "reading": true
+     }
+    },
+    "judgements": [
+     "cap_gap.gap_before_start.h1"
+    ],
+    "words": "Cites the unsettled point: the earlier-of clause leaves days before a late start that no saved regulation speaks to. cg.fr24.8 is not cited (it is about a pending petition).",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.gap_before_start.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fy.1",
+    "cg.cond.2",
+    "cg.xref.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g3.08",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2025-08-15",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2025-09-16",
+       "card_end": "2026-09-15"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2025-09-16",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e1",
+       "filed_on": "2026-08-01",
+       "receipt": "received",
+       "receipt_on": "2026-08-04",
+       "requested_start": "2027-01-15",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2026-09-10",
+       "outcome_on": "2026-09-10",
+       "outcome_on_from": "notice",
+       "validity_start": "2027-01-15",
+       "cos_granted": "yes"
+      }
+     },
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2026-09-12",
+       "shows_until": "2027-01-15",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-09-16",
+      "ends": "2027-01-15",
+      "ends_included": false,
+      "state": "current"
+     }
+    },
+    "absent": [
+     "cap_gap.start_condition.h1",
+     "conflict:h1b.filed_within_six_months.h1",
+     "grace.p1"
+    ],
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2027-01-15"
+     }
+    ],
+    "words": "The start is in FY2027 and (J) holds on the entered dates (Aug 1, 2026 is not earlier than Jul 15, 2026), so no reading of the broken cross-reference fails. The I-20 issued after approval matches the validity start.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.cond.2",
+    "cg.xref.1",
+    "cg.xref.2",
+    "cg.fr24.3",
+    "cg.sits.1",
+    "cg.guid.22"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.09",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2024-05-10",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2024-06-01",
+       "card_end": "2025-05-31"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2024-06-01",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2026,
+       "employer": "e1",
+       "filed_on": "2025-04-01",
+       "receipt": "received",
+       "receipt_on": "2025-04-03",
+       "requested_start": "2025-10-01",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2025-11-10",
+       "outcome_on": "2025-11-10",
+       "outcome_on_from": "notice",
+       "validity_start": "2025-11-10",
+       "cos_granted": "yes",
+       "h1b_began_on": "2025-11-10"
+      }
+     },
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2025-04-20",
+       "shows_until": "2026-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2025-06-01",
+      "ends": "2025-11-10",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "absent": [
+     "cap_gap.i20_earlier.h1",
+     "conflict:cap_gap.i20_after_rule.h1",
+     "grace.p1"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:h1b"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3",
+    "cg.fr24.7"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.10",
+   "facts": {
+    "base": "g3.01",
+    "unset": [
+     "h1.validity_start"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.validity_start"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "The question carries the I-797 hint and quotes (h)(9)(ii)(A) and (D)(1): the approval notice shows the dates.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.validity_start"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.11",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.outcome"
+    ],
+    "confirmations": {}
+   },
+   "expected": {
+    "questions": [
+     "h1.outcome"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "words": "The outcome question offers I'm not sure, which keeps it open.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.outcome"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.guid.8"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.12",
+   "facts": {
+    "base": "BASE-CG",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-05-01"
+     }
+    },
+    "setting": "petition reconfirm max age 30 days"
+   },
+   "expected": {
+    "questions": [
+     "h1.still_current"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "words": "Is this petition still pending today? DHS does not send the student a notice of a denial or withdrawal.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.still_current"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.8",
+    "cg.petition.5",
+    "cg.petition.6"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.13",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "h1.h1b_began_on": "2026-09-01"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.new_status_day.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "conflict:cap_gap.new_status_day.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3",
+    "cg.pending.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g3.14",
+   "facts": {
+    "base": "g2.10",
+    "set": {
+     "h1.approved_on": "2024-12-01",
+     "h1.outcome_on": "2024-12-01",
+     "h1.validity_start": "2024-12-01",
+     "h1.h1b_began_on": "2024-12-01"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2024-06-01",
+      "ends": "2024-10-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "absent": [
+     "grace.p1"
+    ],
+    "judgements": [
+     "cap_gap.after_end_pending.h1"
+    ],
+    "words": "No F-1 stage is dated after Sep 30, 2024. The 2016 preamble is quoted: F-1 status expires on October 1; a period of authorized stay, not authorized to work, while pending. The exit to H-1B is at Dec 1, 2024.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:h1b",
+      "cap_gap.after_end_pending.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.hist.2",
+    "cg.pending.2",
+    "cg.guid.13",
+    "cg.fr24.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.01",
+   "facts": {
+    "journey": "J13",
+    "today": "2026-09-30",
+    "set": {
+     "h1.filed": "yes",
+     "h1.cap_basis": "regular",
+     "h1.fiscal_year": 2027,
+     "h1.receipt": "received",
+     "h1.receipt_on": "2026-04-03",
+     "h1.outcome_on_from": "notice"
+    },
+    "add": [
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2026-04-20",
+       "shows_until": "2027-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "J13 whole plus capgap_i20 on 2026-09-30"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-07-01",
+      "ends": "2026-08-14",
+      "ends_included": null,
+      "reading": true,
+      "state": "done"
+     }
+    },
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 0,
+      "through": "2026-08-13"
+     }
+    },
+    "absent": [
+     "grace.p1",
+     "grace.h1"
+    ],
+    "judgements": [
+     "cap_gap.end_day.h1",
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "words": "end_day: w1's last day is the denial day; whether that day is inside the extension is not settled. Grace words cite 73 FR 18944 (from notification), 1004-03 9.1.1 chart (10 days, 60 days after the date) against 9.1.4 (ends and the grace begins), and 89 FR 103054 (generally, no start day, not codified).",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.end_day.h1",
+      "grace.after_cap_gap_outcome.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.grace.4",
+    "cg.guid.7",
+    "cg.guid.21",
+    "cg.fr24.12",
+    "cg.grace.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.02",
+   "facts": {
+    "base": "g4.01",
+    "set": {
+     "h1.outcome": "rejected",
+     "h1.outcome_on": "2026-07-20"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-07-01",
+      "ends": "2026-07-20",
+      "ends_included": null,
+      "reading": true,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.rejected_filing.h1",
+     "grace.after_cap_gap_outcome.h1",
+     "work.outside_span.w1"
+    ],
+    "words": "rejected_filing quotes (h)(8)(iii)(D)(3) and 1004-03 9.1 (properly filed): whether the extension began at all is for the DSO. work.outside_span names Jul 21, 2026 to Aug 14, 2026 and states only the rule.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.rejected_filing.h1",
+      "grace.after_cap_gap_outcome.h1",
+      "work.outside_span.w1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.petition.2",
+    "cg.guid.1",
+    "cg.grace.4"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.03",
+   "facts": {
+    "journey": "J14",
+    "today": "2026-09-30",
+    "set": {
+     "h1.filed": "yes",
+     "h1.cap_basis": "regular",
+     "h1.fiscal_year": 2027,
+     "h1.receipt": "received",
+     "h1.receipt_on": "2026-04-03",
+     "h1.outcome_on_from": "employer"
+    },
+    "add": [
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2026-04-20",
+       "shows_until": "2027-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "J14 whole plus capgap_i20 on 2026-09-30"
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-25",
+      "ends_included": null,
+      "reading": true,
+      "state": "done"
+     }
+    },
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 40
+     },
+     "unemployment.total.a1": {
+      "value": 84,
+      "reading": true,
+      "status": "guidance",
+      "through": "2026-07-24"
+     }
+    },
+    "nulls": [
+     "stem_job_end.evaluation_final.w2",
+     "the change_report for w2's end",
+     "validations due after 2026-05-31"
+    ],
+    "judgements": [
+     "cap_gap.stem_duties.h1",
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "words": "Total 84 (75 through May 31, 2026 plus Jul 16 to Jul 24, 2026); 85 if the withdrawal day is inside; both below 150, so no limit item. stem_duties quotes (f)(12)(ii)(B), (f)(12)(i) and (f)(12)(ii)(A). Grace words cite the 2016 withdrawal-before-approval sentence and say only its start day is unsettled.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.stem_duties.h1",
+      "grace.after_cap_gap_outcome.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.grace.3",
+    "cg.guid.5",
+    "cg.guid.26",
+    "cg.opt.1",
+    "cg.stem.3",
+    "cg.opt.4",
+    "cg.stem.5"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.04",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "h1.outcome": "revoked",
+     "h1.outcome_on": "2026-08-30",
+     "h1.outcome_on_from": "notice"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-08-30",
+      "ends_included": null,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "grace.after_cap_gap_outcome.h1",
+     "work.outside_span.w1"
+    ],
+    "words": "Revocation words quote (h)(11)(ii): an employer's withdrawal or notice that the job ended revokes the approval at once, and the student may not be told. work.outside_span names Aug 31, 2026 to Sep 30, 2026.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "grace.after_cap_gap_outcome.h1",
+      "work.outside_span.w1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.petition.5",
+    "cg.petition.6",
+    "cg.guid.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.04b",
+   "facts": {
+    "base": "g4.04",
+    "set": {
+     "h1.outcome_on_from": "not_sure"
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.outcome_on_from"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "judgements": [
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "words": "Asks for the date on the revocation notice, or the date the employer filed its withdrawal or notice, not the day it was learned.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.outcome_on_from"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.petition.5",
+    "cg.guid.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.05",
+   "facts": {
+    "base": "g3.03",
+    "today": "2027-03-01",
+    "set": {
+     "h1.outcome": "revoked",
+     "h1.outcome_on": "2027-02-01",
+     "h1.outcome_on_from": "notice"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "absent": [
+     "grace.p1"
+    ],
+    "judgements": [
+     "cap_gap.revoked_after_start.h1"
+    ],
+    "words": "No F-1 item is revived. The saved sources do not say what a revocation after the H-1B start does to the earlier change of status; (h)(11)(i)(B) is quoted.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:h1b",
+      "cap_gap.revoked_after_start.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.pending.1",
+    "cg.petition.6"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.06",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.cos_ended_on": "2026-07-01",
+     "h1.cos_ended_how": "withdrawn",
+     "h1.outcome": "approved",
+     "h1.approved_on": "2026-08-10",
+     "h1.outcome_on": "2026-08-10",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2026-10-01",
+     "h1.cos_granted": "no"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-07-01",
+      "ends_included": null,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "grace.after_cap_gap_outcome.h1",
+     "work.outside_span.w1"
+    ],
+    "words": "The later approval for consular processing does not continue the extension ((B), even if approved for consular processing).",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "grace.after_cap_gap_outcome.h1",
+      "work.outside_span.w1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.06b",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "h1.cos_ended_on": "2026-08-01",
+     "h1.cos_ended_how": "withdrawn"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "judgements": [
+     "cap_gap.cos_after_approval.h1"
+    ],
+    "words": "(B) ends the extension on the withdrawal of the request for a change of status; the record shows the change of status approved on Jun 20, 2026 and withdrawn on Aug 1, 2026. No saved source speaks to withdrawing an approved change of status.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.cos_after_approval.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.07",
+   "facts": {
+    "base": "g4.01",
+    "unset": [
+     "h1.outcome_on"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.outcome_on"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-07-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "judgements": [
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.outcome_on",
+      "grace.after_cap_gap_outcome.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.guid.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.08",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2025-12-12",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2026-01-01",
+       "card_end": "2026-12-31"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2026-01-05",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e1",
+       "filed_on": "2026-04-01",
+       "receipt": "received",
+       "receipt_on": "2026-04-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "denied",
+       "outcome_on": "2026-07-10",
+       "outcome_on_from": "notice"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30"
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "stages": {
+     "opt_post.a1": {
+      "ends": "2026-12-31",
+      "state": "current"
+     },
+     "grace.p1": {
+      "starts": "2027-01-01",
+      "ends": "2027-03-01",
+      "reading": true,
+      "alternates": "as point 9 gives (the 30-day text would end 2027-01-30)"
+     }
+    },
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 4
+     }
+    },
+    "words": "Reading on grace.p1: (B) ends only the automatic extension; this card runs on its own grant (capgap.ends_on_outcome words). Founder question F4.",
+    "verdict": {
+     "state": "as the engine gives for the same record without the petition",
+     "reasons_exclude_prefix": [
+      "cap_gap",
+      "grace.after_cap_gap_outcome",
+      "current."
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.grace.1",
+    "cg.grace.2",
+    "cg.regime.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g4.09",
+   "facts": {
+    "base": "g3.06",
+    "set": {
+     "h1.outcome": "denied",
+     "h1.outcome_on": "2026-06-01",
+     "h1.outcome_on_from": "notice"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-01-15",
+      "ends": "2026-04-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.after_end_pending.h1",
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "words": "The agency's words count 60 days from April 1; the denial on the record is dated Jun 1, 2026. Two facts, no conclusion, no computed date.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.after_end_pending.h1",
+      "grace.after_cap_gap_outcome.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.8",
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.10",
+   "facts": {
+    "base": "g4.01",
+    "add": [
+     {
+      "id": "e2",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Two"
+      }
+     },
+     {
+      "id": "h2",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e2",
+       "filed_on": "2026-09-01",
+       "receipt": "received",
+       "receipt_on": "2026-09-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h2": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "ends": "2026-08-14"
+     }
+    },
+    "absent": [
+     "cap_gap.h2",
+     "cap_gap.rule_end.h2"
+    ],
+    "judgements": [
+     "cap_gap.end_day.h1",
+     "grace.after_cap_gap_outcome.h1",
+     "cap_gap.filed_after_extension_ended.h2"
+    ],
+    "words": "h2 words cite (h)(8)(iii)(A)(4) (only after a selected registration) and (f)(5)(vi)(A)(1) (timely filed), and state that h2 was filed after the extension under h1 ended. No end date is shown for h2.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.filed_after_extension_ended.h2"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.petition.1",
+    "cg.cond.1",
+    "cg.fr24.7",
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.10b",
+   "facts": {
+    "base": "g4.10",
+    "set": {
+     "h2.employer": "e1"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.filed_after_extension_ended.h2"
+    ],
+    "words": "Quotes (h)(2)(i)(G) whole, including the refiling sentence after a denial not based on fraud or misrepresentation.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.petition.8",
+    "cg.petition.7"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.11",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "e2",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Two"
+      }
+     },
+     {
+      "id": "h2",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e2",
+       "filed_on": "2026-04-05",
+       "receipt": "received",
+       "receipt_on": "2026-04-07",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     },
+     "current.h2": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest"
+     },
+     "cap_gap.rule_end.h2": {
+      "value": "2027-04-01",
+      "bound": "latest"
+     }
+    },
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "judgements": [
+     "cap_gap.several_petitions.h2"
+    ],
+    "words": "The regulation speaks of the H-1B petition. Which petition governs, and whether one petition's end ends the extension, is for the DSO. Each rule_end is the latest the rule allows; an outcome of either may cut it short.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.several_petitions.h2"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.12",
+   "facts": {
+    "base": "g4.11",
+    "set": {
+     "h2.employer": "e1"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.several_petitions.h2"
+    ],
+    "words": "Quotes (h)(2)(i)(G) whole as the rule's words; 'fiscal year' in (G) is the year of filing and is not defined; Duly does not conclude that a denial or revocation followed.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.petition.8",
+    "cg.petition.7",
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.13",
+   "facts": {
+    "base": "g3.01",
+    "add": [
+     {
+      "id": "h9",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2021,
+       "filed_on": "2020-04-01",
+       "receipt": "received",
+       "receipt_on": "2020-04-03",
+       "requested_start": "2020-10-01",
+       "change_of_status": "yes",
+       "outcome": "denied",
+       "outcome_on": "2020-08-01",
+       "outcome_on_from": "notice"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "same_as": "g3.01",
+    "absent": [
+     "cap_gap.several_petitions.*",
+     "cap_gap.h9",
+     "cap_gap.*.h9"
+    ]
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.hist.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g4.14",
+   "facts": {
+    "base": "g4.11",
+    "set": {
+     "h1.outcome": "approved",
+     "h1.approved_on": "2026-06-20",
+     "h1.outcome_on": "2026-06-20",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2026-10-01",
+     "h1.cos_granted": "yes",
+     "h2.outcome": "denied",
+     "h2.outcome_on": "2026-08-01",
+     "h2.outcome_on_from": "notice"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.several_petitions.h2"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "absent": [
+     "cap_gap.h2"
+    ],
+    "words": "No end is dated upon h2's denial. h1's validity start Oct 1, 2026 is shown only as a bound.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.scope.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g4.15",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "h0",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2026,
+       "employer": "e1",
+       "filed_on": "2025-04-01",
+       "receipt": "received",
+       "receipt_on": "2025-04-03",
+       "requested_start": "2025-10-01",
+       "change_of_status": "yes",
+       "outcome": "denied",
+       "outcome_on": "2025-08-01",
+       "outcome_on_from": "notice"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "same_as": "g3.05",
+    "absent": [
+     "cap_gap.h0",
+     "cap_gap.several_petitions.*"
+    ],
+    "words": "h0 reaches a1 (its start is after the card start) but was denied while the card ran, so no extension began under it and it bears on no later extension."
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.01",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "w1.start": "2025-07-11",
+     "w1.end": "2026-09-10"
+    }
+   },
+   "expected": {
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 60,
+      "status": "guidance",
+      "reading": true
+     }
+    },
+    "stages": {
+     "cap_gap.h1": {
+      "state": "current"
+     }
+    },
+    "words": "40 days on the card plus Sep 11 to Sep 30, 2026 (20) in the cap-gap, counted on 2010 guidance (opt.unemployment_in_cap_gap).",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.guid.5",
+    "cg.opt.1",
+    "cg.sits.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.02",
+   "facts": {
+    "base": "g5.01",
+    "set": {
+     "w1.end": "2026-07-31"
+    }
+   },
+   "expected": {
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 101
+     }
+    },
+    "items": [
+     "unemployment.opt_card.at_or_over_limit.a1"
+    ],
+    "judgements": [
+     "cap_gap.limit_in_cap_gap.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Day 90 was Sep 19, 2026 and the first day over 90 was Sep 20, 2026. The regulation's limit is more than 90 days; Duly flags at 90. (f)(10)(ii)(E) says F-1 status is dependent upon employment; (C) is a condition to obtain the extension; what exceeding the limit during a running extension does is for the DSO.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "unemployment.opt_card.at_or_over_limit.a1",
+      "cap_gap.limit_in_cap_gap.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.5",
+    "cg.opt.1",
+    "cg.elig.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.03",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "field_name": "Computer Science",
+       "stem_list": "on_list",
+       "end_date": "2023-05-12",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2023-06-01",
+       "card_end": "2024-05-31"
+      }
+     },
+     {
+      "id": "a2",
+      "kind": "authorization",
+      "fields": {
+       "type": "stem_extension",
+       "program": "p1",
+       "extends": "a1",
+       "basis_program": "p1",
+       "employer": "e2",
+       "decision": "approved",
+       "card_start": "2024-06-01",
+       "card_end": "2026-05-31"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "e2",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Z",
+       "e_verify": "yes"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2023-07-11",
+       "end": "2024-05-31",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "w2",
+      "kind": "work",
+      "fields": {
+       "employer": "e2",
+       "under": "a2",
+       "start": "2024-07-11",
+       "end": "2026-09-10",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2027,
+       "employer": "e2",
+       "filed_on": "2026-04-01",
+       "receipt": "received",
+       "receipt_on": "2026-04-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     },
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2026-04-20",
+       "shows_until": "2027-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 40
+     },
+     "unemployment.total.a1": {
+      "value": 100,
+      "reading": true,
+      "status": "guidance"
+     }
+    },
+    "absent": [
+     "cap_gap.limit_in_cap_gap.h1",
+     "unemployment.total.at_or_over_limit.a1"
+    ],
+    "judgements": [
+     "cap_gap.stem_duties.h1"
+    ],
+    "words": "Counted against 150 as the pack's reading of 1004-03 section 2, which gave a STEM student in cap-gap the STEM total of its day. The alternative reading (cap-gap days not counted) gives fewer days, so no reading reaches a limit.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.stem_duties.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.5",
+    "cg.guid.26",
+    "cg.opt.1",
+    "cg.stem.5",
+    "cg.stem.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.03b",
+   "facts": {
+    "base": "g5.03",
+    "set": {
+     "w2.end": "2026-06-15"
+    }
+   },
+   "expected": {
+    "computed": {
+     "unemployment.total.a1": {
+      "value": 187
+     }
+    },
+    "items": [
+     "unemployment.total.at_or_over_limit.a1"
+    ],
+    "judgements": [
+     "cap_gap.limit_in_cap_gap.h1",
+     "cap_gap.stem_duties.h1"
+    ],
+    "words": "80 through May 31, 2026 plus Jun 16 to Sep 30, 2026 (107). Day 150 fell on Aug 24, 2026.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.5",
+    "cg.opt.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.04",
+   "facts": {
+    "base": "g5.03",
+    "set": {
+     "w2.start": "2024-06-21"
+    }
+   },
+   "expected": {
+    "computed": {
+     "unemployment.total.a1": {
+      "value": 80,
+      "reading": true
+     }
+    },
+    "absent": [
+     "cap_gap.limit_in_cap_gap.h1"
+    ],
+    "words": "40 plus 20 on the STEM card plus 20 in the cap-gap. Every reading stays below 150.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.stem_duties.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.5",
+    "cg.opt.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.05",
+   "facts": {
+    "journey": "J13",
+    "today": "2026-09-30",
+    "set": {
+     "w1.start": "2025-09-27",
+     "w1.end": "2026-08-12",
+     "h1.filed": "yes",
+     "h1.cap_basis": "regular",
+     "h1.fiscal_year": 2027,
+     "h1.receipt": "received",
+     "h1.receipt_on": "2026-04-03",
+     "h1.outcome_on_from": "notice"
+    },
+    "add": [
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2026-04-20",
+       "shows_until": "2027-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": 89,
+      "through": "2026-08-13"
+     }
+    },
+    "absent": [
+     "unemployment.opt_card.at_or_over_limit.a1"
+    ],
+    "judgements": [
+     "cap_gap.end_day.h1",
+     "grace.after_cap_gap_outcome.h1"
+    ],
+    "words": "88 days on the card (Jul 1 to Sep 26, 2025) plus Aug 13, 2026. If the denial day Aug 14, 2026 is inside the extension the count is 90, which Duly flags; the regulation's limit is more than 90. The end day decides whether the flag is raised.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.end_day.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.opt.1",
+    "cg.guid.7",
+    "cg.grace.4"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.06",
+   "facts": {
+    "base": "BASE-CG",
+    "complete": {
+     "program": {
+      "on": "2026-09-30"
+     },
+     "authorization:p1": {
+      "on": "2026-09-30"
+     },
+     "work": {
+      "on": "2026-09-30"
+     },
+     "trip": {
+      "on": "2026-05-31"
+     },
+     "move": {
+      "on": "2026-09-30"
+     },
+     "petition": {
+      "on": "2026-09-30"
+     },
+     "capgap_i20": {
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "complete.trip"
+    ],
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:complete.trip"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.16",
+    "cg.guid.5",
+    "cg.travel.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.06b",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-08-10",
+       "returned_on": "2026-08-20",
+       "purpose": "not_sure",
+       "admitted_as": "f1"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "questions": [
+     "t1.purpose"
+    ],
+    "judgements": [
+     "capgap.trip_while_pending.t1"
+    ],
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:t1.purpose",
+      "capgap.trip_while_pending.t1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.travel.2",
+    "cg.guid.20",
+    "cg.guid.16"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.07",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-08-10",
+       "returned_on": "2026-08-20",
+       "purpose": "personal"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "questions": [
+     "t1.admitted_as"
+    ],
+    "judgements": [
+     "capgap.trip_while_pending.t1"
+    ],
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Quotes the 2016 preamble: USCIS will deem the petition abandoned; such a student would be unable to rely on the extension for readmission. Also: (f)(13)(ii) does not apply during a cap-gap. 1004-03 9.4.2 recommends against travel.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:t1.admitted_as",
+      "capgap.trip_while_pending.t1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.travel.2",
+    "cg.travel.3",
+    "cg.guid.20",
+    "cg.guid.6"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.08",
+   "facts": {
+    "base": "g3.01",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-07-01",
+       "returned_on": "2026-07-15",
+       "purpose": "personal",
+       "admitted_as": "f1"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "state": "current"
+     }
+    },
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": "the days of t1 abroad, by the pack's trip-day rule",
+      "status": "guidance",
+      "reading": true
+     }
+    },
+    "judgements": [
+     "cap_gap.trip_after_approval.t1"
+    ],
+    "words": "Quotes the three 2016 conditions (approved with change of status; back before H-1B employment begins; otherwise admissible) as agency words; CBP decides admissibility; the documents CBP asks for are not in Duly's sources. Personal days abroad counted per 1004-03 7.1.8, a reading for cap-gap.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.trip_after_approval.t1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.travel.1",
+    "cg.travel.3",
+    "cg.guid.16"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.09",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "a1.card_end": "2026-12-31",
+     "p1.end_date": "2025-12-12",
+     "a1.card_start": "2026-01-01",
+     "w1.start": "2026-01-01"
+    },
+    "unset": [
+     "w1.end"
+    ],
+    "add": [
+     "H-STD",
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-07-01",
+       "returned_on": "2026-07-10",
+       "purpose": "personal"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "opt_post.a1": {
+      "ends": "2026-12-31",
+      "state": "current"
+     }
+    },
+    "absent": [
+     "cap_gap.h1"
+    ],
+    "questions": [
+     "t1.admitted_as"
+    ],
+    "judgements": [
+     "capgap.trip_while_pending.t1"
+    ],
+    "computed": {
+     "unemployment.opt_card.a1": {
+      "value": "the days of t1 abroad, by the pack's trip-day rule (opt.unemployment_abroad)"
+     }
+    },
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2026-10-01"
+     }
+    ],
+    "words": "The card's own dates stand. The words say the change of status may be treated as abandoned, so no cap-gap may follow the card's end.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:t1.admitted_as",
+      "capgap.trip_while_pending.t1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.travel.2",
+    "cg.travel.4",
+    "cg.guid.20",
+    "cg.guid.16"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.10",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2027-02-01",
+    "set": {
+     "p1.stem_list": "on_list",
+     "p1.field_name": "Computer Science",
+     "e1.e_verify": "yes"
+    },
+    "add": [
+     {
+      "id": "a2",
+      "kind": "authorization",
+      "fields": {
+       "type": "stem_extension",
+       "program": "p1",
+       "extends": "a1",
+       "basis_program": "p1",
+       "employer": "e1",
+       "dso_on": "2027-01-05",
+       "filed_on": "2027-01-15",
+       "decision": "pending"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-02-01"
+     }
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.stem_filing.a2"
+    ],
+    "absent": [
+     "conflict:stem.filed_while_opt_in_force.a2"
+    ],
+    "words": "The 2016 preamble treats the cap-gap as a valid period of post-completion OPT. (f)(11)(i)(C) keys the 90-day window to the current OPT employment authorization: read as the card date (May 31, 2026) the filing is after it; read as the cap-gap end it is within 90 days. The readings disagree. Footnote 119 was written for October 1; 1004-03 8.2.3 ties the filing to withdrawing the petition.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.stem_filing.a2"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.stem.1",
+    "cg.stem.2",
+    "cg.stem.4",
+    "cg.stem.7",
+    "cg.guid.10",
+    "cg.stem.6"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.10b",
+   "facts": {
+    "base": "g5.10",
+    "today": "2026-11-15",
+    "set": {
+     "a2.filed_on": "2026-11-01",
+     "a2.dso_on": "2026-10-20"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-11-15"
+     }
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:stem.filed_while_opt_in_force.a2"
+    ],
+    "words": "Both readings fail: after the card date, and more than 90 days before the cap-gap end.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "conflict:stem.filed_while_opt_in_force.a2"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.stem.1",
+    "cg.stem.4"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.11",
+   "facts": {
+    "base": "g5.03"
+   },
+   "expected": {
+    "nulls": [
+     "the validation due on the 24-month mark (Jun 1, 2026, plus its business days)",
+     "stem evaluation_final for a2",
+     "10-day reporting after May 31, 2026"
+    ],
+    "items_dated": [
+     "validations due on or before 2026-05-31 as today"
+    ],
+    "judgements": [
+     "cap_gap.stem_duties.h1"
+    ],
+    "words": "Quotes (f)(12)(ii)(B): ends when the student's F-1 status expires or the 24-month OPT extension concludes, whichever is first.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.stem_duties.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.stem.3",
+    "cg.stem.5"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.12",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "ac1",
+      "kind": "address_change",
+      "fields": {
+       "on": "2026-09-01"
+      }
+     }
+    ],
+    "complete_add": {
+     "address_change": {
+      "on": "2026-09-30"
+     },
+     "report": {
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "computed": {
+     "address_report.due.ac1": {
+      "value": "2026-09-11",
+      "status": "settled"
+     }
+    },
+    "words": "(f)(17) applies to every F-1 student (settled). That OPT reporting under (f)(12)(i) goes on in the cap-gap is 2010 guidance (1004-03 9.4.4) and is shown as such.",
+    "verdict": {
+     "state": "needs_you",
+     "reasons_include": [
+      "address_report.overdue.ac1"
+     ]
+    },
+    "note": "The due day passed with the report list whole and no report on it; the words state the rule and the dates, no conclusion."
+   },
+   "provisions": [
+    "cg.opt.5",
+    "cg.opt.4",
+    "cg.guid.17"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.12b",
+   "facts": {
+    "base": "g5.12",
+    "add": [
+     {
+      "id": "r1",
+      "kind": "report",
+      "fields": {
+       "type": "address_report",
+       "about": "ac1",
+       "made_on": "2026-09-05"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.opt.5"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.13a",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2026-10-20",
+    "add": [
+     {
+      "id": "p2",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "school_name": "School B",
+       "level": "master",
+       "start_date": "2026-10-26",
+       "state": "in_progress"
+      }
+     },
+     {
+      "id": "mv1",
+      "kind": "move",
+      "fields": {
+       "how": "transfer",
+       "from_program": "p1",
+       "to_program": "p2",
+       "release_date": "2026-10-15"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-10-20"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "work_end": {
+     "w1": "OPT work under the cap-gap ends on the release date Oct 15, 2026 (guidance opt.ends_on_release_date, reading)"
+    },
+    "judgements": [
+     "cap_gap.move.mv1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.move.mv1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.opt.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.13b",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2026-11-05",
+    "add": [
+     {
+      "id": "p2",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "school_name": "School A",
+       "level": "doctorate",
+       "start_date": "2026-11-01",
+       "state": "in_progress"
+      }
+     },
+     {
+      "id": "mv1",
+      "kind": "move",
+      "fields": {
+       "how": "change_of_level",
+       "from_program": "p1",
+       "to_program": "p2",
+       "release_date": "2026-10-20"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-11-05"
+     }
+    }
+   },
+   "expected": {
+    "shows_both": [
+     "release date Oct 20, 2026 (guidance)",
+     "the day before the new level, Oct 31, 2026 (reading of begins study)"
+    ],
+    "judgements": [
+     "cap_gap.move.mv1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.opt.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.14",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "w1.end": "2026-09-14"
+    },
+    "add": [
+     {
+      "id": "e2",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Two"
+      }
+     },
+     {
+      "id": "w2",
+      "kind": "work",
+      "fields": {
+       "employer": "e2",
+       "under": "a1",
+       "start": "2026-09-15",
+       "hours_per_week": 40
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-01"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.still_current"
+    ],
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "The job with the petitioner ended after the last answer; a petitioner may withdraw, and (h)(11)(ii) revokes an approval on notice that the beneficiary is no longer employed. Changing employers during a cap-gap is allowed in agency words (cg.ea.3). The direct-relation judgement is never computed.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.still_current"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.ea.3",
+    "cg.petition.5",
+    "cg.term.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g5.14b",
+   "facts": {
+    "base": "g5.03",
+    "set": {
+     "w2.end": "2026-07-31"
+    },
+    "add": [
+     {
+      "id": "e3",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Three",
+       "e_verify": "yes"
+      }
+     },
+     {
+      "id": "w3",
+      "kind": "work",
+      "fields": {
+       "employer": "e3",
+       "under": "a2",
+       "start": "2026-08-01",
+       "hours_per_week": 40
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "nulls": [
+     "stem.new_plan due for w3"
+    ],
+    "judgements": [
+     "cap_gap.stem_duties.h1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.ea.3",
+    "cg.stem.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g5.15",
+   "facts": {
+    "base": "BASE-CG",
+    "case_facts": {
+     "f2_dependent": "yes"
+    }
+   },
+   "expected": {
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:f2"
+     ]
+    },
+    "same_f1_items_as": "g3.05",
+    "words": "Quotes (f)(5)(vi)(D) as the regulation's words, tied to the F-1 extension; F-2 grace, travel and a change to H-4 are not covered."
+   },
+   "provisions": [
+    "cg.f2.1",
+    "cg.fr24.12"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.01",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2026-04-20",
+    "set": {
+     "h1.receipt": "not_yet"
+    },
+    "unset": [
+     "h1.receipt_on"
+    ],
+    "remove": [
+     "i1"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-04-20"
+     }
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.not_receipted.h1"
+    ],
+    "stages": {
+     "opt_post.a1": {
+      "state": "current"
+     }
+    },
+    "absent": [
+     "cap_gap.h1"
+    ],
+    "words": "Quotes 1004-03 9.3.1 (a DSO can add the cap-gap for a properly filed petition before receipting) and 9.1.7. The card's own dates stand.",
+    "verdict": {
+     "state": "talk_to_dso",
+     "reasons_include": [
+      "cap_gap.not_receipted.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.guid.24",
+    "cg.guid.25",
+    "cg.guid.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.02",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.filed_on": "2026-05-28",
+     "h1.receipt_on": "2026-06-02"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.filing_day_unsettled.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "unemployment.opt_card.a1"
+    ],
+    "words": "On the filing day the card ran; on the receipt day (the guidance's eligibility date) it had ended. Whether work is extended turns on which day counts.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.1",
+    "cg.guid.2",
+    "cg.guid.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.03",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.receipt_on": "2026-03-28"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.dates_order.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.guid.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.04",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.filed_on": "2026-10-15"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.dates_order.h1"
+    ],
+    "words": "A date that happened cannot be after today.",
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.05",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.validity_start": "2026-10-01"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.dates_order.h1"
+    ],
+    "words": "A validity start is on the record while the outcome is pending.",
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.petition.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.06",
+   "facts": {
+    "base": "BASE-OPT",
+    "add": [
+     {
+      "id": "h9",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2025,
+       "filed_on": "2024-12-01",
+       "receipt": "received",
+       "receipt_on": "2024-12-03",
+       "requested_start": "2025-05-31",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2025-03-01",
+       "outcome_on": "2025-03-01",
+       "outcome_on_from": "notice",
+       "validity_start": "2025-05-31",
+       "cos_granted": "no",
+       "cos_ended_on": "2025-03-01",
+       "cos_ended_how": "consular_only"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "same_as": "g1.01",
+    "absent": [
+     "cap_gap.*.h9",
+     "cap_gap.h9"
+    ],
+    "words": "Start May 31, 2025 is one day before the card start Jun 1, 2025: takes nothing (point 23a)."
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.07",
+   "facts": {
+    "base": "g6.06",
+    "set": {
+     "h9.requested_start": "2025-06-01",
+     "h9.validity_start": "2025-06-01",
+     "h9.cos_granted": "yes"
+    },
+    "unset": [
+     "h9.cos_ended_on",
+     "h9.cos_ended_how"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h9.h1b_began_on"
+    ],
+    "stages": {
+     "opt_post.a1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Start on the card start day reaches the card (on_or_after). An approved change of status starting that day asks whether H-1B began.",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h9.h1b_began_on"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.pending.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.08a",
+   "facts": {
+    "base": "BASE-OPT",
+    "remove": [
+     "a1",
+     "w1"
+    ],
+    "add": [
+     {
+      "id": "h9",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "other",
+       "filed_on": "2025-02-01",
+       "receipt": "received",
+       "receipt_on": "2025-02-03",
+       "requested_start": "2025-05-16",
+       "change_of_status": "yes",
+       "outcome": "denied",
+       "outcome_on": "2025-04-01",
+       "outcome_on_from": "notice"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "stages": {
+     "grace.p1": {
+      "starts": "2025-05-17",
+      "ends": "2025-07-15"
+     }
+    },
+    "absent": [
+     "cap_gap.*.h9"
+    ],
+    "words": "Start May 16, 2025 is the program's last day, before the grace begins: takes nothing from the grace."
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.grace.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.08b",
+   "facts": {
+    "base": "g6.08a",
+    "set": {
+     "h9.requested_start": "2025-05-17"
+    }
+   },
+   "expected": {
+    "stages": {
+     "grace.p1": {
+      "starts": "2025-05-17",
+      "ends": "2025-07-15",
+      "reading": true
+     }
+    },
+    "words": "Start on the first grace day reaches the grace; the petition was denied before it, so the grace stands, with the reading of g4.08.",
+    "absent": [
+     "cap_gap.*.h9"
+    ]
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.term.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.09a",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "end_date": "2024-01-12",
+       "state": "completed"
+      }
+     },
+     {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+       "type": "opt_post_completion",
+       "program": "p1",
+       "decision": "approved",
+       "card_start": "2024-02-01",
+       "card_end": "2025-01-31"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+       "employer": "e1",
+       "under": "a1",
+       "start": "2024-02-01",
+       "end": "2025-01-31",
+       "hours_per_week": 40
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2025,
+       "employer": "e1",
+       "filed_on": "2025-01-16",
+       "receipt": "received",
+       "receipt_on": "2025-01-16",
+       "requested_start": "2025-03-03",
+       "change_of_status": "yes",
+       "outcome": "pending"
+      }
+     }
+    ],
+    "today": "2025-02-10",
+    "complete": "all whole on 2025-02-10",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2025-02-10"
+     }
+    }
+   },
+   "expected": {
+    "rule_row": "2016 row (filed before 2025-01-17)",
+    "absent": [
+     "cap_gap.h1"
+    ],
+    "judgements": [
+     "cap_gap.start_condition.h1"
+    ],
+    "words": "The 2016 condition asks for an October 1 start; the start on the record is Mar 3, 2025.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.fr24.2",
+    "cg.hist.2",
+    "cg.fr24.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.09b",
+   "facts": {
+    "base": "g6.09a",
+    "set": {
+     "h1.filed_on": "2025-01-17",
+     "h1.receipt_on": "2025-01-17"
+    },
+    "add": [
+     {
+      "id": "i1",
+      "kind": "capgap_i20",
+      "fields": {
+       "petition": "h1",
+       "program": "p1",
+       "issued_on": "2025-01-25",
+       "shows_until": "2025-04-01",
+       "shows": "status_and_work"
+      }
+     }
+    ],
+    "complete_add": {
+     "capgap_i20": {
+      "on": "2025-02-10"
+     }
+    }
+   },
+   "expected": {
+    "rule_row": "2025 row (filed on 2025-01-17)",
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2025-04-01",
+      "bound": "latest"
+     }
+    },
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2025-02-01",
+      "ends": "2025-04-01",
+      "ends_included": false,
+      "reading": true,
+      "state": "current"
+     }
+    },
+    "words": "Same record, filed one day later: the April 1 row applies. The start Mar 3, 2025 is in FY2025 and (J) holds, so nothing steps back. If approved first, the end becomes the validity start.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.fr24.2",
+    "cg.scope.1",
+    "cg.fr24.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.10a",
+   "facts": {
+    "base": "BASE-CG"
+   },
+   "expected": {
+    "same_as": "g3.05"
+   },
+   "provisions": [
+    "cg.fy.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.10b",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "h1.fiscal_year": 2026
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.start_condition.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "cap_gap.rule_end.h1"
+    ],
+    "words": "The start asked for, Oct 1, 2026, is not in fiscal year 2026 as 31 U.S.C. 1102 counts it (a reading); (A)(2) asks for a start in the fiscal year of the petition.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.cond.2",
+    "cg.fy.1",
+    "cg.fy.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.10c",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.fiscal_year"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.fiscal_year"
+    ],
+    "nulls": [
+     "cap_gap.rule_end.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.11",
+   "facts": {
+    "base": "g3.07",
+    "today": "2027-04-10",
+    "set": {
+     "h1.outcome": "pending"
+    },
+    "unset": [
+     "h1.approved_on",
+     "h1.outcome_on",
+     "h1.outcome_on_from",
+     "h1.validity_start",
+     "h1.cos_granted"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-04-10"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2027-02-01",
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.after_end_pending.h1"
+    ],
+    "absent": [
+     "cap_gap.gap_before_start.h1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.12",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2027-05-20",
+    "set": {
+     "h1.outcome": "approved",
+     "h1.approved_on": "2027-05-10",
+     "h1.outcome_on": "2027-05-10",
+     "h1.outcome_on_from": "notice",
+     "h1.validity_start": "2027-05-10",
+     "h1.cos_granted": "yes",
+     "w1.end": "2027-03-31"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-05-20"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.after_end_pending.h1"
+    ],
+    "questions": [
+     "h1.h1b_began_on"
+    ],
+    "words": "Approval after the April 1 end: whether the later change of status stands given the time after April 1 is for the DSO (part 248 is not saved).",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "unconfirmed:h1.h1b_began_on",
+      "cap_gap.after_end_pending.h1"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.8",
+    "cg.petition.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.13",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "h1.approved_on": "2026-09-20",
+     "h1.outcome_on": "2026-09-20",
+     "h1.validity_start": "2026-11-20"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-11-20",
+      "ends_included": false,
+      "state": "current"
+     }
+    },
+    "words": "The end follows the entered validity start (Nov 20, 2026), never the requested start; the words quote (h)(9)(ii)(D)(1) on updated dates.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.petition.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.14",
+   "facts": {
+    "base": "g3.01",
+    "unset": [
+     "h1.approved_on",
+     "h1.outcome_on"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.approved_on"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": "2026-10-01",
+      "state": "current"
+     }
+    },
+    "words": "The end comes from the entered validity start; the approval day is asked because the I-20 comparison and (h)(9)(ii)(A) or (B) turn on it.",
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.petition.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.15a",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "h1.cos_granted": "no"
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.cos_ended_how"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.petition.4"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.15b",
+   "facts": {
+    "base": "g6.15a",
+    "set": {
+     "h1.cos_ended_how": "not_granted_late",
+     "h1.cos_ended_on": "2026-06-20"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.not_granted_cos.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Quotes (h)(9)(ii)(D)(2) and (B); the regulation does not say whether this is a denial of the change of status under (B).",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.petition.4",
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.15c",
+   "facts": {
+    "base": "g6.15a",
+    "set": {
+     "h1.cos_ended_how": "consular_only",
+     "h1.cos_ended_on": "2026-06-20"
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2026-06-20",
+      "ends_included": null,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "grace.after_cap_gap_outcome.h1",
+     "work.outside_span.w1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.term.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.17",
+   "facts": {
+    "base": "g1.08",
+    "today": "2026-10-05",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-09-10",
+       "returned_on": "2026-09-28",
+       "purpose": "personal",
+       "admitted_as": "other"
+      }
+     }
+    ],
+    "set": {
+     "h1.h1b_began_on": "2026-09-28"
+    }
+   },
+   "expected": {
+    "exit": "h1b at 2026-09-28",
+    "words": "F-1 items between the departure and the H-1B entry are not dated (reading).",
+    "verdict": {
+     "state": "cannot_tell",
+     "reasons_include": [
+      "category_not_covered:h1b"
+     ]
+    }
+   },
+   "provisions": [
+    "cg.term.1",
+    "cg.pending.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.19",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "h8",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "regular",
+       "fiscal_year": 2019,
+       "filed_on": "2018-04-02",
+       "receipt": "received",
+       "receipt_on": "2018-04-05",
+       "requested_start": "2018-10-01",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2018-07-01",
+       "outcome_on": "2018-07-01",
+       "outcome_on_from": "notice",
+       "validity_start": "2018-10-01",
+       "cos_granted": "yes",
+       "h1b_began_on": "2018-10-01"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.prior_h1b.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "words": "The record shows H-1B status from Oct 1, 2018. No saved source says whether a person counted before is again subject to section 214(g)(1)(A). (h)(8)(ii)(F)(5) speaks of cap-exempt employment and is not cited as settling it.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.capsubj.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.20",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.cap_basis"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.cap_basis"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "nulls": [
+     "cap_gap.rule_end.h1"
+    ],
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.capsubj.2"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.21",
+   "facts": {
+    "base": "g4.11",
+    "unset": [
+     "h2.employer"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h2.employer"
+    ],
+    "judgements": [
+     "cap_gap.several_petitions.h2"
+    ],
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.petition.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.22",
+   "facts": {
+    "base": "g3.01",
+    "unset": [
+     "h1.requested_start",
+     "h1.validity_start"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.validity_start"
+    ],
+    "absent_questions": [
+     "h1.requested_start"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.petition.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.23",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "h1.requested_start"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "h1.requested_start"
+    ],
+    "computed": {
+     "cap_gap.rule_end.h1": {
+      "value": "2027-04-01",
+      "bound": "latest"
+     }
+    },
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.24",
+   "facts": {
+    "base": "BASE-OPT",
+    "complete": {
+     "program": {
+      "on": "2026-09-30"
+     },
+     "authorization:p1": {
+      "on": "2026-09-30"
+     },
+     "work": {
+      "on": "2026-09-30"
+     },
+     "trip": {
+      "on": "2026-09-30"
+     },
+     "move": {
+      "on": "2026-09-30"
+     },
+     "petition": {
+      "on": "2026-06-01"
+     },
+     "capgap_i20": {
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "complete.petition"
+    ],
+    "stages": {
+     "grace.p1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "petition is grows_with_time: the statement of Jun 1, 2026 covers no later day, and a petition filed in the grace could extend it.",
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.guid.8"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.26",
+   "facts": {
+    "records": [
+     {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+       "where": "us_on_f1",
+       "level": "master",
+       "stem_list": "not_on_list",
+       "start_date": "2025-08-25",
+       "end_date": "2026-12-15",
+       "state": "in_progress"
+      }
+     },
+     {
+      "id": "e1",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer One"
+      }
+     },
+     {
+      "id": "h1",
+      "kind": "petition",
+      "fields": {
+       "filed": "yes",
+       "type": "h1b",
+       "cap_subject": "yes",
+       "cap_basis": "advanced_degree",
+       "fiscal_year": 2027,
+       "employer": "e1",
+       "filed_on": "2026-04-01",
+       "receipt": "received",
+       "receipt_on": "2026-04-03",
+       "requested_start": "2026-10-01",
+       "change_of_status": "yes",
+       "outcome": "approved",
+       "approved_on": "2026-06-20",
+       "outcome_on": "2026-06-20",
+       "outcome_on_from": "notice",
+       "validity_start": "2026-10-01",
+       "cos_granted": "yes"
+      }
+     }
+    ],
+    "complete": "all whole on 2026-09-30",
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1",
+     "cap_gap.cap_basis.h1"
+    ],
+    "stages": {
+     "the program stage of p1": {
+      "ends": "2026-10-01",
+      "ends_included": false,
+      "reading": true
+     }
+    },
+    "upcoming": [
+     {
+      "id": "cap_gap.new_status_start.h1",
+      "date": "2026-10-01"
+     }
+    ],
+    "words": "No cap-gap: the program runs past the start. The cap basis does not matter when no extension is needed. F-1 ending on the H-1B start is agency words read by Duly, with the conditional words.",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.pending.1",
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.27",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.end_date": "2026-05-15",
+     "a1.type": "opt_pre_completion",
+     "a1.card_start": "2025-06-01",
+     "a1.card_end": "2026-05-15",
+     "w1.end": "2026-05-15"
+    },
+    "add": [
+     "H-STD"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-05-16",
+      "ends": null
+     }
+    },
+    "words": "Pre-completion OPT is not an authorization the rule names (274a.12(c)(3)(i)(A)); 1004-03 6.8 says such a student would not be eligible for the cap gap extension of OPT.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.ea.1",
+    "cg.guid.9",
+    "cg.scope.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.28",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.stem_list": "on_list",
+     "p1.end_date": "2025-02-14",
+     "a1.card_start": "2025-04-01",
+     "a1.card_end": "2026-03-31",
+     "w1.start": "2025-04-01",
+     "e1.e_verify": "yes"
+    },
+    "unset": [
+     "w1.end"
+    ],
+    "add": [
+     "H-STD",
+     {
+      "id": "a2",
+      "kind": "authorization",
+      "fields": {
+       "type": "stem_extension",
+       "program": "p1",
+       "extends": "a1",
+       "basis_program": "p1",
+       "employer": "e1",
+       "dso_on": "2026-02-20",
+       "filed_on": "2026-03-01",
+       "decision": "pending"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.opt_not_running_at_filing.h1"
+    ],
+    "words": "On the filing day the card had ended and the STEM application was pending under the 180-day rule of 274a.12(b)(6)(iv) (as printed in 81 FR 13040). No saved source says whether that is an authorization the cap-gap extends.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.stem.6",
+    "cg.guid.3",
+    "cg.scope.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.29",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2027-03-01",
+    "set": {
+     "p1.stem_list": "on_list",
+     "e1.e_verify": "yes"
+    },
+    "add": [
+     {
+      "id": "a2",
+      "kind": "authorization",
+      "fields": {
+       "type": "stem_extension",
+       "program": "p1",
+       "extends": "a1",
+       "basis_program": "p1",
+       "employer": "e1",
+       "dso_on": "2027-01-10",
+       "filed_on": "2027-01-20",
+       "decision": "approved",
+       "decided_on": "2027-02-15",
+       "card_start": "2027-02-15",
+       "card_end": "2029-02-14"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-03-01"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "starts": "2026-06-01",
+      "ends": "2027-02-14",
+      "ends_included": true,
+      "reading": true,
+      "state": "done"
+     },
+     "stem.a2": {
+      "starts": "2027-02-15",
+      "state": "current"
+     }
+    },
+    "judgements": [
+     "cap_gap.stem_filing.a2"
+    ],
+    "words": "The cap-gap stage is keyed to the card it extends (a1) and ends the day before the new card starts.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.stem.1",
+    "cg.stem.4",
+    "cg.stem.7"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.30",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "p1.stem_list": "on_list",
+     "e1.e_verify": "yes"
+    },
+    "add": [
+     {
+      "id": "a2",
+      "kind": "authorization",
+      "fields": {
+       "type": "stem_extension",
+       "program": "p1",
+       "extends": "a1",
+       "basis_program": "p1",
+       "employer": "e1",
+       "dso_on": "2026-07-20",
+       "filed_on": "2026-08-01",
+       "decision": "pending"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.stem_filing.a2"
+    ],
+    "words": "Quotes cg.stem.2 (approved and not withdrawn before the start: no longer eligible for STEM) and 1004-03 8.2.3 (withdrawal of the petition) as dated agency words.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.stem.2",
+    "cg.guid.10",
+    "cg.stem.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.31",
+   "facts": {
+    "base": "BASE-OPT",
+    "set": {
+     "p1.end_date": "2026-05-15",
+     "a1.filed_on": "2026-06-20",
+     "a1.decision": "pending"
+    },
+    "unset": [
+     "a1.decided_on",
+     "a1.card_start",
+     "a1.card_end",
+     "a1.dso_on"
+    ],
+    "remove": [
+     "w1"
+    ],
+    "add": [
+     "H-STD"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-09-30"
+     }
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "stages": {
+     "grace.p1": {
+      "starts": "2026-05-16",
+      "ends": null
+     }
+    },
+    "words": "The OPT application was filed after the petition; neither guidance passage speaks to it.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.2",
+    "cg.guid.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.32",
+   "facts": {
+    "base": "BASE-OPT",
+    "today": "2027-04-10",
+    "set": {
+     "p1.end_date": "2026-05-15",
+     "a1.card_start": "2026-06-01",
+     "a1.card_end": "2027-05-31",
+     "w1.start": "2026-06-01"
+    },
+    "unset": [
+     "w1.end"
+    ],
+    "add": [
+     "H-STD"
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-04-10"
+     }
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1"
+    ],
+    "stages": {
+     "opt_post.a1": {
+      "ends": "2027-05-31",
+      "state": "current"
+     },
+     "grace.p1": {
+      "starts": "2027-06-01",
+      "ends": "2027-07-30",
+      "reading": true
+     }
+    },
+    "judgements": [
+     "cap_gap.after_end_pending.h1"
+    ],
+    "words": "The petition is pending past April 1 of its fiscal year while the card runs on its own grant. What the pending change of status means after the card and grace is for the DSO.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.8",
+    "cg.grace.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.33",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "a1.card_end": "2026-09-30"
+    }
+   },
+   "expected": {
+    "absent": [
+     "cap_gap.h1"
+    ],
+    "stages": {
+     "opt_post.a1": {
+      "ends": "2026-09-30"
+     }
+    },
+    "words": "No day between the card end and the H-1B start: no cap-gap stage (C5 only_if).",
+    "verdict": {
+     "state": "no_open_items"
+    }
+   },
+   "provisions": [
+    "cg.scope.1"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.34",
+   "facts": {
+    "base": "BASE-CG",
+    "today": "2027-04-01",
+    "set": {
+     "w1.end": "2027-03-31"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2027-04-01"
+     }
+    }
+   },
+   "expected": {
+    "stages": {
+     "cap_gap.h1": {
+      "ends": "2027-04-01",
+      "ends_included": false,
+      "state": "done"
+     }
+    },
+    "judgements": [
+     "cap_gap.after_end_pending.h1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.scope.1",
+    "cg.fr24.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.35",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "w1.start": "2025-09-05"
+    }
+   },
+   "expected": {
+    "items": [
+     "unemployment.opt_card.at_or_over_limit.a1"
+    ],
+    "judgements": [
+     "cap_gap.status_facts.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "words": "96 days without work on the card before the filing day. (C) is quoted as a condition to obtain the extension; part 248 is not saved.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.elig.1",
+    "cg.opt.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.36",
+   "facts": {
+    "base": "g2.07",
+    "unset": [
+     "w1.end"
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.status_only.h1",
+     "work.outside_span.w1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.3",
+    "cg.scope.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.37",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "e2",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Two"
+      }
+     }
+    ],
+    "set": {
+     "h1.employer": "e2"
+    }
+   },
+   "expected": {
+    "same_as": "g3.05",
+    "words": "Rule capgap.change_employer words are on the stage."
+   },
+   "provisions": [
+    "cg.ea.3"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.38",
+   "facts": {
+    "base": "g3.01",
+    "set": {
+     "w1.end": "2026-08-01"
+    },
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-07-15"
+     }
+    }
+   },
+   "expected": {
+    "questions": [
+     "h1.still_current"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.petition.5",
+    "cg.guid.8"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.41",
+   "facts": {
+    "base": "g3.01",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-06-15",
+       "returned_on": "2026-06-30",
+       "purpose": "personal",
+       "admitted_as": "f1"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "capgap.trip_while_pending.t1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "ends": null,
+      "state": "unknown"
+     }
+    },
+    "words": "Left on Jun 15, 2026, before the approval on Jun 20, 2026.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.travel.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.42",
+   "facts": {
+    "base": "g3.01",
+    "today": "2026-10-15",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-09-20",
+       "returned_on": "2026-10-10",
+       "purpose": "personal",
+       "admitted_as": "f1"
+      }
+     }
+    ],
+    "confirmations": {
+     "current.h1": {
+      "answer": "yes",
+      "on": "2026-10-15"
+     }
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.trip_after_approval.t1"
+    ],
+    "questions": [
+     "h1.h1b_began_on"
+    ],
+    "words": "Return on Oct 10, 2026 is after the validity start; the 2016 condition (2) is not met on these dates; no source says what follows.",
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.travel.1"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.43",
+   "facts": {
+    "base": "g3.06",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-05-01",
+       "returned_on": "2026-05-10",
+       "purpose": "personal",
+       "admitted_as": "f1"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "capgap.trip_while_pending.t1",
+     "cap_gap.after_end_pending.h1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.travel.2",
+    "cg.fr24.8"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.44",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "t1",
+      "kind": "trip",
+      "fields": {
+       "left_on": "2026-09-20",
+       "purpose": "personal"
+      }
+     }
+    ]
+   },
+   "expected": {
+    "questions": [
+     "t1.returned_on"
+    ],
+    "judgements": [
+     "capgap.trip_while_pending.t1"
+    ],
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.travel.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.45",
+   "facts": {
+    "base": "g4.01",
+    "pack": "fixed_admission_2026 operative"
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.regime_transition.h1",
+     "grace.after_cap_gap_outcome.h1",
+     "cap_gap.end_day.h1"
+    ],
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.regime.1",
+    "cg.regime.2"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.46",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "i1.shows_until": "2026-09-30"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.i20_earlier.h1"
+    ],
+    "words": "Sep 30, 2026 is earlier than the rule's bound; the words show both and quote 1004-03 as 2010 guidance written for a September 30 end.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.7",
+    "cg.fr24.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.47",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "i1.issued_on": "2026-03-20"
+    }
+   },
+   "expected": {
+    "conflicts": [
+     "conflict:cap_gap.dates_order.h1"
+    ],
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.guid.24"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.48",
+   "facts": {
+    "base": "BASE-CG",
+    "unset": [
+     "i1.issued_on"
+    ]
+   },
+   "expected": {
+    "questions": [
+     "i1.issued_on"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "cannot_tell"
+    }
+   },
+   "provisions": [
+    "cg.guid.19"
+   ],
+   "step_back": false
+  },
+  {
+   "id": "g6.49",
+   "facts": {
+    "base": "BASE-CG",
+    "set": {
+     "i1.shows": "status_only"
+    }
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "words": "The I-20 shows status only (1004-03 9.2.3 wording) while the record shows work after the card end.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.23",
+    "cg.guid.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.51",
+   "facts": {
+    "base": "BASE-CG"
+   },
+   "expected": {
+    "no_text_matches": [
+     "fee",
+     "proclamation"
+    ],
+    "same_as": "g3.05"
+   },
+   "provisions": [],
+   "step_back": false
+  },
+  {
+   "id": "g6.52",
+   "facts": {
+    "base": "g5.03",
+    "set": {
+     "w2.end": "2026-05-31",
+     "h1.filed_on": "2026-06-20",
+     "h1.receipt_on": "2026-06-22"
+    },
+    "remove": [
+     "i1"
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "cap_gap.status_only.h1"
+    ],
+    "computed": {
+     "unemployment.total.a1": {
+      "value": 80
+     }
+    },
+    "words": "Counts run over the cards only.",
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.guid.12",
+    "cg.guid.3",
+    "cg.stem.3"
+   ],
+   "step_back": true
+  },
+  {
+   "id": "g6.53",
+   "facts": {
+    "base": "BASE-CG",
+    "add": [
+     {
+      "id": "e3",
+      "kind": "employer",
+      "fields": {
+       "name": "Employer Three"
+      }
+     },
+     {
+      "id": "w3",
+      "kind": "work",
+      "fields": {
+       "employer": "e3",
+       "start": "2025-02-01",
+       "end": "2025-03-01",
+       "hours_per_week": 20
+      }
+     }
+    ]
+   },
+   "expected": {
+    "judgements": [
+     "work.outside_span.w3",
+     "cap_gap.status_facts.h1"
+    ],
+    "stages": {
+     "cap_gap.h1": {
+      "state": "unknown"
+     }
+    },
+    "verdict": {
+     "state": "talk_to_dso"
+    }
+   },
+   "provisions": [
+    "cg.elig.1"
+   ],
+   "step_back": true
+  }
+ ]
+}
