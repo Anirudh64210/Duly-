@@ -1,8 +1,10 @@
+from collections.abc import Awaitable, Callable
 from datetime import date
 from functools import lru_cache
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, Response
 from sqlalchemy.engine import Engine
 
 from api.case_f1 import (
@@ -14,6 +16,7 @@ from api.case_f1 import (
     read_body,
 )
 from api.db import database_reachable, make_engine
+from api.local_token import NOT_FROM_THE_APP, TOKEN_HEADER, expected_token, request_allowed
 from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
 from engine.clocks import Clock, SystemClock
@@ -27,6 +30,16 @@ CONTRACTS_VERSION = "0.0.0"
 app = FastAPI(title="Duly API", version=API_VERSION, docs_url=None, redoc_url=None)
 
 _engines: dict[str, Engine] = {}
+
+
+@app.middleware("http")
+async def local_token_guard(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """When the desktop app set a launch token, every call but /health must carry it."""
+    if not request_allowed(request.url.path, request.headers.get(TOKEN_HEADER), expected_token()):
+        return JSONResponse(status_code=403, content={"detail": NOT_FROM_THE_APP})
+    return await call_next(request)
 
 
 def get_clock() -> Clock:
