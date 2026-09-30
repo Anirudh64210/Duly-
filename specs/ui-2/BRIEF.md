@@ -104,3 +104,13 @@ Everything else is asked later, inside the section it affects, as a short checkl
 - **Hairlines and whitespace, not boxes.** No text walls. Nothing scrolls sideways.
 - **One hero per screen,** and one primary action per screen.
 - The canvas tokens and laws apply (design/canvas/DESIGN-SPEC.md).
+
+## The bar for Documents (founder, 2026-09-30)
+
+What students do today: send their I-20s and EAD to their own WhatsApp chat so the files are on
+their phone, and redownload the I-20 from the school's approval email every time someone asks for
+it. Duly's Documents must beat that for speed:
+
+- the right document is found in one search or one tap;
+- it can be opened, shared or sent from the phone in one tap;
+- it is never dug out of an inbox again.
