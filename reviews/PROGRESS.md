@@ -165,3 +165,16 @@
 - Failure: a sentence splitter that cuts on every period passes long texts that hold "U.S." as short ones.
 - Fix: score each plain text again with abbreviations read as one word, and list every text the splitter cuts into a piece of two words or fewer.
 - Evidence: exactly five f1 rows are cut on "S."; stem.requires.previously_obtained_degree scores 8.88 on the gate and 23.92 when "U.S." is read as one word.
+
+## 2026-09-29, run l-review-0cb32ada70 (product round 1, fix 9, and the round as a whole)
+- Read reviews/product-1-fix8.md, SPEC-resolutions.md points 37, 58, 62, 65 and 66, plain-1 SPEC, the diff 23234a4..c760b07 (tools/sources/plain.py, plain_changes.py, their tests, five plain texts, CHANGELOG, plan-fix9), and the five texts beside quote and note.
+- Ran: unit suites (exit 0), holdout (exit 0), test_plain and test_plain_changes (exit 0), plain_changes 23234a4 (the five named rows only; one row allowed or none refuses, exit 1), tools.sources.plain, sources verify, load_all, engine_literals, copy lint, ruff, mypy (all clean).
+- Graded the five texts by hand with a syllable table (TMPDIR/r0cb/hand.py, handA.py): degree 9.08 / 11.08 and duties 9.86 / 10.87 where the gate gives 8.88 and 8.85.
+- Sent point 37 through TestClient: card end 2026-07-16 nulls the window items, complete_by and grace while open or denied, talk_to_dso when confirmed; 2026-07-15 raises nothing. Dates checked by hand. Closed.
+- Found: accreditation text moves "At the time of application" to the front and closes the recognition-only reading its note keeps open; degree text says "10 years prior" with no named day. Notes: gate syllable estimate; "no." with IGNORECASE hides a sentence end.
+- Wrote reviews/product-1-fix9.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a rewrite that moved a time phrase to the front of its sentence passed every gate and closed a reading the note keeps open.
+- Fix: for each rewrite, list phrases that moved and check each reading the note names is still possible.
+- Evidence: reviews/product-1-fix9.md finding 1.
