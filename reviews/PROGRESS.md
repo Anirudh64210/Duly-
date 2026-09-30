@@ -266,3 +266,17 @@
 - Failure: a twin that asserts only the rows its point names hid another stage the same input broke.
 - Fix: diff every stage, question and reason of a twin against the case without the added record.
 - Evidence: reviews/product-2-fix4.md finding 1.
+
+## 2026-09-30, run l-review-1d6afd8368 (product round 2, fix 5)
+- Read resolutions.md point 18, reviews/product-2-fix4.md, plan-fix5, and the diff 949b726..0dddf62 (pack anchors petition_belongs and petition_may_belong, web data-landmark marks and petition questions, desktop landmark selector, point 18 twins).
+- Ran: unit and holdout suites (exit 0); verify, plain, load_all, copy lint, ruff, engine_literals, make.py --check (all 0); web tsc and vitest (550 passed) and desktop tsc and vitest (136 passed) on a HEAD copy.
+- TMPDIR/rv1d/journeys.py: twenty journeys, byte for byte the fix 4 run. twins2.py and probe3.py diffed every twin and probe against plain J19.
+- Mutants: m1, m2 and m6 caught; m3 (null while unsettled) and m5 (cap_gap card-end filter) survive; m4 is equivalent.
+- Scratch test: the web LANDMARKS values fail the desktop holdsLandmark on 8 of 8 screens.
+- Walks J01, J08, J16: same cases and counts as fix 4.
+- Wrote reviews/product-2-fix5.md (VETO), REVIEW.json and REPORT.json.
+
+## Lesson
+- Failure: two lanes built the two halves of one contract, and each tested against its own spelling.
+- Fix: feed one side's exported values to the other side's check.
+- Evidence: reviews/product-2-fix5.md finding 1.
