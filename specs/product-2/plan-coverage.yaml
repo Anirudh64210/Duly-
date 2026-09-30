@@ -1,0 +1,36 @@
+branch: product-2
+spec: specs/design-1/SPEC.md
+merge: pr
+audited: false  # a coverage repair inside product-2; its own review and audit follow
+rounds:
+  - name: coverage
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Gate 6 holds changed engine lines to 95 percent; engine/path.py is at 85 (126 lines with
+          no test). Write tests through compute and small packs made in the test, under
+          specs/path-1/SPEC.md and specs/path-1/programs.md, that reach those paths: each kind of
+          check, conditions with unknown answers, next with bind, ends_also, as_of, the fiscal
+          year, completeness statements, and every refusal. Never loosen an assertion; a path you
+          find wrong is a finding in your report, not a test that pins it.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit/engine -q -p no:cacheprovider --cov=engine
+          --cov-report=xml:.scratch/engine-coverage.xml
+          && git add -A && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*"
+          --fail-under=95 --compare-branch=product-2'
+      - lane: L-web
+        agent: builder
+        mission: >
+          Gate 6 holds changed web lines to 80 percent. Onboarding.tsx is at 26, Pages.tsx at 46,
+          parts.tsx at 54, refusal.ts and bench.tsx at 0, Home.tsx at 75. Write tests beside the
+          code that walk Onboarding through every step and every program kind, each page, each
+          part, and each refusal, as a student would use them. Change code only where a test
+          shows a fault, and say so in your report.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web -- --coverage
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
