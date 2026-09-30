@@ -1936,3 +1936,45 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-ada9778eec (attempt 1): product-2 resolutions points 1 to 9 as tests
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md, reviews/product-2.md, specs/path-1/programs.md
+  sections 10 to 22 and Part 2, and the twenty timelines of specs/path-1/journeys.json.
+- New tests/support/records_case.py: builders for records cases and readers for the output.
+  It holds no expected value.
+- New tests/unit/acceptance/test_journeys.py: the twenty journeys as records cases, each
+  through POST /v1/compute (CheckedClient, FixedClock 2026-09-29 16:00 UTC, New York). 90
+  tests: two over all twenty (reaches path.py; never no_open_items) and 50 journey tests.
+- New tests/unit/engine/test_path_fix1.py: points 3 to 9 on the review's inputs, straight to
+  engine.path.compute with the shipped packs, 25 tests, each with the other side of its line.
+- New tests/unit/api/test_compute_records.py: an Onboarding-shaped case (section 18) through
+  POST /v1/compute must equal engine.path.compute on the same case and clock, and meet
+  engine_output.schema.json.
+- New tests/holdout/test_holdout_journeys.py: 17 twins with other dates or across the line.
+- A scratch plugin under TMPDIR swapped api.case.compute for engine.path.compute, to see which
+  assertions hold once point 1 is built. Removed afterwards.
+- Plain run: every journey test fails (category_not_covered:f1); api test 2 of 4 fail.
+  Wired run: acceptance 71 passed, 19 failed; fix1 19 of 25 fail; api 4 passed; holdout 13
+  passed, 4 failed. Every wired failure is a review finding or one listed under disputes.
+- Done command as written, no pipe: exit 0.
+
+### What change would make each new test fail
+
+- Journeys: /v1/compute not calling path.py (all); a window counted from the card end or the
+  wrong end in force (J01, J02, J03, J05, J09, twin J09); months counted as 30 days; the
+  business-day count not skipping Christmas, Thanksgiving or Juneteenth (J15, J19, twins);
+  CPT counted per school or part-time added (J03, J06, J07); trip days ignored (twin J11);
+  cap-gap end from requested_start and not validity_start (J12, twins); the wrong capgap row
+  for filed_on (twin J12 old rule); a conflict raised for a request on old_end (twin J09).
+- fix1: a link path read as a field (point 3); grace or unemployment spans leaving out the
+  cap-gap (4); a count with no statement (5); a closed next shown (6); no ten-years item, no
+  CPT step back, empty lists, no end_by_source (7); decision or stem_list asked (8);
+  rule_in_litigation raised with no differing alternate (9).
+- api: the route computing anything but path.compute's output.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
