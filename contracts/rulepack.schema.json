@@ -115,6 +115,7 @@
               "days",
               "business_days",
               "months",
+              "years",
               "hours_per_week",
               "count",
               "date",
@@ -179,6 +180,14 @@
             },
             "maxItems": 12,
             "description": "The quote's terms of art that the plain words must keep word for word (for example \"U.S. worker\", \"period of admission\", \"post-completion academic training\"). Each is found in the quote and in the plain words; checked by tools.sources.plain. An empty list says the quote has none."
+          },
+          "effective_from_basis": {
+            "enum": [
+              "stated",
+              "earliest_saved_copy"
+            ],
+            "default": "stated",
+            "description": "stated: the source names the day the rule took effect. earliest_saved_copy: the day is only the date of the oldest saved copy, and the rule may be older. An event before such a day is never called earlier than the rule."
           }
         }
       }
@@ -213,37 +222,36 @@
         "counters": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "id",
-              "calculator",
-              "rule_ids"
-            ],
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "calculator": {
-                "enum": [
-                  "days_without_qualifying_period",
-                  "days_in_status",
-                  "count_of_facts"
-                ]
-              },
-              "inputs": {
-                "type": "object"
-              },
-              "rule_ids": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "minItems": 1
-              }
-            }
+            "$ref": "#/$defs/counter"
           },
-          "description": "Counts that need more than date arithmetic. Each names one of a short list of calculators in the engine, and the rules it uses"
+          "description": "Counts that need more than date arithmetic. Each names one of four calculators in the engine, its scope and its limit rule"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/record_kind"
+          },
+          "description": "The kinds of record a case may hold for this category, and their fields"
+        },
+        "order": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/order"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/check"
+          },
+          "description": "Tests on the person's own dates and answers. Each works as a conflict or a judgement item"
+        },
+        "checklists": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/checklist"
+          },
+          "description": "Ordered steps an official source lists for a stage, as pack data. Each step names its rules, and the output reads its confirmation from confirmations under step.<checklist id>.<step id>"
         }
       }
     }
@@ -309,7 +317,7 @@
     "when": {
       "type": "object",
       "additionalProperties": false,
-      "description": "A date: a fact the person entered, or the end of a span or the close of a window already computed, moved by rule amounts. Nothing else.",
+      "description": "A date: a fact the person entered, the end of a span or the close of a window already computed, or today, moved by rule amounts. Nothing else. fact may be a fact id, a path over records (this.<field>, following at most two links, as in this.program.end_date), or today, the person's calendar day.",
       "properties": {
         "fact": {
           "type": "string"
@@ -346,6 +354,55 @@
             "$ref": "#/$defs/when"
           },
           "minItems": 2
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false,
+          "description": "Inside earliest_of or latest_of: skipped when its fact is absent. Any other absent member makes the date missing"
+        },
+        "as_of": {
+          "$ref": "#/$defs/when",
+          "description": "Read `fact`, a field with history, as it stood on this day. When this day's own fact is absent, today"
+        },
+        "in_fiscal_year_of": {
+          "type": "string",
+          "description": "With month_day_rule: the month and day inside the fiscal year that holds this fact's date"
+        },
+        "fiscal_year_rule": {
+          "type": "string",
+          "description": "A rule holding MM-DD, the first day of a fiscal year"
+        },
+        "day_before": {
+          "type": "boolean",
+          "description": "The calendar day before. Not an amount"
+        },
+        "day_after": {
+          "type": "boolean",
+          "description": "The calendar day after. Not an amount"
+        },
+        "first": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "of",
+            "field",
+            "pick"
+          ],
+          "properties": {
+            "of": {
+              "$ref": "#/$defs/selector"
+            },
+            "field": {
+              "type": "string"
+            },
+            "pick": {
+              "enum": [
+                "earliest",
+                "latest"
+              ]
+            }
+          },
+          "description": "The earliest or latest value of a date field over the records a selector finds. None found: absent"
         }
       }
     },
@@ -366,8 +423,10 @@
           "enum": [
             "date",
             "count",
+            "number",
             "flag",
             "choice",
+            "text",
             "periods"
           ]
         },
@@ -474,6 +533,30 @@
             },
             "longest": {
               "$ref": "#/$defs/amount"
+            },
+            "ends_also": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "when",
+                  "rule_ids"
+                ],
+                "properties": {
+                  "when": {
+                    "$ref": "#/$defs/when"
+                  },
+                  "rule_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                }
+              },
+              "description": "Other sources for the same end. When one gives a different day, both are shown, the items that use the end are null, and the judgement item <stage id>.end_by_source.<record id> is raised"
             }
           }
         },
@@ -496,14 +579,43 @@
         "next": {
           "type": "array",
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/next_step"
+              }
+            ]
           },
-          "description": "Stages that can follow. Their windows are computed from this stage's facts and shown as what comes next"
+          "description": "Stages that can follow. Their windows are computed and shown as what comes next"
         },
         "lists": {
           "type": "array",
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "list"
+                ],
+                "properties": {
+                  "list": {
+                    "type": "string"
+                  },
+                  "only_if": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/condition"
+                    }
+                  }
+                }
+              }
+            ]
           }
         },
         "rule_ids": {
@@ -513,6 +625,15 @@
           },
           "minItems": 1,
           "description": "The rules that define the stage itself"
+        },
+        "for_each": {
+          "$ref": "#/$defs/selector",
+          "description": "The stage is entered once for each record the selector finds. Its instance id is <stage id>.<record id>, and every item, question and conflict it raises ends with the record id"
+        },
+        "checklist": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "description": "The id of the checklist in path.checklists that lists this stage's steps"
         }
       }
     },
@@ -538,6 +659,561 @@
             "type": "string"
           },
           "minItems": 1
+        }
+      }
+    },
+    "record_kind": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "id_prefix",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "id_prefix": {
+          "type": "string",
+          "pattern": "^[a-z]{1,3}$"
+        },
+        "max_records": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "grows_with_time": {
+          "type": "boolean",
+          "default": false,
+          "description": "A statement that the list is whole covers only the days through its day"
+        },
+        "complete_label": {
+          "type": "string",
+          "description": "The question that asks whether the list is whole"
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/record_field"
+          }
+        }
+      }
+    },
+    "record_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$"
+        },
+        "kind": {
+          "enum": [
+            "date",
+            "count",
+            "number",
+            "flag",
+            "choice",
+            "text",
+            "link",
+            "periods"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "What the person is asked, in plain words"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "minItems": 2
+        },
+        "not_sure": {
+          "type": "boolean",
+          "default": false,
+          "description": "not_sure is an answer to this choice"
+        },
+        "to": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "For a link: the record kinds it may name"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "max_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "happened": {
+          "type": "boolean",
+          "default": false
+        },
+        "school": {
+          "type": "boolean",
+          "default": false
+        },
+        "translation_only": {
+          "type": "boolean",
+          "default": false,
+          "description": "Filled only by the translation of an older case. No form asks for it"
+        },
+        "history": {
+          "$ref": "#/$defs/history"
+        }
+      }
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record",
+        "link",
+        "old",
+        "new",
+        "from"
+      ],
+      "properties": {
+        "record": {
+          "type": "string",
+          "description": "The record kind that changes this field"
+        },
+        "link": {
+          "type": "string",
+          "description": "Its field naming the record changed"
+        },
+        "old": {
+          "type": "string"
+        },
+        "new": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string",
+          "description": "Its date field from which the new value holds"
+        }
+      }
+    },
+    "order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record",
+        "field",
+        "ascending",
+        "rule_ids"
+      ],
+      "properties": {
+        "record": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "ascending": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "description": "One field's choices from lowest to highest. A comparison with a value not listed is unknown"
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record"
+      ],
+      "properties": {
+        "record": {
+          "type": "string"
+        },
+        "where": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        }
+      },
+      "description": "The records of one kind for which every condition is true. Inside, this is the record tested and outer is the record of the stage, check or counter that uses the selector. A record for which a condition is unknown makes the selection unknown"
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "The path the test reads"
+        },
+        "in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "present": {
+          "type": "boolean"
+        },
+        "on_or_before": {
+          "$ref": "#/$defs/when"
+        },
+        "on_or_after": {
+          "$ref": "#/$defs/when"
+        },
+        "before": {
+          "$ref": "#/$defs/when"
+        },
+        "after": {
+          "$ref": "#/$defs/when"
+        },
+        "level_above": {
+          "type": "string"
+        },
+        "level_same": {
+          "type": "string"
+        },
+        "level_below": {
+          "type": "string"
+        },
+        "same_as": {
+          "type": "string"
+        },
+        "differs_from": {
+          "type": "string"
+        },
+        "month_day_is": {
+          "type": "string",
+          "description": "A rule holding MM-DD"
+        },
+        "at_most": {
+          "$ref": "#/$defs/amount"
+        },
+        "exists": {
+          "$ref": "#/$defs/selector"
+        },
+        "none": {
+          "$ref": "#/$defs/selector"
+        },
+        "count_below": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "of",
+            "rule"
+          ],
+          "properties": {
+            "of": {
+              "$ref": "#/$defs/selector"
+            },
+            "rule": {
+              "type": "string"
+            }
+          }
+        },
+        "count_at_most": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "of",
+            "rule"
+          ],
+          "properties": {
+            "of": {
+              "$ref": "#/$defs/selector"
+            },
+            "rule": {
+              "type": "string"
+            }
+          }
+        },
+        "any_of": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 2
+        },
+        "all_of": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 2
+        },
+        "not": {
+          "$ref": "#/$defs/condition"
+        }
+      },
+      "description": "One test, true, false or unknown. Unknown when a field it reads is absent or not_sure. A list of conditions holds when all are true. Amounts are rules, never literal numbers"
+    },
+    "next_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string"
+        },
+        "only_if": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "description": "All true: shown. Any false: not shown. Otherwise shown with the line that the question is for the DSO, and what is missing is asked"
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Fields of the record not yet entered that the next stage is computed for, each from a path of this one, such as program: outer.id"
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "holds",
+        "rule_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$"
+        },
+        "for_each": {
+          "$ref": "#/$defs/selector"
+        },
+        "only_if": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "holds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 1
+        },
+        "kind": {
+          "enum": [
+            "conflict",
+            "judgement"
+          ],
+          "default": "conflict"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "description": "False: a conflict asks whether these are the dates on the person's documents, and a yes gives talk_to_dso; a judgement gives talk_to_dso at once. Unknown: what is missing is asked"
+    },
+    "counter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "calculator",
+        "scope",
+        "limit_rule",
+        "rule_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$"
+        },
+        "calculator": {
+          "enum": [
+            "days_without_qualifying_period",
+            "sum_of_days",
+            "sum_of_months",
+            "count_of_records"
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "of",
+            "group"
+          ],
+          "properties": {
+            "of": {
+              "$ref": "#/$defs/selector"
+            },
+            "group": {
+              "enum": [
+                "record",
+                "chain",
+                "same_value",
+                "all"
+              ]
+            },
+            "chain_link": {
+              "type": "string",
+              "description": "For chain: the field by which a later record names the first"
+            },
+            "value_of": {
+              "type": "string",
+              "description": "For same_value: the path whose value groups the records, such as this.program.level"
+            }
+          }
+        },
+        "span": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "starts",
+            "ends"
+          ],
+          "properties": {
+            "starts": {
+              "$ref": "#/$defs/when"
+            },
+            "ends": {
+              "$ref": "#/$defs/when"
+            }
+          },
+          "description": "For sum_of_days and sum_of_months, each record's span. For days_without_qualifying_period, each group's counting window"
+        },
+        "qualifying": {
+          "$ref": "#/$defs/selector"
+        },
+        "hours_rule": {
+          "type": "string"
+        },
+        "not_qualifying": {
+          "$ref": "#/$defs/selector",
+          "description": "Records whose days are counted even when a qualifying record covers them"
+        },
+        "only_if": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "limit_rule": {
+          "type": "string"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "reading",
+        "steps"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "reading": {
+          "type": "boolean",
+          "description": "True when the checklist is Duly's assembly of several rules into one list, not one source's own list. The screen marks it as Duly's reading"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/checklist_step"
+          },
+          "description": "In order"
+        }
+      }
+    },
+    "checklist_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "rule_ids",
+        "who"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "label": {
+          "type": "string",
+          "description": "What the source lists, in plain general words. Never an instruction and never about a person"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "The rules behind the step, at least one of them from a primary source"
+        },
+        "who": {
+          "enum": [
+            "student",
+            "employer",
+            "school"
+          ],
+          "description": "Whom the source names for the step"
+        },
+        "school": {
+          "type": "boolean",
+          "default": false,
+          "description": "The step depends on the person's school"
         }
       }
     }
