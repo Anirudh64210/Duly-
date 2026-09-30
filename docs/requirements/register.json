@@ -11064,9 +11064,9 @@
   "source": "08-agentic-factory.md, Self growing",
   "text": "Draft: the skill-curator agent runs weekly.",
   "kind": "factory",
-  "status": "not_started",
-  "evidence": ".claude/agents/skill-curator.md; .factory/metrics.jsonl",
-  "note": "Nothing schedules it; the only curator runs in the metrics are health checks.",
+  "status": "deferred",
+  "evidence": "factory/agents/skill-curator.yaml; .claude/agents/skill-curator.md",
+  "note": "Retired: the skill-curator is retired and nothing runs it weekly or at all (factory/agents/skill-curator.yaml, retired: true). A kind of finding seen three times at plan close becomes a check, hook or test instead (docs/factory/RUNBOOK.md).",
   "part": "gates-factory"
  },
  {
@@ -11894,9 +11894,9 @@
   "source": "11-claude-code-handoff/claude-scaffolding.md, agents/",
   "text": "skill-curator.md: weekly; turns LESSONS/proposals into skill diffs with verification blocks.",
   "kind": "factory",
-  "status": "partial",
-  "evidence": ".claude/agents/skill-curator.md; factory/agents/skill-curator.yaml",
-  "note": "The role exists and ran once; not weekly.",
+  "status": "deferred",
+  "evidence": "factory/agents/skill-curator.yaml; .claude/agents/skill-curator.md",
+  "note": "Retired: the skill-curator is retired and nothing runs it weekly or at all (factory/agents/skill-curator.yaml, retired: true). A kind of finding seen three times at plan close becomes a check, hook or test instead (docs/factory/RUNBOOK.md).",
   "part": "gates-factory"
  },
  {

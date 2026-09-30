@@ -145,48 +145,71 @@ def task_cap(repo: Path) -> float:
     return float(found.group(1)) if found else 0.0
 
 
+_marks: dict[str, tuple[float, dict[str, str]]] = {}
+
+
+def health_marks(repo: Path) -> dict[str, str]:
+    """What each agent's pass must match now, from health.fingerprint itself, so a fresh
+    pass shows as fresh. Run as a script the window lacks the factory's packages, so it
+    asks uv, at most once every 30 seconds."""
+    try:
+        from tools.factory import config, health
+    except ImportError:
+        held = _marks.get(str(repo))
+        if held and time.monotonic() - held[0] < 30:
+            return held[1]
+        code = (
+            "import json, sys; from pathlib import Path; import tools.factory.health; "
+            "from dashboard.factory_data import health_marks; "
+            "print(json.dumps(health_marks(Path(sys.argv[1]))))"
+        )
+        out = _out(["uv", "run", "python", "-c", code, str(repo)], Path(__file__).parents[1])
+        try:
+            marks = {str(k): str(v) for k, v in json.loads(out or "{}").items()}
+        except (json.JSONDecodeError, AttributeError):
+            marks = {}
+        _marks[str(repo)] = (time.monotonic(), marks)
+        return marks
+    try:
+        return {
+            f"{c.name}:{lane}": health.fingerprint(c, lane, repo)
+            for c in config.all_contracts(repo)
+            if not c.retired
+            for lane in c.lanes
+        }
+    except (config.ConfigError, OSError, KeyError):
+        return {}
+
+
 def health_rows(repo: Path, records: dict[str, Any]) -> list[dict[str, Any]]:
     """Every agent in every lane it may work in, with whether its health check holds.
 
-    A pass holds only for the exact contract, role file, sandbox and runner it was earned
-    with. When any of them has changed since, the pass is out of date.
+    A pass holds only for the walls it was earned inside (see tools/factory/health.py).
+    When any of them has changed since, the pass is out of date.
     """
     rows = []
-    factory = repo / "tools" / "factory"
-    for path in sorted((repo / "factory" / "agents").glob("*.yaml")):
-        text = path.read_text(encoding="utf-8")
-        name = path.stem
-        lanes = re.search(r"(?m)^lanes:\s*\[([^\]]*)\]", text)
-        role = re.search(r"(?m)^role_file:\s*(\S+)", text)
-        parts = [path.read_bytes()]
-        for extra in (
-            repo / role.group(1) if role else None,
-            factory / "sandbox.py",
-            factory / "agent_run.py",
-        ):
-            parts.append(extra.read_bytes() if extra and extra.exists() else b"")
-        mark = hashlib.sha256(b"\0".join(parts)).hexdigest()[:20]
-        for lane in [x.strip() for x in lanes.group(1).split(",")] if lanes else []:
-            home = repo / ".claude" / "lanes" / f"{lane}.yaml"
-            owned = re.search(r'owned:\s*\["([^"/]+)', home.read_text()) if home.exists() else None
-            if owned and not (repo / owned.group(1)).is_dir():
-                continue  # the lane has nothing to work in yet
-            record = records.get(f"{name}:{lane}")
-            if record is None:
-                state = "not checked"
-            elif record.get("fingerprint") != mark:
-                state = "out of date"
-            else:
-                state = "passed"
-            rows.append(
-                {
-                    "agent": name,
-                    "lane": lane,
-                    "state": state,
-                    "at": (record or {}).get("at", ""),
-                    "run_id": (record or {}).get("run_id", ""),
-                }
-            )
+    for key, mark in health_marks(repo).items():
+        name, lane = key.split(":", 1)
+        home = repo / ".claude" / "lanes" / f"{lane}.yaml"
+        owned = re.search(r'owned:\s*\["([^"/]+)', home.read_text()) if home.exists() else None
+        if owned and not (repo / owned.group(1)).is_dir():
+            continue  # the lane has nothing to work in yet
+        record = records.get(key)
+        if record is None:
+            state = "not checked"
+        elif record.get("fingerprint") != mark:
+            state = "out of date"
+        else:
+            state = "passed"
+        rows.append(
+            {
+                "agent": name,
+                "lane": lane,
+                "state": state,
+                "at": (record or {}).get("at", ""),
+                "run_id": (record or {}).get("run_id", ""),
+            }
+        )
     return rows
 
 
@@ -405,7 +428,7 @@ def plan_state(
         e
         for e in events
         if e.get("lane") == ORCHESTRATOR
-        and e.get("kind") in {"start", "step", "done", "failed", "blocked", "merge"}
+        and e.get("kind") in {"start", "step", "done", "failed", "blocked", "held", "merge"}
     ]
     last = said[-1] if said else {}
     return {

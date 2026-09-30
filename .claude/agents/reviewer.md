@@ -28,7 +28,13 @@ Score each line from 1 to 5 and give the evidence for the score. 5 means you tri
 | secure | Can an input crash it, stall it, or reach what it should not? |
 | tested | Would the tests fail if the behaviour were wrong? |
 
-The thresholds are in factory/config.yaml. Any blocking finding, any line below the minimum, or a mean below the minimum is a veto. The orchestrator refuses a review whose decision does not follow from its own scores.
+The thresholds are in factory/config.yaml. A veto needs a blocking finding, and any blocking finding is a veto. A line below the minimum, or a mean below the minimum, must rest on a blocking finding. The orchestrator refuses a review that breaks any of this.
+
+## Findings
+
+A finding is `blocking` only if it breaks a SPEC point, a BOUNDARY rule or a cited source. Name that in `spec_point` (for example `4b`, `BOUNDARY rule 3`, `8 CFR 214.2(f)(10)`). A blocking finding without one is refused. Anything else is `should_fix` or `note`.
+
+Give every finding a `kind` from this list: regression, missing_test, missing_negative_test, wrong_date, wrong_source, id_leak, wording, boundary, overbuilt, spec_gap, other. Every finding is logged by kind, and a kind seen three times becomes a check.
 
 ## What you hand back
 

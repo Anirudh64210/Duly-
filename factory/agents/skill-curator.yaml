@@ -1,11 +1,14 @@
 name: skill-curator
 version: 2
-role: Turns repeated lessons into proposed skill changes, proves each by replay, and hands the founder one branch to review. Never merges its own work.
+retired: true
+# Retired for now. No plan or schedule runs it: a kind of finding seen three times at plan
+# close becomes a check, hook or test instead (docs/factory/RUNBOOK.md, "How the factory learns").
+role: Retired for now; no plan runs it. It turned repeated lessons into proposed skill changes, proved each by replay, and handed the founder one branch to review.
 role_file: .claude/agents/skill-curator.md
 lanes: [L-factory]
 inputs:
   - agent reports and progress logs from merged work
-  - the lessons inbox
+  - the lessons in .claude/LESSONS/
 outputs:
   - proposed lessons and skill texts under proposals/, never merged by the factory
   - a REPLAY.md beside each proposed skill, with the evidence
@@ -19,7 +22,7 @@ budget_usd: 20.0
 timeout_minutes: 60
 stop_conditions:
   - the done command passes
-  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - "two different fixes have ended in the same failure: write the report with status escalated and stop"
   - the turn, token, cost or time limit in this contract is reached
   - the factory STOP file exists
 network: []

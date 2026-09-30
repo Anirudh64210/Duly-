@@ -5,6 +5,7 @@ version: 1
 model:
   pinned: claude-opus-5-5       # exact id. A run refuses to start on any other model.
   reviewer: claude-opus-5-5
+  health_probe: claude-haiku-4-5-20251001  # health probes only; they test the walls, not skill
 
 limits:
   max_parallel_agents: 4
@@ -14,8 +15,8 @@ limits:
   stall_minutes: 12              # no action for this long raises an alert and stops the agent
   require_health_check: true     # an agent must pass its smoke task before joining a run
   seconds_per_minute: 60         # only the factory's own tests change this
-  lessons_memory_max_items: 40   # size cap on what is injected from past failures
-  lessons_memory_max_chars: 12000
+  lessons_memory_max_items: 8    # size cap on what is injected from past failures
+  lessons_memory_max_chars: 3000
 
 budgets:
   per_task_usd: 25.0             # estimated at API prices; on a subscription this caps usage

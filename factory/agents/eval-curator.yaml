@@ -18,7 +18,7 @@ budget_usd: 12.0
 timeout_minutes: 30
 stop_conditions:
   - the done command passes
-  - "the same failure has appeared twice: write the report with status escalated and stop"
+  - "two different fixes have ended in the same failure: write the report with status escalated and stop"
   - the turn, token, cost or time limit in this contract is reached
   - the factory STOP file exists
 network: []

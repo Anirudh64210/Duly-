@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics factory-test golden drift weekly mutation register desktop desktop-smoke
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden drift weekly mutation register desktop desktop-smoke
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -98,6 +98,12 @@ factory-clean:
 
 factory-metrics:
 	@uv run python -m tools.factory.control metrics
+
+handled:
+	@uv run python -m tools.factory.control handled --alert "$(ALERT)" --note "$(NOTE)" $(if $(CAUSE),--cause $(CAUSE)) $(if $(UPHELD),--upheld $(UPHELD))
+
+workflow-tokens:
+	@uv run python -m tools.factory.control workflow --name "$(NAME)" $(if $(TOKENS),--tokens $(TOKENS))
 
 efficiency:
 	uv run python -m tools.factory.efficiency $(if $(SINCE),--since $(SINCE))

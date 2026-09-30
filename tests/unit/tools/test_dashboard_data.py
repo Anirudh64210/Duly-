@@ -304,29 +304,28 @@ def test_snapshot_carries_spend_alerts_metrics_and_the_stop_state(tmp_path):
 
 
 def test_health_shows_every_agent_and_lane_and_goes_out_of_date(tmp_path):
-    repo = tmp_path / "duly"
-    for folder in ("factory/agents", ".claude/agents", ".claude/lanes", "tools/factory", "engine"):
-        (repo / folder).mkdir(parents=True)
-    (repo / "factory" / "agents" / "builder.yaml").write_text(
-        "name: builder\nrole_file: .claude/agents/builder.md\nlanes: [L-engine, L-desktop]\n"
-    )
-    (repo / ".claude" / "agents" / "builder.md").write_text("role")
-    (repo / ".claude" / "lanes" / "L-engine.yaml").write_text('owned: ["engine/**"]\n')
-    (repo / ".claude" / "lanes" / "L-desktop.yaml").write_text('owned: ["desktop/**"]\n')
-    (repo / "tools" / "factory" / "sandbox.py").write_text("a")
-    (repo / "tools" / "factory" / "agent_run.py").write_text("b")
+    from engine.clocks import FixedClock
+    from tests.support import mini_factory as mini
+    from tools.factory import config, health
 
+    repo = mini.build(tmp_path)
     rows = data.health_rows(repo, {})
-    assert [(r["agent"], r["lane"], r["state"]) for r in rows] == [
-        ("builder", "L-engine", "not checked")
-    ]  # desktop has no folder yet
-
-    parts = [(repo / "factory" / "agents" / "builder.yaml").read_bytes(), b"role", b"a", b"b"]
-    mark = data.hashlib.sha256(b"\0".join(parts)).hexdigest()[:20]
-    record = {"builder:L-engine": {"fingerprint": mark, "at": T0, "run_id": "r"}}
-    assert data.health_rows(repo, record)[0]["state"] == "passed"
-    (repo / "tools" / "factory" / "sandbox.py").write_text("changed")
-    assert data.health_rows(repo, record)[0]["state"] == "out of date"
+    assert rows
+    assert {r["state"] for r in rows} == {"not checked"}
+    shown = {(r["agent"], r["lane"]) for r in rows}
+    assert ("builder", "L-desktop") not in shown  # desktop has no folder yet
+    assert ("skill-curator", "L-factory") not in shown  # a retired agent needs no check
+    # A pass the runner just recorded shows as passed: the window uses health.fingerprint.
+    builder = config.load_contract("builder", repo)
+    clock = FixedClock(datetime(2026, 9, 29, tzinfo=UTC))
+    health.remember(builder, "L-engine", "r", clock, repo, repo)
+    records = health.records(repo)
+    state = {(r["agent"], r["lane"]): r["state"] for r in data.health_rows(repo, records)}
+    assert state[("builder", "L-engine")] == "passed"
+    lane_file = repo / ".claude" / "lanes" / "L-engine.yaml"
+    lane_file.write_text(lane_file.read_text() + "\n# changed\n")
+    state = {(r["agent"], r["lane"]): r["state"] for r in data.health_rows(repo, records)}
+    assert state[("builder", "L-engine")] == "out of date"
 
 
 def test_dollars_are_for_credits_only():

@@ -17,6 +17,9 @@ from pathlib import Path
 
 from tools.factory.sandbox import SECRETS
 
+# With pipefail a pipe cannot hide a failing command: a failure anywhere in it is the exit code.
+SHELL = ("bash", "-o", "pipefail", "-c")
+
 
 class JailError(RuntimeError):
     pass
@@ -85,7 +88,7 @@ def run(
     if sys.platform == "darwin":
         profile = scratch / "profile.sb"
         profile.write_text(seatbelt_profile(writable, unreadable))
-        argv = ["sandbox-exec", "-f", str(profile), "bash", "-c", command]
+        argv = ["sandbox-exec", "-f", str(profile), *SHELL, command]
     else:
         argv = [
             "bwrap",
@@ -106,7 +109,7 @@ def run(
             real = os.path.realpath(os.path.expanduser(item))
             if os.path.isdir(real):
                 argv += ["--tmpfs", real]
-        argv += ["bash", "-c", command]
+        argv += [*SHELL, command]
     try:
         done = subprocess.run(
             argv,

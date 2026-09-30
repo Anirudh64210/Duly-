@@ -14,6 +14,8 @@ How the agent factory is run, stopped, checked and repaired. The rules behind it
 | Resume a plan after a stop | add `--from-round <name>` |
 | Run a round's checks again without its agents | add `--checks-only <name>` |
 | Remove worktrees no run holds | `make factory-clean` |
+| Say how an alert or a stop was dealt with, its cause, and for a veto whether you upheld it | `make handled ALERT=<seal> CAUSE=<cause> NOTE="..."`, adding `UPHELD=yes` or `no` for a veto; a veto's cause goes to the round stop it caused |
+| Log a founder-lane workflow's token total | `make workflow-tokens NAME=<workflow> TOKENS=<total>` |
 
 ## Before a change to the factory
 
@@ -86,6 +88,12 @@ For any merge, the full trace is:
 | The session as Claude Code kept it | `~/.claude/projects/`, under the worktree's path, by session id |
 | Spans in the OpenTelemetry shape | `.factory/otel/traces.jsonl` |
 
+## How the factory learns
+
+One rule. At each plan close the founder lane counts `findings.jsonl` by kind. A kind seen three times gets a check, hook or test in the next plan, and any prose lesson about it is deleted. There is no inbox of lessons and no weekly curator; the skill-curator is retired for now.
+
+The memory handed to agents is `.factory/failures.jsonl`. Only the orchestrator writes it, from the checks it ran itself; a health probe writes nothing, and a row goes once the same task passes. An agent sees its own lane's rows and the all-lanes rows, within `lessons_memory_max_items` and `lessons_memory_max_chars` in factory/config.yaml. Rows written by agents before this rule are moved once, by the founder, to `.factory/failures-archive.jsonl` with `uv run python -m tools.factory.memory --archive-agent-rows`.
+
 ## Every week
 
 `make weekly` writes docs/factory/reviews/<year>-W<week>.md: every run that failed or escalated, and a sample of those that passed, with five questions for each. The founder reads the traces, answers, and writes what changes. Then `make drift` has the reviewer score an earlier review again, to check the judge against itself.
@@ -108,7 +116,7 @@ now chosen by what a change can break.
 - Independent work runs in parallel lanes of the same round, not in plans one after another.
 - A reviewer reads everything in one pass and names every finding; a fix plan answers all of them together.
 - Before a phase is built, real student journeys are run against its data model, so a gap in the model is found before code is written, not after.
-- A plan that changes the pack or the engine regenerates the web samples (`make samples`) in its reconcile round, by a web lane beside the test lane, so the samples drift test never stops a plan.
+- A plan that changes the pack or the engine regenerates the web samples (`make samples`) in its reconcile round, as a round step run by phase.py, so the samples drift test never stops a plan. Work that is only one command is always a step, never an agent: preflight refuses a lane whose mission is only to run a command.
 - Journeys are a gate, not a final exam. Product-2 took 13 reviews and 11 vetoes because wrong
   dates were first found by the reviewer. Every builder that touches engine/, the pack or a view is
   held, in its done command, to the acceptance journeys and to the tests of the points it answers,
@@ -136,8 +144,7 @@ An agent cannot declare itself done. Done is a command in the plan, run by the o
 | Build (builder) | The lane's tests pass, types and lint are clean, and every number has a source |
 | Tests (test-author) | The tests are written, lint clean, and named in the report. In a round where tests come first they are not expected to pass yet |
 | Rules (rulepack-drafter) | Every quote is found in its saved source, every value is verbatim or a marked reading, and the pack loads |
-| Review (reviewer) | The review and its scores are written, the scores match the schema, and the decision follows from the scores |
-| Skills (skill-curator) | Each proposal has a replay with evidence. Never merged by the factory |
+| Review (reviewer) | The review and its scores are written, the scores match the schema, and the decision follows the blocking rule: a veto names a blocking finding that cites a SPEC point, a BOUNDARY rule or a source, and the scores alone never decide |
 | Any plan | Every round's checks pass, the hidden tests pass, and the reviewer approves |
 
 ## Reproducing a run

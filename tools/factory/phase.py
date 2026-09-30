@@ -5,6 +5,10 @@ phase branch as one merge, either through a pull request that clean CI must pass
 locally. The working agent never merges. Nothing here ever merges into a protected
 branch: that is the founder's step.
 
+A round may also have steps: a command the orchestrator runs itself, with no agent, for
+work that needs no thinking, such as regenerating samples. On a Mac the plan runs under
+caffeinate, so the machine stays awake while agents work.
+
 Usage: uv run python -m tools.factory.phase specs/phase-2/plan.yaml [--from-round X]
            [--only-round X] [--checks-only X]
 """
@@ -13,6 +17,8 @@ import argparse
 import fnmatch
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import time
@@ -25,8 +31,8 @@ import yaml
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane, violations
-from tools.factory import alerts, billing, jail, ledger, registry, sandbox, worktree
-from tools.factory.config import load_config, review_problems
+from tools.factory import alerts, billing, efficiency, jail, ledger, registry, sandbox, worktree
+from tools.factory.config import is_blocking, load_config, review_problems, spec_point
 from tools.factory.paths import REPO_ROOT, main_repo, state_dir
 
 TRAILER = "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -75,24 +81,37 @@ def load_plan(path: Path, repo: Path) -> dict[str, Any]:
             raise PlanError(f"the plan has no {key}")
     if plan["branch"] in config["protected_branches"]:
         raise PlanError(f"{plan['branch']} is protected; agents never land work there")
+    # The plan's name files its runs, reviews and stops: the directory under specs/ it sits in,
+    # since one branch may carry the plans of several features.
+    plan.setdefault(
+        "name", path.parent.name if path.parent.parent.name == "specs" else plan["branch"]
+    )
     plan.setdefault("merge", "local")
     if plan["merge"] not in {"local", "pr"}:
         raise PlanError("merge is local or pr")
+    for rnd in plan["rounds"]:
+        rnd.setdefault("lanes", [])
+        rnd.setdefault("steps", [])
     agents = [job["agent"] for rnd in plan["rounds"] for job in rnd["lanes"]]
     if plan.get("audited", True) and "auditor" not in agents:
         raise PlanError("the plan has no audit: its last round must run the auditor")
     seen: set[str] = set()
     for rnd in plan["rounds"]:
-        lanes = [job["lane"] for job in rnd["lanes"]]
+        lanes = [job["lane"] for job in rnd["steps"] + rnd["lanes"]]
         if len(lanes) != len(set(lanes)):
             raise PlanError(f"round {rnd['name']} uses a lane twice")
-        if len(lanes) > config["limits"]["max_parallel_agents"]:
+        if len(rnd["lanes"]) > config["limits"]["max_parallel_agents"]:
             raise PlanError(f"round {rnd['name']} has more agents than the factory allows at once")
+        for step in rnd["steps"]:
+            for key in ("lane", "run"):
+                if not str(step.get(key, "")).strip():
+                    raise PlanError(f"round {rnd['name']}: a step has no {key}")
         for job in rnd["lanes"]:
             for key in ("lane", "agent", "mission", "done"):
                 if not str(job.get(key, "")).strip():
                     raise PlanError(f"round {rnd['name']}: a lane has no {key}")
-            job.setdefault("task", f"{plan['branch']}/{rnd['name']}/{job['lane']}")
+        for job in rnd["steps"] + rnd["lanes"]:
+            job.setdefault("task", f"{plan['name']}/{rnd['name']}/{job['lane']}")
             if job["task"] in seen:
                 raise PlanError(f"task {job['task']} appears twice")
             seen.add(job["task"])
@@ -111,6 +130,16 @@ def needs_founder(files: list[str]) -> dict[str, list[str]]:
 def _say(repo: Path, kind: str, message: str) -> None:
     ledger.append("founder", "orchestrator", kind, message, repo)
     print(f"[{kind}] {message}", flush=True)
+
+
+def _stop(repo: Path, plan: dict[str, Any], message: str, cause: str = "unknown") -> None:
+    """A stop always carries a cause, so make efficiency can count stops by cause. The
+    orchestrator seldom knows it, so it is unknown until the founder names it."""
+    if cause not in efficiency.CAUSES:
+        raise ValueError(f"unknown cause {cause}")
+    name = plan.get("name") or plan["branch"]
+    ledger.append("founder", "orchestrator", "blocked", message, repo, plan=name, cause=cause)
+    print(f"[blocked] {message}", flush=True)
 
 
 def _git(repo: Path, *args: str) -> tuple[int, str]:
@@ -278,10 +307,11 @@ def land(repo: Path, plan: dict[str, Any], job: dict[str, Any], out: dict[str, A
         return False
     held = needs_founder(files)
     if held or job.get("merge") is False:
+        # Held for the founder's approval, which is not a stop: the plan goes on.
         why = ", ".join(held) if held else "the plan keeps this lane for the founder"
         _say(
             repo,
-            "blocked",
+            "held",
             f"{lane.name}: {len(files)} files on {branch}, waiting for the founder ({why})",
         )
         worktree.remove(tree, False, repo)
@@ -377,8 +407,15 @@ def checkpoint(repo: Path, plan: dict[str, Any], name: str) -> bool:
     return True
 
 
+def _append(repo: Path, name: str, rows: list[dict[str, Any]]) -> None:
+    with (state_dir(repo) / name).open("a", encoding="utf-8") as handle:
+        handle.writelines(json.dumps(row) + "\n" for row in rows)
+
+
 def check_review(repo: Path, job: dict[str, Any], out: dict[str, Any]) -> bool:
-    """A reviewer's scores must match the schema, and the decision must follow from them."""
+    """A reviewer's findings go to findings.jsonl, so that a kind seen three times becomes a
+    check; then the review must pass the one rule in config.review_problems.
+    """
     path = Path(out["worktree"]) / "reviews" / "REVIEW.json"
     if not path.exists():
         path = repo / "reviews" / "REVIEW.json"
@@ -389,58 +426,166 @@ def check_review(repo: Path, job: dict[str, Any], out: dict[str, Any]) -> bool:
             "failed", f"the review has no readable scores: {err}", out["lane"], out["run_id"], repo
         )
         return False
+    at = SystemClock().now().isoformat(timespec="seconds")
+    plan = str(job["task"]).split("/")[0]
+    # Every finding is kept, those of a review that is refused below too.
+    listed = review.get("findings") if isinstance(review, dict) else None
+    findings = [
+        {
+            "at": at,
+            "id": f"{out['run_id']}-{n}",
+            "plan": plan,
+            "commit": review.get("reviewed_commit"),
+            "kind": str(f.get("kind") or "other"),
+            "file": f.get("file"),
+            "input": f.get("input"),
+            "title": f.get("title"),
+            "severity": f.get("severity"),
+            "blocking": is_blocking(f),
+            "spec_point": spec_point(f),
+        }
+        for n, f in enumerate(listed if isinstance(listed, list) else [], 1)
+        if isinstance(f, dict)
+    ]
+    _append(repo, "findings.jsonl", findings)
     problems = review_problems(review, repo)
     if problems:
         alerts.notify(
             "failed",
-            f"the review was refused: {problems[0][:160]}",
+            f"the review was refused: {problems[0][:200]}",
             out["lane"],
             out["run_id"],
             repo,
         )
         return False
     scores = {name: line["score"] for name, line in review["scores"].items()}
-    with (state_dir(repo) / "reviews.jsonl").open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                {
-                    "at": SystemClock().now().isoformat(timespec="seconds"),
-                    "run_id": out["run_id"],
-                    "commit": review["reviewed_commit"],
-                    "scores": scores,
-                    "decision": review["decision"],
-                    "task": job["task"],
-                }
-            )
-            + "\n"
-        )
+    row = {
+        "at": at,
+        "run_id": out["run_id"],
+        "plan": plan,
+        "commit": review["reviewed_commit"],
+        "scores": scores,
+        "decision": review["decision"],
+        "task": job["task"],
+    }
+    _append(repo, "reviews.jsonl", [row])
     _say(repo, "step", f"review: {review['decision']}, scores {scores}")
     if review["decision"] != "APPROVE":
+        blocking = sum(f["blocking"] for f in findings)
         alerts.notify(
-            "eval_drop", f"the reviewer vetoed: {scores}", out["lane"], out["run_id"], repo
+            "veto",
+            f"{blocking} blocking findings, scores {scores}",
+            out["lane"],
+            out["run_id"],
+            repo,
         )
     return bool(review["decision"] == "APPROVE")
 
 
-def run_checks(repo: Path, checks: list[dict[str, str]]) -> bool:
-    results: dict[str, str] = {}
+def _jailed(repo: Path, command: str) -> jail.Result:
+    """Run a command of the orchestrator's own, a check or a step, in the jail in the repo."""
     env = sandbox.environment(dict(os.environ), repo, repo, "founder", "checks", "")
     env.pop("UV_CACHE_DIR", None)
     env.pop("UV_OFFLINE", None)
     extra = [Path(p) for p in sandbox.tool_scratch(repo)]
     cache = Path.home() / ".cache"
+    return jail.run(command, repo, env, timeout_seconds=1800, extra_writable=[*extra, cache])
+
+
+def _tail(output: str) -> str:
+    return " | ".join(output.strip().splitlines()[-3:])[:300]
+
+
+def run_checks(repo: Path, checks: list[dict[str, str]]) -> bool:
+    results: dict[str, str] = {}
     for check in checks:
-        done = jail.run(
-            check["run"], repo, env, timeout_seconds=1800, extra_writable=[*extra, cache]
-        )
+        done = _jailed(repo, check["run"])
         results[check["name"]] = "pass" if done.code == 0 else "fail"
         if done.code:
-            tail = " | ".join(done.output.strip().splitlines()[-3:])[:300]
-            _say(repo, "failed", f"check {check['name']} fails: {tail}")
+            _say(repo, "failed", f"check {check['name']} fails: {_tail(done.output)}")
     (state_dir(repo) / "gates.json").write_text(
         json.dumps({"at": SystemClock().now().isoformat(timespec="seconds"), "results": results})
     )
     return all(v == "pass" for v in results.values())
+
+
+def _changed(repo: Path) -> set[str]:
+    _, text = _git(repo, "ls-files", "--modified", "--others", "--exclude-standard")
+    return {line for line in text.splitlines() if line}
+
+
+def run_step(repo: Path, plan: dict[str, Any], step: dict[str, str]) -> bool:
+    """Run a round step and commit what it changes on the working branch.
+
+    A lane whose whole mission was to run one command cost a full agent session. The
+    orchestrator runs the command in the jail instead. The step's lane must own every path the
+    command changed, and nothing it changed may need the founder; otherwise the changes are
+    left in the working tree for the founder and the round stops.
+    """
+    lane = load_lane(step["lane"], repo)
+    before = _changed(repo)
+    done = _jailed(repo, step["run"])
+    if done.code:
+        _say(repo, "failed", f"step {lane.name} fails: {_tail(done.output)}")
+        return False
+    files = sorted(_changed(repo) - before)
+    if not files:
+        _say(repo, "step", f"step {lane.name}: nothing changed")
+        return True
+    refused = violations(lane, files) or [f for hits in needs_founder(files).values() for f in hits]
+    if refused:
+        alerts.notify(
+            "guardrail",
+            f"step {lane.name} changed {refused[:5]}, which it may not; left in the working tree",
+            lane.name,
+            cwd=repo,
+        )
+        return False
+    message = (
+        f"step({lane.name}): {len(files)} files\n\nFactory-Task: {step['task']}\n"
+        f"Factory-Command: {step['run']}\nFactory-Ledger: {ledger.head(repo)}\n\n{TRAILER}"
+    )
+    code, text = _git(repo, "add", "--all", "--", *files)
+    if code == 0:
+        code, text = _git(repo, "commit", "-q", "-m", message)
+    if code:
+        alerts.notify(
+            "failed", f"step {lane.name}: could not commit: {text[:160]}", lane.name, cwd=repo
+        )
+        return False
+    _say(repo, "merge", f"step {lane.name}: {len(files)} files into {working_branch(plan)}")
+    return True
+
+
+def _starts_file(repo: Path) -> Path:
+    return state_dir(repo) / "plan-starts.json"
+
+
+def _plan_key(repo: Path, plan_path: Path) -> str:
+    path, root = plan_path.resolve(), repo.resolve()
+    return str(path.relative_to(root)) if path.is_relative_to(root) else str(path)
+
+
+def mark_start(repo: Path, plan_path: Path) -> None:
+    """Record the branch head as the plan's first round starts, keyed by the plan's path."""
+    path = _starts_file(repo)
+    starts = json.loads(path.read_text()) if path.exists() else {}
+    starts[_plan_key(repo, plan_path)] = _git(repo, "rev-parse", "HEAD")[1]
+    path.write_text(json.dumps(starts, indent=2))
+
+
+def landed_tasks(repo: Path, plan_path: Path) -> set[str]:
+    """Tasks already on the working branch, from the Factory-Task lines of its commits.
+
+    Only commits made since the plan's first round started count: other plans on the same
+    branch may use the same task names, and the plan file may be committed again mid plan.
+    """
+    path = _starts_file(repo)
+    since = json.loads(path.read_text()).get(_plan_key(repo, plan_path)) if path.exists() else ""
+    if not since:
+        return set()
+    _, text = _git(repo, "log", "--format=%B", f"{since}..HEAD")
+    return {m.strip() for m in re.findall(r"^Factory-Task: (.+)$", text, re.M)}
 
 
 def briefing(plan: dict[str, Any], rnd: dict[str, Any], job: dict[str, Any]) -> str:
@@ -461,10 +606,29 @@ def briefing(plan: dict[str, Any], rnd: dict[str, Any], job: dict[str, Any]) -> 
     return "\n\n".join(parts)
 
 
-def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents: bool) -> bool:
+def run_round(
+    repo: Path,
+    plan: dict[str, Any],
+    rnd: dict[str, Any],
+    skip_agents: bool,
+    landed: frozenset[str] = frozenset(),
+) -> bool:
+    """Run a round's steps, then its agents, then its checks.
+
+    Lanes whose task already landed are not run again. A review always runs again: it must
+    read the branch as it is now, and a vetoed review lands its files too.
+    """
     name = rnd["name"]
-    jobs = [] if skip_agents else rnd["lanes"]
-    _say(repo, "start", f"round {name}: " + ", ".join(j["lane"] for j in rnd["lanes"]))
+    _say(
+        repo, "start", f"round {name}: " + ", ".join(j["lane"] for j in rnd["steps"] + rnd["lanes"])
+    )
+    todo = [] if skip_agents else rnd["steps"] + rnd["lanes"]
+    again = [j for j in todo if j["task"] not in landed or j.get("agent") == "reviewer"]
+    if len(again) < len(todo):
+        done = ", ".join(j["lane"] for j in todo if j not in again)
+        _say(repo, "step", f"round {name}: already on the branch, not run again: {done}")
+    ok = all(run_step(repo, plan, s) for s in again if "run" in s)
+    jobs = [j for j in again if "agent" in j] if ok else []
     runs = state_dir(repo) / "runs"
     runs.mkdir(exist_ok=True)
     procs = []
@@ -494,9 +658,8 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
             "--result",
             str(result),
         ]
-        env = {**os.environ, "PYTHONPATH": str(REPO_ROOT)}
+        env = {**os.environ, "PYTHONPATH": str(REPO_ROOT), "DULY_PLAN": str(plan["name"])}
         procs.append((job, result, subprocess.Popen(cmd, cwd=repo, env=env)))
-    ok = True
     outcomes = []
     for job, result, proc in procs:
         proc.wait()
@@ -514,7 +677,8 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
         if job["agent"] == "reviewer" and not check_review(repo, job, out):
             ok = False
         ok = land(repo, plan, job, out) and ok
-    ok = run_checks(repo, rnd.get("checks", [])) and ok
+    # A round that already failed stops here: its checks could only say so again, slowly.
+    ok = ok and run_checks(repo, rnd.get("checks", []))
     # One pull request and one CI run per plan, at its last round, unless a round asks for
     # its own: a CI run after every round cost 13 waits in one day for one feature.
     last = rnd is plan["rounds"][-1]
@@ -523,17 +687,29 @@ def run_round(repo: Path, plan: dict[str, Any], rnd: dict[str, Any], skip_agents
     if ok:
         _say(repo, "done", f"round {name} complete")
     else:
-        _say(repo, "blocked", f"round {name} stopped. Fix, then rerun with --from-round {name}")
+        _stop(repo, plan, f"round {name} stopped. Fix, then rerun with --from-round {name}")
     return ok
 
 
-def main() -> int:
+def stay_awake(argv: list[str]) -> None:
+    """On a Mac, run this plan again under caffeinate, so the Mac does not sleep while agents
+    work. It slept in 16 minute cycles during two plans, and 2.65 hours fell inside runs."""
+    tool = shutil.which("caffeinate")
+    if sys.platform != "darwin" or not tool or os.environ.get("DULY_AWAKE"):
+        return
+    command = [tool, "-dimsu", sys.executable, "-m", "tools.factory.phase", *argv]
+    os.execve(tool, command, {**os.environ, "DULY_AWAKE": "1"})  # noqa: S606
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    stay_awake(argv)
     parser = argparse.ArgumentParser()
     parser.add_argument("plan")
     parser.add_argument("--from-round", default="")
     parser.add_argument("--only-round", default="")
     parser.add_argument("--checks-only", default="")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     repo = main_repo(Path.cwd())
     try:
         plan = load_plan(Path(args.plan), repo)
@@ -580,6 +756,7 @@ def main() -> int:
     except (registry.ClaimError, registry.StoppedError) as err:
         print(f"refused: {err}")
         return 1
+    landed = frozenset(landed_tasks(repo, Path(args.plan)) if args.from_round else ())
     try:
         started = not args.from_round
         for rnd in plan["rounds"]:
@@ -590,9 +767,11 @@ def main() -> int:
                     continue
                 started = True
             if registry.stopped(repo):
-                _say(repo, "blocked", "the factory is stopped")
+                _stop(repo, plan, "the factory is stopped")
                 return 1
-            if not run_round(repo, plan, rnd, rnd["name"] == args.checks_only):
+            if rnd is plan["rounds"][0] and not args.from_round:
+                mark_start(repo, Path(args.plan))
+            if not run_round(repo, plan, rnd, rnd["name"] == args.checks_only, landed):
                 return 1
         _say(
             repo,

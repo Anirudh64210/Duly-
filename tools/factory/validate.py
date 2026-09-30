@@ -1,7 +1,8 @@
 """Gate 7. The factory's own files must be whole before anything runs.
 
 Checks the config, every agent contract, every plan, the golden tasks, and that the
-pinned model is the only model any of them names.
+pinned model is the only model any of them names. The one exception is the health probe's
+model (D67), which must be on the list below and named by no contract.
 """
 
 import sys
@@ -15,6 +16,8 @@ from tools.factory.billing import settings_problems
 from tools.factory.config import ConfigError, all_contracts, load_config
 from tools.factory.paths import REPO_ROOT
 from tools.factory.phase import PlanError, load_plan
+
+HEALTH_PROBE_MODELS = ("claude-haiku-4-5-20251001",)
 
 
 def problems(root: Path = REPO_ROOT) -> list[str]:
@@ -57,6 +60,11 @@ def problems(root: Path = REPO_ROOT) -> list[str]:
     found += settings_problems(root)
     if config["model"]["pinned"] != config["model"]["reviewer"]:
         found.append("the reviewer's model differs from the pinned model")
+    probe = config["model"].get("health_probe")
+    if probe and probe not in HEALTH_PROBE_MODELS:
+        found.append(f"model.health_probe {probe} is not one of {', '.join(HEALTH_PROBE_MODELS)}")
+    if probe and any(c.model == probe for c in contracts.values()):
+        found.append(f"model.health_probe {probe} is for health probes only; a contract names it")
     return found
 
 

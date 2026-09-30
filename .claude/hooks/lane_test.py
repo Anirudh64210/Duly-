@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Stop. A lane's turn cannot end while its own tests fail."""
+"""Stop. A lane's turn cannot end while its own tests fail.
+
+A factory run (DULY_RUN_ID is set) skips this: the agent runs its done command in its own
+sandbox, and the orchestrator runs it again in the jail as the real check. A third run here
+cost time and was read by agents as a second failure.
+"""
 
 import os
 import subprocess
@@ -15,7 +20,7 @@ from tools.diff_policy.check import LaneError, load_lane
 
 event = read_event()
 name = lane_name()
-if name == "founder" or event.get("stop_hook_active"):
+if name == "founder" or event.get("stop_hook_active") or os.environ.get("DULY_RUN_ID"):
     sys.exit(0)
 
 root = project_root()

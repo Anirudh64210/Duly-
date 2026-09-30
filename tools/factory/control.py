@@ -3,9 +3,11 @@
 stop      the kill switch: end every agent now and let nothing start
 resume    allow runs again
 status    what is running, what was spent today, whether the ledger is intact
-doctor    run each agent's health check
+doctor    run each agent's health check, except a retired agent's
 clean     remove worktrees and lane branches that no run holds
 metrics   success rate, retries, cost and time for each agent
+handled   say how an alert or a stop was dealt with, its cause, and whether a veto was upheld
+workflow  log a founder-lane workflow's token total
 """
 
 import argparse
@@ -13,11 +15,13 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane
 from tools.factory import agent_run, billing, budget, health, ledger, registry, telemetry, worktree
 from tools.factory.config import all_contracts, load_config
+from tools.factory.efficiency import CAUSES
 from tools.factory.paths import main_repo, worktrees_dir
 
 
@@ -65,7 +69,7 @@ def doctor(repo: Path, only: str) -> int:
     branch = worktree.git(["rev-parse", "--abbrev-ref", "HEAD"], repo).strip()
     failed = 0
     for contract in all_contracts(repo):
-        if only and contract.name != only:
+        if contract.retired or (only and contract.name != only):
             continue
         for lane_name in contract.lanes:
             lane = load_lane(lane_name, repo)
@@ -113,13 +117,21 @@ def clean(repo: Path) -> int:
     return 0
 
 
-def handled(repo: Path, seal: str, note: str) -> int:
-    """Record that an alert was dealt with, and how. The alert itself is never removed."""
-    rows = [r for r in ledger.read(repo) if r.get("kind") == "alert"]
+def handled(repo: Path, seal: str, note: str, cause: str = "", upheld: str = "") -> int:
+    """Record that an alert or a stop was dealt with, how, and why it happened. The row itself
+    is never removed. A veto also says whether the founder upheld it."""
+    events = ledger.read(repo)
+    alerted = {r.get("run_id") for r in events if r.get("kind") == "alert" and r.get("run_id")}
+    rows = [
+        r
+        for r in events
+        if r.get("kind") == "alert"
+        or (r.get("kind") == "blocked" and r.get("run_id") not in alerted)
+    ]
     found = [r for r in rows if str(r.get("hash", "")).startswith(seal)] if seal else []
     if len(found) != 1:
         print("Name one alert by the start of its seal. Open alerts:")
-        done = {r.get("handles") for r in ledger.read(repo) if r.get("handles")}
+        done = {r.get("handles") for r in events if r.get("handles")}
         for row in rows:
             if row.get("hash") not in done:
                 print(f"  {row['hash'][:10]}  {row['at']}  {row['message'][:90]}")
@@ -127,8 +139,39 @@ def handled(repo: Path, seal: str, note: str) -> int:
     if not note.strip():
         print('Say how it was dealt with: --note "..."')
         return 1
+    veto = found[0].get("alert") == "veto"
+    if veto != bool(upheld):
+        print("Say --upheld yes or no for a veto, and only for a veto.")
+        return 1
+    extra: dict[str, Any] = {"cause": cause} if cause else {}
+    if upheld:
+        extra["veto_upheld"] = upheld == "yes"
     ledger.append(
-        "founder", "founder", "control", f"handled: {note.strip()}", repo, handles=found[0]["hash"]
+        "founder",
+        "founder",
+        "control",
+        f"handled: {note.strip()}",
+        repo,
+        handles=found[0]["hash"],
+        **extra,
+    )
+    print("Recorded.")
+    return 0
+
+
+def workflow(repo: Path, name: str, tokens: int) -> int:
+    """Log a founder-lane workflow's token total, which no agent run records."""
+    if not name.strip() or tokens <= 0:
+        print("Name the workflow and its token total: --name N --tokens T")
+        return 1
+    ledger.append(
+        "founder",
+        "founder",
+        "cost",
+        f"workflow {name.strip()}: {tokens} tokens",
+        repo,
+        workflow=name.strip(),
+        tokens=tokens,
     )
     print("Recorded.")
     return 0
@@ -200,6 +243,7 @@ def main() -> int:
             "handled",
             "inbox",
             "reply",
+            "workflow",
         ],
     )
     parser.add_argument("--reason", default="the founder stopped the factory")
@@ -208,6 +252,10 @@ def main() -> int:
     parser.add_argument("--note", default="")
     parser.add_argument("--text", default="")
     parser.add_argument("--keep-open", action="store_true")
+    parser.add_argument("--cause", choices=[c for c in CAUSES if c != "unknown"], default="")
+    parser.add_argument("--upheld", choices=["yes", "no"], default="")
+    parser.add_argument("--name", default="")
+    parser.add_argument("--tokens", type=int, default=0)
     args = parser.parse_args()
     repo = main_repo(Path.cwd())
     if args.command == "stop":
@@ -217,7 +265,9 @@ def main() -> int:
     if args.command == "reply":
         return reply(repo, args.note, args.text, args.keep_open)
     if args.command == "handled":
-        return handled(repo, args.alert, args.note)
+        return handled(repo, args.alert, args.note, args.cause, args.upheld)
+    if args.command == "workflow":
+        return workflow(repo, args.name, args.tokens)
     if args.command == "doctor":
         return doctor(repo, args.agent)
     return {"resume": resume, "status": status, "clean": clean, "metrics": metrics}[args.command](
