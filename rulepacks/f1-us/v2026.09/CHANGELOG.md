@@ -144,3 +144,8 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - `stem.requires.duties_hours_and_compensation`: three sentences; "during the 24-month OPT extension" and "commensurate" kept. Grade 8.9.
 - `stem.requires.employer_attests_no_replacement`: two sentences; the first keeps "Duly reads this as one of the things the employer attests". Grade 7.6.
 - No network was used.
+
+### 2026-09-29, lane L-content, run l-content-b2845e5165 (SPEC-resolutions point 66)
+
+- The five texts from run l-content-d6cfa8aad6 stand. Only `stem.requires.previously_obtained_degree` changed again: it was 324 characters, over the contract's 320, so the pack did not load. "It must have been granted in the 10 years up to then." is now "It must have been granted in the 10 years prior." The text is 319 characters, grade 8.88, still three sentences, and still says "category" and that the DSO recommends the student for the 24-month OPT extension. "prior" means prior to that time, the DSO's recommendation, as the quote says ("within the 10 years preceding the date the DSO recommends the student").
+- Every other plain text, every plain_terms list, and every value, status, derivation, quote, note and date are unchanged. No network was used.
