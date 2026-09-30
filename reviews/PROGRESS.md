@@ -332,3 +332,11 @@
 - Mutant: questionTitle showing "Duly needs your a1 dso on." passes all 7 ui1 tests.
 - chrome-headless-shell refused by the sandbox (Permission denied 1100); point 2 read from CSS only.
 - Wrote reviews/ui-1.md (VETO, mean 4.17), REVIEW.json and REPORT.json, both valid.
+
+## 2026-09-30, run l-review-8bdafbf964 (ui-1 fix 1)
+- Read specs/ui-1/SPEC.md points 5 to 8, plan-fix1, reviews/ui-1.md, and the diff ea374a0..734d70a (labels.ts, labels.test.ts, Home.tsx, app.css, ui1.test.tsx, desktop shots.ts, shotrun.ts, shots.test.ts).
+- Ran on a HEAD copy: web tsc 0, web vitest 591 passed, desktop tsc 0, desktop vitest 146 passed, eslint 0. Worktree: copy lint clean, plain 0.
+- Listed the ask sites in engine/path.py. TMPDIR/rvu/ids.py computed 5 cases and found 42 question ids; a scratch vitest printed the title and because line for each. Fields, lists, typed dates, after_today and <check>.<record> have words; <stage>.<record>.ends_before_starts gives the generic title and "Asked because of: Conflict trip t1 ends before starts."
+- Rendered Home on three variants. With a2 in three checks there are three identical rows and one Why line.
+- All six ui-1 findings are closed for the sample; point 7 is closed in code only, because Electron cannot start in the sandbox.
+- Wrote reviews/ui-1-fix1.md (VETO, mean 3.83), REVIEW.json and REPORT.json, both valid.
