@@ -202,6 +202,49 @@ export function drawScript(theme: ShotTheme): string {
 })()`;
 }
 
+/**
+ * The windows each drawn shot is measured in (specs/ui-1/SPEC.md point 7): the canvas frame,
+ * and a phone 390 wide. No screen may be wider than either.
+ */
+export const SHOT_WINDOWS = [SHOT_SIZE, { width: 390, height: 844 }] as const;
+
+/** One measure of a page: the window width asked, the page's inner width and its scroll width. */
+export interface PageWidth {
+  window: number;
+  inner: number;
+  scroll: number;
+}
+
+/** Run inside the page after the window is sized: the document's scroll width and the inner width. */
+export function widthScript(): string {
+  return `(async () => {
+  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+  return { inner: window.innerWidth, scroll: document.documentElement.scrollWidth };
+})()`;
+}
+
+/** The width script's answer, for the window width asked, or null when it is anything else. */
+export function pageWidth(value: unknown, window: number): PageWidth | null {
+  const entry = record(value);
+  const inner = entry?.inner;
+  const scroll = entry?.scroll;
+  if (typeof inner !== "number" || typeof scroll !== "number") return null;
+  return { window, inner, scroll };
+}
+
+/**
+ * Whether the page fits every shot window: measured in each, at the width asked, and never
+ * wider than it. A window not measured, or not at its width, does not count as fitting.
+ */
+export function fitsWindows(widths: readonly PageWidth[]): boolean {
+  return SHOT_WINDOWS.every(({ width }) =>
+    widths.some(
+      (measure) =>
+        measure.window === width && measure.inner === width && measure.scroll <= measure.inner,
+    ),
+  );
+}
+
 export interface ShotResult {
   file: string;
   screen: string;
@@ -209,25 +252,37 @@ export interface ShotResult {
   theme: ShotTheme;
   landmark: string;
   drawn: boolean;
+  widths: PageWidth[];
 }
 
-/** shots.json: what each shot was, the landmark it looked for (its selector), and whether it held it. */
+/**
+ * shots.json: what each shot was, the landmark it looked for (its selector), whether it held
+ * it, its widths in each window and whether it fits them.
+ */
 export function shotsJson(results: readonly ShotResult[]): string {
   const report = {
     size: SHOT_SIZE,
-    shots: results.map(({ file, screen, sample, theme, landmark, drawn }) => ({
+    windows: SHOT_WINDOWS,
+    shots: results.map(({ file, screen, sample, theme, landmark, drawn, widths }) => ({
       file,
       screen,
       sample,
       theme,
       landmark,
       drawn,
+      widths,
+      fits: fitsWindows(widths),
     })),
   };
   return `${JSON.stringify(report, null, 2)}\n`;
 }
 
-/** 0 when every planned shot held its landmark, 1 when none were planned or any did not. */
+/**
+ * 0 when every planned shot held its landmark and fits every window, 1 when none were planned
+ * or any did not.
+ */
 export function shotsExitCode(results: readonly ShotResult[]): 0 | 1 {
-  return results.length > 0 && results.every((result) => result.drawn) ? 0 : 1;
+  return results.length > 0 && results.every((result) => result.drawn && fitsWindows(result.widths))
+    ? 0
+    : 1;
 }

@@ -13,10 +13,13 @@ import {
   SHOT_SCREENS,
   SHOT_SIZE,
   SHOT_THEMES,
+  SHOT_WINDOWS,
   drawScript,
+  fitsWindows,
   holdsLandmark,
   landmarkSelector,
   pageMarks,
+  pageWidth,
   planShots,
   refusedInApp,
   sampleNames,
@@ -27,7 +30,9 @@ import {
   shotsFolder,
   shotsJson,
   webSamples,
+  widthScript,
   type PageMark,
+  type PageWidth,
   type ShotResult,
 } from "./shots";
 
@@ -264,19 +269,75 @@ describe("pageMarks", () => {
   });
 });
 
+describe("no screen is wider than its window (specs/ui-1/SPEC.md point 7)", () => {
+  const wide: PageWidth = { window: 1280, inner: 1280, scroll: 1280 };
+  const narrow: PageWidth = { window: 390, inner: 390, scroll: 390 };
+
+  it("measures in the canvas frame and in a phone, 390 by 844", () => {
+    expect(SHOT_WINDOWS).toEqual([
+      { width: 1280, height: 832 },
+      { width: 390, height: 844 },
+    ]);
+  });
+
+  it("reads the document's scroll width and the window's inner width", () => {
+    const script = widthScript();
+    expect(script).toContain("document.documentElement.scrollWidth");
+    expect(script).toContain("window.innerWidth");
+  });
+
+  it("takes the page's answer and refuses anything else", () => {
+    expect(pageWidth({ inner: 390, scroll: 412 }, 390)).toEqual({
+      window: 390,
+      inner: 390,
+      scroll: 412,
+    });
+    expect(pageWidth({ inner: 390 }, 390)).toBeNull();
+    expect(pageWidth({ inner: "390", scroll: 390 }, 390)).toBeNull();
+    expect(pageWidth([390, 390], 390)).toBeNull();
+    expect(pageWidth(null, 390)).toBeNull();
+  });
+
+  it("fits when neither window scrolls sideways", () => {
+    expect(fitsWindows([wide, narrow])).toBe(true);
+  });
+
+  it("does not fit when the page is wider than a window", () => {
+    expect(fitsWindows([{ ...wide, scroll: 1281 }, narrow])).toBe(false);
+    expect(fitsWindows([wide, { ...narrow, scroll: 391 }])).toBe(false);
+  });
+
+  it("does not fit when a window was not measured, or not at its width", () => {
+    expect(fitsWindows([])).toBe(false);
+    expect(fitsWindows([wide])).toBe(false);
+    expect(fitsWindows([narrow])).toBe(false);
+    expect(fitsWindows([wide, { ...narrow, inner: 1280, scroll: 1280 }])).toBe(false);
+  });
+});
+
 describe("the shots report", () => {
-  const result = (drawn: boolean): ShotResult => ({
+  const fitting: PageWidth[] = [
+    { window: 1280, inner: 1280, scroll: 1280 },
+    { window: 390, inner: 390, scroll: 390 },
+  ];
+  const result = (drawn: boolean, widths: PageWidth[] = fitting): ShotResult => ({
     file: "home-a-light.png",
     screen: "/",
     sample: "a",
     theme: "light",
     landmark: '[data-landmark="/"]',
     drawn,
+    widths,
   });
 
-  it("writes the size, each shot and the landmark it looked for", () => {
-    expect(JSON.parse(shotsJson([result(true)]))).toEqual({
+  it("writes the size, the windows, each shot, the landmark it looked for and its widths", () => {
+    const tooWide = [fitting[0], { window: 390, inner: 390, scroll: 1280 }];
+    expect(JSON.parse(shotsJson([result(true), result(true, tooWide)]))).toEqual({
       size: { width: 1280, height: 832 },
+      windows: [
+        { width: 1280, height: 832 },
+        { width: 390, height: 844 },
+      ],
       shots: [
         {
           file: "home-a-light.png",
@@ -285,16 +346,40 @@ describe("the shots report", () => {
           theme: "light",
           landmark: '[data-landmark="/"]',
           drawn: true,
+          widths: [
+            { window: 1280, inner: 1280, scroll: 1280 },
+            { window: 390, inner: 390, scroll: 390 },
+          ],
+          fits: true,
+        },
+        {
+          file: "home-a-light.png",
+          screen: "/",
+          sample: "a",
+          theme: "light",
+          landmark: '[data-landmark="/"]',
+          drawn: true,
+          widths: [
+            { window: 1280, inner: 1280, scroll: 1280 },
+            { window: 390, inner: 390, scroll: 1280 },
+          ],
+          fits: false,
         },
       ],
     });
     expect(shotsJson([])).toMatch(/\n$/);
   });
 
-  it("exits 0 only when every shot drew", () => {
+  it("exits 0 only when every shot drew and fits its windows", () => {
     expect(shotsExitCode([result(true), result(true)])).toBe(0);
     expect(shotsExitCode([result(true), result(false)])).toBe(1);
     expect(shotsExitCode([])).toBe(1);
+  });
+
+  it("exits 1 when a drawn shot scrolls sideways or was not measured", () => {
+    const tooWide = [fitting[0], { window: 390, inner: 390, scroll: 391 }];
+    expect(shotsExitCode([result(true), result(true, tooWide)])).toBe(1);
+    expect(shotsExitCode([result(true, [])])).toBe(1);
   });
 });
 
