@@ -9,6 +9,9 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
+          Your earlier run is on branch lane/L-tests/l-tests-d29085b29f; bring it in first (git
+          merge lane/L-tests/l-tests-d29085b29f). Its done command failed only because it wrote
+          to git's index, which the jail refuses; that step is gone.
           Gate 6 holds changed engine lines to 95 percent; engine/path.py is at 85 (126 lines with
           no test). Write tests through compute and small packs made in the test, under
           specs/path-1/SPEC.md and specs/path-1/programs.md, that reach those paths: each kind of
@@ -19,18 +22,22 @@ rounds:
           bash -c 'uv run ruff check tests && uv run ruff format --check tests
           && uv run pytest tests/unit/engine -q -p no:cacheprovider --cov=engine
           --cov-report=xml:.scratch/engine-coverage.xml
-          && git add -A && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*"
+          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*"
           --fail-under=95 --compare-branch=product-2'
       - lane: L-web
         agent: builder
         mission: >
+          Your earlier run is on branch lane/L-web/l-web-a0ebffda52; bring it in first (git merge
+          lane/L-web/l-web-a0ebffda52), then put the test script in web/package.json back to
+          "vitest run --coverage": gate 6 reads the coverage it writes. Change nothing else in
+          package.json.
           Gate 6 holds changed web lines to 80 percent. Onboarding.tsx is at 26, Pages.tsx at 46,
           parts.tsx at 54, refusal.ts and bench.tsx at 0, Home.tsx at 75. Write tests beside the
           code that walk Onboarding through every step and every program kind, each page, each
           part, and each refusal, as a student would use them. Change code only where a test
           shows a fault, and say so in your report.
         done: >-
-          bash -c 'npm run typecheck -w web && npm test -w web -- --coverage
+          bash -c 'npm run typecheck -w web && npm test -w web
           && npx eslint web --max-warnings 0
           && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
           && uv run python -m tools.copy_lint.lint'
