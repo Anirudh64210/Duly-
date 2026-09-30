@@ -1043,3 +1043,104 @@ Status: done.
   span, stage `lists`, and window_opens or window_closes references (these give null).
 
 Status: done (done command). The translation is not done.
+
+## l-engine-d7a47d2738 (attempt 1): product-2 resolutions 3, 5, 6, 7, 9 in engine/path.py
+
+### What was done (engine/path.py only)
+
+- Point 3: `first` reads its field as a path from each record it finds, so `to_program.start_date`
+  follows the link.
+- Point 8 (engine side): `where` lists and `all_of` stop at the first condition known false, and
+  `any_of` at the first known true. What the others read is not asked. This removes
+  `<cpt>.decision`, `p0.stem_list` (outside_us) and `p0.conferred_on` (language_training).
+- Point 5: a `days_without_qualifying_period` count is null, with no at_or_over item, until the
+  qualifying kind's list is stated whole (key `<kind>` or `<kind>:<record>`, grows_with_time
+  statements dated today). An unknown selection of qualifying or not_qualifying records now makes
+  the count null too; it was read as no records (J08 gave 365).
+- Point 6: a next stage whose every known window closed before today is not shown. Everything it
+  raised (items, questions, rules, lists, litigation) is rolled back.
+- Point 7: `ends_also` (a reading speaks only when one of its optional facts is found; a different
+  day makes the end null and raises `<stage>.end_by_source.<record>`); stage `lists` go to output
+  `lists` with `record`; two counters over the same scope that disagree on their bars raise
+  `<first counter>.bars_disagree.<group>`.
+- Point 9: `rule_in_litigation` only when a rule read for a shown item has a row under another
+  regime, in force on the same day, with another value.
+- `bind` takes a value that is not a path (`type: opt_post_completion`) as itself. It was read as an
+  absent fact, so a CPT card on the same program hid the next OPT (J04, J07).
+
+### What ran
+
+- Done command as written, output to a file: exit 1. 8 unit and the whole acceptance file fail
+  because POST /v1/compute (api/case.py, L-api) still answers category_not_covered.
+- test_path_fix1.py alone: 8 failed, 26 passed (was 19 failed).
+- Acceptance with a scratch plugin under TMPDIR that routes api.case.compute to
+  engine.path.compute: 8 failed, the rest pass (was 18 failed wired, all failed unwired).
+- mypy clean, ruff clean, engine literals clean, format clean.
+- tests/unit/engine and tests/unit/api, now vs git archive of HEAD: HEAD 21 failed, now 11. New:
+  test_path_reach.py::test_a_litigated_rule_in_use_is_cannot_tell (collides with point 9).
+
+### Not done
+
+- Point 1, compute_f1 as the translation onto records and path.py: not started (time).
+- stem.basis_ten_years_end, cap-gap counters keyed by card, grace.p1 under an active cap-gap,
+  J05 part-time null, J17 enrollment, J20 months only_if: need the pack (see REPORT requests).
+
+Status: blocked on L-api (route) and L-content (pack).
+
+Stop hook ran the done command: same failure (api route not wired). Escalated; see engine/ESCALATE.md.
+
+## l-engine-b9ea448ead (attempt 1): merge of d7a47d2738, resolution 1 translation
+
+### What was done
+
+- Merged lane/L-engine/l-engine-d7a47d2738 (points 3, 5, 6, 7 partly, 8 engine side, 9).
+- Point 1: engine/f1.py gains `to_records(case, pack)` (programs.md section 19 table: p1, a1,
+  a2 with extends and basis_program, w<n> under the card that holds its start, h1 with
+  cap_subject yes, cpt_days_stated and employer_reported as translation-only fields,
+  confirmations under the same ids, nothing_more_to_record yes as a statement for every kind,
+  opt.earlier_at_this_level no as `authorization:p1`) and `compute_f1_records`, which sends it
+  to path.compute. compute_f1 itself is unchanged: routing it through the translation breaks
+  758 older tests (list in REPORT.json disputes).
+
+### What ran
+
+- Done command as written, output to a file: exit 1. 26 passed, 8 failed in
+  test_path_fix1.py. engine literals, mypy (62 files), ruff check, ruff format: clean.
+- The 8 failures come from the shipped pack, not the engine (probe with journeys):
+  - point 4 grace: the pack keys the cap-gap grace stage by the petition. The engine gives
+    grace.h1 2026-10-02 to 2026-11-30, state later. The test asks for grace.p1.
+  - point 4 and 5 unemployment: the cap-gap counter is scoped on the petition, so the engine
+    gives unemployment.opt_card.h1 = 45 (J13 variant) and 486 (J12 without w1), the values the
+    tests ask for, under .h1 in place of .a1.
+  - point 4 J14 total: the pack ends the last card's span only without an active cap-gap and
+    raises unemployment.total.through_cap_gap.h1; the test asks for 85.
+  - point 7 ten years: the pack has stem.previous_degree_within_years but no path item for
+    stem.basis_ten_years_end, and the path schema (contracts/) has no place for a computed date.
+  - point 7 ends_also: the main `ends` of opt_post holds the release date too, so both
+    readings give 2024-12-20 and never differ.
+- Scratch plugin under TMPDIR routing engine.f1.compute_f1 to compute_f1_records over
+  tests/unit: plain 44 failures (8 path_fix1, 8 acceptance, 1 path_reach, 28 tools), routed
+  802; 758 new, all in test_f1*.py and tests/unit/api/test_compute*.py.
+
+Status: blocked on L-content (pack keys and items) and a contracts change for the ten-year date.
+
+Stop hook ran the done command: same 8 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-83bf885c0b (attempt 1): merge of b9ea448ead after resolution 12
+
+### What was done
+
+- Merged lane/L-engine/l-engine-b9ea448ead. No engine code change was needed: the tests
+  (L-tests caf6493) and the pack (L-content 34b71c4) now use the engine's ids per resolution 12,
+  and compute_f1 stays as it is per resolution 1 amended.
+- Removed engine/ESCALATE.md: the 8 failures it named now pass.
+
+### What ran
+
+- Done command as written: exit 0. test_path_fix1.py 23 passed; engine literals clean; mypy
+  62 files clean; ruff check clean; ruff format 9 files already formatted.
+- tests/unit/engine and tests/unit/api: all pass.
+- The merge printed "tests/holdout/...: Operation not permitted" (sandbox read wall); the merge
+  itself succeeded.
+
+Status: done.

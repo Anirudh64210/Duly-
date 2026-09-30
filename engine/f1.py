@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from itertools import pairwise
 from typing import Any
 
+from engine import path
 from engine.clocks import Clock, day_in_zone, zone_named
 from engine.dates import add_business_days, add_months, add_years, federal_holidays
 from engine.rulepack import Rulepack, RulepackError
@@ -1749,3 +1750,114 @@ def _regimes(pack: Rulepack, shown: tuple[dict[str, Any], ...]) -> dict[str, dic
             entry["plain"] = regime["plain"]
         found[regime["id"]] = entry
     return found
+
+
+# programs.md section 19: today's case, translated onto records for engine/path.py.
+PROGRAM = "p1"
+OPT_CARD = "a1"
+STEM_CARD = "a2"
+PETITION = "h1"
+
+
+def _put(fields: dict[str, Any], name: str, value: Any) -> None:
+    """Sets a field only when the person entered it. Nothing entered stays absent."""
+    if value is not None:
+        fields[name] = value.isoformat() if isinstance(value, date) else value
+
+
+def _card(block: EadBlock, kind: str) -> dict[str, Any]:
+    fields: dict[str, Any] = {"type": kind, "program": PROGRAM}
+    _put(fields, "dso_on", block.dso_recommendation_date)
+    _put(fields, "filed_on", block.i765_filed_date)
+    _put(fields, "card_start", block.ead_start)
+    _put(fields, "card_end", block.ead_end)
+    if block.ead_start is not None and block.ead_end is not None:
+        fields["decision"] = "approved"
+    return fields
+
+
+def _holding_card(case: F1Case, day: date) -> str | None:
+    """The card whose dates hold the day. None when no card does: the link is asked."""
+    for record_id, block in ((OPT_CARD, case.opt), (STEM_CARD, case.stem)):
+        if block is None or block.ead_start is None or block.ead_end is None:
+            continue
+        if block.ead_start <= day <= block.ead_end:
+            return record_id
+    return None
+
+
+def _statements(case: F1Case, kinds: list[str]) -> dict[str, Any]:
+    """The two answers that stand for completeness statements (section 19)."""
+    stated: dict[str, Any] = {}
+    nothing_more = case.confirmations.get(NOTHING_MORE)
+    if nothing_more is not None and nothing_more.answer:
+        for kind in kinds:
+            stated[kind] = {"on": nothing_more.on.isoformat()}
+    earlier = case.confirmations.get(EARLIER_AT_LEVEL)
+    if earlier is not None and not earlier.answer:
+        stated[f"authorization:{PROGRAM}"] = {"on": earlier.on.isoformat()}
+    return stated
+
+
+def to_records(case: F1Case, pack: Rulepack) -> dict[str, Any]:
+    """The records case of specs/path-1/programs.md section 19 for a case_f1 case."""
+    program: dict[str, Any] = {
+        "where": "us_on_f1",
+        "level": case.degree_level,
+        "end_date": case.program_end_date.isoformat(),
+    }
+    _put(program, "cpt_days_stated", case.cpt_full_time_days)
+    records: list[dict[str, Any]] = [{"id": PROGRAM, "kind": "program", "fields": program}]
+    if case.opt is not None:
+        records.append(
+            {
+                "id": OPT_CARD,
+                "kind": "authorization",
+                "fields": _card(case.opt, "opt_post_completion"),
+            }
+        )
+    if case.stem is not None:
+        stem = _card(case.stem, "stem_extension")
+        stem["basis_program"] = PROGRAM
+        if case.opt is not None:
+            stem["extends"] = OPT_CARD
+        records.append({"id": STEM_CARD, "kind": "authorization", "fields": stem})
+    for number, period in enumerate(case.employment, start=1):
+        work: dict[str, Any] = {
+            "start": period.start.isoformat(),
+            "hours_per_week": period.hours_per_week,
+            "employer_reported": period.employer_reported,
+        }
+        _put(work, "end", period.end)
+        _put(work, "under", _holding_card(case, period.start))
+        records.append({"id": f"w{number}", "kind": "work", "fields": work})
+    if case.cap_gap is not None:
+        petition = {
+            "type": "h1b",
+            "cap_subject": "yes",
+            "filed_on": case.cap_gap.petition_filed_on.isoformat(),
+            "requested_start": case.cap_gap.requested_start.isoformat(),
+            "change_of_status": "yes" if case.cap_gap.change_of_status else "no",
+            "outcome": case.cap_gap.status,
+        }
+        records.append({"id": PETITION, "kind": "petition", "fields": petition})
+    kinds = [kind["id"] for kind in (pack.path or {}).get("records", [])]
+    confirmations: dict[str, Any] = {}
+    for question, given in case.confirmations.items():
+        entry: dict[str, Any] = {"answer": given.answer, "on": given.on.isoformat()}
+        if given.about is not None:
+            entry["about"] = dict(given.about)
+        confirmations[question] = entry
+    return {
+        "categories": [pack.category],
+        "time_zone": case.time_zone,
+        "facts": {},
+        "records": records,
+        "complete": _statements(case, kinds),
+        "confirmations": confirmations,
+    }
+
+
+def compute_f1_records(case: F1Case, pack: Rulepack, clock: Clock) -> dict[str, Any]:
+    """compute_f1 as programs.md section 19 asks: the translated case, read by path.py."""
+    return path.compute(to_records(case, pack), [pack], clock)
