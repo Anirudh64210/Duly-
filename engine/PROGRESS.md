@@ -1515,3 +1515,22 @@ Status: done.
   ruff check clean; 19 files already formatted).
 
 Status: done.
+
+## l-engine-d8fd85ee5c: point 22b (the step back only on a stage a petition nulled)
+
+- Before any change: the done command failed on 6 tests of test_fix8.py (J12, J13, J14 and the
+  J19 twins D, B and G): no stage carried reasons at all. Every no-petition test already passed.
+- engine/path.py `_step_backs`, called from `_enter` for a stage with a span and a null start or
+  end. It reads the pack's judgement checks that have no for_each and hold only `none` over one
+  record kind (today cap_gap.for_dso over petition). When that judgement was raised and records of
+  that kind exist, the span is computed again with those records hidden (state saved and restored,
+  a throwaway trace). If a null start or end becomes known, the judgement id goes into the
+  stage's `reasons`. So a start or end null for any other cause (a missing contact day, a job end
+  with no span) gets no reason, and a case with no petition gets none. `_state` is unchanged:
+  any null day stays unknown. The pack was not edited.
+- The done command as written, output to a TMPDIR file named for this run: exit 0 (fix8 and
+  journeys all passed, 2 xfailed; mypy 63 files clean; ruff check clean; 19 files formatted).
+  A first run wrote to $TMPDIR/done.txt, and another lane's vitest output landed in the same file.
+- tests/unit with tools excluded: exit 0.
+
+Status: done.
