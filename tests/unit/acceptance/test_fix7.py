@@ -94,7 +94,9 @@ def _undated_current(out: dict[str, Any]) -> list[str]:
 # ... A stage that has its own dates keeps its state as before (J19's stem.a2 stays current)."
 # In J12, J13 and J14 every field the path reads is given, so a stage with no start and no end
 # is one point 19 nulled. The fix6 run gave grace.p1 state current, starts null, ends null for
-# all three (finding 1).
+# all three (finding 1). Point 22b widens the first line (start or end null is unknown) and
+# puts cap_gap.for_dso on a stage's own reasons only when a petition nulled it; the stage
+# reasons are pinned in test_fix8.py, and the dates and states here stand as they were.
 
 
 def test_point_22_j12_the_grace_the_petition_nulls_is_unknown(client: TestClient) -> None:
@@ -173,9 +175,12 @@ def test_point_22_j19_without_a_petition_the_grace_is_later_not_unknown(
     # The other side: plain J19, grace.p2 has its dates. a2's card_end 2028-06-08 plus 60 days:
     # June 9 to 30 is 22, July 31 more is 53, August 1 to 7 is 60 -> 2028-06-09 to 2028-08-07,
     # after today, so later. Kills: unknown given to a stage point 19 did not null.
+    # Point 22b: a case with no petition carries cap_gap.for_dso on no stage.
+    # Kills also: the step-back reason put on a stage no petition nulled.
     out = _send(client, journeys.j19())
     grace = stage(out, "grace.p2")
     assert (grace["starts"], grace["ends"], grace["state"]) == ("2028-06-09", "2028-08-07", "later")
+    assert [s["id"] for s in out["stages"] if STEP_BACK in (s.get("reasons") or [])] == []
 
 
 # Point 23: "A petition whose start (validity_start when approved, else requested_start) falls
@@ -568,8 +573,11 @@ def test_point_23a_approved_with_neither_start_asks_the_validity_start_and_steps
 
 
 # Point 23a, the Timeline mark: "An `unknown` stage's Timeline row carries no mark (not now,
-# not done); it holds the DSO line and the words of cap_gap.for_dso." The row itself is the
-# web's (tests/web/fix7.test.ts); what the engine gives it is the state and the words.
+# not done); it holds the DSO line and the words of cap_gap.for_dso." Point 22b corrects the
+# second half: only a row whose stage carries cap_gap.for_dso in its own `reasons` (a stage a
+# petition nulled) gets the DSO line and the words; other unknown rows keep their own dates.
+# The row itself is the web's; what the engine gives it is the state, the stage's reasons and
+# the words.
 
 
 def test_point_23a_j13s_null_grace_is_not_done_and_carries_the_step_back_words(
@@ -577,13 +585,15 @@ def test_point_23a_j13s_null_grace_is_not_done_and_carries_the_step_back_words(
 ) -> None:
     # J13 without h1 would have grace.p1 2026-07-01 to 2026-08-29, wholly before today
     # 2026-09-29, so done. With h1 it is null, so neither done nor current: unknown. The row's
-    # words come from cap_gap.for_dso and its rule capgap.petition_for_dso.
-    # Kills: a null stage given "done" because the dates it would have had lie in the past, or
-    # an unknown stage with no step-back words for its row.
+    # words come from cap_gap.for_dso and its rule capgap.petition_for_dso. Point 22b: h1 is
+    # the member that nulled grace.p1, so grace.p1's own reasons hold cap_gap.for_dso.
+    # Kills: a null stage given "done" because the dates it would have had lie in the past, an
+    # unknown stage with no step-back words for its row, or the reason on the verdict only.
     out = _send(client, journeys.j13())
     grace = stage(out, "grace.p1")
     assert grace["state"] == "unknown"
     assert STEP_BACK in reasons(out)
+    assert STEP_BACK in (grace.get("reasons") or [])
     assert out["rules"]["capgap.petition_for_dso"]["plain"].strip() != ""
 
 

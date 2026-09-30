@@ -114,6 +114,11 @@ def _not_the_step_back(out: dict[str, Any], petition: str) -> list[str]:
     return wrong
 
 
+def _carrying_the_step_back(out: dict[str, Any]) -> list[str]:
+    """Point 22b: ids of the stages whose own reasons hold cap_gap.for_dso."""
+    return [s["id"] for s in out["stages"] if STEP_BACK in (s.get("reasons") or [])]
+
+
 def _reports_dated_from(out: dict[str, Any], day: str) -> list[str]:
     return [
         w["id"]
@@ -486,6 +491,9 @@ def test_twin_j12_without_a_petition_keeps_the_grace_and_no_step_back(
     grace = stage(out, "grace.p1")
     assert (grace["starts"], grace["ends"]) == ("2026-06-01", "2026-07-30")
     assert STEP_BACK not in reasons(out)
+    # Point 22b: no petition, so no stage carries the step back (opt_post.a1 and grace.p1
+    # both have their dates). Kills: the reason put on stages no petition nulled.
+    assert _carrying_the_step_back(out) == []
 
 
 def test_twin_j12_a_later_validity_start_steps_back(client: TestClient) -> None:
@@ -502,6 +510,10 @@ def test_twin_j12_a_later_validity_start_steps_back(client: TestClient) -> None:
     out = _send(client, body)
     assert _not_the_step_back(out, "h1") == []
     assert _grace_dated(out) == []
+    # Point 22b: h1 (start 2026-11-15, after a1's start 2025-06-01) nulled grace.p1 only;
+    # opt_post.a1 keeps 2025-06-01 to 2026-05-31. Kills: the reason on the verdict only, or
+    # on the card the petition did not null.
+    assert _carrying_the_step_back(out) == ["grace.p1"]
 
 
 def test_twin_j12_a_pending_petition_steps_back(client: TestClient) -> None:
@@ -553,6 +565,10 @@ def test_twin_j13_denied_later_steps_back(client: TestClient) -> None:
     out = _send(client, body)
     assert _not_the_step_back(out, "h1") == []
     assert _grace_dated(out) == []
+    # Point 22b: requested_start 2026-10-01 is after a1's start 2025-07-01, so h1 nulled
+    # grace.p1 and only it carries the step back; opt_post.a1 keeps its dates. Kills: the
+    # reason missing from the nulled stage, or put on every stage of a petition case.
+    assert _carrying_the_step_back(out) == ["grace.p1"]
 
 
 # J04 twin: a STEM card cut short by a transfer on other days.
@@ -921,6 +937,9 @@ def test_twin_j19_an_old_petition_before_this_f1_status_keeps_the_reports(
     assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
     assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
     assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+    # Point 22b: the 2018 start nulls nothing, so no stage carries the step back.
+    # Kills: the reason put on a stage because a petition exists, whatever its start.
+    assert _carrying_the_step_back(out) == []
 
 
 def test_twin_j19_a_change_of_status_ended_before_the_start_steps_back(

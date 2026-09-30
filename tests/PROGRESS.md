@@ -2904,3 +2904,42 @@ unknown for every null-dated stage.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-1ffc68de1a: tests/unit and tests/holdout in line with point 22b
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md point 22b. The engine landed 22b
+in 66378f1 (stage `reasons` holding cap_gap.for_dso).
+
+First run of the done command as written, before any change: "All checks passed!", formatted,
+pytest all passed (3 strict xfails for point 21), exit 0. test_fix8.py's 6 former failures
+now pass.
+
+Audit: grep for cap_gap.for_dso, "unknown", point 22 in tests/unit and tests/holdout. Only one
+test stated what 22b corrects: test_fix7.py's point 23a Timeline-mark comment ("an unknown
+stage's row holds the DSO line"). 22b: only a row whose stage carries the reason gets it. No
+assertion contradicted 22b, so none was loosened or removed.
+
+Changed (each marked "Point 22b" beside it, working in the comment):
+- test_fix7.py: point 22 section comment notes 22b. test_point_23a_j13s_null_grace_... also
+  asserts grace.p1's own reasons hold cap_gap.for_dso (h1 nulled it). test_point_22_j19_
+  without_a_petition_... also asserts no stage carries it (no petition).
+- test_holdout_journeys.py: helper _carrying_the_step_back. j12 no petition: [] (a1
+  2025-06-01 to 2026-05-31 and grace 2026-06-01 to 2026-07-30 both dated). j12 later
+  validity_start 2026-11-15 and j13 denied (requested_start 2026-10-01 after a1's start
+  2025-07-01): ["grace.p1"], opt_post.a1 keeps its dates. j19 2018 petition: [] (nulls nothing).
+  Checked by a probe of the stages before writing: matches.
+
+What makes each fail (scratch plugin under TMPDIR wrapping engine.path.compute, removed after):
+- no fault: 6 passed.
+- FAULT=strip (stage reasons dropped): the j12 later, j13 twin and fix7 23a J13 tests fail.
+- FAULT=all (cap_gap.for_dso on every stage): j12 no petition, j12 later, j13 twin, j19 2018
+  twin and fix7 plain J19 tests fail.
+
+Done command as written, no pipe (output to a file): "All checks passed!", "76 files already
+formatted", pytest all passed, exit 0.
+
+Note: zsh does not split an unquoted $VAR into words, so a list of test ids in one variable ran
+nothing; an array fixed it.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
