@@ -231,6 +231,14 @@ export function YourCase() {
               <h2 className="eyebrow" id="c-answers">
                 YOUR ANSWERS
               </h2>
+              {answers.length === 0 && (
+                <p className="row-meta">
+                  No answers given yet. Duly's open questions are on{" "}
+                  <a className="link" href="#/">
+                    Home →
+                  </a>
+                </p>
+              )}
               {answers
                 .filter(([id]) => output === undefined || read.has(id))
                 .map(([id, given]) => {

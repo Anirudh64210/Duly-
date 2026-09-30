@@ -22,13 +22,25 @@ import {
   groupOf,
   itemName,
   needsAnswer,
+  openQuestionsLine,
   questionCopy,
+  questionTitle,
   reasonItem,
 } from "../lib/labels";
 import { LANDMARKS } from "../lib/shots";
 import { headline, type VerdictState } from "../lib/status";
 import { useStore } from "./caseStore";
-import { Disclose, DraftPill, Footer, HeroMark, OneOpen, RuleBlocks, Row, Working } from "./parts";
+import {
+  Chevron,
+  Disclose,
+  DraftPill,
+  Footer,
+  HeroMark,
+  OneOpen,
+  RuleBlocks,
+  Row,
+  Working,
+} from "./parts";
 import { refusalLines } from "./refusal";
 import {
   B2_LINE,
@@ -116,18 +128,28 @@ function useTimeout(run: () => void, ms: number) {
   }, []);
 }
 
+/**
+ * ui-1 point 1: every verdict reason in plain words, each line once. A reason a question
+ * was asked because of reads as that question does in the questions section.
+ */
 function Reasons({ output }: { output: EngineOutput }) {
   const reasons = [...output.verdict.reasons].sort(
     (a, b) => Number(needsAnswer(b)) - Number(needsAnswer(a)),
   );
+  const lines = new Map<string, string>();
+  for (const reason of reasons) {
+    const asked = output.questions.find((question) => question.because.includes(reason));
+    const line = asked ? questionTitle(asked.id) : appReasonLine(reason, output.computed);
+    if (!lines.has(line)) lines.set(line, reason);
+  }
   return (
     <>
-      {reasons.map((reason) => {
+      {[...lines].map(([line, reason]) => {
         const item = reasonItem(reason.replace(/\.not_made$/, ""), output.computed);
         return (
-          <div key={reason} className="reason">
+          <div key={line} className="reason">
             <p className="reason-line">
-              {appReasonLine(reason, output.computed)}
+              {line}
               {item?.reading === true && <span className="reading"> · {READING_TAG}</span>}
             </p>
             {item !== undefined && (
@@ -256,7 +278,7 @@ function QuestionsSection({ output, sent }: { output: EngineOutput; sent: Sent }
           <Row
             key={question.id}
             id={`q:${question.id}`}
-            title={copy?.ask ?? "Duly has a question about what you entered."}
+            title={questionTitle(question.id)}
             meta={becauseLine(question.because)}
           >
             {rule !== null && <RuleBlocks ids={[rule]} output={output} />}
@@ -524,6 +546,7 @@ export function Home() {
   }
   const state = output.verdict.state;
   const next = output.upcoming[0];
+  const asking = state === "cannot_tell" && output.questions.length > 0;
   const showNext = next !== undefined && (state === "no_open_items" || state === "needs_you");
   return (
     <OneOpen>
@@ -540,7 +563,16 @@ export function Home() {
           <h1 className="hero-headline" data-landmark={LANDMARKS["/"]}>
             {headline(state)}
           </h1>
-          <Reasons output={output} />
+          {asking ? (
+            <>
+              <p className="reason-line">{openQuestionsLine(output.questions.length)}</p>
+              <Disclose label="Why" className="why">
+                <Reasons output={output} />
+              </Disclose>
+            </>
+          ) : (
+            <Reasons output={output} />
+          )}
           <p className="scope-line">{datesScopeLine(output.scope.rules_checked_on)}</p>
           {showNext && (
             <p className="next-line">
@@ -549,20 +581,26 @@ export function Home() {
             </p>
           )}
           {state === "talk_to_dso" && <DraftPill text={caseDraft(output, sent)} />}
-          {state === "cannot_tell" &&
-            (output.questions.length > 0 ? (
-              <button
-                type="button"
-                className="text-button"
-                onClick={() =>
-                  document.querySelector<HTMLButtonElement>("#questions .row-head")?.focus()
-                }
-              >
-                Answer Duly's questions
-              </button>
-            ) : (
-              <DraftPill text={caseDraft(output, sent)} />
-            ))}
+          {state === "cannot_tell" && !asking && <DraftPill text={caseDraft(output, sent)} />}
+          {asking && (
+            <div className="next-move">
+              <h2 className="eyebrow">YOUR NEXT MOVE</h2>
+              <div className="row">
+                <button
+                  type="button"
+                  className="row-head"
+                  onClick={() =>
+                    document.querySelector<HTMLButtonElement>("#questions .row-head")?.focus()
+                  }
+                >
+                  <span className="row-text">
+                    <span className="row-title">Answer Duly's questions</span>
+                  </span>
+                  <Chevron />
+                </button>
+              </div>
+            </div>
+          )}
         </section>
         <Metrics output={output} />
         <QuestionsSection output={output} sent={sent} />
