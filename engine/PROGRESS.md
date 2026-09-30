@@ -1463,3 +1463,19 @@ Status: done.
 - No engine code changed.
 
 Status: done.
+
+## l-engine-f39a3071d8: every journey through POST /v1/compute (after point 17 tests)
+
+- Before any change: the done command as written, output to a file, exit 0. 108 acceptance
+  tests passed, none skipped; engine literals clean; mypy 62 files clean; ruff check clean;
+  9 files already formatted.
+- Point 17 (J19 twins with a change-of-status petition): all three pass. The engine reads the
+  shipped pack's stem.validation close rule generically; L-content's pack change (petition
+  filed on or after card_start and on or before card_end, approved, cos_ended_on absent or on
+  or after validity_start) needed no engine code. `-k j19`: 8 passed.
+- Saved words: the rule is capgap.status_ends_on_h1b_start, marked a reading of the 81 FR
+  13040 preamble, with the point 17 conditions in its note. The journeys assert what the pack
+  says; no finding.
+- No engine code changed.
+
+Status: done.
