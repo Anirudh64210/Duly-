@@ -1183,3 +1183,28 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   `npm test -w desktop` fails with "EPERM: operation not permitted, mkdir
   .../desktop/coverage": the sandbox refuses writes under desktop/, outside this lane.
 - `npx vitest run` in desktop/ (no coverage, so no write): exit 0, 11 files, 139 tests passed.
+
+## l-web-ff3d574841: point 22b on the Timeline (plan-fix8, build round)
+
+### Tried
+
+- web/src/lib/views/timeline.ts: an `unknown` row now keeps its meta (spanWords of its own
+  start and end, so "From Jul 15, 2024"), its items and its fact lines. The DSO line and the
+  words of cap_gap.for_dso are added only when the stage's own `reasons` hold cap_gap.for_dso;
+  the verdict's reasons are no longer read for this. The mark stays "none" (point 23a).
+- web/src/lib/views/fix8.test.ts, 8 tests on path-stem-next.json: a J01-like transfer.mv1
+  (starts 2024-07-15, ends null, unknown, two items, no reasons) and a nulled grace.p1 whose
+  reasons hold cap_gap.for_dso. First run: the output schema refused transfer.contact_new_dso_within_days
+  because the sample's rules do not hold it; the transfer now names
+  opt.ends_on_transfer_or_new_level, a rule the sample holds with its source.
+
+### Ran
+
+- Done command, as written, output to a file: exit 0. typecheck clean, fix8 8 of 8 passed,
+  eslint clean, "copy lint: clean".
+- fix8 against HEAD's timeline.ts: 4 of 8 fail (meta, items, DSO line on the transfer, step
+  back taken from the verdict), so the tests catch the fix7 behaviour.
+- Full web suite (npx vitest run --root web): 574 passed, 1 failed: fix7.test.ts "shows the
+  unknown stage in place, with the DSO line and the step back". Its nulled grace carries the
+  step back in the verdict only, not in the stage's reasons, which point 22b now requires.
+  Left for the reconcile round of plan-fix8 (L-web: change only tests point 22b requires).
