@@ -2108,3 +2108,62 @@ for the mission's sake. Nothing else read asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-d4e4895e82 (attempt 1): tests for the translation of today's case onto records
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md (point 1), programs.md section 19, engine/f1.py
+  (to_records, compute_f1_records and helpers), and the end of this log.
+- Ran five case_f1 cases (OPT, no OPT, OPT ended before today, OPT with a denied petition,
+  OPT then STEM) through compute_f1_records and compute_f1 in a scratch script under TMPDIR,
+  with the shipped F-1 pack on 2026-09-30 UTC, to see both outputs. Scratch removed.
+- New tests/unit/engine/test_f1_translation.py, 32 tests: every row of the section 19 table
+  (p1, cpt_days_stated incl. 0 and absent, a1 approved only with both card dates, a2 extends
+  a1 and basis p1, w<n> under the card holding its start incl. both card edges and a2,
+  no under outside every card, h1 cap_subject yes, confirmations same ids, the two
+  statements); compute_f1_records equal to path.compute on a records case written by hand
+  from the table; OPT and STEM dates worked by hand; parity with compute_f1 for OPT windows,
+  file_by, complete_by, latest_start, unemployment used, and the STEM dates; changes 1, 3
+  and 4 of section 19 asserted as such.
+- ruff format: 72 files unchanged; ruff check clean. mypy on the new file reports only two
+  errors at tests/support/f1_pack.py:1003, which is older and not touched.
+- Done command as written: exit 0. Diff coverage engine/f1.py 100 percent, total 98 percent.
+
+### What change would make each new test fail (planted through a scratch plugin, all caught)
+
+- _holding_card naming a1 for any day: test_a_period_outside_every_card_names_no_card.
+- _card with no decision: the hand-written records test and the a1/a2 row tests.
+- decision on card_start alone: test_opt_with_a_card_start_and_no_card_end_is_not_approved.
+- earlier_at_this_level no ignored: test_no_to_earlier_opt_at_this_level_states_p1_...
+- a no to nothing_more_to_record stating lists whole: test_no_to_nothing_more_states_no_list_whole.
+- cpt 0 dropped as nothing entered: test_cpt_days_of_zero_are_kept_as_zero.
+- compute_f1_records calling compute_f1: every records-output test, e.g. change 4.
+
+### Findings (not worked around; the tests assert only what section 19 says)
+
+1. Grace is lost in translation. The pack's grace stage needs p1.state completed; the table
+   gives p1 no state, so no translated case has a grace date. compute_f1 gives grace.ends
+   2027-07-30 on the OPT case (card end 2027-05-31 plus 60). Not one of the four changes.
+2. A case with no OPT loses its OPT windows: compute_f1 gives opt.apply_window 2027-02-13 to
+   2027-07-13 for an end of 2027-05-14; the path gives no window.
+3. A job that runs from the OPT card into the STEM card is under a1 only (the card that holds
+   its start), so the path counts the STEM days as unemployed: unemployment.total.a1 = 136 =
+   14 (2025-06-01 to 06-14) + 122 (2026-06-01 to 2026-09-30); compute_f1 gives 14 used.
+4. Change 4 is half built: a denied petition gives no grace date (asserted), but no outcome_on
+   question is asked. Not asserted: it would fail.
+5. New items not named in section 19: questions p1.full_course_each_term and
+   p1.online_within_limit on every case; reason opt.months_at_level.at_or_over_limit.master for
+   a 12-month card with no earlier OPT answered; reason rule_not_in_force_on_event_day from
+   product.opt_start_earliest_years_before_program_end read on 2026-05-15 (a product setting
+   read as a rule with a start date); stem.validation_4 closing 2028-06-15, after the STEM
+   card end 2028-05-31 (compute_f1 stops at 3); cap_gap.h1 stage and
+   unemployment.opt_card.h1 for a denied petition.
+6. The confirmations row says "The translation strips the record suffixes"; to_records copies
+   ids unchanged. No case here shows which suffix is meant.
+7. Change 2 (rule_copy_not_saved_for_event_day) has no test here: no translated case found in
+   time reads a rule marked earliest_saved_copy before its start.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
