@@ -714,3 +714,56 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not done, not verified
 
 - Not loaded through duly://app/ in Electron (desktop lane) nor in a browser against a live api.
+
+## Run l-web-1a5edfdd3d (attempt 1): design-1 round A
+
+### Tried
+
+- The bench leaves the production build (programs.md section 9): `src/main.tsx` moved to
+  `src/bench.tsx`, loaded by a new `bench.html`. Vite builds `index.html` only, so a
+  production build holds no bench (checked: a build into TMPDIR holds index.html and assets
+  only). App.tsx, CaseForm.tsx, Result.tsx, styles.css and their tests stay as the bench.
+- New `src/main.tsx`: TanStack Router with hash history, `CaseProvider` (one case in
+  memory, one TanStack Query keyed by the case body and the day, `refetchOnWindowFocus`
+  off; a focus recomputes only when the day in the case's zone differs from
+  `today.date`).
+- `src/app/`: Shell (sidebar Home, Updates, then Your case, Settings, Feedback; top bar
+  under 760px; no sidebar on `#/welcome`; unknown routes go Home; no case opens
+  Onboarding), Home (hero in four states, halo on the mark only for no_open_items, reason
+  lines with "How Duly counted", metrics for unemployment and the card end, QUESTIONS FOR
+  YOU, WHAT COMES NEXT with the STEM row and its B2 line, DATES, COUNTS AND RULES with
+  the other-rules row, busy after 300ms, error with "Try again"), Onboarding (five
+  sections, one question per view, program loop that stops only on No, CPT for each
+  program, OPT, STEM, cap-gap, jobs, the engine's questions one per view, Done with no
+  check marks and the completion moment), Updates (empty state, title from `matching`),
+  Your case (edit in place with Save, Cancel, Remove and Keep; two-choice rows; YOUR
+  ANSWERS), Settings (zone, privacy.ts sentence, packs, Delete with Delete or Keep),
+  Feedback (copy only, nothing sent).
+- `src/design/tokens.css` holds every token of 3.2 in light and dark; `app.css` holds the
+  shell, parts and motion, off under reduced motion.
+- lib additions: `formatDay`, `FIXED_NAMES`, `categoryName`, `levelName`,
+  `datesScopeLine`, `appReasonLine` (no_documents and category_not_covered words),
+  `updateStatusWords` (all eleven), `FROM_A_COURT` gains stayed, `caseDraft` (a draft for
+  every verdict), `stemStepDraft` (no month count), `privacy.ts`, `views/onboarding.ts`
+  (`onboardingSteps`), `views/updates.ts`.
+- Tests: `src/app/app.test.tsx` (shell, Home, Onboarding, Updates, Settings, drafts,
+  calm) and `src/design/contrast.test.ts` (every text and mark pair of 14.1 in both
+  themes, no --faint, four font weights, reduced motion).
+
+### Ran
+
+- The done command at the start: exit 0 (307 tests).
+- The done command after the build, output to a file, no pipe: exit 0, 333 tests.
+- After the contrast test: one failure (a chevron used `color: var(--ink-3)`), fixed by
+  stroking the path; then the done command: exit 0, 401 tests, eslint clean, prettier
+  clean, "copy lint: clean".
+
+### Not done, not verified
+
+- Not seen in a browser against a live api; no design shots.
+- Earlier programs, and CPT for them, are held as entered and shown in Your case but not
+  sent: case_f1 holds one program, and POST /v1/compute is not served in round A.
+- The sentinel test of 14.1, the landmark checks, hit-area tiling measurements, the
+  keyboard walk and the recompute-without-rise test are not written.
+- Home reason lines do not yet open a COUNT_BESIDE rule; Updates hero and list parts are
+  minimal, since no route serves an update.

@@ -227,3 +227,42 @@ export function stemDraft(sent: F1Case, citation: string): string {
     `Could you tell me whether ${citation} applies to my case, and what your office would need from me for a 24-month STEM OPT extension?`,
   ]);
 }
+
+const LITIGATION_ASK = "Could you tell me which rules apply to these dates in my case?";
+const CONFLICT_ASK =
+  "Some of the dates I have do not fit together. Could you look at them and tell me which dates your office has?";
+const GENERAL_ASK = "Could you look at the dates below and tell me what your office needs from me?";
+// The reasons that add no ask of their own: the rules' staleness, and no document yet.
+const NO_ASK = new Set(["rules_never_checked", "rules_stale", "no_documents"]);
+
+/**
+ * design-1 section 13: the draft for any verdict, cannot_tell included, so every
+ * abstention has its DSO question drafted (PLAN03-076). A talk_to_dso verdict keeps
+ * dsoDraft's asks. It holds the student's own dates only.
+ */
+export function caseDraft(output: EngineOutput, sent: F1Case): string {
+  const talk = dsoDraft(output, sent);
+  if (talk !== null) return talk;
+  const asks: string[] = [];
+  const add = (ask: string) => {
+    if (!asks.includes(ask)) asks.push(ask);
+  };
+  for (const reason of output.verdict.reasons) {
+    if (NO_ASK.has(reason)) continue;
+    if (reason === "rule_in_litigation") add(LITIGATION_ASK);
+    else if (reason.startsWith("conflict:")) add(CONFLICT_ASK);
+    else if (ASKS.has(reason)) add(askFor(reason, output, sent).ask);
+    else add(GENERAL_ASK);
+  }
+  if (asks.length === 0) add(GENERAL_ASK);
+  const facts = ALL.filter((topic) => topic !== "cpt").flatMap((topic) => factsOn(topic, sent));
+  return letter("A question about my F-1 record", facts, asks);
+}
+
+/** design-1 section 13: the STEM OPT draft, with no month count in its words. */
+export function stemStepDraft(sent: F1Case, citation: string): string {
+  const facts = [...factsOn("program", sent), ...factsOn("opt", sent)];
+  return letter("A question about the STEM OPT extension", facts, [
+    `Could you tell me whether ${citation} applies to my case, and what your office would need from me for a STEM OPT extension?`,
+  ]);
+}
