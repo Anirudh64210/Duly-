@@ -1,0 +1,69 @@
+# Parallel lanes cannot see each other: each builds against its own tests, then an
+# integration round is held to the twenty journeys end to end.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: engine
+  checkpoint: false
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: Your earlier run is on branch lane/L-engine/l-engine-d7a47d2738; bring it in first (git merge
+      lane/L-engine/l-engine-d7a47d2738). You were right that the acceptance tests could not pass while
+      the api lane worked in parallel; the api is now wired on this branch and the next round holds the
+      journeys. Here finish specs/product-2/resolutions.md points 1 (compute_f1 as the translation onto
+      records and path.py), 3, 5, 6, 7 and 9, held to tests/unit/engine/test_path_fix1.py. List older
+      tests that collide.
+    done: bash -c 'uv run pytest tests/unit/engine/test_path_fix1.py -q && uv run python -m tools.gates.engine_literals
+      && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: integrate
+  checkpoint: false
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: Engine, api and web are now all on this branch. Make the twenty journeys of tests/unit/acceptance/test_journeys.py
+      pass through POST /v1/compute, fixing engine/ (and saying in your report anything in api/ or the
+      pack that a journey needs, since those are other lanes). Say in your report which journeys pass
+      and why any does not. A journey that asserts something the saved words do not support is a finding
+      in your report, never a reason to bend the engine.
+    done: bash -c 'uv run pytest tests/unit/acceptance tests/unit/engine/test_path_fix1.py tests/unit/api
+      -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine &&
+      uv run ruff format --check engine'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'The engine, api and web are wired end to end (specs/product-2/resolutions.md). Bring every
+      test in tests/unit and tests/holdout in line; the builders'' collisions are in their reports. Write
+      the point beside each change; never loosen an assertion; escalate any failure no point explains.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 again against specs/product-2/resolutions.md and the SPECs it names, following
+      your role file, in ONE pass. Send all twenty journeys through POST /v1/compute and say what each
+      shows. Build the web app and walk Onboarding for J01, J08 and J16. Close or name every finding of
+      reviews/product-2.md. Write reviews/product-2-fix1.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+      name. Update docs/requirements/audits/product-2.md and report the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register
+      check'
