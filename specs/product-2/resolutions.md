@@ -121,3 +121,20 @@ gate), so they cannot say "your". The pack says "A petition for a change of stat
 for H-1B" and never "An H-1B petition" for a petition of any type. Only web/src/lib/labels.ts,
 which speaks to the person, says "A petition to change your status". The test of the pack's
 words checks that it names every kind of date taken away and does not say "An H-1B petition".
+
+## 22b. Point 22, corrected: only a stage a petition nulled carries the step back (review fix7 finding 1)
+
+- A stage whose start or end is null is `unknown` and is never shown as now, whatever the cause
+  (the fix 6 eyebrow "School transfer" on J01, J03, J10 and J19 was wrong, and stays removed).
+- The engine puts the step-back reason (`cap_gap.for_dso`) in a stage's `reasons` only when a
+  member that point 19 or 23 nulls made that stage's start or end null. No other stage carries it.
+  A case with no petition carries it on no stage (point 19: every other journey unchanged).
+- The Timeline row of an `unknown` stage keeps its own known dates (for example "from Jul 15,
+  2024") and its items, including the questions that would close it. Only a row whose stage
+  carries the step-back reason gets "Your DSO can tell you these dates." and the petition's words.
+  So J14's opt_job_end.w1 and stem_job_end.w2 and the 2021 and 2023 transfers of the J19 twins
+  carry neither.
+- Tests pin: each journey without a petition carries the reason on no stage; the three mutants of
+  review fix7 finding 2 (job_anchor_any_petition and unemp_anchor_removed with J15 plus a
+  petition filed 2020-04-01 starting 2020-10-01; the window placement of a stage with no span,
+  J11's opt_job_end.w1 and J15's opt_job_end.w2 and stem_job_end.w3 stay done).

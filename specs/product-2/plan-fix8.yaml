@@ -1,0 +1,80 @@
+# Review fix7 findings 1 and 2 (point 22b). Cap-gap itself waits for specs/capgap-1.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Write tests/unit/acceptance/test_fix8.py for specs/product-2/resolutions.md point 22b through
+      POST /v1/compute: every journey without a petition carries cap_gap.for_dso on no stage and keeps each
+      unknown stage''s known dates; in petition cases only the stages a petition nulled carry it (J14 and
+      the J19 twins as named); the three mutants point 22b names, each test naming the mutant it kills.
+      Not expected to pass yet. Change no other test.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests'
+- name: build
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Point 22b in engine/: put cap_gap.for_dso in a stage''s reasons only when a member that point
+      19 or 23 nulls made its start or end null. Keep the unknown state for any null day. Do not edit
+      rulepacks.
+
+      '
+    done: bash -c 'uv run pytest tests/unit/acceptance/test_fix8.py tests/unit/acceptance/test_journeys.py -q -p no:cacheprovider && uv run mypy && uv run ruff check engine api && uv run ruff format --check engine api'
+  - lane: L-web
+    agent: builder
+    mission: 'Point 22b in web/src/lib/views/timeline.ts: an unknown row keeps its own dates and items; only a
+      stage whose reasons hold cap_gap.for_dso gets the DSO line and the petition words. Write the tests in
+      web/src/lib/views/fix8.test.ts: a J01-like transfer row with a known start and a null end, and a
+      nulled grace row with the reason.
+
+      '
+    done: bash -c 'npm run typecheck -w web && npx vitest run --root web src/lib/views/fix8.test.ts && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with point 22b (test_fix7.py included);
+      write the point beside each change; never loosen an assertion; escalate any failure no point
+      explains.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and make
+      npm test -w web pass, changing only tests that point 22b requires, with the point beside each.
+
+      '
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 against specs/product-2/resolutions.md in ONE pass. Close or name every finding
+      of reviews/product-2-fix7.md. Send all twenty journeys and their twins through POST /v1/compute and
+      compare each stage state and Timeline row with fix 6 for journeys without a petition. Cap-gap detail
+      beyond points 19 to 26 goes to the cap-gap round (specs/capgap-1): name it as a note, not a finding.
+      Write reviews/product-2-fix8.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix8.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers name;
+      cap-gap rows stay not met (point 19). Update docs/requirements/audits/product-2.md and report the
+      share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register check'
