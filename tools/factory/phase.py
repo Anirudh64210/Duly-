@@ -536,6 +536,12 @@ def main() -> int:
     if head != branch:
         print(f"check out {plan['branch']} first")
         return 1
+    from tools.factory import preflight  # imports this module
+
+    faults = preflight.problems(Path(args.plan).resolve(), repo, ref="HEAD")
+    if faults:
+        print("plan refused by preflight:\n  " + "\n  ".join(faults))
+        return 1
     if not os.environ.get("DULY_CLAUDE_BIN"):
         try:
             plan_name = billing.require_subscription()
