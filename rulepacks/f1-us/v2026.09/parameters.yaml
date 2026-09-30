@@ -887,3 +887,1207 @@ parameters:
     note: "Closed row. The quote is the whole of (f)(5)(vi)(A)(2) as printed in 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10. The same paragraph (A) now names an H-1B petition subject to section 214(g)(1)(A) of the Act, and extends status and employment authorization until October 1 of the fiscal year for which such H-1B status is being requested where such petition has been timely filed, (1), and meets this condition, (2). End date: 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, says the final rule will be effective January 17, 2025, and will apply to petitions filed on or after that date, and revises (f)(5)(vi)(A): the extension runs until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier, and (2) reads requests an H-1B employment start date in the fiscal year for which such H-1B status is being requested; so this row ends 2025-01-16 (SPEC-resolutions point 40). The flag records what the regulation said. It says nothing about any one person. Condition (1) in the same paragraph reads has been timely filed. The preamble of 89 FR 103054 calls the extension the cap-gap extension and speaks of a cap-subject H-1B petition; Duly reads subject to section 214(g)(1)(A) of the Act as under the yearly H-1B cap, a reading, not the words of the regulation."
     plain: "This was the cap-gap rule from 2016 to January 16, 2025. For the extension to October 1, the petition had to ask for an H-1B employment start date of October 1 of the following fiscal year. It also had to be filed on time and, as Duly reads it, be under the yearly cap."
     plain_terms: ["employment start date", "following fiscal year"]
+  - id: levels.higher_order
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2025-05-19
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-09-29, quote: Twelve months of Regular OPT is available for each higher level of study. (for example a student may have 12 months for a bachelor's degree and another 12 months for a master's degree.), snapshot: sources/sits-f1-opt-2026-09-28.html, snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288}
+    derivation: reading
+    note: Reading. Agency guidance, not regulation. The quote is from the table of OPT types on the saved page. It gives one example of a higher level of study, a master's degree after a bachelor's degree. 8 CFR 214.2(f)(10), recorded as opt.max_months, says a student becomes eligible for another 12 months when they change to a higher educational level, and gives no order of levels. The full order of levels in path.order (associate, bachelor, master, doctorate) is Duly's reading, not the words of either source; secondary, language_training, professional and other have no place in it, and a comparison with one of them is unknown. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.
+    plain: SEVP's guidance says 12 months of regular OPT is open for each higher level of study, such as a master's after a bachelor's. The full order of levels is Duly's reading. This is agency guidance, not a regulation.
+    plain_terms: [higher level of study]
+  - id: practical_training.one_academic_year
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'Practical training may be authorized to an F-1 student who has been lawfully enrolled on a full-time basis, in an approved SEVP-certified college, university, conservatory, or seminary for one full academic year.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The quote is the first sentence of paragraph (f)(10), headed Practical training. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly never computes a school's academic year; the path asks the school's date as first_year_done_on and the answer first_year_before_training. The flag records what the regulation says. It says nothing about any one person.
+    plain: An F-1 student may be given practical training after one full academic year. In that year the student must have been lawfully enrolled full time. It must be at a SEVP-certified school of the kinds the rule lists.
+    plain_terms: [practical training, one full academic year, SEVP-certified]
+  - id: practical_training.study_abroad
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'students who, during their course of study, were enrolled in a study abroad program, if the student had spent at least one full academic term enrolled in a full course of study in the United States prior to studying abroad.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence begins This paragraph (f)(10) also includes; the quote starts after those words. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.
+    plain: The rule on practical training also counts a student who went to study abroad. Before that, the student must have spent at least one full academic term in a full course of study in the United States.
+    plain_terms: [full academic term, full course of study]
+  - id: practical_training.language_programs
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Students in English language training programs are ineligible for practical training., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The plain check refuses the word ineligible, so the plain words say cannot have. The flag records what the regulation says. It says nothing about any one person.
+    plain: A student in an English language training program can not have practical training. The rule says so for all such students.
+    plain_terms: [practical training]
+  - id: cpt.graduate_immediate
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Exceptions to the one academic year requirement are provided for students enrolled in graduate studies that require immediate participation in curricular practical training., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a program requires immediate participation is the school's fact; the path asks it as immediate_cpt and never computes it. The flag records what the regulation says. It says nothing about any one person.
+    plain: The rule of one academic year has an exception. It is for graduate studies that need the student to start curricular practical training at once.
+    plain_terms: [curricular practical training]
+  - id: cpt.after_endorsed_i20
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A student may begin curricular practical training only after receiving their Form I-20 or successor form with the DSO endorsement., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The path reads this as a check that a CPT card starts on or after dso_on, the day the DSO signed the Form I-20 for it. The flag records what the regulation says. It says nothing about any one person.
+    plain: A student may begin curricular practical training only after getting a Form I-20 with the DSO endorsement. The DSO signs the form first.
+    plain_terms: [curricular practical training, DSO endorsement]
+  - id: cpt.dso_marks_time
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'The DSO will indicate whether the training is full-time or part-time, the employer and location, and the employment start and end date.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The path asks full or part time for each CPT as the DSO marked it, and never works it out. The flag records what the regulation says. It says nothing about any one person.
+    plain: The DSO will indicate whether the training is full-time or part-time. The DSO also gives the employer and location, and the start and end date of the work.
+    plain_terms: [full-time or part-time]
+  - id: cpt.same_level_counts
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2025-05-19
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-09-29, quote: Full-time CPT at a previous school at the same program level counts toward the CPT 12month total affecting OPT. CPT at another program level does not affect OPT., snapshot: sources/sits-f1-opt-2026-09-28.html, snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288}
+    derivation: verbatim
+    note: Agency guidance, not regulation. The saved page prints 12month with no space or hyphen. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports. The flag records what the guidance says. It says nothing about any one person.
+    plain: SEVP's guidance says full-time CPT at a previous school at the same program level counts toward the 12 month CPT total that affects OPT. CPT at another program level does not. This is agency guidance, not a regulation.
+    plain_terms: [same program level]
+  - id: opt.pre_completion_file_before_days
+    value: 90
+    unit: days
+    status: settled
+    effective_from: 2008-04-08
+    source: {citation: 8 CFR 214.2(f)(11)(i)(B)(1), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'For pre-completion OPT, the student may properly file his or her Form I-765 or successor form up to 90 days before being enrolled for one full academic year, provided that the period of employment will not start prior to the completion of the full academic year.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The plain words say properly file as file. The day the first full academic year is done is the school's fact, asked as first_year_done_on.
+    plain: For pre-completion OPT, a student may file Form I-765 up to 90 days before being enrolled for one full academic year. The work may not start before that full academic year is done.
+    plain_terms: [pre-completion OPT, one full academic year]
+  - id: opt.pre_completion_in_session_hours
+    value: 20
+    unit: hours_per_week
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(A)(2), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'while school is in session, provided that practical training does not exceed 20 hours a week while school is in session', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The quote is paragraph (f)(10)(ii)(A)(2), one of the times listed in (f)(10)(ii)(A) at which optional practical training may be authorized; OPT used before the program end date is pre-completion OPT. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime.
+    plain: OPT while school is in session may not be more than 20 hours a week.
+    plain_terms: [while school is in session]
+  - id: opt.ends_on_transfer_or_new_level
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(B), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Authorization to engage in optional practical training employment is automatically terminated when the student transfers to another school or begins study at another educational level., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. For a change of level, Duly takes the end as the day before the new program starts. For a transfer the words name no day; Duly reads it as the release date, and that is a reading. The plain check refuses the words engage in and terminated, so the plain words say ends on its own.
+    plain: Permission for OPT work ends on its own when the student transfers to another school or begins study at another educational level. The rule names no day for a transfer. Duly reads it as the release date, and that is Duly's reading.
+    plain_terms: [another educational level]
+  - id: opt.ends_on_release_date
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2010-04-23
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.10', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: Any OPT authorization ends on the transfer release date for a student who requests a transfer to another SEVP-certified school or a change of education level to continue at the same school., snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    derivation: verbatim
+    note: Agency guidance, not regulation. The snapshot is text extracted from the saved PDF, sources/ice-sevp-policy-guidance-1004-03.pdf. Start date is the date of the guidance. Where this and 8 CFR 214.2(f)(10)(ii)(B) give different days, Duly shows both and asks the DSO.
+    plain: SEVP's guidance says any OPT authorization ends on the transfer release date. This is for a student who asks for a transfer, or a change of education level at the same school. This is agency guidance, not a regulation.
+    plain_terms: [transfer release date, change of education level]
+  - id: opt.split_same_level
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2025-05-19
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-09-29, quote: A student can split their OPT time between degree programs at the same education level, snapshot: sources/sits-f1-opt-2026-09-28.html, snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288}
+    derivation: verbatim
+    note: Agency guidance, not regulation. The sentence goes on with an example of six months after one master's degree and six after another. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.
+    plain: SEVP's guidance says a student can split OPT time between degree programs at the same education level. This is agency guidance, not a regulation.
+    plain_terms: [same education level]
+  - id: opt.unemployment_each_period
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2010-04-23
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.4', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: 'For each new period of post-completion OPT, the student will have the full 90-day period of unemployment.', snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    derivation: reading
+    note: Reading. Agency guidance, not regulation. The question it answers is about a student who splits OPT between two degrees at the same level. The preamble of 81 FR 13040, saved as sources/fr-2016-04828.xml, says a student who pursues a second period of OPT at a higher educational level will benefit from the 90- and 150-day periods of unemployment (as appropriate) at both educational levels. That each post-completion OPT, with the STEM extensions that extend it, starts its own count is Duly's reading of both. The snapshot is text extracted from the saved PDF.
+    plain: SEVP's guidance says each new period of post-completion OPT comes with the full 90-day period of unemployment. Duly reads this as a new count for each period. This is Duly's reading of agency guidance.
+    plain_terms: [period of unemployment]
+  - id: opt.unemployment_abroad
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2010-04-23
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.8', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: Time spent outside the United States during an approved period of post- completion OPT counts as unemployment against the 90/120-day limits, snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    derivation: reading
+    note: 'Reading. Agency guidance, not regulation. The saved text breaks post-completion across a line, and the quote keeps that. The sentence goes on: unless the student is either employed during a period of leave authorized by an employer, or traveling as part of his or her employment. The 120 days were the limit for the 17-month extension of 2008; the limit for a 24-month extension is 150 days (stem.unemployment_limit_days). Using this guidance for the 150 days is Duly''s reading. The snapshot is text extracted from the saved PDF.'
+    plain: SEVP's guidance says time outside the United States during approved post-completion OPT counts as unemployment. It does not count on leave the employer allowed, or on travel for the job. Duly also uses this for the 150-day limit, as a reading.
+    plain_terms: [counts as unemployment]
+  - id: opt.unemployment_in_cap_gap
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2010-04-23
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.3', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: 'Yes, the 90 day limitation on unemployment continues during the cap gap extension.', snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    derivation: reading
+    note: 'Reading. Agency guidance, not regulation. The question it answers is: do the limits on unemployment time apply to a student with a cap gap extension? Using this guidance for the 150-day limit of stem.unemployment_limit_days is Duly''s reading. The snapshot is text extracted from the saved PDF.'
+    plain: SEVP's guidance says the 90 day limit on unemployment goes on during the cap gap extension. Duly also uses it for the 150-day limit, as a reading. This is agency guidance, not a regulation.
+    plain_terms: [cap gap extension]
+  - id: capgap.travel_while_pending
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2010-04-23
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.2', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: USCIS will consider a change-of-status application to be abandoned if the applicant leaves the country while the application remains pending., snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    derivation: verbatim
+    note: Agency guidance, not regulation. The sentence begins SEVP recommends that a student not travel outside the United States during the cap gap extension, if possible, as. The path raises a trip while a change of status is pending as a judgement item for the DSO; it never says what the trip means. The snapshot is text extracted from the saved PDF.
+    plain: SEVP's guidance says USCIS will take a change-of-status application as abandoned if the person leaves the country while it is still open. This is guidance, not a rule.
+    plain_terms: [change-of-status application, abandoned]
+  - id: capgap.ends_on_outcome
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(5)(vi)(B), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'shall automatically terminate upon the rejection, denial, revocation, or withdrawal of the H-1B petition filed on such F-1 student''s behalf or upon the denial or withdrawal of the request for change of nonimmigrant status', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence begins The automatic extension of an F-1 student's duration of status and employment authorization under paragraph (f)(5)(vi)(A) of this section; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(B). The preamble of 89 FR 103054 calls the extension the cap-gap extension. The plain check refuses the word terminate, so the plain words say ends on its own.
+    plain: For an F-1 student with an H-1B petition, the extra time ends on its own if the H-1B petition is rejected, denied, revoked or withdrawn. It also ends if the change of status is denied or withdrawn.
+    plain_terms: [H-1B petition]
+  - id: stem.max_lifetime_extensions
+    value: 2
+    unit: count
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: In no event may a student be authorized for more than two lifetime STEM OPT extensions., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word two.
+    plain: A student may not be authorized for more than two lifetime STEM OPT extensions.
+    plain_terms: [lifetime STEM OPT extensions]
+  - id: stem.second_higher_level
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Any subsequent application for an additional 24-month OPT extension under this paragraph (f)(10)(ii)(C) must be based on a degree at a higher degree level than the degree that was the basis for the student's first OPT extension., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Which level is higher follows path.order, Duly's reading (levels.higher_order).
+    plain: A second 24-month OPT extension must rest on a degree at a higher degree level. It is higher than the degree for the first one.
+    plain_terms: [higher degree level]
+  - id: stem.seventeen_month_counts_as_one
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'is considered to have been authorized for one STEM OPT extension, and may be eligible for only one more STEM OPT extension.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence begins A student who was granted a 17-month OPT extension under the rule issued at 73 FR 18944, whether or not such student requests an additional 7-month period of STEM OPT under 8 CFR 214.16; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 214.16 is not saved and was not read. The plain check refuses the word eligible.
+    plain: A student granted a 17-month OPT extension under the older rule counts as having had one STEM OPT extension. That student may be able to have only one more.
+    plain_terms: [STEM OPT extension]
+  - id: stem.previous_degree_within_years
+    value: 10
+    unit: years
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C)(3), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The same sentence is in the quote of stem.requires.previously_obtained_degree. How 10 years are added to a date, with 29 February becoming 28 February, is Duly's reading.
+    plain: An older degree can be the basis for a 24-month OPT extension. It must have been conferred in the 10 years before the DSO recommends the student.
+    plain_terms: [conferred]
+  - id: stem.later_degree_not_basis
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2016-05-10
+    source: {citation: '81 FR 13040 (preamble), FR Doc. 2016-04828', url: 'https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml', checked_on: 2026-09-29, quote: the subsequently earned degree would not qualify the student for an extension of his or her current OPT period, snapshot: sources/fr-2016-04828.xml, snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794}
+    derivation: reading
+    note: Reading. The words are from the preamble of the 2016 rule, the agency explaining the rule, not the regulation. The sentence before says the rule limits eligibility to degrees obtained previous to the degree that provided the 12-month OPT period. The path uses it to leave out a degree conferred after the OPT's own program was done as a basis; that use is Duly's reading.
+    plain: The notes that came with the 2016 rule say a degree earned later does not support an extension of the current OPT period. This is Duly's reading of the agency's notes, not the rule's text.
+    plain_terms: [current OPT period]
+  - id: stem.pending_card_extended
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(11)(i)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: is extended automatically pursuant to the terms and conditions specified in 8 CFR 274a.12(b)(6)(iv)., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence says that where a student timely files for the 24-month extension and the card in hand expires before the decision, the card is extended automatically; the quote is its last part. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 274a.12(b)(6)(iv) is not saved and was not read, so the pack states no length for the extension and Duly computes none.
+    plain: If the card ends while the application for the extension is still open, the card is extended automatically. The terms are in a rule Duly has not saved. So Duly gives no length.
+    plain_terms: [extended automatically]
+  - id: transfer.begin_within_months
+    value: 5
+    unit: months
+    status: litigated
+    regime: ds_2012
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: '8 CFR 214.2(f)(8)(i), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'an F-1 student is not permitted to remain in the United States when transferring between schools or programs unless the student will begin classes at the transfer school or program within five months of transferring out of the current school or within 5 months of the program completion date on their current Form I-20 or successor form, whichever is earlier.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text keeps 5 months at (f)(8)(i)(G), recorded under fixed_admission_2026.
+    plain: Under the rule in force today, a student who transfers must begin classes at the new school within five months of leaving the old one. The limit is 5 months from the program completion date on the Form I-20 if that is earlier.
+    plain_terms: [program completion date]
+  - id: transfer.begin_within_months
+    value: 5
+    unit: months
+    status: litigated
+    regime: fixed_admission_2026
+    effective_from: 2026-09-15
+    source: {citation: '8 CFR 214.2(f)(8)(i)(G), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'the student will begin classes at the transfer school or program within 5 months of transferring out of the current school or within 5 months of the program completion date on his or her current Form I-20, or successor form, whichever is earlier', snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    derivation: verbatim
+    note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime. In the 2026-09-15 text this is one of the requirements listed for a student changing educational objectives or transferring.
+    plain: The paused rule would also have classes at the new school begin within 5 months of the transfer or of the program completion date, whichever is earlier. A court has paused this rule, so it does not apply today.
+    plain_terms: [program completion date]
+  - id: transfer.opt_resume_within_months
+    value: 5
+    unit: months
+    status: litigated
+    regime: ds_2012
+    effective_from: 2003-01-01
+    source: {citation: '8 CFR 214.2(f)(8)(i), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'the student must be able resume classes within 5 months of transferring out of the school that recommended OPT or the date the OPT authorization ends, whichever is earlier.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence begins In the case of an F-1 student authorized to engage in post-completion optional practical training (OPT); the quote starts after those words. The source says be able resume. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated.
+    plain: Under the rule in force today, a student on post-completion OPT who transfers must be able to resume classes within 5 months. The time runs from leaving the school that recommended OPT, or from the end of the OPT if that is earlier.
+    plain_terms: [resume classes]
+  - id: transfer.opt_resume_within_months
+    value: 5
+    unit: months
+    status: litigated
+    regime: fixed_admission_2026
+    effective_from: 2026-09-15
+    source: {citation: '8 CFR 214.2(f)(8)(i)(H), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'must be able to begin or resume classes within 5 months of transferring out of the school that recommended the post-completion or STEM OPT or the date the post-completion or STEM OPT authorization ends, whichever is earlier', snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    derivation: verbatim
+    note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime.
+    plain: The paused rule would also cover STEM OPT. Classes would have to begin or resume within 5 months of leaving the school that recommended the OPT, or of its end, whichever is earlier. A court has paused this rule, so it does not apply today.
+    plain_terms: [STEM OPT]
+  - id: transfer.contact_new_dso_within_days
+    value: 15
+    unit: days
+    status: litigated
+    regime: ds_2012
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: '8 CFR 214.2(f)(8)(ii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: The student is then required to contact the DSO at the transfer-in school within 15 days of the program start date listed on the Form I-20 or successor form., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text of (f)(8)(ii) names no number of days for this, so no row is recorded under fixed_admission_2026.
+    plain: Under the rule in force today, after the release date the student contacts the DSO at the transfer-in school. This must be within 15 days of the program start date on the Form I-20. The paused rule leaves this out.
+    plain_terms: [transfer-in school, program start date]
+  - id: change_of_level.transfer_procedure
+    value: true
+    unit: flag
+    status: litigated
+    regime: ds_2012
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: '8 CFR 214.2(f)(5)(ii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'An F-1 student who continues from one educational level to another is considered to be maintaining status, provided that the transition to the new educational level is accomplished according to transfer procedures outlined in paragraph', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence ends (f)(8) of this section; the quote stops before the number. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated.
+    plain: Under the rule in force today, a student may go on from one educational level to the next. The student is then maintaining status if the move follows the steps for a transfer.
+    plain_terms: [educational level]
+  - id: change_of_level.transfer_procedure
+    value: true
+    unit: flag
+    status: litigated
+    regime: fixed_admission_2026
+    effective_from: 2026-09-15
+    source: {citation: '8 CFR 214.2(f)(8)(iii), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A change of education level can be accomplished according to the transfer procedures outlined in paragraph, snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    derivation: verbatim
+    note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime. The sentence ends (f)(8)(ii) of this section; the quote stops before the number.
+    plain: The paused rule says a change of education level can follow the transfer procedures. A court has paused this rule, so it does not apply today.
+    plain_terms: [change of education level, transfer procedures]
+  - id: oncampus.school_with_record
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2003-01-01
+    source: {citation: 8 CFR 214.2(f)(9)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'In the case of a transfer in SEVIS, the student may only engage in on-campus employment at the school having jurisdiction over the student''s SEVIS record.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The school that holds the record is worked out from the move's release date. The plain words say engage in on-campus employment as work on campus.
+    plain: During a transfer in SEVIS, a student may only work on campus at one school. It is the school that has the student's SEVIS record.
+    plain_terms: [SEVIS record]
+  - id: oncampus.after_completion
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 8 CFR 214.2(f)(9)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'Otherwise, an F-1 student may not engage in on-campus employment after completing a course of study, except employment for practical training as authorized under paragraph', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence before says a student who has been issued a Form I-20 to begin a new program and who intends to enroll for the next term at the institution that issued it may continue on-campus employment incident to status. The quote stops before the number (f)(10). No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 214.3(k), named beside it, is not saved.
+    plain: An F-1 student may not work on campus after completing a course of study, apart from practical training. There is an exception for a student going on to a new program at the same school.
+    plain_terms: [course of study]
+  - id: program.extension_before_end
+    value: true
+    unit: flag
+    status: litigated
+    regime: ds_2012
+    effective_from: 2003-01-01
+    source: {citation: '8 CFR 214.2(f)(7)(iii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A DSO may not grant an extension if the student did not apply for an extension until after the program end date noted on the Form I-20 or successor form., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text replaces the program extension by the DSO with an extension of stay filed with USCIS, and has no such sentence, so no row is recorded under fixed_admission_2026.
+    plain: Under the rule in force today, a DSO may not grant a program extension if the student asked for it only after the program end date on the Form I-20. The paused rule would replace this with a filing to USCIS.
+    plain_terms: [program end date]
+  - id: program.extension_new_i20
+    value: true
+    unit: flag
+    status: litigated
+    regime: ds_2012
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: '8 CFR 214.2(f)(7)(iv), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A DSO may grant a program extension only by updating SEVIS and issuing a new Form I-20 or successor form reflecting the current program end date., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text has no such sentence, so no row is recorded under fixed_admission_2026.
+    plain: Under the rule in force today, a DSO grants a program extension by updating SEVIS and issuing a new Form I-20. The new form shows the current program end date.
+    plain_terms: [program extension, program end date]
+  - id: travel.absence_months
+    value: 5
+    unit: months
+    status: settled
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 8 CFR 214.2(f)(4), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents.
+    plain: An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted. This is to attend an SEVP-certified school, with the papers the rule lists.
+    plain_terms: [temporary absence]
+  - id: travel.updated_i20
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 8 CFR 214.2(f)(4)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An updated Form I-20 or successor form if there has been a substantive change in the information on the student's most recent Form I-20 or successor form, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: 'The quote is one of the two things a returning student may present under (f)(4). The paragraph goes on with examples: a student who has changed the major area of study, who intends to transfer, or who has advanced to a higher level. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime.'
+    plain: After a substantive change in the facts on the latest Form I-20, a returning student presents an updated Form I-20. A new major, a planned transfer and a move to a higher level are examples.
+    plain_terms: [substantive change]
+  - id: travel.opt_signature_months
+    value: 6
+    unit: months
+    status: settled
+    effective_from: 2016-05-10
+    source: {citation: 8 CFR 214.2(f)(13)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: endorsed for reentry by the DSO within the last six months, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six.
+    plain: A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.
+    plain_terms: [endorsed for reentry]
+  - id: grace.withdrawal_days
+    value: 15
+    unit: days
+    status: litigated
+    regime: ds_2012
+    effective_from: 2003-01-01
+    source: {citation: '8 CFR 214.2(f)(5)(iv), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An F-1 student authorized by the DSO to withdraw from classes will be allowed a 15-day period for departure from the United States., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text words it differently at (f)(5)(v), recorded under fixed_admission_2026.
+    plain: Under the rule in force today, the DSO may let an F-1 student withdraw from classes. The student then has 15 days to leave the United States.
+    plain_terms: [withdraw from classes]
+  - id: grace.withdrawal_days
+    value: 15
+    unit: days
+    status: litigated
+    regime: fixed_admission_2026
+    effective_from: 2026-09-15
+    source: {citation: '8 CFR 214.2(f)(5)(v), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An F-1 student authorized by the designated school official to withdraw from classes will be allowed a 15-day period from the date of the withdrawal to depart the United States., snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    derivation: verbatim
+    note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime.
+    plain: The paused rule would give a student allowed to withdraw from classes 15 days from the date of the withdrawal to leave. A court has paused this rule, so it does not apply today.
+    plain_terms: [withdraw from classes]
+path:
+  facts: []
+  records:
+    - id: program
+      label: "Program of study"
+      id_prefix: p
+      max_records: 20
+      complete_label: "Is this every program of study, in the US or not?"
+      fields:
+        - {id: where, kind: choice, label: "Where the program was, and on what status", choices: [us_on_f1, us_other_status, outside_us]}
+        - {id: school_name, kind: text, label: "School name", max_length: 120}
+        - {id: school_code, kind: text, label: "School code, as printed on the Form I-20", max_length: 40}
+        - {id: level, kind: choice, label: "Level, as the Form I-20 shows it", choices: [secondary, language_training, associate, bachelor, master, doctorate, professional, other]}
+        - {id: field_name, kind: text, label: "Field of study, as printed", max_length: 120}
+        - {id: cip_code, kind: text, label: "CIP code on the Form I-20", pattern: "^[0-9]{2}\\.[0-9]{4}$"}
+        - {id: stem_list, kind: choice, label: "Is the degree on the STEM Designated Degree Program List?", choices: [on_list, not_on_list], not_sure: true}
+        - {id: start_date, kind: date, label: "Program start date on the Form I-20"}
+        - {id: end_date, kind: date, label: "Program end date on the newest Form I-20", history: {record: end_date_change, link: program, old: old_end, new: new_end, from: granted_on}}
+        - {id: state, kind: choice, label: "Where the program stands", choices: [in_progress, completed, left_before_completing]}
+        - {id: coursework_done_on, kind: date, label: "Day all course requirements were done, apart from a thesis or its equivalent", happened: true, school: true}
+        - {id: conferred_on, kind: date, label: "Day the degree was conferred", happened: true}
+        - {id: first_year_done_on, kind: date, label: "Day the first full academic year was done, from the school", school: true}
+        - {id: first_year_before_training, kind: choice, label: "Was one full academic year done before the training began?", choices: ["yes", "no"], not_sure: true, school: true}
+        - {id: immediate_cpt, kind: choice, label: "Does the program require CPT from the start?", choices: ["yes", "no"], not_sure: true, school: true}
+        - {id: dual_with, kind: link, label: "The other program of a dual degree", to: [program]}
+        - {id: full_course_each_term, kind: choice, label: "Was every term a full course of study?", choices: ["yes", "no"], not_sure: true}
+        - {id: online_within_limit, kind: choice, label: "Did online classes stay within the school's limit each term?", choices: ["yes", "no"], not_sure: true, school: true}
+        - {id: cpt_days_stated, kind: count, label: "CPT days, from an older case", translation_only: true}
+    - id: move
+      label: "Move from one program to the next"
+      id_prefix: mv
+      max_records: 20
+      grows_with_time: true
+      complete_label: "Is this every move between programs?"
+      fields:
+        - {id: how, kind: choice, label: "How the move was made", choices: [transfer, change_of_level, new_initial_i20]}
+        - {id: from_program, kind: link, label: "Program moved from", to: [program]}
+        - {id: to_program, kind: link, label: "Program moved to", to: [program]}
+        - {id: told_school_on, kind: date, label: "Day the school was told of the transfer", happened: true}
+        - {id: release_date, kind: date, label: "SEVIS release date"}
+        - {id: i20_issued_on, kind: date, label: "Day the new Form I-20 was issued", happened: true}
+        - {id: contacted_new_dso_on, kind: date, label: "Day the DSO at the new school was contacted", happened: true}
+        - {id: registered_on, kind: date, label: "Day of registration at the new school", happened: true}
+    - id: end_date_change
+      label: "Change of program end date"
+      id_prefix: ec
+      max_records: 20
+      fields:
+        - {id: program, kind: link, label: "Program", to: [program]}
+        - {id: change, kind: choice, label: "Kind of change", choices: [extension, shortened]}
+        - {id: old_end, kind: date, label: "End date before the change"}
+        - {id: new_end, kind: date, label: "End date after the change"}
+        - {id: requested_on, kind: date, label: "Day the extension was asked for", happened: true}
+        - {id: granted_on, kind: date, label: "Day the change was granted", happened: true}
+        - {id: reason, kind: choice, label: "Reason on the Form I-20", choices: [academic, medical, other], not_sure: true}
+    - id: authorization
+      label: "Permission to work"
+      id_prefix: a
+      max_records: 30
+      complete_label: "Is this every CPT, OPT and other work permission?"
+      fields:
+        - {id: type, kind: choice, label: "Kind of permission", choices: [cpt, opt_pre_completion, opt_post_completion, stem_extension, off_campus_hardship, international_organization]}
+        - {id: program, kind: link, label: "Program it rests on", to: [program]}
+        - {id: extends, kind: link, label: "OPT it extends", to: [authorization]}
+        - {id: basis_program, kind: link, label: "Degree the STEM extension rests on", to: [program]}
+        - {id: time, kind: choice, label: "Full or part time, as the Form I-20 shows it", choices: [full_time, part_time], not_sure: true}
+        - {id: employer, kind: link, label: "Employer on the Form I-20", to: [employer]}
+        - {id: dso_on, kind: date, label: "Day the DSO signed or entered the recommendation", happened: true}
+        - {id: filed_on, kind: date, label: "Day Form I-765 was filed", happened: true}
+        - {id: decision, kind: choice, label: "Decision", choices: [pending, approved, denied, withdrawn], not_sure: true}
+        - {id: decided_on, kind: date, label: "Day of the decision", happened: true}
+        - {id: card_start, kind: date, label: "Start date on the card, or on the Form I-20 for CPT"}
+        - {id: card_end, kind: date, label: "End date on the card, or on the Form I-20 for CPT"}
+        - {id: split_noted, kind: choice, label: "Did the DSO note a split of OPT time in SEVIS?", choices: ["yes", "no"], not_sure: true}
+    - id: employer
+      label: "Employer"
+      id_prefix: e
+      max_records: 50
+      fields:
+        - {id: name, kind: text, label: "Employer name", max_length: 120}
+        - {id: e_verify, kind: choice, label: "Is the employer enrolled in E-Verify?", choices: ["yes", "no"], not_sure: true}
+    - id: work
+      label: "Job"
+      id_prefix: w
+      max_records: 100
+      grows_with_time: true
+      complete_label: "Is this every job, through today?"
+      fields:
+        - {id: employer, kind: link, label: "Employer", to: [employer]}
+        - {id: under, kind: link, label: "Permission the job was under", to: [authorization]}
+        - {id: on_campus, kind: link, label: "Program whose school the on-campus job was at", to: [program]}
+        - {id: start, kind: date, label: "First day of the job", happened: true}
+        - {id: end, kind: date, label: "Last day of the job", happened: true}
+        - {id: hours_per_week, kind: number, label: "Hours a week"}
+        - {id: hours_changes, kind: periods, label: "Times the hours a week changed"}
+        - {id: employer_reported, kind: flag, label: "Employer reported, from an older case", translation_only: true}
+    - id: report
+      label: "Report to the DSO"
+      id_prefix: r
+      max_records: 100
+      grows_with_time: true
+      complete_label: "Is this every report made to the DSO, through today?"
+      fields:
+        - {id: type, kind: choice, label: "Kind of report", choices: [validation, evaluation_12_month, evaluation_final, i983_new, i983_changed, change_report, interruption_report]}
+        - {id: about, kind: link, label: "Permission or job it is about", to: [authorization, work]}
+        - {id: made_on, kind: date, label: "Day it was made", happened: true}
+    - id: trip
+      label: "Trip abroad"
+      id_prefix: t
+      max_records: 100
+      grows_with_time: true
+      complete_label: "Is this every trip outside the US in the time asked?"
+      fields:
+        - {id: left_on, kind: date, label: "Day of leaving the US", happened: true}
+        - {id: returned_on, kind: date, label: "Day of return to the US", happened: true}
+        - {id: purpose, kind: choice, label: "What the trip was", choices: [job_travel, approved_leave, personal, study_abroad], not_sure: true}
+        - {id: reentry_i20, kind: link, label: "Program whose Form I-20 was shown on return", to: [program]}
+        - {id: signature_on, kind: date, label: "Day of the DSO's travel signature on it", happened: true}
+        - {id: job_on_return, kind: choice, label: "Was there a job to return to?", choices: ["yes", "no"], not_sure: true}
+    - id: petition
+      label: "H-1B petition"
+      id_prefix: h
+      max_records: 10
+      complete_label: "Is this every H-1B petition filed for this person?"
+      fields:
+        - {id: type, kind: choice, label: "Kind of petition", choices: [h1b, other]}
+        - {id: cap_subject, kind: choice, label: "Is the petition under the yearly cap?", choices: ["yes", "no"], not_sure: true}
+        - {id: employer, kind: link, label: "Employer", to: [employer]}
+        - {id: filed_on, kind: date, label: "Day it was filed", happened: true}
+        - {id: receipt_on, kind: date, label: "Receipt date", happened: true}
+        - {id: requested_start, kind: date, label: "Start date asked for in the petition"}
+        - {id: change_of_status, kind: choice, label: "Does it ask for a change of status?", choices: ["yes", "no"]}
+        - {id: cos_ended_on, kind: date, label: "Day the change of status was withdrawn or moved to a consulate", happened: true}
+        - {id: outcome, kind: choice, label: "Outcome", choices: [pending, approved, denied, rejected, withdrawn, revoked]}
+        - {id: outcome_on, kind: date, label: "Day of the outcome", happened: true}
+        - {id: validity_start, kind: date, label: "Validity start date of the approved petition"}
+        - {id: h1b_began_on, kind: date, label: "Day H-1B status began", happened: true}
+    - id: withdrawal
+      label: "Withdrawal from classes"
+      id_prefix: wd
+      max_records: 10
+      fields:
+        - {id: program, kind: link, label: "Program", to: [program]}
+        - {id: "on", kind: date, label: "Day of the withdrawal", happened: true}
+        - {id: dso_authorized, kind: choice, label: "Did the DSO authorize the withdrawal?", choices: ["yes", "no"], not_sure: true}
+    - id: term
+      label: "Term, held and not yet computed"
+      id_prefix: tm
+      max_records: 200
+      fields:
+        - {id: program, kind: link, label: "Program", to: [program]}
+        - {id: start, kind: date, label: "First day of the term"}
+        - {id: end, kind: date, label: "Last day of the term"}
+        - {id: type, kind: choice, label: "Kind of term", choices: [term, annual_vacation]}
+        - {id: credits, kind: number, label: "Credits taken"}
+        - {id: online_credits, kind: number, label: "Online credits taken"}
+        - {id: full_course_credits, kind: number, label: "Credits the school counts as a full course", school: true}
+    - id: reduced_load
+      label: "Reduced course load, held and not yet computed"
+      id_prefix: rl
+      max_records: 50
+      fields:
+        - {id: program, kind: link, label: "Program", to: [program]}
+        - {id: reason, kind: choice, label: "Reason", choices: [language_or_academic, medical, final_term, other], not_sure: true}
+        - {id: starts, kind: date, label: "First day"}
+        - {id: ends, kind: date, label: "Last day"}
+        - {id: approved_on, kind: date, label: "Day the DSO approved it", happened: true}
+        - {id: credits, kind: number, label: "Credits taken"}
+        - {id: resumed_on, kind: date, label: "Day a full course resumed", happened: true}
+    - id: reinstatement
+      label: "Reinstatement, held and not yet computed"
+      id_prefix: ri
+      max_records: 10
+      fields:
+        - {id: program, kind: link, label: "Program", to: [program]}
+        - {id: filed_on, kind: date, label: "Day it was filed", happened: true}
+        - {id: decided_on, kind: date, label: "Day of the decision", happened: true}
+        - {id: decision, kind: choice, label: "Decision", choices: [pending, approved, denied]}
+  order:
+    - record: program
+      field: level
+      ascending: [associate, bachelor, master, doctorate]
+      rule_ids: [levels.higher_order, opt.max_months, stem.second_higher_level]
+  lists:
+    - id: stem.requirements
+      label: "What the rule lists for a STEM OPT extension"
+      rule_ids: [stem.requires.all_of_the_following, stem.requires.accreditation, stem.requires.dhs_approved_degree, stem.requires.degree_on_designated_list, stem.requires.previously_obtained_degree, stem.requires.eligible_practical_training_opportunity, stem.requires.employer_qualification, stem.requires.employer_reporting, stem.requires.training_plan, stem.requires.duties_hours_and_compensation, stem.requires.self_evaluation, stem.requires.employer_attestation, stem.requires.employer_attests_resources, stem.requires.employer_attests_no_replacement, stem.requires.employer_attests_training_goals]
+  stages:
+    - id: program
+      label: "Program of study"
+      for_each: {record: program, where: [{field: this.where, in: [us_on_f1]}]}
+      entered_when: [this.start_date, this.end_date]
+      rule_ids: [program.extension_new_i20, levels.higher_order, practical_training.language_programs]
+      span:
+        starts: {fact: this.start_date}
+        ends: {fact: this.end_date, as_of: {fact: today}}
+      next:
+        - stage: opt_post
+          bind: {program: outer.id, type: opt_post_completion}
+          only_if:
+            - not: {field: this.level, in: [secondary, language_training]}
+            - any_of:
+                - {field: this.level, in: [associate]}
+                - {field: this.level, level_above: associate}
+            - none: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.program, same_as: outer.id}]}
+            - not: {field: this.state, in: [left_before_completing]}
+    - id: move
+      label: "Move to a new program"
+      for_each: {record: move}
+      entered_when: [this.i20_issued_on]
+      rule_ids: [change_of_level.transfer_procedure, transfer.begin_within_months]
+      span:
+        starts: {earliest_of: [{optional: true, fact: this.release_date}, {fact: this.i20_issued_on}]}
+        ends: {earliest_of: [{optional: true, fact: this.release_date}, {fact: this.i20_issued_on}]}
+      windows:
+        - id: move.begin_classes
+          label: "Classes at the new program begin"
+          opens: {earliest_of: [{optional: true, fact: this.release_date}, {fact: this.i20_issued_on}]}
+          closes:
+            earliest_of:
+              - {optional: true, fact: this.release_date, add: [{rule: transfer.begin_within_months}]}
+              - {fact: this.from_program.end_date, as_of: {fact: this.i20_issued_on}, add: [{rule: transfer.begin_within_months}]}
+          rule_ids: [transfer.begin_within_months]
+          done_when: [this.registered_on]
+    - id: transfer
+      label: "School transfer"
+      for_each: {record: move, where: [{field: this.how, in: [transfer]}]}
+      entered_when: [this.release_date]
+      rule_ids: [transfer.contact_new_dso_within_days, oncampus.school_with_record]
+      span:
+        starts: {fact: this.release_date}
+        ends: {fact: this.to_program.start_date, add: [{rule: transfer.contact_new_dso_within_days}]}
+      windows:
+        - id: transfer.contact_new_dso
+          label: "Contact with the DSO at the transfer-in school"
+          opens: {fact: this.release_date}
+          closes: {fact: this.to_program.start_date, add: [{rule: transfer.contact_new_dso_within_days}]}
+          rule_ids: [transfer.contact_new_dso_within_days]
+          done_when: [this.contacted_new_dso_on]
+    - id: cpt
+      label: "Curricular practical training"
+      for_each: {record: authorization, where: [{field: this.type, in: [cpt]}]}
+      entered_when: [this.card_start, this.card_end]
+      rule_ids: [cpt.after_endorsed_i20, cpt.dso_marks_time]
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+    - id: opt_pre
+      label: "Pre-completion OPT"
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion]}]}
+      entered_when: [this.card_start, this.card_end]
+      rule_ids: [opt.post_completion_definition, opt.pre_completion_file_before_days]
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+      windows:
+        - id: opt_pre.apply_window
+          label: "Filing window for Form I-765, pre-completion OPT"
+          opens: {fact: this.program.first_year_done_on, add: [{rule: opt.pre_completion_file_before_days, sign: -1}]}
+          closes: {fact: this.program.end_date, as_of: {fact: this.filed_on}}
+          rule_ids: [opt.pre_completion_file_before_days, opt.post_completion_definition]
+          done_when: [this.filed_on]
+    - id: opt_post
+      label: "Post-completion OPT"
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}
+      entered_when: [this.card_start, this.card_end]
+      rule_ids: [opt.post_completion_definition, opt.ends_on_transfer_or_new_level]
+      checklist: opt_post
+      span:
+        starts: {fact: this.card_start}
+        ends:
+          earliest_of:
+            - {fact: this.card_end}
+            - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}
+            - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
+        ends_also:
+          - when: {earliest_of: [{fact: this.card_end}, {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}]}
+            rule_ids: [opt.ends_on_release_date]
+      windows:
+        - id: opt.apply_window
+          label: "Filing window for Form I-765"
+          opens: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_before_days, sign: -1}]}
+          closes: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_after_days}]}
+          rule_ids: [opt.apply_before_days, opt.apply_after_days]
+          done_when: [this.filed_on, this.card_start]
+        - id: opt.latest_start
+          label: "Latest start date that may be requested"
+          opens: {fact: this.program.end_date, as_of: {fact: this.filed_on}}
+          closes: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.latest_start_after_days}]}
+          rule_ids: [opt.latest_start_after_days]
+          done_when: [this.card_start]
+        - id: opt.file_by
+          label: "Form I-765 filed after the DSO's recommendation"
+          opens: {fact: this.dso_on}
+          closes: {fact: this.dso_on, add: [{rule: opt.file_within_days_of_recommendation}]}
+          rule_ids: [opt.file_within_days_of_recommendation]
+          done_when: [this.filed_on]
+        - id: opt.complete_by
+          label: "Practical training completed after the completion of study"
+          opens: {fact: this.program.end_date, as_of: {fact: this.filed_on}}
+          closes: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.complete_within_months}]}
+          rule_ids: [opt.complete_within_months]
+      lists: [stem.requirements]
+      next:
+        - stage: stem
+          bind: {extends: outer.id, type: stem_extension, program: outer.program}
+          only_if:
+            - exists:
+                record: program
+                where:
+                  - {field: this.where, in: [us_on_f1, us_other_status]}
+                  - {field: this.level, in: [bachelor, master, doctorate]}
+                  - {field: this.stem_list, in: [on_list]}
+                  - any_of:
+                      - {field: this.id, same_as: outer.program}
+                      - all_of:
+                          - {field: this.conferred_on, before: {fact: outer.program.coursework_done_on}}
+                          - {field: this.conferred_on, on_or_after: {fact: outer.card_end, add: [{rule: stem.apply_before_expiry_days, sign: -1}, {rule: stem.file_within_days_of_recommendation, sign: -1}, {rule: stem.previous_degree_within_years, sign: -1}]}}
+            - count_below: {of: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.decision, in: [pending, approved]}]}, rule: stem.max_lifetime_extensions}
+    - id: stem
+      label: "STEM OPT extension"
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
+      entered_when: [this.card_start, this.card_end]
+      rule_ids: [stem.extension_months, stem.requires_post_completion_opt, opt.ends_on_transfer_or_new_level, stem.pending_card_extended]
+      checklist: stem_opt
+      lists: [stem.requirements]
+      span:
+        starts: {fact: this.card_start}
+        ends:
+          earliest_of:
+            - {fact: this.card_end}
+            - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}
+            - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
+        ends_also:
+          - when: {earliest_of: [{fact: this.card_end}, {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}]}
+            rule_ids: [opt.ends_on_release_date]
+      windows:
+        - id: stem.apply_window
+          label: "Filing window for the STEM OPT extension"
+          opens: {fact: this.extends.card_end, add: [{rule: stem.apply_before_expiry_days, sign: -1}]}
+          closes: {fact: this.extends.card_end}
+          rule_ids: [stem.apply_before_expiry_days, stem.apply_window_closes_rule]
+          done_when: [this.filed_on]
+        - id: stem.file_by
+          label: "Form I-765 filed after the DSO's recommendation"
+          opens: {fact: this.dso_on}
+          closes: {fact: this.dso_on, add: [{rule: stem.file_within_days_of_recommendation}]}
+          rule_ids: [stem.file_within_days_of_recommendation]
+          done_when: [this.filed_on]
+        - id: stem.validation_1
+          label: "First validation report"
+          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}]}
+          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+        - id: stem.validation_2
+          label: "Second validation report"
+          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]}
+          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+        - id: stem.validation_3
+          label: "Third validation report"
+          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]}
+          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+        - id: stem.validation_4
+          label: "Fourth validation report"
+          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]}
+          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+        - id: stem.evaluation_12_month
+          label: "Initial evaluation"
+          opens: {fact: this.card_start}
+          closes: {fact: this.card_start, add: [{rule: stem.evaluation_interval_months}, {rule: stem.evaluation_due_days}]}
+          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required]
+        - id: stem.evaluation_final
+          label: "Concluding evaluation"
+          opens: {fact: this.card_end}
+          closes: {fact: this.card_end, add: [{rule: stem.evaluation_due_days}]}
+          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required]
+    - id: cap_gap
+      label: "Cap-gap extension"
+      for_each: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+      entered_when: [this.filed_on]
+      rule_ids: [capgap.end_month_day, capgap.ends_on_outcome, capgap.october_start_condition]
+      span:
+        starts: {day_after: true, first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+        ends:
+          earliest_of:
+            - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
+            - {optional: true, fact: this.validity_start}
+            - {optional: true, first: {of: {record: petition, where: [{field: this.id, same_as: outer.id}, {field: this.outcome, in: [rejected, denied, revoked, withdrawn]}]}, field: outcome_on, pick: earliest}}
+            - {optional: true, fact: this.cos_ended_on}
+    - id: grace
+      label: "Time after the program ends"
+      for_each:
+        record: program
+        where:
+          - {field: this.state, in: [completed]}
+          - none: {record: move, where: [{field: this.from_program, same_as: outer.id}]}
+      entered_when: [this.end_date]
+      rule_ids: [grace.after_completion_days]
+      span:
+        starts:
+          day_after: true
+          latest_of:
+            - {fact: this.end_date, as_of: {fact: today}}
+            - {optional: true, first: {of: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+        ends:
+          add: [{rule: grace.after_completion_days}]
+          latest_of:
+            - {fact: this.end_date, as_of: {fact: today}}
+            - {optional: true, first: {of: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+    - id: withdrawal
+      label: "Time after a withdrawal"
+      for_each: {record: withdrawal, where: [{field: this.dso_authorized, in: ["yes"]}]}
+      entered_when: [this.on]
+      rule_ids: [grace.withdrawal_days]
+      span:
+        starts: {fact: this.on}
+        ends: {fact: this.on, add: [{rule: grace.withdrawal_days}]}
+    - id: trip
+      label: "Trip abroad"
+      for_each: {record: trip}
+      entered_when: [this.left_on]
+      rule_ids: [travel.absence_months, practical_training.study_abroad]
+      span:
+        starts: {fact: this.left_on}
+        ends: {earliest_of: [{optional: true, fact: this.returned_on}, {fact: today}]}
+    - id: opt_job_end
+      label: "End of a job on post-completion OPT"
+      for_each: {record: work, where: [{field: this.under.type, in: [opt_post_completion]}, {field: this.end, present: true}]}
+      entered_when: [this.end]
+      rule_ids: [opt.report_employer_within_days, opt.report_interruption]
+      windows:
+        - id: opt_job_end.report
+          label: "Report of the change to the DSO"
+          opens: {fact: this.end}
+          closes: {fact: this.end, add: [{rule: opt.report_employer_within_days}]}
+          rule_ids: [opt.report_employer_within_days, opt.report_interruption]
+    - id: stem_job_end
+      label: "End of a job on a STEM OPT extension"
+      for_each: {record: work, where: [{field: this.under.type, in: [stem_extension]}, {field: this.end, present: true}]}
+      entered_when: [this.end]
+      rule_ids: [stem.report_change_within_days, stem.reporting_required]
+      windows:
+        - id: stem_job_end.report
+          label: "Report of the loss of employment to the DSO"
+          opens: {fact: this.end}
+          closes: {fact: this.end, add: [{rule: stem.report_change_within_days}]}
+          rule_ids: [stem.report_change_within_days, stem.reporting_required]
+  checks:
+    - id: program.opt_start_not_too_early
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion, opt_post_completion]}]}
+      holds:
+        - {field: this.card_start, on_or_after: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: product.opt_start_earliest_years_before_program_end, sign: -1}]}}
+      rule_ids: [opt.post_completion_definition, opt.max_months]
+    - id: program.end_on_or_after_today
+      for_each: {record: program, where: [{field: this.where, in: [us_on_f1]}, {field: this.state, in: [in_progress]}]}
+      holds:
+        - {field: this.end_date, on_or_after: {fact: today}}
+      rule_ids: [program.extension_before_end, program.extension_new_i20]
+    - id: move.classes_begin_in_time
+      for_each: {record: move}
+      holds:
+        - field: this.to_program.start_date
+          on_or_before:
+            earliest_of:
+              - {optional: true, fact: this.release_date, add: [{rule: transfer.begin_within_months}]}
+              - {fact: this.from_program.end_date, as_of: {fact: this.i20_issued_on}, add: [{rule: transfer.begin_within_months}]}
+      rule_ids: [transfer.begin_within_months, change_of_level.transfer_procedure]
+    - id: move.classes_resume_after_opt
+      for_each: {record: move}
+      only_if:
+        - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.program, same_as: outer.from_program}]}
+      holds:
+        - field: this.to_program.start_date
+          on_or_before:
+            earliest_of:
+              - {optional: true, fact: this.release_date, add: [{rule: transfer.opt_resume_within_months}]}
+              - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.program, same_as: outer.from_program}]}, field: card_end, pick: latest}, add: [{rule: transfer.opt_resume_within_months}]}
+      rule_ids: [transfer.opt_resume_within_months]
+    - id: transfer.new_dso_contacted_in_time
+      for_each: {record: move, where: [{field: this.how, in: [transfer]}]}
+      holds:
+        - {field: this.contacted_new_dso_on, on_or_before: {fact: this.to_program.start_date, add: [{rule: transfer.contact_new_dso_within_days}]}}
+      rule_ids: [transfer.contact_new_dso_within_days]
+    - id: oncampus.ends_by_release
+      for_each: {record: work, where: [{field: this.on_campus, present: true}]}
+      only_if:
+        - exists: {record: move, where: [{field: this.from_program, same_as: outer.on_campus}, {field: this.release_date, present: true}]}
+      holds:
+        - {field: this.end, on_or_before: {first: {of: {record: move, where: [{field: this.from_program, same_as: outer.on_campus}]}, field: release_date, pick: earliest}}}
+      rule_ids: [oncampus.school_with_record]
+    - id: end_date_change.asked_before_end
+      for_each: {record: end_date_change, where: [{field: this.change, in: [extension]}]}
+      holds:
+        - {field: this.requested_on, on_or_before: {fact: this.old_end}}
+      rule_ids: [program.extension_before_end]
+    - id: cpt.starts_after_endorsement
+      for_each: {record: authorization, where: [{field: this.type, in: [cpt]}]}
+      holds:
+        - {field: this.card_start, on_or_after: {fact: this.dso_on}}
+      rule_ids: [cpt.after_endorsed_i20]
+    - id: cpt.first_year_done
+      for_each: {record: authorization, where: [{field: this.type, in: [cpt]}]}
+      holds:
+        - any_of:
+            - {field: this.program.first_year_before_training, in: ["yes"]}
+            - all_of:
+                - {field: this.program.immediate_cpt, in: ["yes"]}
+                - {field: this.program.level, in: [master, doctorate]}
+      rule_ids: [practical_training.one_academic_year, cpt.graduate_immediate]
+    - id: opt_pre.starts_after_first_year
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion]}]}
+      holds:
+        - {field: this.card_start, on_or_after: {fact: this.program.first_year_done_on}}
+      rule_ids: [opt.pre_completion_file_before_days, practical_training.one_academic_year]
+    - id: opt_pre.ends_by_program_end
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion]}]}
+      holds:
+        - {field: this.card_end, on_or_before: {fact: this.program.end_date, as_of: {fact: this.card_end}}}
+      rule_ids: [opt.post_completion_definition]
+    - id: opt_pre.part_time_hours
+      for_each: {record: work, where: [{field: this.under.type, in: [opt_pre_completion]}, {field: this.under.time, in: [part_time]}]}
+      holds:
+        - {field: this.hours_per_week, at_most: {rule: opt.pre_completion_in_session_hours}}
+      rule_ids: [opt.pre_completion_in_session_hours]
+    - id: opt_post.filed_in_window
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}
+      holds:
+        - {field: this.filed_on, on_or_after: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_before_days, sign: -1}]}}
+        - {field: this.filed_on, on_or_before: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_after_days}]}}
+      rule_ids: [opt.apply_before_days, opt.apply_after_days]
+    - id: opt_post.card_fits_max_months
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}
+      holds:
+        - {field: this.card_end, before: {fact: this.card_start, add: [{rule: opt.max_months}]}}
+      rule_ids: [opt.max_months]
+    - id: opt_post.starts_after_program_end
+      for_each: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}
+      holds:
+        - {field: this.card_start, after: {fact: this.program.end_date, as_of: {fact: this.filed_on}}}
+      rule_ids: [opt.post_completion_definition]
+    - id: stem.extends_post_completion_opt
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
+      holds:
+        - {field: this.extends.type, in: [opt_post_completion]}
+      rule_ids: [stem.requires_post_completion_opt]
+    - id: stem.filed_while_opt_in_force
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
+      only_if:
+        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+      holds:
+        - {field: this.filed_on, on_or_before: {fact: this.extends.card_end}}
+      rule_ids: [stem.requires_post_completion_opt, stem.apply_window_closes_rule]
+    - id: stem.filed_during_cap_gap
+      kind: judgement
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.filed_on, after: {fact: this.extends.card_end}}]}
+      holds:
+        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+      rule_ids: [stem.requires_post_completion_opt, stem.apply_window_closes_rule]
+    - id: stem.basis_program
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
+      holds:
+        - {field: this.basis_program.where, in: [us_on_f1, us_other_status]}
+        - {field: this.basis_program.level, in: [bachelor, master, doctorate]}
+        - {field: this.basis_program.stem_list, in: [on_list]}
+      rule_ids: [stem.requires.accreditation, stem.requires.dhs_approved_degree, stem.requires.degree_on_designated_list]
+    - id: stem.basis_older_degree
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
+      only_if:
+        - {field: this.basis_program, differs_from: this.extends.program}
+      holds:
+        - {field: this.basis_program.conferred_on, before: {fact: this.extends.program.coursework_done_on}}
+        - {field: this.basis_program.conferred_on, on_or_after: {fact: this.dso_on, add: [{rule: stem.previous_degree_within_years, sign: -1}]}}
+      rule_ids: [stem.requires.previously_obtained_degree, stem.previous_degree_within_years, stem.later_degree_not_basis]
+    - id: stem.second_at_higher_level
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
+      only_if:
+        - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_start, before: {fact: outer.card_start}}]}
+      holds:
+        - none: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_start, before: {fact: outer.card_start}}, {not: {field: outer.basis_program.level, level_above: this.basis_program.level}}]}
+      rule_ids: [stem.second_higher_level, levels.higher_order]
+    - id: stem.training_plan_before_recommendation
+      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.dso_on, present: true}]}
+      only_if:
+        - exists: {record: report, where: [{field: this.type, in: [i983_new]}, {field: this.about, same_as: outer.id}]}
+      holds:
+        - exists: {record: report, where: [{field: this.type, in: [i983_new]}, {field: this.about, same_as: outer.id}, {field: this.made_on, on_or_before: {fact: outer.dso_on}}]}
+      rule_ids: [stem.requires.training_plan]
+    - id: stem.employer_in_e_verify
+      kind: judgement
+      for_each: {record: work, where: [{field: this.under.type, in: [stem_extension]}]}
+      holds:
+        - {field: this.employer.e_verify, in: ["yes"]}
+      rule_ids: [stem.requires.employer_qualification]
+    - id: capgap.trip_while_pending
+      kind: judgement
+      for_each: {record: trip}
+      holds:
+        - none:
+            record: petition
+            where:
+              - {field: this.change_of_status, in: ["yes"]}
+              - {field: this.filed_on, on_or_before: {fact: outer.left_on}}
+              - any_of:
+                  - {field: this.outcome, in: [pending]}
+                  - {field: this.outcome_on, after: {fact: outer.left_on}}
+      rule_ids: [capgap.travel_while_pending]
+    - id: grace.after_cap_gap_outcome
+      kind: judgement
+      for_each: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+      holds:
+        - {field: this.outcome, in: [pending, approved]}
+      rule_ids: [capgap.ends_on_outcome, grace.after_completion_days]
+    - id: withdrawal.dso_authorized
+      kind: judgement
+      for_each: {record: withdrawal}
+      holds:
+        - {field: this.dso_authorized, in: ["yes"]}
+      rule_ids: [grace.withdrawal_days]
+    - id: trip.back_within_absence_limit
+      for_each: {record: trip, where: [{field: this.returned_on, present: true}]}
+      holds:
+        - {field: this.returned_on, on_or_before: {fact: this.left_on, add: [{rule: travel.absence_months}]}}
+      rule_ids: [travel.absence_months]
+    - id: trip.signature_for_opt_return
+      for_each: {record: trip, where: [{field: this.returned_on, present: true}]}
+      only_if:
+        - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.returned_on}}, {field: this.card_end, on_or_after: {fact: outer.returned_on}}]}
+      holds:
+        - {field: this.signature_on, on_or_after: {fact: this.returned_on, add: [{rule: travel.opt_signature_months, sign: -1}]}}
+        - {field: this.signature_on, on_or_before: {fact: this.returned_on}}
+      rule_ids: [travel.opt_signature_months]
+    - id: trip.job_on_return
+      kind: judgement
+      for_each: {record: trip, where: [{field: this.returned_on, present: true}]}
+      only_if:
+        - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.returned_on}}, {field: this.card_end, on_or_after: {fact: outer.returned_on}}]}
+      holds:
+        - {field: this.job_on_return, in: ["yes"]}
+      rule_ids: [travel.opt_signature_months, opt.report_interruption]
+    - id: trip.reentry_i20_after_move
+      for_each: {record: trip}
+      only_if:
+        - exists: {record: move, where: [{field: this.told_school_on, on_or_before: {fact: outer.left_on}}]}
+      holds:
+        - exists: {record: move, where: [{field: this.told_school_on, on_or_before: {fact: outer.left_on}}, {field: this.to_program, same_as: outer.reentry_i20}]}
+      rule_ids: [travel.updated_i20]
+    - id: oncampus.ends_after_completion
+      for_each: {record: work, where: [{field: this.on_campus, present: true}, {field: this.on_campus.state, in: [completed]}]}
+      only_if:
+        - none: {record: move, where: [{field: this.from_program, same_as: outer.on_campus}]}
+      holds:
+        - {field: this.end, on_or_before: {fact: this.on_campus.end_date, as_of: {fact: today}}}
+      rule_ids: [oncampus.after_completion]
+  counters:
+    - id: unemployment.opt_card
+      calculator: days_without_qualifying_period
+      scope: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}, group: record}
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+      qualifying: {record: work, where: [{field: this.under, same_as: outer.id}]}
+      hours_rule: opt.min_hours_per_week
+      not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
+      limit_rule: opt.unemployment_limit_days
+      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap]
+    - id: unemployment.total
+      calculator: days_without_qualifying_period
+      scope: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, group: chain, chain_link: extends}
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+      qualifying: {record: work, where: [{field: this.under, same_as: outer.id}]}
+      hours_rule: stem.min_hours_per_week
+      not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
+      only_if:
+        - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.extends, same_as: outer.id}]}
+      limit_rule: stem.unemployment_limit_days
+      rule_ids: [stem.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap]
+    - id: cpt.full_time_days_at_level
+      calculator: sum_of_days
+      scope: {of: {record: authorization, where: [{field: this.type, in: [cpt]}, {field: this.time, in: [full_time]}]}, group: same_value, value_of: this.program.level}
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+      limit_rule: cpt.full_time_bar_days
+      rule_ids: [cpt.full_time_bar_days, cpt.same_level_counts]
+    - id: cpt.full_time_months_at_level
+      calculator: sum_of_months
+      scope: {of: {record: authorization, where: [{field: this.type, in: [cpt]}, {field: this.time, in: [full_time]}]}, group: same_value, value_of: this.program.level}
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+      limit_rule: cpt.full_time_months_bar
+      rule_ids: [cpt.full_time_months_bar, cpt.same_level_counts]
+    - id: opt.months_at_level
+      calculator: sum_of_months
+      scope: {of: {record: authorization, where: [{field: this.type, in: [opt_pre_completion, opt_post_completion]}, {field: this.decision, in: [approved]}]}, group: same_value, value_of: this.program.level}
+      span:
+        starts: {fact: this.card_start}
+        ends: {fact: this.card_end}
+      limit_rule: opt.max_months
+      rule_ids: [opt.max_months, opt.split_same_level, levels.higher_order]
+    - id: stem.extensions
+      calculator: count_of_records
+      scope: {of: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.decision, in: [pending, approved]}]}, group: all}
+      limit_rule: stem.max_lifetime_extensions
+      rule_ids: [stem.max_lifetime_extensions, stem.seventeen_month_counts_as_one]
+  checklists:
+    - id: opt_post
+      label: "Post-completion OPT filing"
+      reading: true
+      steps:
+        - id: dso_recommendation
+          label: "The DSO's OPT recommendation, put in SEVIS"
+          rule_ids: [opt.file_within_days_of_recommendation]
+          who: school
+          school: true
+        - id: i765_in_window
+          label: "Form I-765 for post-completion OPT, filed in the window around the program end date"
+          rule_ids: [opt.apply_before_days, opt.apply_after_days]
+          who: student
+        - id: i765_after_recommendation
+          label: "Form I-765, filed within the rule's days of the DSO's recommendation"
+          rule_ids: [opt.file_within_days_of_recommendation]
+          who: student
+        - id: start_date
+          label: "A requested start date no later than the rule allows after the program end date"
+          rule_ids: [opt.latest_start_after_days]
+          who: student
+    - id: stem_opt
+      label: "STEM OPT extension filing"
+      reading: true
+      steps:
+        - id: i983
+          label: "A completed and signed Form I-983, the training plan"
+          rule_ids: [stem.requires.training_plan]
+          who: student
+        - id: dso_recommendation
+          label: "The DSO's STEM OPT recommendation, put in SEVIS"
+          rule_ids: [stem.file_within_days_of_recommendation, stem.requires.training_plan]
+          who: school
+          school: true
+        - id: i765_after_recommendation
+          label: "Form I-765, filed within the rule's days of the DSO's recommendation"
+          rule_ids: [stem.file_within_days_of_recommendation]
+          who: student
+        - id: i765_before_card_end
+          label: "Form I-765, filed before the current OPT card ends"
+          rule_ids: [stem.apply_before_expiry_days, stem.apply_window_closes_rule]
+          who: student
+        - id: degree_on_list
+          label: "A degree on the STEM list at the time the DSO recommends the extension"
+          rule_ids: [stem.requires.degree_on_designated_list, stem.requires.dhs_approved_degree]
+          who: student
+        - id: accredited_school
+          label: "A degree from an accredited U.S. school"
+          rule_ids: [stem.requires.accreditation]
+          who: school
+        - id: e_verify
+          label: "An employer in E-Verify, with an employer ID number (EIN) for tax"
+          rule_ids: [stem.requires.employer_qualification]
+          who: employer
+        - id: directly_related
+          label: "Training that is directly related to the degree"
+          rule_ids: [stem.requires.eligible_practical_training_opportunity]
+          who: employer
+        - id: employer_attests
+          label: "The employer's attestations, signed on Form I-983"
+          rule_ids: [stem.requires.employer_attestation, stem.requires.employer_attests_resources, stem.requires.employer_attests_no_replacement, stem.requires.employer_attests_training_goals]
+          who: employer
+        - id: employer_reporting
+          label: "The employer's agreement, on Form I-983, to tell the DSO if the student leaves early"
+          rule_ids: [stem.requires.employer_reporting]
+          who: employer
+        - id: commensurate_terms
+          label: "Duties, hours and compensation like those of similar U.S. workers at the employer"
+          rule_ids: [stem.requires.duties_hours_and_compensation, stem.min_hours_per_week]
+          who: employer
