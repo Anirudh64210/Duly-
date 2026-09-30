@@ -38,10 +38,11 @@ rounds:
       engine api'
   - lane: L-web
     agent: builder
-    mission: 'First move tests/web/fix7.test.ts to web/src/lib/views/fix7.test.ts unchanged (git mv).
-      Then: Points 22, 24 and 26 in web/: stage state unknown is never now or the eyebrow and shows the
-      DSO line in place; the step-back words of labels.ts name every nulled kind and say H-1B only for
-      h1b; the petition outcome step offers I am not sure and may be left. Match the canvas (specs/design-1).
+    mission: 'First copy tests/web/fix7.test.ts to web/src/lib/views/fix7.test.ts unchanged (cp; leave
+      the original, the reconcile test lane removes it). Then: Points 22, 24 and 26 in web/: stage state
+      unknown is never now or the eyebrow and shows the DSO line in place; the step-back words of labels.ts
+      name every nulled kind and say H-1B only for h1b; the petition outcome step offers I am not sure
+      and may be left. Match the canvas (specs/design-1).
 
       Point 23a says an unknown row carries no mark.
 
@@ -56,6 +57,8 @@ rounds:
       the point beside each change; never loosen an assertion; escalate any failure no point explains.
 
       The two J19 tests that expect a 2020 petition to step back change under point 23a.
+
+      Remove tests/web/fix7.test.ts (its copy lives in web/src/lib/views).
 
       '
     done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
