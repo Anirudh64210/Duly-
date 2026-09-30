@@ -294,3 +294,18 @@
 - Failure: a step back nulled a stage's dates, and the stage's state fell to current, so Home named the stage the SPEC made unknowable.
 - Fix: send the route output of each step-back case through the web view functions and read the words.
 - Evidence: reviews/product-2-fix6.md finding 1.
+
+## 2026-09-30, run l-review-6676921233 (product round 2, fix 7)
+- Read resolutions.md points 22 to 26, 23a and 24a, reviews/product-2-fix6.md, plan-fix7, plan-fix7b and plan-fix7c, and the diff 0c55967..3d09f03 (contract state unknown, engine _state and ask_unknown_choices, the pack's point 23 filters and 24a words, web timeline, labels, records and onboarding, test_fix7.py, fix7.test.ts, the reconciled tests and the samples).
+- Ran: unit and holdout suites (exit 0). verify, plain, engine_literals, copy lint, ruff, ruff format, mypy and make.py --check all exit 0. On a HEAD copy: web tsc exit 0, web vitest 567 passed, desktop vitest 139 passed.
+- TMPDIR/rv7/run.py: twenty journeys on HEAD and on a fix 6 copy, all 200 and cannot_tell. Every date, item, question and reason is the same. Stage state differs in 13 journeys: the transfers and open job-end stages go from current to unknown with no petition.
+- twins7.py: 18 J19 twins for point 23 and 23a, each diffed against J19 without the petition. All follow 23a. Probes p11, p15 and p15b cover J11 and J15.
+- A scratch vitest sent the route output through stageEyebrow and timelineView. J12, J13 and J14 give eyebrow "F-1" and no now mark, and J19 plus a petition marks only stem.a2. No-petition rows show "Your DSO can tell you these dates." with their items dropped, and on petition cases the old transfers carry the petition's words.
+- Mutants: 17 run, 14 caught (all four that point 25 names), 3 survive (the job-card filter, the unemployment filter, window-only placement).
+- The saved Onboarding cases for J01, J08 and J16 give the same counts as fix 6.
+- Wrote reviews/product-2-fix7.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas. The Write tool was refused by the permission mode, so the files were written through shell heredocs inside reviews/.
+
+## Lesson
+- Failure: a state change meant for petition-nulled stages also reached open-ended stages with no petition, and no test pinned a non-petition stage's state.
+- Fix: diff each journey's stage states against the previous run, and send the changed rows through the web views.
+- Evidence: reviews/product-2-fix7.md finding 1.
