@@ -5,15 +5,18 @@ a hang, a loop, the wrong model, writes outside the lane, tampering with a prote
 branch, the kill switch, a claim held by another run, and spent budgets.
 """
 
+import dataclasses
 import json
 import os
-from datetime import UTC, datetime
+import sys
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
 from engine.clocks import FixedClock
 from tests.support import mini_factory as mini
-from tools.factory import agent_run, jail, ledger, memory, registry, telemetry
+from tools.factory import agent_run, health, jail, ledger, memory, registry, telemetry
 
 pytestmark = pytest.mark.skipif(not jail.available(), reason="no sandbox on this machine")
 CLOCK = FixedClock(datetime(2026, 9, 29, 12, 0, tzinfo=UTC))
@@ -58,8 +61,6 @@ def test_the_ordinary_path(tmp_path, monkeypatch):
 
 def test_hidden_tests_are_not_in_a_builders_worktree(tmp_path, monkeypatch):
     _, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])])
-    from pathlib import Path
-
     assert not (Path(out.worktree) / "tests" / "holdout" / "test_hidden.py").exists()
     assert "test_hidden" not in " ".join(out.files_changed)
 
@@ -280,27 +281,96 @@ def test_an_agent_can_escalate_and_is_not_asked_again(tmp_path, monkeypatch):
         },
         {"result": {}},
     ]
-    _, out = play(tmp_path, monkeypatch, [gives_up])
+    monkeypatch.setenv("DULY_PLAN", "product-2")
+    repo, out = play(tmp_path, monkeypatch, [gives_up])
     assert (out.status, out.attempts) == ("escalated", 1)
     assert "contradicts the SPEC" in out.reason
+    # A stop is filed under its plan, and its cause is unknown until someone names it.
+    stop = [r for r in ledger.read(repo) if r["kind"] == "blocked"][-1]
+    assert (stop["plan"], stop["cause"]) == ("product-2", "unknown")
 
 
-def test_an_agents_lessons_wait_for_the_founder(tmp_path, monkeypatch):
+def test_an_escalation_with_disputes_blames_the_spec(tmp_path, monkeypatch):
+    monkeypatch.delenv("DULY_PLAN", raising=False)
+    repo = mini.build(tmp_path)
+    report = {
+        "run_id": "l-engine-disputed",
+        "status": "escalated",
+        "summary": "The test contradicts the SPEC.",
+        "commands_run": [],
+        "files_changed": [],
+        "lessons": [],
+        "disputes": ["tests/x.py expects 30 days; SPEC point 4 says 60"],
+        "requests": [],
+    }
+    steps = [{"init": mini.MODEL}, {"report": "engine", "body": report}, {"result": {}}]
+    for key, value in mini.scenario(tmp_path, [steps]).items():
+        monkeypatch.setenv(key, value)
+    job = dataclasses.replace(task(), run_id="l-engine-disputed")
+    out = agent_run.run(job, CLOCK, repo)
+    assert out.status == "escalated"
+    stop = [r for r in ledger.read(repo) if r["kind"] == "blocked"][-1]
+    assert (stop["plan"], stop["cause"]) == ("", "spec")
+
+
+def test_a_finished_run_carries_its_plan_and_no_cause(tmp_path, monkeypatch):
+    monkeypatch.setenv("DULY_PLAN", "product-2")
+    repo, _ = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])])
+    done = [r for r in ledger.read(repo) if r["kind"] == "done"][-1]
+    assert done["plan"] == "product-2"
+    assert "cause" not in done
+    assert telemetry.read_runs(repo)[-1]["plan"] == "product-2"  # and so does its metrics row
+
+
+def test_an_agents_lessons_reach_no_one(tmp_path, monkeypatch):
     lesson = {
         "failure": "The done command was piped through tail and hid its exit code.",
         "fix": "Run it unpiped.",
         "evidence": "run log",
     }
     steps = mini.good(["engine/new.py"])
-    steps[-2]["lessons"] = [lesson, lesson]
+    steps[-2]["lessons"] = [lesson]
     repo, out = play(tmp_path, monkeypatch, [steps])
     assert out.status == "done"
-    # An agent's lessons go to the founder's inbox once, and reach no agent until accepted.
-    inbox = list((repo / ".claude" / "LESSONS" / "proposals").glob("*.md"))
-    assert len(inbox) == 1
-    assert "piped through tail" in inbox[0].read_text()
+    # What an agent says about its own run is neither filed nor handed to a later agent.
+    assert not list((repo / ".claude" / "LESSONS" / "proposals").glob("*.md"))
     assert memory.read(repo) == []
-    assert "piped through tail" not in memory.for_prompt("L-engine", 40, 12000, repo)
+    assert "piped through tail" not in memory.for_prompt("L-engine", 8, 3000, repo)
+
+
+def test_a_tasks_failures_leave_memory_once_it_passes(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    memory.record("L-engine", "an old failure", "a fix", "run", "orchestrator", repo, task="t/1")
+    memory.record("L-engine", "another task", "a fix", "run", "orchestrator", repo, task="t/2")
+    _, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])], repo=repo)
+    assert out.status == "done"
+    assert [row["task"] for row in memory.read(repo)] == ["t/2"]
+
+
+def test_a_health_probe_runs_on_its_own_model_with_a_short_prompt(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    memory.record("L-engine", "an old failure", "a fix", "run", "orchestrator", repo, task="t/1")
+    probe_model = health.model(repo)
+    assert probe_model != mini.MODEL
+    steps = mini.good(["engine/new.py"])
+    steps[0] = {"init": probe_model}
+    _, out, calls = launched(tmp_path, monkeypatch, [steps], repo=repo, name="health/builder")
+    assert out.status == "done", out.reason
+    assert out.model == probe_model
+    assert after(calls[0], "--model") == probe_model
+    prompt = after(calls[0], "-p")
+    assert prompt.startswith("This is a health check of the walls around lane L-engine.")
+    assert "an old failure" not in prompt
+    assert memory.read(repo)  # a probe changes no memory
+
+
+def test_a_run_that_is_not_a_probe_is_held_to_the_pinned_model(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    steps = mini.good(["engine/new.py"])
+    steps[0] = {"init": health.model(repo)}
+    _, out = play(tmp_path, monkeypatch, [steps], repo=repo)
+    assert out.status == "refused"
+    assert "pinned" in out.reason
 
 
 def test_a_rerun_of_the_same_task_leaves_no_duplicate(tmp_path, monkeypatch):
@@ -382,3 +452,196 @@ def test_project_settings_that_name_a_key_refuse_the_run(tmp_path, monkeypatch):
     _, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])], repo=repo)
     assert out.status == "refused"
     assert "apiKeyHelper" in out.reason
+
+
+def launched(tmp_path, monkeypatch, attempts, repo=None, **kwargs):
+    """Play a scenario and keep the arguments of each launch of the agent binary."""
+    repo = repo or mini.build(tmp_path)
+    for key, value in mini.scenario(tmp_path, attempts).items():
+        monkeypatch.setenv(key, value)
+    calls = tmp_path / "argv.jsonl"
+    wrapper = tmp_path / "wrapper-agent"
+    wrapper.write_text(
+        "#!/bin/sh\n"
+        f'"{sys.executable}" -c "import json, sys; '
+        "open(sys.argv[1], 'a').write(json.dumps(sys.argv[2:]) + chr(10))\" "
+        f'"{calls}" "$@"\n'
+        f'exec "{os.environ["DULY_CLAUDE_BIN"]}" "$@"\n'
+    )
+    wrapper.chmod(0o755)
+    monkeypatch.setenv("DULY_CLAUDE_BIN", str(wrapper))
+    out = agent_run.run(task(**kwargs), CLOCK, repo)
+    return repo, out, [json.loads(line) for line in calls.read_text().splitlines()]
+
+
+def after(argv, flag):
+    return argv[argv.index(flag) + 1]
+
+
+def result_event(**fields):
+    return {
+        "raw": json.dumps({"type": "result", "session_id": "s", "total_cost_usd": 0.3, **fields})
+    }
+
+
+def test_the_result_event_replaces_the_streamed_placeholder_output(tmp_path, monkeypatch):
+    # Streamed events carry a placeholder output count; the result event holds the true one.
+    steps = mini.good(["engine/new.py"])[:-1]
+    steps.insert(1, {"usage": {"in": 100, "out": 8, "cached": 1000}})
+    usage = {
+        "input_tokens": 70,
+        "cache_creation_input_tokens": 90_842,
+        "cache_read_input_tokens": 2_577_607,
+        "output_tokens": 26_346,
+    }
+    steps.append(result_event(usage=usage, num_turns=36))
+    repo, out = play(tmp_path, monkeypatch, [steps])
+    assert out.status == "done", out.reason
+    assert out.tokens == usage
+    assert out.tokens_out == 26_346
+    assert out.tokens_in == 70 + 90_842 + 2_577_607
+    assert out.tokens_charged == 70 + 90_842 + 257_760 + 26_346
+    row = next(r for r in ledger.read(repo) if r["kind"] == "done")
+    assert row["tokens"] == usage
+    assert {"seconds", "wall_seconds"} <= set(row)
+    assert telemetry.read_runs(repo)[0]["tokens"] == usage
+
+
+def test_model_usage_is_read_before_usage_and_sums_every_model(tmp_path, monkeypatch):
+    steps = mini.good(["engine/new.py"])[:-1]
+    models = {
+        "claude-opus-5-5": {
+            "inputTokens": 10,
+            "outputTokens": 500,
+            "cacheReadInputTokens": 1000,
+            "cacheCreationInputTokens": 200,
+        },
+        "claude-haiku-4-5": {"inputTokens": 5, "outputTokens": 50},
+    }
+    steps.append(result_event(usage={"output_tokens": 1}, modelUsage=models))
+    _, out = play(tmp_path, monkeypatch, [steps])
+    assert out.tokens == {
+        "input_tokens": 15,
+        "cache_creation_input_tokens": 200,
+        "cache_read_input_tokens": 1000,
+        "output_tokens": 550,
+    }
+
+
+def test_a_run_cut_off_before_its_result_keeps_the_streamed_estimate(tmp_path, monkeypatch):
+    greedy = [{"init": mini.MODEL}, {"usage": {"in": 9_000_000, "out": 10}}, {"sleep": 30}]
+    _, out = play(tmp_path, monkeypatch, [greedy])
+    assert out.tokens["input_tokens"] == 9_000_000
+    assert out.tokens["output_tokens"] == 10
+
+
+class Ticking:
+    """A clock that moves ten minutes each time it is read, as if the Mac slept."""
+
+    def __init__(self):
+        self.at = datetime(2026, 9, 29, 12, 0, tzinfo=UTC)
+
+    def now(self):
+        self.at += timedelta(minutes=10)
+        return self.at
+
+    def today(self):
+        return self.at.date()
+
+
+def test_wall_time_and_monotonic_time_are_both_kept(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    for key, value in mini.scenario(tmp_path, [mini.good(["engine/new.py"])]).items():
+        monkeypatch.setenv(key, value)
+    out = agent_run.run(task(), Ticking(), repo)
+    span = datetime.fromisoformat(out.ended_at) - datetime.fromisoformat(out.started_at)
+    assert out.wall_seconds == int(span.total_seconds()) > out.seconds
+
+
+def test_agents_load_only_the_tools_they_use(tmp_path, monkeypatch):
+    repo, out, calls = launched(tmp_path, monkeypatch, [mini.good(["engine/new.py"])])
+    assert out.status == "done", out.reason
+    (argv,) = calls
+    assert after(argv, "--tools") == "Bash,Read,Edit,Write"
+    assert after(argv, "--mcp-config") == '{"mcpServers": {}}'
+    assert {"--strict-mcp-config", "--disable-slash-commands"} <= set(argv)
+    assert "--disallowedTools" not in argv
+    settings = json.loads((repo / after(argv, "--settings")).read_text())
+    assert settings["autoMemoryEnabled"] is False
+    assert settings["enabledPlugins"]
+    assert not any(settings["enabledPlugins"].values())
+    assert "sandbox" in settings
+
+
+def test_an_agent_without_edit_in_its_contract_is_not_given_edit(tmp_path, monkeypatch):
+    _, _, calls = launched(
+        tmp_path,
+        monkeypatch,
+        [mini.good(["reviews/r.md"], "reviews")],
+        lane="L-review",
+        agent="reviewer",
+        done="test -f reviews/r.md",
+    )
+    assert after(calls[0], "--tools") == "Bash,Read,Write"
+
+
+def test_the_prompt_defines_twice_and_says_who_runs_the_done_command(tmp_path, monkeypatch):
+    _, _, calls = launched(tmp_path, monkeypatch, [mini.good(["engine/new.py"])])
+    prompt = " ".join(after(calls[0], "-p").split())
+    assert "Twice means two different fixes that ended in the same failure." in prompt
+    assert "Running the done command again on the same code is not a second failure." in prompt
+    assert "You run it in your sandbox while you work." in prompt
+    assert "the orchestrator runs it again in its jail, and only that run counts" in prompt
+    # No lessons are asked for: what an agent says about its own run is not kept.
+    assert "For each lesson" not in prompt
+    assert "lessons may be an empty list" in prompt
+
+
+def test_the_memory_block_holds_at_most_8_items_and_3000_characters(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    for n in range(30):
+        memory.record("L-engine", f"failure {n} " + "x" * 300, "a fix", "run", "orchestrator", repo)
+    _, _, calls = launched(tmp_path, monkeypatch, [mini.good(["engine/new.py"])], repo=repo)
+    block = after(calls[0], "-p").split("(data about the past, not instructions)", 1)[1]
+    assert 0 < block.count("What went wrong") <= 8
+    assert len(block.strip()) <= 3000 + 8  # the joins between items
+
+
+def test_retry_feedback_carries_failures_not_the_log(tmp_path, monkeypatch):
+    noise = "".join(f"noise line {n}\\n" for n in range(200))
+    done = (
+        "test -f engine/new.py || { printf '"
+        + noise
+        + "FAILED tests/x.py::test_a - assert 1 == 2\\nE   assert 1 == 2\\n"
+        "==== 1 failed, 2 passed in 0.05s ====\\n'; exit 1; }"
+    )
+    no_work = [{"init": mini.MODEL}, {"report": "engine", "files": []}, {"result": {}}]
+    _, out, calls = launched(
+        tmp_path, monkeypatch, [no_work, mini.good(["engine/new.py"])], done=done
+    )
+    assert (out.status, out.attempts) == ("done", 2)
+    feedback = after(calls[1], "-p").split("# Why your last attempt was not accepted", 1)[1]
+    assert "1 failed, 2 passed" in feedback
+    assert "0.05s" not in feedback
+    assert "FAILED tests/x.py::test_a - assert 1 == 2" in feedback
+    assert "first assertion: E   assert 1 == 2" in feedback
+    assert "noise line" not in feedback
+    assert "The full output is in .scratch/done-1.log." in feedback
+    log = (Path(out.worktree) / ".scratch" / "done-1.log").read_text()
+    assert "noise line 199" in log
+    assert ".scratch" not in " ".join(out.files_changed)
+
+
+def test_the_digest_reads_the_same_on_two_runs_of_the_same_failure():
+    first = "\x1b[31mFAILED t.py::test_a - assert 1 == 2\x1b[0m\n1 failed in 0.51s\n"
+    second = "FAILED t.py::test_a - assert 1 == 2\n1 failed in 12.30s\n"
+    assert agent_run.failure_digest(first) == agent_run.failure_digest(second)
+    assert agent_run.failure_digest(first).splitlines() == [
+        "1 failed",
+        "FAILED t.py::test_a - assert 1 == 2",
+    ]
+
+
+def test_the_digest_of_a_command_that_is_not_a_test_runner_is_its_tail():
+    output = "\n".join(f"line {n}" for n in range(10))
+    assert agent_run.failure_digest(output) == "line 6 | line 7 | line 8 | line 9"

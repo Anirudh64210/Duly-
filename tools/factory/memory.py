@@ -1,17 +1,21 @@
 """What earlier runs got wrong, handed to the next agent as examples of what not to do.
 
-Capped in size and with repeats removed, so it cannot grow without limit. It is given to
-the agent as data about the past, never as instructions.
+Only the orchestrator writes here, from the output of the checks it ran itself. What an
+agent says about its own run is not kept, and a health probe keeps nothing. A row is
+dropped once the same task later passes. Capped in size and with repeats removed, so it
+cannot grow without limit. It is given to the agent as data about the past, never as
+instructions. Prose lessons under .claude/LESSONS/ are not handed to agents.
 """
 
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
 from engine.clocks import SystemClock
-from tools.factory.paths import main_repo, state_dir
+from tools.factory.paths import state_dir
 from tools.factory.redact import redact
 
 
@@ -25,9 +29,21 @@ def fingerprint(failure: str) -> str:
 
 
 def record(
-    lane: str, failure: str, fix: str, evidence: str, source: str, cwd: Path | None = None
+    lane: str,
+    failure: str,
+    fix: str,
+    evidence: str,
+    source: str,
+    cwd: Path | None = None,
+    task: str = "",
 ) -> bool:
-    """Add a failure. Returns False when the same failure is already held."""
+    """Add a failure the orchestrator saw. Returns False when it is not kept.
+
+    It is not kept when it comes from anyone but the orchestrator, from a health probe, or
+    when the same failure is already held.
+    """
+    if source != "orchestrator" or task.startswith("health/"):
+        return False
     mark = fingerprint(failure)
     path = _file(cwd)
     for row in read(cwd):
@@ -36,6 +52,7 @@ def record(
     row = {
         "at": SystemClock().now().isoformat(timespec="seconds"),
         "lane": lane,
+        "task": task,
         "fingerprint": mark,
         "failure": redact(failure.strip())[:600],
         "fix": redact(fix.strip())[:400],
@@ -45,6 +62,15 @@ def record(
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row) + "\n")
     return True
+
+
+def passed(task: str, cwd: Path | None = None) -> int:
+    """The task has since passed, so its failures are no longer news. Returns how many went."""
+    rows = read(cwd)
+    keep = [row for row in rows if not task or row.get("task") != task]
+    if len(keep) < len(rows):
+        _file(cwd).write_text("".join(json.dumps(row) + "\n" for row in keep), encoding="utf-8")
+    return len(rows) - len(keep)
 
 
 def read(cwd: Path | None = None) -> list[dict[str, Any]]:
@@ -60,37 +86,39 @@ def read(cwd: Path | None = None) -> list[dict[str, Any]]:
     return rows
 
 
-def accepted(lane: str, root: Path) -> list[str]:
-    """Lessons the founder accepted, for this lane and for every lane."""
-    out: list[str] = []
-    for name in (f"{lane}.md", "all-lanes.md"):
-        path = root / ".claude" / "LESSONS" / name
-        if not path.exists():
-            continue
-        wrong = ""
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.startswith("- What went wrong: "):
-                wrong = line.removeprefix("- What went wrong: ")
-            elif line.startswith("- What fixes it: ") and wrong:
-                fix = line.removeprefix("- What fixes it: ")
-                out.append(f"- What went wrong: {wrong}\n  What fixed it: {fix}")
-                wrong = ""
-    return out
+def archive_agent_rows(path: Path) -> int:
+    """Move the rows agents wrote about their own runs to failures-archive.jsonl beside it.
+
+    Kept from before only the orchestrator wrote here. Returns how many moved.
+    """
+    if not path.exists():
+        return 0
+    lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    keep: list[str] = []
+    moved: list[str] = []
+    for line in lines:
+        try:
+            ours = json.loads(line).get("source") == "orchestrator"
+        except (json.JSONDecodeError, AttributeError):
+            ours = False
+        (keep if ours else moved).append(line + "\n")
+    if moved:
+        with (path.parent / "failures-archive.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write("".join(moved))
+        path.write_text("".join(keep), encoding="utf-8")
+    return len(moved)
 
 
 def for_prompt(lane: str, max_items: int, max_chars: int, cwd: Path | None = None) -> str:
-    """The newest failures, this lane's first, inside the caps."""
-    rows = read(cwd)
-    ordered = [r for r in reversed(rows) if r["lane"] == lane]
-    ordered += [r for r in reversed(rows) if r["lane"] != lane]
+    """The newest orchestrator rows for this lane and for all lanes, within the caps."""
+    ordered = [
+        r
+        for r in reversed(read(cwd))
+        if r.get("lane") in (lane, "all-lanes") and r.get("source") == "orchestrator"
+    ]
     out: list[str] = []
     used = 0
-    for text in accepted(lane, main_repo(cwd))[:max_items]:
-        if used + len(text) > max_chars:
-            break
-        out.append(text)
-        used += len(text)
-    for row in ordered[: max(0, max_items - len(out))]:
+    for row in ordered[:max_items]:
         text = f"- What went wrong: {row['failure']}\n  What fixed it: {row['fix']}"
         if used + len(text) > max_chars:
             break
@@ -99,25 +127,7 @@ def for_prompt(lane: str, max_items: int, max_chars: int, cwd: Path | None = Non
     return "\n".join(out)
 
 
-def propose(lane: str, run_id: str, lessons: list[dict[str, str]], cwd: Path | None = None) -> int:
-    """File an agent's lessons in the founder's inbox. They are not handed to any agent."""
-    if not lessons:
-        return 0
-    folder = main_repo(cwd) / ".claude" / "LESSONS" / "proposals"
-    folder.mkdir(parents=True, exist_ok=True)
-    stamp = SystemClock().now().strftime("%Y-%m-%d")
-    written = 0
-    for n, lesson in enumerate(lessons, start=1):
-        mark = fingerprint(lesson.get("failure", ""))
-        if any(mark in p.name for p in folder.glob("*.md")):
-            continue
-        body = (
-            f"date: {stamp}\nlane: {lane}\ncommit: run {run_id}\n"
-            f"failure: {redact(lesson.get('failure', ''))[:600]}\n"
-            f"fix: {redact(lesson.get('fix', ''))[:400]}\n"
-            f"evidence: {redact(lesson.get('evidence', ''))[:300]}\n"
-            "verification_task: \n"
-        )
-        (folder / f"{stamp}-{lane.lower()}-{mark}-{n}.md").write_text(body)
-        written += 1
-    return written
+if __name__ == "__main__":
+    if sys.argv[1:] != ["--archive-agent-rows"]:
+        raise SystemExit("usage: python -m tools.factory.memory --archive-agent-rows")
+    print(f"moved {archive_agent_rows(_file(None))} agent rows to failures-archive.jsonl")

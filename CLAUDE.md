@@ -31,7 +31,4 @@ Read first, in this order: DECISIONS.md, PRINCIPLES.md, BOUNDARY.md, then the SP
 Python 3.12, ruff and mypy strict. TypeScript strict. Conventional commits. Small PRs. SPEC.md before code. Append to your lane's progress log every iteration.
 
 ## When you are stuck
-Two identical failures: stop, write ESCALATE.md with what you tried and the failure tail, and exit. Do not weaken a test. Do not edit a gate.
-
-## Lessons
-Propose in .claude/LESSONS/proposals/. Never approve your own.
+Two different fixes that end in the same failure: stop, write REPORT.json with status escalated, what you tried and the failure tail, and exit. Running the done command again on the same code is not a second failure. Do not weaken a test. Do not edit a gate.

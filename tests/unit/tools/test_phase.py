@@ -14,6 +14,7 @@ import yaml
 from engine.clocks import FixedClock
 from tests.support import mini_factory as mini
 from tools.factory import agent_run, jail, ledger, phase, registry
+from tools.factory.config import is_blocking, spec_point
 
 pytestmark = pytest.mark.skipif(not jail.available(), reason="no sandbox on this machine")
 CLOCK = FixedClock(datetime(2026, 9, 29, 12, 0, tzinfo=UTC))
@@ -47,8 +48,8 @@ def reviewer(review: dict) -> list[dict]:
     ]
 
 
-def plan_file(repo: Path, rounds: list[dict], **extra) -> Path:
-    path = repo / "plan.yaml"
+def plan_file(repo: Path, rounds: list[dict], name: str = "plan.yaml", **extra) -> Path:
+    path = repo / name
     path.write_text(
         yaml.safe_dump(
             {
@@ -63,15 +64,17 @@ def plan_file(repo: Path, rounds: list[dict], **extra) -> Path:
         )
     )
     mini.git(repo, "checkout", "-q", "phase-x")
-    mini.git(repo, "add", "plan.yaml")
+    mini.git(repo, "add", name)
     mini.git(repo, "commit", "-q", "-m", "plan")
     return path
 
 
-def orchestrate(repo: Path, env: dict[str, str], *args: str) -> subprocess.CompletedProcess:
+def orchestrate(
+    repo: Path, env: dict[str, str], *args: str, plan: str = "plan.yaml"
+) -> subprocess.CompletedProcess:
     full = {**os.environ, **env, "PYTHONPATH": str(mini.REAL)}
     return subprocess.run(
-        [sys.executable, "-m", "tools.factory.phase", "plan.yaml", *args],
+        [sys.executable, "-m", "tools.factory.phase", plan, *args],
         cwd=repo,
         env=full,
         capture_output=True,
@@ -174,7 +177,7 @@ def test_a_failed_lane_stops_the_round_and_the_rest_still_lands(tmp_path):
                     job("L-tests", "test-author", "test -f tests/test_new.py"),
                     job("L-engine", "builder", "test -f engine/new.py"),
                 ],
-                "checks": [],
+                "checks": [{"name": "engine", "run": "test -f engine/new.py"}],
             }
         ],
     )
@@ -183,6 +186,38 @@ def test_a_failed_lane_stops_the_round_and_the_rest_still_lands(tmp_path):
     assert "rerun with --from-round A" in done.stdout
     assert (repo / "tests" / "test_new.py").exists()
     assert not (repo / "engine" / "new.py").exists()
+    assert "check engine fails" not in done.stdout  # no checks after a failed round
+    stops = [r for r in ledger.read(repo) if r["kind"] == "blocked" and r["lane"] == "founder"]
+    assert [(row["plan"], row["cause"]) for row in stops] == [("phase-x", "unknown")]
+
+    # The founder fixes the plan and commits it. Run again: only L-engine runs, since L-tests
+    # landed after the plan's first round started, and it has no attempts left here.
+    plan = repo / "plan.yaml"
+    plan.write_text(plan.read_text().replace("name: engine", "name: engine landed"))
+    mini.git(repo, "commit", "-q", "-am", "fix the plan")
+    env = mini.scenario(tmp_path, {"L-engine": [mini.good(["engine/new.py"])]})
+    again = orchestrate(repo, env, "--from-round", "A")
+    assert again.returncode == 0, again.stdout + again.stderr
+    assert "already on the branch, not run again: L-tests" in again.stdout
+    merges = mini.git(repo, "log", "--merges", "--format=%s")
+    assert merges.count("merge(L-tests)") == 1
+    assert merges.count("merge(L-engine)") == 1
+
+
+def test_a_task_landed_by_an_earlier_plan_is_run_again(tmp_path):
+    repo = mini.build(tmp_path)
+    env = mini.scenario(tmp_path, {"L-tests": [mini.good(["tests/test_new.py"], "tests")]})
+    rounds = [{"name": "A", "lanes": [job("L-tests", "test-author", "test -f tests/test_new.py")]}]
+    plan_file(repo, rounds)
+    assert orchestrate(repo, env).returncode == 0
+    # A second plan file on the same branch uses the same task name.
+    rounds[0]["lanes"][0]["done"] = "test -f tests/test_other.py"
+    env = mini.scenario(tmp_path, {"L-tests": [mini.good(["tests/test_other.py"], "tests")]})
+    plan_file(repo, rounds, "plan-2.yaml", goal="Land it again.")
+    done = orchestrate(repo, env, "--from-round", "A", plan="plan-2.yaml")
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "not run again" not in done.stdout
+    assert (repo / "tests" / "test_other.py").exists()
 
 
 def test_a_failing_check_stops_the_plan(tmp_path):
@@ -220,8 +255,16 @@ def test_a_veto_stops_the_plan(tmp_path):
                 "title": "Quiet verdict on a gap",
                 "file": "engine/f1.py",
                 "input": "stem without opt",
-                "what_happens": "no_open_items",
-            }
+                "what_happens": "no_open_items, against point 3",
+                "kind": "boundary",
+            },
+            {
+                "severity": "should_fix",
+                "title": "A long name",
+                "file": "engine/f1.py",
+                "input": "any",
+                "what_happens": "reads badly",
+            },
         ],
     }
     env = mini.scenario(tmp_path, {"L-review": [reviewer(veto)]})
@@ -231,13 +274,95 @@ def test_a_veto_stops_the_plan(tmp_path):
             {
                 "name": "R",
                 "lanes": [job("L-review", "reviewer", "test -f reviews/REVIEW.json")],
-                "checks": [],
+                "checks": [{"name": "never", "run": "false"}],
             }
         ],
     )
     done = orchestrate(repo, env)
     assert done.returncode == 1
-    assert any(row.get("alert") == "eval_drop" for row in ledger.read(repo))
+    rows = ledger.read(repo)
+    assert any(row.get("alert") == "veto" for row in rows), done.stdout + done.stderr
+    assert not any(row.get("alert") == "eval_drop" for row in rows)
+    assert "check never fails" not in done.stdout  # no checks after a vetoed round
+    found = [json.loads(line) for line in (repo / ".factory" / "findings.jsonl").open()]
+    assert [(f["kind"], f["severity"], f["blocking"], f["spec_point"]) for f in found] == [
+        ("boundary", "blocking", True, "3"),
+        ("other", "should_fix", False, ""),
+    ]
+    assert {"id", "kind", "file", "input", "blocking", "spec_point", "plan"} <= set(found[0])
+    assert found[0]["id"].endswith("-1")
+    assert found[0]["plan"] == "phase-x"
+    review = json.loads((repo / ".factory" / "reviews.jsonl").read_text())
+    assert (review["decision"], review["plan"]) == ("VETO", "phase-x")
+
+
+def test_a_blocking_finding_with_no_spec_point_is_refused_and_still_kept(tmp_path):
+    repo = mini.build(tmp_path)
+    veto = {
+        **REVIEW,
+        "decision": "VETO",
+        "findings": [
+            {
+                "severity": "blocking",
+                "title": "More tests would help",
+                "file": "engine/f1.py",
+                "input": "any",
+                "what_happens": "only two cases",
+            }
+        ],
+    }
+    env = mini.scenario(tmp_path, {"L-review": [reviewer(veto)]})
+    plan_file(
+        repo,
+        [{"name": "R", "lanes": [job("L-review", "reviewer", "test -f reviews/REVIEW.json")]}],
+    )
+    done = orchestrate(repo, env)
+    assert done.returncode == 1
+    rows = ledger.read(repo)
+    assert any("must name the SPEC point" in row["message"] for row in rows)
+    assert not any(row.get("alert") == "veto" for row in rows)
+    assert not (repo / ".factory" / "reviews.jsonl").exists()  # a refused veto is no veto
+    found = json.loads((repo / ".factory" / "findings.jsonl").read_text())
+    assert (found["severity"], found["blocking"]) == ("blocking", False)
+
+
+@pytest.mark.parametrize(
+    ("finding", "blocking", "point"),
+    [
+        ({"what_happens": "breaks point 22b"}, True, "22b"),
+        ({"title": "SPEC 5 is not met"}, True, "5"),
+        ({"what_happens": "crosses a BOUNDARY rule"}, True, ""),
+        ({"what_happens": "8 CFR 214.2(f)(10) says twelve months"}, True, ""),
+        ({"what_happens": "INA 245(k) is misread"}, True, ""),
+        ({"what_happens": "see https://www.uscis.gov/x"}, True, ""),
+        ({"what_happens": "the copy is long", "spec_point": "7"}, True, "7"),
+        ({"what_happens": "the copy is long"}, False, ""),
+        ({"what_happens": "breaks point 22", "severity": "should_fix"}, False, "22"),
+    ],
+)
+def test_a_finding_blocks_only_when_it_names_a_point_a_rule_or_a_source(finding, blocking, point):
+    finding = {"severity": "blocking", "title": "", **finding}
+    assert is_blocking(finding) is blocking
+    assert spec_point(finding) == point
+
+
+def test_each_agent_is_told_its_plan(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    plan = phase.load_plan(
+        plan_file(repo, [{"name": "A", "lanes": [job("L-a", "builder", "true")]}]), repo
+    )
+    seen: list[dict[str, str]] = []
+    real = subprocess.Popen
+
+    def spy(cmd, **kwargs):
+        if "tools.factory.agent_run" in cmd:  # the agent itself is not run
+            seen.append(kwargs["env"])
+            cmd = ["true"]
+        return real(cmd, **kwargs)
+
+    monkeypatch.setattr(subprocess, "Popen", spy)
+    assert not phase.run_round(repo, plan, plan["rounds"][0], skip_agents=False)
+    assert [env["DULY_PLAN"] for env in seen] == [plan["name"]] == ["phase-x"]
 
 
 def test_a_review_that_approves_against_its_own_scores_is_refused(tmp_path):
@@ -279,6 +404,10 @@ def test_work_kept_for_the_founder_is_not_merged(tmp_path):
     done = orchestrate(repo, env)
     assert done.returncode == 0, done.stdout + done.stderr
     assert "waiting for the founder (skill_or_prompt_changed)" in done.stdout
+    # Held work is not a stop: it has its own kind, and the plan went on.
+    kinds = [r["kind"] for r in ledger.read(repo) if r["lane"] == "founder"]
+    assert "held" in kinds
+    assert "blocked" not in kinds
     assert not (repo / "proposals" / "lessons" / "a.md").exists()
     assert "lane/L-factory/" in mini.git(repo, "branch", "--list", "lane/*")
 
@@ -659,3 +788,120 @@ def test_a_remote_step_is_tried_again_only_while_it_fails_transiently(monkeypatc
     call, calls = replies(denied)  # still refused after every wait: reported
     assert phase._remote(call) == denied
     assert len(calls) == 4
+
+
+def test_a_step_runs_with_no_agent_and_its_work_is_committed(tmp_path):
+    repo = mini.build(tmp_path)
+    (repo / "notes.txt").write_text("the founder's own, untracked\n")
+    env = mini.scenario(tmp_path, {"L-tests": [mini.good(["tests/test_new.py"], "tests")]})
+    plan_file(
+        repo,
+        [
+            {
+                "name": "A",
+                "steps": [{"lane": "L-engine", "run": "echo 'V = 1' > engine/made.py"}],
+                # The lane starts from what the step committed.
+                "lanes": [job("L-tests", "test-author", "test -f engine/made.py")],
+            }
+        ],
+    )
+    done = orchestrate(repo, env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    step = mini.git(repo, "log", "--format=%B", "--grep", "step(L-engine)")
+    assert "Factory-Task: phase-x/A/L-engine" in step
+    assert "Factory-Command: echo" in step
+    assert mini.git(repo, "show", "--name-only", "--format=", "HEAD^2") == "tests/test_new.py"
+    committed = mini.git(repo, "ls-tree", "-r", "--name-only", "HEAD")
+    assert "engine/made.py" in committed
+    assert "notes.txt" not in committed  # what was there before the step is not its work
+    assert not list((repo / ".factory" / "runs").glob("result-*L-engine*"))  # no agent ran
+
+
+def test_a_step_that_writes_outside_its_lane_stops_the_round(tmp_path):
+    repo = mini.build(tmp_path)
+    env = mini.scenario(tmp_path, {"L-tests": [mini.good(["tests/test_new.py"], "tests")]})
+    plan_file(
+        repo,
+        [
+            {
+                "name": "A",
+                "steps": [{"lane": "L-engine", "run": "echo x > web/x.ts"}],
+                "lanes": [job("L-tests", "test-author", "test -f tests/test_new.py")],
+            }
+        ],
+    )
+    done = orchestrate(repo, env)
+    assert done.returncode == 1
+    assert any(row.get("alert") == "guardrail" for row in ledger.read(repo))
+    assert (repo / "web" / "x.ts").exists()  # left for the founder
+    assert not (repo / "tests" / "test_new.py").exists()  # no agent started
+    assert "step(" not in mini.git(repo, "log", "--format=%s")
+
+
+def test_the_plan_is_named_by_its_directory_under_specs(tmp_path):
+    repo = mini.build(tmp_path)
+    folder = repo / "specs" / "ui-1"
+    folder.mkdir(parents=True)
+    path = folder / "plan.yaml"
+    rounds = [
+        {
+            "name": "A",
+            "steps": [{"lane": "L-web", "run": "true"}],
+            "lanes": [job("L-engine", "builder", "true")],
+        }
+    ]
+    plan = {"branch": "phase-x", "spec": "README.md", "audited": False, "rounds": rounds}
+    path.write_text(yaml.safe_dump(plan))
+    loaded = phase.load_plan(path, repo)
+    assert loaded["name"] == "ui-1"
+    assert [j["task"] for j in loaded["rounds"][0]["steps"] + loaded["rounds"][0]["lanes"]] == [
+        "ui-1/A/L-web",
+        "ui-1/A/L-engine",
+    ]
+    rounds[0]["steps"] = [{"lane": "L-web"}]
+    path.write_text(yaml.safe_dump(plan))
+    with pytest.raises(phase.PlanError, match="a step has no run"):
+        phase.load_plan(path, repo)
+    rounds[0]["steps"] = [{"lane": "L-engine", "run": "true"}]
+    path.write_text(yaml.safe_dump(plan))
+    with pytest.raises(phase.PlanError, match="uses a lane twice"):
+        phase.load_plan(path, repo)
+
+
+def test_a_stop_needs_a_known_cause(tmp_path):
+    repo = mini.build(tmp_path)
+    with pytest.raises(ValueError, match="unknown cause"):
+        phase._stop(repo, {"branch": "phase-x"}, "stopped", cause="bad luck")
+    phase._stop(repo, {"branch": "phase-x"}, "stopped", cause="infra")
+    assert ledger.read(repo)[-1]["cause"] == "infra"
+
+
+def test_the_plan_runs_under_caffeinate_on_a_mac(monkeypatch):
+    calls: list[tuple] = []
+    monkeypatch.setattr(phase.os, "execve", lambda *a: calls.append(a))
+    monkeypatch.setattr(phase.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.delenv("DULY_AWAKE", raising=False)
+    monkeypatch.setattr(phase.sys, "platform", "darwin")
+    phase.stay_awake(["plan.yaml", "--from-round", "B"])
+    tool, command, env = calls[0]
+    assert tool == "/usr/bin/caffeinate"
+    assert command == [
+        tool,
+        "-dimsu",
+        sys.executable,
+        "-m",
+        "tools.factory.phase",
+        "plan.yaml",
+        "--from-round",
+        "B",
+    ]
+    assert env["DULY_AWAKE"] == "1"  # so the plan does not start itself again
+    monkeypatch.setenv("DULY_AWAKE", "1")
+    phase.stay_awake([])
+    monkeypatch.delenv("DULY_AWAKE")
+    monkeypatch.setattr(phase.sys, "platform", "linux")
+    phase.stay_awake([])
+    monkeypatch.setattr(phase.sys, "platform", "darwin")
+    monkeypatch.setattr(phase.shutil, "which", lambda name: None)
+    phase.stay_awake([])
+    assert len(calls) == 1

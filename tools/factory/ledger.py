@@ -19,6 +19,7 @@ KINDS = (
     "step",
     "test",
     "blocked",
+    "held",
     "lesson",
     "done",
     "failed",

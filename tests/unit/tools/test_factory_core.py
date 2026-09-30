@@ -1,10 +1,13 @@
+import json
 import os
+import subprocess
+import sys
 
 import pytest
 
 from tests.support import mini_factory as mini
 from tools.diff_policy.check import load_lane
-from tools.factory import drift, jail, ledger, memory, redact, registry, sandbox, telemetry
+from tools.factory import drift, health, jail, ledger, memory, redact, registry, sandbox, telemetry
 from tools.factory.config import (
     ConfigError,
     all_contracts,
@@ -126,11 +129,30 @@ def test_reports_are_held_to_their_schema():
 
 
 def test_a_review_must_follow_from_its_own_scores():
+    named = {**BLOCKING, "spec_point": "4b", "kind": "wrong_date"}
     assert review_problems(review()) == []
-    assert review_problems(review("VETO", low="sourced")) == []
-    assert "call for a veto" in review_problems(review("APPROVE", low="sourced"))[0]
-    assert "call for a veto" in review_problems(review("APPROVE", findings=[BLOCKING]))[0]
+    assert review_problems(review("VETO", findings=[named])) == []
+    assert review_problems(review("VETO", low="sourced", findings=[named])) == []
+    assert "call for a veto" in review_problems(review("APPROVE", findings=[named]))[0]
+    assert "call for approval" in review_problems(review("VETO"))[0]
     assert review_problems({**review(), "scores": {}})
+    assert review_problems(review(findings=[{**named, "kind": "Wrong Date"}]))
+
+
+@pytest.mark.parametrize("decision", ["APPROVE", "VETO"])
+def test_low_scores_with_no_blocking_finding_are_refused_whatever_the_decision(decision):
+    # One rule in one place: low scores call for a veto, and a veto must name a blocking
+    # finding, so neither decision stands until the reviewer names what the work breaks.
+    problem = review_problems(review(decision, low="sourced"))[0]
+    assert "call for a veto" in problem
+    assert "a veto must name a blocking finding" in problem
+
+
+@pytest.mark.parametrize("decision", ["APPROVE", "VETO"])
+def test_a_blocking_finding_that_names_no_spec_point_or_source_is_refused(decision):
+    assert "must name the SPEC point" in review_problems(review(decision, findings=[BLOCKING]))[0]
+    cited = {**BLOCKING, "what_happens": "8 CFR 214.2(f)(10) says twelve months"}
+    assert review_problems(review("VETO", findings=[cited])) == []
 
 
 def test_the_ledger_seals_every_line_and_shows_tampering(tmp_path):
@@ -201,25 +223,69 @@ def test_the_kill_switch_ends_runs_and_blocks_new_ones(tmp_path):
 
 def test_memory_removes_repeats_and_keeps_to_its_caps(tmp_path):
     repo = mini.build(tmp_path)
+    who = "orchestrator"
     assert memory.record(
-        "L-api", "The done command was piped and hid its exit code.", "Unpipe.", "log", "test", repo
+        "L-api", "The done command was piped and hid its exit code.", "Unpipe.", "log", who, repo
     )
     assert not memory.record(
-        "L-web", "the DONE command was piped, and hid its exit code!", "x", "log", "test", repo
+        "L-api", "the DONE command was piped, and hid its exit code!", "x", "log", who, repo
     )
     for n in range(60):
         memory.record(
-            "L-web",
+            "L-api",
             f"Failure number {'abcdefghij'[n % 10] * (n + 3)} happened.",
             "Fix it.",
             "log",
-            "test",
+            who,
             repo,
         )
     text = memory.for_prompt("L-api", max_items=5, max_chars=10_000, cwd=repo)
     assert text.count("What went wrong") == 5
-    assert text.startswith("- What went wrong: The done command was piped")  # own lane first
-    assert len(memory.for_prompt("L-api", 40, 300, repo)) <= 300
+    assert text.startswith("- What went wrong: Failure number")  # newest first
+    assert len(memory.for_prompt("L-api", 8, 300, repo)) <= 300
+
+
+def test_memory_keeps_only_what_the_orchestrator_saw_in_this_lane(tmp_path):
+    repo = mini.build(tmp_path)
+    # An agent's word about its own run, and a health probe's note, are not kept.
+    assert not memory.record("L-api", "Agent says so.", "x", "log", "agent report, run r", repo)
+    probe = "None in the work. The write to probe.txt was refused."
+    assert not memory.record("L-api", probe, "x", "log", "orchestrator", repo, task="health/a/b")
+    assert memory.read(repo) == []
+    # Rows written before the rule, by agents, stay out of the prompt until archived.
+    old = {"lane": "L-api", "fingerprint": "f", "failure": "Old agent note.", "fix": "x"}
+    (repo / ".factory").mkdir(exist_ok=True)
+    (repo / ".factory" / "failures.jsonl").write_text(
+        json.dumps({**old, "source": "agent report, run r"}) + "\n"
+    )
+    memory.record("L-web", "The web lane broke.", "x", "log", "orchestrator", repo, task="w/1")
+    memory.record("L-api", "The api lane broke.", "x", "log", "orchestrator", repo, task="a/1")
+    memory.record("all-lanes", "Every lane broke.", "x", "log", "orchestrator", repo, task="*/1")
+    text = memory.for_prompt("L-api", 8, 3000, repo)
+    assert "api lane broke" in text
+    assert "Every lane broke" in text
+    assert "web lane broke" not in text
+    assert "Old agent note" not in text
+    # The agent's old rows are archived once, beside the file; the orchestrator's stay.
+    failures = repo / ".factory" / "failures.jsonl"
+    (repo / ".factory" / "failures-archive.jsonl").write_text("{}\n")
+    assert memory.archive_agent_rows(failures) == 1
+    assert memory.archive_agent_rows(failures) == 0
+    assert all(r["source"] == "orchestrator" for r in memory.read(repo))
+    archive = (repo / ".factory" / "failures-archive.jsonl").read_text().splitlines()
+    assert archive[0] == "{}"
+    assert "Old agent note" in archive[1]
+    assert memory.archive_agent_rows(repo / "missing.jsonl") == 0
+    # Once the same task passes, its rows go, and the others stay.
+    assert memory.passed("a/1", repo) == 1
+    assert memory.passed("a/1", repo) == 0
+    assert [r["failure"] for r in memory.read(repo)] == ["The web lane broke.", "Every lane broke."]
+
+
+def test_the_memory_caps_are_small():
+    limits = load_config()["limits"]
+    assert limits["lessons_memory_max_items"] <= 8
+    assert limits["lessons_memory_max_chars"] <= 3000
 
 
 def test_metrics_for_each_agent():
@@ -334,9 +400,114 @@ def test_the_jail_has_no_network_no_keys_and_no_way_out(tmp_path):
     assert not outside.exists()
     assert jail.run("curl -sS -m 5 https://example.com -o /dev/null", inside, env).code != 0
     assert jail.run("ls ~/.ssh", inside, env).code != 0
+    assert jail.run("false | tail -1", inside, env).code != 0  # a pipe cannot hide a failure
     slow = jail.run("sleep 5", inside, env, timeout_seconds=1)
     assert slow.timed_out
     assert slow.code == 124
+
+
+def test_a_health_pass_holds_until_that_lanes_walls_change(tmp_path):
+    repo = mini.build(tmp_path)
+    builder = load_contract("builder", repo)
+    engine, api = (
+        health.fingerprint(builder, "L-engine", repo),
+        health.fingerprint(builder, "L-api", repo),
+    )
+    assert engine != api  # each lane has its own pass
+    # The role prose and the stop conditions are not walls, so they re-run nothing.
+    (repo / builder.role_file).write_text("A different role.\n")
+    path = repo / "factory" / "agents" / "builder.yaml"
+    path.write_text(path.read_text().replace("the factory STOP file exists", "STOP exists"))
+    builder = load_contract("builder", repo)
+    assert health.fingerprint(builder, "L-engine", repo) == engine
+    # A change to one lane's contract re-runs that lane alone.
+    lane = repo / ".claude" / "lanes" / "L-engine.yaml"
+    lane.write_text(lane.read_text() + "\n# changed\n")
+    assert health.fingerprint(builder, "L-engine", repo) != engine
+    assert health.fingerprint(builder, "L-api", repo) == api
+    # A change to the tools an agent holds re-runs its lanes.
+    path.write_text(path.read_text().replace("Glob, Grep, Bash]", "Glob, Grep]"))
+    builder = load_contract("builder", repo)
+    assert health.fingerprint(builder, "L-api", repo) != api
+
+
+def test_a_health_pass_is_tied_to_the_runners_walls_and_the_roots_code(tmp_path, monkeypatch):
+    from tools.factory import agent_run
+
+    repo = mini.build(tmp_path)
+    builder = load_contract("builder", repo)
+    mark = health.fingerprint(builder, "L-engine", repo)
+    # The sandbox code is read from the root given, not from this checkout.
+    sandbox_code = repo / "tools" / "factory" / "sandbox.py"
+    sandbox_code.write_text(sandbox_code.read_text() + "\n# changed\n")
+    assert health.fingerprint(builder, "L-engine", repo) != mark
+    mark = health.fingerprint(builder, "L-engine", repo)
+    # So are the tools, flags and settings every run starts with.
+    for name, value in (
+        ("TOOLS", (*agent_run.TOOLS, "Glob")),
+        ("FLAGS", agent_run.FLAGS[:-1]),
+        ("SETTINGS", {**agent_run.SETTINGS, "autoMemoryEnabled": True}),
+        ("SETTINGS", {**agent_run.SETTINGS, "enabledPlugins": {}}),
+    ):
+        with monkeypatch.context() as patch:
+            patch.setattr(agent_run, name, value)
+            assert health.fingerprint(builder, "L-engine", repo) != mark, name
+    assert health.fingerprint(builder, "L-engine", repo) == mark
+
+
+def test_make_doctor_skips_a_retired_agent(tmp_path, monkeypatch, capsys):
+    from tools.factory import agent_run, control
+
+    repo = mini.build(tmp_path)
+    assert load_contract("skill-curator", repo).retired
+    assert not load_contract("builder", repo).retired
+
+    def never(*args, **kwargs):
+        raise AssertionError("a retired agent was run")
+
+    monkeypatch.setattr(agent_run, "run", never)
+    assert control.doctor(repo, "skill-curator") == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_only_health_probes_leave_the_pinned_model(tmp_path):
+    repo = mini.build(tmp_path)
+    config = load_config(repo)
+    assert health.model(repo) == config["model"]["health_probe"] != config["model"]["pinned"]
+    assert all(c.model == config["model"]["pinned"] for c in all_contracts(repo))
+    prompt = health.prompt("Write HEALTH.txt, then try x.", "L-engine", "engine", "r-1")
+    assert "Write HEALTH.txt, then try x." in prompt
+    assert '"run_id": "r-1"' in prompt
+    assert len(prompt) < 1000
+    import yaml
+
+    del config["model"]["health_probe"]
+    (repo / "factory" / "config.yaml").write_text(yaml.safe_dump(config))
+    assert health.model(repo) == config["model"]["pinned"]
+
+
+def test_the_stop_hook_leaves_a_factory_run_to_the_orchestrator(tmp_path):
+    repo = mini.build(tmp_path)
+    hook = mini.REAL / ".claude" / "hooks" / "lane_test.py"
+    env = {
+        "PATH": os.environ["PATH"],
+        "CLAUDE_PROJECT_DIR": str(repo),
+        "DULY_LANE": "L-engine",
+        "DULY_DONE": "false",
+    }
+
+    def stop(extra: dict[str, str]) -> int:
+        done = subprocess.run(
+            [sys.executable, str(hook)],
+            input="{}",
+            env={**env, **extra},
+            capture_output=True,
+            text=True,
+        )
+        return done.returncode
+
+    assert stop({}) == 2  # a lane worked by hand is held to its test
+    assert stop({"DULY_RUN_ID": "l-engine-1"}) == 0  # the jailed run is the check
 
 
 def test_judge_drift_is_a_number():
@@ -406,7 +577,7 @@ def test_a_run_that_reports_a_key_is_recognised():
     assert billing.key_in_use({"apiKeySource": "ANTHROPIC_API_KEY"}) == "ANTHROPIC_API_KEY"
 
 
-def test_accepted_lessons_reach_the_agents_of_their_lane(tmp_path):
+def test_prose_lessons_do_not_reach_the_agents(tmp_path):
     repo = mini.build(tmp_path)
     lessons = repo / ".claude" / "LESSONS"
     lessons.mkdir(parents=True, exist_ok=True)
@@ -420,11 +591,7 @@ def test_accepted_lessons_reach_the_agents_of_their_lane(tmp_path):
     (lessons / "factory-fixed.md").write_text(
         "## c\n\n- What went wrong: The guard blocked pytest.\n- What fixes it: Fixed.\n"
     )
-    content = memory.for_prompt("L-content", 40, 12000, repo)
-    assert "written from memory" in content
-    assert "pipe hid the exit code" in content
-    assert "guard blocked pytest" not in content
-    engine = memory.for_prompt("L-engine", 40, 12000, repo)
-    assert "written from memory" not in engine
-    assert "pipe hid the exit code" in engine
-    assert memory.for_prompt("L-content", 1, 12000, repo).count("What went wrong") == 1
+    # Only the orchestrator's rows reach an agent, never the prose lessons.
+    assert memory.for_prompt("L-content", 40, 12000, repo) == ""
+    memory.record("all-lanes", "A pipe hid the exit code.", "Unpipe.", "log", "orchestrator", repo)
+    assert "pipe hid the exit code" in memory.for_prompt("L-content", 40, 12000, repo)

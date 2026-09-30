@@ -8,6 +8,8 @@ from pathlib import Path
 
 import yaml
 
+from tools.factory.health import SANDBOX_CODE
+
 REAL = Path(__file__).resolve().parents[2]
 FAKE = REAL / "tests" / "support" / "fake_agent.py"
 MODEL = "claude-opus-5-5"
@@ -24,6 +26,9 @@ def build(tmp_path: Path, **limits: float) -> Path:
     repo.mkdir()
     for rel in ("factory", "contracts", ".claude/lanes", ".claude/agents"):
         shutil.copytree(REAL / rel, repo / rel)
+    for rel in SANDBOX_CODE:  # the code a health pass is tied to
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(REAL / rel, repo / rel)
     config = yaml.safe_load((repo / "factory" / "config.yaml").read_text())
     config["limits"]["seconds_per_minute"] = 1.0
     config["limits"]["require_health_check"] = False

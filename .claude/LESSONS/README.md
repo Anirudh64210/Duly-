@@ -1,20 +1,6 @@
 # Lessons
 
-`proposals/` is the inbox. Any lane may add a file there. Nobody approves their own.
-
-Entry shape:
-
-```
-date:
-lane:
-commit:
-failure: what happened
-fix: what resolved it
-evidence: link to the run or the diff
-verification_task: the replay that would prove a skill from this
-```
-
-Verified lessons move to `<lane>.md` through the weekly curation PR.
+The proposal inbox is closed. What agents wrote about their own runs proved unreliable, and none of it was accepted. The orchestrator keeps its own memory from the checks it runs, in `.factory/failures.jsonl`, and a kind of finding seen three times becomes a check, hook or test instead of a written lesson. Old proposals are in `archive/`, and those never committed are in `.factory/archive/`.
 
 ## Where accepted lessons go
 

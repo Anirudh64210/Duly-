@@ -31,6 +31,14 @@ DONE_PATH = re.compile(
 )
 POINT = re.compile(r"\bpoints?\s+(\d+[a-z]?)(?:\s*(?:to|and|,)\s*(\d+[a-z]?))?", re.I)
 BRANCH = re.compile(r"\b(lane/[\w-]+/[\w-]+)")
+# A mission that is only one command ("run make samples, change nothing else") needs no agent.
+TOOL = r"(?:make|uv|npm|npx|pnpm|python3?|pytest|node|bash|sh)"
+COMMAND = r"(?:`[^`\n]+`|" + TOOL + r"\b(?:[ \t]+(?!and\b|then\b)[^\s,;`]+)*)"
+ONE_COMMAND = re.compile(
+    r"^\s*run\s+" + COMMAND + r"\s*(?:[,.;:]?\s*(?:and\s+)?(?:change|do|touch|edit)\s+nothing"
+    r"\s+else)?\s*[.!]?\s*$",
+    re.I,
+)
 
 
 def _writes(mission: str) -> list[str]:
@@ -94,6 +102,14 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
     earlier: list[Any] = []
     for rnd in plan["rounds"]:
         owners: dict[str, Any] = {}
+        for step in rnd["steps"]:
+            try:
+                # A step runs before the round's agents, so what it makes counts as made earlier.
+                earlier.append(load_lane(step["lane"], repo))
+            except LaneError as err:
+                found.append(f"round {rnd['name']}: {err}")
+            if re.search(r"\bgit\s+(add|commit|push)\b", step["run"]):
+                found.append(f"round {rnd['name']} step {step['lane']}: git is the orchestrator's")
         for job in rnd["lanes"]:
             try:
                 owners[job["lane"]] = load_lane(job["lane"], repo)
@@ -102,6 +118,8 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
         for job in rnd["lanes"]:
             lane, where = owners.get(job["lane"]), f"round {rnd['name']} {job['lane']}"
             mission, done = str(job["mission"]), str(job["done"])
+            if ONE_COMMAND.match(mission):
+                found.append(f"{where}: the mission only runs a command; make it a round step")
             if lane is None:
                 continue
 

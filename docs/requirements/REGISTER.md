@@ -7,12 +7,12 @@ Audited 2026-09-29. 2461 requirements.
 | Status | Count |
 |---|---|
 | Met | 434 |
-| Partly built | 478 |
-| Not started | 1191 |
-| Deferred | 234 |
+| Partly built | 477 |
+| Not started | 1190 |
+| Deferred | 236 |
 | Overridden by a decision | 124 |
 
-Of the 2103 that the first version must hold, 434 are met: 21%.
+Of the 2101 that the first version must hold, 434 are met: 21%.
 
 ## By kind
 
@@ -25,7 +25,7 @@ Of the 2103 that the first version must hold, 434 are met: 21%.
 | privacy | 3 | 21 | 117 | 2% |
 | legal | 35 | 66 | 89 | 18% |
 | design | 109 | 63 | 61 | 47% |
-| factory | 110 | 80 | 36 | 49% |
+| factory | 110 | 79 | 35 | 49% |
 | testing | 30 | 39 | 49 | 25% |
 | ops | 15 | 18 | 60 | 16% |
 | email | 1 | 7 | 58 | 2% |
@@ -39,7 +39,7 @@ Of the 2103 that the first version must hold, 434 are met: 21%.
 | canvas | 77 | 16 | 34 | 61% |
 | design-screens | 42 | 43 | 305 | 11% |
 | founder-decisions | 86 | 110 | 103 | 29% |
-| gates-factory | 97 | 73 | 39 | 46% |
+| gates-factory | 97 | 72 | 38 | 47% |
 | plan-core | 46 | 57 | 135 | 19% |
 | research-backend-market | 54 | 57 | 79 | 28% |
 | research-compliance | 6 | 46 | 82 | 4% |

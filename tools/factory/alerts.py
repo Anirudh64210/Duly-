@@ -16,6 +16,7 @@ KINDS = (
     "loop",
     "retry_storm",
     "eval_drop",
+    "veto",
     "tamper",
     "failed",
     "escalated",

@@ -11,6 +11,7 @@
   "properties": {
     "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]+$" },
     "version": { "type": "integer", "minimum": 1 },
+    "retired": { "type": "boolean", "description": "No plan runs it and make doctor skips its health check." },
     "role": { "type": "string", "minLength": 20 },
     "role_file": { "type": "string", "pattern": "^\\.claude/agents/[a-z0-9-]+\\.md$" },
     "lanes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },

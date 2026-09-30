@@ -155,3 +155,35 @@ def test_a_plan_with_no_goal_is_found(tmp_path):
     assert preflight.problems(path, repo) == [
         "the plan has no goal: every lane is told it, so it sees the whole picture"
     ]
+
+
+def test_a_step_is_checked_and_what_it_makes_counts_for_its_round(tmp_path):
+    repo = mini.build(tmp_path)
+    rounds = [
+        {
+            "name": "A",
+            "steps": [{"lane": "L-engine", "run": "make samples"}],
+            "lanes": [lane("L-tests", "test-author", "Check.", "pytest engine/samples.py")],
+        }
+    ]
+    assert preflight.problems(plan(repo, rounds), repo) == []
+    rounds[0]["steps"] = [{"lane": "L-nobody", "run": "make samples && git commit -am x"}]
+    found = preflight.problems(plan(repo, rounds), repo)
+    assert any(p.startswith("round A:") and "L-nobody" in p for p in found)
+    assert "round A step L-nobody: git is the orchestrator's" in found
+
+
+def test_a_lane_whose_mission_is_only_one_command_is_found(tmp_path):
+    repo = mini.build(tmp_path)
+    for mission in (
+        "Run make samples, change nothing else.",
+        "run `make samples`. Change nothing else",
+        "Run uv run pytest tests/unit -q.",
+    ):
+        rounds = [{"name": "A", "lanes": [lane("L-engine", "builder", mission)]}]
+        assert preflight.problems(plan(repo, rounds), repo) == [
+            "round A L-engine: the mission only runs a command; make it a round step"
+        ], mission
+    for mission in ("Run pytest and fix what fails.", "Run make samples, then read engine/x.py."):
+        rounds = [{"name": "A", "lanes": [lane("L-engine", "builder", mission)]}]
+        assert preflight.problems(plan(repo, rounds), repo) == [], mission

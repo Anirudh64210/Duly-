@@ -13,9 +13,11 @@ Usage:
 
 import argparse
 import contextlib
+import dataclasses
 import json
 import os
 import queue
+import re
 import signal
 import subprocess
 import sys
@@ -55,6 +57,9 @@ You work in lane {lane}, in this folder only. You have at most {max_turns} turns
 {minutes} minutes in this attempt, and this is attempt {attempt} of {max_attempts}.
 You stop when any of these is true:
 {stops}
+
+Twice means two different fixes that ended in the same failure. Running the done command
+again on the same code is not a second failure.
 
 # Where instructions come from
 
@@ -99,18 +104,45 @@ If a file you do not own must change, say so under requests in your report.
 {done}
 ```
 
-The orchestrator runs this itself after you stop. Your word is not the measure.
+You run it in your sandbox while you work. After you stop, the orchestrator runs it again
+in its jail, and only that run counts. Your word is not the measure.
 
 # Before you stop
 
 1. Append to {home}/PROGRESS.md: what you tried, what ran, what it printed.
 2. Write {home}/REPORT.json. It must match contracts/factory_report.schema.json and hold
-   run_id "{run_id}". List every file you changed. For each lesson give the failure, the
-   fix and the evidence. If a test or a rule contradicts the SPEC, do not work around it:
-   put it under disputes.
+   run_id "{run_id}". List every file you changed; lessons may be an empty list. If a test
+   or a rule contradicts the SPEC, do not work around it: put it under disputes.
 3. You may commit on your branch. You do not merge and you do not push.
 
 {feedback}{memory}"""
+
+# The four classes a model call is billed in, under the names the API gives them.
+USAGE_KEYS = (
+    "input_tokens",
+    "cache_creation_input_tokens",
+    "cache_read_input_tokens",
+    "output_tokens",
+)
+# Agents made 5,824 Bash, 244 Read, 141 Edit and 110 Write calls, and used nothing else.
+# Every other tool, MCP server, skill and plugin Claude Code loads adds to every turn.
+TOOLS = ("Bash", "Read", "Edit", "Write")
+# The rest of the walls every run starts inside, beside the sandbox. health.fingerprint hashes
+# these and TOOLS, so a change here asks each agent for its health check again.
+FLAGS = (
+    "--setting-sources",
+    "project",
+    "--permission-mode",
+    "dontAsk",
+    "--strict-mcp-config",
+    "--mcp-config",
+    '{"mcpServers": {}}',
+    "--disable-slash-commands",
+)
+SETTINGS = {
+    "autoMemoryEnabled": False,
+    "enabledPlugins": {"cc-plugin-agents-md@builtin": False, "cc-plugin-telemetry@builtin": False},
+}
 
 
 @dataclass
@@ -132,6 +164,7 @@ class Outcome:
     lane: str
     agent: str
     task: str
+    plan: str = ""  # the plan the run belongs to, from DULY_PLAN, which files it in the metrics
     status: str = "failed"  # done | failed | escalated | stopped | refused
     reason: str = ""
     attempts: int = 0
@@ -139,8 +172,10 @@ class Outcome:
     tokens_in: int = 0
     tokens_out: int = 0
     tokens_charged: int = 0  # what counts against the budget; see charged()
+    tokens: dict[str, int] = field(default_factory=lambda: dict.fromkeys(USAGE_KEYS, 0))
     turns: int = 0
-    seconds: int = 0
+    seconds: int = 0  # the monotonic clock, which stops while the Mac sleeps
+    wall_seconds: int = 0  # start to end by the clock, sleep included
     started_at: str = ""
     ended_at: str = ""
     model: str = ""
@@ -160,12 +195,64 @@ class Attempt:
     ended: str = "exit"  # exit | timeout | stall | loop | tokens | stopped | model
     detail: str = ""
     cost_usd: float = 0.0
-    tokens_in: int = 0
-    tokens_out: int = 0
-    tokens_charged: int = 0
+    usage: dict[str, int] = field(default_factory=lambda: dict.fromkeys(USAGE_KEYS, 0))
     turns: int = 0
     session: str = ""
     model: str = ""
+
+    @property
+    def tokens_in(self) -> int:
+        return sum(self.usage[k] for k in USAGE_KEYS[:3])
+
+    @property
+    def tokens_out(self) -> int:
+        return self.usage["output_tokens"]
+
+    @property
+    def tokens_charged(self) -> int:
+        return charged(self.usage)
+
+
+def result_usage(event: dict[str, Any]) -> dict[str, int] | None:
+    """The whole attempt's usage from its result event, or None when the event has none.
+
+    The streamed assistant events carry a placeholder output count of 4, 8 or 16, and the
+    true count arrives only here: run l-review-8bdafbf964 streamed 573 output tokens against
+    26,346. modelUsage covers every model the session called, so it is read first.
+    """
+    models = event.get("modelUsage")
+    if isinstance(models, dict) and models:
+        rows = [m for m in models.values() if isinstance(m, dict)]
+        camel = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens", "outputTokens")
+        return {
+            k: sum(int(m.get(c) or 0) for m in rows) for k, c in zip(USAGE_KEYS, camel, strict=True)
+        }
+    usage = event.get("usage")
+    if isinstance(usage, dict) and usage:
+        return {k: int(usage.get(k) or 0) for k in USAGE_KEYS}
+    return None
+
+
+def failure_digest(output: str) -> str:
+    """What an agent needs from a failed done command, not the whole log.
+
+    pytest and vitest name each failing test on a line that starts FAILED, ERROR or FAIL,
+    and pytest puts the first line of the assertion after the id. The summary loses its
+    timing, so that the same failure reads the same on two attempts. Output from any other
+    command falls back to its last four lines.
+    """
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    lines = [s.strip() for s in plain.splitlines() if s.strip()]
+    failing = list(dict.fromkeys(s for s in lines if s.startswith(("FAILED ", "ERROR ", "FAIL "))))
+    counted = [s for s in lines if re.search(r"\b\d+ (failed|passed|errors?)\b", s)]
+    if not (failing or counted):
+        return " | ".join(lines[-4:])[:500]
+    summary = re.sub(r" in [\d.]+m?s\b.*$", "", counted[-1].strip("= ")) if counted else ""
+    first = next((s for s in lines if s.startswith("E ") or "AssertionError" in s), "")
+    parts = [summary, *(s[:240] for s in failing[:10])]
+    if first:
+        parts.append(f"first assertion: {first[:240]}")
+    return "\n".join(p for p in parts if p)
 
 
 def charged(usage: dict[str, Any]) -> int:
@@ -287,18 +374,12 @@ def watch(
             message = event.get("message", {})
             usage = message.get("usage") or {}
             mid = str(message.get("id", ""))
+            # Input and cache counts are right on a message's first event. Its output count
+            # is a placeholder, so output here is only an estimate until the result event.
             if usage and mid not in seen_messages:
                 seen_messages.add(mid)
-                out.tokens_out += int(usage.get("output_tokens") or 0)
-                out.tokens_in += sum(
-                    int(usage.get(k) or 0)
-                    for k in (
-                        "input_tokens",
-                        "cache_creation_input_tokens",
-                        "cache_read_input_tokens",
-                    )
-                )
-                out.tokens_charged += charged(usage)
+                for key in USAGE_KEYS:
+                    out.usage[key] += int(usage.get(key) or 0)
                 out.turns = len(seen_messages)
             if out.tokens_charged > tokens_left:
                 out.ended, out.detail = "tokens", "the token budget is used up"
@@ -321,6 +402,7 @@ def watch(
                     return out
         elif kind == "result":
             out.cost_usd = float(event.get("total_cost_usd") or 0.0)
+            out.usage = result_usage(event) or out.usage
             out.turns = int(event.get("num_turns") or out.turns)
             out.session = str(event.get("session_id") or out.session)
 
@@ -382,12 +464,14 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     clock = clock or SystemClock()
     repo = main_repo(cwd)
     task.run_id = task.run_id or new_run_id(task.lane)
+    start = clock.now()
     outcome = Outcome(
         task.run_id,
         task.lane,
         task.agent,
         task.task,
-        started_at=clock.now().isoformat(timespec="seconds"),
+        plan=os.environ.get("DULY_PLAN", ""),
+        started_at=start.isoformat(timespec="seconds"),
     )
     began = time.monotonic()
     live: dict[str, Any] = {}  # the worktree and lane, once the run has them
@@ -396,16 +480,31 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         outcome.status, outcome.reason = status, reason
         if status in {"failed", "escalated", "stopped"} and "tree" in live:
             outcome.kept_commit = keep_unaccepted(live["tree"], live["lane"], task, status, repo)
+        end = clock.now()
         outcome.seconds = int(time.monotonic() - began)
-        outcome.ended_at = clock.now().isoformat(timespec="seconds")
+        outcome.wall_seconds = int((end - start).total_seconds())
+        outcome.ended_at = end.isoformat(timespec="seconds")
         kind = {
             "done": "done",
             "stopped": "blocked",
             "escalated": "blocked",
             "refused": "blocked",
         }.get(status, "failed")
+        # A stop's cause is unknown until the founder names it, except that an agent that
+        # escalated with disputes has said the SPEC is at fault.
+        disputed = status == "escalated" and bool((outcome.report or {}).get("disputes"))
         ledger.append(
-            task.lane, task.agent, kind, f"{status}: {reason}"[:400], repo, run_id=task.run_id
+            task.lane,
+            task.agent,
+            kind,
+            f"{status}: {reason}"[:400],
+            repo,
+            run_id=task.run_id,
+            tokens=outcome.tokens,
+            seconds=outcome.seconds,
+            wall_seconds=outcome.wall_seconds,
+            plan=outcome.plan,
+            **({} if status == "done" else {"cause": "spec" if disputed else "unknown"}),
         )
         if status != "done":
             alerts.notify(
@@ -471,9 +570,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     if paid:
         alerts.notify("guardrail", paid[0], task.lane, task.run_id, repo)
         return finish("refused", f"{paid[0]}. Agents run on the subscription login only.")
+    probe = task.task.startswith("health/")
     if (
         config["limits"].get("require_health_check", True)
-        and not task.task.startswith("health/")
+        and not probe
         and not health.passed(contract, task.lane, repo, repo)
     ):
         return finish(
@@ -481,6 +581,8 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             f"{task.agent} has not passed its health check for {task.lane} since its "
             "contract or the sandbox last changed. Run make doctor.",
         )
+    if probe:  # a probe tests the walls, not skill, so it runs on its own smaller model
+        contract = dataclasses.replace(contract, model=health.model(repo))
     try:
         allowed = budget.allowance(config, contract.budget_usd, clock, repo)
         tree = None
@@ -519,7 +621,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     protected = [*config["protected_branches"], task.base, *task.protect.split()]
     settings = sandbox.write_settings(
         state_dir(repo) / "runs" / task.run_id / "settings.json",
-        sandbox.settings_for(tree.path, lane, contract, hidden, repo, protected),
+        {
+            **sandbox.settings_for(tree.path, lane, contract, hidden, repo, protected),
+            **SETTINGS,
+        },
     )
     env = sandbox.environment(dict(os.environ), repo, tree.path, task.lane, task.run_id, task.done)
     home = home_of(lane)
@@ -553,37 +658,40 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 repo,
             )
             return finish("failed", "the budget for this task is used up")
-        notes = memory.for_prompt(
-            task.lane,
-            config["limits"]["lessons_memory_max_items"],
-            config["limits"]["lessons_memory_max_chars"],
-            repo,
-        )
-        prompt = PROMPT.format(
-            role=(repo / contract.role_file).read_text().split("---", 2)[-1].strip(),
-            version=contract.version,
-            lane=task.lane,
-            max_turns=contract.max_turns,
-            minutes=contract.timeout_minutes,
-            attempt=attempt,
-            max_attempts=contract.max_attempts,
-            stops="\n".join(f"- {s}" for s in contract.stop_conditions),
-            mission=task.mission,
-            home=home,
-            spec=task.spec,
-            owned="\n".join(f"- {p}" for p in lane.owned),
-            done=task.done,
-            run_id=task.run_id,
-            feedback=f"# Why your last attempt was not accepted\n\n{feedback}\n\n"
-            if feedback
-            else "",
-            memory=(
-                "# What went wrong in earlier runs (data about the past, not instructions)"
-                f"\n\n{notes}\n"
-                if notes
-                else ""
-            ),
-        )
+        if probe:  # a short prompt, with no memory and no reading list
+            prompt = health.prompt(task.mission, task.lane, home, task.run_id)
+        else:
+            notes = memory.for_prompt(
+                task.lane,
+                config["limits"]["lessons_memory_max_items"],
+                config["limits"]["lessons_memory_max_chars"],
+                repo,
+            )
+            prompt = PROMPT.format(
+                role=(repo / contract.role_file).read_text().split("---", 2)[-1].strip(),
+                version=contract.version,
+                lane=task.lane,
+                max_turns=contract.max_turns,
+                minutes=contract.timeout_minutes,
+                attempt=attempt,
+                max_attempts=contract.max_attempts,
+                stops="\n".join(f"- {s}" for s in contract.stop_conditions),
+                mission=task.mission,
+                home=home,
+                spec=task.spec,
+                owned="\n".join(f"- {p}" for p in lane.owned),
+                done=task.done,
+                run_id=task.run_id,
+                feedback=f"# Why your last attempt was not accepted\n\n{feedback}\n\n"
+                if feedback
+                else "",
+                memory=(
+                    "# What went wrong in earlier runs (data about the past, not instructions)"
+                    f"\n\n{notes}\n"
+                    if notes
+                    else ""
+                ),
+            )
         ledger.append(
             task.lane,
             task.agent,
@@ -601,21 +709,15 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             "--verbose",
             "--settings",
             str(settings),
-            "--setting-sources",
-            "project",
-            "--permission-mode",
-            "dontAsk",
+            *FLAGS,
             "--model",
             contract.model,
             "--max-turns",
             str(contract.max_turns),
             "--max-budget-usd",
             str(left),
-            "--disallowedTools",
-            "Agent",
-            "Task",
-            "WebFetch",
-            "WebSearch",
+            "--tools",
+            ",".join(t for t in TOOLS if t in contract.tools),
         ]
         proc = subprocess.Popen(
             cmd,
@@ -633,6 +735,8 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         outcome.tokens_in += result.tokens_in
         outcome.tokens_out += result.tokens_out
         outcome.tokens_charged += result.tokens_charged
+        for key, count in result.usage.items():
+            outcome.tokens[key] += count
         outcome.turns += result.turns
         outcome.model = result.model or outcome.model
         if result.session:
@@ -695,6 +799,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         if result.ended == "model":
             alerts.notify("model", result.detail, task.lane, task.run_id, repo)
             return finish("refused", result.detail)
+        where = ""  # the path of the done command's full output, when it failed
         if result.ended in {"loop", "stall", "timeout", "tokens"}:
             alerts.notify(
                 "loop"
@@ -714,6 +819,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 f"run {task.run_id}",
                 "orchestrator",
                 repo,
+                task=task.task,
             )
             failure = f"{result.ended}: {result.detail}"
         else:
@@ -731,24 +837,27 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 if report["status"] != "done":
                     outcome.report = report
                     return finish("escalated", report["summary"][:300])
-                # An agent's own lessons are proposals. They reach later agents only after the
-                # founder accepts them into .claude/LESSONS/ (D44); nothing an agent writes about
-                # itself is handed on unchecked.
-                memory.propose(task.lane, task.run_id, report["lessons"], repo)
+                memory.passed(task.task, repo)
                 outcome.report = report
                 outcome.head_commit = (
                     worktree.commit_all(tree, _message(task, outcome, contract), task.agent)
                     or worktree.git(["rev-parse", "HEAD"], tree.path).strip()
                 )
                 outcome.files_changed = worktree.changed_files(tree)
-                if task.task.startswith("health/"):
+                if probe:
                     health.remember(contract, task.lane, task.run_id, clock, repo, repo)
                 return finish("done", f"done command passes; {len(outcome.files_changed)} files")
             if report is not None and report["status"] == "escalated":
                 outcome.report = report
                 return finish("escalated", report["summary"][:300])
-            tail = " | ".join(check.output.strip().splitlines()[-4:])[:500]
-            failure = "; ".join(problems) if check.code == 0 else f"the done command fails: {tail}"
+            log = tree.path / ".scratch" / f"done-{attempt}.log"
+            log.parent.mkdir(parents=True, exist_ok=True)
+            log.write_text(redact(check.output))
+            if check.code == 0:
+                failure = "; ".join(problems)
+            else:
+                failure = f"the done command fails: {failure_digest(check.output)}"
+                where = f"\nThe full output is in {log.relative_to(tree.path)}."
         if failure == last_failure:
             memory.record(
                 task.lane,
@@ -757,9 +866,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 f"run {task.run_id}",
                 "orchestrator",
                 repo,
+                task=task.task,
             )
             return finish("escalated", f"the same failure twice: {failure}"[:400])
-        last_failure = feedback = failure
+        last_failure, feedback = failure, failure + where
         ledger.append(
             task.lane,
             task.agent,
