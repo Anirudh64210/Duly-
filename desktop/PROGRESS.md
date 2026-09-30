@@ -119,3 +119,35 @@ clean. prettier --write ran once before the done command.
 
 Not run: Electron itself. Not built: the samples script in web/ (L-web's half of point 16),
 the full box and colour comparison of SPEC 14.4.
+
+## 2026-09-30, run l-desktop-466c460145, attempt 1
+
+Read specs/product-2/resolutions.md point 17, reviews/product-2-fix3.md note 1,
+specs/design-1/SPEC.md 14.1 and tests/design/landmarks.json.
+
+Point 17, the shot run's landmark check compares heading text as well as type. Checklist,
+Onboarding and Updates share 30px / 600 / -0.02em, so type alone let one screen's heading
+count for another (review note 1). Now:
+
+- shots.ts: ScreenLandmark carries `text`, the heading landmark's label from landmarks.json,
+  with white space collapsed (words()). A heading with no label gives no landmark (null), so
+  the shot is never counted as drawn. PageText carries `text`; drawScript gives back each
+  element's textContent; pageTexts refuses an entry with no text. holdsLandmark holds only
+  when a visible text reads exactly as the heading (after collapsing white space) and is in
+  the landmark's type.
+- shotrun.ts: a miss names the heading text it looked for.
+- Tests: shots.test.ts (each built screen's heading text from the real file, a missing or
+  blank label, another screen's heading in the same type, any letter different, pageTexts
+  without text), shots.page.test.ts (jsdom: texts as they read, a heading in the landmark's
+  type that reads otherwise).
+
+What ran: the done command, exit 0. 11 test files, 143 tests passed. eslint clean, copy lint
+clean. prettier --write ran once before the done command (no change).
+
+Dispute: SPEC 14.1 says text content is never compared; point 17 says compare it. I followed
+point 17 (the newer resolution) for the heading only.
+Request: the canvas headings are sample words ("Everything is in order.", "What kind of work
+do you do?", "STEM OPT extension", "One thing worth knowing."). Of the five built screens only
+Timeline draws a fixed heading that matches ("Timeline", web/src/app/Timeline.tsx:202). The
+other four hold their canvas words only if the engine samples put the screen in the canvas's
+state; otherwise `make design-shots` exits 1 for them. Not run: Electron itself.

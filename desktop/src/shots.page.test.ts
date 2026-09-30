@@ -78,6 +78,17 @@ describe("the page script", () => {
     expect(await runPage(`<div id="root">${hidden}</div>`)).toEqual([]);
   });
 
+  it("gives back each text as it reads, with the landmark's type", async () => {
+    const texts = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
+    expect(texts?.map((drawn) => drawn.text)).toEqual(["Duly", "Timeline", "Timeline"]);
+  });
+
+  it("does not count a heading in the landmark's type that reads otherwise", async () => {
+    const other = heading.replace(">Timeline<", ">Updates<");
+    const texts = await runPage(`<div id="root">${shell}<main>${other}</main></div>`);
+    expect(holdsLandmark(texts ?? [], screenLandmark(LANDMARKS, "/timeline"))).toBe(false);
+  });
+
   it("does not count another screen's heading as this screen's landmark", async () => {
     const texts = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
     expect(holdsLandmark(texts ?? [], screenLandmark(LANDMARKS, "/"))).toBe(false);
