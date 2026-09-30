@@ -57,6 +57,28 @@ def _send(client: TestClient, body: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _dated_after(out: dict[str, Any], prefix: str, card: str, day: str) -> list[str]:
+    """Ids of the windows `<prefix>_<n>.<card>` that open or close after `day`."""
+    return [
+        w["id"]
+        for s in out["stages"]
+        for w in s["windows"]
+        if w["id"].startswith(prefix)
+        and w["id"].endswith("." + card)
+        and any(d is not None and d > day for d in (w["opens"], w["closes"]))
+    ]
+
+
+def _grace_after(out: dict[str, Any], day: str) -> list[str]:
+    """Ids of the grace stages holding a date after `day`."""
+    return [
+        s["id"]
+        for s in out["stages"]
+        if s["id"].startswith("grace.")
+        and any(d is not None and d > day for d in (s["starts"], s["ends"]))
+    ]
+
+
 # The cases. Each is the journey's timeline as records; the answers a student would give.
 
 
@@ -1382,6 +1404,30 @@ def test_j04_doctoral_opt_is_next_with_its_window(client: TestClient) -> None:
     assert window(out, "opt.apply_window.p2")[0] == "2027-02-13"
 
 
+def test_j04_the_concluding_evaluation_is_dated_from_the_release_date(client: TestClient) -> None:
+    # resolutions point 15, (f)(10)(ii)(C)(9)(i): the final evaluation is due "no later than
+    # 10 days following the conclusion of his or her practical training opportunity"
+    # (stem.evaluation_due_days 10). The STEM card a2 ends on the release date 2022-08-15
+    # (J04: "Final I-983 evaluation for the job ending that day due by 2022-08-25").
+    # 2022-08-15 plus 10: Aug 16 (1) ... Aug 25 (10). Not the printed card end 2023-06-21,
+    # which gave 2023-06-21 to 2023-07-01 (reviews/product-2-fix1.md finding 1).
+    out = _send(client, j04())
+    assert window(out, "stem.evaluation_final.a2") == ("2022-08-15", "2022-08-25")
+
+
+def test_j04_no_validation_is_dated_after_the_stem_card_ended(client: TestClient) -> None:
+    # resolutions point 15: "No validation is dated after the card or the training ends."
+    # a2 starts 2021-06-22 and ends 2022-08-15. Validations every 6 months from the start:
+    # 2021-12-22, 2022-06-22, 2022-12-22 and 2023-06-22. The last two lie after 2022-08-15
+    # (finding 1 saw them in the output), so no validation of a2 holds a date after it.
+    # Validation 2: 2022-06-22 is a Wednesday; plus 10 business days: Jun 23, 24, 27, 28,
+    # 29, 30, Jul 1, (4 Independence Day skipped) 5, 6, 7 -> 2022-07-07.
+    out = _send(client, j04())
+    assert _dated_after(out, "stem.validation_", "a2", "2022-08-15") == []
+    assert window(out, "stem.validation_1.a2")[0] == "2021-12-22"
+    assert window(out, "stem.validation_2.a2") == ("2022-06-22", "2022-07-07")
+
+
 # J05
 
 
@@ -1438,6 +1484,19 @@ def test_j06_days_over_the_bar_and_months_under_it_step_back(client: TestClient)
         if r.startswith("cpt.") and r != "cpt.full_time_days_at_level.at_or_over_limit.master"
     ]
     assert extra, reasons(out)
+
+
+def test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed(
+    client: TestClient,
+) -> None:
+    # resolutions point 15: "A next stage is shown only while a window in which something
+    # can be filed is open; opt.complete_by is not such a window." p1 ends 2025-12-12; the
+    # filing window is 2025-09-13 to 2026-02-10 (J06 timeline), closed 231 days before
+    # 2026-09-29. opt.complete_by (2025-12-12 plus 14 months, 2027-02-12) is still open but
+    # nothing can be filed in it (reviews/product-2-fix1.md finding 3).
+    out = _send(client, j06())
+    assert window(out, "opt.apply_window.p1") == ("2025-09-13", "2026-02-10")
+    assert all(s["state"] != "next" for s in out["stages"] if s["id"] == "opt_post.p1")
 
 
 # J07
@@ -1563,14 +1622,16 @@ def test_j12_cap_gap_runs_to_the_validity_start(client: TestClient) -> None:
     assert cap_gap["state"] == "current"
 
 
-def test_j12_grace_begins_after_the_cap_gap(client: TestClient) -> None:
-    # Section 14 grace: from the latest end of the program, its cards and its cap-gap:
-    # 2026-10-01, so grace starts 2026-10-02 and is not done today (finding 3, point 4).
-    # Resolutions point 12: the cap-gap grace is grace.<petition>, here grace.h1.
+def test_j12_no_grace_after_an_approved_change_of_status(client: TestClient) -> None:
+    # resolutions point 15: "When a cap-gap petition is approved with a change of status, no
+    # F-1 grace follows its start date: H-1B status begins then (J12)." J12: "The extension
+    # runs until 2026-10-01, when H-1B status begins." h1 is approved (2026-06-20) with a
+    # change of status and validity_start 2026-10-01, so no grace stage holds a date after
+    # 2026-10-01. This replaces the point 4 test that gave grace.h1 from 2026-10-02 to
+    # 2026-11-30 (reviews/product-2-fix1.md note 1); point 15 answers that note.
     out = _send(client, j12())
-    grace = stage(out, "grace.h1")
-    assert grace["starts"] == "2026-10-02"
-    assert grace["state"] != "done"
+    assert _grace_after(out, "2026-10-01") == []
+    assert stage(out, "cap_gap.h1")["ends"] == "2026-10-01"
 
 
 def test_j12_no_unemployment_while_employed_through_the_cap_gap(client: TestClient) -> None:
@@ -1612,6 +1673,28 @@ def test_j14_unemployment_total_is_85_of_150(client: TestClient) -> None:
     out = _send(client, j14())
     assert value(out, "unemployment.total.a1") == 85
     assert any("grace.after_cap_gap_outcome" in r for r in reasons(out))
+
+
+def test_j14_the_concluding_evaluation_is_dated_from_the_last_day_of_the_job(
+    client: TestClient,
+) -> None:
+    # resolutions point 15, (f)(10)(ii)(C)(9)(i): the training ended on the job's end, or the
+    # card's end if sooner. w2 under a2 ends 2026-07-15 (the layoff); the authorization runs
+    # on through the cap-gap to 2026-07-25, so the job's end is sooner. 2026-07-15 plus 10:
+    # Jul 16 (1) ... Jul 25 (10), the journey's "Final I-983 evaluation due 2026-07-25".
+    # Not the card end 2026-05-31, which gave 2026-05-31 to 2026-06-10 (finding 1).
+    out = _send(client, j14())
+    assert window(out, "stem.evaluation_final.a2") == ("2026-07-15", "2026-07-25")
+
+
+def test_j14_no_validation_is_dated_after_the_training_ended(client: TestClient) -> None:
+    # resolutions point 15: no validation is dated after the training ends (2026-07-15).
+    # a2 starts 2024-06-01: validations open 2024-12-01, 2025-06-01, 2025-12-01 and
+    # 2026-06-01, each on or before 2026-07-15. Validation 3: 2025-12-01 is a Monday; plus
+    # 10 business days: Dec 2, 3, 4, 5, 8, 9, 10, 11, 12, 15 -> 2025-12-15.
+    out = _send(client, j14())
+    assert _dated_after(out, "stem.validation_", "a2", "2026-07-15") == []
+    assert window(out, "stem.validation_3.a2") == ("2025-12-01", "2025-12-15")
 
 
 # J15

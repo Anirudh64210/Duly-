@@ -75,13 +75,24 @@ def test_point3_a_move_at_the_same_level_does_not_end_the_card_the_day_before() 
 
 
 def test_point4_grace_starts_after_an_active_cap_gap() -> None:
-    # J12: cap_gap.h1 2026-06-01 to 2026-10-01 (validity_start). Section 14 grace span:
-    # "the latest end of the program, its cards and its cap-gap": 2026-10-01. So grace
-    # starts 2026-10-02 and is not done on 2026-09-29. Resolution 12: the pack builds the
-    # cap-gap grace for each petition, so its id is grace.<petition>, here grace.h1.
-    out = _compute(journeys.j12())
+    # J12 with h1 still pending (the journey's pending variant): no outcome and no
+    # validity_start, so cap_gap.h1 runs from 2026-06-01 to April 1 of the fiscal year of
+    # 2026-10-01 (FY 2027): 2027-04-01. Section 14 grace span: "the latest end of the
+    # program, its cards and its cap-gap": 2027-04-01, so grace starts 2027-04-02 and is
+    # later on 2026-09-29. Resolution 12: its id is grace.<petition>, here grace.h1.
+    # Resolution 15 moved this test off the approved J12: after a change of status approved
+    # with validity_start 2026-10-01, H-1B status begins then and no F-1 grace follows
+    # (tests/unit/acceptance/test_journeys.py test_j12_no_grace_after_an_approved_change_of_status).
+    body = copy.deepcopy(journeys.j12())
+    for r in body["records"]:
+        if r["id"] == "h1":
+            r["fields"]["outcome"] = "pending"
+            r["fields"].pop("outcome_on")
+            r["fields"].pop("validity_start")
+    out = _compute(body)
+    assert stage(out, "cap_gap.h1")["ends"] == "2027-04-01"
     grace = stage(out, "grace.h1")
-    assert grace["starts"] == "2026-10-02"
+    assert grace["starts"] == "2027-04-02"
     assert grace["state"] == "later"
 
 
