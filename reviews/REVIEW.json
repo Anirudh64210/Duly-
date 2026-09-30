@@ -1,61 +1,61 @@
 {
-  "run_id": "l-review-6676921233",
-  "reviewed_commit": "3d09f03c4cc5b101126587da5266e7cbb2c5586b",
+  "run_id": "l-review-0ba3ea5fce",
+  "reviewed_commit": "ca6abcdfb0ae29eef70c432c97499d12c2dba689",
   "scores": {
     "correct": {
-      "score": 2,
-      "evidence": "Every date, item, question and reason of the twenty journeys is the same as the hand-checked fix 6 run, and the point 23 twins follow point 23a. But on J01, J03, J04, J07, J08, J10, J15 and J19, none with a petition, transfer and job-end rows turn unknown and lose their dates on the Timeline, while point 19 says those journeys stay unchanged."
+      "score": 4,
+      "evidence": "All twenty journeys through POST /v1/compute match the fix 6 run in every date, window, item, question and verdict reason. They differ only as point 22b says: null-day stages are unknown, and window-placed job ends are done. Every Timeline row without a petition keeps its dates and items, and cap_gap.for_dso sits only on the grace stages a petition nulled (J12, J13, J14 and J19 twins B to K). One row with too little on it, beyond the SPEC's inputs (finding 1)."
     },
     "sourced": {
-      "score": 4,
-      "evidence": "verify, plain and engine_literals exit 0; the point 23 reading is in the capgap.petition_for_dso note and marked a reading; labels.ts and the pack plain words name the same kinds of date."
+      "score": 5,
+      "evidence": "verify, plain and engine_literals exit 0. The diff adds no rule, number or quote. The row words are the existing DSO line and the point 24a pack words citing 8 CFR 214.2(f)(5)(vi)."
     },
     "never_assumes": {
-      "score": 3,
-      "evidence": "Missing starts, an o1 type and a missing filing day are asked, and old petitions keep a2.filed_on and the late-filing conflict. But the unknown row on J01's transfer says the DSO can tell a date that Duly asks the person for (mv1.contacted_new_dso_on)."
+      "score": 4,
+      "evidence": "No gap is read as an answer: missing petition facts are asked and the dates wait null, and the verdict is cannot_tell. But with h1.change_of_status or h1.filed_on missing, J13's grace row gives neither the reason nor the question that would close it."
     },
     "inside_the_boundary": {
-      "score": 3,
-      "evidence": "On petition cases the cap_gap.for_dso words, 'can change these dates', go on rows the petition cannot change: J19's 2021 and 2023 transfers and J14's 2024 job report."
+      "score": 5,
+      "evidence": "The petition's words appear only on grace rows a petition nulled. None of the 20 journeys and 20 petition cases puts them on a transfer or a job report, and none names a petition-changeable stage as now."
     },
     "secure": {
-      "score": 4,
-      "evidence": "All journeys, 18 twins, probes and the three saved Onboarding cases return 200. An unknown choice value is asked, not taken in silence. No crash or stall found."
+      "score": 5,
+      "evidence": "Forty route calls and seven probes, with missing, 'no' and duplicate petition facts, all return 200. The recompute in _step_backs restores the run state, and a mutant without the restore changes no output. No crash or stall found."
     },
     "tested": {
-      "score": 3,
-      "evidence": "14 of 17 mutants are caught, including all four that point 25 names. The job-card filter on the final evaluation, the unemployment filter and window-only stage placement survive, and no web test covers an unknown row with no petition."
+      "score": 4,
+      "evidence": "All three fix 7 survivor mutants are killed by test_fix8.py. 8 of 10 Python mutants are caught; the 2 survivors (sb_starts_only, sb_no_restore) change no output on any input I have. 2 of 3 web timeline mutants are caught; the fact lines of an unknown row are not pinned."
     }
   },
   "findings": [
     {
-      "severity": "blocking",
-      "title": "unknown reaches stages no petition nulled; the Timeline drops their dates and adds the DSO line and petition words",
-      "file": "engine/path.py:653",
-      "input": "J01, J03, J04, J07, J08, J10, J15 and J19 through POST /v1/compute (clock 2026-09-29), none with a petition; J19 plus a petition with a start of 2026-06-09; J14",
-      "what_happens": "transfer.mv1/mv2 and opt_job_end.w1 go from current to unknown. web/src/lib/views/timeline.ts:138 then empties their items and meta and writes 'Your DSO can tell you these dates.' J01's transfer row loses 'from Jul 15, 2024' and its 2 items, while mv1.contacted_new_dso_on is asked of the person. With cap_gap.for_dso, the 2021 and 2023 transfers and J14's 2024 job report also carry 'Such a petition can change these dates'. This breaks point 19 ('every other journey is unchanged') and goes beyond point 22's scope."
-    },
-    {
       "severity": "should_fix",
-      "title": "Three mutants survive: the job-card filter, the unemployment filter, and window-only placement",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2041",
-      "input": "J15 plus a petition filed 2020-04-01 with a start of 2020-10-01",
-      "what_happens": "HEAD dates Job B's final evaluation 2025-10-31 to 2025-11-10 and gives unemployment.total.a1 116. Making the :2041 filter true for any petition, or removing the filter at :2297, nulls them, and no acceptance, holdout or engine test fails. Turning off window placement at engine/path.py:663 turns J11 and J15 done job-end stages to unknown, and no test fails."
+      "title": "A grace row nulled by a petition's missing fact shows no reason and no question",
+      "file": "engine/path.py:645",
+      "input": "J13 with h1.change_of_status (or h1.filed_on) left out, POST /v1/compute on 2026-09-29",
+      "what_happens": "h1.change_of_status is asked, and grace.p1 is unknown with null days, items [] and no reasons (the verdict has no cap_gap.for_dso). The Timeline row shows only the program facts: no dates, no mark, no DSO line and no question. Point 22b says the row keeps its items, including the questions that would close it."
     },
     {
       "severity": "note",
-      "title": "The program-grace filter dates the program grace from the program's end even when OPT and STEM follow",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1963",
-      "input": "J19 plus a pending petition filed 2025-04-01 with a start of 2025-06-01",
-      "what_happens": "grace.p2 (2028-06-09 to 2028-08-07) is null and cap_gap.for_dso is given. This follows point 23a's words and states no wrong date. It is for the cap-gap round."
+      "title": "Two _step_backs mutants are equivalent on every input I have",
+      "file": "engine/path.py:684",
+      "input": "sb_starts_only (test only the null start) and sb_no_restore (no _restore after the recompute), on the twenty journeys and 20 petition cases",
+      "what_happens": "Every span a petition nulls loses both days, and the output without the restore is byte for byte HEAD's. No test fails. A future span with one petition-nulled day would need a test."
     },
     {
       "severity": "note",
-      "title": "fix6 note 1 still open: job-end reports dated after the card end",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
-      "input": "J13, J14",
-      "what_happens": "opt_job_end.report.w1 (J13) and stem_job_end.report.w2 (J14, 2026-07-15 to 07-25) are dated for jobs ending after the card, as in fix 6. This is for the cap-gap round."
+      "title": "An unknown row's fact lines are not pinned by a web test",
+      "file": "web/src/lib/views/timeline.ts:142",
+      "input": "timeline.ts mutant: row.lines = [] for unknown rows",
+      "what_happens": "All 575 web tests pass. The known start stays in the meta, which is tested."
+    },
+    {
+      "severity": "note",
+      "title": "Cap-gap round: stages with petition-nulled windows carry no step back on their row",
+      "file": "engine/path.py:645",
+      "input": "J19 twin D (pending petition, start 2026-06-09); J14",
+      "what_happens": "stem.a2 stays current while validations 1 to 3 are null. J14 stem_job_end.w2's final evaluation is null. Neither stage has the reason, so their rows do not say why, as point 22b states. Fix 7 note 1 (twin B, program grace dated from p2's end) and fix 6 note 1 (job-end reports after the card end) are also still open for specs/capgap-1."
     }
   ],
-  "decision": "VETO"
+  "decision": "APPROVE"
 }

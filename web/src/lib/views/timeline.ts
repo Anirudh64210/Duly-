@@ -36,7 +36,7 @@ export const MARK_NAMES: Record<Mark, string> = {
   none: "",
 };
 
-// SPEC-resolutions point 22: the words of a stage whose dates a petition makes null.
+// SPEC-resolutions points 22 and 22b: the words of a stage whose dates a petition makes null.
 export const DSO_DATES_LINE = "Your DSO can tell you these dates";
 export const STEP_BACK_REASON = "cap_gap.for_dso";
 
@@ -136,12 +136,13 @@ function stageRow(output: EngineOutput, stage: Stage): TimelineRow {
     settings: false,
   };
   if (stage.state === "unknown") {
-    row.meta = "";
-    row.items = [];
-    const stepBack = output.verdict.reasons.includes(STEP_BACK_REASON)
-      ? appReasonLine(STEP_BACK_REASON, output.computed)
-      : "";
-    row.lines = [`${DSO_DATES_LINE}.`, stepBack].filter(Boolean);
+    // SPEC-resolutions point 22b: the row keeps its own known dates and its items. Only a
+    // stage a petition nulled, whose reasons hold the step back, gets the DSO line and the
+    // petition's words.
+    row.lines = factLines(stage);
+    if ((stage.reasons ?? []).includes(STEP_BACK_REASON)) {
+      row.lines.push(`${DSO_DATES_LINE}.`, appReasonLine(STEP_BACK_REASON, output.computed));
+    }
   } else if (stage.state === "done") {
     row.lines = factLines(stage);
   } else if (stage.state === "current") {

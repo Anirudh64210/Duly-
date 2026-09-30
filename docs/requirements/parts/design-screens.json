@@ -40,9 +40,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Stack",
     "text": "web/ and ops/: TanStack Router",
     "kind": "design",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No router package is in web/package.json or ops/package.json; each app is a single screen."
+    "status": "partial",
+    "evidence": "web/package.json @tanstack/react-router; web/src/app/Shell.tsx",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. web/ uses TanStack Router. ops/ does not (ops/package.json holds react-query only)."
   },
   {
     "id": "PLAN03-006",
@@ -157,9 +157,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Stack",
     "text": "Accessibility floor: 4.5:1 text contrast",
     "kind": "design",
-    "status": "partial",
-    "evidence": "web/src/design/tokens.css",
-    "note": "The token pairs compute to 4.78:1 or more by hand, but no automated check or test proves it."
+    "status": "met",
+    "evidence": "web/src/design/contrast.test.ts (text on ground at least 4.5:1, light and dark)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Vitest pass."
   },
   {
     "id": "PLAN03-019",
@@ -256,18 +256,18 @@
     "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
     "text": "Type: Instrument Sans only",
     "kind": "design",
-    "status": "partial",
-    "evidence": "web/src/styles.css, web/src/design/tokens.css",
-    "note": "Instrument Sans is the UI font, but values and rule ids are set in a system monospace font through --font-mono."
+    "status": "met",
+    "evidence": "web/src/design/contrast.test.ts (imports only the four Instrument Sans weights and uses no mono font)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
   },
   {
     "id": "PLAN03-030",
     "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
     "text": "hierarchy by size and weight, headings 600 with -0.02em",
     "kind": "design",
-    "status": "partial",
-    "evidence": "web/src/styles.css",
-    "note": "h1 and h2 carry 600 and -0.02em; h3 and h4 carry 600 without the letter spacing."
+    "status": "met",
+    "evidence": "web/src/app/app.css .page-title, .hero-headline 600 -0.02em",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
   },
   {
     "id": "PLAN03-031",
@@ -319,9 +319,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Two design systems, one family",
     "text": "the sidebar and chrome stay Duly",
     "kind": "design",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "There is no sidebar or shell; web is one page."
+    "status": "partial",
+    "evidence": "web/src/app/app.css .sidebar",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. The sidebar uses Duly tokens. WorkBook, where the rule matters, is not built."
   },
   {
     "id": "PLAN03-037",
@@ -346,9 +346,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
     "text": "each screen is reviewed against this list",
     "kind": "design",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No review file or reviewer checklist in reviews/, specs/ or .claude/ names the design laws."
+    "status": "partial",
+    "evidence": "reviews/product-2*.md",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Reviews checked the screens against the resolutions. design-1 Done 3 (the founder's walk-through) has not happened, and make design-shots was not run in this audit."
   },
   {
     "id": "PLAN03-040",
@@ -382,9 +382,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
     "text": "Edit in place with the pencil (rule 3)",
     "kind": "design",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No pencil or inline edit exists in web/src."
+    "status": "partial",
+    "evidence": "web/src/app/Pages.test.tsx (edits a program in place, and Cancel keeps what was there)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Edit in place is built. No pencil control exists."
   },
   {
     "id": "PLAN03-044",
@@ -544,18 +544,18 @@
     "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
     "text": "Fitts (44px targets)",
     "kind": "design",
-    "status": "partial",
-    "evidence": "web/src/design/tokens.css (--target), web/src/styles.css",
-    "note": "Buttons and fields are 44px, but '.scope button.quiet' sets min-height to 0 and checkboxes are 18px."
+    "status": "met",
+    "evidence": "web/src/app/app.css ::before 44px hit areas",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F13 (D62)."
   },
   {
     "id": "PLAN03-062",
     "source": "duly-plan/03-frontend-and-design.md, Design laws in force",
     "text": "Millers chunking (verdict then three numbers then rows)",
     "kind": "design",
-    "status": "partial",
-    "evidence": "web/src/components/Result.tsx",
-    "note": "The verdict and the rows exist; there is no block of three numbers."
+    "status": "met",
+    "evidence": "web/src/app/Home.tsx metrics; hero, metrics, rows",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. Under F6 (D62): two metrics until WorkBook."
   },
   {
     "id": "PLAN03-063",
@@ -625,9 +625,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
     "text": "progress bars fill once on load",
     "kind": "design",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No progress bar exists."
+    "status": "met",
+    "evidence": "web/src/app/app.css .bar-fill animation fill once",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
   },
   {
     "id": "PLAN03-071",
@@ -679,9 +679,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Psychology layer",
     "text": "Abstentions render as a calm card with the DSO question drafted.",
     "kind": "design",
-    "status": "partial",
-    "evidence": "web/src/App.tsx (CannotTell), web/src/lib/labels.ts",
-    "note": "The card says it is a question for the DSO, but no question is drafted for the person to send."
+    "status": "met",
+    "evidence": "web/src/app/app.test.tsx (offers the draft for a cannot_tell with no questions; drafts for every verdict without Duly or a computed date)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
   },
   {
     "id": "PLAN03-077",
@@ -733,27 +733,27 @@
     "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
     "text": "Student app: Case",
     "kind": "product",
-    "status": "partial",
-    "evidence": "web/src/components/CaseForm.tsx",
-    "note": "The form takes the dates of a case but nothing is saved and there is no Case screen."
+    "status": "met",
+    "evidence": "web/src/app/Pages.tsx YourCase; web/src/app/Pages.test.tsx",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): partial to met. "
   },
   {
     "id": "PLAN03-083",
     "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
     "text": "Student app: Settings",
     "kind": "product",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No settings screen; the time zone is a field in the form."
+    "status": "met",
+    "evidence": "web/src/app/Pages.tsx Settings; web/src/app/Pages.test.tsx (changes the time zone and lists each rule pack with its check day)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. "
   },
   {
     "id": "PLAN03-084",
     "source": "duly-plan/03-frontend-and-design.md, Screen inventory",
     "text": "Student app: Feedback",
     "kind": "product",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No feedback screen or control."
+    "status": "met",
+    "evidence": "web/src/app/Pages.tsx Feedback; web/src/app/Pages.test.tsx (copies the words, and says so)",
+    "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F8 (D62)."
   },
   {
     "id": "PLAN03-085",

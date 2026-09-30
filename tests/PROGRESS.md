@@ -2855,3 +2855,91 @@ Done command as written, no pipe: "All checks passed!", "74 files already format
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-7ef0a11a93: tests/unit/acceptance/test_fix8.py for point 22b
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md point 22b (and 19, 22, 23a),
+reviews/product-2-fix7.md findings 1 and 2, contracts/engine_output.schema.json (stage
+`reasons`, stage `state`), the journey cases J01, J08, J11 to J15, J19 in test_journeys.py.
+
+Wrote tests/unit/acceptance/test_fix8.py (57 tests with the parametrized cases):
+- Every journey without a petition (J01 to J11, J15 to J20): no stage's reasons hold
+  cap_gap.for_dso, nor the verdict's; no stage with a null start or end is current.
+- Unknown stages keep their known dates: J01 transfer.mv1 2024-07-15, null end, unknown, its
+  contact window opens 2024-07-15, its items kept, mv1.contacted_new_dso_on asked; the
+  transfers of J03, J04, J07, J10 and J19 (mv1 2021-08-06, mv2 2023-06-15) start on their
+  release_date; opt_job_end.report.w1 opens on w1's end on J01, J08, J15, stage not current.
+- Petition cases: J12, J13, J14 only grace.p1 carries the step back; J13's job-end report
+  2026-08-14 to 2026-08-24; J14 opt_job_end.w1 (opens 2024-05-31) and stem_job_end.w2
+  (2026-07-15 to 2026-07-25) carry none. J19 twins D (validity_start 2026-06-09), B (pending,
+  2025-06-01) and G (approved, no starts, h9.validity_start asked): only grace.p2 carries it;
+  the 2021 and 2023 transfers keep their starts; twin D's stem.a2 keeps 2026-06-09 to
+  2028-06-08, current, no step back. J19 with a 2020 petition: no stage carries it.
+- The three mutants: J15 plus a 2020 petition keeps Job B's final evaluation 2025-10-31 to
+  2025-11-10 (job_anchor_any_petition) and unemployment.total.a1 116 = 86 + 30
+  (unemp_anchor_removed); J11 opt_job_end.w1 and J15 opt_job_end.w2, stem_job_end.w3 done
+  (engine_windowless_span_current).
+
+What ran:
+- uv run pytest tests/unit/acceptance/test_fix8.py: 6 failed, the rest passed. Each failure is
+  `_carrying_the_step_back(out) == [grace...]` getting [] because HEAD gives stages no
+  `reasons` field (J12, J13, J14, J19 twins D, B, G). Expected: point 22b is not built yet.
+- Mutants planted in a git archive copy under TMPDIR (removed after), selected tests run:
+  no mutant: no failure. job (the &petition_may_extend_job_card filter at parameters.yaml:2041
+  replaced by a true condition): only ..._job_anchor_any_petition_... fails. unemp
+  (*petition_may_extend_card dropped at line 2297): only ..._unemp_anchor_removed_... fails.
+  win (engine/path.py `if not span:` made `if False:`): only the two _windowless_span_ tests fail.
+- Done command as written, no pipe: "All checks passed!", "76 files already formatted", exit 0.
+
+What makes each other test fail: named as "Kills:" in each. In short: cap_gap.for_dso on every
+unknown stage (the no-petition and J14/J19 transfer and job-end tests); on no stage (the J12,
+J13, J14, J19 twin tests); an unknown stage stripped of its start, items or question; an open
+stage shown as current. Not planted: an engine putting the reason on every unknown stage
+(needs the reasons field the engine does not have yet).
+
+Dispute noted: point 22b's first line says a stage whose start or end is null is unknown, but
+its last line keeps windowless job-end stages (null start and end) done, and "next" stages such
+as stem.a2 on J01 have null dates too. The tests follow the named cases and do not assert
+unknown for every null-dated stage.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-1ffc68de1a: tests/unit and tests/holdout in line with point 22b
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md point 22b. The engine landed 22b
+in 66378f1 (stage `reasons` holding cap_gap.for_dso).
+
+First run of the done command as written, before any change: "All checks passed!", formatted,
+pytest all passed (3 strict xfails for point 21), exit 0. test_fix8.py's 6 former failures
+now pass.
+
+Audit: grep for cap_gap.for_dso, "unknown", point 22 in tests/unit and tests/holdout. Only one
+test stated what 22b corrects: test_fix7.py's point 23a Timeline-mark comment ("an unknown
+stage's row holds the DSO line"). 22b: only a row whose stage carries the reason gets it. No
+assertion contradicted 22b, so none was loosened or removed.
+
+Changed (each marked "Point 22b" beside it, working in the comment):
+- test_fix7.py: point 22 section comment notes 22b. test_point_23a_j13s_null_grace_... also
+  asserts grace.p1's own reasons hold cap_gap.for_dso (h1 nulled it). test_point_22_j19_
+  without_a_petition_... also asserts no stage carries it (no petition).
+- test_holdout_journeys.py: helper _carrying_the_step_back. j12 no petition: [] (a1
+  2025-06-01 to 2026-05-31 and grace 2026-06-01 to 2026-07-30 both dated). j12 later
+  validity_start 2026-11-15 and j13 denied (requested_start 2026-10-01 after a1's start
+  2025-07-01): ["grace.p1"], opt_post.a1 keeps its dates. j19 2018 petition: [] (nulls nothing).
+  Checked by a probe of the stages before writing: matches.
+
+What makes each fail (scratch plugin under TMPDIR wrapping engine.path.compute, removed after):
+- no fault: 6 passed.
+- FAULT=strip (stage reasons dropped): the j12 later, j13 twin and fix7 23a J13 tests fail.
+- FAULT=all (cap_gap.for_dso on every stage): j12 no petition, j12 later, j13 twin, j19 2018
+  twin and fix7 plain J19 tests fail.
+
+Done command as written, no pipe (output to a file): "All checks passed!", "76 files already
+formatted", pytest all passed, exit 0.
+
+Note: zsh does not split an unquoted $VAR into words, so a list of test ids in one variable ran
+nothing; an array fixed it.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

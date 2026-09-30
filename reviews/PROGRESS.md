@@ -309,3 +309,18 @@
 - Failure: a state change meant for petition-nulled stages also reached open-ended stages with no petition, and no test pinned a non-petition stage's state.
 - Fix: diff each journey's stage states against the previous run, and send the changed rows through the web views.
 - Evidence: reviews/product-2-fix7.md finding 1.
+
+## 2026-09-30, run l-review-0ba3ea5fce (product round 2, fix 8)
+- Read resolutions.md point 22b, reviews/product-2-fix7.md, plan-fix8, and the diff 3d09f03..ca6abcd (engine/path.py _step_backs, web timeline.ts unknown row, test_fix8.py, fix8.test.ts, the point 22b lines in test_fix7.py, fix7.test.ts and the holdout journeys). Every plan-fix8 lane commit is on the branch.
+- Ran: unit and holdout suites (exit 0); verify, plain, engine_literals, copy lint, ruff, ruff format, mypy, make.py --check (all 0). On a HEAD copy: web tsc exit 0, web vitest 575 passed, desktop vitest 139 passed.
+- TMPDIR/rv8/run.py: twenty journeys, all 200 and cannot_tell. Against fix 6: only the stage states point 22b names change. No stage carries cap_gap.for_dso without a petition. Against fix 7: only grace.p1 reasons on J12, J13 and J14.
+- twins7.py on HEAD: same flat output as fix 7. The reason sits only on the nulled grace (twins B to K, the LATE twins).
+- Scratch web vitest: every no-petition row keeps its fix 6 dates and items; the DSO line appears only on nulled grace rows.
+- Mutants: 10 Python (8 caught; sb_starts_only and sb_no_restore equivalent on all inputs), 3 web (2 caught; the fact lines are unpinned).
+- Probes: J13 with h1.change_of_status or filed_on missing gives a grace row with no reason and no question (should fix).
+- Wrote reviews/product-2-fix8.md (APPROVE, mean 4.5), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a zsh loop over quoted commands ran each string as one command name, and every gate printed exit 127.
+- Fix: eval each command in the loop and print its last output line beside the exit code.
+- Evidence: TMPDIR/rv8/gates.txt.
