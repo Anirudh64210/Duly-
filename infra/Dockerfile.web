@@ -5,6 +5,8 @@ COPY web/package.json ./web/package.json
 COPY ops/package.json ./ops/package.json
 RUN npm ci --ignore-scripts
 COPY web ./web
+# A web test joins the desktop shot list (resolutions point 20).
+COPY desktop/src ./desktop/src
 RUN npm run build -w web
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine

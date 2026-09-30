@@ -1,0 +1,41 @@
+branch: product-2
+spec: specs/ui-1/SPEC.md
+goal: 'The founder is testing a preview now. Home must read in plain words: every question Duly can ask has
+  its own words, no id is ever shown, and no screen scrolls sideways. Words and layout only; no engine or
+  pack change.'
+merge: pr
+rounds:
+- name: build
+  lanes:
+  - lane: L-web
+    agent: builder
+    mission: 'specs/ui-1/SPEC.md points 5, 6 and 8 in web/. The tests go in web/src/app/ui1.test.tsx and
+      web/src/lib/labels.test.ts.
+
+      '
+    done: bash -c 'npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint && uv run python -m tools.sources.plain'
+  - lane: L-desktop
+    agent: builder
+    mission: 'specs/ui-1/SPEC.md point 7 in desktop/src/shots.ts, with its test in desktop/src/shots.test.ts.
+
+      '
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings 0'
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review against specs/ui-1/SPEC.md points 5 to 8 and close or name every finding of
+      reviews/ui-1.md, in ONE pass. For every question id the pack can ask, read the words a person
+      sees. Write reviews/ui-1-fix1.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/ui-1-fix1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the design-1 Covers rows for Home, Your case and Onboarding after specs/ui-1; update
+      docs/requirements/audits/product-2.md and report the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register check'
