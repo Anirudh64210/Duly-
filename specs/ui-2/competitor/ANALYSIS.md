@@ -106,7 +106,7 @@ These are real student needs. Section 7 says how Duly meets each one its own way
    - Up to five ways to add a job on Home and three on OPT Dates (shots 1 to 9).
    - Two progress measures that disagree: "55%" on Home and "1/4 done" on OPT Dates (shots 1, 6).
    - Help, FAQ, Answers (Q&A), Glossary and Blog overlap (shots 40 to 48).
-7. **Empty screens full of chrome.** Four "–" tiles and an empty bar before any job exists (shot 14), and five blank job-board columns (shot 26).
+7. **Empty screens full of chrome.** Four blank tiles and an empty bar before any job exists (shot 14), and five blank job-board columns (shot 26).
 
 ## 4. Where their screens are wrong or risky
 
