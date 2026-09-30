@@ -870,7 +870,12 @@ def with_the_about_asked(
         if not asked:
             break
         for q in asked:
-            sent[q["id"]] = {**pending[q["id"]], "about": copy.deepcopy(q["about"])}
+            answer = {k: v for k, v in pending[q["id"]].items() if k != "about"}
+            # A question asked with no about (the path's complete.<kind>, programs.md
+            # section 13) is answered with none; the marker never goes with it.
+            if "about" in q:
+                answer["about"] = copy.deepcopy(q["about"])
+            sent[q["id"]] = answer
     # An answer whose question was never asked is left out: it would not be read, and a
     # placeholder never reaches the engine or the api (refuse_placeholders).
     return with_changes(case, confirmations=sent)
