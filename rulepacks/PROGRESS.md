@@ -933,3 +933,31 @@ probe (TMPDIR/lc13_probe.py): J05 cannot_tell, opt.months_at_level.master null, 
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-342a9981c1, attempt 1 (J08, pack side)
+
+### What was tried
+
+- Read J08 (specs/path-1/journeys.json) and the L-engine report (worktree l-engine-c5fe743a12, engine/REPORT.json; it is gitignored, so `git show` of the branch does not hold it). Its two requests name the cause.
+- First `unemployment.opt_card` (authorization): span ends is now the same `earliest_of` as the `opt_post` span ends (card_end, optional day_before the change-of-level to_program.start_date). rule_ids add opt.ends_on_transfer_or_new_level.
+- Its qualifying: `{field: this.on_campus, present: false}` before `{field: this.under, same_as: outer.id}`. engine/path.py `_all` stops at the first false condition, so `under` of an on-campus job is not asked.
+
+### What ran
+
+```
+uv run pytest tests/unit/acceptance -q -k j08: 7 passed
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 28 failed, HEAD copy (git archive into TMPDIR) 31 failed; no new failure.
+  Now passing: test_j08_unemployment_on_the_bachelors_card_is_35_days, test_j08_unemployment_is_null_until_the_trip_list_is_whole
+  (test_plain_changes fails in the HEAD copy only because it has no git history)
+```
+
+### Seen and not worked around
+
+- The transfer release date (ends_also of opt_post) is not an end of the counter; counters have no ends_also.
+- `unemployment.total` qualifying still reads `this.under` with no on_campus guard; not in this mission.
+- No network was used. No instruction was found in any data.
