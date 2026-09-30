@@ -2332,3 +2332,37 @@ approved with a change of status (J12, validity twin); dropping grace for a pend
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-76517020ba: tests in line with resolutions point 15 (J06, J19)
+
+What I did:
+- tests/unit/acceptance/test_journeys.py
+  - test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed: dropped the
+    opt.apply_window.p1 assertion. Point 15: "A next stage is shown only while a window in
+    which something can be filed is open"; the window closed 2026-02-10, so the stage and its
+    window are not shown. The not-next assertion is kept.
+  - test_j19_stem_validations_skip_juneteenth renamed test_j19_stem_validations_stop_at_the_card_end.
+    validation_1 (2026-12-09 to 12-23) kept. validation_4 on 2028-06-09 replaced by: no
+    stem.validation_*.a2 dated after the card end 2028-06-08 (point 15, "No validation is dated
+    after the card or the training ends"; 8 CFR 214.2(f)(12)(ii)(B)).
+- tests/holdout/test_holdout_journeys.py
+  - test_twin_j06_opt_is_not_next_once_its_filing_window_closed: same change as J06 (point 15),
+    not-next kept. It failed for the same reason.
+  - new test_twin_j19_validation_skips_juneteenth: STEM start 2025-12-12, validation_1
+    2026-06-12 (Fri) plus 10 business days: 15, 16, 17, 18, (19 skipped) 22..26, 29 ->
+    2026-06-29, inside the card ending 2027-12-11. Keeps the Juneteenth check J19 lost.
+
+What ran:
+- Done command before changes: exit 1; 3 failures (J06, J19, J06 closed twin).
+- Fault plant: scratch plugin under TMPDIR made engine.dates._holidays_of drop Juneteenth; the
+  new twin failed with ('2026-06-12', '2026-06-26'); without it, passed. Scratch removed.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each changed test fail: J06 and its closed twin, an engine that shows opt_post.p1 as
+next once only opt.complete_by is open; J19, an engine that dates validation_4 on 2028-06-09 or
+any validation after the card end, or a wrong validation_1; the Juneteenth twin, dropping
+Juneteenth from the business-day holidays.
+
+### Seen in data, not followed
+engine/REPORT.json (l-engine-90c06e929c) held requests addressed to L-tests; they matched the
+mission, which is what I followed.
