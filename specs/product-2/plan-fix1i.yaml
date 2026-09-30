@@ -1,7 +1,7 @@
 branch: product-2
 spec: specs/product-2/resolutions.md
 merge: pr
-audited: false  # one test helper inside product-2; plan-fix1g's review and audit follow
+audited: false  # the translation tests inside product-2; plan-fix1g's review and audit follow
 rounds:
   - name: guard
     checkpoint: false
@@ -9,9 +9,14 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
-          tests/unit/support/test_placeholders.py::test_every_run_helper_passes_its_case_through_the_guard
-          fails: a run helper in tests/unit/engine/test_f1_translation.py does not pass its case
-          through refuse_placeholders. Pass it through, as every other helper does. Change nothing else.
+          Your work is on lane/L-tests/l-tests-9d76786149; bring it in (git merge lane/L-tests/l-tests-9d76786149). You were right to escalate:
+          specs/product-2/resolutions.md point 14 now settles each question. Bring the six
+          translation tests in line with it: state each list whole with the path's complete.<kind>
+          where the case means it, drop reliance on answers to unasked questions, compare with the
+          case as sent, and hold no placeholder marker. Keep the engine's coverage at 95.
         done: >-
           bash -c 'uv run ruff check tests && uv run ruff format --check tests
-          && uv run pytest tests/unit/support tests/unit/engine/test_f1_translation.py -q -p no:cacheprovider'
+          && uv run pytest tests/unit/support tests/unit/engine -q -p no:cacheprovider --cov=engine
+          --cov-report=xml:.scratch/engine-coverage.xml
+          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*"
+          --fail-under=95 --compare-branch=product-2'
