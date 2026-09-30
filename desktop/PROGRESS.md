@@ -151,3 +151,31 @@ do you do?", "STEM OPT extension", "One thing worth knowing."). Of the five buil
 Timeline draws a fixed heading that matches ("Timeline", web/src/app/Timeline.tsx:202). The
 other four hold their canvas words only if the engine samples put the screen in the canvas's
 state; otherwise `make design-shots` exits 1 for them. Not run: Electron itself.
+
+## 2026-09-30, run l-desktop-ee49e3b4ff, attempt 1
+
+Read specs/product-2/resolutions.md point 18 and specs/product-2/plan-fix5.yaml (the L-web half).
+
+Point 18: the shot run counts a screen as drawn when the page holds the element the app marks
+data-landmark="<screen>". Text is not compared (design-1 14.1 stands); point 17's text check is gone.
+
+- shots.ts: `<screen>` is the route the shot asks for (the `screen` query, as in SHOT_SCREENS:
+  "/timeline", "/", ...). landmarkSelector(screen) gives `[data-landmark="<route>"]`. drawScript gives
+  back each visible element under #root that carries data-landmark, with the screen it names and its
+  box (PageMark); pageMarks refuses any other shape. holdsLandmark(marks, screen) holds when a mark
+  names exactly this screen and has a box. landmarks.json, SHOT_CANVAS, screenLandmark, spacing and
+  the type comparison are removed; every built screen now has a landmark, so shots.json's landmark is
+  always the selector.
+- shotrun.ts: no longer reads tests/design/landmarks.json; a miss names the selector. main.ts drops
+  the landmarks path.
+- Tests: shots.test.ts (selector, one landmark per screen, another screen's mark, any letter
+  different, no box, pageMarks), shots.page.test.ts (jsdom: marked heading counts whatever it reads,
+  error screen with the screen's words and no mark does not, hidden or clear mark left out).
+
+What ran: the done command, exit 0. 11 test files, 136 tests passed. eslint clean, copy lint clean.
+prettier --write ran once before the done command (no change). One earlier run of the done command
+was piped through tail by mistake; it was run again unpiped, exit 0.
+
+Request: L-web must set data-landmark to the route exactly ("/timeline", "/" for home), on each of
+the eight SHOT_SCREENS, and never on an error hero. No web file holds data-landmark on this branch
+yet, so `make design-shots` exits 1 until L-web's part lands. Not run: Electron itself.

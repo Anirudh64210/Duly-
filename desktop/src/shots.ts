@@ -125,58 +125,28 @@ export function refusedInApp(relative: string): boolean {
   return relative === SHOTS_PAGE;
 }
 
-/** Where the canvas landmarks are kept (specs/design-1/SPEC.md 14.1). */
-export function designLandmarks(root: string): string {
-  return join(root, "tests", "design", "landmarks.json");
-}
+/** The attribute the app sets on the element it marks as a screen's landmark. */
+export const LANDMARK_ATTRIBUTE = "data-landmark";
 
 /**
- * The canvas screen in tests/design/landmarks.json that each built screen is drawn from.
- * A built screen with no canvas screen (Your case, Settings, Feedback) has no landmark, so
- * its shot is never counted as drawn (resolutions point 16).
+ * A screen's landmark (resolutions point 18): the element the app marks with
+ * data-landmark="<screen>", where the screen is the route the shot asks for. No error screen
+ * carries one. Text and type are not compared (specs/design-1/SPEC.md 14.1).
  */
-export const SHOT_CANVAS: Readonly<Record<string, string>> = {
-  "/welcome": "Onboarding",
-  "/": "Main",
-  "/timeline": "Timeline",
-  "/checklists": "Checklist",
-  "/updates": "Updates",
-};
-
-/**
- * A screen's own landmark: the first landmark its canvas screen draws in its largest type,
- * the screen's heading. It is found on the page by its type (size, weight and letter
- * spacing) and by its heading text, the landmark's label (resolutions point 17), so a
- * screen that draws another screen's heading in the same type is not counted. Colour is
- * left out, since dark shots take the dark tokens.
- */
-export interface ScreenLandmark {
-  canvas: string;
-  index: number;
-  text: string;
-  fontSize: number;
-  fontWeight: string;
-  letterSpacing: number;
+export function landmarkSelector(screen: string): string {
+  return `[${LANDMARK_ATTRIBUTE}=${JSON.stringify(screen)}]`;
 }
 
-const WEIGHTS: Readonly<Record<string, string>> = { normal: "400", bold: "700" };
-
-function weight(value: string): string {
-  return WEIGHTS[value] ?? value;
+/** One marked element on the page: the screen it names and its box. */
+export interface PageMark {
+  landmark: string;
+  width: number;
+  height: number;
 }
 
-function pixels(value: string): number | null {
-  const match = /^(-?\d*\.?\d+)px$/.exec(value.trim());
-  return match === null ? null : Number(match[1]);
-}
-
-/** Letter spacing in pixels at a font size: "normal" is 0, em is a share of the size. */
-export function spacing(value: string, fontSize: number): number | null {
-  const text = value.trim();
-  if (text === "normal") return 0;
-  const em = /^(-?\d*\.?\d+)em$/.exec(text);
-  if (em !== null) return Number(em[1]) * fontSize;
-  return pixels(text);
+/** Whether the page holds the screen's landmark: a visible element marked with this screen. */
+export function holdsLandmark(marks: readonly PageMark[], screen: string): boolean {
+  return marks.some((mark) => mark.landmark === screen && mark.width > 0 && mark.height > 0);
 }
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -185,121 +155,29 @@ function record(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function text(value: unknown): string | null {
-  return typeof value === "string" ? value : null;
-}
-
-/** Text as it reads: runs of white space are one space, and none at either end. */
-export function words(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-/**
- * The landmark of a built screen, read from the parsed tests/design/landmarks.json, or null
- * when the screen has no canvas screen, the file does not hold it, or no type can be read.
- */
-export function screenLandmark(landmarks: unknown, screen: string): ScreenLandmark | null {
-  const canvas = SHOT_CANVAS[screen];
-  if (canvas === undefined) return null;
-  const marks = record(record(record(landmarks)?.screens)?.[canvas])?.landmarks;
-  if (!Array.isArray(marks)) return null;
-  let found: ScreenLandmark | null = null;
-  for (const [index, mark] of marks.entries()) {
-    const type = record(record(mark)?.type);
-    const label = words(text(record(mark)?.label) ?? "");
-    const size = pixels(text(type?.["font-size"]) ?? "");
-    const fontWeight = text(type?.["font-weight"]);
-    if (size === null || fontWeight === null) continue;
-    const letterSpacing = spacing(text(type?.["letter-spacing"]) ?? "normal", size);
-    if (letterSpacing === null) continue;
-    if (found === null || size > found.fontSize) {
-      found = {
-        canvas,
-        index,
-        text: label,
-        fontSize: size,
-        fontWeight: weight(fontWeight),
-        letterSpacing,
-      };
-    }
-  }
-  return found?.text === "" ? null : found;
-}
-
-/** How a landmark is named in shots.json and on stderr. */
-export function landmarkName(landmark: ScreenLandmark | null): string | null {
-  return landmark === null ? null : `${landmark.canvas} landmark ${String(landmark.index)}`;
-}
-
-/** The type of one element on the page that draws text of its own, as the page computed it. */
-export interface PageText {
-  text: string;
-  fontSize: string;
-  fontWeight: string;
-  letterSpacing: string;
-  width: number;
-  height: number;
-}
-
-/** Type may differ by rounding only; boxes are the landmark check's business, not this one's. */
-const TYPE_TOLERANCE_PX = 0.05;
-
-/**
- * Whether the page holds the landmark: a visible text that reads as the landmark's heading
- * text, in exactly the landmark's type.
- */
-export function holdsLandmark(
-  texts: readonly PageText[],
-  landmark: ScreenLandmark | null,
-): boolean {
-  if (landmark === null) return false;
-  return texts.some((drawn) => {
-    const size = pixels(drawn.fontSize);
-    if (size === null || drawn.width <= 0 || drawn.height <= 0) return false;
-    const letters = spacing(drawn.letterSpacing, size);
-    return (
-      words(drawn.text) === landmark.text &&
-      Math.abs(size - landmark.fontSize) <= TYPE_TOLERANCE_PX &&
-      weight(drawn.fontWeight) === landmark.fontWeight &&
-      letters !== null &&
-      Math.abs(letters - landmark.letterSpacing) <= TYPE_TOLERANCE_PX
-    );
-  });
-}
-
-/** The page script's answer as a list of PageText, or null when it is anything else. */
-export function pageTexts(value: unknown): PageText[] | null {
+/** The page script's answer as a list of PageMark, or null when it is anything else. */
+export function pageMarks(value: unknown): PageMark[] | null {
   if (!Array.isArray(value)) return null;
-  const texts: PageText[] = [];
+  const marks: PageMark[] = [];
   for (const item of value) {
     const entry = record(item);
-    const drawnText = text(entry?.text);
-    const fontSize = text(entry?.fontSize);
-    const fontWeight = text(entry?.fontWeight);
-    const letterSpacing = text(entry?.letterSpacing);
+    const landmark = entry?.landmark;
     const width = entry?.width;
     const height = entry?.height;
-    if (
-      drawnText === null ||
-      fontSize === null ||
-      fontWeight === null ||
-      letterSpacing === null ||
-      typeof width !== "number" ||
-      typeof height !== "number"
-    ) {
+    if (typeof landmark !== "string" || typeof width !== "number" || typeof height !== "number") {
       return null;
     }
-    texts.push({ text: drawnText, fontSize, fontWeight, letterSpacing, width, height });
+    marks.push({ landmark, width, height });
   }
-  return texts;
+  return marks;
 }
 
 /**
  * Run inside the page. It sets the theme the way the design shots use it (SPEC 3, the
- * `data-theme` attribute), waits for the webfont and two frames, and gives back the text and
- * type of every visible element under the root that draws text of its own. Whether that holds the
- * screen's landmark is decided outside the page (holdsLandmark), so an error screen is never
- * counted as drawn.
+ * `data-theme` attribute), waits for the webfont and two frames, and gives back every visible
+ * element under the root that carries a landmark mark, with the screen it names and its box.
+ * Whether that holds the shot's own landmark is decided outside the page (holdsLandmark), so
+ * an error screen is never counted as drawn.
  */
 export function drawScript(theme: ShotTheme): string {
   return `(async () => {
@@ -308,25 +186,18 @@ export function drawScript(theme: ShotTheme): string {
   await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
   const root = document.getElementById("root");
   if (root === null) return [];
-  const texts = [];
-  for (const element of root.querySelectorAll("*")) {
-    const own = Array.from(element.childNodes).some(
-      (node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== "",
-    );
-    if (!own) continue;
+  const marks = [];
+  for (const element of root.querySelectorAll("[${LANDMARK_ATTRIBUTE}]")) {
     const style = getComputedStyle(element);
     if (style.visibility !== "visible" || Number(style.opacity) === 0) continue;
     const box = element.getBoundingClientRect();
-    texts.push({
-      text: element.textContent ?? "",
-      fontSize: style.fontSize,
-      fontWeight: style.fontWeight,
-      letterSpacing: style.letterSpacing,
+    marks.push({
+      landmark: element.getAttribute("${LANDMARK_ATTRIBUTE}") ?? "",
       width: box.width,
       height: box.height,
     });
   }
-  return texts;
+  return marks;
 })()`;
 }
 
@@ -335,11 +206,11 @@ export interface ShotResult {
   screen: string;
   sample: string;
   theme: ShotTheme;
-  landmark: string | null;
+  landmark: string;
   drawn: boolean;
 }
 
-/** shots.json: what each shot was, the landmark it looked for, and whether it held it. */
+/** shots.json: what each shot was, the landmark it looked for (its selector), and whether it held it. */
 export function shotsJson(results: readonly ShotResult[]): string {
   const report = {
     size: SHOT_SIZE,

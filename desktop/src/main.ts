@@ -25,7 +25,7 @@ import {
 import { createAppHandler, readInside } from "./protocol";
 import { smokeFolder } from "./screen";
 import { runShots } from "./shotrun";
-import { NO_ENGINE, designLandmarks, refusedInApp, shotsFolder, webSamples } from "./shots";
+import { NO_ENGINE, refusedInApp, shotsFolder, webSamples } from "./shots";
 import { runSmoke } from "./smoke";
 
 const INDEX = `${APP_ORIGIN}/index.html`;
@@ -163,7 +163,6 @@ function launchShots(folder: string): void {
       folder,
       webDist: webDist(root),
       samples: webSamples(root),
-      landmarks: designLandmarks(root),
       preload: join(__dirname, "preload.js"),
       version: app.getVersion(),
     });

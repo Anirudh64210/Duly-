@@ -1,30 +1,17 @@
 // @vitest-environment jsdom
 /**
- * The page script of the shots run, in a page (resolutions point 16): an error screen gives
- * back no text in the screen's landmark type, so the shot is not counted as drawn.
+ * The page script of the shots run, in a page (resolutions point 18): a screen counts as
+ * drawn when the page holds the element the app marks data-landmark="<screen>". An error
+ * screen carries no mark, so it is never counted, whatever its text says.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  designLandmarks,
-  drawScript,
-  holdsLandmark,
-  pageTexts,
-  screenLandmark,
-  type PageText,
-} from "./shots";
+import { drawScript, holdsLandmark, pageMarks, type PageMark } from "./shots";
 
-const LANDMARKS: unknown = JSON.parse(
-  readFileSync(designLandmarks(join(__dirname, "..", "..")), "utf8"),
-);
-
-async function runPage(body: string): Promise<PageText[] | null> {
+async function runPage(body: string): Promise<PageMark[] | null> {
   document.body.innerHTML = body;
   const value: unknown = await (0, eval)(drawScript("dark"));
-  return pageTexts(value);
+  return pageMarks(value);
 }
 
 describe("the page script", () => {
@@ -52,45 +39,39 @@ describe("the page script", () => {
     document.documentElement.removeAttribute("data-theme");
   });
 
-  const shell =
-    '<nav><div style="font-size: 17px; font-weight: 700">Duly</div>' +
-    '<a style="font-size: 14px">Timeline</a></nav>';
-  const heading =
-    '<h1 style="font-size: 32px; font-weight: 600; letter-spacing: -0.64px">Timeline</h1>';
+  const shell = '<nav><div>Duly</div><a href="/timeline">Timeline</a></nav>';
+  const heading = '<h1 data-landmark="/timeline">Timeline</h1>';
 
-  it("counts the timeline as drawn when its heading is on the page", async () => {
-    const texts = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
+  it("counts the timeline as drawn when its marked landmark is on the page", async () => {
+    const marks = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-    expect(texts).not.toBeNull();
-    expect(holdsLandmark(texts ?? [], screenLandmark(LANDMARKS, "/timeline"))).toBe(true);
+    expect(marks).toEqual([{ landmark: "/timeline", width: 400, height: 40 }]);
+    expect(holdsLandmark(marks ?? [], "/timeline")).toBe(true);
   });
 
-  it("never counts an error screen as drawn", async () => {
-    const error = '<main><p style="font-size: 16px">Something went wrong.</p></main>';
-    const texts = await runPage(`<div id="root">${shell}${error}</div>`);
-    expect(texts?.length).toBe(3);
-    expect(holdsLandmark(texts ?? [], screenLandmark(LANDMARKS, "/timeline"))).toBe(false);
+  it("does not compare text: the mark counts whatever the heading reads", async () => {
+    const other = '<h1 data-landmark="/timeline">Everything is in order.</h1>';
+    const marks = await runPage(`<div id="root">${shell}<main>${other}</main></div>`);
+    expect(holdsLandmark(marks ?? [], "/timeline")).toBe(true);
   });
 
-  it("gives back nothing when there is no root, and leaves out hidden text", async () => {
+  it("never counts an error screen as drawn, even one that names the screen", async () => {
+    const error = "<main><h1>Timeline</h1><p>Something went wrong.</p></main>";
+    const marks = await runPage(`<div id="root">${shell}${error}</div>`);
+    expect(marks).toEqual([]);
+    expect(holdsLandmark(marks ?? [], "/timeline")).toBe(false);
+  });
+
+  it("does not count another screen's landmark as this screen's", async () => {
+    const marks = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
+    expect(holdsLandmark(marks ?? [], "/")).toBe(false);
+  });
+
+  it("gives back nothing when there is no root, and leaves out a hidden mark", async () => {
     expect(await runPage(heading)).toEqual([]);
-    const hidden = heading.replace('style="', 'style="visibility: hidden; ');
+    const hidden = heading.replace("<h1 ", '<h1 style="visibility: hidden" ');
     expect(await runPage(`<div id="root">${hidden}</div>`)).toEqual([]);
-  });
-
-  it("gives back each text as it reads, with the landmark's type", async () => {
-    const texts = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
-    expect(texts?.map((drawn) => drawn.text)).toEqual(["Duly", "Timeline", "Timeline"]);
-  });
-
-  it("does not count a heading in the landmark's type that reads otherwise", async () => {
-    const other = heading.replace(">Timeline<", ">Updates<");
-    const texts = await runPage(`<div id="root">${shell}<main>${other}</main></div>`);
-    expect(holdsLandmark(texts ?? [], screenLandmark(LANDMARKS, "/timeline"))).toBe(false);
-  });
-
-  it("does not count another screen's heading as this screen's landmark", async () => {
-    const texts = await runPage(`<div id="root">${shell}<main>${heading}</main></div>`);
-    expect(holdsLandmark(texts ?? [], screenLandmark(LANDMARKS, "/"))).toBe(false);
+    const clear = heading.replace("<h1 ", '<h1 style="opacity: 0" ');
+    expect(await runPage(`<div id="root">${clear}</div>`)).toEqual([]);
   });
 });
