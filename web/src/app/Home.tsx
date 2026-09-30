@@ -22,7 +22,6 @@ import {
   groupOf,
   itemName,
   needsAnswer,
-  openQuestionsLine,
   questionCopy,
   questionTitle,
   reasonItem,
@@ -565,8 +564,11 @@ export function Home() {
           </h1>
           {asking ? (
             <>
-              <p className="reason-line">{openQuestionsLine(output.questions.length)}</p>
-              <Disclose label="Why" className="why">
+              <p className="reason-line">
+                {output.questions.length} {output.questions.length === 1 ? "answer" : "answers"}{" "}
+                would let Duly go on with your dates.
+              </p>
+              <Disclose label="Why">
                 <Reasons output={output} />
               </Disclose>
             </>
@@ -582,9 +584,12 @@ export function Home() {
           )}
           {state === "talk_to_dso" && <DraftPill text={caseDraft(output, sent)} />}
           {state === "cannot_tell" && !asking && <DraftPill text={caseDraft(output, sent)} />}
+          <Metrics output={output} />
           {asking && (
-            <div className="next-move">
-              <h2 className="eyebrow">YOUR NEXT MOVE</h2>
+            <section className="section" aria-labelledby="next-move-heading">
+              <h2 className="eyebrow" id="next-move-heading">
+                YOUR NEXT MOVE
+              </h2>
               <div className="row">
                 <button
                   type="button"
@@ -599,10 +604,9 @@ export function Home() {
                   <Chevron />
                 </button>
               </div>
-            </div>
+            </section>
           )}
         </section>
-        <Metrics output={output} />
         <QuestionsSection output={output} sent={sent} />
         <NextSection output={output} sent={sent} />
         <DataSection output={output} sent={sent} />

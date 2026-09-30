@@ -1261,3 +1261,47 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - Done command, as written, output to a file: exit 0. 31 files, 582 tests passed, eslint
   clean, "copy lint: clean", make samples clean. git printed "tests/holdout/...: Operation
   not permitted" (sandbox, as the contract says).
+
+## l-web-8904763f46: specs/ui-1 points 5, 6 and 8 (review fix round)
+
+### Tried
+
+- Point 5, web/src/lib/labels.ts: words for every question the path can ask, keyed by what is
+  asked. RECORD_KINDS mirrors path.records (id letters, name, the words that ask whether a
+  list is whole); FIELD_WORDS holds one line per `<kind>.<field>` (the pack's labels, with "it"
+  named), fields held only to translate an older case left out. questionTitle now reads, in
+  order: the existing copy, then pathTitle: `typed_dates.from_documents`,
+  `typed_dates.checked.<record>.<field>`, `record.ends_before_today` (words from
+  specs/documents-1 section 8 and specs/path-1/programs.md), `complete.<kind>`,
+  `<record>.<field>.after_today`, `<check>.<record>`, and `<record>.<field>` as
+  "Trip abroad 1: Was there a job to return to?". becauseLine says why in words for these
+  ("Asked because nothing is entered for it yet."); the older round A form is unchanged.
+  No yes and no buttons were added: `complete.<kind>` is read by the engine from case.complete,
+  not from confirmations, so a button would record an answer the engine never reads.
+- Point 6, ui1.test.tsx: Why's 21 lines on path-stem-next are written out literally.
+- Point 8, Home.tsx: the count line is a literal in Home again (openQuestionsLine is gone);
+  the two .why margins and .next-move are gone from app.css, and the Why disclosure no longer
+  takes Onboarding's .why class. Order in the hero: headline, calm line, Why, scope, the
+  metrics, then YOUR NEXT MOVE. The metrics sit inside the Verdict region because
+  Home.test.tsx and app.test.tsx (not mine to edit) look for "Answer Duly's questions" there.
+- labels.test.ts reads parameters.yaml through `?raw` (as styles.test.ts does with CSS) and
+  fails for any record kind, field, list or typed date with no words, any id shown, any
+  underscore, and two fields of one record sharing a title.
+
+### Ran
+
+- Reviewer's mutant (fallback `Duly needs your ${id with dots and underscores as spaces}.`,
+  field words off): 6 tests fail across ui1.test.tsx and labels.test.ts. Restored.
+- First done run: exit 1, two older tests wanted the next move inside the hero. Moved it back
+  inside, after the metrics. Second: exit 1, eslint no-regex-spaces in my test. Third: exit 0,
+  31 files, 591 tests passed, eslint clean, "copy lint: clean", plain words clean.
+  git printed "tests/holdout/...: Operation not permitted" (sandbox, as the contract says).
+
+### Not built
+
+- Words per pack check: a check that does not hold for a record reads
+  "Permission to work 3: Some facts entered do not fit together.", so two such checks on one
+  record show one line under Why.
+- rule_copy_not_saved_for_event_day and opt.months_at_level.at_or_over_limit.master are not
+  questions; both still read "Something in what you entered needs an answer." and fold into
+  one line under Why. Their words are for the content lane, not a words-only web round.

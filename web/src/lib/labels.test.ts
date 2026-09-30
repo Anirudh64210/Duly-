@@ -1,6 +1,8 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
+import pack from "../../../rulepacks/f1-us/v2026.09/parameters.yaml?raw";
+
 import { engineOutputSchema } from "./compute";
 import { CPT_OVER, OUTPUT } from "./fixtures";
 import {
@@ -27,6 +29,7 @@ import {
   needsAnswer,
   listName,
   questionCopy,
+  questionTitle,
   reasonItem,
   reasonText,
   scopeLine,
@@ -771,5 +774,134 @@ describe("resolutions point 19: the words for cap_gap.for_dso", () => {
 
   it("keeps it beside the other judgement items, not among the facts that do not fit", () => {
     expect(factLine("cap_gap.for_dso")).toBeNull();
+  });
+});
+
+// specs/ui-1/SPEC.md point 5: the pack's records, read from its own text. Each record kind
+// starts "    - id: <kind>" under path.records, and each field is one line "- {id: ..., kind: ...}".
+function packRecords(): { kind: string; prefix: string; fields: { id: string; kind: string }[] }[] {
+  const records = pack.slice(pack.indexOf("\n  records:\n"), pack.indexOf("\n  order:\n"));
+  return records
+    .split(/\n {4}- id: /)
+    .slice(1)
+    .map((block) => ({
+      kind: block.slice(0, block.indexOf("\n")).trim(),
+      prefix: /\n {6}id_prefix: (\w+)/.exec(block)?.[1] ?? "",
+      fields: [...block.matchAll(/- \{id: "?(\w+)"?, kind: (\w+)([^\n]*)\}/g)]
+        .filter((field) => !(field[3] ?? "").includes("translation_only: true"))
+        .map((field) => ({ id: field[1] ?? "", kind: field[2] ?? "" })),
+    }));
+}
+
+const NO_WORDS = "Duly has a question about what you entered.";
+
+/** An id shown in any form: as is, or with dots or underscores turned into spaces. */
+function showsId(line: string, id: string): boolean {
+  return [id, id.replaceAll(".", " "), id.replaceAll("_", " "), id.replaceAll(/[._]/g, " ")].some(
+    (form) => new RegExp(`(^|[^\\w])${form.replaceAll(".", "\\.")}($|[^\\w])`).test(line),
+  );
+}
+
+describe("questions the pack can ask (ui-1 point 5)", () => {
+  const records = packRecords();
+
+  it("reads every record kind of the pack", () => {
+    expect(records.map((record) => record.kind)).toEqual([
+      "program",
+      "move",
+      "end_date_change",
+      "authorization",
+      "employer",
+      "work",
+      "report",
+      "trip",
+      "petition",
+      "withdrawal",
+      "term",
+      "reduced_load",
+      "reinstatement",
+    ]);
+    for (const record of records) {
+      expect(record.prefix).not.toBe("");
+      expect(record.fields.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("has words for every field, by the record's kind, and never the id", () => {
+    for (const record of records) {
+      const rid = `${record.prefix}2`;
+      const titles = new Set<string>();
+      for (const field of record.fields) {
+        const id = `${rid}.${field.id}`;
+        const title = questionTitle(id);
+        expect(title, id).not.toBe(NO_WORDS);
+        expect(showsId(title, id), title).toBe(false);
+        expect(title).not.toContain("_");
+        expect(showsId(title, rid), title).toBe(false);
+        expect(title.endsWith(" 2")).toBe(false);
+        titles.add(title);
+        expect(becauseLine([`missing:${id}`])).toBe("Asked because nothing is entered for it yet.");
+      }
+      // Two questions about one record never share a title, so no reason is folded away.
+      expect(titles.size).toBe(record.fields.length);
+    }
+  });
+
+  it("has words for every list the pack can ask to confirm whole", () => {
+    const wholes = new Set<string>();
+    for (const record of records) {
+      const id = `complete.${record.kind}`;
+      const title = questionTitle(id);
+      expect(title, id).not.toBe(NO_WORDS);
+      expect(showsId(title, id), title).toBe(false);
+      expect(title).not.toContain("_");
+      expect(becauseLine([`unconfirmed:${id}`])).toBe(
+        "Asked because Duly waits for your answer before it goes on.",
+      );
+      wholes.add(title);
+    }
+    expect(wholes.size).toBe(records.length);
+  });
+
+  it("has words for every typed date to check and for the end of the record", () => {
+    expect(questionTitle("typed_dates.from_documents")).toBe(
+      "Did you type these dates from your documents?",
+    );
+    expect(becauseLine(["unconfirmed:typed_dates"])).toBe(
+      "Asked because some dates you typed are not checked yet.",
+    );
+    for (const record of records) {
+      for (const field of record.fields.filter((each) => each.kind === "date")) {
+        const id = `typed_dates.checked.${record.prefix}1.${field.id}`;
+        const title = questionTitle(id);
+        expect(title, id).not.toBe(NO_WORDS);
+        expect(showsId(title, id), title).toBe(false);
+        expect(title).not.toContain("_");
+      }
+    }
+    expect(questionTitle("record.ends_before_today")).toBe(
+      "Your record ends before today. Is there anything after it to add?",
+    );
+  });
+
+  it("has words for a date entered after today and for a check that does not hold", () => {
+    expect(questionTitle("t1.left_on.after_today")).toBe(
+      "Trip abroad 1: Day of leaving the US. The date entered is after today.",
+    );
+    expect(questionTitle("cpt.starts_after_endorsement.a3")).toBe(
+      "Permission to work 3: Some facts entered do not fit together.",
+    );
+    expect(becauseLine(["conflict:cpt.starts_after_endorsement.a3"])).toBe(
+      "Asked because the dates entered do not fit together.",
+    );
+  });
+
+  it("names the record by its kind and its number", () => {
+    expect(questionTitle("t1.job_on_return")).toBe("Trip abroad 1: Was there a job to return to?");
+    expect(questionTitle("a1.dso_on")).toBe(
+      "Permission to work 1: Day the DSO signed or entered the recommendation",
+    );
+    expect(questionTitle("wd12.on")).toBe("Withdrawal from classes 12: Day of the withdrawal");
+    expect(questionTitle("zz1.on")).toBe(NO_WORDS);
   });
 });
