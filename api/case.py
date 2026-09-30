@@ -1,8 +1,8 @@
 """POST /v1/compute: a case under contracts/case.schema.json, for any category.
 
-The refusals are the ones /v1/compute/f1 gives, in the same words. No engine function
-reads a records case yet, so every category is answered as not covered: the verdict is
-cannot_tell with category_not_covered:<id>, and nothing is guessed.
+The refusals are the ones /v1/compute/f1 gives, in the same words. The case itself is
+computed by engine/path.py (specs/product-2/resolutions.md point 1): the api checks the
+body, reads today through engine.clocks, and returns the engine output as it is.
 """
 
 from datetime import date
@@ -12,11 +12,16 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 from api.case_f1 import first_problem_under, validator_for
+from engine import path
 from engine.clocks import Clock
 from engine.rulepack import REPO_ROOT, Rulepack
-from engine.verdict import Verdict, VerdictInputs, VerdictState, decide
 
 SCHEMA_PATH = REPO_ROOT / "contracts" / "case.schema.json"
+
+NOT_IN_THE_PACK = (
+    "records: a record holds a kind, a field or a category the rule pack does not declare. "
+    "Send only the kinds and fields the pack asks for, under a category the case lists."
+)
 
 
 @lru_cache
@@ -35,48 +40,9 @@ def answered_after(raw: dict[str, Any], today: date) -> bool:
     return any(date.fromisoformat(answer["on"]) > today for answer in given.values())
 
 
-def compute(
-    raw: dict[str, Any], packs: list[Rulepack], clock: Clock, today: date
-) -> dict[str, Any]:
-    """The engine output for a case the contract accepts.
+def compute(raw: dict[str, Any], packs: list[Rulepack], clock: Clock) -> dict[str, Any]:
+    """The engine output for a case the contract accepts, from engine/path.py.
 
-    The case holds no document, so scope.documents_count is 0 (contracts-reconciled
-    point 12). The rules are checked on the oldest date among the case's packs that
-    hold rules, so a stale pack is never hidden by a fresh one."""
-    categories: list[str] = list(dict.fromkeys(raw["categories"]))
-    by_category = {p.category: p for p in packs}
-    used = [by_category[c] for c in categories if c in by_category]
-    checked = [p.rules_checked_on for p in used if p.rules_checked_on is not None]
-    rules_checked_on = min(checked, default=None)
-    decided = decide(
-        VerdictInputs(
-            documents_count=0,
-            missing_inputs=(),
-            conflicting_inputs=(),
-            rules_checked_on=rules_checked_on,
-            depends_on_litigated_rule=False,
-            judgement_items=(),
-            open_items=(),
-        ),
-        clock,
-        today,
-    )
-    # A category the engine does not compute is never read as quiet.
-    verdict = Verdict(
-        VerdictState.CANNOT_TELL,
-        (*(f"category_not_covered:{c}" for c in categories), *decided.reasons),
-    )
-    return {
-        "today": {"date": today.isoformat(), "time_zone": raw["time_zone"]},
-        "rulepacks": [{"category": p.category, "version": p.version} for p in used],
-        "scope": {
-            "documents_count": 0,
-            "rules_checked_on": None if rules_checked_on is None else rules_checked_on.isoformat(),
-        },
-        "verdict": {"state": verdict.state.value, "reasons": list(verdict.reasons)},
-        "computed": [],
-        "upcoming": [],
-        "lists": [],
-        "questions": [],
-        "rules": {},
-    }
+    Raises ValueError when a record falls outside what the packs declare; the engine's
+    words name what was sent, so the caller shows NOT_IN_THE_PACK instead."""
+    return path.compute(raw, packs, clock)
