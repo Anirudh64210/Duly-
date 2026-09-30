@@ -1,0 +1,17 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+audited: false  # one test helper inside product-2; plan-fix1g's review and audit follow
+rounds:
+  - name: guard
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          tests/unit/support/test_placeholders.py::test_every_run_helper_passes_its_case_through_the_guard
+          fails: a run helper in tests/unit/engine/test_f1_translation.py does not pass its case
+          through refuse_placeholders. Pass it through, as every other helper does. Change nothing else.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit/support tests/unit/engine/test_f1_translation.py -q -p no:cacheprovider'
