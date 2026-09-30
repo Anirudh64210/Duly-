@@ -18,9 +18,12 @@ rounds:
           stem.requires.previously_obtained_degree says "category", as its quote does, and names
           whom the DSO recommends (the student, for the extension). Every other plain text is
           frozen. In your report, give the words of the quote or note each sentence rests on.
-          Record the change in CHANGELOG.md.
+          Record the change in CHANGELOG.md. Your earlier run's texts are on this branch; the one
+          for stem.requires.previously_obtained_degree is 324 characters, over the contract's 320,
+          so the pack no longer loads. Shorten it; the plain gate now checks the length too.
         done: >-
           bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
           && uv run python -m tools.sources.plain rulepacks --require f1
           && uv run python -m tools.sources.plain_changes product-1 --allow stem.min_hours_per_week#2016-05-10 stem.requires.accreditation#2016-05-10 stem.requires.previously_obtained_degree#2016-05-10 stem.requires.duties_hours_and_compensation#2016-05-10 stem.requires.employer_attests_no_replacement#2016-05-10'
     checks:

@@ -148,3 +148,11 @@ def test_an_abbreviation_does_not_end_a_sentence():
     assert any("reading grade" in p for p in plain.problems(one, "rule", one))
     short = "The older degree must be from a U.S. school. The school must be accredited."
     assert len(plain._sentences(short)) == 2
+
+
+def test_a_text_longer_than_the_contract_allows_is_refused():
+    long = "A student may work. " * 17
+    assert any(
+        "characters; the contract allows 320" in p for p in plain.problems(long, "rule", QUOTE)
+    )
+    assert not any("characters" in p for p in plain.problems(long, "regime", QUOTE))
