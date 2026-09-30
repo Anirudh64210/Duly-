@@ -239,3 +239,16 @@
 - Failure: a fix that made a done stage right gave dates to the virtual next stage of the same kind.
 - Fix: diff the full route output of every journey against the previous run, not only the named ones.
 - Evidence: reviews/product-2-fix2.md finding 1.
+
+## 2026-09-30, run l-review-1ff190a1d6 (product round 2, fix 3)
+- Read resolutions.md point 16, reviews/product-2-fix2.md, plan-fix3, and the diff 222aeed..317ad86 (the pack's stem windows and new stem_job_end.evaluation_final, desktop shots.ts and shotrun.ts, the acceptance and holdout journeys, progress logs).
+- Ran: unit and holdout suites (exit 0); sources verify, plain gate, copy lint, ruff (clean); desktop vitest on an archive copy (137 passed).
+- TMPDIR/rv1f/journeys.py sent all twenty journeys through POST /v1/compute (all 200, cannot_tell) and diffed them against the fix 2 run. The next STEM stage of J01, J02, J03, J05, J09, J11 and J20 now has no report dates. J14, J15 and J19 validations and J15 Job B's evaluation (2025-10-31 to 2025-11-10) are right by hand.
+- Walked Onboarding J01, J08 and J16 on a HEAD web copy. The posted cases are the same bytes as in fix 2, and their counts are the same on the day they were stated. The withdrawal program still opens already chosen.
+- Found: the L-web point 16 commit 3db6249 is not merged (blocking). Any approved change-of-status petition, even one from 2020, ends every validation (parameters.yaml:1787), and no test covers it (mutant b survives). Samples still drift.
+- Wrote reviews/product-2-fix3.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a lane's fix sat unmerged while the plan counted the lane as done.
+- Fix: check each plan lane's commit with git merge-base --is-ancestor before reviewing.
+- Evidence: reviews/product-2-fix3.md finding 1.

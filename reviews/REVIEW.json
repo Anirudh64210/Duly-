@@ -1,74 +1,67 @@
 {
-  "run_id": "l-review-c18232d7c2",
-  "reviewed_commit": "66bbfae",
+  "run_id": "l-review-1ff190a1d6",
+  "reviewed_commit": "317ad86",
   "scores": {
     "correct": {
       "score": 1,
-      "evidence": "Seven SPEC journeys (J01, J02, J03, J05, J09, J11, J20) show STEM validation and concluding-evaluation dates on a STEM stage not yet applied for, e.g. J01 validation_1 2026-12-15 to 2026-12-30 in upcoming. J04, J06, J12, J14, J15, J19 right by hand."
+      "evidence": "Engine side right by hand on all twenty journeys (J01, J02, J03, J05, J09, J11, J20 next STEM stage has no report dates; J14, J15 validations and J15 Job B evaluation 2025-10-31 to 2025-11-10). But point 16 names the withdrawal view and it still opens with School A, Master's checked on HEAD; an old approved petition drops every validation."
     },
     "sourced": {
-      "score": 3,
-      "evidence": "New rows quoted and found by tools.sources.verify; readings marked. Finding 1 dates reports that (f)(12)(ii)(B) says start with the extension; finding 2 drops validations that the same quote keeps until the extension concludes."
+      "score": 4,
+      "evidence": "tools.sources.verify exit 0, plain gate exit 0; notes say how each row is used. The petition cutoff applies a guidance reading wider than it goes, and validation windows show guidance for students with no petition."
     },
     "never_assumes": {
-      "score": 3,
-      "evidence": "I'm not sure on every day point 15 names, and the engine asks each. But the withdrawal program is preselected, and validations drop with no reason on a work list not stated whole."
+      "score": 2,
+      "evidence": "Withdrawal program preselected (onboarding.ts:1562, walk shows aria-checked true); validations drop with no reason or question on J19 plus an approved 2020 change-of-status petition."
     },
     "inside_the_boundary": {
       "score": 4,
-      "evidence": "No string states a conclusion about the person; the wrong report dates are shown as coming obligations."
+      "evidence": "No new user-readable string in the diff; no conclusion about a person found. A due report shown as nothing due is a wrong fact, not advice."
     },
     "secure": {
       "score": 4,
-      "evidence": "No new outside input beyond the case contract; shots page refused in the app window (refusedInApp, tested); 20 journeys and 3 walked cases all 200."
+      "evidence": "No new outside input; twenty journeys, three walked cases and seven probes all 200; landmarks file parsed defensively with exit 1 on a bad file."
     },
     "tested": {
-      "score": 2,
-      "evidence": "Unit, holdout, web and desktop suites pass with finding 1 on seven journeys and with findings 2 and 3 in place."
+      "score": 3,
+      "evidence": "Pack mutants (a) validation type filter and (c) stem_job_end.evaluation_final are caught; mutant (b) removing the approved-petition end passes all of tests/unit and tests/holdout; no web test for point 16 on the branch."
     }
   },
   "findings": [
     {
       "severity": "blocking",
-      "title": "Next STEM stage dates validations and the concluding evaluation from the OPT card",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1778",
-      "input": "J01 through POST /v1/compute at 2026-09-29 (also J02, J03, J05, J09, J11, J20)",
-      "what_happens": "stem.a2 is next with no STEM card; the route gives stem.validation_1.a2 2026-12-15 to 2026-12-30 and stem.evaluation_final.a2 2027-06-14 to 2027-06-24 in upcoming, from the OPT card a2 (outer.id). J11 gives a concluding evaluation opening 2026-09-30. Fix 1 gave None."
-    },
-    {
-      "severity": "should_fix",
-      "title": "Validations dropped after a job ends while the STEM extension runs",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1782",
-      "input": "J15 without w4, work list whole; and J15 with w4 end 2026-08-31, work list not whole",
-      "what_happens": "All four validations (first) and validation_3 (second) hold no date with no reason, while the card runs to 2027-06-14; (f)(12)(ii)(B) ends reporting when F-1 status expires or the extension concludes."
-    },
-    {
-      "severity": "should_fix",
-      "title": "J15 Job B final evaluation not shown",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1901",
-      "input": "J15 through POST /v1/compute",
-      "what_happens": "Only stem_job_end.report.w3 2025-10-31 to 2025-11-10 is given; the Job B final evaluation the journey dates 2025-11-10 is absent, with no reason or question."
-    },
-    {
-      "severity": "should_fix",
-      "title": "Withdrawal program preselected",
+      "title": "Point 16 web side not on the branch; withdrawal program preselected and samples drift",
       "file": "web/src/lib/views/onboarding.ts:1562",
-      "input": "Onboarding: answer Yes to 'Have you withdrawn from classes during a program on an F-1?'",
-      "what_happens": "'Which program did you withdraw from?' opens with the first program aria-checked true; Continue goes on to 'The day of the withdrawal' with no choice made."
+      "input": "Onboarding walk answering Yes to 'Have you withdrawn from classes during a program on an F-1?'; web/samples recomputed on their saved cases and days",
+      "what_happens": "'Which program did you withdraw from?' opens with School A, Master's aria-checked true and Continue moves on. L-web commit 3db6249 is not an ancestor of HEAD. Samples hold unemployment.opt_card.a2 and unemployment.total.a2 = 5 where the engine gives None; no web/samples/make.py."
     },
     {
       "severity": "should_fix",
-      "title": "Engine samples for the shots are stale",
-      "file": "web/samples/path-stem-next.json",
-      "input": "path-stem-next.case.json and path-window-open.case.json recomputed through POST /v1/compute on their saved days",
-      "what_happens": "unemployment.opt_card.a2 and unemployment.total.a2 are None where the samples hold 5; stem.validation_1.opens.a2 is 2026-08-10 where the samples hold None."
+      "title": "Any approved change-of-status petition ends validations, even one from before the card",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1787",
+      "input": "J19 plus petition h9 {h1b, change_of_status yes, approved, filed_on 2020-04-01, validity_start 2020-10-01}; and J19 plus h9 approved validity_start 2027-10-01 with cos_ended_on 2027-08-01",
+      "what_happens": "First: validations 1 to 3 of the running STEM card (2026-12-09, 2027-06-09, 2027-12-09) all become None with no reason or question. Second: validation_3 (2027-12-09) drops although the change of status ended; cos_ended_on is not read here."
+    },
+    {
+      "severity": "should_fix",
+      "title": "The approved-petition end of validations has no test",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1787",
+      "input": "Scratch copy with that line removed (mutant b), pytest tests/unit tests/holdout --ignore=tests/unit/tools",
+      "what_happens": "Every test passes."
     },
     {
       "severity": "note",
-      "title": "Design shots could not be drawn in the reviewer sandbox",
-      "file": "Makefile",
-      "input": "make design-shots on a git archive copy under TMPDIR",
-      "what_happens": "Builds pass; Electron exits with SIGTRAP at mach port rendezvous (Permission denied), so no shot was compared with design/canvas/png."
+      "title": "Shot landmark matched by type only",
+      "file": "desktop/src/shots.ts:232",
+      "input": "tests/design/landmarks.json: Checklist, Onboarding, Updates all 30px/600/-0.02em; Home error hero uses h1.hero-headline like Main",
+      "what_happens": "A shot drawing another screen's heading of the same type counts as drawn; no input found that reaches the error hero in the shot page."
+    },
+    {
+      "severity": "note",
+      "title": "Validation windows show guidance for every student",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1802",
+      "input": "J19 with no petition through POST /v1/compute",
+      "what_happens": "stem.validation_1.a2 status guidance, reading true, from capgap.status_ends_on_h1b_start in rule_ids; same as fix 2."
     }
   ],
   "decision": "VETO"
