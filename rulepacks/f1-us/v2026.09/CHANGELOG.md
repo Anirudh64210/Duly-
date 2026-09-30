@@ -178,3 +178,13 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - `unemployment.total.through_cap_gap` is raised only in those two cases, where the count stays null.
 - `opt_post`: the release date is no longer a member of the span end. It is held in `ends_also` alone, so the regulation's end (card end, or the day before a program at another level starts) and the release-date reading can differ.
 - No row, value, quote, note, plain text or plain_terms changed. No network was used.
+
+### 2026-09-29, lane L-content, run l-content-1a2b0cd812 (product-2 resolutions point 13, pack side)
+
+- Added opt.part_time_pre_completion_counts, flag, guidance, a reading of the example in SEVP Policy Guidance 1004-03 section 6.6. No saved source states a general rule or a number for the part-time deduction, so none is computed (IMPL-017).
+- Added opt.post_completion_remaining_time, flag, settled, 8 CFR 214.2(f)(11)(iii)(A).
+- Added enrollment.full_course_required ((f)(6)(iii)), enrollment.online_limit and enrollment.online_language_program ((f)(6)(i)(G)), enrollment.final_term_reduced_load ((f)(6)(iii)(C)), flags, settled.
+- `opt.months_at_level`: a pre-completion card not marked full_time has no span end, so its level has no count. New judgement check `opt.months_at_level.part_time` sends it to the DSO (J05).
+- New judgement check `program.enrollment`: for each program on F-1, full_course_each_term and online_within_limit must be yes; no or not sure goes to the DSO (J17).
+- `program` next `opt_post`: new only_if, no approved OPT card at the same level whose card alone spans opt.max_months. A level used up by two or more cards together is not caught; that needs a condition that reads a counter (J20).
+- No existing row, value, quote, note, plain text or plain_terms changed. No network was used.
