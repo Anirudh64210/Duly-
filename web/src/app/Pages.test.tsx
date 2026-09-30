@@ -4,10 +4,11 @@ import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { EMPTY_CASE } from "../lib/caseForm";
-import { engineOutputSchema, type EngineOutput, type F1Case } from "../lib/compute";
+import { engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { OUTPUT, STATUS } from "../lib/fixtures";
 import { CaseProvider, newCase, type AppCase } from "./caseStore";
+import { heldCase } from "./heldCase";
+import type { RecordsCase } from "../lib/records";
 import { UPDATES_EMPTY, UPDATES_FOOTER, Updates } from "./Pages";
 import { createAppRouter } from "./Shell";
 
@@ -18,63 +19,25 @@ const parse = (output: unknown): EngineOutput => engineOutputSchema.parse(output
 // An about key the facts do not hold stays standing with no output (answers.ts).
 const ABOUT = { asked_for: "tests" };
 
-function heldCase(): AppCase {
-  return {
-    status: "f1",
-    statusName: "",
-    programs: [
-      {
-        key: 1,
-        level: "master",
-        start: "2024-08-20",
-        end: "2026-05-15",
-        name: "MS Data Science",
-        cpt: false,
-        cptDays: "",
-        earlier: true,
-      },
-      {
-        key: 2,
-        level: "bachelor",
-        start: "",
-        end: "",
-        name: "",
-        cpt: false,
-        cptDays: "",
-        earlier: false,
-      },
-    ],
-    fields: {
-      ...EMPTY_CASE,
-      time_zone: "America/Los_Angeles",
-      opt_on: true,
-      opt: {
-        dso_recommendation_date: "2026-04-01",
-        i765_filed_date: "2026-04-10",
-        ead_start: "2026-06-01",
-        ead_end: "2027-05-31",
-      },
-      stem_on: true,
-      employment: [
-        { key: 1, start: "2026-06-20", end: "", hours_per_week: "40", employer_reported: true },
-        { key: 2, start: "", end: "2026-06-01", hours_per_week: "20", employer_reported: false },
-      ],
-      next_key: 3,
-      confirmations: {
-        held_post_completion_opt: { answer: true, on: "2026-09-29", about: ABOUT },
-        no_employment_to_record: { answer: false, on: "2026-09-29", about: ABOUT },
-        unknown_question: { answer: true, on: "2026-09-29", about: ABOUT },
-      },
-    },
-    flow: {},
-    onboarded: true,
+/** Two programs, the older one with no dates, a second job with no start, and three answers. */
+function pagesCase(): AppCase {
+  const held = heldCase();
+  held.draft.records.push(
+    { id: "p2", kind: "program", fields: { where: "us_on_f1", level: "bachelor" } },
+    { id: "w2", kind: "work", fields: { end: "2026-06-01", hours_per_week: "20" } },
+  );
+  held.confirmations = {
+    held_post_completion_opt: { answer: true, on: "2026-09-29", about: ABOUT },
+    no_employment_to_record: { answer: false, on: "2026-09-29", about: ABOUT },
+    unknown_question: { answer: true, on: "2026-09-29", about: ABOUT },
   };
+  return held;
 }
 
 function mount(props: {
   path: string;
   held?: AppCase | null;
-  compute?: (body: F1Case) => Promise<EngineOutput>;
+  compute?: (body: RecordsCase) => Promise<EngineOutput>;
   fetch?: () => Promise<unknown>;
 }) {
   vi.stubGlobal(
@@ -87,7 +50,7 @@ function mount(props: {
   const compute = props.compute ?? (() => Promise.resolve(parse(OUTPUT)));
   render(
     <QueryClientProvider client={client}>
-      <CaseProvider initial={props.held === undefined ? heldCase() : props.held} compute={compute}>
+      <CaseProvider initial={props.held === undefined ? pagesCase() : props.held} compute={compute}>
         <RouterProvider router={router} />
       </CaseProvider>
     </QueryClientProvider>,
@@ -137,49 +100,51 @@ describe("Updates (design-1 section 9)", () => {
 });
 
 describe("Your case (design-1 section 10)", () => {
-  it("shows every program, with its name, level or no dates", async () => {
+  it("shows every program, with its school, level or no dates", async () => {
     mount({ path: "/case" });
     await screen.findByRole("heading", { name: "Your case" });
     expect(screen.getByText("F-1")).toBeInTheDocument();
     expect(screen.getByText("Dates are counted in America/Los Angeles.")).toBeInTheDocument();
-    expect(screen.getByText("MS Data Science")).toBeInTheDocument();
-    expect(screen.getByText("Aug 20, 2024 to May 15, 2026")).toBeInTheDocument();
-    expect(screen.getByText("Bachelor's program")).toBeInTheDocument();
-    expect(screen.getByText("Dates not entered")).toBeInTheDocument();
+    expect(screen.getByText("State University, Master's")).toBeInTheDocument();
+    expect(screen.getByText(/Aug 20, 2024 to May 15, 2026/)).toBeInTheDocument();
+    expect(screen.getByText("Bachelor's")).toBeInTheDocument();
+    expect(screen.getByText(/Dates not entered/)).toBeInTheDocument();
   });
 
-  it("names a program with no level and no name Program", async () => {
-    const held = heldCase();
-    held.programs = [{ ...(held.programs[1] as AppCase["programs"][number]), level: "" }];
+  it("names a program with no school and no level this program", async () => {
+    const held = pagesCase();
+    held.draft.records = held.draft.records.filter((r) => r.id !== "p1");
+    held.draft.records = held.draft.records.map((r) =>
+      r.id === "p2" ? { ...r, fields: { where: "us_on_f1" } } : r,
+    );
     mount({ path: "/case", held });
-    expect(await screen.findByText("Program")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Change Program" }));
+    expect(await screen.findByText("this program")).toBeInTheDocument();
+    expect(screen.getByText(/^Other/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Change this program" }));
     expect(screen.queryByRole("button", { name: "Remove" })).toBeNull();
   });
 
   it("edits a program in place, and Cancel keeps what was there", async () => {
     mount({ path: "/case" });
-    fireEvent.click(await screen.findByRole("button", { name: "Change MS Data Science" }));
-    const name = screen.getByLabelText("The program's name, in your words");
-    fireEvent.change(name, { target: { value: "MS Statistics" } });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change State University, Master's" }),
+    );
+    fireEvent.change(screen.getByLabelText("School name"), { target: { value: "Tech" } });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.getByText("MS Data Science")).toBeInTheDocument();
+    expect(screen.getByText("State University, Master's")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Change MS Data Science" }));
-    fireEvent.change(screen.getByLabelText("The program's name, in your words"), {
-      target: { value: "MS Statistics" },
-    });
-    typeDate("p-start-1", "9", "1", "2024");
-    typeDate("p-end-1", "6", "1", "2026");
+    fireEvent.click(screen.getByRole("button", { name: "Change State University, Master's" }));
+    fireEvent.change(screen.getByLabelText("School name"), { target: { value: "Tech" } });
+    typeDate("p-start_date-p1", "9", "1", "2024");
+    typeDate("p-end_date-p1", "6", "1", "2026");
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(screen.getByText("MS Statistics")).toBeInTheDocument();
-    expect(screen.getByText("Sep 1, 2024 to Jun 1, 2026")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Change MS Statistics" })).toBeInTheDocument();
+    expect(screen.getByText("Tech, Master's")).toBeInTheDocument();
+    expect(screen.getByText(/Sep 1, 2024 to Jun 1, 2026/)).toBeInTheDocument();
   });
 
   it("asks before it removes a program, and Keep keeps it", async () => {
     mount({ path: "/case" });
-    fireEvent.click(await screen.findByRole("button", { name: "Change Bachelor's program" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Change Bachelor's" }));
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     const confirm = screen.getByRole("group", { name: "Remove this program?" });
     fireEvent.click(within(confirm).getByRole("button", { name: "Keep" }));
@@ -190,40 +155,34 @@ describe("Your case (design-1 section 10)", () => {
         name: "Remove",
       }),
     );
-    expect(screen.queryByText("Bachelor's program")).toBeNull();
-    expect(screen.getByText("MS Data Science")).toBeInTheDocument();
+    expect(screen.queryByText("Bachelor's")).toBeNull();
+    expect(screen.getByText("State University, Master's")).toBeInTheDocument();
   });
 
-  it("shows OPT and STEM OPT cards, and turning OPT off turns STEM OPT off", async () => {
+  it("lists each permission to work with its program", async () => {
     mount({ path: "/case" });
     await screen.findByRole("heading", { name: "Your case" });
-    expect(screen.getByText("OPT card: Jun 1, 2026 to May 31, 2027")).toBeInTheDocument();
-    expect(screen.getByText("STEM OPT card: Yes, card dates not entered")).toBeInTheDocument();
-    const opt = screen.getByRole("radiogroup", { name: "Did you apply for post-completion OPT?" });
-    fireEvent.click(within(opt).getByRole("radio", { name: "No" }));
-    expect(screen.getByText("OPT card: No")).toBeInTheDocument();
-    expect(screen.getByText("STEM OPT card: No")).toBeInTheDocument();
-    const stem = screen.getByRole("radiogroup", {
-      name: "Did you apply for a STEM OPT extension?",
-    });
-    fireEvent.click(within(stem).getByRole("radio", { name: "Yes" }));
-    expect(screen.getByText("STEM OPT card: Yes, card dates not entered")).toBeInTheDocument();
-    fireEvent.click(within(opt).getByRole("radio", { name: "Yes" }));
-    expect(within(opt).getByRole("radio", { name: "Yes" })).toHaveAttribute("aria-checked", "true");
-    const gap = screen.getByRole("radiogroup", {
-      name: "Did an employer file an H-1B petition for you?",
-    });
-    fireEvent.click(within(gap).getByRole("radio", { name: "Yes" }));
-    expect(within(gap).getByRole("radio", { name: "Yes" })).toHaveAttribute("aria-checked", "true");
+    expect(
+      screen.getByText(
+        "OPT after the program end, Jun 1, 2026 to May 31, 2027, for State University, Master's",
+      ),
+    ).toBeInTheDocument();
   });
 
-  it("shows each job as entered, and whether it is marked as reported", async () => {
+  it("says when no permission to work is entered", async () => {
+    const held = pagesCase();
+    held.draft.records = held.draft.records.filter((r) => r.kind !== "authorization");
+    mount({ path: "/case", held });
+    expect(await screen.findByText("None entered.")).toBeInTheDocument();
+  });
+
+  it("shows each job as entered", async () => {
     mount({ path: "/case" });
     await screen.findByRole("heading", { name: "Your case" });
     expect(screen.getByText("Job from Jun 20, 2026")).toBeInTheDocument();
-    expect(screen.getByText("Still working here, marked as reported")).toBeInTheDocument();
+    expect(screen.getByText("Still working here")).toBeInTheDocument();
     expect(screen.getByText("Job from a day not entered")).toBeInTheDocument();
-    expect(screen.getByText("Ended Jun 1, 2026, not marked as reported")).toBeInTheDocument();
+    expect(screen.getByText("Ended Jun 1, 2026")).toBeInTheDocument();
   });
 
   it("lists every answer before the output is in, and changes and removes one", async () => {
@@ -249,8 +208,8 @@ describe("Your case (design-1 section 10)", () => {
 
   it("sets apart the answers the engine did not read, and removes one", async () => {
     const output = parse({ ...OUTPUT, answers_read: ["held_post_completion_opt"] });
-    const held = heldCase();
-    held.fields.employment = held.fields.employment.slice(0, 1);
+    const held = pagesCase();
+    held.draft.records = held.draft.records.filter((r) => r.id !== "w2");
     mount({ path: "/case", held, compute: () => Promise.resolve(output) });
     const unread = await screen.findByRole("button", {
       name: "Answers not used for the facts entered now",

@@ -705,7 +705,15 @@ export function categoryName(category: string): string {
 }
 
 const LEVEL_NAMES: ReadonlyMap<string, string> = new Map(
-  Object.entries({ bachelor: "Bachelor's", master: "Master's", doctorate: "Doctorate" }),
+  Object.entries({
+    associate: "Associate",
+    bachelor: "Bachelor's",
+    master: "Master's",
+    doctorate: "Doctorate",
+    // programs.md section 18 step 1 question 3 names the pack's language_training level so.
+    language_training: "English language",
+    other: "Other",
+  }),
 );
 
 export function levelName(level: string): string {
