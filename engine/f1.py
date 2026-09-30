@@ -1787,15 +1787,13 @@ def _holding_card(case: F1Case, day: date) -> str | None:
 
 
 def _statements(case: F1Case, kinds: list[str]) -> dict[str, Any]:
-    """The two answers that stand for completeness statements (section 19)."""
+    """A list is whole by a yes to the path's own complete.<kind> (resolutions point 14).
+    An answer to a question the path does not ask states nothing whole."""
     stated: dict[str, Any] = {}
-    nothing_more = case.confirmations.get(NOTHING_MORE)
-    if nothing_more is not None and nothing_more.answer:
-        for kind in kinds:
-            stated[kind] = {"on": nothing_more.on.isoformat()}
-    earlier = case.confirmations.get(EARLIER_AT_LEVEL)
-    if earlier is not None and not earlier.answer:
-        stated[f"authorization:{PROGRAM}"] = {"on": earlier.on.isoformat()}
+    for kind in kinds:
+        given = case.confirmations.get(f"complete.{kind}")
+        if given is not None and given.answer:
+            stated[kind] = {"on": given.on.isoformat()}
     return stated
 
 
