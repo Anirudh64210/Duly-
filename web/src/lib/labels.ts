@@ -508,6 +508,16 @@ export function questionCopy(questionId: string): QuestionCopy | null {
   return QUESTIONS.get(questionId) ?? numberedQuestion(questionId);
 }
 
+/** The title a question is shown under, on every screen that lists it. */
+export function questionTitle(questionId: string): string {
+  return questionCopy(questionId)?.ask ?? "Duly has a question about what you entered.";
+}
+
+/** ui-1 point 1: the line under Home's headline while questions are open. */
+export function openQuestionsLine(count: number): string {
+  return `${count} ${count === 1 ? "answer" : "answers"} would let Duly go on with your dates.`;
+}
+
 /**
  * The words for a question the verdict holds as a conflict. A conflict this screen
  * has no line for still asks the one thing every conflict asks.

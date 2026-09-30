@@ -3,7 +3,14 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { reportedZone, zoneChoices } from "../lib/caseForm";
-import { becauseLine, categoryName, formatDate, groupOf, questionCopy } from "../lib/labels";
+import {
+  becauseLine,
+  categoryName,
+  formatDate,
+  groupOf,
+  questionCopy,
+  questionTitle,
+} from "../lib/labels";
 import { typedDates } from "../lib/records";
 import { LANDMARKS } from "../lib/shots";
 import { fetchStatus } from "../lib/status";
@@ -208,14 +215,25 @@ export function Onboarding() {
         })),
         { value: "other", title: "Another status" },
       ];
-      body = (
-        <OptionCards
-          label={view.title}
-          options={options}
-          value={held.status}
-          onChange={(chosen) => update({ ...held, status: chosen })}
-        />
-      );
+      // ui-1 point 4: never "Another status" alone while the rule list is not in.
+      body =
+        packs.length > 0 ? (
+          <OptionCards
+            label={view.title}
+            options={options}
+            value={held.status}
+            onChange={(chosen) => update({ ...held, status: chosen })}
+          />
+        ) : status.isPending ? (
+          <p className="meta">Loading the statuses Duly holds rules for.</p>
+        ) : (
+          <div className="field-group">
+            <p>Duly could not load its rules, so it cannot list the statuses it covers.</p>
+            <button type="button" className="pill-secondary" onClick={() => void status.refetch()}>
+              Try again
+            </button>
+          </div>
+        );
       break;
     }
     case "status-name":
@@ -460,7 +478,7 @@ export function Onboarding() {
       : whole !== null
         ? whole.title
         : question !== undefined
-          ? (questionCopy(question.id)?.ask ?? "Duly has a question about what you entered.")
+          ? questionTitle(question.id)
           : view.title;
   const sectionFill = view.kind === "done" ? SECTIONS.length : view.section;
   return (

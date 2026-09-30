@@ -1229,3 +1229,35 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   passed, `npm test -w desktop` failed with "EPERM: operation not permitted, mkdir
   .../desktop/coverage": the sandbox refuses writes under desktop/, outside this lane.
 - `npx vitest run` in desktop/ (no coverage write): exit 0, 11 files, 139 tests passed.
+
+## l-web-b50f666c87: specs/ui-1 points 1 to 4 (build round)
+
+### Tried
+
+- Point 1, web/src/app/Home.tsx: with questions open on a cannot_tell, the hero shows the
+  headline, one line "N answers would let Duly go on with your dates." (N is the length of the
+  engine's questions list), a "Why" disclosure holding every reason, and a "YOUR NEXT MOVE"
+  row, "Answer Duly's questions", that focuses the first question in the section below. Reason
+  lines are shown once each; a reason a question was asked because of reads as that question's
+  title (new questionTitle in lib/labels.ts, used by Home's questions section and Onboarding
+  too). On path-stem-next the 16 question reasons and unconfirmed:typed_dates all read "Duly
+  has a question about what you entered.", once. Without questions, reasons stay in the hero,
+  each once.
+- Point 2, app.css: .page breaks long words (overflow-wrap: anywhere), .metric-row wraps;
+  shots.tsx caps the 1280px root at 100% so a window whose scroll bar takes room does not
+  scroll sideways. Not measured in a browser: the sandbox stops chrome-headless-shell
+  ("bootstrap_check_in ... Permission denied (1100)").
+- Point 3, Pages.tsx: Your case with no answers says "No answers given yet. Duly's open
+  questions are on Home →" with a link to #/.
+- Point 4, Onboarding.tsx: step 1 lists statuses only when the rule list is in; while it
+  loads, a loading line; when it fails, "Duly could not load its rules..." and Try again
+  (refetch). shots.tsx seeds the status query from the sample (lib/shots.ts shotStatus).
+- web/src/app/ui1.test.tsx: 7 tests.
+
+### Ran
+
+- ui1.test.tsx on the new screens: 7 of 7 passed. On HEAD's Home, Pages and Onboarding: 5
+  failed, 2 passed (the two that check behaviour already right).
+- Done command, as written, output to a file: exit 0. 31 files, 582 tests passed, eslint
+  clean, "copy lint: clean", make samples clean. git printed "tests/holdout/...: Operation
+  not permitted" (sandbox, as the contract says).
