@@ -16,6 +16,7 @@ every other test is the pack's (L-content).
 Not expected to pass before the build round of plan-fix7.
 """
 
+import re
 from collections.abc import Iterator
 from typing import Any
 
@@ -646,12 +647,16 @@ def test_point_24_the_pack_words_name_every_kind_of_date_taken_away(client: Test
     assert "cap-gap" in words
 
 
-def test_point_24_the_pack_words_say_a_petition_to_change_your_status(
+def test_point_24a_the_pack_words_say_a_petition_for_a_change_of_status(
     client: TestClient,
 ) -> None:
-    # The pack's words are one text for every petition type, so they take the general form.
-    # J19 with a petition of type "other" (fix6 finding 3's input).
-    # Kills: "An H-1B petition" said for a petition of another kind.
+    # Point 24a (was point 24's "a petition to change your status"): the pack's plain words are
+    # never about a person (contracts/rulepack.schema.json, the plain gate), so they say "A
+    # petition for a change of status, such as one for H-1B", never "An H-1B petition" and never
+    # "your". The test checks every kind of date taken away and the absence of "An H-1B
+    # petition". J19 with a petition of type "other" (fix6 finding 3's input).
+    # Kills: "An H-1B petition" said for a petition of another kind; "your" in the pack's words;
+    # plain words that leave out a kind.
     out = _send(
         client,
         _with_petition(
@@ -663,8 +668,14 @@ def test_point_24_the_pack_words_say_a_petition_to_change_your_status(
         ),
     )
     words = _step_back_plain(out)
-    assert "a petition to change your status" in words
+    assert "a petition for a change of status" in words
     assert "an h-1b petition" not in words
+    assert re.search(r"\byour\b", words) is None
+    assert "grace" in words or "time after a program" in words
+    assert "count" in words or "days without work" in words
+    assert "report" in words
+    assert "evaluation" in words
+    assert "cap-gap" in words
 
 
 # Point 25: "Tests that fail on each of: removing the petition member of
