@@ -77,9 +77,10 @@ def test_point3_a_move_at_the_same_level_does_not_end_the_card_the_day_before() 
 def test_point4_grace_starts_after_an_active_cap_gap() -> None:
     # J12: cap_gap.h1 2026-06-01 to 2026-10-01 (validity_start). Section 14 grace span:
     # "the latest end of the program, its cards and its cap-gap": 2026-10-01. So grace
-    # starts 2026-10-02 and is not done on 2026-09-29.
+    # starts 2026-10-02 and is not done on 2026-09-29. Resolution 12: the pack builds the
+    # cap-gap grace for each petition, so its id is grace.<petition>, here grace.h1.
     out = _compute(journeys.j12())
-    grace = stage(out, "grace.p1")
+    grace = stage(out, "grace.h1")
     assert grace["starts"] == "2026-10-02"
     assert grace["state"] == "later"
 
@@ -88,9 +89,10 @@ def test_point4_unemployment_runs_through_the_cap_gap() -> None:
     # J13 with the job ending with the card on 2026-06-30. Section 14 counter
     # unemployment.opt_card: "each opt_post: its span, extended by its cap-gap". The
     # cap-gap runs 2026-07-01 to 2026-08-14 (denied). Days without work: July (31) and
-    # August 1-14 (14) = 45. On the card alone the count would be 0.
+    # August 1-14 (14) = 45. On the card alone the count would be 0. Resolution 12: the
+    # cap-gap count is unemployment.opt_card.<petition>, here h1.
     out = _compute(_set(journeys.j13(), "w1", end="2026-06-30"))
-    assert value(out, "unemployment.opt_card.a1") == 45
+    assert value(out, "unemployment.opt_card.h1") == 45
 
 
 def test_point4_unemployment_total_runs_through_the_cap_gap_on_stem() -> None:
@@ -104,11 +106,12 @@ def test_point4_unemployment_total_runs_through_the_cap_gap_on_stem() -> None:
 
 def test_point5_no_unemployment_count_while_the_work_list_is_not_stated_whole() -> None:
     # J12 with no work records and no statement for work: the review's input. PRINCIPLES 2.
+    # The cap-gap count is unemployment.opt_card.h1 (resolution 12).
     body = _without(journeys.j12(), "w1")
     del body["complete"]["work"]
     out = _compute(body)
-    assert value(out, "unemployment.opt_card.a1") is None
-    assert "unemployment.opt_card.at_or_over_limit.a1" not in reasons(out)
+    assert value(out, "unemployment.opt_card.h1") is None
+    assert "unemployment.opt_card.at_or_over_limit.h1" not in reasons(out)
     assert "unconfirmed:complete.work" in reasons(out)
 
 
@@ -118,8 +121,9 @@ def test_point5_the_count_is_given_once_the_list_is_stated_whole() -> None:
     # counted, so every day from 2025-06-01 to 2026-09-29 counts: June 2025 (30) + July to December
     # (31 + 31 + 30 + 31 + 30 + 31 = 184) + January to August 2026 (31 + 28 + 31 + 30 + 31 +
     # 30 + 31 + 31 = 243) + September 1-29 (29) = 486.
+    # The id is unemployment.opt_card.h1, the petition's (resolution 12).
     out = _compute(_without(journeys.j12(), "w1"))
-    assert value(out, "unemployment.opt_card.a1") == 486
+    assert value(out, "unemployment.opt_card.h1") == 486
 
 
 def test_point5_no_at_or_over_item_on_j01_without_a_work_statement() -> None:
@@ -153,25 +157,9 @@ def test_point6_a_next_stage_whose_window_is_ahead_is_still_next() -> None:
     assert stage(out, "stem.a2")["state"] == "next"
 
 
-# Point 7: stem.basis_ten_years_end, the CPT step back, lists, ends_also (findings 8, 10,
-# notes 13 and 14).
-
-
-def test_point7_the_ten_years_after_a_basis_degree_are_shown() -> None:
-    # J02: conferred 2018-05-19 plus 10 years = 2028-05-19; marked as Duly's reading
-    # (programs.md section 14).
-    out = _compute(journeys.j02())
-    item = [i for i in out["computed"] if i["id"] == "stem.basis_ten_years_end.p1"]
-    assert [i["value"] for i in item] == ["2028-05-19"]
-    assert item[0]["reading"] is True
-    assert item[0]["record"] == "p1"
-
-
-def test_point7_ten_years_from_a_leap_day_is_28_february() -> None:
-    # programs.md section 13 point 12: 29 February becomes 28 February. Conferred
-    # 2016-02-29 plus 10 years: 2026-02-29 does not exist, so 2026-02-28.
-    out = _compute(_set(journeys.j02(), "p1", conferred_on="2016-02-29"))
-    assert value(out, "stem.basis_ten_years_end.p1") == "2026-02-28"
+# Point 7: the CPT step back, lists, ends_also (findings 10, notes 13 and 14). The two
+# stem.basis_ten_years_end tests (finding 8, J02) wait with it for a contract construct for
+# a computed date in the path, as point 7 says; they are removed until it lands.
 
 
 def test_point7_cpt_days_over_and_months_under_the_bar_step_back() -> None:

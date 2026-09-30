@@ -197,6 +197,7 @@ def _pack_dict(
     counters: list[dict[str, Any]] | None = None,
     checklists: list[dict[str, Any]] | None = None,
     rules: list[dict[str, Any]] | None = None,
+    regimes: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     path: dict[str, Any] = {
         "facts": copy.deepcopy(FACTS),
@@ -214,7 +215,7 @@ def _pack_dict(
         "category": "j1",
         "jurisdiction": "us",
         "version": "v2026.09",
-        "regimes": [],
+        "regimes": copy.deepcopy(regimes or []),
         "parameters": copy.deepcopy(rules if rules is not None else RULES),
         "path": path,
     }
@@ -1057,11 +1058,60 @@ def test_a_pack_whose_rules_were_never_checked_is_cannot_tell() -> None:
     assert "rules_never_checked" in _reasons(out)
 
 
-def test_a_litigated_rule_in_use_is_cannot_tell() -> None:
+# specs/product-2/resolutions.md points 9 and 12: the litigation reason follows product-1
+# points 25 and 49, only when an item shown carries an alternate with a different value. Two
+# regimes (rulepack.schema.json regimes and parameters.regime): toy_old is operative and
+# toy_new is enjoined. The window closes at c1's end 2026-10-20 plus toy.bar days.
+
+
+def _regime(regime_id: str, legal_status: str, operative: bool) -> dict[str, Any]:
+    return {
+        "id": regime_id,
+        "legal_status": legal_status,
+        "operative": operative,
+        "source": {"citation": "placeholder order", "url": URL, "checked_on": "2026-09-29"},
+    }
+
+
+REGIMES = [_regime("toy_old", "effective", True), _regime("toy_new", "enjoined", False)]
+BAR_WINDOW = _win(
+    {"fact": "this.start"}, {"fact": "this.end", "add": [{"rule": "toy.bar"}]}, ["toy.bar"]
+)
+
+
+def _bar_rules(new_value: int) -> list[dict[str, Any]]:
+    others = [r for r in RULES if r["id"] != "toy.bar"]
+    return [
+        *others,
+        _row("toy.bar", 30, "days", status="litigated", regime="toy_old"),
+        _row("toy.bar", new_value, "days", status="litigated", regime="toy_new"),
+    ]
+
+
+def test_a_litigated_rule_with_no_alternate_is_not_the_litigation_reason() -> None:
+    # toy.fought is marked litigated but no other regime gives it another value, so no item
+    # shown carries a different alternate: rule_in_litigation is not a reason (point 9).
     stage = _course_stage(rule_ids=["toy.definition", "toy.fought"])
     out = _compute(_case([_course()]), _pack([stage]))
-    assert out["verdict"]["state"] == "cannot_tell"
+    assert "rule_in_litigation" not in _reasons(out)
+
+
+def test_a_shown_window_whose_rule_has_a_different_alternate_is_cannot_tell() -> None:
+    # Operative toy_old: 2026-10-20 + 30 days = 2026-11-19 (Oct 21-31 is 11, Nov 1-19 is 19).
+    # Enjoined toy_new: 60 days, 2026-12-19. The values differ, so the reason is raised.
+    pack = _pack([_course_stage(BAR_WINDOW)], rules=_bar_rules(60), regimes=REGIMES)
+    out = _compute(_case([_course()]), pack)
+    assert _window(out, "toy.bar", "c1")["closes"] == "2026-11-19"
     assert "rule_in_litigation" in _reasons(out)
+    assert out["verdict"]["state"] == "cannot_tell"
+
+
+def test_an_alternate_with_the_same_value_is_not_the_litigation_reason() -> None:
+    # The other side of the line: toy_new also gives 30 days, so both close 2026-11-19.
+    pack = _pack([_course_stage(BAR_WINDOW)], rules=_bar_rules(30), regimes=REGIMES)
+    out = _compute(_case([_course()]), pack)
+    assert _window(out, "toy.bar", "c1")["closes"] == "2026-11-19"
+    assert "rule_in_litigation" not in _reasons(out)
 
 
 def test_a_conflict_answered_on_a_later_day_is_not_read() -> None:
