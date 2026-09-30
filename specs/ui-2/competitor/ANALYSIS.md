@@ -29,7 +29,7 @@ Where Duly is already better, and how we know:
 - **No guessing:** personal questions get a drafted email to the DSO, never a verdict (BOUNDARY.md).
 
 Where Duly is behind:
-- **Reach:** they work on the web, on phones and in Chrome. Duly is a Mac app for now.
+- **Reach:** they work on the web, on phones and in Chrome. So does Duly: it is web, phone and desktop (the Mac window was for prototyping only). They also have a browser extension, which Duly does not plan.
 - **Case status:** theirs is manual on the free plan and checked daily on the paid plan. Duly's is manual until USCIS approves a connection (B8).
 - **Processing times:** Duly shows none.
 - **STEM:** Duly's prototype also guesses STEM from the major name. That is the same weakness as theirs, only worded more softly.
@@ -159,7 +159,7 @@ Open questions, not findings, because Duly has no source for them yet:
 
 | # | Gap | Detail | What to do |
 |---|---|---|---|
-| G1 | Reach | They work on the web, on phones and in Chrome (shots 34, 48). Duly is a Mac app first (D7, D42). The BRIEF's Documents bar asks for "shared or sent from the phone in one tap". The prototype has a phone layout, but no phone product is decided | Decision 10.3 |
+| G1 | Reach | They work on the web, on phones and in Chrome (shots 34, 48). Duly is web, phone and desktop (the Mac window was for prototyping only, founder 2026-09-30); the prototype has a phone layout. They add a browser extension | Decision 10.3 |
 | G2 | Case status | Both are manual on the free plan; they check daily on Pro (shot 37). Duly's live status waits on USCIS approval (B8) | Keep "as of" dates; promise no live status until B8 |
 | G3 | Processing times | They show a sourced, dated card (shot 12). Duly shows none | Move 7.7; decision 10.5 |
 | G4 | STEM field | Duly's onboarding matches the major against a list of names (welcome.js `STEM_FIELDS`, "This looks like a STEM degree"). Your profile says "Yes, on the STEM list", and the source link goes to the ice.gov home page. The DHS list itself is not a saved source. The wording is softer than W4, but the basis is the same | Move 7.4 |
@@ -277,7 +277,7 @@ Keep all of them free, including the documents in the export. Their ZIP export o
 
 1. **Reminders free for good.** Pricing is parked (D8). Deciding now that reminders, the count, documents and News are never paid lets "cheaper and more trustworthy" be true on day one.
 2. **The one-line promise** (7.8). Pick the line or rewrite it.
-3. **Phone reach** (G1). The documents bar asks for one tap on a phone, but the product is a Mac app. Options: a phone companion later, or share from the Mac for now.
+3. **Phone reach** (G1). Settled: Duly is web, phone and desktop. What remains is only how the on-device privacy promise holds on the web and the phone (encryption in the browser and the app, the same as on the desktop).
 4. **Email reminders** (7.3). Desktop-only reminders miss a closed Mac. Email means a date goes to Duly's server, which touches D13 and D54.
 5. **Processing times** (7.7). Yes or no to a sourced USCIS figure on USCIS status.
 6. **The STEM list as a source** (7.4). Approve saving the DHS list into the F-1 pack.
