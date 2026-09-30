@@ -7,6 +7,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.engine import Engine
 
+from api import case as records_case
 from api.case_f1 import (
     NOT_A_NUMBER,
     NOT_JSON,
@@ -19,7 +20,7 @@ from api.db import database_reachable, make_engine
 from api.local_token import NOT_FROM_THE_APP, TOKEN_HEADER, expected_token, request_allowed
 from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
-from engine.clocks import Clock, SystemClock
+from engine.clocks import Clock, SystemClock, day_in_zone
 from engine.f1 import compute_f1, parse_case
 from engine.rulepack import Rulepack, load_all
 from engine.verdict import VerdictInputs, decide
@@ -137,6 +138,34 @@ def compute_f1_case(
         # name what was sent.
         raise HTTPException(status_code=422, detail=NOT_YET) from None
     return compute_f1(case, pack, clock)
+
+
+@lru_cache
+def get_packs() -> list[Rulepack]:
+    return load_all()
+
+
+@app.post("/v1/compute")
+def compute_case(
+    body: Annotated[bytes, Depends(get_body)],
+    packs: Annotated[list[Rulepack], Depends(get_packs)],
+    clock: Annotated[Clock, Depends(get_clock)],
+) -> dict[str, Any]:
+    """A case under case.schema.json, for any category. Stateless, as /v1/compute/f1 is,
+    and refused in the same words."""
+    try:
+        raw = read_body(body)
+    except NotANumberError:
+        raise HTTPException(status_code=422, detail=NOT_A_NUMBER) from None
+    except (ValueError, RecursionError):
+        raise HTTPException(status_code=422, detail=NOT_JSON) from None
+    problem = records_case.first_problem(raw)
+    if problem is not None:
+        raise HTTPException(status_code=422, detail=problem)
+    today = day_in_zone(clock, raw["time_zone"])
+    if records_case.answered_after(raw, today):
+        raise HTTPException(status_code=422, detail=NOT_YET)
+    return records_case.compute(raw, packs, clock, today)
 
 
 @app.get("/ops/v1/status")
