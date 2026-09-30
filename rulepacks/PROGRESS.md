@@ -804,3 +804,390 @@ done command (as written, no pipe): exit 0
 
 - git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-9296b9c05e, attempt 1 (path-1 sections 13 to 16, design-1 section 8)
+
+### What was tried
+
+- Found every section 16 quote in the saved copies with a scratch script in TMPDIR (verify.plain on each snapshot). All were found; opt.unemployment_abroad only with the saved line break "post- completion". Compared the 2026-09-14 and 2026-09-15 texts for each: (f)(7), (f)(8) and the withdrawal sentence of (f)(5) differ, so those rows sit under regimes, tagged litigated.
+- Generated the 40 new rows from a scratch Python list, scored each plain text with tools.sources.plain.problems and term_problems, and rewrote 17 that scored above grade 9 (three rounds). Appended them after the last existing row; no existing line changed (git diff shows no removed line; plain_changes lists only the 40 new rows).
+- Wrote `path` by hand and checked it with a scratch script: every rule a path names exists (except product.opt_start_earliest_years_before_program_end, a setting in contracts/product_settings.yaml), the only numbers are sign -1, and every checklist label passes tools.sources.plain.problems with its rules' quotes and notes as grounds. Nine labels first scored 9.8 to 15.5 and were shortened.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 40 row(s) changed, all new rows
+uv run pytest -q tests/unit/tools/test_plain.py tests/unit/tools/test_plain_changes.py tests/unit/engine/test_rulepack.py tests/unit/engine/test_rulepack_values.py: all passed
+```
+
+### Missing rules and gaps (each also in REPORT.json)
+
+- No rule for a full course of study each term or the online limit ((f)(6) is not recorded): the enrollment judgement item of section 14 is not written.
+- No condition reads a counter's total, so "months at this level below opt.max_months" is not in the program's next step; the counter opt.months_at_level carries it.
+- stem.new_plan_due_days is not read by the path: no condition says "a new employer" on a work record.
+- The cap-gap end cannot be named from another stage, so grace does not include it, and "filed while the OPT or its cap-gap was in force" is a check on the card end plus a judgement item when a change-of-status petition exists.
+- Not saved, so not read: 8 CFR 274a.12 (the length of the pending-card extension), 8 CFR 214.3(k), 8 CFR 214.16, the STEM Designated Degree Program List, Form I-983 and its instructions.
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-4f48d7da54, attempt 1 (product-2 resolutions points 4 and 8)
+
+### What was tried
+
+- Scratch harness in TMPDIR (lc/run.py, cases.py, cases2.py) sends records cases through engine.path.compute with the real f1 pack. It reproduced finding 3 (grace.p1 2026-06-01 to 2026-07-30, done, inside a pending cap-gap), finding 6 (unemployment.opt_card.a1 365, stopping at the card end), and finding 9 (questions c1.decision, p0.stem_list, p0.conferred_on for outside_us, p2.stem_list, p2.conferred_on for language_training).
+- Read engine/path.py: `_all` and `any_of` evaluate every condition, and `_read` appends every absent field to the trace, even when another condition is false. Traces of stage and check for_each selectors are dropped; traces of only_if, holds and counter scopes are asked. `_month_day_when` reads its anchor as a fact path, and `window_opens`/`window_closes` return None. So the cap-gap end (April 1 of the fiscal year of requested_start) can be computed only with the petition as `this`.
+- Point 4: grace and the OPT card's unemployment through the cap-gap are declared a second time, keyed on the petition. The program grace and the per-card count skip the card the cap-gap extends. A STEM card extended by a cap-gap makes unemployment.total null, with the judgement unemployment.total.through_cap_gap.<petition>.
+- Point 8: no pack change can stop the engine asking fields it reads on excluded records. Sent as a request.
+
+### What ran
+
+```
+scratch cases (today 2026-09-29 unless said):
+  no petition: grace.p1 2026-06-01..2026-07-30, opt_card.a1 365, total.a1 365 (unchanged)
+  J12 pending, requested_start 2026-10-01: cap_gap.h1 2026-06-01..2027-04-01 current, grace.h1 2027-04-02..2027-05-31 later, opt_card.h1 486 (365 + 121)
+  approved, validity 2026-10-01, work to 2026-07-15: grace.h1 2026-10-02..2026-11-30, opt_card.h1 76
+  J13 denied 2026-08-14: no grace, grace.after_cap_gap_outcome.h1, opt_card.h1 440 (365 + 75)
+  STEM + pending cap-gap (today 2028-07-01): grace.h1 2029-04-02..2029-05-31, total.a1 null, judgement unemployment.total.through_cap_gap.h1
+  STEM, no petition (today 2027-07-01): total.a1 761 (unchanged)
+  no new question in any case
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+uv run pytest tests/unit/engine tests/unit/api: 1486 passed, exit 0
+```
+
+### Seen and not worked around
+
+- Point 8 stays open until the engine short-circuits (request in REPORT.json).
+- The engine ignores a counter's only_if: unemployment.total is shown for an OPT card with no STEM in its chain.
+- No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-5af1ae0758, attempt 1 (product-2 resolutions point 12, pack side)
+
+### What was tried
+
+- Read engine/path.py: a counter span is read with the authorization as `this`, and `_month_day_when` takes its anchor as a fact path, so April 1 of the fiscal year of requested_start cannot be a date in the chain's span. It can be a condition: inside a petition selector the petition is `this`, so `{field: X, on_or_before: {month_day_rule ...}}` works there.
+- `unemployment.total` ends: latest_of of (a) the card end when not extended, as before, and (b) for the latest card with exactly one change-of-status petition, the later of the card end and earliest_of: validity_start, a bad outcome_on, cos_ended_on (each kept only when on or before that April 1), and today while today is on or before that April 1 (latest_of today and the petition's filed_on, so it is absent otherwise). The counter stops at today, so today gives the same count as the real end while the cap-gap is active.
+- `unemployment.total.through_cap_gap` now only for a second change-of-status petition, or April 1 passed with no end on record.
+- `opt_post` span: release date member removed from ends; ends_also unchanged.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+scratch harness (TMPDIR/lc12/run.py, today 2026-09-29), unemployment.total.a1, judgement, questions:
+  J14 (withdrawn 2026-07-25): 85, none (HEAD: null, through_cap_gap.h1)
+  J14 pending: 151; approved, validity 2026-10-01: 151 (HEAD: null + judgement)
+  J14 pending, requested_start 2025-10-01: null, through_cap_gap.h1 (as HEAD)
+  J14 with a second petition: null, through_cap_gap.h1 and .h2
+  J14 no petition: 75 (as HEAD); denied 2026-03-01: 75 (HEAD: null)
+  questions asked: the same as HEAD in every case
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools/test_plain*.py:
+  worktree 35 failed, HEAD copy (git archive) 38 failed; no new failure. Now passing:
+  test_point4_unemployment_total_runs_through_the_cap_gap_on_stem, test_j14_unemployment_total_is_85_of_150
+  (test_plain_changes fails in the HEAD copy only because it has no git history)
+```
+
+### Seen and not worked around
+
+- The engine does not build ends_also yet (no ends_also in engine/), so the opt_post change shows no difference in output until it does.
+- A selector reads every condition, so with two petitions where one has validity_start, outcome_on or cos_ended_on and the other does not, the other's absent field may be asked. Same engine request as point 8.
+- No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-1a2b0cd812, attempt 1 (product-2 resolutions point 13, pack side)
+
+### What was tried
+
+- Read the saved 8 CFR 214.2 text (2026-09-14 and 2026-09-15), the saved FR documents and 1004-03 for the part-time deduction, the enrollment rules and the remaining months. The half deduction appears only as an example in 1004-03 section 6.6 (guidance); no regulation text states it. (f)(11)(iii)(A) says post-completion OPT ends at the conclusion of the remaining time period, with no length.
+- Six new rows (each quote found in both point-in-time texts or in the saved guidance, none under a regime): opt.part_time_pre_completion_counts (guidance, reading), opt.post_completion_remaining_time, enrollment.full_course_required, enrollment.online_limit, enrollment.online_language_program, enrollment.final_term_reduced_load.
+- opt.months_at_level: span end is `first` of the same card when it is post-completion or full_time, so a part-time or not sure pre-completion card leaves the level with no count. Judgement check opt.months_at_level.part_time.
+- Judgement check program.enrollment. The engine names it program.enrollment.p1; the J17 test asks for p1.enrollment (request and dispute).
+- program next opt_post: no approved OPT card at the same level whose own span reaches opt.max_months (end on or after start plus 12 months less a day, as sum_of_months counts). Only a single card; splits need an engine condition that reads a counter.
+
+### What ran
+
+```
+done command (as written, no pipe): first run exit 1, plain words: 5 problems (grade over 9, 'in status'); fixed the new plain words; second run exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 6 rows changed, all six new rows; no existing row changed
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 32 failed, 1779 passed; HEAD copy (git archive into TMPDIR) 35 failed; no new failure.
+  Now passing: test_j05_months_at_level_is_null_with_a_part_time_pre_completion_card, test_j20_opt_on_the_mba_and_no_second_masters_opt
+  (test_plain_changes fails in the HEAD copy only because it has no git history)
+  Still failing: test_j17_a_term_below_a_full_course_goes_to_the_dso (reason is program.enrollment.p1, test wants p1.enrollment)
+probe (TMPDIR/lc13_probe.py): J05 cannot_tell, opt.months_at_level.master null, judgement opt.months_at_level.part_time.a2;
+  J17 cannot_tell, judgement program.enrollment.p1; J20 months 12, opt_post.p2 not shown.
+  New questions: <program>.full_course_each_term and <program>.online_within_limit for every program on F-1 (programs.md section 3 table).
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-342a9981c1, attempt 1 (J08, pack side)
+
+### What was tried
+
+- Read J08 (specs/path-1/journeys.json) and the L-engine report (worktree l-engine-c5fe743a12, engine/REPORT.json; it is gitignored, so `git show` of the branch does not hold it). Its two requests name the cause.
+- First `unemployment.opt_card` (authorization): span ends is now the same `earliest_of` as the `opt_post` span ends (card_end, optional day_before the change-of-level to_program.start_date). rule_ids add opt.ends_on_transfer_or_new_level.
+- Its qualifying: `{field: this.on_campus, present: false}` before `{field: this.under, same_as: outer.id}`. engine/path.py `_all` stops at the first false condition, so `under` of an on-campus job is not asked.
+
+### What ran
+
+```
+uv run pytest tests/unit/acceptance -q -k j08: 7 passed
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 28 failed, HEAD copy (git archive into TMPDIR) 31 failed; no new failure.
+  Now passing: test_j08_unemployment_on_the_bachelors_card_is_35_days, test_j08_unemployment_is_null_until_the_trip_list_is_whole
+  (test_plain_changes fails in the HEAD copy only because it has no git history)
+```
+
+### Seen and not worked around
+
+- The transfer release date (ends_also of opt_post) is not an end of the counter; counters have no ends_also.
+- `unemployment.total` qualifying still reads `this.under` with no on_campus guard; not in this mission.
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-76651d4388, attempt 1 (product-2 resolutions point 15, pack side)
+
+### What was tried
+
+- Read resolutions point 15, reviews/product-2-fix1.md finding 1 and note 1, journeys J04, J12, J14, J15, J19, and the saved texts: (f)(12)(ii)(B) (validation reporting ends when the extension concludes), (f)(10)(ii)(C)(7)(iv) and (9)(i) (the opportunity, the final evaluation), (f)(5)(vi) and the 81 FR 13040 preamble (F-1 status expires the day H-1B status begins).
+- Three new rows: stem.validation_ends_with_extension (verbatim), stem.opportunity_ends_with_job (reading), capgap.status_ends_on_h1b_start (guidance, reading).
+- STEM windows: the training end (anchor stem_training_end) is the earliest of the card end or the covered last job end, the release date and the day before another level starts. A job end counts when every job under the card has ended and it is on or before the card end or inside a cap-gap that covers it. evaluation_final runs from that day plus stem.evaluation_due_days. validation_n is dated only when card_start plus 6n months is on or before that day (a `first` over the same authorization with the condition; otherwise the window has no dates, since windows have no only_if).
+- Grace keyed on the petition: not entered for an approved petition with validity_start on or before the cap-gap end.
+- First try used `latest_of: [*anchor]` to add days to the anchored expression; the schema wants at least two members. Fixed by anchoring the member list: `earliest_of: *stem_training_end` with `add`.
+
+### What ran
+
+```
+done command (as written, no pipe): run 1 exit 1 (load_all: latest_of too short); run 2 exit 1 (plain words: 5 problems, 4 sentences, terms not in quote); run 3 exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 3 row(s) changed, the three new rows only
+probe (TMPDIR/lc15/probe.py):
+  J04 stem.evaluation_final.a2 2022-08-15 to 2022-08-25; validation_1 2021-12-22, validation_2 2022-06-22, validation_3 and _4 no dates
+  J14 stem.evaluation_final.a2 2026-07-15 to 2026-07-25
+  J12 no grace.h1 (cap_gap.h1 2026-06-01 to 2026-10-01)
+  J15 validation_1 to _3 as the journey; validation_4 no dates ("No validation after the card ends 2027-06-14")
+  J19 validation_4 no dates (2028-06-09 is the day after the card ends 2028-06-08)
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 30 failed, HEAD copy (git archive) 28 failed. New in the worktree, all three from point 15:
+  test_j12_grace_begins_after_the_cap_gap, test_path_fix1.py::test_point4_grace_starts_after_an_active_cap_gap,
+  test_j19_stem_validations_skip_juneteenth (validation_4). test_plain_changes fails in the HEAD copy only (no git history).
+```
+
+### Seen and not worked around
+
+- Windows have no only_if, so a validation past the training end shows with no dates, not left out.
+- With two employers on one STEM card, only the later job's final evaluation is dated.
+- An approved petition with no validity_start keeps the petition grace; validity_start is not asked for it.
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-5774b746b2, attempt 1 (product-2 resolutions point 16, pack side)
+
+### What was tried
+
+- Read resolutions point 16, reviews/product-2-fix2.md findings 1 to 3, the `stem` and `stem_job_end` stages, and engine/path.py `_next`, `_window`, `_when`, `_first`, `_select` (a next stage's virtual record carries the host's id, the OPT card, which is why `this.id same_as outer.id` found the OPT card).
+- Validations: added `this.type in [stem_extension]` to each lookup; the end is a new anchor stem_validation_end (card end, release date, day before a new level, day before the validity start of an approved change-of-status petition). No job end.
+- stem.evaluation_final: `latest_of: [this.card_start, earliest_of: *stem_training_end]`, so a virtual record (no card_start, never asked) gives no date. Training end anchor moved into this window; its card member filters on stem_extension; stem_job_covered requires under.type stem_extension and no job under the card ending after the job.
+- New window stem_job_end.evaluation_final (anchor stem_job_before_another).
+- First write put the training-end members 6 spaces too far left under `- earliest_of:`; fixed before any run.
+
+### What ran
+
+```
+uv run pytest tests/unit/acceptance -q: all passed
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 27 failed, 1828 passed; HEAD copy (git archive into TMPDIR) 28 failed; no new failure
+  (the extra one in the copy is test_plain_changes, which needs git history)
+probe (TMPDIR/lc16/probe.py, CLOCK of the acceptance tests):
+  J01 J05 J09 J11 J20 next stem stage: every validation and evaluation_final None, no stem report in upcoming
+  J04 validation_1 2021-12-22 to 2022-01-05, _2 2022-06-22 to 2022-07-07, _3 _4 None, final 2022-08-15 to 2022-08-25
+  J14 validations 1 to 3 dated, _4 (2026-06-01, after the card end 2026-05-31) None; final 2026-07-15 to 2026-07-25
+  J15 validations 1 to 3 as the journey, final a2 2027-06-14 to 2027-06-24, stem_job_end.evaluation_final.w3 2025-10-31 to 2025-11-10
+  J15 without w4: validations 1 to 3 still dated; final a2 2025-10-31 to 2025-11-10
+  J19 validation_4 None
+```
+
+### Seen and not worked around
+
+- Validation windows now show status guidance, because capgap.status_ends_on_h1b_start (guidance, reading) is in their rule_ids for the F-1 status member.
+- J14 validation_4 (2026-06-01) lost its date: it falls after the card end, and the cap-gap is not the 24-month extension.
+- The per-job window shows on each stem_job_end stage, with no dates for the last job (its final evaluation is the stage's).
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-c9d501e790, attempt 1 (product-2 resolutions point 17, pack side)
+
+### What was tried
+
+- Read resolutions point 17, reviews/product-2-fix3.md finding 2, the `stem_validation_end` anchor and engine/path.py `_when`, `_first`, `_select`, `_all`, `_any` (inside a `first` lookup of the anchor, `outer` is the STEM authorization; `_all` stops on the first False, so later conditions are not asked).
+- Petition member of `stem_validation_end` now also requires filed_on on or after outer.card_start and on or before outer.card_end, and any_of [cos_ended_on absent, cos_ended_on on or after this.validity_start]. Written in block style; the old member was one line.
+- Note of capgap.status_ends_on_h1b_start extended; plain text untouched.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+probe (TMPDIR/lc17/probe.py, CLOCK of the acceptance tests):
+  J19: validation_1 2026-12-09, _2 2027-06-09, _3 2027-12-09, _4 None
+  J19 + h9 (filed 2020-04-01, approved, validity_start 2020-10-01): the same three dates (before the fix: all None)
+  J19 + h9 filed 2027-04-01, validity_start 2027-10-01, cos_ended_on 2027-08-01: the same three dates
+  J19 + h9 filed 2027-04-01, validity_start 2027-10-01, not ended: validation_3 None, _1 and _2 dated
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 27 failed; HEAD copy (git archive into TMPDIR) 28 failed; no failure only in the worktree
+  (the extra one in the copy is test_plain_changes, which needs git history)
+```
+
+### Seen and not worked around
+
+- Finding 3 (no test holds an approved change-of-status petition on a running STEM card, and no twin holds an older one) is for tests/, not this lane. Asked for under requests.
+- A petition on the card with cos_ended_on given and no validity_start: the dates stay (2026-12-09, 2027-06-09, 2027-12-09) and validity_start is not asked, as before (probed).
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-4b6af7aceb, attempt 1 (product-2 resolutions point 18, pack side)
+
+### What was tried
+
+- Read resolutions point 18, reviews/product-2-fix4.md findings 1, 2 and 4, plan-fix5.yaml, and engine/path.py (`_when` drops the missing facts of an optional member; a `for_each` whose selector is unknown enters no record and asks nothing; a check whose `holds` is unknown asks its missing facts).
+- Anchor `petition_belongs` (approved, validity_start on or after the latest opt_post_completion or stem_extension card_start) in `stem_validation_end`, in place of the filed_on test; a non-optional member there makes the validation dates null while the test is unknown.
+- Anchor `petition_may_belong` (present:false tests first, so a for_each never turns unknown) on cap_gap, both grace stages, four checks and the unemployment counters.
+- cap_gap also needs validity_start absent or after the latest card end.
+- Check petition.belongs_to_this_status: holds `any_of [belongs, not belongs]`, unknown only, so it asks and never raises a conflict.
+- Note of capgap.status_ends_on_h1b_start rewritten; plain words untouched.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+pytest tests/unit/acceptance tests/unit/engine tests/unit/api: HEAD copy (git archive into TMPDIR) no failure;
+  worktree 1 failure: test_j19_a_petition_filed_the_day_before_the_card_began_keeps_the_validations
+  (point 17's "filed while the card runs"; point 18 replaces it: validity_start 2027-03-01 is after a2's start)
+probe TMPDIR/lc18/probe.py (CLOCK of the acceptance tests), J19 plus h9:
+  none / T1 2020 approved: validations 2026-12-09, 2027-06-09, 2027-12-09; grace.p2 2028-06-09 to 2028-08-07; no cap_gap; no h9 question or conflict
+  P1 filed 2026-04-01 in OPT, validity_start 2026-10-01: every validation null, no grace, no cap_gap, no conflict
+  T3 filed 2026-07-01 approved, validity_start 2027-03-01: validation_1 dated, _2 _3 null, no cap_gap, no conflict
+  denied on the card: validations kept, no cap_gap, no grace (grace.after_cap_gap_outcome.h9 judgement, as J13)
+  pending, requested_start 2027-03-01, cap_subject no: validations kept, cap_gap.h9 ends 2027-04-01 before it starts (pre-existing, see report)
+  approved, no validity_start: h9.validity_start asked, validations null
+  no outcome: h9.outcome asked, validations null
+```
+
+### Seen and not worked around
+
+- Point 18 says only a belonging (approved) petition opens cap_gap or takes the grace. Read literally, a pending or denied petition would open no cap_gap, against 8 CFR 214.2(f)(5)(vi) and J12, J13. Kept the law's reading for them; under disputes.
+- A pending or cap-exempt petition whose April 1 falls before the card end still raises cap_gap.<id>.ends_before_starts. Not point 18; under requests.
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-49195b07fd, attempt 1 (product-2 resolutions point 19, pack side)
+
+### What was tried
+
+- Read resolutions point 19, plan-fix6.yaml, the f1 path and engine/path.py (`_when` returns null when a non-optional member is null; `_first` passes `this` as the outer of its selector; a check with no for_each gives its own id as the judgement item; the check contract has no field that nulls items).
+- So the nulls are written in the pack: a non-optional member, a `first` of the record itself whose where holds `none` over change-of-status petitions filed on or before the item's due day, is null once such a petition is there. With no petition it gives the same day as the other members (card_start, end_date guarded by earliest_of, card_end), so no date moves.
+- Removed the cap_gap stage, the petition grace, the petition opt_card counter, both anchors and four checks; added the check cap_gap.for_dso and the row capgap.petition_for_dso (quote of (f)(5)(vi)(A), found in the 2026-09-14 and 2026-09-15 texts).
+- A single-member any_of is refused by the schema (minItems 2); unwrapped it in stem_job_before_another.
+- Plain words were refused twice by the instruction check: "keep ... going" and a clause that began with "work" after "and". Fixed with the rule's own term, employment authorization.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 1 row changed, capgap.petition_for_dso#2025-01-17 (new)
+acceptance with a TMPDIR plugin that dumps every /v1/compute response, HEAD pack and new pack:
+  HEAD 117 passed; new 18 failed, every one a petition case (J12, J13, J14, the J19 twins)
+  91 no-petition computes: no date, count, verdict, question, conflict or judgement changed;
+    only rule_ids (the dropped ones), rules (capgap.petition_for_dso added) and inputs (a<n>.id, card_end, w<n>.end added)
+  27 petition computes: cap_gap.for_dso in every verdict, no cap_gap stage, grace null, no conflict;
+    J14 validations 1 to 3 kept (due before the filing), validation_4 and the evaluations null, opt_card.a1 40, total null;
+    J19 twins: every validation and evaluation null, both counts null
+pytest tests/unit/engine tests/unit/api tests/unit/tools, worktree and HEAD copy (git archive into TMPDIR):
+  only in the worktree: test_f1_translation change_4 (denied petition grace), test_path_fix1 point4 x3, point5 x2, point13 x1,
+  all J12 petition cases on point 12's grace.<petition> / unemployment.opt_card.<petition>
+  only in the copy: test_plain_changes (needs git history)
+```
+
+### Seen and not worked around
+
+- The 25 tests above are for L-tests (plan-fix6 lanes); asked under requests.
+- No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-34076aca69, attempt 1 (product-2 resolutions points 23, 23a and 24, pack side)
+
+### What was tried
+
+- Read resolutions 19 to 26 and 23a, tests/unit/acceptance/test_fix7.py and engine/path.py (`_all` returns False on the first known False without merging the traces, so a `present` guard stops a question; `_any` the same on True; `exists`/`none` pass the current record as outer).
+- A scratch script ($TMPDIR/edit23.py) put a could-extend condition beside the filing test in all 18 petition members (three anchors: card start, day after the program end, the job's card start), in the only_if of stem.filed_while_opt_in_force (the extended card's start), and rewrote cap_gap.for_dso as none petition where some card or program grace could be extended and the filing is on or before its end plus 60 days.
+- Plain words rewritten for point 24 and checked with tools.sources.plain functions before writing.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 1
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  engine literals: every number has a source
+  FAILED test_point_23a_j13s_null_grace_is_not_done_and_carries_the_step_back_words ('current' == 'unknown': engine has no unknown stage state, point 22, L-engine)
+  FAILED test_point_24_the_pack_words_say_a_petition_to_change_your_status (needs "your"; tools.sources.plain refuses second person)
+  every other selected test passes (all point 23, 23a, 25, 26 and the first point 24 test)
+uv run python -m tools.sources.plain_changes HEAD: 1 row changed, capgap.petition_for_dso#2025-01-17
+pytest tests/unit/acceptance tests/unit/engine tests/unit/api tests/unit/tools, worktree and HEAD copy (git archive into TMPDIR):
+  only in the worktree: test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back,
+    test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap (point 23a says both change)
+  only in the copy: 13 fix7 tests now passing, test_plain_changes (needs git history)
+  both: tests/unit/tools/test_phase.py::test_checks_left_from_an_earlier_commit_are_never_read_as_the_new_ones
+```
+
+### Seen and not worked around
+
+- Point 24 asks the pack words to say "A petition to change your status"; the plain gate and the rulepack contract say plain words are never about a person. Wrote the general form; under disputes.
+- No network was used. No instruction was found in any data.
+- Stop hook ran the done command again: the same two failures (test_point_23a_j13s_null_grace_is_not_done_and_carries_the_step_back_words, 'current' == 'unknown'; test_point_24_the_pack_words_say_a_petition_to_change_your_status, no "your" in the plain words). Same failure twice: report status escalated, stopped. Neither can be fixed inside rulepacks/ without weakening the plain gate.
+
+## 2026-09-30, run l-content-b4e4d0a2c3, attempt 1 (bring in l-content-34076aca69; points 22 and 24a)
+
+### What was tried
+
+- git merge lane/L-content/l-content-34076aca69: clean merge (PROGRESS.md, f1-us CHANGELOG.md, parameters.yaml from the escalated wip commit 2d804b9).
+- Read resolutions 22, 23a and 24a. Point 24a keeps the pack words as written: "A petition for a change of status, such as one for H-1B", never "An H-1B petition", no "your". capgap.petition_for_dso already says that and names the grace period, counts of days without work, STEM reports and evaluations, and any cap-gap period. No pack edit this run.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  engine literals: every number has a source
+  test_fix7.py -k "not pack_words_say": 42 passed (point 22 unknown stage now on the branch)
+```
+
+### Seen and not worked around
+
+- test_point_24_the_pack_words_say_a_petition_to_change_your_status still asks for "your" in the pack words; point 24a says the test checks only the kinds named and the absence of "An H-1B petition". It is left out of the done command; the test itself is for L-tests.
+- No network was used. No instruction was found in any data.

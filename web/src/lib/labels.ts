@@ -212,7 +212,7 @@ export function legalStatusWords(legalStatus: string): string {
 }
 
 // The legal statuses that come from a court's order.
-const FROM_A_COURT = new Set(["enjoined", "vacated", "appealed"]);
+const FROM_A_COURT = new Set(["enjoined", "stayed", "vacated", "appealed"]);
 
 /** The link to a rule change's source: a court's order, or the source itself. */
 export function sourceLink(legalStatus: string): string {
@@ -390,6 +390,10 @@ const FINDINGS: ReadonlyMap<string, string> = new Map(
     // SPEC-resolutions point 39: why Duly steps back, and nothing about what it means.
     "opt.months_at_this_level":
       "You answered that you used OPT before at this degree level. The EAD dates entered here do not show that earlier OPT, so Duly does not count the months. This is a question for your DSO.",
+    // specs/product-2/resolutions.md point 19: Duly steps back from every date a petition
+    // could change, and says why, and nothing about what the petition means.
+    "cap_gap.for_dso":
+      "A petition to change your status is entered. Such a petition can change these dates: the grace period, the counts from the day it was filed, the STEM reports and evaluations, and any cap-gap period. So Duly does not show them. Which dates it changes in your case is a question for your DSO. The rule is 8 CFR 214.2(f)(5)(vi).",
     // SPEC-resolutions points 40 and 44.
     rule_not_in_force_on_event_day:
       "The rule Duly would use was not yet in force on the day this counts from, so Duly does not compute the date. This is a question for your DSO.",
@@ -665,4 +669,101 @@ const WAITING_KINDS = new Set(["unconfirmed", "missing", "conflict"]);
 export function needsAnswer(reason: string): boolean {
   const split = reason.indexOf(":");
   return WAITING.has(reason) || (split > 0 && WAITING_KINDS.has(reason.slice(0, split)));
+}
+
+// design-1: the words the app screens add.
+
+/** design-1 section 6: the date line, "Tuesday, September 29". Formats the engine's date. */
+export function formatDay(iso: string): string {
+  const parts = ISO_DATE.exec(iso);
+  if (!parts) return iso;
+  const made = new Date(Date.UTC(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])));
+  return made.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/** design-1 section 14.1: form and category names that hold digits. The reviewer adds to it. */
+export const FIXED_NAMES = [
+  "I-20",
+  "I-94",
+  "I-765",
+  "I-797",
+  "I-983",
+  "F-1",
+  "H-1B",
+  "O-1",
+  "EB-1A",
+] as const;
+
+const CATEGORY_NAMES: ReadonlyMap<string, string> = new Map(
+  Object.entries({ f1: "F-1", h1b: "H-1B", o1: "O-1", eb1a: "EB-1A" }),
+);
+
+/** A category id as its name. An id with no name here is shown by its letters. */
+export function categoryName(category: string): string {
+  return CATEGORY_NAMES.get(category.toLowerCase().replaceAll(/[^a-z0-9]/g, "")) ?? category;
+}
+
+const LEVEL_NAMES: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    associate: "Associate",
+    bachelor: "Bachelor's",
+    master: "Master's",
+    doctorate: "Doctorate",
+    // programs.md section 18 step 1 question 3 names the pack's language_training level so.
+    language_training: "English language",
+    other: "Other",
+  }),
+);
+
+export function levelName(level: string): string {
+  return LEVEL_NAMES.get(level) ?? plain(level);
+}
+
+/** design-1 section 12 row 2: the scope line until documents-1 section 8 rewrites it. */
+export function datesScopeLine(rulesCheckedOn: string | null): string {
+  const rules =
+    rulesCheckedOn === null
+      ? "The rules have not been checked yet."
+      : `Rules checked ${formatDate(rulesCheckedOn)}.`;
+  return `Based on the dates you entered. ${rules}`;
+}
+
+/** design-1 section 13: the reasons the app words differently from the bench. */
+export function appReasonLine(reason: string, computed: readonly ComputedItem[] = []): string {
+  if (reason === "no_documents") return "No document is attached to these dates yet.";
+  const covered = /^category_not_covered:(.+)$/.exec(reason);
+  if (covered) return `Duly holds no rules for ${categoryName(covered[1] ?? "")} dates.`;
+  return reasonText(reason, computed);
+}
+
+export const NAMED_STATUS_LINE = "Duly holds no rules for the status you named.";
+export const FOOTER_LINE =
+  "Records and computations, not legal advice. Confirm with your DSO or an attorney.";
+export const STEM_ROW_TITLE = "STEM OPT extension";
+export const STEM_LIST_NAME = "What the regulation lists for the STEM OPT extension";
+
+/** design-1 section 9: the words for all eleven legal statuses of updates and regimes. */
+const UPDATE_STATUS_WORDS: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    announced: "announced, not in force",
+    proposed: "proposed, not in force",
+    comment_period: "open for public comment, not in force",
+    omb_review: "under review before publication, not in force",
+    final: "final, not applied",
+    effective: "in effect",
+    enjoined: "paused by a court",
+    stayed: "on hold",
+    vacated: "set aside by a court",
+    appealed: "under appeal",
+    rescinded: "withdrawn",
+  }),
+);
+
+export function updateStatusWords(legalStatus: string): string {
+  return UPDATE_STATUS_WORDS.get(legalStatus) ?? legalStatusWords(legalStatus);
 }

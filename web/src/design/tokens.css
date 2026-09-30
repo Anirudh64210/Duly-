@@ -1,22 +1,129 @@
 /* Two design systems, one family. Do not blend the palettes.
-   Duly tokens are the default. WorkBook screens set data-module="workbook". */
+   Duly tokens are the default. WorkBook screens set data-module="workbook".
+   design-1 section 3.2: every canvas token, then a dark set. */
 
 :root {
+  color-scheme: light dark;
   --ground: #f8f7f4;
   --surface: #ffffff;
   --ink: #1a1917;
+  --ink-body: #4a4844;
   --ink-2: #6b6862;
+  --ink-3: #8a8780;
   --hairline: #eceae4;
+  --hairline-inner: #f0eee8;
+  --row-hover: #f0eee8;
+  --chip-border: #e5e2da;
+  --chip-selected-border: #c9c5bc;
+  --control-border: #d5d1c8;
+  --control-border-hover: #b8b4aa;
+  --option-hover: #fdfcfa;
   --accent: #2b4ea2;
+  --accent-hover: #22417f;
+  --on-accent: #ffffff;
+  --button-fill: #2b4ea2;
+  --button-hover: #24448c;
   --accent-tint: #e9eef9;
+  --tint-border: #cbd6ee;
+  --ring-next: #6f86c4;
+  --caution: #8a6a2a;
+  --track: #e8e6e0;
+  --pip-empty: #ddd9d0;
   --ai-mark: #b45309;
   --font-ui: "Instrument Sans", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --radius: 12px;
+  --radius-nav: 7px;
+  --radius-row: 10px;
+  --radius-field: 10px;
+  --radius-card: 12px;
+  --radius-pill: 99px;
+  --radius-tag: 5px;
   --target: 44px;
-  --halo-opacity: 0.05;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --rise: 0.55s;
+  --drop: 0.28s;
+  --step-drop: 0.3s;
+  --hover: 0.16s;
+  --press: 0.12s;
+  --turn: 0.22s;
+  --fill: 1.1s;
+  --fill-delay: 0.5s;
+  --fill-delay-timeline: 0.4s;
+  --step-bar: 0.35s;
+  --halo-size: 21px;
+  --halo-offset: -3px;
+  --halo-blur: 6px;
+  --halo-peak: 0.16;
+  --halo-scale: 1.15;
   --halo-period: 8s;
   --halo-cycles: 3;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #161513;
+    --surface: #1e1d1b;
+    --ink: #edebe6;
+    --ink-body: #d2cfc8;
+    --ink-2: #a9a59d;
+    --ink-3: #7e7a73;
+    --hairline: #2c2b28;
+    --hairline-inner: #252422;
+    --row-hover: #262522;
+    --chip-border: #34332f;
+    --chip-selected-border: #4a4843;
+    --control-border: #45433e;
+    --control-border-hover: #5a5751;
+    --option-hover: #22211f;
+    --accent: #8fa8e6;
+    --accent-hover: #afc2f0;
+    --on-accent: #161513;
+    --button-fill: #8fa8e6;
+    --button-hover: #afc2f0;
+    --accent-tint: #1c2438;
+    --tint-border: #2e3a5c;
+    --ring-next: #5c74b0;
+    --caution: #d2b06a;
+    --track: #2e2d2a;
+    --pip-empty: #3a3935;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #161513;
+  --surface: #1e1d1b;
+  --ink: #edebe6;
+  --ink-body: #d2cfc8;
+  --ink-2: #a9a59d;
+  --ink-3: #7e7a73;
+  --hairline: #2c2b28;
+  --hairline-inner: #252422;
+  --row-hover: #262522;
+  --chip-border: #34332f;
+  --chip-selected-border: #4a4843;
+  --control-border: #45433e;
+  --control-border-hover: #5a5751;
+  --option-hover: #22211f;
+  --accent: #8fa8e6;
+  --accent-hover: #afc2f0;
+  --on-accent: #161513;
+  --button-fill: #8fa8e6;
+  --button-hover: #afc2f0;
+  --accent-tint: #1c2438;
+  --tint-border: #2e3a5c;
+  --ring-next: #5c74b0;
+  --caution: #d2b06a;
+  --track: #2e2d2a;
+  --pip-empty: #3a3935;
 }
 
 [data-module="workbook"] {

@@ -2695,9 +2695,9 @@
   "source": "docs/06-duly-integration.md, Duly modules (blueprint v1), 2. Timeline",
   "text": "Timeline item: cap-gap.",
   "kind": "engine",
-  "status": "met",
-  "evidence": "engine/f1.py (capgap.ends), rulepacks/f1-us/v2026.09/parameters.yaml (capgap.end_month_day)",
-  "note": "Computed from sourced rows."
+  "status": "partial",
+  "evidence": "engine/path.py step back cap_gap.for_dso; engine/f1.py capgap.ends (old route only)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): met to partial. Drift: the app now computes through engine/path.py, which steps back for any change-of-status petition (resolutions point 19); no cap-gap Timeline item carries dates. Cap-gap rows stay not met until the cap-gap round."
  },
  {
   "id": "WB06-051",

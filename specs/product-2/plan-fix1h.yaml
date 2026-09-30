@@ -1,0 +1,25 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+audited: false  # the translation's tests inside product-2; plan-fix1g's review and audit follow
+rounds:
+  - name: translation-tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          engine/f1.py's translation of today's case onto records (to_records and
+          compute_f1_records, specs/product-2/resolutions.md point 1, specs/path-1/programs.md
+          section 19) has no tests: gate 6 holds it at 17 percent against the engine's 95. Write
+          tests/unit/engine/test_f1_translation.py: every field of case_f1 lands in the records
+          case as section 19 says; a set of today's cases from tests/support/f1_pack.py gives
+          through compute_f1_records the verdicts and dates path.py gives for the same records;
+          any difference from compute_f1 is one section 19 names, and each is asserted as such.
+          Never loosen an assertion; a translation you find wrong is a finding in your report.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit/engine -q -p no:cacheprovider --cov=engine
+          --cov-report=xml:.scratch/engine-coverage.xml
+          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*"
+          --fail-under=95 --compare-branch=product-2'

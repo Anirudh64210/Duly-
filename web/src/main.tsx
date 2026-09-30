@@ -1,18 +1,24 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider, createHashHistory } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { App } from "./App";
-import "./styles.css";
+import { CaseProvider } from "./app/caseStore";
+import { createAppRouter } from "./app/Shell";
+import "./app/app.css";
 
+// design-1 section 3.1: hash history, so routes load from duly://app/.
 const client = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
+const router = createAppRouter(createHashHistory());
 const root = document.getElementById("root");
 if (!root) throw new Error("no root element");
 
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={client}>
-      <App />
+      <CaseProvider>
+        <RouterProvider router={router} />
+      </CaseProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

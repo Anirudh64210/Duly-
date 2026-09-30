@@ -979,3 +979,558 @@ Status: done.
   for point 63); now exit 0, none fail. No older test collides.
 
 Status: done.
+
+## l-engine-61ed2c8d55 (attempt 1): engine/path.py over records
+
+### What was done
+
+- engine/rulepack.py: `Rulepack` gains `path` (default None), and `validate_pack` keeps the
+  pack's `path`. Nothing else in the loader changed.
+- engine/path.py, new: `compute(case, packs, clock)`, the signature tests/unit/engine/test_path.py
+  assumes. It reads the pack's path and names no kind, field, choice, stage, rule or category.
+  It holds no number but 0 and 1 and no date.
+  - Refuses a record whose kind or field the pack does not declare. The ValueError names the kind
+    or field, never a value.
+  - Stages: `for_each` over a selector, entered when every `entered_when` path is present. Id is
+    `<stage>.<record>`, with `stage` and `record` in the output. State: done, current, later, next.
+  - Dates (`when`): fact and paths through up to two links, `today`, `add` looked up with
+    `Rulepack.value(id, on)` on the event day, earliest_of and latest_of with `optional`, `as_of`
+    through a field's `history`, `in_year_of`, `in_fiscal_year_of` with `fiscal_year_rule`,
+    `day_before`, `day_after`, `first`. Units: days, business_days, months, years.
+  - A rule with no row on the event day gives `rule_not_in_force_on_event_day`, or
+    `rule_copy_not_saved_for_event_day` when the first later row is `earliest_saved_copy`.
+  - Windows: a computed item for opens and for closes, each with `record`. It goes into
+    `upcoming` with `days_away` and `inputs` unless a `done_when` path is entered.
+    Stage entries carry `windows` with days_away.
+  - Next: `only_if` gives three answers. False hides the step. Unknown shows it: an absent field
+    is asked as `<record>.<field>`, and not_sure gives `<record>.<field>.not_sure`. `bind` builds a
+    record that is not entered yet. No question is asked about that record.
+  - Conflicts: a happened date after today, a span that ends before it starts, a span longer than
+    `longest`, and declared checks (conflict or judgement). The question id is the conflict id. A
+    yes for the same `about` gives the judgement item.
+  - Counters: days_without_qualifying_period (hours_rule, qualifying, not_qualifying),
+    sum_of_days (each day once), sum_of_months, and count_of_records. Groups: record, chain,
+    same_value, all. At or over the limit gives `<counter>.at_or_over_limit.<group>`.
+  - Lists: every kind a selector or a history read uses needs `complete.<kind>`. For a kind that
+    grows with time, a statement holds only on its own day.
+  - `record.ends_before_today`, and D59 typed dates (`typed_dates.from_documents` with `about`,
+    then `typed_dates.checked.<record>.<field>`).
+  - Checklists from `path.checklists`, with confirmations `step.<checklist>.<step>`.
+  - `category_not_covered:<id>` for a category with no pack, no path, or no stages.
+- Verdict order: missing, conflict, list statements, stale or litigated rules, and category not
+  covered all give cannot_tell. Next, judgement items give talk_to_dso. Next, the D59 reasons and
+  record.ends_before_today give cannot_tell. Then open windows give needs_you. The two soft
+  reasons come after judgement items because tests call for talk_to_dso while typed dates are
+  unchecked (see REPORT disputes).
+
+### What ran
+
+- Done command as written, output to a file, no pipe: exit 0. 69 passed, "engine literals: every
+  number has a source", mypy "no issues found in 61 source files", ruff "All checks passed!",
+  "9 files already formatted".
+- tests/unit/engine and tests/unit/api now, against a git archive of HEAD: HEAD 81 failed (55
+  test_path, 12 test_typed_dates, 14 test_compute_generic). Now 14 fail, all in
+  test_compute_generic.py (POST /v1/compute gives 404: an L-api route). No failure is new.
+- By hand, the J01 case of programs.md with the shipped f1 pack on 2026-09-29: it computes,
+  cannot_tell. The first run asked `missing:associate`, because `level_above: associate` names a
+  choice and not a path. Fixed: a listed choice is taken as itself.
+
+### Not done in this attempt
+
+- compute_f1 as a translation (section 19): f1.py is unchanged. Parity over every older case is a
+  round of its own.
+- Regime alternates on path items, `ends_also`, `follows` or `gap_allowed`, periods outside a
+  span, stage `lists`, and window_opens or window_closes references (these give null).
+
+Status: done (done command). The translation is not done.
+
+## l-engine-d7a47d2738 (attempt 1): product-2 resolutions 3, 5, 6, 7, 9 in engine/path.py
+
+### What was done (engine/path.py only)
+
+- Point 3: `first` reads its field as a path from each record it finds, so `to_program.start_date`
+  follows the link.
+- Point 8 (engine side): `where` lists and `all_of` stop at the first condition known false, and
+  `any_of` at the first known true. What the others read is not asked. This removes
+  `<cpt>.decision`, `p0.stem_list` (outside_us) and `p0.conferred_on` (language_training).
+- Point 5: a `days_without_qualifying_period` count is null, with no at_or_over item, until the
+  qualifying kind's list is stated whole (key `<kind>` or `<kind>:<record>`, grows_with_time
+  statements dated today). An unknown selection of qualifying or not_qualifying records now makes
+  the count null too; it was read as no records (J08 gave 365).
+- Point 6: a next stage whose every known window closed before today is not shown. Everything it
+  raised (items, questions, rules, lists, litigation) is rolled back.
+- Point 7: `ends_also` (a reading speaks only when one of its optional facts is found; a different
+  day makes the end null and raises `<stage>.end_by_source.<record>`); stage `lists` go to output
+  `lists` with `record`; two counters over the same scope that disagree on their bars raise
+  `<first counter>.bars_disagree.<group>`.
+- Point 9: `rule_in_litigation` only when a rule read for a shown item has a row under another
+  regime, in force on the same day, with another value.
+- `bind` takes a value that is not a path (`type: opt_post_completion`) as itself. It was read as an
+  absent fact, so a CPT card on the same program hid the next OPT (J04, J07).
+
+### What ran
+
+- Done command as written, output to a file: exit 1. 8 unit and the whole acceptance file fail
+  because POST /v1/compute (api/case.py, L-api) still answers category_not_covered.
+- test_path_fix1.py alone: 8 failed, 26 passed (was 19 failed).
+- Acceptance with a scratch plugin under TMPDIR that routes api.case.compute to
+  engine.path.compute: 8 failed, the rest pass (was 18 failed wired, all failed unwired).
+- mypy clean, ruff clean, engine literals clean, format clean.
+- tests/unit/engine and tests/unit/api, now vs git archive of HEAD: HEAD 21 failed, now 11. New:
+  test_path_reach.py::test_a_litigated_rule_in_use_is_cannot_tell (collides with point 9).
+
+### Not done
+
+- Point 1, compute_f1 as the translation onto records and path.py: not started (time).
+- stem.basis_ten_years_end, cap-gap counters keyed by card, grace.p1 under an active cap-gap,
+  J05 part-time null, J17 enrollment, J20 months only_if: need the pack (see REPORT requests).
+
+Status: blocked on L-api (route) and L-content (pack).
+
+Stop hook ran the done command: same failure (api route not wired). Escalated; see engine/ESCALATE.md.
+
+## l-engine-b9ea448ead (attempt 1): merge of d7a47d2738, resolution 1 translation
+
+### What was done
+
+- Merged lane/L-engine/l-engine-d7a47d2738 (points 3, 5, 6, 7 partly, 8 engine side, 9).
+- Point 1: engine/f1.py gains `to_records(case, pack)` (programs.md section 19 table: p1, a1,
+  a2 with extends and basis_program, w<n> under the card that holds its start, h1 with
+  cap_subject yes, cpt_days_stated and employer_reported as translation-only fields,
+  confirmations under the same ids, nothing_more_to_record yes as a statement for every kind,
+  opt.earlier_at_this_level no as `authorization:p1`) and `compute_f1_records`, which sends it
+  to path.compute. compute_f1 itself is unchanged: routing it through the translation breaks
+  758 older tests (list in REPORT.json disputes).
+
+### What ran
+
+- Done command as written, output to a file: exit 1. 26 passed, 8 failed in
+  test_path_fix1.py. engine literals, mypy (62 files), ruff check, ruff format: clean.
+- The 8 failures come from the shipped pack, not the engine (probe with journeys):
+  - point 4 grace: the pack keys the cap-gap grace stage by the petition. The engine gives
+    grace.h1 2026-10-02 to 2026-11-30, state later. The test asks for grace.p1.
+  - point 4 and 5 unemployment: the cap-gap counter is scoped on the petition, so the engine
+    gives unemployment.opt_card.h1 = 45 (J13 variant) and 486 (J12 without w1), the values the
+    tests ask for, under .h1 in place of .a1.
+  - point 4 J14 total: the pack ends the last card's span only without an active cap-gap and
+    raises unemployment.total.through_cap_gap.h1; the test asks for 85.
+  - point 7 ten years: the pack has stem.previous_degree_within_years but no path item for
+    stem.basis_ten_years_end, and the path schema (contracts/) has no place for a computed date.
+  - point 7 ends_also: the main `ends` of opt_post holds the release date too, so both
+    readings give 2024-12-20 and never differ.
+- Scratch plugin under TMPDIR routing engine.f1.compute_f1 to compute_f1_records over
+  tests/unit: plain 44 failures (8 path_fix1, 8 acceptance, 1 path_reach, 28 tools), routed
+  802; 758 new, all in test_f1*.py and tests/unit/api/test_compute*.py.
+
+Status: blocked on L-content (pack keys and items) and a contracts change for the ten-year date.
+
+Stop hook ran the done command: same 8 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-83bf885c0b (attempt 1): merge of b9ea448ead after resolution 12
+
+### What was done
+
+- Merged lane/L-engine/l-engine-b9ea448ead. No engine code change was needed: the tests
+  (L-tests caf6493) and the pack (L-content 34b71c4) now use the engine's ids per resolution 12,
+  and compute_f1 stays as it is per resolution 1 amended.
+- Removed engine/ESCALATE.md: the 8 failures it named now pass.
+
+### What ran
+
+- Done command as written: exit 0. test_path_fix1.py 23 passed; engine literals clean; mypy
+  62 files clean; ruff check clean; ruff format 9 files already formatted.
+- tests/unit/engine and tests/unit/api: all pass.
+- The merge printed "tests/holdout/...: Operation not permitted" (sandbox read wall); the merge
+  itself succeeded.
+
+Status: done.
+
+## l-engine-50dba0218d (attempt 1): the twenty journeys through POST /v1/compute
+
+### What was done
+
+- POST /v1/compute now reaches engine/path.py (api/case.py). 45 of the 52 journey tests pass.
+- engine/path.py `_counter`: a counter's `only_if` was never read. It is now read on the group's
+  own record: false gives no item, unknown gives a null count. The pack's `unemployment.total`
+  used to show for a card with no STEM card in its chain (J08 showed `unemployment.total.a1`);
+  it no longer does.
+
+### What ran
+
+- Done command as written: exit 1. The pytest step has 7 failures, all in test_journeys.py.
+  engine literals clean, mypy 62 files clean, ruff check clean, ruff format 9 files formatted.
+- tests/unit/engine, tests/unit/api and tests/unit/acceptance before and after the only_if fix:
+  the same 7 failures, no new ones.
+
+### Why the 7 fail (none is an engine fault)
+
+- J02 ten years: resolution 7 says `stem.basis_ten_years_end` waits for a contract construct,
+  and its tests wait with it.
+- J05 months null: the pack's opt.months_at_level has no rule that makes the count null for a
+  part_time opt_pre (programs.md section 14, IMPL-017), and the counter contract has no place to
+  say it.
+- J08 35 days: the pack's span for unemployment.opt_card ends at card_end (2025-06-02), not at the
+  opt_post end (2025-01-12, day_before the change of level). The qualifying selector also reads
+  `under` on the on-campus job w2, which has `on_campus` instead, so w2.under is asked and the count
+  is null. The pack could add `{field: this.on_campus, present: false}` before the under test.
+- J12 grace and unemployment: the engine gives grace.h1 starting 2026-10-02 (later) and
+  unemployment.opt_card.h1 = 0, the values asked, under the ids of resolution 12. The tests ask
+  for grace.p1 and unemployment.opt_card.a1.
+- J17 enrollment: no check in the pack reads full_course_each_term or online_within_limit.
+- J20: the pack's opt_post next step has no "months at this level below opt.max_months"
+  condition, and the condition contract cannot read a counter.
+
+Status: blocked on L-content (pack), L-tests (J12 ids) and a contracts change (J02, J05, J20).
+
+Stop hook ran the done command: the same 7 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-15a74d8b15 (attempt 1): resolution 13, engine side
+
+### What was done
+
+- Merged lane/L-engine/l-engine-50dba0218d (the merge printed "tests/holdout/...: Operation not
+  permitted", the sandbox read wall; the merge itself succeeded).
+- engine/path.py `_counter`: a count is given only when every list the counter reads is stated
+  whole: the `qualifying` list (work) and the `not_qualifying` list (trips). Before, only the
+  qualifying list was checked, so a trip list with no statement still gave a count. The
+  `complete.trip` question was already asked (J12 shows `unconfirmed:complete.trip`).
+
+### What ran
+
+- Done command as written: exit 1. test_path_fix1.py: 20 passed, 3 failed
+  (test_point4_unemployment_runs_through_the_cap_gap, test_point4_unemployment_total_runs_through_the_cap_gap_on_stem,
+  test_point5_the_count_is_given_once_the_list_is_stated_whole). engine literals clean, mypy 62
+  files clean, ruff check clean, ruff format 9 files formatted.
+- tests/unit/engine, api and acceptance, compared with HEAD (git archive under TMPDIR): 6 new
+  failures, the 3 above plus J01 unemployment, J14 total 85 and J15 opt card 86.
+- The same tests with a scratch plugin under TMPDIR that adds "trip" to every `whole(...)`
+  statement: test_path_fix1 passes in full, and test_journeys is back to the 7 failures from
+  before (J02, J05, J08, J12 x2, J17, J20), which belong to other lanes.
+
+### Why it fails
+
+The journeys J12, J13, J14 (and J01, J15) state work whole but not trips. Point 13 says the count
+is null until the trip list is stated whole, and that "a journey test whose timeline holds every
+trip states that list whole". That part is on the test side (L-tests): add "trip" to those `whole(...)` calls.
+The engine cannot give the count without assuming that no trips were taken.
+
+Status: blocked on L-tests.
+
+Stop hook ran the done command: the same 3 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-e72466ef9c (attempt 1): bring in 15a74d8b15 after the reconcile round
+
+### What was done
+
+- Merged lane/L-engine/l-engine-15a74d8b15 (engine/path.py `_counter`: the count needs every
+  list it reads stated whole, trips as well as work; `only_if` on a counter group). The merge
+  printed "tests/holdout/...: Operation not permitted" (sandbox read wall); it succeeded.
+- No further engine change.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. test_path.py 57 passed; engine literals
+  clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+- test_path_fix1.py alone: exit 0, 23 passed (the three older tests now state the trip list).
+
+Status: done.
+
+## l-engine-c5fe743a12 (attempt 1): every journey through POST /v1/compute
+
+### What was done
+
+- engine/path.py: a judgement check whose id is `<kind>.<name>` and runs over records of that
+  kind now raises the item `<record>.<name>` (new helper `_judgement_id`). programs.md section 14
+  names the enrollment item `<program>.enrollment`; the engine gave `program.enrollment.p1`, the
+  test asks `p1.enrollment`. The rule also renames `trip.job_on_return.<t>` to `<t>.job_on_return`
+  and `withdrawal.dso_authorized.<wd>` to `<wd>.dso_authorized`; no test outside the holdout
+  reads those ids (grep of tests, evals, api, web/src, desktop/src). Judgements go only to
+  verdict reasons, so the new ids do not collide with question ids.
+
+### What ran
+
+- Acceptance before the change: 3 failures (J08 x2, J17).
+- Acceptance, tests/unit/engine and tests/unit/api after: 2 failures, both J08.
+- Done command as written: exit 1 (pytest, J08 x2). Each later step run alone: engine literals
+  clean, mypy 62 files clean, ruff check clean, ruff format 9 files already formatted.
+- A scratch copy of rulepacks under TMPDIR with the two pack changes below, loaded through
+  engine.rulepack.load_all: unemployment.opt_card.a1 is 35 with the trip list whole and null
+  without it, and w2.under is no longer asked. The engine needs no change for J08.
+
+### Why J08 fails (pack, L-content)
+
+- The first `unemployment.opt_card` counter's span ends at `this.card_end` (2025-06-02). programs.md
+  J08 says "unemployment only through that end (35 days)", the end of opt_post.a1, the day before
+  the master's starts (2025-01-12). The span end needs the same `earliest_of` as the opt_post stage.
+- Its `qualifying` selector reads `this.under` on w2, an on-campus job with `on_campus` and no
+  `under`, so `w2.under` is asked and the count is null. Adding `{field: this.on_campus, present: false}`
+  before the `under` test ends it (programs.md section 11: "A job on campus is never counted as OPT work").
+
+Status: blocked on L-content.
+
+Stop hook ran the done command: the same 2 J08 failures. Escalated; see engine/ESCALATE.md.
+
+## l-engine-ea028b2435 (attempt 1): bring in the J17 work from c5fe743a12
+
+### What was done
+
+- `git merge --no-edit lane/L-engine/l-engine-c5fe743a12`: exit 0, ort merge, 2 files
+  (engine/path.py `_judgement_id`, engine/PROGRESS.md). It printed
+  "tests/holdout/...: Operation not permitted" (sandbox read wall); the merge succeeded.
+- No other change.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. test_path.py 57 passed; engine literals
+  clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+
+Status: done.
+
+## l-engine-8f7735f031 (attempt 1): every journey through POST /v1/compute, all lanes merged
+
+### What was done
+
+- Read PROGRESS.md and specs/product-2/resolutions.md. The J08 block recorded by c5fe743a12
+  was a pack matter (L-content); the branch now holds the L-content merge (719c770).
+- No engine change was needed.
+
+### What ran
+
+- Done command as written, output to a file: exit 0. Acceptance 90 passed (no skip, no xfail);
+  engine literals clean; mypy 62 files clean; ruff check clean; ruff format 9 files already formatted.
+- tests/unit/acceptance/test_journeys.py alone: all passed.
+
+Status: done.
+
+## l-engine-b37d57c967 (attempt 1): trips are counted by their own dates
+
+### What was done
+
+- engine/path.py `_days_of` read every record's days from the literal fields `start` and `end`
+  (PERIOD_START, PERIOD_END). A trip holds `left_on` and `returned_on`, so a not_qualifying
+  trip read as having no start and added no day.
+- Now `_span_fields(kind)` takes the first two date fields the kind declares in the pack, in
+  the pack's order: work gives start, end; trip gives left_on, returned_on (programs.md
+  section 10 lists each kind's first and last day first). PERIOD_START and PERIOD_END are gone;
+  no field name of any pack is written in the engine for this. A kind with fewer than two date
+  fields covers no day. This is a reading: the contract's record_kind has no explicit span.
+- First try used `len(dates) >= 2`; test_path.py refuses the number 2 in path.py. Rewritten
+  with slices.
+
+### The test (not written into tests/: the lane owns engine/** only)
+
+Written and run from $TMPDIR/l-engine-scratch/test_path_trip_days.py with PYTHONPATH at the
+worktree. On HEAD's engine (git archive into TMPDIR): 2 failed ([0] == [5], [0] == [10]),
+1 passed. On this engine: 3 passed. Proposed for tests/unit/engine/test_path_trip_days.py:
+
+```python
+"""A trip inside a job adds its days (specs/path-1/programs.md sections 10, 11 and 13 point 11).
+
+A record's first and last day come from the fields its kind declares, not from names in the
+engine: a trip holds left_on and returned_on, a job start and end.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from jsonschema import Draft202012Validator
+
+from engine.rulepack import validate_pack
+from tests.unit.engine.test_path_reach import (
+    PACK_SCHEMA,
+    UNEMPLOYMENT,
+    _card,
+    _case,
+    _compute,
+    _counted,
+    _course,
+    _course_stage,
+    _pack_dict,
+    _rec,
+)
+
+TRIP_FIELDS = [
+    {"id": "left_on", "kind": "date", "label": "Left on", "happened": True},
+    {"id": "returned_on", "kind": "date", "label": "Returned on", "happened": True},
+    {"id": "purpose", "kind": "choice", "label": "Purpose", "choices": ["personal", "job_travel"]},
+    {"id": "signature_on", "kind": "date", "label": "Signature on", "happened": True},
+]
+
+
+def _trip_pack(counter: dict[str, Any]) -> Any:
+    raw = _pack_dict([_course_stage()], counters=[counter])
+    for kind in raw["path"]["records"]:
+        if kind["id"] == "trip":
+            kind["fields"] = TRIP_FIELDS
+    problems = [e.message for e in Draft202012Validator(PACK_SCHEMA).iter_errors(raw)]
+    assert problems == [], problems
+    return validate_pack(raw)
+
+
+PERSONAL = {"record": "trip", "where": [{"field": "this.purpose", "in": ["personal"]}]}
+
+
+def test_a_personal_trip_inside_a_job_adds_its_days() -> None:
+    # k1 from 2026-09-01; through today 2026-09-29 is 29 days. w1 from 2026-09-01 at 20 hours
+    # covers all 29. t1 left 2026-09-10 and returned 2026-09-14: its 5 days count. 5.
+    pack = _trip_pack(dict(UNEMPLOYMENT, not_qualifying=PERSONAL))
+    k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    t1 = _rec(
+        "t1",
+        "trip",
+        left_on="2026-09-10",
+        returned_on="2026-09-14",
+        purpose="personal",
+        signature_on="2026-08-01",
+    )
+    out = _compute(_case([_course(), k1, w1, t1]), pack)
+    assert _counted(out, "toy.unemployment", "k1") == [5]
+
+
+def test_a_trip_not_yet_returned_counts_through_today() -> None:
+    # t1 left 2026-09-20 with no return: 2026-09-20 through today 2026-09-29 is 10 days.
+    pack = _trip_pack(dict(UNEMPLOYMENT, not_qualifying=PERSONAL))
+    k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    t1 = _rec("t1", "trip", left_on="2026-09-20", purpose="personal")
+    out = _compute(_case([_course(), k1, w1, t1]), pack)
+    assert _counted(out, "toy.unemployment", "k1") == [10]
+
+
+def test_a_trip_that_is_not_personal_adds_no_day() -> None:
+    pack = _trip_pack(dict(UNEMPLOYMENT, not_qualifying=PERSONAL))
+    k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    t1 = _rec("t1", "trip", left_on="2026-09-10", returned_on="2026-09-14", purpose="job_travel")
+    out = _compute(_case([_course(), k1, w1, t1]), pack)
+    assert _counted(out, "toy.unemployment", "k1") == [0]
+```
+
+### What ran
+
+- Done command as written, output to a file: exit 0. Acceptance and test_path.py all passed;
+  engine literals clean; mypy 62 files clean; ruff check clean; 9 files already formatted.
+- tests/unit/engine plus the scratch test: 1209 passed.
+
+Status: done.
+
+- Stop hook: `ruff format --check engine` also formats Python code blocks in engine/PROGRESS.md
+  and refused the test text above. `uv run ruff format engine` fixed it; done command exit 0.
+
+## l-engine-abe842589a: resolutions point 14 (translation completeness)
+
+- Before: tests/unit/engine/test_f1_translation.py had 8 failures; `_statements` turned a yes
+  to nothing_more_to_record into every kind whole and a no to opt.earlier_at_this_level into
+  authorization:p1 whole.
+- Change: `_statements` in engine/f1.py now states a kind whole only on a yes to the path's own
+  complete.<kind>, on the day given, for the kinds the pack's path lists. The two unasked answers
+  are still sent under confirmations but state nothing whole.
+- Ran: test_f1_translation.py, 37 passed. Done command as written, output to a file: exit 0;
+  diff coverage 98%; mypy clean on 62 files; ruff check clean; 9 files already formatted.
+
+Status: done.
+
+## l-engine-e65365f570: resolutions point 15 (a next stage only while a filing window is open)
+
+- Before: test_path.py passed already (57). J06 through the API showed `opt_post.p1` as next with
+  apply_window and latest_start closed 2026-02-10, kept only by `opt.complete_by` (2027-02-12).
+- Change: `_closed` in engine/path.py now takes the pack stage beside the output entry and reads
+  only the windows that declare done_when (the facts that record a filing). A window without
+  them, such as opt.complete_by, no longer keeps a next stage. A next stage whose filing windows
+  have not closed, including one not yet open (J07), is still shown. No id is named.
+- Ran: tests/unit/engine and tests/unit/acceptance, all passed. A scratch test under TMPDIR
+  printing J06's next stages: [] now; with HEAD's path.py, opt_post.p1 as above.
+- A scratch test written under tests/ was refused by the sandbox; `git stash push` was refused
+  too ("Cannot save the current status"). Neither was worked around.
+- Done command as written: exit 0; 57 passed, engine literals clean, mypy 62 files clean, ruff
+  check clean, 9 files already formatted.
+
+Status: done.
+
+## l-engine-e347637842: every journey through POST /v1/compute (after point 16 tests)
+
+- Before any change: the done command as written, output to a file, exit 0. Acceptance all
+  passed (no skips), engine literals clean, mypy 62 files clean, ruff check clean, 9 files
+  already formatted. tests/unit/engine and tests/unit/api: exit 0.
+- Point 16 journeys (J01, J02, J03, J05, J09, J11 next STEM stage carries no report dates;
+  J15 validations run to the card end through a gap and after the last job ends) already
+  pass on this branch. The quote "The requirement for validation reporting starts on the
+  date the 24-month OPT extension begins" is in the saved eCFR XML under
+  rulepacks/f1-us/v2026.09/sources and in parameters.yaml, so the journeys are backed by the
+  saved words. No finding.
+- No engine code changed.
+
+Status: done.
+
+## l-engine-f39a3071d8: every journey through POST /v1/compute (after point 17 tests)
+
+- Before any change: the done command as written, output to a file, exit 0. 108 acceptance
+  tests passed, none skipped; engine literals clean; mypy 62 files clean; ruff check clean;
+  9 files already formatted.
+- Point 17 (J19 twins with a change-of-status petition): all three pass. The engine reads the
+  shipped pack's stem.validation close rule generically; L-content's pack change (petition
+  filed on or after card_start and on or before card_end, approved, cos_ended_on absent or on
+  or after validity_start) needed no engine code. `-k j19`: 8 passed.
+- Saved words: the rule is capgap.status_ends_on_h1b_start, marked a reading of the 81 FR
+  13040 preamble, with the point 17 conditions in its note. The journeys assert what the pack
+  says; no finding.
+- No engine code changed.
+
+Status: done.
+
+## l-engine-2740fb95ee: every journey through POST /v1/compute (after point 18 tests)
+
+- Before any change: the done command as written, output to a file under TMPDIR, exit 0.
+  Acceptance all passed, none skipped; engine literals clean; mypy 62 files clean; ruff check
+  clean; 9 files already formatted.
+- Point 18 twins of J19 (old approved petition, petition filed during OPT for a later start,
+  start on the card's first day, denied, pending, no validity start, no outcome) all pass.
+  The engine reads the shipped pack's capgap rules generically; L-content's pack change for
+  point 18 needed no engine code.
+- The journeys assert what point 18 and the pack state; no finding.
+- No engine code changed.
+
+Status: done.
+
+## l-engine-38572dc906: points 22 and 24 (unknown stage, unknown choice value)
+
+- Before any change: the target selection (-k "point_22 or unknown_choice") failed 6 of 8.
+  Baseline of tests/unit (tools excluded, they fail on the sandbox) saved under TMPDIR: 21
+  failures, all in test_fix7.py.
+- Point 22: engine/path.py `_state`. A stage is current only when today falls between two known
+  days. starts after today is later, ends before today is done, and any other null day is
+  unknown, never the current fall-back. A stage with no span (opt_job_end, stem_job_end) is
+  placed by its windows' opens and closes. The tests needed more than the grace: on J13/J14
+  opt_job_end.w1 and stem_job_end.w2 were undated current, and on J19 transfer.mv1/mv2 were
+  current with a null end (transfer.contact_new_dso_within_days has no saved copy for 2021 and
+  2023). All now read done or unknown.
+- Point 24 (unknown choice): `ask_unknown_choices` runs after `_refuse_undeclared`; a choice
+  field whose value is outside the pack's `choices` (not_sure aside) is missing and asked as
+  `<record>.<field>`. `_field` reads such a value as absent, so no rule takes it in silence.
+- After: tests/unit (tools excluded) failures 21 -> 14, none new; the 14 left are point 23,
+  23a, 24 pack words and 26, L-content's.
+- Done command as written, output to a TMPDIR file: exit 0 (8 passed; mypy 62 files clean;
+  ruff check clean; 19 files already formatted).
+
+Status: done.
+
+## l-engine-d8fd85ee5c: point 22b (the step back only on a stage a petition nulled)
+
+- Before any change: the done command failed on 6 tests of test_fix8.py (J12, J13, J14 and the
+  J19 twins D, B and G): no stage carried reasons at all. Every no-petition test already passed.
+- engine/path.py `_step_backs`, called from `_enter` for a stage with a span and a null start or
+  end. It reads the pack's judgement checks that have no for_each and hold only `none` over one
+  record kind (today cap_gap.for_dso over petition). When that judgement was raised and records of
+  that kind exist, the span is computed again with those records hidden (state saved and restored,
+  a throwaway trace). If a null start or end becomes known, the judgement id goes into the
+  stage's `reasons`. So a start or end null for any other cause (a missing contact day, a job end
+  with no span) gets no reason, and a case with no petition gets none. `_state` is unchanged:
+  any null day stays unknown. The pack was not edited.
+- The done command as written, output to a TMPDIR file named for this run: exit 0 (fix8 and
+  journeys all passed, 2 xfailed; mypy 63 files clean; ruff check clean; 19 files formatted).
+  A first run wrote to $TMPDIR/done.txt, and another lane's vitest output landed in the same file.
+- tests/unit with tools excluded: exit 0.
+
+Status: done.

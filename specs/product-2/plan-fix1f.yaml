@@ -1,0 +1,69 @@
+# J08: the pack's OPT unemployment span; then the journeys, reconcile, review, audit.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: pack
+  checkpoint: false
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: In rulepacks/f1-us/v2026.09, the counter unemployment.opt_card (the one per authorization)
+      counts through the end of the post-completion OPT stage (opt_post's end, which a change of level
+      or a transfer can bring before the card's end), not through the card's end; and its qualifying selector
+      does not read on-campus jobs as OPT employment. Journey J08 of specs/path-1/journeys.json and the
+      builder's report engine/REPORT.json on lane/L-engine/l-engine-c5fe743a12 (git show) say why. Existing
+      plain words are frozen.
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -c "from engine.rulepack
+      import load_all; load_all()" && uv run python -m tools.sources.plain rulepacks --require f1'
+  - lane: L-engine
+    agent: builder
+    mission: 'Bring in your J17 work: git merge lane/L-engine/l-engine-c5fe743a12. Change nothing else.'
+    done: bash -c 'uv run pytest tests/unit/engine/test_path.py -q && uv run python -m tools.gates.engine_literals
+      && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: integrate
+  checkpoint: false
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: All lanes are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py
+      pass through POST /v1/compute, fixing engine/. A journey that asserts what the saved words do not
+      support is a finding in your report, never a reason to bend the engine.
+    done: bash -c 'uv run pytest tests/unit/acceptance -q && uv run python -m tools.gates.engine_literals
+      && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Resolution 13 is in the engine: counts wait for every list they read, trips included. Bring
+      every test in tests/unit and tests/holdout in line, starting with the three in tests/unit/engine/test_path_fix1.py
+      whose journeys hold trips with no statement that the trip list is whole. Write the point beside
+      each change; never loosen an assertion; escalate any failure no point explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 again against specs/product-2/resolutions.md and the SPECs it names, following
+      your role file, in ONE pass. Send all twenty journeys through POST /v1/compute and say what each
+      shows. Build the web app and walk Onboarding for J01, J08 and J16. Close or name every finding of
+      reviews/product-2.md. Write reviews/product-2-fix1.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+      name. Update docs/requirements/audits/product-2.md and report the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register
+      check'

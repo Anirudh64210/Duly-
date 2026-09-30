@@ -1,0 +1,82 @@
+# The last seven journey tests: tests, pack and engine in parallel, then integration.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: finish
+  checkpoint: false
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'specs/product-2/resolutions.md point 13, test side, in tests/unit/acceptance/test_journeys.py
+      and its hidden twins: the ids of point 12 (J12), J02''s ten-year test waits with point 7 (remove
+      it and say so), and each journey whose timeline holds every trip states the trip list whole; J08''s
+      count is 35 once stated and null before. The builder''s report is engine/REPORT.json on lane/L-engine/l-engine-50dba0218d.
+      Never loosen any other assertion.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q --co -p no:cacheprovider >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'specs/product-2/resolutions.md point 13, pack side, in rulepacks/f1-us/v2026.09: what journeys
+      J05, J17 and J20 of specs/path-1/journeys.json need (part-time pre-completion OPT counted against
+      the months at a level, the enrollment check, a months-at-level condition on the next post-completion
+      OPT), each from a saved primary source, or say in your report which the saved words do not support.
+      Existing plain words are frozen.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -c "from engine.rulepack
+      import load_all; load_all()" && uv run python -m tools.sources.plain rulepacks --require f1'
+  - lane: L-engine
+    agent: builder
+    mission: 'Bring in your work first: git merge lane/L-engine/l-engine-50dba0218d. Then specs/product-2/resolutions.md
+      point 13, engine side: every list a counter reads needs a completeness statement before the count
+      is given, trips as well as work. Held to tests/unit/engine/test_path_fix1.py; the next round runs
+      the journeys.'
+    done: bash -c 'uv run pytest tests/unit/engine/test_path_fix1.py -q && uv run python -m tools.gates.engine_literals
+      && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: integrate
+  checkpoint: false
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: All lanes are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py
+      pass through POST /v1/compute, fixing engine/. A journey that asserts what the saved words do not
+      support is a finding in your report, never a reason to bend the engine.
+    done: bash -c 'uv run pytest tests/unit/acceptance tests/unit/engine/test_path_fix1.py tests/unit/api
+      -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine &&
+      uv run ruff format --check engine'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'The engine, api and web are wired end to end (specs/product-2/resolutions.md). Bring every
+      test in tests/unit and tests/holdout in line; the builders'' collisions are in their reports. Write
+      the point beside each change; never loosen an assertion; escalate any failure no point explains.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 again against specs/product-2/resolutions.md and the SPECs it names, following
+      your role file, in ONE pass. Send all twenty journeys through POST /v1/compute and say what each
+      shows. Build the web app and walk Onboarding for J01, J08 and J16. Close or name every finding of
+      reviews/product-2.md. Write reviews/product-2-fix1.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+      name. Update docs/requirements/audits/product-2.md and report the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register
+      check'

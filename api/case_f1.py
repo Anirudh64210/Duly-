@@ -8,6 +8,7 @@ entered.
 import json
 import math
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
@@ -44,10 +45,14 @@ TYPE_WORDS = {
 }
 
 
+def validator_for(path: Path) -> Draft202012Validator:
+    schema = json.loads(path.read_text())
+    return Draft202012Validator(schema, format_checker=FormatChecker())
+
+
 @lru_cache
 def _validator() -> Draft202012Validator:
-    schema = json.loads(SCHEMA_PATH.read_text())
-    return Draft202012Validator(schema, format_checker=FormatChecker())
+    return validator_for(SCHEMA_PATH)
 
 
 def _where(error: ValidationError) -> str:
@@ -102,8 +107,13 @@ def first_problem(raw: Any) -> str | None:
 
     A time zone can match the pattern of the contract and still not exist. That is
     checked last, against the zones the engine knows."""
+    return first_problem_under(_validator(), raw)
+
+
+def first_problem_under(validator: Draft202012Validator, raw: Any) -> str | None:
+    """first_problem, against the contract this validator holds."""
     errors = sorted(
-        _validator().iter_errors(raw),
+        validator.iter_errors(raw),
         key=lambda e: ([str(p) for p in e.absolute_path], str(e.validator)),
     )
     if errors:

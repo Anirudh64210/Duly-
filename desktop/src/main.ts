@@ -1,8 +1,18 @@
 import { join } from "node:path";
 
-import { app, BrowserWindow, protocol, session, shell, type WebContents } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  protocol,
+  safeStorage,
+  session,
+  shell,
+  type WebContents,
+} from "electron";
 
 import { APP_ORIGIN, APP_SCHEME } from "./about";
+import { CASE_CHANNEL, createCaseBridge, loadChecker, mayUseCase } from "./casefile";
 import { repoRoot, startEngine, webDist } from "./engine";
 import {
   WINDOW,
@@ -14,6 +24,8 @@ import {
 } from "./guard";
 import { createAppHandler, readInside } from "./protocol";
 import { smokeFolder } from "./screen";
+import { runShots } from "./shotrun";
+import { NO_ENGINE, refusedInApp, shotsFolder, webSamples } from "./shots";
 import { runSmoke } from "./smoke";
 
 const INDEX = `${APP_ORIGIN}/index.html`;
@@ -76,8 +88,25 @@ function launch(folder: string | null): void {
         engine: () => engine.view(),
         fetch: (input, init) => fetch(input, init),
         readFile: readInside,
+        refuse: refusedInApp,
       }),
     );
+
+    const answer = createCaseBridge({
+      folder: app.getPath("userData"),
+      checker: loadChecker(repoRoot(appPath)),
+      cipher: {
+        available: () => safeStorage.isEncryptionAvailable(),
+        encrypt: (text) => safeStorage.encryptString(text),
+        decrypt: (data) => safeStorage.decryptString(data),
+      },
+    });
+    ipcMain.handle(CASE_CHANNEL, (event, message: unknown) => {
+      const frame = event.senderFrame;
+      const main = frame !== null && frame === event.sender.mainFrame;
+      if (!mayUseCase(frame?.url, main)) throw new Error("not the app's page");
+      return answer(message);
+    });
 
     const shown = new BrowserWindow({
       ...WINDOW,
@@ -110,18 +139,52 @@ function launch(folder: string | null): void {
   });
 }
 
-function folderFromArgs(): string | null | "bad" {
+/** The shots run: no engine and no case; the shots page draws from the samples it holds. */
+function launchShots(folder: string): void {
+  void app.whenReady().then(async () => {
+    const refuse = session.defaultSession;
+    refuse.setPermissionRequestHandler((_contents, permission, callback) =>
+      callback(decidePermission(permission)),
+    );
+    refuse.setPermissionCheckHandler((_contents, permission) => decidePermission(permission));
+    app.on("web-contents-created", (_event, contents) => guard(contents));
+
+    const root = repoRoot(app.getAppPath());
+    protocol.handle(
+      APP_SCHEME,
+      createAppHandler({
+        webDist: webDist(root),
+        engine: () => NO_ENGINE,
+        fetch: () => Promise.reject(new Error("no engine in a shots run")),
+        readFile: readInside,
+      }),
+    );
+    const code = await runShots({
+      folder,
+      webDist: webDist(root),
+      samples: webSamples(root),
+      preload: join(__dirname, "preload.js"),
+      version: app.getVersion(),
+    });
+    app.exit(code);
+  });
+}
+
+function fromArgs(read: (argv: readonly string[]) => string | null): string | null | "bad" {
   try {
-    return smokeFolder(process.argv);
+    return read(process.argv);
   } catch (error) {
     process.stderr.write(`${String(error)}\n`);
     return "bad";
   }
 }
 
-const folder = folderFromArgs();
-if (folder === "bad") {
+const shots = fromArgs(shotsFolder);
+const folder = fromArgs(smokeFolder);
+if (folder === "bad" || shots === "bad") {
   app.exit(2);
+} else if (shots !== null) {
+  launchShots(shots);
 } else if (!app.requestSingleInstanceLock()) {
   if (folder !== null) process.stderr.write("smoke: Duly is already open\n");
   app.exit(folder === null ? 0 : 1);

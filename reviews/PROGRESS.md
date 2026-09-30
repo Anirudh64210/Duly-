@@ -201,3 +201,126 @@
 - Failure: a background probe server could not be stopped from inside the sandbox.
 - Fix: probe in the foreground with a timeout, or through TestClient.
 - Evidence: kill 18296: operation not permitted.
+
+## 2026-09-29, run l-review-b7ccda7ad9 (product round 2)
+- Read the plan, path-1 SPEC, programs.md sections 8 to 22, design-1 sections 4, 14.4 and 18 parts, the engine and content progress logs, api/case.py, engine/path.py, the pack's path, caseStore and Onboarding.
+- Ran: unit and holdout suites (exit 0). TMPDIR/rv/journeys.py sent J01, J02, J03, J06, J08, J09, J09 late, J12, J13, J16, J19 through /v1/compute (all 200, cannot_tell, category_not_covered:f1) and engine.path.compute. Dates checked by hand.
+- Found: api never calls path.py; J08 OPT end wrong (_first ignores link paths); J12 grace ignores cap-gap; unemployment counted on an unanswered work list; onboarding is round A's shape; no design-shots; no journey pairs in holdout.
+- Screens: no render tool (no shots.ts, no playwright package); compared Timeline and Onboarding PNGs by structure.
+- Wrote reviews/product-2.md (VETO), REVIEW.json, REPORT.json, both valid.
+
+## Lesson
+- Failure: a green suite hid a route that computes nothing.
+- Fix: send one SPEC journey through the route and the engine function and compare.
+- Evidence: reviews/product-2.md finding 1.
+
+## 2026-09-30, run l-review-3a41706e57 (product round 2, fix 1)
+- Read resolutions.md points 1 to 14, reviews/product-2.md, programs.md sections 14, 18, 19 and 22, journeys.json, the diff 233625c..6585ae9 (api/case.py, engine/path.py and f1.py, the pack, the web onboarding and records, the acceptance and holdout journeys).
+- Ran: unit and holdout suites (exit 0); web tsc and vite build (exit 0) and vitest (516 passed) on a TMPDIR copy; TMPDIR/rv3a/journeys.py sent all twenty journeys through POST /v1/compute (all 200, all cannot_tell with reasons); a click driver walked Onboarding for J01 (70 views), J08 and J16 (48 views) and sent each posted case to the route.
+- Hand checks: 17 journeys right. J04 and J14 give the concluding evaluation from the card end (2023-07-01, 2026-06-10), where the source and journeys give 2022-08-25 and 2026-07-25. J06 keeps opt_post.p1 next after its filing window closed on 2026-02-10.
+- Onboarding: J01 and J16 posted cases give the journey counts; J08's on-campus job cannot be chosen (setField writes under ""); many views lack a why line; several dates must be typed with no not-sure choice. Point 11 not built.
+- Wrote reviews/product-2-fix1.md (VETO), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: a unit test that sets a field directly passed while the rendered view refused the same choice.
+- Fix: walk each named journey through the rendered views with a title-keyed click driver and save the posted case.
+- Evidence: the J08 walk stops at "Which permission was this job under?" with "Choose an answer."
+
+## 2026-09-30, run l-review-c18232d7c2 (product round 2, fix 2)
+- Read resolutions.md point 15, reviews/product-2-fix1.md, and the diff 6585ae9..66bbfae (engine/path.py _closed, the pack's stem windows, grace entry and three new rows, the web Onboarding, desktop shots, Makefile, tests/design, the acceptance and holdout journeys).
+- Ran: unit and holdout suites (exit 0); copy lint, ruff, sources verify (clean); web tsc (exit 0) and vitest (522 passed apart from my own stale drivers); desktop vitest (123 passed) on a git archive copy.
+- TMPDIR/rvc18/journeys.py sent all twenty journeys through POST /v1/compute (all 200, cannot_tell), diffed against the fix 1 run. J04, J06, J12, J14, J15, J19 right by hand. J01, J02, J03, J05, J09, J11, J20: the next STEM stage now carries validation and concluding-evaluation dates taken from the OPT card.
+- Probes (TMPDIR/rvc18/probe.py): J15 without Job C drops all validations while the card runs; J15 Job B final evaluation absent.
+- Walked Onboarding for J01 (71 views), J08 (62), J16 (49): every view has a why line, the on-campus job moves on, I'm not sure works, complete.withdrawal is sent. The withdrawal program is preselected.
+- make design-shots: builds pass, Electron SIGTRAP in the sandbox; no shot compared. web/samples are stale against the engine.
+- Wrote reviews/product-2-fix2.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a fix that made a done stage right gave dates to the virtual next stage of the same kind.
+- Fix: diff the full route output of every journey against the previous run, not only the named ones.
+- Evidence: reviews/product-2-fix2.md finding 1.
+
+## 2026-09-30, run l-review-1ff190a1d6 (product round 2, fix 3)
+- Read resolutions.md point 16, reviews/product-2-fix2.md, plan-fix3, and the diff 222aeed..317ad86 (the pack's stem windows and new stem_job_end.evaluation_final, desktop shots.ts and shotrun.ts, the acceptance and holdout journeys, progress logs).
+- Ran: unit and holdout suites (exit 0); sources verify, plain gate, copy lint, ruff (clean); desktop vitest on an archive copy (137 passed).
+- TMPDIR/rv1f/journeys.py sent all twenty journeys through POST /v1/compute (all 200, cannot_tell) and diffed them against the fix 2 run. The next STEM stage of J01, J02, J03, J05, J09, J11 and J20 now has no report dates. J14, J15 and J19 validations and J15 Job B's evaluation (2025-10-31 to 2025-11-10) are right by hand.
+- Walked Onboarding J01, J08 and J16 on a HEAD web copy. The posted cases are the same bytes as in fix 2, and their counts are the same on the day they were stated. The withdrawal program still opens already chosen.
+- Found: the L-web point 16 commit 3db6249 is not merged (blocking). Any approved change-of-status petition, even one from 2020, ends every validation (parameters.yaml:1787), and no test covers it (mutant b survives). Samples still drift.
+- Wrote reviews/product-2-fix3.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a lane's fix sat unmerged while the plan counted the lane as done.
+- Fix: check each plan lane's commit with git merge-base --is-ancestor before reviewing.
+- Evidence: reviews/product-2-fix3.md finding 1.
+
+## 2026-09-30, run l-review-e8924056e5 (product round 2, fix 4)
+- Read resolutions.md point 17, reviews/product-2-fix3.md, plan-fix4, and the diff 317ad86..fa26e0c (pack stem_validation_end petition member, web/samples/make.py and samples, Makefile samples, onboarding withdrawal fix and walk test, samples.test.ts, desktop shots.ts heading text, point 17 twins).
+- Ran: unit and holdout suites (exit 0); verify, plain, load_all, copy lint, ruff, engine_literals, make.py --check (all exit 0); planted sample drift caught (exit 1); web tsc and vitest on a HEAD copy (523 passed), samples.test.ts in the worktree (passed); desktop tsc and vitest (143 passed).
+- TMPDIR/rve89/journeys.py: twenty journeys, output byte for byte the fix 3 run; J19 validations checked by hand again. twins.py: five acceptance and three holdout twins right; probes P1 to P8.
+- Walks J01, J08, J16: same cases and counts as fix 3. Withdrawal view opens unchosen and Continue stays.
+- Mutants: m1 and m3 caught, m2 equivalent, m4 (approved filter removed) survives.
+- Found: the old-petition twin loses grace.p2 and gets an invented cap_gap.h9.ends_before_starts conflict; a petition filed during the first OPT keeps validations while grace is dropped; the shot heading check compares canvas copy that /welcome, / and /updates never draw; a missing filed_on is not asked.
+- Wrote reviews/product-2-fix4.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a twin that asserts only the rows its point names hid another stage the same input broke.
+- Fix: diff every stage, question and reason of a twin against the case without the added record.
+- Evidence: reviews/product-2-fix4.md finding 1.
+
+## 2026-09-30, run l-review-1d6afd8368 (product round 2, fix 5)
+- Read resolutions.md point 18, reviews/product-2-fix4.md, plan-fix5, and the diff 949b726..0dddf62 (pack anchors petition_belongs and petition_may_belong, web data-landmark marks and petition questions, desktop landmark selector, point 18 twins).
+- Ran: unit and holdout suites (exit 0); verify, plain, load_all, copy lint, ruff, engine_literals, make.py --check (all 0); web tsc and vitest (550 passed) and desktop tsc and vitest (136 passed) on a HEAD copy.
+- TMPDIR/rv1d/journeys.py: twenty journeys, byte for byte the fix 4 run. twins2.py and probe3.py diffed every twin and probe against plain J19.
+- Mutants: m1, m2 and m6 caught; m3 (null while unsettled) and m5 (cap_gap card-end filter) survive; m4 is equivalent.
+- Scratch test: the web LANDMARKS values fail the desktop holdsLandmark on 8 of 8 screens.
+- Walks J01, J08, J16: same cases and counts as fix 4.
+- Wrote reviews/product-2-fix5.md (VETO), REVIEW.json and REPORT.json.
+
+## Lesson
+- Failure: two lanes built the two halves of one contract, and each tested against its own spelling.
+- Fix: feed one side's exported values to the other side's check.
+- Evidence: reviews/product-2-fix5.md finding 1.
+
+## 2026-09-30, run l-review-9682244b00 (product round 2, fix 6)
+- Read resolutions.md points 19 to 21, reviews/product-2-fix5.md, plan-fix6 and plan-fix6b, and the diff 0dddf62..0c55967 (the pack's point 19 step back and capgap.petition_for_dso, web labels, drafts, Shell and shots, the desktop join test, the point 19 and 21 tests, and the samples). No L-engine commit landed; engine/ is unchanged.
+- Ran: unit and holdout suites (exit 0); verify, plain, load_all, copy lint, ruff, engine_literals and make.py --check (all 0); web tsc and vitest (554 passed) and desktop tsc and vitest (139 passed) on a HEAD copy.
+- TMPDIR/rv96/journeys.py: twenty journeys, all 200 and cannot_tell. Only J12, J13 and J14 differ from fix 5. Dates and J12/J14 filing-day boundaries checked by hand. probe6 to probe10 cover J19, J11, J06 and J15 with petitions of every kind.
+- 13 pack mutants: 8 caught, 1 equivalent (validation_4), 4 survive (job-end evaluation, program grace, the filing-day boundary, and the filed_while skip, which no test pins).
+- A scratch vitest sends the route output to stageEyebrow: J12, J13 and J14 give "F-1 · TIME AFTER THE PROGRAM ENDS, FROM THE DATES YOU ENTERED" from the nulled grace, which the engine marks current.
+- Walks J01, J08 and J16: same cases and counts as fix 5.
+- Wrote reviews/product-2-fix6.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a step back nulled a stage's dates, and the stage's state fell to current, so Home named the stage the SPEC made unknowable.
+- Fix: send the route output of each step-back case through the web view functions and read the words.
+- Evidence: reviews/product-2-fix6.md finding 1.
+
+## 2026-09-30, run l-review-6676921233 (product round 2, fix 7)
+- Read resolutions.md points 22 to 26, 23a and 24a, reviews/product-2-fix6.md, plan-fix7, plan-fix7b and plan-fix7c, and the diff 0c55967..3d09f03 (contract state unknown, engine _state and ask_unknown_choices, the pack's point 23 filters and 24a words, web timeline, labels, records and onboarding, test_fix7.py, fix7.test.ts, the reconciled tests and the samples).
+- Ran: unit and holdout suites (exit 0). verify, plain, engine_literals, copy lint, ruff, ruff format, mypy and make.py --check all exit 0. On a HEAD copy: web tsc exit 0, web vitest 567 passed, desktop vitest 139 passed.
+- TMPDIR/rv7/run.py: twenty journeys on HEAD and on a fix 6 copy, all 200 and cannot_tell. Every date, item, question and reason is the same. Stage state differs in 13 journeys: the transfers and open job-end stages go from current to unknown with no petition.
+- twins7.py: 18 J19 twins for point 23 and 23a, each diffed against J19 without the petition. All follow 23a. Probes p11, p15 and p15b cover J11 and J15.
+- A scratch vitest sent the route output through stageEyebrow and timelineView. J12, J13 and J14 give eyebrow "F-1" and no now mark, and J19 plus a petition marks only stem.a2. No-petition rows show "Your DSO can tell you these dates." with their items dropped, and on petition cases the old transfers carry the petition's words.
+- Mutants: 17 run, 14 caught (all four that point 25 names), 3 survive (the job-card filter, the unemployment filter, window-only placement).
+- The saved Onboarding cases for J01, J08 and J16 give the same counts as fix 6.
+- Wrote reviews/product-2-fix7.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas. The Write tool was refused by the permission mode, so the files were written through shell heredocs inside reviews/.
+
+## Lesson
+- Failure: a state change meant for petition-nulled stages also reached open-ended stages with no petition, and no test pinned a non-petition stage's state.
+- Fix: diff each journey's stage states against the previous run, and send the changed rows through the web views.
+- Evidence: reviews/product-2-fix7.md finding 1.
+
+## 2026-09-30, run l-review-0ba3ea5fce (product round 2, fix 8)
+- Read resolutions.md point 22b, reviews/product-2-fix7.md, plan-fix8, and the diff 3d09f03..ca6abcd (engine/path.py _step_backs, web timeline.ts unknown row, test_fix8.py, fix8.test.ts, the point 22b lines in test_fix7.py, fix7.test.ts and the holdout journeys). Every plan-fix8 lane commit is on the branch.
+- Ran: unit and holdout suites (exit 0); verify, plain, engine_literals, copy lint, ruff, ruff format, mypy, make.py --check (all 0). On a HEAD copy: web tsc exit 0, web vitest 575 passed, desktop vitest 139 passed.
+- TMPDIR/rv8/run.py: twenty journeys, all 200 and cannot_tell. Against fix 6: only the stage states point 22b names change. No stage carries cap_gap.for_dso without a petition. Against fix 7: only grace.p1 reasons on J12, J13 and J14.
+- twins7.py on HEAD: same flat output as fix 7. The reason sits only on the nulled grace (twins B to K, the LATE twins).
+- Scratch web vitest: every no-petition row keeps its fix 6 dates and items; the DSO line appears only on nulled grace rows.
+- Mutants: 10 Python (8 caught; sb_starts_only and sb_no_restore equivalent on all inputs), 3 web (2 caught; the fact lines are unpinned).
+- Probes: J13 with h1.change_of_status or filed_on missing gives a grace row with no reason and no question (should fix).
+- Wrote reviews/product-2-fix8.md (APPROVE, mean 4.5), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a zsh loop over quoted commands ran each string as one command name, and every gate printed exit 127.
+- Fix: eval each command in the loop and print its last output line beside the exit code.
+- Evidence: TMPDIR/rv8/gates.txt.

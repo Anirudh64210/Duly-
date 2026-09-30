@@ -714,3 +714,518 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not done, not verified
 
 - Not loaded through duly://app/ in Electron (desktop lane) nor in a browser against a live api.
+
+## Run l-web-1a5edfdd3d (attempt 1): design-1 round A
+
+### Tried
+
+- The bench leaves the production build (programs.md section 9): `src/main.tsx` moved to
+  `src/bench.tsx`, loaded by a new `bench.html`. Vite builds `index.html` only, so a
+  production build holds no bench (checked: a build into TMPDIR holds index.html and assets
+  only). App.tsx, CaseForm.tsx, Result.tsx, styles.css and their tests stay as the bench.
+- New `src/main.tsx`: TanStack Router with hash history, `CaseProvider` (one case in
+  memory, one TanStack Query keyed by the case body and the day, `refetchOnWindowFocus`
+  off; a focus recomputes only when the day in the case's zone differs from
+  `today.date`).
+- `src/app/`: Shell (sidebar Home, Updates, then Your case, Settings, Feedback; top bar
+  under 760px; no sidebar on `#/welcome`; unknown routes go Home; no case opens
+  Onboarding), Home (hero in four states, halo on the mark only for no_open_items, reason
+  lines with "How Duly counted", metrics for unemployment and the card end, QUESTIONS FOR
+  YOU, WHAT COMES NEXT with the STEM row and its B2 line, DATES, COUNTS AND RULES with
+  the other-rules row, busy after 300ms, error with "Try again"), Onboarding (five
+  sections, one question per view, program loop that stops only on No, CPT for each
+  program, OPT, STEM, cap-gap, jobs, the engine's questions one per view, Done with no
+  check marks and the completion moment), Updates (empty state, title from `matching`),
+  Your case (edit in place with Save, Cancel, Remove and Keep; two-choice rows; YOUR
+  ANSWERS), Settings (zone, privacy.ts sentence, packs, Delete with Delete or Keep),
+  Feedback (copy only, nothing sent).
+- `src/design/tokens.css` holds every token of 3.2 in light and dark; `app.css` holds the
+  shell, parts and motion, off under reduced motion.
+- lib additions: `formatDay`, `FIXED_NAMES`, `categoryName`, `levelName`,
+  `datesScopeLine`, `appReasonLine` (no_documents and category_not_covered words),
+  `updateStatusWords` (all eleven), `FROM_A_COURT` gains stayed, `caseDraft` (a draft for
+  every verdict), `stemStepDraft` (no month count), `privacy.ts`, `views/onboarding.ts`
+  (`onboardingSteps`), `views/updates.ts`.
+- Tests: `src/app/app.test.tsx` (shell, Home, Onboarding, Updates, Settings, drafts,
+  calm) and `src/design/contrast.test.ts` (every text and mark pair of 14.1 in both
+  themes, no --faint, four font weights, reduced motion).
+
+### Ran
+
+- The done command at the start: exit 0 (307 tests).
+- The done command after the build, output to a file, no pipe: exit 0, 333 tests.
+- After the contrast test: one failure (a chevron used `color: var(--ink-3)`), fixed by
+  stroking the path; then the done command: exit 0, 401 tests, eslint clean, prettier
+  clean, "copy lint: clean".
+
+### Not done, not verified
+
+- Not seen in a browser against a live api; no design shots.
+- Earlier programs, and CPT for them, are held as entered and shown in Your case but not
+  sent: case_f1 holds one program, and POST /v1/compute is not served in round A.
+- The sentinel test of 14.1, the landmark checks, hit-area tiling measurements, the
+  keyboard walk and the recompute-without-rise test are not written.
+- Home reason lines do not yet open a COUNT_BESIDE rule; Updates hero and list parts are
+  minimal, since no route serves an update.
+
+## Run l-web-a0484bd4ea (attempt 1): design-1 round B, Timeline, Checklists, Home
+
+### Tried
+
+- `lib/compute.ts` mirrors the round B contract: `stages` (with `windows`, whose `inputs`
+  the contract also names), `checklists`, `record` on computed, upcoming, lists and
+  questions, and `upcoming[].days_away` and `inputs`. The rule-source refine now covers
+  stages, windows and steps too.
+- Engine samples made by `engine.path.compute` with fixed clocks, from cases saved beside
+  them: `web/samples/path-stem-next` (2026-09-29) and `path-window-open` (2026-12-01, with
+  step confirmations). They sit in `web/samples/`, not `web/src/lib/samples/`: the copy
+  lint reads web/src as product copy and flagged 44 words inside the regulation quotes and
+  notes the output carries (eligible, qualified, compliance...).
+- `lib/views/stages.ts` (shared: eyebrow, window words from `opens_days_away`, span words,
+  fact lines, window item names from the pack's window labels), `lib/views/timeline.ts`
+  (`timelineView(output, status)`: a row per stage in order, CPT stages as one row, marks
+  Done, Now, Next, Later or "A question for your DSO", Beyond from `/v1/status`),
+  `lib/views/checklists.ts` (`checklistView(output, selected)`: chips, steps, bar line,
+  finished CPT and OPT views, `step.<checklist>.<step>` ids without the record).
+- `app/Timeline.tsx`, `app/Checklists.tsx`, routes `#/timeline` and `#/checklists`, the
+  sidebar in the order of 3.1. Home: the stage eyebrow, the card end from the current
+  stage with "<n> days from today", FULL-TIME CPT while a program is current, one
+  next-stage row per `state: next` stage with the B2 line and the engine's count, the
+  current stage's dated rows, and DATES, COUNTS AND RULES reduced to the Timeline link and
+  the rules row. Round A's behaviour stays when the output holds no stages.
+- The round A sidebar test in app.test.tsx now expects Timeline and Checklists (3.1).
+
+### Ran
+
+- The done command at the start: exit 0 (401 tests).
+- After the build: copy lint failed on the samples (44) and on a check mark in a test
+  regex; the samples moved to web/samples and the tests build the character from its
+  code point. Then the done command as written, output to a file: exit 0, 441 tests,
+  eslint clean, prettier clean, "copy lint: clean".
+
+### Not done, not verified
+
+- No live api gives stages: `POST /v1/compute` answers every category as not covered, and
+  the app still posts the F1Case to `/v1/compute/f1`. The screens are tested on engine
+  output only. Onboarding round B (every program, the records case) is not built.
+- Timeline's jobs as entered and the application's approval notice and card-received
+  dates wait for the records case in the web store; the application line shows "Filed"
+  and "Decided" from the stage's own facts.
+- The sentinel test, the court line on stage items, the 300ms busy delay on the new
+  screens, and the completion moment's timing when the last step is confirmed.
+- The checked checkbox draws its tick in white in a data URL, not `--on-accent`.
+
+## Run l-web-a0ebffda52 (attempt 1): coverage repair for the app screens
+
+### Tried
+
+- Tests beside the code, walked as a student uses the screens:
+  - `app/Onboarding.test.tsx`: an F-1 walk through every view kind (two programs, CPT days,
+    OPT dates and card, STEM OPT dates and card, cap-gap petition, status and change of
+    status, two jobs, one still held and one ended), every problem line on Continue, Back,
+    the No answers that drop an earlier program and the jobs, the time zone change, Duly's
+    questions (one, and two in a row), another status with and without a name, and a
+    category from /v1/status with no rules (H-1B), with duplicate packs offered once.
+  - `app/Pages.test.tsx`: Updates empty and with rows; Your case programs (name, level,
+    none), edit with Cancel and Save, Remove with Keep, OPT, STEM OPT and cap-gap choices,
+    jobs, answers changed and removed, answers the engine did not read, another status;
+    Settings zone, rule packs with and without a check day, server not reached, Keep;
+    Feedback copy and a refused copy.
+  - `app/parts.test.tsx`: Row, Disclose, RuleBlock (verbatim, reading with note, bare),
+    RuleBlocks, Working with every input kind, DraftPill and DraftView copy and refusal,
+    OptionCards arrow keys and tab stop, DateField, splitDate, TextField, HeroMark, CompletionMark.
+  - `app/refusal.test.ts`: CaseRefused with and without a reason, a ZodError, any other error.
+  - `app/Home.test.tsx`: the 300ms busy state, a refused case with Try again, server not
+    reached, a category with no rules, the metric toggles, full-time CPT on a current
+    program stage, the question pills Yes and No, the hero's jump to the first question,
+    a STEM window that only closes, and the job lines under periods not marked as reported.
+  - `entry.test.tsx`: main.tsx and bench.tsx mount into #root and refuse to start without one.
+
+### Faults found by a test, and the code changed
+
+- Onboarding, two questions: after the first answer the output is recomputed, the questions
+  view dropped out of the list while it was pending, and the student was sent back to
+  "Which visa status do you hold now?". Onboarding now keeps the questions view (with its
+  busy line) while it waits. The test fails on the old code and passes on the new.
+- The done command passes `-- --coverage` and the web test script already held
+  `--coverage`; vitest refused the flag twice and ran no test. Coverage moved into
+  vite.config.ts (`enabled: true`) and the script is `vitest run`, so gate 5's `npm test`
+  still writes web/coverage/lcov.info for gate 6.
+
+### Ran
+
+- Baseline coverage at start: 441 tests, exit 0. Onboarding 28.6, Pages 53.5, parts 51.6,
+  refusal, bench and main 0 (lines).
+- Done command first: exit 2 (tsc: mock calls typed as empty tuples; fixed with typed vi.fn).
+  Second: exit 1 (duplicate --coverage, above). Third and fourth: exit 0, 504 tests,
+  lines 98.15 percent, eslint clean, prettier clean, "copy lint: clean".
+- After: Onboarding 100, Pages 100, parts 100, Home 98.2, refusal, bench and main 100 (lines).
+
+### Not done, not verified
+
+- Gate 6 itself was not run here: it needs coverage.xml from the Python suite.
+- Home's "Show every reason" button cannot be reached: the hero that uses it never holds
+  more than two lines. A continue on the questions view while the answer is still
+  computing goes to Done; the question is still shown on Home.
+- A prettier write run from inside web/ reformatted the generated api-types.ts (the root
+  .prettierignore is not read there); reverted before the commit.
+
+## Run l-web-1653a00fc9 (attempt 1): bring in the coverage tests, script back to --coverage
+
+### Tried
+
+- Merged lane/L-web/l-web-a0ebffda52 (the tests beside the code, and the Onboarding fix for
+  two questions in a row). The merge printed "Operation not permitted" for tests/holdout/,
+  which the sandbox keeps from this lane; the merge itself completed.
+- Put the web test script back to "vitest run --coverage" and vite.config.ts back to main's
+  coverage block (no `enabled: true`): the done command no longer passes `-- --coverage`,
+  so the script is the one place the flag is given. Nothing else in package.json changed.
+
+### Ran
+
+- Done command, as written, no pipe: exit 0. 23 files, 504 tests passed; lines 98.15,
+  statements 96.56, branches 86.64, functions 96.88 percent; eslint clean, prettier clean,
+  "copy lint: clean". web/coverage/lcov.info written.
+- Lines per file from lcov: Onboarding 263/263, Pages 71/71, parts 95/95, refusal 6/6,
+  bench 4/4, main 5/5, Home 111/113.
+
+### Not done, not verified
+
+- Gate 6 was not run here (it needs the Python coverage.xml). Home's two lines left are the
+  "Show every reason" button the hero cannot reach, as written in the run above.
+
+## Run l-web-5f1ae834e8 (attempt 1): resolutions points 1, 10 and 11 on the web side
+
+### Tried
+
+- Point 1: the app no longer sends case_f1. `lib/records.ts` turns Onboarding's draft of
+  records into the case of contracts/case.schema.json (categories, time_zone, facts, records,
+  complete, confirmations) and `computeCase` posts it to `/v1/compute` (the route name is
+  checked against the regenerated api-types.ts). Empty fields and links to missing records
+  are left out, never sent as no or zero. The store (`caseStore.tsx`) holds the draft, the
+  zone and the answers; drafts for the DSO read `sentFacts`, the latest program's facts.
+- Point 10: `lib/views/onboarding.ts` lists section 18 view by view, in five steps: the
+  current I-20 (school and code, level with every level and no default, major and CIP, STEM
+  list with "I'm not sure", dates, end date changes, still studying or finished with the
+  coursework and conferral days, dual degree, full course and online), earlier programs with
+  their moves and "That's every program", degrees outside the US or not on an F-1, CPT, OPT
+  and STEM OPT per program with decision, card, basis degree and split, first year and CPT
+  from the start, "Is that all the CPT and OPT", jobs with employer, hours, changes of hours,
+  permission (the card whose dates hold the start is marked, not chosen) and E-Verify for
+  STEM, trips, H-1B petitions, the record in order, the D59 typed dates step
+  (typed_dates.from_documents with every typed date, then typed_dates.checked.<field>), the
+  time zone, then the engine's questions. `applyFlow` adds the record a Yes opens and a No
+  removes it with every record that links to it. List statements are dated with the
+  person's own day.
+- The engine's questions after Onboarding: a `<record>.<field>` question opens the view that
+  asks for that field, and `complete.<kind>` asks whether the list is whole ("Not yet" leaves
+  it unstated). Found by running the Onboarding case through engine.path (below).
+- Point 11: `shots.html` and `src/shots.tsx` draw any built screen from a web/samples case
+  and its engine output at 1280x832 (`shots.html?screen=/timeline&sample=path-stem-next`).
+  The capture itself needs Electron: a request in the report.
+
+### Ran
+
+- Done command, as written, output to a file, exit code read: exit 0. 516 tests passed,
+  lines 96.95 percent, eslint clean, prettier clean, "copy lint: clean".
+- The case the walk test posts, dumped to TMPDIR and sent through the FastAPI app: 200, no
+  refusal, but `category_not_covered:f1` (api/ on this branch does not call path.py yet).
+- The same case through engine.path.compute with the shipped packs and a FixedClock on
+  2026-09-29: stages program.p1, program.p2, move.mv1, cpt.a2, opt_post.a1 (current),
+  stem.a1 (next); questions a2.decision, a1.time, p1.conferred_on, complete.withdrawal and
+  the typed_dates.checked items. That run led to the field and list questions above.
+
+### Not done, not verified
+
+- Home and Your case still show the latest program's facts for drafts and a short list of
+  permissions and jobs; editing any record other than a program's school and dates is in
+  Onboarding only.
+- Reports (validation, evaluations) and withdrawals are not asked in Onboarding; section 18
+  does not list them. The engine asks for their lists and they stay unstated until answered.
+- Reading an I-20 on this computer: "Add my I-20" says it comes with documents.
+
+## Run l-web-b9981847b4 (attempt 1): resolutions point 15, Onboarding
+
+### Tried
+
+- Finding 2: "A job on campus" is one answer per US program on an F-1 (`campus:<program>`,
+  named by its school when there are several). It writes `on_campus` and no `under`, and the
+  view reads it back through `chosen()`, so Continue moves on. The mark "Its dates hold the
+  start" is left off a card when another program began between the card's start and the
+  job's first day (J08: the master's began on 2025-01-13).
+- Finding 4: every view has a why line; `why: ""` no longer appears in onboarding.ts. The
+  list questions share one line; Done has one too.
+- Finding 5: a date field can carry `notSure`. Its "I'm not sure" button (inside the date's
+  fieldset, parts.tsx DateField) clears the day and marks `unsure:<record>.<field>` in the
+  flow; the day is then left out of the case and the engine asks for it. Given to the day
+  course requirements were done, the DSO signing and recommendation days, the decision day,
+  every day of a move, and the withdrawal's day. A date the engine asks for later has it too;
+  "I'm not sure" there leaves the day out and goes on to Done, as "Not yet" does for a list.
+- Note 4: field problems lower only a first word that is a plain capitalised word, so DSO,
+  I-20 and CIP keep their capitals.
+- Note 5: step 2 asks "Have you withdrawn from classes during a program on an F-1?". Yes
+  opens a withdrawal record (program, day, DSO authorized with I'm not sure) and "Is that
+  every withdrawal?"; "This is everything" states `complete.withdrawal` with the other lists.
+  records.ts knows the withdrawal kind (prefix wd, date field `on`).
+- Tests: web/src/app/OnboardingWalk.test.tsx presses Continue through every view as J08
+  reads (55 or more views), with an on-campus job at the master's and four days left
+  unknown, checks a why line on each view, no problem after each Continue, the capitals in
+  the problems, and the case posted. Further tests: a transfer's four days left unknown, a
+  withdrawal, why lines on every kind of view, and an engine-asked day left unknown.
+  Onboarding.test.tsx answers the new withdrawal question; its list test now uses reports,
+  because Onboarding states the withdrawal list itself.
+
+### Ran
+
+- Done command, as written, output to a file, exit code read: exit 0. 25 files, 522 tests
+  passed, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done, not verified
+
+- The walk's case was not sent to the real /v1/compute route in this run.
+- "Its dates hold the start" is a hint the student can ignore; the rule for when a card ends
+  at a new level stays in the engine.
+
+## Run l-web-5211e9f9c2 (attempt 1): resolutions point 16, web side
+
+### Tried
+
+- Onboarding never preselects: a new withdrawal record opened with the first F-1 program as
+  its `program`, so "Which program did you withdraw from?" showed a choice already made. It
+  now opens with `program: ""` (web/src/lib/views/onboarding.ts, applyFlow `withdrawals`).
+- Test beside the code (web/src/app/OnboardingWalk.test.tsx, "Nothing preselected in the
+  withdrawal views"): walks to the withdrawal question and, on each view (the question, the
+  program, the day, the DSO's part, "Is that every withdrawal?", and a second withdrawal's
+  program), checks no radio is checked and no button pressed, presses Continue with nothing
+  chosen, and checks the view stays with a problem shown. The second withdrawal's posted
+  program is left out. With the old preselect put back the test fails ("expected [ …(1) ] to
+  deeply equal []"); restored.
+- web/samples/make.py: runs engine.path.compute on each `<name>.case.json` with load_all()
+  and a FixedClock at 16:00 UTC on the sample's day, writes `<name>.json` (sorted keys), or
+  with `--check` exits 1 naming each sample that differs. `npm run samples -w web` runs it
+  and prettier; `npm run build -w web` runs `samples` first. web/src/lib/samples.test.ts
+  runs `make.py --check` inside `npm test`, so the done command catches drift too. With one
+  date changed by hand in a sample, the test fails naming the file; restored.
+- The two committed samples had drifted: the engine now gives
+  `stem.validation_1.opens.a2` 2026-08-10 and `closes.a2` 2026-08-24 (status guidance)
+  where the old samples held null. Regenerated. Note: stage `stem.a2` is `next` (no STEM card
+  yet), so point 16's first bullet says these should carry no dates; that is the engine's
+  part and the samples will follow it when the engine changes.
+
+### Ran
+
+- Done command, as written, output to a file, exit code read: exit 0. 26 files, 524 tests
+  passed, lines 97.49 percent, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done, not verified
+
+- web/src/lib/samples/*.json are hand-trimmed compute_f1 outputs from earlier rounds with no
+  case files kept; they are not made by make.py. The app no longer uses compute_f1.
+- The shot run's landmark check (point 16, last clause) is in desktop/src/shots.ts, outside
+  this lane.
+
+## l-web-6619018103: bring in point 16, keep web/package.json (resolutions point 17)
+
+### Tried
+
+- `git merge --no-edit lane/L-web/l-web-5211e9f9c2`: clean merge. Brought in the Onboarding
+  fix (the withdrawal opens with no program chosen), its tests in OnboardingWalk.test.tsx,
+  web/samples/make.py and web/src/lib/samples.test.ts.
+- `git checkout HEAD~1 -- web/package.json`: the scripts are back as on this branch (no
+  `samples` script, `build` does not run it). Point 17: the founder's `make samples` runs
+  make.py, and `make design-shots` runs `make samples` first.
+- samples/README.md, make.py's docstring and samples.test.ts's comment now name `make samples`
+  instead of the web build.
+
+### Ran
+
+- Done command, as written, output to a file: exit 1. samples.test.ts failed: both samples
+  differed from the engine's output (the engine changed on this branch with resolution 17).
+- Remade the samples with the command of `make samples` (cd web; uv run python
+  samples/make.py; npx prettier --write "samples/*.json"): exit 0.
+- Done command again: exit 0. 26 files, 524 tests passed, eslint clean, prettier clean,
+  "copy lint: clean".
+
+## l-web-8c58f29547: resolutions point 18, web side
+
+### Tried
+
+- Landmarks: web/src/lib/shots.ts `LANDMARKS` names each built screen as the shot run does
+  ("/" is home, the others lose their slash). Each screen's h1 carries
+  `data-landmark="<screen>"`: welcome (Onboarding's title), home (the verdict's headline, and
+  the hero for a status Duly has no rules for), timeline, checklists, updates, case, settings,
+  feedback. Home's refusal hero (server refused, network failed) and Home's busy hero carry
+  none. Timeline marks its heading only once the phases are drawn, not over the busy line.
+- Petition questions: `fieldQuestion` now asks `<petition>.outcome` as a choice (every
+  outcome, none chosen, "I'm not sure") titled by `petitionLabel` ("H-1B petition, from Acme,
+  filed Mar 30, 2026: what has happened with it so far") when no Onboarding view holds it,
+  as in a case held from records alone. `<petition>.validity_start` asked before the outcome
+  is known reads "The approved start date of the H-1B petition" and may stay unknown. A
+  petition's `filed_on` is no longer called the I-765's filing day. The outcome options are
+  one list shared with Onboarding's own view.
+- Tests beside the code: web/src/app/landmarks.test.tsx (each of the 8 screens from each of
+  the 2 samples holds exactly one landmark, an h1 with its own name; none on the refusal
+  hero, the network failure, or a busy Home, Timeline or Checklists).
+  web/src/lib/views/petition.test.ts (6 tests).
+
+### Ran
+
+- With the landmark put on every Home hero: the two refusal tests fail; restored.
+- petition.test.ts against HEAD's onboarding.ts: 4 of 6 fail (the 2 that pass cover the
+  views Onboarding already had); restored.
+- Done command, as written, output to a file: exit 0. 28 files, 550 tests passed, lines
+  97.59 percent, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done
+
+- desktop/src/shots.ts and shotrun.ts still find the landmark by heading type from
+  tests/design/landmarks.json; reading `[data-landmark="<screen>"]` is desktop's part.
+- Home lists a field question such as h1.outcome as "Duly has a question about what you
+  entered." with no answer there; it is answered in Onboarding's questions view.
+
+## l-web-ca7769b2a4: resolutions points 19 and 20, web side
+
+### Tried
+
+- Point 19: `cap_gap.for_dso` has its words in web/src/lib/labels.ts FINDINGS, beside the
+  other judgement items: an H-1B petition can change these dates (the grace period, the
+  counts from its filing day, any cap-gap period), so Duly does not show them; which it
+  changes is a question for the DSO; the rule is 8 CFR 214.2(f)(5)(vi). No date, no count.
+  web/src/lib/drafts.ts ASKS gives it a DSO question, with the cards, employment and the
+  petition as entered.
+- Point 20: web/src/lib/shots.ts `LANDMARKS` maps each route in SHOT_SCREENS to itself
+  (typed so each value is its own route). web/src/app/Shell.tsx builds the router from
+  SHOT_SCREENS (a SCREENS record typed `satisfies Record<ShotScreen, ComponentType>`), so
+  the router and the landmarks read one table. The screens' JSX is unchanged.
+- web/src/app/landmarks.test.tsx joins the two sides: the router's routesByPath equals
+  SHOT_SCREENS; each LANDMARKS value is its route; web's SHOT_SCREENS equals
+  desktop/src/shots.ts SHOT_SCREENS; on each screen from each sample, desktop's
+  landmarkSelector(route) finds the one marked h1 and desktop's holdsLandmark holds.
+
+### Ran
+
+- Planted the old names (home, timeline, ...) in LANDMARKS: 17 of 21 landmark tests fail;
+  restored.
+- `npx prettier --write src` run from inside web/ skipped the root .prettierignore and
+  reformatted the generated web/src/lib/api-types.ts; restored with git checkout.
+- Done command, as written, output to a file: exit 0. 27 files, 553 tests passed, lines
+  97.59 percent, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done
+
+- The engine does not emit `cap_gap.for_dso` yet in this worktree (no match under engine/),
+  so no sample holds it; the words are tested on the reason id alone.
+
+## l-web-1d3a777b42: regenerate the engine samples
+
+### Tried
+
+- Ran `make samples` from the repository root. It changed two files:
+  web/samples/path-stem-next.json and web/samples/path-window-open.json. Each drops
+  `capgap.status_ends_on_h1b_start` from the rule lists of its dated items (96 lines in,
+  176 out), which follows point 21 (cap-gap deferred) in the engine at HEAD.
+- The .case.json files did not change.
+
+### Ran
+
+- `make samples`: exit 0. git printed "tests/holdout/...: Operation not permitted", the
+  sandbox refusing a read of tests/holdout, as the contract says.
+- Done command, as written, output to a file: exit 0. 28 files, 554 tests passed, lines
+  97.59 percent.
+
+## l-web-377d652969: plan-fix7, points 22, 23a, 24 and 26
+
+### Tried
+
+- Copied tests/web/fix7.test.ts to web/src/lib/views/fix7.test.ts unchanged (the original stays).
+- Point 22 and 23a: compute.ts stage state takes "unknown". timeline.ts gives an unknown stage
+  the mark "none" (MARK_NAMES none is empty; Timeline.tsx PhaseMark draws nothing for it), no
+  meta, no bar, no items, and the lines "Your DSO can tell you these dates." and the words of
+  cap_gap.for_dso when the verdict holds it. Row order is the engine's. currentStage already
+  took state current only, so the eyebrow names no unknown stage.
+- Point 24: labels.ts cap_gap.for_dso now says "A petition to change your status is entered"
+  and names the grace period, the counts from the day it was filed, the STEM reports and
+  evaluations, and any cap-gap period. The output holds no petition type, so there are no
+  H-1B words.
+- Point 26: the outcome step has notSure and a why line pointing to the DSO. The outcome-day
+  step is skipped when the outcome is not sure. records.ts leaves petition.outcome "not_sure"
+  out of the case. The requested start is still required.
+- web/src/lib/labels.test.ts (L-web's own point 19 test) pinned "An H-1B petition can change
+  these dates". Changed it to point 24's words and added a not-H-1B check.
+
+### Ran
+
+- Done command, as written, output to a file: exit 0. typecheck clean, fix7 13 of 13 passed,
+  eslint clean, "copy lint: clean".
+- Full web suite: 567 passed after the labels.test.ts change. One run had
+  Onboarding.test.tsx "lets a day the engine asks for stay unknown" fail on its first title;
+  7 later runs of that file passed with no change, so it is timing-dependent and not caused by
+  this change.
+
+## l-web-840dfc1054: regenerate the samples after points 23a and 24a
+
+### Tried
+
+- Ran `make samples` from the repository root. It changed two files:
+  web/samples/path-stem-next.json and web/samples/path-window-open.json. In each, the
+  `cap_gap.for_dso` rule's note gains the point 23 and 23a reading, and its plain words change
+  to point 24a's ("A petition for a change of status, such as one for H-1B, ..." naming the
+  grace period, counts of days without work, STEM reports and evaluations, and any cap-gap
+  period). No .case.json file changed.
+- No test needed a change: the web suite passed with the new samples as they are.
+
+### Ran
+
+- `make samples`: exit 0. git printed "tests/holdout/...: Operation not permitted", the
+  sandbox refusing a read of tests/holdout, as the contract says.
+- `npm test -w web`, output to a file: exit 0. 29 files, 567 tests passed, lines 97.6 percent.
+- Done command, as written, output to a file: exit 1. make samples and the web tests pass;
+  `npm test -w desktop` fails with "EPERM: operation not permitted, mkdir
+  .../desktop/coverage": the sandbox refuses writes under desktop/, outside this lane.
+- `npx vitest run` in desktop/ (no coverage, so no write): exit 0, 11 files, 139 tests passed.
+
+## l-web-ff3d574841: point 22b on the Timeline (plan-fix8, build round)
+
+### Tried
+
+- web/src/lib/views/timeline.ts: an `unknown` row now keeps its meta (spanWords of its own
+  start and end, so "From Jul 15, 2024"), its items and its fact lines. The DSO line and the
+  words of cap_gap.for_dso are added only when the stage's own `reasons` hold cap_gap.for_dso;
+  the verdict's reasons are no longer read for this. The mark stays "none" (point 23a).
+- web/src/lib/views/fix8.test.ts, 8 tests on path-stem-next.json: a J01-like transfer.mv1
+  (starts 2024-07-15, ends null, unknown, two items, no reasons) and a nulled grace.p1 whose
+  reasons hold cap_gap.for_dso. First run: the output schema refused transfer.contact_new_dso_within_days
+  because the sample's rules do not hold it; the transfer now names
+  opt.ends_on_transfer_or_new_level, a rule the sample holds with its source.
+
+### Ran
+
+- Done command, as written, output to a file: exit 0. typecheck clean, fix8 8 of 8 passed,
+  eslint clean, "copy lint: clean".
+- fix8 against HEAD's timeline.ts: 4 of 8 fail (meta, items, DSO line on the transfer, step
+  back taken from the verdict), so the tests catch the fix7 behaviour.
+- Full web suite (npx vitest run --root web): 574 passed, 1 failed: fix7.test.ts "shows the
+  unknown stage in place, with the DSO line and the step back". Its nulled grace carries the
+  step back in the verdict only, not in the stage's reasons, which point 22b now requires.
+  Left for the reconcile round of plan-fix8 (L-web: change only tests point 22b requires).
+
+## l-web-eed95df3c2: samples and the web suite after point 22b (plan-fix8, reconcile round)
+
+### Tried
+
+- Ran `make samples` from the repository root. No file under web/samples changed.
+- web/src/lib/views/fix7.test.ts: `nulled()` now gives the nulled stage `reasons:
+  [cap_gap.for_dso]`, with point 22b beside it, and one header line says so. Point 22b puts
+  the step back in the reasons of the stage a petition nulled, and the Timeline reads it from
+  there only. No assertion changed.
+
+### Ran
+
+- `make samples`: exit 0, no change. git printed "tests/holdout/...: Operation not permitted"
+  (sandbox, as the contract says).
+- `npm test -w web` before the change: exit 1, 574 passed, 1 failed (fix7 "shows the unknown
+  stage in place, with the DSO line and the step back").
+- Done command, as written, output to a file: exit 1. make samples passed, web 575 of 575
+  passed, `npm test -w desktop` failed with "EPERM: operation not permitted, mkdir
+  .../desktop/coverage": the sandbox refuses writes under desktop/, outside this lane.
+- `npx vitest run` in desktop/ (no coverage write): exit 0, 11 files, 139 tests passed.

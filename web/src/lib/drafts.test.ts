@@ -316,3 +316,19 @@ describe("the draft for the step back (point 64)", () => {
     expect(draft).toContain("My OPT EAD card runs from Jun 1, 2015 to May 31, 2016.");
   });
 });
+
+describe("resolutions point 19: the draft for cap_gap.for_dso", () => {
+  it("asks which dates the petition changes, with the petition as entered", () => {
+    const shown = talk(["cap_gap.for_dso"]);
+    const draft = dsoDraft(shown, FULL) ?? "";
+    checkDraft(draft, FULL, shown);
+    expect(draft).toContain(
+      "I have an H-1B petition. Could you tell me which of my dates it changes, and what your office needs from me?",
+    );
+    expect(draft).toContain(
+      "An H-1B petition for me was filed on Apr 1, 2027, with a requested start date of Oct 1, 2027.",
+    );
+    expect(draft).toContain("My OPT EAD card runs from Jun 1, 2026 to May 31, 2027.");
+    expect(draft).not.toContain("Could you look at my record");
+  });
+});

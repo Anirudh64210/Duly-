@@ -203,3 +203,39 @@ or gets 403 in plain words. Unset: nothing changes.
 - Done command, run as written with no pipe: all tests in tests/unit/api pass, mypy
   "Success: no issues found in 60 source files", ruff check "All checks passed!",
   ruff format "9 files already formatted". Exit 0. Copy lint clean.
+
+## Run l-api-64e7959dbd (design-1 RQ-A1, attempt 1)
+Goal: POST /v1/compute, case.schema.json in, engine output out. /v1/compute/f1 stays.
+- Before: tests/unit/api/test_compute_generic.py, 14 failed (404, no route).
+- Found: no engine function reads a records case (no engine/path.py on any branch), and
+  engine.rulepack.Rulepack does not carry the pack's path. So the api cannot tell a pack
+  with a path from one without, and no category can be computed from records yet.
+- api/case_f1.py: validator_for(path) and first_problem_under(validator, raw), so the
+  refusal words are shared; first_problem for case_f1 is unchanged.
+- api/case.py (new): first_problem against case.schema.json; answered_after (an answer
+  dated after the person's day, read through engine.clocks.day_in_zone); compute(), which
+  answers cannot_tell with category_not_covered:<id> for every category, then the reasons
+  engine.verdict.decide gives (no_documents, rules_never_checked or rules_stale).
+  scope.documents_count is 0 and scope.rules_checked_on is the oldest among the case's packs.
+- api/main.py: POST /v1/compute with the same refusals as /v1/compute/f1 (NOT_A_NUMBER,
+  NOT_JSON, first_problem, NOT_YET); packs loaded once through get_packs.
+- Done command, run as written with no pipe: 16 passed, mypy "Success: no issues found in
+  61 source files", ruff check "All checks passed!", ruff format "10 files already
+  formatted". Exit 0. All of tests/unit/api pass. Copy lint on api: clean.
+
+## Run l-api-fdf4487611 (product-2 point 1, attempt 1)
+Goal: specs/product-2/resolutions.md point 1: POST /v1/compute calls engine/path.py on the
+records case and returns its output.
+- api/case.py: compute(raw, packs, clock) now returns engine.path.compute(raw, packs, clock).
+  The api's own cannot_tell/category_not_covered answer is gone; path.py gives it for a pack
+  with no path. NOT_IN_THE_PACK added.
+- api/main.py: engine.path.compute raises ValueError for a kind, field or category the pack
+  does not declare; the route answers 422 NOT_IN_THE_PACK and does not show the engine's
+  words (they name what was sent).
+- Done command, run as written with no pipe: tests/unit/api all pass, mypy "Success: no
+  issues found in 62 source files", ruff check "All checks passed!", ruff format "10 files
+  already formatted". Exit 0.
+- tests/unit/acceptance: 72 of 90 pass, 18 fail. Every failure is 200 with an engine output
+  whose stages, questions or values differ from the journey (points 3 to 8: links, cap-gap
+  spans, completeness, closed windows, stem.basis_ten_years_end, pack questions). Those are
+  engine/ and rulepacks/ work, outside api/.

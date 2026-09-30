@@ -1717,3 +1717,1229 @@ api/main.py and a REF_FAULT switch; removed afterwards.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-a576366692 (attempt 1): path over records, typed dates, POST /v1/compute, tests first
+
+### What I tried and what ran
+
+- Read specs/path-1/contracts-reconciled.md, SPEC.md, programs.md (sections 10 to 22, Part 2,
+  Part 3), design-1 section 11 (RQ-A1), documents-1 section 8 (D59), and the contracts on
+  this branch (case.schema.json, rulepack.schema.json path defs, engine_output.schema.json).
+- engine/path.py does not exist. The SPEC names no function, so the tests assume
+  engine.path.compute(case_dict, [Rulepack], clock); the module is imported inside one
+  helper (_compute) so collection passes before it exists (lesson on I001 and absent modules).
+- Wrote tests/unit/api/test_compute_generic.py (18 tests): category_not_covered:h1b for the
+  shipped h1b pack (no path), output contract, today from the injected clock in the zone
+  (Kiritimati gives 2026-09-30), scope.documents_count 0, documents_count refused, NOT_JSON,
+  NOT_A_NUMBER, NOT_YET, four first_problem refusals, no echo of a body value, /v1/compute/f1
+  refuses a records case. Run: 16 fail (route absent, 404/405), 2 pass (fixture guard, f1).
+- Wrote tests/unit/engine/test_path.py (about 60 tests) over a j1 pack made in the test
+  (kinds course, change, card, job; rules toy.*; placeholder quotes): for_each and instance
+  ids, entered_when, windows and done_when, links, record on items, next with bind and
+  only_if true/false/unknown, missing field asked, optional members, as_of before and after
+  a change, fiscal year both sides of 10-01, day_before/day_after over a month end, happened
+  after today, end before start, longest, declared conflict check (and yes gives talk_to_dso),
+  judgement check, sum_of_days overlap (15), count_of_records at and under limit,
+  sum_of_months by same_value, days_without_qualifying_period (5, 2, 29, 29), completeness
+  statements (absent, reopened by grows_with_time, made today, not growing), 
+  record.ends_before_today (raised, not raised, no gives talk_to_dso), no path and empty path,
+  undeclared kind and field refused, effective_from_basis both ways, three hypothesis
+  properties with an injected clock (never quiet while a used list has no statement, a
+  deciding condition is unknown, a check is open), and an AST scan of engine/path.py for pack
+  names, categories, dates and numbers other than 0 and 1. Every test pack and case is
+  validated against its contract inside the helpers. Run: every engine test fails with
+  ModuleNotFoundError engine.path, or "engine/path.py does not exist yet"; none fails on a
+  fixture assertion.
+- Wrote tests/unit/engine/test_typed_dates.py (12 tests) over the same pack: from_documents
+  asked with every typed date in about, no_documents while nothing checked, checked.<fact>
+  asked for each, unconfirmed:typed_dates while any is unchecked or "Doesn't match", both
+  reasons lifted when all match, checks without the yes do not count, a no is cannot_tell, a
+  yes for other values is not read, and a property never quiet with a strict subset checked.
+- Done command as written: exit 0 ("All checks passed!", "65 files already formatted").
+
+### Not done in this attempt (time limit)
+
+- The twenty journeys as pairs in tests/holdout, each date checked against the saved words:
+  not written. The F-1 path is not in the pack yet, and checking each date against the saved
+  sources did not fit in 45 minutes.
+- Parity with the differences of section 19 (p1.stem_list question, rule_copy_not_saved,
+  record.ends_before_today, outcome_on after a denial) through compute_f1: not written; they
+  need the real F-1 path. Existing tests already run every today case through compute_f1.
+- No reference engine, so no fault was planted against the new tests.
+
+### What change to the code would make each test fail
+
+- Windows and links: an engine that ignores `add` or its `sign`, or reads this.end instead of
+  this.course.end, gives another date. as_of: reading the newest end gives 2027-01-14 for the
+  early filing. Fiscal year: placing 04-01 in the calendar year of the date gives 2026-04-01
+  for 2025-01-06. day_before: subtracting from the day number alone fails on 03-01.
+- next: showing a step whose only_if is false, or hiding one whose condition is unknown.
+- Conflicts and checks: dropping the happened check, the end-before-start check, longest,
+  or a declared check; a judgement check that asks first instead of talk_to_dso.
+- Counters: summing overlapping spans (20, not 15); counting a job under the hours rule or
+  under another card as qualifying (not 29); grouping sum_of_months all together (the low
+  and high case then crosses the limit); count_of_records with > instead of >=.
+- Completeness: treating a statement for a grows_with_time kind as lasting (09-20 case).
+- ends_before_today, no path, undeclared kind or field, effective_from_basis: each test
+  fails if the engine omits the behaviour; the basis pair fails if it always uses one reason.
+- Literal scan: any F-1 kind, shipped rule id, category, ISO date or number other than 0
+  and 1 written as a constant in engine/path.py.
+- Typed dates: using a typed date after the yes alone, taking "Doesn't match" as checked,
+  or taking a yes whose about holds other values.
+- API: a route that is absent, returns 500 on a refusal, echoes a body value, or accepts
+  documents_count.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-4ba0df3312 (attempt 1): reconcile tests/unit and tests/holdout after path.py and /v1/compute
+
+### What I tried and what ran
+
+- Done command before any change, output to a file, no pipe: exit 1. Every test passed but
+  one: tests/unit/support/test_placeholders.py::test_every_api_test_posts_through_the_checked_client
+  (assert ['test_compute_generic.py:51'] == []). test_path.py (engine/path.py, commit 566879a),
+  test_typed_dates.py (D59) and the 16 other tests of test_compute_generic.py (POST /v1/compute,
+  commit fc96aad) already pass.
+- Read the builders' notes: engine/PROGRESS.md of l-engine-61ed2c8d55 and api/PROGRESS.md of
+  l-api-64e7959dbd (git show). Neither lists an open collision with tests/unit or tests/holdout;
+  the api note says its 14 failures in test_compute_generic.py were the missing route, which the
+  engine note confirms. The REPORT.json files of those two runs are not on disk (worktrees
+  removed; the files are gitignored). The REPORT.json files still on disk belong to older runs
+  whose disputes the current suite no longer shows as failures.
+- The engine note puts talk_to_dso ahead of the D59 reasons "because tests call for talk_to_dso
+  while typed dates are unchecked". Checked against specs/documents-1/SPEC.md lines 531 and 1030
+  (a typed value kept over a document gives talk_to_dso): the order the tests ask for is the
+  SPEC's. No dispute.
+- Change, tests/unit/api/test_compute_generic.py: the client fixture yields CheckedClient(app)
+  instead of TestClient(app); the docstring no longer says "expected to fail" and names the
+  guard. Point: SPEC-resolutions.md points 2, 3 and 7 (no placeholder answer reaches the api),
+  enforced for every api test by test_placeholders.py. No assertion changed.
+- Done command as written after the change: exit 0 ("All checks passed!", "65 files already
+  formatted", every test passed).
+
+### What change would make it fail
+
+- Back to TestClient(app) in the fixture: test_placeholders.py fails again, as it did at the
+  start of this run.
+- A test in test_compute_generic.py that posts a case holding ON_THE_DAY_IT_RUNS or an about
+  of {"question": id}: CheckedClient.post raises PlaceholderAnswerError before the request.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-d29085b29f (attempt 1): reach the untested lines of engine/path.py
+
+### What I tried and what ran
+
+- Done command before any change, output to a file, no pipe: exit 1. diff-cover against
+  product-2: engine/path.py 85.1%, 126 of 846 lines missing (business days, months and
+  years, today, facts of the whole person, first, in_year_of, fiscal year rule not in force,
+  the conditions present, month_day_is, at_most, exists, none, count_below, count_at_most,
+  any_of, all_of, not, the levels, next with bind onto a record already entered, next to a
+  stage with no for_each, checklists, chain groups, not_qualifying, refusals and verdicts).
+- Added tests/unit/engine/test_path_reach.py: 54 tests through engine.path.compute with a
+  j1 pack made in the test (kinds course, card, job, trip; rules toy.*). Each date and count
+  is worked by hand beside its assertion. FixedClock is injected throughout.
+- Two assertions I wrote failed against the engine. Both are spec claims, so I took each
+  test out and list it under disputes rather than pin what the engine does:
+  "toy.order" in rules after a level comparison (programs.md 11), and "toy.later_days" in
+  rules for a stage span end moved by that rule (the window version of the second passes and
+  is kept).
+- Done command as written after the change: exit 0. engine/path.py 98.8%; missing 181,
+  191, 239, 271, 284, 303, 446, 460, 701, 850. Each of these is a malformed pack (no anchor,
+  unknown unit, next naming no stage, counter with no span), unreachable code (191), or
+  behaviour I think is wrong (271, 460), so I left them untested and did not pin them.
+- Mutation run: a scratch pytest plugin under TMPDIR patched engine.path and ran the new
+  file once for each fault. Every fault made at least one test fail: business days counted
+  as calendar days, years as 365 days, earliest and latest swapped in first, not ignored,
+  chain grouped as record, not_qualifying dropped, a confirmation dated after today read,
+  litigation never reported. The scratch folder is removed.
+- Probe script (scratch, removed) confirmed the findings under disputes.
+
+### What change would make each new test fail
+
+- Units: bdays as calendar days (10-24 not 10-26); holidays not skipped (11-13 not 11-16);
+  years as 365 days (2028-02-29 not 2028-03-01); 29 February not clamped.
+- Note, plain and derivation dropped from rules, or reading false on a window using a
+  reading row.
+- first: earliest and latest swapped; a date made up when no record is found.
+- in_year_of placed in another year; an absent anchor not asked; a fiscal rule not in force
+  giving a date anyway or no rule_not_in_force_on_event_day.
+- A window close moved by a rule not in force computed anyway, or the rule not cited.
+- Fact stage: arrival not read as a fact, or the span not moved by years. Typed facts not
+  asked about. A case with no typed date not given no_documents.
+- Conditions: today not read as the person's day; on_or_after, before, on_or_before with the
+  wrong strictness; an absent field or link not asked; present, field-only, month_day_is,
+  at_most, exists, none, count_below, count_at_most, any_of, all_of or not computed wrong;
+  not_sure in a selection or a condition not sent to the DSO; only_if ignored on a check.
+- Levels: order reversed, or level_same comparing names instead of ranks.
+- Next: a bound next stage shown although the record is already entered; a next stage
+  with no for_each not shown or shown twice.
+- Checklist: a no, or a yes dated after today, counted; id, stage, record, reading, who or
+  school not carried; answers_read wrong.
+- Counters: chain grouped by record (10 and 15 not 20); a span ending before it starts
+  counted as a number; an unknown selection counted; days after today counted; trip days
+  not added back (0 not 5); a job with no start covering days or its start not asked.
+- Refusals: a foreign category accepted; rules_never_checked, rule_in_litigation missing; a
+  future confirmation read; needs_you not reached when the only reason is an open window.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-d29085b29f (attempt 2): the done command refused at git add -A
+
+### What I tried and what ran
+
+- Attempt 1 was refused: the orchestrator's run of the done command stopped at git add -A with
+  "fatal: Unable to create '/Users/ani/Desktop/Duly/duly/.git/worktrees/l-tests-d29085b29f/index.lock':
+  Operation not permitted". Every step before it (ruff, format, pytest with coverage) had passed.
+- Done command as written, no pipe, output to a file under TMPDIR: exit 0. diff-cover against
+  product-2: engine/path.py 98.8% (missing 181, 191, 239, 271, 284, 303, 446, 460, 701, 850),
+  engine/rulepack.py 100%, total 98%.
+- After the run: git status clean, .scratch/ is ignored (.gitignore line 16), and no index.lock
+  in .git/worktrees/l-tests-d29085b29f.
+- No test changed. The refusal comes from the environment the command ran in, which tests/
+  cannot change; it is under requests in REPORT.json.
+
+### What change would make it fail
+
+- Same as attempt 1; no new test.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-d50733b3dc (attempt 1): bring in l-tests-d29085b29f and run the done command without git add
+
+### What I tried and what ran
+
+- git merge lane/L-tests/l-tests-d29085b29f: clean merge, brought in
+  tests/unit/engine/test_path_reach.py (54 tests) and the progress entries above.
+- Done command as written (no git add step now), no pipe, output to a file under TMPDIR:
+  exit 0. ruff check "All checks passed!", ruff format "66 files already formatted", pytest
+  passed, diff-cover against product-2: engine/path.py 98.8% (missing 181, 191, 239, 271,
+  284, 303, 446, 460, 701, 850), engine/rulepack.py 100%, total 846 lines, 10 missing, 98%.
+- Checked the mission list against the tests: as_of is asserted on both sides of a change in
+  tests/unit/engine/test_path.py (test_as_of_reads_the_end_in_force_before_the_change and
+  _after_the_change), and line 275 is covered. ends_also is not read by engine/path.py; it
+  stays a dispute and no test pins it.
+- No test added or changed in this run.
+
+### What change would make each new test fail
+
+- No new test; the list under run l-tests-d29085b29f attempt 1 still holds.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-ada9778eec (attempt 1): product-2 resolutions points 1 to 9 as tests
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md, reviews/product-2.md, specs/path-1/programs.md
+  sections 10 to 22 and Part 2, and the twenty timelines of specs/path-1/journeys.json.
+- New tests/support/records_case.py: builders for records cases and readers for the output.
+  It holds no expected value.
+- New tests/unit/acceptance/test_journeys.py: the twenty journeys as records cases, each
+  through POST /v1/compute (CheckedClient, FixedClock 2026-09-29 16:00 UTC, New York). 90
+  tests: two over all twenty (reaches path.py; never no_open_items) and 50 journey tests.
+- New tests/unit/engine/test_path_fix1.py: points 3 to 9 on the review's inputs, straight to
+  engine.path.compute with the shipped packs, 25 tests, each with the other side of its line.
+- New tests/unit/api/test_compute_records.py: an Onboarding-shaped case (section 18) through
+  POST /v1/compute must equal engine.path.compute on the same case and clock, and meet
+  engine_output.schema.json.
+- New tests/holdout/test_holdout_journeys.py: 17 twins with other dates or across the line.
+- A scratch plugin under TMPDIR swapped api.case.compute for engine.path.compute, to see which
+  assertions hold once point 1 is built. Removed afterwards.
+- Plain run: every journey test fails (category_not_covered:f1); api test 2 of 4 fail.
+  Wired run: acceptance 71 passed, 19 failed; fix1 19 of 25 fail; api 4 passed; holdout 13
+  passed, 4 failed. Every wired failure is a review finding or one listed under disputes.
+- Done command as written, no pipe: exit 0.
+
+### What change would make each new test fail
+
+- Journeys: /v1/compute not calling path.py (all); a window counted from the card end or the
+  wrong end in force (J01, J02, J03, J05, J09, twin J09); months counted as 30 days; the
+  business-day count not skipping Christmas, Thanksgiving or Juneteenth (J15, J19, twins);
+  CPT counted per school or part-time added (J03, J06, J07); trip days ignored (twin J11);
+  cap-gap end from requested_start and not validity_start (J12, twins); the wrong capgap row
+  for filed_on (twin J12 old rule); a conflict raised for a request on old_end (twin J09).
+- fix1: a link path read as a field (point 3); grace or unemployment spans leaving out the
+  cap-gap (4); a count with no statement (5); a closed next shown (6); no ten-years item, no
+  CPT step back, empty lists, no end_by_source (7); decision or stem_list asked (8);
+  rule_in_litigation raised with no differing alternate (9).
+- api: the route computing anything but path.compute's output.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-1d552cbca8 (attempt 1): resolutions points 1, 7, 9 and 12, test side
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md and the builder's report. engine/REPORT.json is not in
+  commit 9711d19 (the name is ignored by git), so I read it from the lane's worktree on disk.
+- Checked the pack before renaming (engine.rulepack.load_all): the cap-gap grace stage is
+  for_each petition, and the second unemployment.opt_card counter is scoped on petition,
+  group record. J12 and J13 hold one petition, h1.
+- tests/unit/engine/test_path_fix1.py (point 12): grace.p1 to grace.h1 (J12); 
+  unemployment.opt_card.a1 to .h1 in the three tests on J12 and J13, and the at_or_over id
+  to .at_or_over_limit.h1. Values and working unchanged (2026-10-02 later, 45, None, 486).
+  J01's unemployment.opt_card.a2 stays: J01 has no petition.
+- test_path_fix1.py (point 7): removed test_point7_the_ten_years_after_a_basis_degree_are_shown
+  and test_point7_ten_years_from_a_leap_day_is_28_february; a comment says they wait for a
+  contract construct for a computed date. No other assertion changed.
+- Kept test_point4_unemployment_total_runs_through_the_cap_gap_on_stem (85) and
+  test_point7_ends_also_two_readings_of_an_end_give_the_judgement_item: point 12 asks the
+  pack to change for both, so they fail until L-content does it.
+- tests/unit/engine/test_path_reach.py (point 9): test_a_litigated_rule_in_use_is_cannot_tell
+  replaced by three tests on a toy pack with two regimes (toy_old operative, toy_new
+  enjoined): a litigated rule with no alternate raises no rule_in_litigation; toy.bar 30
+  against 60 raises it and cannot_tell (window closes 2026-10-20 + 30 = 2026-11-19); 30
+  against 30 raises nothing. _pack_dict takes regimes.
+- Scratch copy of lane/L-engine/l-engine-b9ea448ead (git archive into TMPDIR) with the two
+  files: 2 failures, the unemployment.total 85 and ends_also tests (pack side). Everything
+  else in both files passed. Removed afterwards.
+- Same tests against this worktree's engine: the no-alternate and same-value tests fail (it
+  raises the reason for any litigated rule).
+- Done command as written, no pipe: exit 0 (ruff clean, 71 files formatted, collection ok).
+
+### What change would make each new test fail
+
+- grace.h1 / unemployment.opt_card.h1 tests: the pack or engine keying the cap-gap grace or
+  count by the program or the card again, or the span not reaching the cap-gap end.
+- test_a_litigated_rule_with_no_alternate_is_not_the_litigation_reason: litigation raised on
+  status litigated alone (this worktree's engine fails it).
+- test_a_shown_window_whose_rule_has_a_different_alternate_is_cannot_tell: the alternate
+  check always false (planted in the scratch copy: failed).
+- test_an_alternate_with_the_same_value_is_not_the_litigation_reason: the alternate check
+  always true, or comparing rows and not values (planted: failed).
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action. The builder's report makes requests of
+L-tests; I followed only the mission.
+
+## Run l-tests-b0a5db2b39 (attempt 1): resolutions point 13, test side
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md point 13 and the builder's report (engine/REPORT.json in
+  the lane/L-engine/l-engine-50dba0218d worktree on disk; the name is ignored by git).
+- Checked the pack: unemployment.opt_card, unemployment.opt_card.<petition> and
+  unemployment.total all read trips as not_qualifying, so each is a counter over the trip list.
+- tests/unit/acceptance/test_journeys.py:
+  - J12 (point 12 ids): grace.p1 to grace.h1, unemployment.opt_card.a1 to .h1. Values unchanged
+    (starts 2026-10-02, not done; 0).
+  - J02: removed test_j02_the_ten_years_after_the_bachelors_end_on_2028_05_19. A comment says it
+    waits with point 7 for a contract construct for a computed date.
+  - Trip list stated whole ("trip" in whole()) in J01, J03, J04, J05, J09, J12, J13, J14, J15,
+    J19, J20 (each holds an OPT or STEM card, so a counter reads trips, and the timeline holds
+    every trip, none). J07, J11 and J16 already stated it. J02 left out: its timeline has the
+    student go home between programs, a time abroad the case does not hold. J06, J10, J17, J18
+    hold no OPT or STEM card; left as they were.
+  - J08: j08(trips_whole=True). The 35 test uses the stated case. New test
+    test_j08_unemployment_is_null_until_the_trip_list_is_whole: null without the statement, 35
+    with it.
+- tests/holdout/test_holdout_journeys.py: trip stated whole in the twins of J01, J08, J09, J12,
+  J13 (_cap_gap_case), J15, J19. J12 twin grace.p1 to grace.h1. J08 twin split into _j08_like and
+  a new twin test_twin_j08_no_count_before_the_trip_list_is_whole (null, not 49).
+- Ran both files and test_path_fix1.py on a copy of commit 06e6cb9 (the builder's engine, git
+  archive into TMPDIR, this lane's tests copied in). Before (HEAD tests): 10 failures. After:
+  8. J02 ten years, J12 x2 and twin J12 no longer fail. Still failing, all pack or engine side:
+  J05 months (12, not null), J08 35 (null: the span ends at card_end and w2 is asked for under),
+  J08 null-until-whole (the null half passes; the 35 half fails for the same pack reason),
+  J17 enrollment, J20 opt_post.p2, twin J08 (148, span to card_end), twin J08 null (148: the
+  engine does not yet make the count null for want of a trip statement, point 13), twin J11
+  (86, not 105; it failed before this run too, untouched). Scratch copy removed.
+- ruff format changed one file; ruff check clean. Done command as written, no pipe: exit 0.
+
+### What change would make each new test fail
+
+- test_j08_unemployment_is_null_until_the_trip_list_is_whole: an engine that checks only the
+  work list for completeness (as the builder's does) once w2 no longer makes the count null;
+  or a count that stays null after the statement.
+- test_twin_j08_no_count_before_the_trip_list_is_whole: the same, and it fails now on the
+  builder's engine (148), which is the fault point 13 names.
+- J12 id tests: the pack keying the cap-gap grace or count by program or card again.
+
+### Seen in data, not followed
+
+The builder's report asks L-tests for the J12 ids; that is also in the mission, so it was done
+for the mission's sake. Nothing else read asked for an action.
+
+## Run l-tests-dde022b67d (attempt 1): resolution 13 in the engine, tests brought in line
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md (point 13) and the end of this log. The engine at HEAD
+  (8e749cc) makes a count null until every list it reads is stated whole
+  (engine/path.py, the counter's `whole` check over qualifying and not_qualifying records).
+- Done command on HEAD before any change: exit 0. Nothing failed.
+- The three count tests in tests/unit/engine/test_path_fix1.py (point 4 on J13 = 45, point 4
+  on J14 = 85, point 5 on J12 = 486) already pass: run l-tests-b0a5db2b39 stated the trip list
+  whole in J12, J13 and J14 in tests/unit/acceptance/test_journeys.py, which fix1 reads. Their
+  comments did not say so; each now carries a note citing resolution 13. No assertion changed.
+- The shipped pack has three counters, all reading work (qualifying) and trip (not_qualifying):
+  unemployment.opt_card, unemployment.opt_card.<petition>, unemployment.total.
+- Scratch plugin under TMPDIR wrapped engine.path.compute over tests/unit and tests/holdout and
+  listed each test's cases by trip records and trip statement. No test builds trip records
+  without stating the trip list whole. Cases with no trip statement: J02, J06 and the twins of
+  J02, J03, J06, J16 (no unemployment count asserted, so point 13 does not touch them), and the
+  two J08 null tests that leave it out on purpose. Scratch removed.
+- New in test_path_fix1.py, point 13 at the engine: J13 (w1 ends 2026-06-30) without the trip
+  statement gives unemployment.opt_card.h1 null, reason unconfirmed:complete.trip, question
+  complete.trip; J14 without it gives unemployment.total.a1 null and the reason. The other side
+  of each line is the 45 and 85 tests on the same case with trips stated.
+- ruff format: 71 files unchanged; ruff check clean. Done command as written, no pipe: exit 0.
+
+### What change would make each new test fail
+
+- Both point 13 tests: an engine that checks only the work list (planted through a scratch
+  plugin making _Run._stated true for trip: both failed, the rest of the file passed); or a
+  count that is null without saying why.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-d4e4895e82 (attempt 1): tests for the translation of today's case onto records
+
+### What I tried and what ran
+
+- Read specs/product-2/resolutions.md (point 1), programs.md section 19, engine/f1.py
+  (to_records, compute_f1_records and helpers), and the end of this log.
+- Ran five case_f1 cases (OPT, no OPT, OPT ended before today, OPT with a denied petition,
+  OPT then STEM) through compute_f1_records and compute_f1 in a scratch script under TMPDIR,
+  with the shipped F-1 pack on 2026-09-30 UTC, to see both outputs. Scratch removed.
+- New tests/unit/engine/test_f1_translation.py, 32 tests: every row of the section 19 table
+  (p1, cpt_days_stated incl. 0 and absent, a1 approved only with both card dates, a2 extends
+  a1 and basis p1, w<n> under the card holding its start incl. both card edges and a2,
+  no under outside every card, h1 cap_subject yes, confirmations same ids, the two
+  statements); compute_f1_records equal to path.compute on a records case written by hand
+  from the table; OPT and STEM dates worked by hand; parity with compute_f1 for OPT windows,
+  file_by, complete_by, latest_start, unemployment used, and the STEM dates; changes 1, 3
+  and 4 of section 19 asserted as such.
+- ruff format: 72 files unchanged; ruff check clean. mypy on the new file reports only two
+  errors at tests/support/f1_pack.py:1003, which is older and not touched.
+- Done command as written: exit 0. Diff coverage engine/f1.py 100 percent, total 98 percent.
+
+### What change would make each new test fail (planted through a scratch plugin, all caught)
+
+- _holding_card naming a1 for any day: test_a_period_outside_every_card_names_no_card.
+- _card with no decision: the hand-written records test and the a1/a2 row tests.
+- decision on card_start alone: test_opt_with_a_card_start_and_no_card_end_is_not_approved.
+- earlier_at_this_level no ignored: test_no_to_earlier_opt_at_this_level_states_p1_...
+- a no to nothing_more_to_record stating lists whole: test_no_to_nothing_more_states_no_list_whole.
+- cpt 0 dropped as nothing entered: test_cpt_days_of_zero_are_kept_as_zero.
+- compute_f1_records calling compute_f1: every records-output test, e.g. change 4.
+
+### Findings (not worked around; the tests assert only what section 19 says)
+
+1. Grace is lost in translation. The pack's grace stage needs p1.state completed; the table
+   gives p1 no state, so no translated case has a grace date. compute_f1 gives grace.ends
+   2027-07-30 on the OPT case (card end 2027-05-31 plus 60). Not one of the four changes.
+2. A case with no OPT loses its OPT windows: compute_f1 gives opt.apply_window 2027-02-13 to
+   2027-07-13 for an end of 2027-05-14; the path gives no window.
+3. A job that runs from the OPT card into the STEM card is under a1 only (the card that holds
+   its start), so the path counts the STEM days as unemployed: unemployment.total.a1 = 136 =
+   14 (2025-06-01 to 06-14) + 122 (2026-06-01 to 2026-09-30); compute_f1 gives 14 used.
+4. Change 4 is half built: a denied petition gives no grace date (asserted), but no outcome_on
+   question is asked. Not asserted: it would fail.
+5. New items not named in section 19: questions p1.full_course_each_term and
+   p1.online_within_limit on every case; reason opt.months_at_level.at_or_over_limit.master for
+   a 12-month card with no earlier OPT answered; reason rule_not_in_force_on_event_day from
+   product.opt_start_earliest_years_before_program_end read on 2026-05-15 (a product setting
+   read as a rule with a start date); stem.validation_4 closing 2028-06-15, after the STEM
+   card end 2028-05-31 (compute_f1 stops at 3); cap_gap.h1 stage and
+   unemployment.opt_card.h1 for a denied petition.
+6. The confirmations row says "The translation strips the record suffixes"; to_records copies
+   ids unchanged. No case here shows which suffix is meant.
+7. Change 2 (rule_copy_not_saved_for_event_day) has no test here: no translated case found in
+   time reads a rule marked earliest_saved_copy before its start.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## l-tests-9d76786149: guard the run helpers of test_f1_translation.py (escalated)
+
+Mission: test_every_run_helper_passes_its_case_through_the_guard failed on
+test_f1_translation.py:72 in _records and :82 in _both.
+
+What I did: a helper _sent builds the case as every other run helper does
+(with_the_about_asked, asked by compute_f1 through refuse_placeholders), and _records and
+_both call f1.parse_case(refuse_placeholders(_sent(**changes)), CLOCK). The guard test passes.
+What would make it fail again: parse_case called on _raw(...) directly in either helper.
+
+What ran:
+- The done command before the change: 1 failed (the guard test), 41 passed.
+- Guard only, no about step: 15 translation tests raise PlaceholderAnswerError (13 on
+  nothing_more_to_record, 2 on opt.earlier_at_this_level): _answers writes about_asked(q).
+- Guard with about step asked by compute_f1 (kept): ruff clean, 6 failed, exit 1.
+- Guard with about step asked by compute_f1_records: 7 failed (the path asks complete.*,
+  never nothing_more_to_record or opt.earlier_at_this_level, so both answers are dropped).
+
+Why the 6 fail: with_the_about_asked leaves out an answer whose question is never asked
+(SPEC-resolutions point 7). compute_f1 asks only opt.earlier_at_this_level on the OPT case
+(a job is entered, so nothing_more_to_record is not asked), and only nothing_more_to_record
+and full_time_cpt_used on the no-OPT case. The tests leaned on answers to unasked questions,
+held up by the marker about:
+- opt/stem parity and translation tests: WHOLE's nothing_more_to_record is dropped, the work
+  list is not whole, unemployment.opt_card.a1 is None instead of 14.
+- test_no_to_earlier_opt_at_this_level_states_p1_authorizations_whole: the answer is dropped.
+- test_answers_keep_their_ids_answers_days_and_about: the about step adds an about to
+  full_time_cpt_used, so the input the test compares against changes.
+- test_compute_f1_records_is_path_on_the_hand_written_records: the hand-written case keeps
+  marker abouts that the translated case no longer has.
+
+Not done: no case, no assertion changed. That is the founder's decision (see REPORT.json).
+- Stop hook (lane_test.py) ran the done command: the same 6 failures, a second time. Stopped
+  as the contract says, status escalated; no case or assertion changed.
+
+## l-tests-8a15fee5f8: the translation tests follow resolution 14 (blocked on engine/f1.py)
+
+Merged lane/L-tests/l-tests-9d76786149 (the guard in _records and _both, kept).
+
+What I did:
+- tests/support/f1_pack.py, with_the_about_asked: a question asked with no about (the path's
+  complete.<kind>) raised KeyError 'about'. The answer now goes with no about and without the
+  marker. New test in tests/unit/support/test_placeholders.py for it.
+- test_f1_translation.py: _answers writes no marker about; _sent asks the about step with the
+  questions of compute_f1 and compute_f1_records together, so one case is sent to both;
+  WHOLE answers complete.<kind> yes for every kind plus opt.earlier_at_this_level no, and the
+  guard leaves out what neither engine asks. The six tests of the escalation:
+  - answers_keep_their_ids: compared with the case as sent (full_time_cpt_used gains the
+    about {"cpt_full_time_days": None}; the {"x": "1"} about is kept).
+  - no_to_earlier_opt: on the OPT case (asked there); new twin on a no-OPT case states nothing.
+  - hand_written_records: complete is the eight kinds the path asks on this case plus
+    authorization:p1; confirmations are those sent. New test states the sent case whole.
+  - opt dates, OPT parity, STEM parity: unchanged assertions; the lists are whole by
+    complete.<kind> now.
+- Point 14 read as written: yes to nothing_more_to_record states nothing whole (old test
+  reversed); new tests for complete.<kind> yes (on its day) and no.
+
+What ran:
+- The done command, as written, no pipe: ruff clean, 72 files formatted, 7 failed, exit 1.
+  All 7 in test_f1_translation.py; engine coverage of the plain run 98 (f1.py 100).
+- A scratch plugin under TMPDIR replacing engine.f1._statements with point 14 (complete.<kind>
+  yes to that kind on its day; earlier no to authorization:p1 on a case with OPT; nothing
+  from nothing_more_to_record): tests/unit/support and tests/unit/engine all pass.
+- Faults planted on that reference, each caught: complete.<kind> no read as yes
+  (test_no_to_complete_kind...); earlier yes read as no (test_yes_to_earlier...); the
+  statement dated today, not the answer's day (test_yes_to_complete_kind...). The engine as
+  it is (nothing_more read, complete.<kind> not read) is caught by the 7 failing tests.
+  Not caught by these tests: an engine that reads earlier on a no-OPT case, because the
+  guard drops that answer before the engine sees it.
+- Scratch removed.
+
+Why it stops here: engine/f1.py _statements still turns nothing_more_to_record into every
+statement and does not read complete.<kind>. Point 14 needs that change; it is outside
+tests/. Status blocked; request to L-engine in REPORT.json. No assertion loosened.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+- Stop hook (lane_test.py) ran the done command: the same 7 failures, a second time.
+  Status changed to escalated as the contract says; no case or assertion changed.
+
+## l-tests-2839a42b3a: point 14 clarified, opt.earlier_at_this_level states nothing on any case
+
+Merged lane/L-tests/l-tests-8a15fee5f8 (clean merge).
+
+What I did, in tests/unit/engine/test_f1_translation.py only:
+- Removed test_no_to_earlier_opt_at_this_level_states_p1_authorizations_whole, as the mission
+  says. In its place, test_no_to_earlier_opt_on_a_case_with_opt_states_nothing_whole: the
+  same OPT case, the answer is sent with the card's about (2026-06-01 to 2027-05-31, master),
+  and complete is {}. It fails on an engine that turns earlier no into authorization:p1.
+- Removed the authorization:p1 key from the complete of _hand_written_opt_case; complete is
+  now the eight complete.<kind> kinds, each {"on": "2026-09-30"}. Docstring says why.
+- Module docstring and the confirmations comment now say earlier states nothing on any case.
+
+What ran:
+- uv run ruff format tests: 72 files already formatted.
+- The done command, as written, no pipe: All checks passed, 72 files already formatted,
+  collection clean, exit 0.
+- pytest tests/unit/engine/test_f1_translation.py: 8 failed. Expected until the engine
+  follows point 14 next round (the old 7 less the removed test, plus the new OPT twin, plus
+  the hand-written case now without authorization:p1, which already failed).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-2839a42b3a attempt 2: report lists every changed file
+
+Why attempt 1 was not accepted: REPORT.json left out tests/support/f1_pack.py and
+tests/unit/support/test_placeholders.py. Both changed through the merge of
+lane/L-tests/l-tests-8a15fee5f8 (with_the_about_asked answers a question asked with no about
+with none, and its test), not by hand in this run, and the list was built from hand edits.
+
+What I did: checked the work of attempt 1 is intact (the p1 test is gone, the hand-written
+case holds no authorization:p1), then set files_changed from git diff --name-only 5d5d1e7
+HEAD plus REPORT.json. No test changed in this attempt.
+
+What ran: git diff --name-only 5d5d1e7 HEAD (4 files under tests/); the done command, as
+written, no pipe (result below in REPORT.json commands_run).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+Done command printed: All checks passed!, 72 files already formatted, exit 0.
+
+## l-tests-d40bcf768c: resolutions point 15, tests first
+
+What I did:
+- tests/unit/acceptance/test_journeys.py: helpers _dated_after and _grace_after; new tests
+  test_j04_the_concluding_evaluation_is_dated_from_the_release_date (2022-08-15 to 08-25),
+  test_j04_no_validation_is_dated_after_the_stem_card_ended (validation_3 2022-12-22 and
+  validation_4 2023-06-22 gone; validation_2 2022-06-22 to 07-07, July 4 skipped),
+  test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed,
+  test_j14_the_concluding_evaluation_is_dated_from_the_last_day_of_the_job (07-15 to 07-25),
+  test_j14_no_validation_is_dated_after_the_training_ended. test_j12_grace_begins_after_the_cap_gap
+  is replaced by test_j12_no_grace_after_an_approved_change_of_status: point 15 reverses it.
+- tests/unit/engine/test_path_fix1.py: test_point4_grace_starts_after_an_active_cap_gap moved off
+  the approved J12 (point 15) onto J12 with h1 pending: cap-gap to 2027-04-01, grace.h1 from
+  2027-04-02. Point 4 is still tested; no assertion loosened.
+- tests/holdout/test_holdout_journeys.py: the validity_start twin now asserts no grace after
+  2026-11-15 (point 15); new twins: pending petition keeps grace.h1 from 2027-04-02; J04 twin
+  (release 2023-03-03, evaluation to 03-13, no validation after it); J14 twin (job ends
+  2025-04-18 before the card, evaluation to 04-28, no validation after); J06 twin pair (window
+  closed 2026-03-17: not next; window open to 2026-10-13: next).
+- tests/design/read_canvas.py and tests/design/landmarks.json: every landmark of the nine
+  canvas files (text, sized elements, svgs, sc-if parts marked) with declared style, drawn type,
+  the sidebar and column boxes by arithmetic, and the SPEC 14.1 overrides with reasons.
+
+What ran:
+- pytest on the new tests against today's engine: 12 fail on the behaviour they protect
+  (J04 evaluation 2023-06-21 to 07-01, validation_3/4 after the card, J06 opt_post.p1 next,
+  grace.h1 after the approved J12, J14 evaluation 2026-05-31 to 06-10, and the twins).
+  Pass today, as they should: test_j14_no_validation..., the pending twin, the open-window J06
+  twin, the point 4 pending test.
+- Chromium headless (playwright cache) died with SIGTRAP inside the sandbox, so landmarks.json
+  holds the markup reading only (measured_in_a_browser false); the founder can run it with CHROME.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: an engine that dates stem.evaluation_final from this.card_end
+(J04, J14, twins); one that keeps validation_n by card_start alone (J04, J04 and J14 twins);
+_closed counting opt.complete_by as open (J06, J06 closed twin); grace built after a cap-gap
+approved with a change of status (J12, validity twin); dropping grace for a pending petition
+(pending twin, point 4 test); not showing next while the window is open (open J06 twin).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-76517020ba: tests in line with resolutions point 15 (J06, J19)
+
+What I did:
+- tests/unit/acceptance/test_journeys.py
+  - test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed: dropped the
+    opt.apply_window.p1 assertion. Point 15: "A next stage is shown only while a window in
+    which something can be filed is open"; the window closed 2026-02-10, so the stage and its
+    window are not shown. The not-next assertion is kept.
+  - test_j19_stem_validations_skip_juneteenth renamed test_j19_stem_validations_stop_at_the_card_end.
+    validation_1 (2026-12-09 to 12-23) kept. validation_4 on 2028-06-09 replaced by: no
+    stem.validation_*.a2 dated after the card end 2028-06-08 (point 15, "No validation is dated
+    after the card or the training ends"; 8 CFR 214.2(f)(12)(ii)(B)).
+- tests/holdout/test_holdout_journeys.py
+  - test_twin_j06_opt_is_not_next_once_its_filing_window_closed: same change as J06 (point 15),
+    not-next kept. It failed for the same reason.
+  - new test_twin_j19_validation_skips_juneteenth: STEM start 2025-12-12, validation_1
+    2026-06-12 (Fri) plus 10 business days: 15, 16, 17, 18, (19 skipped) 22..26, 29 ->
+    2026-06-29, inside the card ending 2027-12-11. Keeps the Juneteenth check J19 lost.
+
+What ran:
+- Done command before changes: exit 1; 3 failures (J06, J19, J06 closed twin).
+- Fault plant: scratch plugin under TMPDIR made engine.dates._holidays_of drop Juneteenth; the
+  new twin failed with ('2026-06-12', '2026-06-26'); without it, passed. Scratch removed.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each changed test fail: J06 and its closed twin, an engine that shows opt_post.p1 as
+next once only opt.complete_by is open; J19, an engine that dates validation_4 on 2028-06-09 or
+any validation after the card end, or a wrong validation_1; the Juneteenth twin, dropping
+Juneteenth from the business-day holidays.
+
+### Seen in data, not followed
+engine/REPORT.json (l-engine-90c06e929c) held requests addressed to L-tests; they matched the
+mission, which is what I followed.
+
+## l-tests-e462fe6583: tests for resolutions point 16 (next STEM stage, J15)
+
+What I did:
+- tests/unit/acceptance/test_journeys.py
+  - helpers _report_dates (validation and evaluation windows of stem.<card> holding a date)
+    and _final_evaluations (every window whose id holds evaluation_final); j15 takes
+    job_c_end (None is the journey as written).
+  - new, one per journey: test_j01/j02/j03/j05/j09/j11/j20_the_next_stem_stage_carries_no_
+    report_dates. Point 16, (f)(12)(ii)(B): no STEM card, so no report date.
+  - new test_j15_validations_run_to_the_card_end_through_the_gap_between_jobs: validation_2
+    2026-06-15 to 06-30 (Juneteenth skipped), validation_3 2026-12-15 to 12-30 (Christmas
+    skipped), none after the card end 2027-06-14.
+  - new test_j15_validations_go_on_after_the_last_job_ends: Job C ends 2026-12-11; validation_3
+    still 2026-12-15 to 12-30 (days without a job 141, under 150).
+  - new test_j15_job_b_gets_its_final_evaluation_from_its_end: 2025-10-31 to 2025-11-10.
+  - test_j14_no_validation_is_dated_after_the_training_ended renamed ..._after_the_extension_ended;
+    comment now cites point 16; the assertions hold under point 16 and are unchanged.
+- tests/holdout/test_holdout_journeys.py
+  - test_twin_j14_no_validation_after_the_jobs_end replaced by
+    test_twin_j14_validations_go_on_past_the_jobs_end_to_the_card_end: point 16 corrects the
+    point 15 words it read. validation_3 2025-07-09 to 07-23; none after the card end 2026-01-08.
+  - new twins: next STEM with a past six-month mark (OPT 2026-02-02 to 2027-02-01) and with a
+    coming one (OPT 2026-07-06 to 2027-07-05), no report dates; J15-like card 2025-03-03 to
+    2027-03-02 with two ended jobs: validation_3 2026-09-03 to 09-18 (Labor Day skipped), and a
+    final evaluation for each job (2025-12-31 to 2026-01-10, 2026-08-14 to 08-24).
+
+What ran:
+- pytest on the new and changed tests against today's engine: 14 fail on the behaviour they
+  protect (next STEM report dates present in J01, J02, J03, J05, J09, J11, J20 and both twins;
+  validation_3 None after the last job ends in J15 and both twins; no Job B / w2 final
+  evaluation). Pass today, as they should: the J15 journey gap test and the J14 test.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: an engine that dates validation or evaluation windows of a next
+STEM stage from the OPT card (the seven journey tests, two twins); one that ends validations at
+the latest job end when every job has ended (J15 job_c_end, J14 twin, J15 twin); one that uses the
+earliest job end, or any job end, as the training end (J15 gap test); one that dates only the
+later job's final evaluation (J15 Job B, J15 twin).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-080049890a: every test in tests/unit and tests/holdout in line with point 16
+
+What I did:
+- Ran the done command first, as written, output to a file, no pipe: exit 0 (ruff clean,
+  73 files formatted, pytest all dots, no F). The point 16 tests of l-tests-e462fe6583 pass on
+  this branch: L-content 5774b746b2 moved validations to the card end and added
+  stem_job_end.evaluation_final; L-engine e347637842 changed no engine code and named no
+  failing test.
+- Read the builders' notes for collisions with point 16 (engine, rulepacks, desktop, api
+  PROGRESS.md). None names a test in tests/unit or tests/holdout that point 16 breaks. The
+  pack's note that J14 validation_4 (2026-06-01, after the card end 2026-05-31) lost its date
+  agrees with test_j14_no_validation_is_dated_after_the_extension_ended.
+- Searched tests/unit and tests/holdout for point 15's corrected words "or the training ends".
+  Two comments still quoted them as the ground of their assertions. Both now cite point 16 and
+  8 CFR 214.2(f)(12)(ii)(B); assertions unchanged, since the card end is the extension's end in
+  both:
+  - test_j04_no_validation_is_dated_after_the_stem_card_ended (a2's card ends at the release
+    2022-08-15; no validation after it).
+  - test_j19_stem_validations_stop_at_the_card_end (card ends 2028-06-08; validation_4 would be
+    2028-06-09).
+- The old compute_f1 tests (tests/unit/engine/test_f1*.py, stem.validation_N_due) are the
+  retained /v1/compute/f1 path (point 1) and are not path.py journeys; left as they are.
+
+What makes each changed test fail: no assertion changed, so the same faults as before: an
+engine that dates a2 validation_3 or _4 after 2022-08-15 in J04, or validation_4 on 2028-06-09
+in J19.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-9c0a169aa5: resolutions point 17, a change-of-status petition ends validations only on its own card
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 15 to 17,
+specs/product-2/plan-fix4.yaml, reviews/product-2-fix3.md finding 2 and 3, the pack's
+`stem_validation_end` (rulepacks/f1-us/v2026.09/parameters.yaml:1783-1787), programs.md
+section 10 (petition fields, cos_ended_on).
+
+What I did:
+- tests/unit/acceptance/test_journeys.py: helper _j19_with_petition (J19 plus employer e1 and an
+  approved change-of-status petition h9; the petition list stated whole) and three tests on a2
+  (card 2026-06-09 to 2028-06-08):
+  - test_j19_an_old_approved_petition_from_before_this_f1_status_keeps_every_validation: the
+    review's own input (filed 2020-04-01, approved 2020-06-01, validity_start 2020-10-01).
+    validation_1 2026-12-09 to 12-23, validation_2 opens 2027-06-09, validation_3 2027-12-09 to
+    12-23 (Thursday; 10, 13-17, 20-23; Christmas 2027 is a Saturday, after it).
+  - test_j19_a_change_of_status_ended_before_the_h1b_start_keeps_validation_3: filed 2026-07-01
+    while a2 runs, cap exempt, approved 2026-09-15, validity_start 2027-03-01, cos_ended_on
+    2026-09-22. validation_2 opens 2027-06-09; validation_3 2027-12-09 to 12-23.
+  - test_j19_a_petition_filed_while_the_card_runs_and_approved_ends_validations_at_its_start:
+    the same with no cos_ended_on. Last F-1 day 2027-02-28; validation_1 2026-12-09 to 12-23
+    stays; no validation dated after 2027-02-28.
+  The petitions filed on the card are filed and decided before today (2026-09-29) so that no
+  after-today conflict enters the case (lesson from an earlier run). My first draft dated them
+  in 2027; I moved them before running further.
+- tests/holdout/test_holdout_journeys.py: _twin_j19_with_petition (master's p1 from 2023-01-09,
+  STEM a2 2025-12-12 to 2027-12-11) and three twins: an old petition (2018) keeps
+  validation_1 2026-06-12 to 06-29, validation_2 opening 2026-12-12 and validation_3 opening
+  2027-06-12; a petition filed 2026-04-06, approved, validity_start 2026-10-01, cos_ended_on
+  2026-08-14 keeps validations 2 and 3; the same without cos_ended_on keeps validation_1 and
+  dates nothing after 2026-09-30. validation_2 and _3 closing days are not asserted: 2027-06-12
+  runs across Juneteenth observed on a Friday, which the saved words do not settle here.
+
+What ran:
+- The new tests against today's pack: the two "keeps" tests in each file fail (validation_1 or
+  validation_2 None), as reviews/product-2-fix3.md finding 2 describes; the two "ends" tests pass.
+- Scratch copy (git archive HEAD into TMPDIR, new test files copied in) with the pack's petition
+  line narrowed to point 17 (filed_on within card_start..card_end, cos_ended_on absent or not
+  before validity_start): all six new tests pass, and tests/unit/acceptance plus tests/holdout
+  pass in full, exit 0.
+- Second scratch copy with the petition line removed (the review's mutant b): the two "ends"
+  tests fail, the four "keeps" tests pass. Both scratch folders removed.
+- Worktree, tests/unit/acceptance and tests/holdout: exactly the four "keeps" tests fail.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: a stem_validation_end that reads any approved change-of-status
+petition (today's pack: the old-petition tests and the cos-ended tests); one that ignores
+cos_ended_on (the cos-ended tests); one that drops the petition line or never ends validations at
+an approved start on this card (the two "ends" tests).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-0d2abdcb45: resolutions point 17 checked against the pack that now carries it
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 16 and 17, the pack's
+`stem_validation_end` petition line (rulepacks/f1-us/v2026.09/parameters.yaml, now with
+filed_on within card_start..card_end and the cos_ended_on any_of, from L-content e96f9dd).
+
+What ran first: the done command as written, no pipe: All checks passed!, 73 files already
+formatted, pytest all dots, exit 0. The six point 17 tests of l-tests-9c0a169aa5 (three in
+tests/unit/acceptance/test_journeys.py, three twins in tests/holdout/test_holdout_journeys.py)
+all pass now; the four "keeps" tests that failed on the fix 3 pack are green.
+
+Searched tests/unit and tests/holdout for change_of_status with validations. The other hits are
+the retained compute_f1 path (point 1) and cap-gap tests, which point 17 does not touch. No
+assertion needed to change; none was loosened.
+
+Added (tests/unit/acceptance/test_journeys.py), point 17's edge of "filed while the card runs",
+a2 begins 2026-06-09, petition cap exempt, approved 2026-09-15, validity_start 2027-03-01:
+- test_j19_a_petition_filed_the_day_before_the_card_began_keeps_the_validations: filed
+  2026-06-08. validation_2 opens 2027-06-09; validation_3 2027-12-09 to 2027-12-23.
+- test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_start: filed
+  2026-06-09. validation_1 2026-12-09 to 2026-12-23 stays; nothing dated after 2027-02-28.
+
+What makes each fail, run in a scratch copy (git archive HEAD into TMPDIR, pack mutated, folder
+removed after):
+- lower bound dropped from the petition line: the day-before test fails, the other passes.
+- lower bound made strict (after: instead of on_or_after:): the first-day test fails
+  (validation_2 and _3 dated after 2027-02-28).
+- A first mutant that added {days: 1} was refused by the pack schema; not a test result.
+- Unmutated pack: both pass.
+
+Done command after the change, as written, no pipe: All checks passed!, 73 files already
+formatted, all dots, exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-1ab03b9f83: resolutions point 18, J19 twins in acceptance and holdout
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 17 and 18,
+reviews/product-2-fix4.md, the pack's stem_validation_end petition line
+(rulepacks/f1-us/v2026.09/parameters.yaml near line 1790).
+
+Point 18 test used: approved and validity_start on or after the start of the current
+post-completion OPT or STEM card. Every validity start chosen is on or after a2's start or
+before a1's start, so the tests hold whether "current card" means a2 or a1.
+
+tests/unit/acceptance/test_journeys.py (J19: a1 2025-06-09 to 2026-06-08, a2 2026-06-09 to
+2028-06-08; grace.p2 without a petition 2028-06-09 to 2028-08-07, 60 days from 2028-06-08):
+- _j19_with_petition takes outcome (default approved, None leaves it out). Existing cases unchanged.
+- Changed: ..._filed_the_day_before_the_card_began_keeps_the_validations is now
+  ..._ends_validations_at_its_start. Point 18 says point 17's "filed while the card runs" test
+  "was the wrong test and is replaced". validity_start 2027-03-01 is after 2026-06-09, so the
+  petition belongs. The old assertion is reversed because the SPEC reversed it, not loosened.
+- New: old approved petition (2020): grace.p2 stands, no cap_gap stage, no h9 conflict.
+  Filed during OPT (2026-04-01), validity 2026-10-01: no validation or grace after 2026-09-30.
+  validity_start on the card's first day 2026-06-09: nothing after 2026-06-08. Denied on card:
+  validations 2 (2027-06-09) and 3 (2027-12-09 to 12-23) stay. Pending: same, and
+  h9.validity_start is not asked. Approved, no validity_start: h9.validity_start is asked. No
+  outcome: h9.outcome is asked.
+tests/holdout/test_holdout_journeys.py (a1 2024-12-12 to 2025-12-11, a2 2025-12-12 to
+2027-12-11; grace.p1 2027-12-12 to 2028-02-09): _twin_j19_with_petition takes outcome. New:
+old petition (grace, no cap_gap, no conflict), filed during OPT 2025-06-02 for 2026-10-01,
+denied on card, pending on card, approved with no validity_start (asked).
+
+What ran:
+- Worktree, tests/unit/acceptance and tests/holdout: exactly 8 tests fail, all of them point 18
+  tests: day-before (flipped), old petition grace (both files), filed during OPT (both), first
+  day edge, no validity_start (both). Every other test passes.
+- Scratch copy (git archive HEAD into TMPDIR) with the validation petition line moved to point
+  18 (validity_start on_or_after outer.card_start in place of the two filed_on bounds): every
+  validation test passes. Only the grace/cap_gap and validity_start question tests still fail,
+  and those need the cap_gap, grace and question parts of point 18, which the build lane owns.
+- Mutants on that reference: outcome filter removed (m4): both denied twins fail. Strict
+  `after`: the first-day edge fails. requested_start read as the start with no outcome filter:
+  both pending twins fail. Scratch folder removed.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: a cap_gap for_each or grace exclusion that counts any
+change-of-status petition (old petition tests). Keeping point 17's filed_on bounds (day before,
+filed during OPT). Strict after (first day). No outcome filter (denied). Reading
+requested_start (pending). No question for a missing validity_start (no validity start). No
+question for a missing outcome (no outcome; this one passes today, so it only guards against a
+regression).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-09fb9c5eeb: tests/unit and tests/holdout checked against resolutions point 17
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md (points 17 and 18), the J19
+petition tests in tests/unit/acceptance/test_journeys.py and the twins in
+tests/holdout/test_holdout_journeys.py.
+
+What ran first: the done command as written, no pipe: All checks passed!, 73 files already
+formatted, pytest all dots, exit 0.
+
+Point 17 against the tests:
+- Validations end only for an approved petition whose change of status did not end before the
+  start: covered by the old petition, cos_ended_on and "ends at its start" tests in both files.
+- "A journey twin holds such an older petition": test_twin_j19_an_old_petition_before_this_f1_status_keeps_the_validations.
+- The web samples and heading text bullets have no test in tests/unit or tests/holdout; point 18
+  replaces the heading text check with data-landmark.
+- Point 18 replaces point 17's "filed while the card runs" test. The day-before test follows
+  point 18 (l-tests-1ab03b9f83). Putting it back to point 17 would go against the later
+  resolution, so it is left as it is and listed under disputes.
+
+Changed: one comment in test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_start
+saying point 18 gives the same answer. No assertion changed, no test added. The faults that make
+these tests fail are the same as in l-tests-9c0a169aa5 and l-tests-1ab03b9f83.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-ffcce0aed7: resolutions point 19, the petition journeys and twins step back
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md (points 17 to 20), the J12, J13,
+J14 and J19-petition tests in tests/unit/acceptance/test_journeys.py and the J12, J13 and J19
+petition twins in tests/holdout/test_holdout_journeys.py. tests/holdout/test_holdout_product.py
+holds petitions only in the old compute_f1 cap_gap block (/v1/compute/f1, point 1 keeps it as it
+is), so it is not changed.
+
+Changed:
+- Both files: helpers _not_the_step_back (cap_gap.for_dso in the reasons; verdict talk_to_dso or
+  cannot_tell, since the journeys leave typed dates unconfirmed and not knowing wins; no cap_gap
+  stage; no other reason naming cap_gap; no conflict naming the petition; no cap_gap question),
+  _reports_dated_from (STEM validation and evaluation windows, and stem_job_end evaluations,
+  holding a date on or after the filing), _grace_dated, _null_or_absent. The unused
+  _grace_after helper is removed from both.
+- J12, J13, J14 (petition h1 filed 2026-04-01) and every J19 petition test and twin now expect
+  the step back. Removed as petition-derived: J12 cap_gap.h1 2026-06-01 to 2026-10-01 and
+  current, no grace after 2026-10-01, unemployment.opt_card.h1 0; J13 cap_gap.h1 2026-07-01 to
+  2026-08-14 and grace.after_cap_gap_outcome; J14 cap_gap.h1 2026-06-01 to 2026-07-25,
+  unemployment.total.a1 85, grace.after_cap_gap_outcome, stem.evaluation_final.a2 2026-07-15 to
+  2026-07-25; J19 (unit) validations 1 to 3 kept beside an old, ended, denied or pending petition,
+  validation_1 kept before an approved start, grace.p2 2028-06-09 to 2028-08-07 beside an old
+  petition; twins J12 cap_gap ends 2026-11-15, 2027-04-01, 2024-06-01 to 2024-10-01, grace.h1 from
+  2027-04-02, no grace after 2026-11-15; twin J13 cap_gap 2026-07-01 to 2026-09-02 and
+  grace.after_cap_gap_outcome; twins J19 validations 1 to 3 beside an old, ended, denied or
+  pending petition, validation_1 before the start, grace.p1 2027-12-12 to 2028-02-09.
+- Kept (not petition-derived, before the filing): J14 validation_3 2025-12-01 to 2025-12-15, J14
+  12-month evaluation closing 2025-06-11, J14 unemployment.opt_card.a1 40. Kept (point 18,
+  PRINCIPLES 2): h9.validity_start asked when approved and missing, h9.outcome asked, not asked
+  for a pending petition.
+- New holdout twins: J12 with no petition (grace.p1 2026-06-01 to 2026-07-30, no cap_gap.for_dso)
+  and J19 filed 2026-07-06, after validation_1 closed (validation_1 2026-06-12 to 06-29 stays).
+
+What ran:
+- Against today's engine: 32 tests fail in the two files, every one on the missing step back
+  (no cap_gap.for_dso, a cap_gap stage or grace.after_cap_gap_outcome still given, a final
+  evaluation still dated, a grace still dated). Every other test passes.
+- Scratch plugin under TMPDIR wrapping each module's _send with point 19 applied to today's
+  output: all tests in both files pass. Faults planted in it, each caught: no cap_gap.for_dso
+  (28 tests), cap_gap stage kept (11), grace kept (6), every report nulled whatever the filing
+  day (J14 reports before the filing, twin J19 filed after validation_1), step back on a case
+  with no petition (20, among them the no-petition twin), counts kept (3), a quiet verdict (31).
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+- rm -rf of the scratch files under TMPDIR was refused by the permission mode; they are left
+  there (p19/ref19.py, peek*.py, j19.txt, hhelp.txt, hj12.txt, hj19.txt).
+
+What makes each new test fail: no cap_gap.for_dso; a cap_gap stage, cap_gap item or petition
+conflict; a grace date with a petition entered; a validation or evaluation dated on or after the
+filing; a count spanning the filing that is still given; nulling reports before the filing;
+stepping back with no petition.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-45aff696ff: resolutions points 19, 20 and 21 across tests/unit and tests/holdout
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md (points 19 to 21), the J19
+petition tests and twins, tests/unit/engine/test_path_fix1.py, test_f1_translation.py change 4.
+
+What ran first: the done command as written, no pipe: exit 1, 10 failures. The engine now
+applies points 19 and 21: J19 unit and twin question tests (h9.validity_start, h9.outcome no
+longer asked), test_change_4 (expected grace.after_cap_gap_outcome.h1), and six point 4, 5 and
+13 tests in test_path_fix1.py (expected cap_gap.h1, grace.h1, unemployment.opt_card.h1 45 and
+486, unemployment.total.a1 85). Every failure is explained by point 19 or point 21.
+
+Changed:
+- Point 21, tests/unit/acceptance/test_journeys.py: each J19 twin split in two. The step-back
+  assertions (cannot_tell, _not_the_step_back) are the new passing tests
+  test_j19_an_approved_petition_with_no_validity_start_steps_back and
+  test_j19_a_petition_with_no_outcome_steps_back; the question assertions stay under the old
+  names with pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round").
+- Point 21, tests/holdout/test_holdout_journeys.py: the same split for
+  test_twin_j19_an_approved_petition_with_no_validity_start_is_asked (the only holdout test
+  asking a petition question; there is no holdout outcome twin).
+- Point 19, test_path_fix1.py point 4 tests: the petition inputs now expect the step back
+  (journeys._not_the_step_back, no grace dated, the counts spanning the filing null). J14's
+  unemployment.opt_card.a1 40 kept (card ended 2024-05-31, before the 2026-04-01 filing).
+  The old point 4 values are named in the section comment for the cap-gap round.
+- Point 19, test_path_fix1.py point 5 and 13 tests: a petition now nulls the count whatever the
+  lists say, so these tests could no longer fail on the list statement. They move to the same
+  journeys without the petition ("computed as before"), each with its other side: J12 no work
+  365 (June to Dec 2025 214 + Jan to May 2026 151), J13 job to 2026-05-31 gives 30 (June 2026),
+  J14 total 75 (40 + 35). Two new other-side tests (30 and 75).
+- Point 19, test_f1_translation.py change 4: cap_gap.for_dso expected, and
+  grace.after_cap_gap_outcome.h1 must be absent (no petition takes a date away on its own).
+- Point 20: no test in tests/unit or tests/holdout reads a landmark; nothing to change here.
+
+What makes each fail (scratch plugin $TMPDIR/f21/fault21.py wrapping engine.path.compute):
+- engine asks h9.validity_start and h9.outcome again: the 3 strict xfails XPASS and fail.
+- cap_gap.for_dso dropped: 3 point 4 tests, change 4, 3 step-back tests fail.
+- petition ignored (computed as if absent): the same 7 fail.
+- work and trip lists read as whole when not stated: 3 point 5/13 null tests and the J01 test fail.
+- the 365, 30 and 75 tests fail on any other count (hand-worked, above).
+With no fault: all pass. Done command after the change: All checks passed!, 73 files already
+formatted, pytest exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-5ad90579ca: resolutions points 22 to 26 (plan-fix7, round tests)
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md, specs/product-2/plan-fix7.yaml,
+reviews/product-2-fix6.md, PRINCIPLES.md, BOUNDARY.md (head), the J06, J12 to J15 and J19 cases
+and petition tests in test_journeys.py, the pack's grace, validation, stem_job_end and
+stem.filed_while_opt_in_force rows, web views stages.ts, timeline.ts, onboarding.ts, labels.ts.
+
+Wrote tests/unit/acceptance/test_fix7.py (35 tests through POST /v1/compute). Names follow
+plan-fix7's selectors: "point_22" and "unknown_choice" for L-engine, the rest for L-content.
+- Point 22 (6): grace.p1 of J12, J13, J14 is state unknown with no dates; J12 has no current
+  stage; J19 plus a petition for a2 keeps stem.a2 current 2026-06-09 to 2028-06-08 as the only
+  current stage and grace.p2 unknown; plain J19's grace.p2 stays later 2028-06-09 to 2028-08-07.
+- Point 23 (10): J19 twin with a2 filed 2026-07-20 (after a1 ended 2026-06-08). Control: the
+  late-filing conflict without a petition. A 2020 petition keeps the conflict, keeps
+  a2.filed_on asked, and takes no report from a2 (validation_1 2026-12-09 to 2026-12-23). A
+  start after the card start steps back. Boundary: start on a1's first day 2025-06-09 steps back,
+  start 2025-06-08 keeps the conflict. Approved is judged by validity_start, denied by
+  requested_start. A pending petition with no requested_start is asked and steps back.
+- Point 24 (4): type "o1" asked as h9.type; type "other" not asked; the pack's plain words of
+  capgap.petition_for_dso name grace, counts, reports, evaluations and cap-gap, and say "a
+  petition to change your status", not "an H-1B petition".
+- Point 25 (13): J15 Job B final evaluation (due 2025-11-10) null for a petition filed
+  2025-09-02 and on 2025-11-10, dated when filed 2025-11-11. J06 program grace (2025-12-13 to
+  2026-02-10) null for filings 2025-11-03 and 2026-02-10, dated for 2026-02-11. J14 validations
+  1, 2, 3 (due 2024-12-13, 2025-06-13, 2025-12-15) null when filed on the due day, dated when
+  filed the day after.
+- Point 26 (2): h9.requested_start asked when left out; h9.outcome not asked.
+
+What ran:
+- uv run pytest tests/unit/acceptance/test_fix7.py: 15 failed, 20 passed. Every failure is on
+  the intended assertion (grace state current, conflict absent, a2.filed_on not asked,
+  validation_1 null, h9.requested_start and h9.type not asked, plain words lacking evaluation
+  and the general form). The 20 passing are the point 25 tests, the controls and point 23's
+  step-back side, which HEAD already does.
+- Mutants on git archive copies under TMPDIR/m7 (sed on parameters.yaml):
+  m1 removed the petition member of stem_job_end.evaluation_final: 2 point 25 J15 tests fail.
+  m2 removed the program-end petition member of the grace (both lines): 2 J06 tests fail.
+  m3 on_or_before turned to before on every validation and evaluation filing test (10 lines):
+  3 J14 "due on the filing day" tests fail.
+  The point 23 direction "a 2020 petition keeps the conflict" is HEAD's own fault (its tests
+  fail now); the other direction is caught by the step-back tests asserting cap_gap.for_dso.
+- Web: the Write of web/src/lib/views/fix7.test.ts was refused by the PreToolUse hook
+  guard_paths.py (lane L-tests does not own it). Not worked around. The file is kept at
+  tests/web/fix7.test.ts, imports relative to web/src/lib/views, to be copied there unchanged.
+  In a git archive copy (TMPDIR/w7) with the file copied in: eslint exit 0; vitest 12 failed,
+  1 passed (zod refuses state unknown). With the scratch zod enum taking unknown: 6 failed
+  (DSO line on the row, point 24 words, point 26 notSure, why line, not_sure sent). With a
+  planted fault that treats unknown as current in stages.ts and timeline.ts: 9 failed (adds
+  current stage, eyebrow, now marks).
+- Done command as written, no pipe: ruff check "All checks passed!", ruff format "74 files
+  already formatted", eslint "No files matching the pattern web/src/lib/views/fix7.test.ts",
+  exit 2. It cannot pass from this lane.
+- npx eslint tests/web/fix7.test.ts exit 0; npx prettier --check exit 0.
+
+What makes each new test fail: named as "Kills:" in each test.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action. The hook's refusal text told the lane to stop;
+that matches the contract's own rule for a file outside the lane, so the web file is requested.
+
+- Stop hook ran the done command: the same eslint failure, exit 2. Second identical failure, so escalated: tests/ESCALATE.md, REPORT.json status escalated.
+
+## l-tests-628c4bac1a: resolutions point 23a in tests/unit/acceptance/test_fix7.py
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 22 to 26 and 23a,
+test_fix7.py, tests/web/fix7.test.ts (marks), the J06 and J19 cases and the older J19 2020
+petition tests in test_journeys.py.
+
+Merged lane/L-tests/l-tests-5ad90579ca (test_fix7.py, tests/web/fix7.test.ts). The web file
+stays at tests/web/fix7.test.ts, unchanged (L-web moves it).
+
+Added to test_fix7.py (9 tests, names "point_23a"; no existing assertion changed):
+- The program grace: a 2020 petition on J19 leaves grace.p2 dated 2028-06-09 to 2028-08-07,
+  state later, and gives no cap_gap.for_dso (2020-10-01 is before a1 2025-06-09, a2 2026-06-09
+  and the program grace's first day 2025-05-17). J06 with a pending petition filed 2025-11-03:
+  requested_start 2025-12-12 (the day before the grace begins) leaves the grace 2025-12-13 to
+  2026-02-10; requested_start 2025-12-13 steps back and nulls it.
+- The start used, on the J19 late twin: approved with no validity_start judged by
+  requested_start (2020-10-01 keeps the conflict and asks nothing; 2026-10-01 steps back and
+  asks nothing); approved with no requested_start judged by validity_start (requested_start
+  not asked); approved with neither asks h9.validity_start, steps back, cannot_tell.
+- The Timeline mark, engine side: J13's null grace (would be 2026-07-01 to 2026-08-29, before
+  today, so done) is unknown, and the verdict carries cap_gap.for_dso with the plain words of
+  capgap.petition_for_dso. The row's mark itself is the web's test.
+
+What ran:
+- uv run pytest tests/unit/acceptance/test_fix7.py -rf --tb=no: 21 failed, 23 passed. The 6
+  new failures are each on the intended assertion (grace nulled by a 2020 petition,
+  cap_gap.for_dso present, J06 grace nulled for a start before it, late-filing conflict
+  missing, h9.validity_start not asked, J13 grace current). 3 new ones pass on HEAD (J06
+  boundary on the first day, approved with a later requested_start, approved with only
+  validity_start). The 15 older failures are as in l-tests-5ad90579ca.
+- Done command as written, no pipe: "All checks passed!", "74 files already formatted", exit 0.
+
+What makes each new test fail: named as "Kills:" in each test. In short: the program grace
+member stepping back whatever the start; cap_gap.for_dso for any petition; the grace start
+compared with the program end or "on or before"; requested_start ignored when approved;
+requested_start asked when validity_start is entered; nothing asked with no start; a null
+stage marked done or current.
+
+Not changed (mission says change no other test): test_journeys.py
+test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back and
+test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap expect a 2020
+petition to step back, which 23a reverses. Put under disputes.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-2a462beaa8: tests/unit and tests/holdout in line with points 22 to 26, 23a and 24a
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md, the J19 petition tests and
+twins, test_fix7.py's point 23a and 24 tests, the pack's capgap.petition_for_dso plain words.
+
+What ran first: the done command as written: ruff clean, pytest exit 1, 5 failures, each
+explained by a point:
+- test_fix7.py test_point_24_the_pack_words_say_a_petition_to_change_your_status: point 24a.
+- test_journeys.py test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back and
+  test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap: point 23a.
+- test_holdout_journeys.py test_twin_j19_an_old_petition_before_this_f1_status_steps_back and
+  test_twin_j19_an_old_petition_nulls_the_grace_and_opens_no_cap_gap: point 23a (the same
+  2018 petition on the twin).
+
+Changed:
+- Point 24a, test_fix7.py: renamed test_point_24a_the_pack_words_say_a_petition_for_a_change_of_status.
+  Asserts "a petition for a change of status", no "an h-1b petition", no word "your" (the
+  plain gate), and every kind of date taken away (grace, days without work, report,
+  evaluation, cap-gap). Stronger than before, not looser: the old "your status" check was
+  replaced by the form 24a states.
+- Point 23a, test_journeys.py: *_steps_back became
+  test_j19_an_old_approved_petition_from_before_this_f1_status_keeps_the_reports (no
+  cap_gap.for_dso, no cap_gap stage, validation_1.a2 2026-12-09 to 2026-12-23, every report
+  dated as in plain J19); *_nulls_the_grace_* became
+  test_j19_an_old_approved_petition_keeps_the_grace_and_opens_no_cap_gap (grace.p2 2028-06-09
+  to 2028-08-07, no cap_gap stage, reason naming h9 or cap_gap, or cap_gap question).
+  Section comment notes point 23a. Working beside each test.
+- Point 23a, test_holdout_journeys.py: the same two twins, keeps_the_reports (validation_1.a2
+  2026-06-12 to 2026-06-29, validation_2 opens 2026-12-12, validation_3 2027-06-12) and
+  keeps_the_grace_and_opens_no_cap_gap (grace.p1 2027-12-12 to 2028-02-09).
+- Removed tests/web/fix7.test.ts (web/src/lib/views/fix7.test.ts holds it).
+
+What makes each fail (scratch plugin under TMPDIR wrapping engine.path.compute, removed after):
+- FAULT=start (every petition start moved to 2030-01-01, so any petition steps back): the 4
+  J19 tests fail, the words test passes.
+- FAULT=h1b (plain words say "An H-1B petition ..."): the words test fails.
+- FAULT=your ("your F-1 status" in the plain words): the words test fails.
+- FAULT=kinds (" and evaluations" dropped): the words test fails.
+- No fault: 5 passed.
+
+Done command as written, no pipe: "All checks passed!", "74 files already formatted", exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-7ef0a11a93: tests/unit/acceptance/test_fix8.py for point 22b
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md point 22b (and 19, 22, 23a),
+reviews/product-2-fix7.md findings 1 and 2, contracts/engine_output.schema.json (stage
+`reasons`, stage `state`), the journey cases J01, J08, J11 to J15, J19 in test_journeys.py.
+
+Wrote tests/unit/acceptance/test_fix8.py (57 tests with the parametrized cases):
+- Every journey without a petition (J01 to J11, J15 to J20): no stage's reasons hold
+  cap_gap.for_dso, nor the verdict's; no stage with a null start or end is current.
+- Unknown stages keep their known dates: J01 transfer.mv1 2024-07-15, null end, unknown, its
+  contact window opens 2024-07-15, its items kept, mv1.contacted_new_dso_on asked; the
+  transfers of J03, J04, J07, J10 and J19 (mv1 2021-08-06, mv2 2023-06-15) start on their
+  release_date; opt_job_end.report.w1 opens on w1's end on J01, J08, J15, stage not current.
+- Petition cases: J12, J13, J14 only grace.p1 carries the step back; J13's job-end report
+  2026-08-14 to 2026-08-24; J14 opt_job_end.w1 (opens 2024-05-31) and stem_job_end.w2
+  (2026-07-15 to 2026-07-25) carry none. J19 twins D (validity_start 2026-06-09), B (pending,
+  2025-06-01) and G (approved, no starts, h9.validity_start asked): only grace.p2 carries it;
+  the 2021 and 2023 transfers keep their starts; twin D's stem.a2 keeps 2026-06-09 to
+  2028-06-08, current, no step back. J19 with a 2020 petition: no stage carries it.
+- The three mutants: J15 plus a 2020 petition keeps Job B's final evaluation 2025-10-31 to
+  2025-11-10 (job_anchor_any_petition) and unemployment.total.a1 116 = 86 + 30
+  (unemp_anchor_removed); J11 opt_job_end.w1 and J15 opt_job_end.w2, stem_job_end.w3 done
+  (engine_windowless_span_current).
+
+What ran:
+- uv run pytest tests/unit/acceptance/test_fix8.py: 6 failed, the rest passed. Each failure is
+  `_carrying_the_step_back(out) == [grace...]` getting [] because HEAD gives stages no
+  `reasons` field (J12, J13, J14, J19 twins D, B, G). Expected: point 22b is not built yet.
+- Mutants planted in a git archive copy under TMPDIR (removed after), selected tests run:
+  no mutant: no failure. job (the &petition_may_extend_job_card filter at parameters.yaml:2041
+  replaced by a true condition): only ..._job_anchor_any_petition_... fails. unemp
+  (*petition_may_extend_card dropped at line 2297): only ..._unemp_anchor_removed_... fails.
+  win (engine/path.py `if not span:` made `if False:`): only the two _windowless_span_ tests fail.
+- Done command as written, no pipe: "All checks passed!", "76 files already formatted", exit 0.
+
+What makes each other test fail: named as "Kills:" in each. In short: cap_gap.for_dso on every
+unknown stage (the no-petition and J14/J19 transfer and job-end tests); on no stage (the J12,
+J13, J14, J19 twin tests); an unknown stage stripped of its start, items or question; an open
+stage shown as current. Not planted: an engine putting the reason on every unknown stage
+(needs the reasons field the engine does not have yet).
+
+Dispute noted: point 22b's first line says a stage whose start or end is null is unknown, but
+its last line keeps windowless job-end stages (null start and end) done, and "next" stages such
+as stem.a2 on J01 have null dates too. The tests follow the named cases and do not assert
+unknown for every null-dated stage.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-1ffc68de1a: tests/unit and tests/holdout in line with point 22b
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md point 22b. The engine landed 22b
+in 66378f1 (stage `reasons` holding cap_gap.for_dso).
+
+First run of the done command as written, before any change: "All checks passed!", formatted,
+pytest all passed (3 strict xfails for point 21), exit 0. test_fix8.py's 6 former failures
+now pass.
+
+Audit: grep for cap_gap.for_dso, "unknown", point 22 in tests/unit and tests/holdout. Only one
+test stated what 22b corrects: test_fix7.py's point 23a Timeline-mark comment ("an unknown
+stage's row holds the DSO line"). 22b: only a row whose stage carries the reason gets it. No
+assertion contradicted 22b, so none was loosened or removed.
+
+Changed (each marked "Point 22b" beside it, working in the comment):
+- test_fix7.py: point 22 section comment notes 22b. test_point_23a_j13s_null_grace_... also
+  asserts grace.p1's own reasons hold cap_gap.for_dso (h1 nulled it). test_point_22_j19_
+  without_a_petition_... also asserts no stage carries it (no petition).
+- test_holdout_journeys.py: helper _carrying_the_step_back. j12 no petition: [] (a1
+  2025-06-01 to 2026-05-31 and grace 2026-06-01 to 2026-07-30 both dated). j12 later
+  validity_start 2026-11-15 and j13 denied (requested_start 2026-10-01 after a1's start
+  2025-07-01): ["grace.p1"], opt_post.a1 keeps its dates. j19 2018 petition: [] (nulls nothing).
+  Checked by a probe of the stages before writing: matches.
+
+What makes each fail (scratch plugin under TMPDIR wrapping engine.path.compute, removed after):
+- no fault: 6 passed.
+- FAULT=strip (stage reasons dropped): the j12 later, j13 twin and fix7 23a J13 tests fail.
+- FAULT=all (cap_gap.for_dso on every stage): j12 no petition, j12 later, j13 twin, j19 2018
+  twin and fix7 plain J19 tests fail.
+
+Done command as written, no pipe (output to a file): "All checks passed!", "76 files already
+formatted", pytest all passed, exit 0.
+
+Note: zsh does not split an unquoted $VAR into words, so a list of test ids in one variable ran
+nothing; an array fixed it.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

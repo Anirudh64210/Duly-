@@ -1,15 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
 
 const exposed = vi.hoisted(() => [] as [string, unknown][]);
+const asked = vi.hoisted(() => [] as unknown[][]);
 
 vi.mock("electron", () => ({
   contextBridge: {
     exposeInMainWorld: (key: string, value: unknown) => exposed.push([key, value]),
   },
+  ipcRenderer: {
+    invoke: (...args: unknown[]) => {
+      asked.push(args);
+      return Promise.resolve({ ok: true });
+    },
+  },
 }));
 
+interface Exposed {
+  version: string;
+  platform: string;
+  case: {
+    read: () => Promise<unknown>;
+    write: (value: unknown, ...more: unknown[]) => Promise<unknown>;
+    clear: (...more: unknown[]) => Promise<unknown>;
+  };
+}
+
 describe("the preload", () => {
-  it("exposes the version and the platform, and nothing else", async () => {
+  it("exposes the version, the platform and the case bridge, and nothing else", async () => {
     const argv = process.argv;
     process.argv = [...argv, "--duly-version=1.2.3"];
     try {
@@ -22,7 +39,26 @@ describe("the preload", () => {
     expect(exposed).toHaveLength(1);
     const [key, value] = exposed[0] ?? ["", null];
     expect(key).toBe("duly");
-    expect(value).toEqual({ version: "1.2.3", platform: process.platform });
+    expect(Object.keys(value as object).sort()).toEqual(["case", "platform", "version"]);
+    const duly = value as Exposed;
+    expect(duly.version).toBe("1.2.3");
+    expect(duly.platform).toBe(process.platform);
+    expect(Object.keys(duly.case).sort()).toEqual(["clear", "read", "write"]);
     expect(Object.isFrozen(value)).toBe(true);
+    expect(Object.isFrozen(duly.case)).toBe(true);
+  });
+
+  it("sends only the contract's calls, whatever else the page passes", async () => {
+    const { CASE_CHANNEL } = await import("./preload");
+    const duly = (exposed[0] ?? ["", null])[1] as Exposed;
+    asked.length = 0;
+    await duly.case.read();
+    await duly.case.write({ categories: ["f1"] }, "/etc/passwd");
+    await duly.case.clear("../duly.db");
+    expect(asked).toEqual([
+      [CASE_CHANNEL, { version: "v1", call: "case.read" }],
+      [CASE_CHANNEL, { version: "v1", call: "case.write", case: { categories: ["f1"] } }],
+      [CASE_CHANNEL, { version: "v1", call: "case.clear" }],
+    ]);
   });
 });
