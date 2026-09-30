@@ -2013,6 +2013,47 @@ def test_j19_a_petition_filed_while_the_card_runs_and_approved_ends_validations_
     assert _dated_after(out, "stem.validation_", "a2", "2027-02-28") == []
 
 
+def test_j19_a_petition_filed_the_day_before_the_card_began_keeps_the_validations(
+    client: TestClient,
+) -> None:
+    # Point 17's edge: "filed while the card runs". a2 begins 2026-06-09; h9 filed 2026-06-08,
+    # one day before, is not filed while a2 runs, so it drops no report even though it is
+    # approved with no cos_ended_on. validation_2 opens 2027-06-09 (card_start plus 12
+    # months), validation_3 2027-12-09 to 2027-12-23 (working as in the old-petition test).
+    out = _send(
+        client,
+        _j19_with_petition(
+            cap_subject="no",
+            filed_on="2026-06-08",
+            requested_start="2027-03-01",
+            outcome_on="2026-09-15",
+            validity_start="2027-03-01",
+        ),
+    )
+    assert window(out, "stem.validation_2.a2")[0] == "2027-06-09"
+    assert window(out, "stem.validation_3.a2") == ("2027-12-09", "2027-12-23")
+
+
+def test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_start(
+    client: TestClient,
+) -> None:
+    # Point 17's edge, the other side: h9 filed 2026-06-09, a2's first day, is filed while the
+    # card runs. Approved, no cos_ended_on: validations end at validity_start 2027-03-01, last
+    # F-1 day 2027-02-28. validation_1 (2026-12-09 to 2026-12-23) stays; nothing after.
+    out = _send(
+        client,
+        _j19_with_petition(
+            cap_subject="no",
+            filed_on="2026-06-09",
+            requested_start="2027-03-01",
+            outcome_on="2026-09-15",
+            validity_start="2027-03-01",
+        ),
+    )
+    assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
+    assert _dated_after(out, "stem.validation_", "a2", "2027-02-28") == []
+
+
 # J20
 
 

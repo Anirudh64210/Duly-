@@ -2490,3 +2490,39 @@ an approved start on this card (the two "ends" tests).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-0d2abdcb45: resolutions point 17 checked against the pack that now carries it
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 16 and 17, the pack's
+`stem_validation_end` petition line (rulepacks/f1-us/v2026.09/parameters.yaml, now with
+filed_on within card_start..card_end and the cos_ended_on any_of, from L-content e96f9dd).
+
+What ran first: the done command as written, no pipe: All checks passed!, 73 files already
+formatted, pytest all dots, exit 0. The six point 17 tests of l-tests-9c0a169aa5 (three in
+tests/unit/acceptance/test_journeys.py, three twins in tests/holdout/test_holdout_journeys.py)
+all pass now; the four "keeps" tests that failed on the fix 3 pack are green.
+
+Searched tests/unit and tests/holdout for change_of_status with validations. The other hits are
+the retained compute_f1 path (point 1) and cap-gap tests, which point 17 does not touch. No
+assertion needed to change; none was loosened.
+
+Added (tests/unit/acceptance/test_journeys.py), point 17's edge of "filed while the card runs",
+a2 begins 2026-06-09, petition cap exempt, approved 2026-09-15, validity_start 2027-03-01:
+- test_j19_a_petition_filed_the_day_before_the_card_began_keeps_the_validations: filed
+  2026-06-08. validation_2 opens 2027-06-09; validation_3 2027-12-09 to 2027-12-23.
+- test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_start: filed
+  2026-06-09. validation_1 2026-12-09 to 2026-12-23 stays; nothing dated after 2027-02-28.
+
+What makes each fail, run in a scratch copy (git archive HEAD into TMPDIR, pack mutated, folder
+removed after):
+- lower bound dropped from the petition line: the day-before test fails, the other passes.
+- lower bound made strict (after: instead of on_or_after:): the first-day test fails
+  (validation_2 and _3 dated after 2027-02-28).
+- A first mutant that added {days: 1} was refused by the pack schema; not a test result.
+- Unmutated pack: both pass.
+
+Done command after the change, as written, no pipe: All checks passed!, 73 files already
+formatted, all dots, exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
