@@ -129,9 +129,10 @@ export function refusedInApp(relative: string): boolean {
 export const LANDMARK_ATTRIBUTE = "data-landmark";
 
 /**
- * A screen's landmark (resolutions point 18): the element the app marks with
- * data-landmark="<screen>", where the screen is the route the shot asks for. No error screen
- * carries one. Text and type are not compared (specs/design-1/SPEC.md 14.1).
+ * A screen's landmark (resolutions points 18 and 20): the element the app marks with
+ * data-landmark="<route>", the route the shot asks for, as web/src/lib/shots.ts LANDMARKS
+ * writes it (a test joins the two). No error screen carries one. Text and type are not
+ * compared (specs/design-1/SPEC.md 14.1).
  */
 export function landmarkSelector(screen: string): string {
   return `[${LANDMARK_ATTRIBUTE}=${JSON.stringify(screen)}]`;
