@@ -178,3 +178,15 @@
 - Failure: a rewrite that moved a time phrase to the front of its sentence passed every gate and closed a reading the note keeps open.
 - Fix: for each rewrite, list phrases that moved and check each reading the note names is still possible.
 - Evidence: reviews/product-1-fix9.md finding 1.
+
+## 2026-09-29, run l-review-09957a1427 (product round 1, fix 10, and the round as a whole)
+- Read reviews/product-1-fix9.md, SPEC-resolutions.md points 58, 62, 65 and 66 (there is no point 67 in the file), plan-fix10, plain-1 SPEC, the diff c760b07..a5901e1 (two plain texts, plain.py pattern, test_plain, plain-1 SPEC, CHANGELOG), and both texts beside their quotes and notes.
+- Ran: plain_changes c760b07 (two rows; exit 0 with both allowed, exit 1 with one), tools.sources.plain, sources verify, load_all, engine_literals, copy lint, test_plain and test_plain_changes, unit suites, holdout, ruff, mypy: all clean.
+- Counted old and new abbreviation matches on all 55 shipped texts: no change. Tried "At that time" in the degree text: 316 characters, grade 9.04, refused.
+- Found: both texts pass and fix 9 findings 1 and 2 are closed. Notes: point 67 is missing from the file, "Then" does two jobs, and "U.S." before a capital ends no sentence.
+- Wrote reviews/product-1-fix10.md (APPROVE), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a fix made in the review's own example words invites a pass that was never tested.
+- Fix: test the example words like any rewrite, and run the tighter wording through the gate.
+- Evidence: reviews/product-1-fix10.md note 2.
