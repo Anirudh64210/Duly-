@@ -171,3 +171,10 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - The keying on the petition is needed because a path over records cannot reach a petition from a program or an authorization, and the engine does not read `window_closes` or a span end of another stage.
 - Point 8 needs no change in the pack and none was made. The conditions already test where, level and type before stem_list, conferred_on and decision. The engine reads every condition of a selector and asks every absent field it read, even when an earlier condition is false. Filed as a request.
 - No row, value, quote, note, plain text or plain_terms changed. No network was used.
+
+### 2026-09-29, lane L-content, run l-content-5af1ae0758 (product-2 resolutions point 12, pack side)
+
+- `unemployment.total`: the span of the chain's latest card, while a petition asks for a change of status, now ends at the later of the card end and the cap-gap end, not at no end. The cap-gap end is read from the petition as the `cap_gap` stage reads it: validity_start, a rejected, denied, revoked or withdrawn outcome_on, or cos_ended_on, each only when on or before April 1 of the fiscal year of requested_start (`capgap.end_month_day`). While today is on or before that April 1, today stands for the end, because the counter never counts past today. With two such petitions, or when that April 1 has passed and no other end is on record, the span has no end, as before.
+- `unemployment.total.through_cap_gap` is raised only in those two cases, where the count stays null.
+- `opt_post`: the release date is no longer a member of the span end. It is held in `ends_also` alone, so the regulation's end (card end, or the day before a program at another level starts) and the release-date reading can differ.
+- No row, value, quote, note, plain text or plain_terms changed. No network was used.
