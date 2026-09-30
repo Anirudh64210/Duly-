@@ -1115,3 +1115,20 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - The engine does not emit `cap_gap.for_dso` yet in this worktree (no match under engine/),
   so no sample holds it; the words are tested on the reason id alone.
+
+## l-web-1d3a777b42: regenerate the engine samples
+
+### Tried
+
+- Ran `make samples` from the repository root. It changed two files:
+  web/samples/path-stem-next.json and web/samples/path-window-open.json. Each drops
+  `capgap.status_ends_on_h1b_start` from the rule lists of its dated items (96 lines in,
+  176 out), which follows point 21 (cap-gap deferred) in the engine at HEAD.
+- The .case.json files did not change.
+
+### Ran
+
+- `make samples`: exit 0. git printed "tests/holdout/...: Operation not permitted", the
+  sandbox refusing a read of tests/holdout, as the contract says.
+- Done command, as written, output to a file: exit 0. 28 files, 554 tests passed, lines
+  97.59 percent.
