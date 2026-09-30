@@ -2039,6 +2039,7 @@ def test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_sta
     # Point 17's edge, the other side: h9 filed 2026-06-09, a2's first day, is filed while the
     # card runs. Approved, no cos_ended_on: validations end at validity_start 2027-03-01, last
     # F-1 day 2027-02-28. validation_1 (2026-12-09 to 2026-12-23) stays; nothing after.
+    # Point 18 gives the same answer: validity_start 2027-03-01 is on or after a2's start.
     out = _send(
         client,
         _j19_with_petition(
