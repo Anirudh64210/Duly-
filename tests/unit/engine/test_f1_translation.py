@@ -623,4 +623,8 @@ def test_change_4_a_denied_petition_gives_no_grace_date() -> None:
     stages = [s["id"] for s in records_out["stages"]]
     assert not [s for s in stages if s.startswith("grace")]
     assert not [i for i in _values(records_out) if i.startswith("grace")]
-    assert "grace.after_cap_gap_outcome.h1" in records_out["verdict"]["reasons"]
+    # Resolutions point 19: with a petition entered the grace is null and the verdict carries
+    # cap_gap.for_dso. "No petition ... takes a date away on its own", so the denial raises
+    # no grace.after_cap_gap_outcome reason (it did before point 19).
+    assert "cap_gap.for_dso" in records_out["verdict"]["reasons"]
+    assert "grace.after_cap_gap_outcome.h1" not in records_out["verdict"]["reasons"]

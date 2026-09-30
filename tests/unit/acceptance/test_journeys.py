@@ -2185,42 +2185,64 @@ def test_j19_a_pending_petition_on_the_card_steps_back_and_asks_no_start(
     assert "h9.validity_start" not in question_ids(out)
 
 
+def _j19_approved_with_no_validity_start() -> dict[str, Any]:
+    # h9 approved 2026-09-15, filed 2026-07-01, validity_start left out.
+    return _j19_with_petition(
+        cap_subject="no",
+        filed_on="2026-07-01",
+        requested_start="2027-03-01",
+        outcome_on="2026-09-15",
+    )
+
+
+def test_j19_an_approved_petition_with_no_validity_start_steps_back(
+    client: TestClient,
+) -> None:
+    # Point 19 steps back for any petition whatever its outcome; point 21 keeps these step-back
+    # assertions as a passing test. Not knowing the validity start leaves cannot_tell.
+    out = _send(client, _j19_approved_with_no_validity_start())
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert _not_the_step_back(out, "h9") == []
+
+
+@pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")
 def test_j19_an_approved_petition_with_no_validity_start_is_asked_for_it(
     client: TestClient,
 ) -> None:
     # Point 18 (fix 4 finding 4b): "When the facts that decide it (the outcome, the validity
-    # start) are missing, Duly asks for them" (PRINCIPLES 2). Point 19 steps back as well.
-    # h9 approved 2026-09-15, filed 2026-07-01, validity_start left out.
-    out = _send(
-        client,
-        _j19_with_petition(
-            cap_subject="no",
-            filed_on="2026-07-01",
-            requested_start="2027-03-01",
-            outcome_on="2026-09-15",
-        ),
-    )
+    # start) are missing, Duly asks for them" (PRINCIPLES 2). Point 21: while cap-gap is
+    # deferred the validity start decides nothing and is not asked, so this assertion waits
+    # for the cap-gap round (strict: it fails the run the day the engine asks again early).
+    out = _send(client, _j19_approved_with_no_validity_start())
     assert "h9.validity_start" in question_ids(out)
-    assert out["verdict"]["state"] == "cannot_tell"
-    assert _not_the_step_back(out, "h9") == []
 
 
-def test_j19_a_petition_with_no_outcome_is_asked_for_it(client: TestClient) -> None:
-    # Point 18: the outcome is the other fact that decides it. h9 filed 2026-07-01, outcome
-    # left out: Duly asks for it, and point 19 steps back as well.
-    out = _send(
-        client,
-        _j19_with_petition(
-            outcome=None,
-            cap_subject="no",
-            filed_on="2026-07-01",
-            requested_start="2027-03-01",
-            validity_start="2027-03-01",
-        ),
+def _j19_with_no_outcome() -> dict[str, Any]:
+    # h9 filed 2026-07-01, outcome left out.
+    return _j19_with_petition(
+        outcome=None,
+        cap_subject="no",
+        filed_on="2026-07-01",
+        requested_start="2027-03-01",
+        validity_start="2027-03-01",
     )
-    assert "h9.outcome" in question_ids(out)
+
+
+def test_j19_a_petition_with_no_outcome_steps_back(client: TestClient) -> None:
+    # Point 19 steps back for any petition whatever its outcome; point 21 keeps these step-back
+    # assertions as a passing test.
+    out = _send(client, _j19_with_no_outcome())
     assert out["verdict"]["state"] == "cannot_tell"
     assert _not_the_step_back(out, "h9") == []
+
+
+@pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")
+def test_j19_a_petition_with_no_outcome_is_asked_for_it(client: TestClient) -> None:
+    # Point 18: the outcome is the other fact that decides it, and Duly asks for it. Point 21:
+    # while cap-gap is deferred the outcome decides nothing and is not asked, so this
+    # assertion waits for the cap-gap round.
+    out = _send(client, _j19_with_no_outcome())
+    assert "h9.outcome" in question_ids(out)
 
 
 # J20

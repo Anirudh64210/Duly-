@@ -1036,19 +1036,30 @@ def test_twin_j19_a_pending_petition_on_the_card_steps_back(client: TestClient) 
     assert _grace_dated(out) == []
 
 
+def _twin_j19_approved_with_no_validity_start() -> dict[str, Any]:
+    # h9 filed 2026-04-06, approved 2026-06-01, validity_start left out.
+    return _twin_j19_with_petition(
+        filed_on="2026-04-06", requested_start="2026-10-01", outcome_on="2026-06-01"
+    )
+
+
+def test_twin_j19_an_approved_petition_with_no_validity_start_steps_back(
+    client: TestClient,
+) -> None:
+    # Point 19 steps back whatever the outcome; point 21 keeps these assertions passing.
+    out = _send(client, _twin_j19_approved_with_no_validity_start())
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert _not_the_step_back(out, "h9") == []
+
+
+@pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")
 def test_twin_j19_an_approved_petition_with_no_validity_start_is_asked(
     client: TestClient,
 ) -> None:
-    # Point 18: a missing validity start is asked (PRINCIPLES 2); point 19 steps back too.
-    out = _send(
-        client,
-        _twin_j19_with_petition(
-            filed_on="2026-04-06", requested_start="2026-10-01", outcome_on="2026-06-01"
-        ),
-    )
+    # Point 18: a missing validity start is asked (PRINCIPLES 2). Point 21: not asked while
+    # cap-gap is deferred, so this waits for the cap-gap round.
+    out = _send(client, _twin_j19_approved_with_no_validity_start())
     assert "h9.validity_start" in question_ids(out)
-    assert out["verdict"]["state"] == "cannot_tell"
-    assert _not_the_step_back(out, "h9") == []
 
 
 # Resolutions point 16: a next STEM stage, before any STEM card, carries no report dates.
