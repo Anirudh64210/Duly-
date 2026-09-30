@@ -1,0 +1,91 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+  - name: parts
+    checkpoint: false
+    lanes:
+      - lane: L-web
+        agent: builder
+        mission: >
+          Your point 16 work is on lane/L-web/l-web-5211e9f9c2 and was held because it changed web/package.json. Bring it in
+          (git merge lane/L-web/l-web-5211e9f9c2), then put the scripts in web/package.json back exactly as they are on this
+          branch: web/samples/make.py stays and is run by the founder's make samples. Keep your
+          Onboarding fix (no preselected answer) and its tests.
+        done: >-
+          bash -c 'git diff --quiet HEAD -- web/package.json || git diff --quiet product-2 -- web/package.json;
+          npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}" && uv run python -m tools.copy_lint.lint'
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-2/resolutions.md point 17 in rulepacks/f1-us/v2026.09: the stem_validation_end
+          item reads only a change-of-status petition that belongs to this STEM card (filed while it
+          runs, approved, change of status not ended before the start). Existing plain words are frozen.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
+          && uv run python -m tools.sources.plain rulepacks --require f1'
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          specs/product-2/resolutions.md point 17: a J19 twin with an old approved change-of-status
+          petition from before this F-1 status keeps its validations; a twin whose change of status
+          ended before the H-1B start keeps validation_3; a petition filed while the card runs, approved,
+          ends validations at its start. In tests/unit/acceptance and tests/holdout.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null'
+      - lane: L-desktop
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 17: desktop/src/shots.ts holdsLandmark compares the
+          screen's heading text from tests/design/landmarks.json as well as its type. Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w desktop && npm test -w desktop
+          && npx eslint desktop --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+  - name: integrate
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          All parts are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py pass
+          through POST /v1/compute, fixing engine/. A journey asserting what the saved words do not
+          support is a finding in your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/acceptance -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Bring every test in tests/unit and tests/holdout in line with specs/product-2/resolutions.md
+          point 17; write the point beside each change; never loosen an assertion; escalate any failure
+          no point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-2" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review product-2 against specs/product-2/resolutions.md, following your role file, in ONE pass.
+          Send all twenty journeys and the twins of point 17 through POST /v1/compute and check every date
+          against the saved words. Walk Onboarding for J01, J08 and J16 by pressing Continue. Close or
+          name every finding of reviews/product-2-fix3.md. Write reviews/product-2-fix4.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix4.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers name.
+          Update docs/requirements/audits/product-2.md and report the share met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register check'

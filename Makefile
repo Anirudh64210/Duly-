@@ -122,7 +122,10 @@ desktop:
 	npm run build -w web
 	npm run start -w desktop
 
-design-shots:
+samples:
+	cd web && uv run python samples/make.py && npx prettier --write --log-level warn "samples/*.json"
+
+design-shots: samples
 	npm run build -w web
 	npm run build -w desktop
 	rm -rf .scratch/shots && mkdir -p .scratch/shots
