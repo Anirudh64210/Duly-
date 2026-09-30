@@ -1829,3 +1829,110 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-d29085b29f (attempt 1): reach the untested lines of engine/path.py
+
+### What I tried and what ran
+
+- Done command before any change, output to a file, no pipe: exit 1. diff-cover against
+  product-2: engine/path.py 85.1%, 126 of 846 lines missing (business days, months and
+  years, today, facts of the whole person, first, in_year_of, fiscal year rule not in force,
+  the conditions present, month_day_is, at_most, exists, none, count_below, count_at_most,
+  any_of, all_of, not, the levels, next with bind onto a record already entered, next to a
+  stage with no for_each, checklists, chain groups, not_qualifying, refusals and verdicts).
+- Added tests/unit/engine/test_path_reach.py: 54 tests through engine.path.compute with a
+  j1 pack made in the test (kinds course, card, job, trip; rules toy.*). Each date and count
+  is worked by hand beside its assertion. FixedClock is injected throughout.
+- Two assertions I wrote failed against the engine. Both are spec claims, so I took each
+  test out and list it under disputes rather than pin what the engine does:
+  "toy.order" in rules after a level comparison (programs.md 11), and "toy.later_days" in
+  rules for a stage span end moved by that rule (the window version of the second passes and
+  is kept).
+- Done command as written after the change: exit 0. engine/path.py 98.8%; missing 181,
+  191, 239, 271, 284, 303, 446, 460, 701, 850. Each of these is a malformed pack (no anchor,
+  unknown unit, next naming no stage, counter with no span), unreachable code (191), or
+  behaviour I think is wrong (271, 460), so I left them untested and did not pin them.
+- Mutation run: a scratch pytest plugin under TMPDIR patched engine.path and ran the new
+  file once for each fault. Every fault made at least one test fail: business days counted
+  as calendar days, years as 365 days, earliest and latest swapped in first, not ignored,
+  chain grouped as record, not_qualifying dropped, a confirmation dated after today read,
+  litigation never reported. The scratch folder is removed.
+- Probe script (scratch, removed) confirmed the findings under disputes.
+
+### What change would make each new test fail
+
+- Units: bdays as calendar days (10-24 not 10-26); holidays not skipped (11-13 not 11-16);
+  years as 365 days (2028-02-29 not 2028-03-01); 29 February not clamped.
+- Note, plain and derivation dropped from rules, or reading false on a window using a
+  reading row.
+- first: earliest and latest swapped; a date made up when no record is found.
+- in_year_of placed in another year; an absent anchor not asked; a fiscal rule not in force
+  giving a date anyway or no rule_not_in_force_on_event_day.
+- A window close moved by a rule not in force computed anyway, or the rule not cited.
+- Fact stage: arrival not read as a fact, or the span not moved by years. Typed facts not
+  asked about. A case with no typed date not given no_documents.
+- Conditions: today not read as the person's day; on_or_after, before, on_or_before with the
+  wrong strictness; an absent field or link not asked; present, field-only, month_day_is,
+  at_most, exists, none, count_below, count_at_most, any_of, all_of or not computed wrong;
+  not_sure in a selection or a condition not sent to the DSO; only_if ignored on a check.
+- Levels: order reversed, or level_same comparing names instead of ranks.
+- Next: a bound next stage shown although the record is already entered; a next stage
+  with no for_each not shown or shown twice.
+- Checklist: a no, or a yes dated after today, counted; id, stage, record, reading, who or
+  school not carried; answers_read wrong.
+- Counters: chain grouped by record (10 and 15 not 20); a span ending before it starts
+  counted as a number; an unknown selection counted; days after today counted; trip days
+  not added back (0 not 5); a job with no start covering days or its start not asked.
+- Refusals: a foreign category accepted; rules_never_checked, rule_in_litigation missing; a
+  future confirmation read; needs_you not reached when the only reason is an open window.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-d29085b29f (attempt 2): the done command refused at git add -A
+
+### What I tried and what ran
+
+- Attempt 1 was refused: the orchestrator's run of the done command stopped at git add -A with
+  "fatal: Unable to create '/Users/ani/Desktop/Duly/duly/.git/worktrees/l-tests-d29085b29f/index.lock':
+  Operation not permitted". Every step before it (ruff, format, pytest with coverage) had passed.
+- Done command as written, no pipe, output to a file under TMPDIR: exit 0. diff-cover against
+  product-2: engine/path.py 98.8% (missing 181, 191, 239, 271, 284, 303, 446, 460, 701, 850),
+  engine/rulepack.py 100%, total 98%.
+- After the run: git status clean, .scratch/ is ignored (.gitignore line 16), and no index.lock
+  in .git/worktrees/l-tests-d29085b29f.
+- No test changed. The refusal comes from the environment the command ran in, which tests/
+  cannot change; it is under requests in REPORT.json.
+
+### What change would make it fail
+
+- Same as attempt 1; no new test.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-d50733b3dc (attempt 1): bring in l-tests-d29085b29f and run the done command without git add
+
+### What I tried and what ran
+
+- git merge lane/L-tests/l-tests-d29085b29f: clean merge, brought in
+  tests/unit/engine/test_path_reach.py (54 tests) and the progress entries above.
+- Done command as written (no git add step now), no pipe, output to a file under TMPDIR:
+  exit 0. ruff check "All checks passed!", ruff format "66 files already formatted", pytest
+  passed, diff-cover against product-2: engine/path.py 98.8% (missing 181, 191, 239, 271,
+  284, 303, 446, 460, 701, 850), engine/rulepack.py 100%, total 846 lines, 10 missing, 98%.
+- Checked the mission list against the tests: as_of is asserted on both sides of a change in
+  tests/unit/engine/test_path.py (test_as_of_reads_the_end_in_force_before_the_change and
+  _after_the_change), and line 275 is covered. ends_also is not read by engine/path.py; it
+  stays a dispute and no test pins it.
+- No test added or changed in this run.
+
+### What change would make each new test fail
+
+- No new test; the list under run l-tests-d29085b29f attempt 1 still holds.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
