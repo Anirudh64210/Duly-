@@ -481,7 +481,7 @@ parameters:
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
-    note: "The quote is the second sentence of (f)(12)(ii)(B), the paragraph of stem.validation_interval_months. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the same sentence, so the rule sits under no regime. The path dates a validation report only while a STEM card exists (resolutions point 16): a next STEM stage with no card has no report dates. A reporting date is dated only when it falls on or before the earliest of the card end, the transfer release date (opt.ends_on_release_date), the day before a program at another level starts (opt.ends_on_transfer_or_new_level), and the day before the validity start of an approved change-of-status petition (capgap.status_ends_on_h1b_start, a reading of guidance, for the day F-1 status expires). A job's end is neither the expiry of F-1 status nor the conclusion of the extension, so it does not end validation reporting."
+    note: "The quote is the second sentence of (f)(12)(ii)(B), the paragraph of stem.validation_interval_months. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the same sentence, so the rule sits under no regime. The path dates a validation report only while a STEM card exists (resolutions point 16): a next STEM stage with no card has no report dates. A reporting date is dated only when it falls on or before the earliest of the card end, the transfer release date (opt.ends_on_release_date), the day before a program at another level starts (opt.ends_on_transfer_or_new_level), and the day before a program at another level starts. Resolutions point 19: the path no longer ends reporting on the validity start of an approved change-of-status petition; while a petition with change_of_status yes is on the record, a report whose due day is on or after the day the petition was filed is null and the judgement cap_gap.for_dso goes to the DSO (capgap.petition_for_dso). A job's end is neither the expiry of F-1 status nor the conclusion of the extension, so it does not end validation reporting."
     plain: "Validation reporting starts on the day the 24-month OPT extension begins. It stops when the student's F-1 status ends or the extension ends, whichever comes first."
     plain_terms: ["validation reporting"]
   - id: stem.opportunity_ends_with_job
@@ -497,7 +497,7 @@ parameters:
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
-    note: "Reading. The regulation does not say in so many words when a practical training opportunity concludes. The quoted sentence ties an opportunity to one employer, so Duly reads the opportunity under a STEM card as ending on the last day of the job with that employer, or on the day the employment authorization ends if that is sooner. The authorization ends at the card end, at the transfer release date (opt.ends_on_release_date), or the day before a program at another level starts (opt.ends_on_transfer_or_new_level). A job that ends after the card end counts only while a cap-gap extension covers that day: the petition asks for a change of status, was filed on or before the card end, and the day is on or before April 1 of the fiscal year of the requested start (capgap.end_month_day) and before any validity start, outcome day or day the change of status ended (capgap.ends_on_outcome). For the concluding evaluation of the stage, the path uses the last job's end only when every job under the card has an end and no job under the card ends after it; while one runs on, the card end is used. Each other job under the card that ends on or before the authorization ends (or inside a cap-gap extension that covers it), while another job under the card runs on or ends later, gets its own final evaluation dated from its own end (stem_job_end.evaluation_final, resolutions point 16, J15 Job B). The path dates no validation report from a job's end (stem.validation_ends_with_extension). Paragraph (f)(10)(ii)(C)(9)(i) dates the final evaluation from the conclusion of the practical training opportunity (stem.evaluation_due_days). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-30; the 2026-09-15 text has the same sentence. The same quote is the source of stem.new_plan_due_days."
+    note: "Reading. The regulation does not say in so many words when a practical training opportunity concludes. The quoted sentence ties an opportunity to one employer, so Duly reads the opportunity under a STEM card as ending on the last day of the job with that employer, or on the day the employment authorization ends if that is sooner. The authorization ends at the card end, at the transfer release date (opt.ends_on_release_date), or the day before a program at another level starts (opt.ends_on_transfer_or_new_level). A job that ends after the authorization ends does not count; resolutions point 19 took out the cap-gap reading that let it, and while a petition with change_of_status yes is on the record a final evaluation due on or after the day the petition was filed is null (capgap.petition_for_dso). For the concluding evaluation of the stage, the path uses the last job's end only when every job under the card has an end and no job under the card ends after it; while one runs on, the card end is used. Each other job under the card that ends on or before the authorization ends, while another job under the card runs on or ends later, gets its own final evaluation dated from its own end (stem_job_end.evaluation_final, resolutions point 16, J15 Job B). The path dates no validation report from a job's end (stem.validation_ends_with_extension). Paragraph (f)(10)(ii)(C)(9)(i) dates the final evaluation from the conclusion of the practical training opportunity (stem.evaluation_due_days). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-30; the 2026-09-15 text has the same sentence. The same quote is the source of stem.new_plan_due_days."
     plain: "Duly reads each STEM practical training opportunity as a job with one employer. It ends on the last day of that job, or sooner if the permission to work ends first. This is Duly's reading, not the words of the rule."
     plain_terms: ["practical training opportunity"]
   - id: cpt.full_time_bar_days
@@ -1177,9 +1177,25 @@ parameters:
       snapshot: sources/fr-2016-04828.xml
       snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794
     derivation: reading
-    note: "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12), and no validation report is dated on or after that day (stem.validation_ends_with_extension, resolutions point 16). A change-of-status petition belongs to the F-1 status the student holds now when it is approved and its validity start is on or after the start of the latest post-completion OPT or STEM card (resolutions point 18, anchor petition_belongs). Only such a petition ends validations (with its change of status not ended, cos_ended_on, before the validity start), and only a petition that is not an older approved one (anchor petition_may_belong) opens the cap_gap stage, takes the grace away or ends an unemployment span. A pending, denied, rejected, withdrawn or revoked petition keeps the cap-gap reading of 8 CFR 214.2(f)(5)(vi). A missing outcome or validity start is asked (check petition.belongs_to_this_status) and never read as not belonging. A cap_gap stage opens only when the validity start is unknown or after the latest card end. An approved start before this card began did not end the F-1 status the student holds now. The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work."
+    note: "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12), and no validation report is dated on or after that day (stem.validation_ends_with_extension, resolutions point 16). Resolutions point 19: until the cap-gap round, the path does not apply this reading. It computes no cap_gap stage and no petition grace, and ends no validation, grace or unemployment span on a petition; while a petition with change_of_status yes is on the record, the items a petition could change are null and the judgement cap_gap.for_dso goes to the DSO (capgap.petition_for_dso). The row stays for the older compute and for that round. The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work."
     plain: "Agency words from 2016 say that once an H-1B change-of-status petition is approved, F-1 status ends the day H-1B status begins. As Duly reads it, no 60-day period follows the H-1B start. This is guidance, not a regulation."
     plain_terms: [change-of-status petition, H-1B status]
+  - id: capgap.petition_for_dso
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2025-01-17
+    source:
+      citation: "8 CFR 214.2(f)(5)(vi)(A)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-30
+      quote: "of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier"
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading, resolutions point 19. The quote is from the sentence of (f)(5)(vi)(A) that begins The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), the sentence recorded as capgap.end_month_day; it ends before where such petition and the conditions that follow. (f)(5)(vi)(B), recorded as capgap.ends_on_outcome, ends the extension on the rejection, denial, revocation or withdrawal of the petition, or the denial or withdrawal of the change of status. So a change-of-status petition can move the end of F-1 status and of the employment authorization the rule names, and so the dates that follow from them. Until the cap-gap round, the path computes none of this: while a petition with change_of_status yes is on the record, the judgement check cap_gap.for_dso goes to the DSO, and the path leaves null the grace of a program when the petition was filed on or before that program's end plus grace.after_completion_days, or on or before the end of its post-completion OPT or STEM card plus those days; each validation report and evaluation whose due day is on or after the day the petition was filed (for the concluding evaluation of the stage, due by the card end plus stem.evaluation_due_days, a conservative bound); and each unemployment count over a card that ends on or after the day the petition was filed less grace.after_completion_days. No petition opens a stage, raises a conflict, or moves a date. A missing filing day or change_of_status answer is asked, and the items wait null. Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the quote, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(A). The older words of 73 FR 18944 and 81 FR 13040 extend status to October 1 (capgap.end_month_day, closed rows); a petition under them is treated the same way. The flag records what the regulation says. It says nothing about any one person."
+    plain: "With an H-1B petition that asks for a change of status, F-1 status and the employment authorization the rule names can last longer, or end sooner. So it can change the dates of the time after a program, of STEM reports, and of days without work. Duly leaves those dates out, and the question is one for the DSO."
+    plain_terms: [H-1B petition, change of status]
   - id: stem.max_lifetime_extensions
     value: 2
     unit: count
@@ -1784,27 +1800,7 @@ path:
                         - {fact: this.card_end}
                         - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}
                         - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
-                        - optional: true
-                          day_before: true
-                          first:
-                            of:
-                              record: petition
-                              where:
-                                - all_of: &petition_belongs
-                                    - {field: this.change_of_status, in: ["yes"]}
-                                    - {field: this.outcome, in: [approved]}
-                                    - {field: this.validity_start, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_start, pick: latest}}}
-                                - any_of: [{field: this.cos_ended_on, present: false}, {field: this.cos_ended_on, on_or_after: {fact: this.validity_start}}]
-                            field: validity_start
-                            pick: earliest
-                        - first:
-                            of:
-                              record: authorization
-                              where:
-                                - {field: this.id, same_as: outer.id}
-                                - any_of: [{none: {record: petition, where: [{all_of: *petition_belongs}]}}, {exists: {record: petition, where: [{all_of: *petition_belongs}]}}]
-                            field: card_end
-                            pick: earliest
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
           closes:
@@ -1816,9 +1812,10 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.status_ends_on_h1b_start]
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
         - id: stem.validation_2
           label: "Second validation report"
           opens:
@@ -1830,6 +1827,7 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
           closes:
@@ -1841,9 +1839,10 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.status_ends_on_h1b_start]
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
         - id: stem.validation_3
           label: "Third validation report"
           opens:
@@ -1855,6 +1854,7 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
           closes:
@@ -1866,9 +1866,10 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.status_ends_on_h1b_start]
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
         - id: stem.validation_4
           label: "Fourth validation report"
           opens:
@@ -1880,6 +1881,7 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
           closes:
@@ -1891,19 +1893,21 @@ path:
                   - {field: this.id, same_as: outer.id}
                   - {field: this.type, in: [stem_extension]}
                   - {field: this.card_start, on_or_before: {earliest_of: *stem_validation_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}}]}
               field: card_start
               pick: earliest
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.status_ends_on_h1b_start]
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
         - id: stem.evaluation_12_month
           label: "Initial evaluation"
-          opens: {fact: this.card_start}
-          closes: {fact: this.card_start, add: [{rule: stem.evaluation_interval_months}, {rule: stem.evaluation_due_days}]}
+          opens: {latest_of: [{fact: this.card_start}, {first: {of: {record: authorization, where: [{field: this.id, same_as: outer.id}, {none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.evaluation_interval_months}, {rule: stem.evaluation_due_days}]}}]}}]}, field: card_start, pick: earliest}}]}
+          closes: {latest_of: [{fact: this.card_start}, {first: {of: {record: authorization, where: [{field: this.id, same_as: outer.id}, {none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_start, add: [{rule: stem.evaluation_interval_months}, {rule: stem.evaluation_due_days}]}}]}}]}, field: card_start, pick: earliest}}], add: [{rule: stem.evaluation_interval_months}, {rule: stem.evaluation_due_days}]}
           rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required]
         - id: stem.evaluation_final
           label: "Concluding evaluation"
           opens:
             latest_of:
               - {fact: this.card_start}
+              - {first: {of: {record: authorization, where: [{field: this.id, same_as: outer.id}, {none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_end, add: [{rule: stem.evaluation_due_days}]}}]}}]}, field: card_start, pick: earliest}}
               - earliest_of: &stem_training_end
                   - optional: true
                     first:
@@ -1921,17 +1925,7 @@ path:
                                 - {field: this.end, present: true}
                                 - none: {record: work, where: [{field: this.under, present: true}, {field: this.under, same_as: outer.under}, {field: this.end, present: false}]}
                                 - none: {record: work, where: [{field: this.under, present: true}, {field: this.under, same_as: outer.under}, {field: this.end, after: {fact: outer.end}}]}
-                                - any_of:
-                                    - {field: this.end, on_or_before: {fact: outer.card_end}}
-                                    - exists:
-                                        record: petition
-                                        where:
-                                          - {field: this.change_of_status, in: ["yes"]}
-                                          - {field: this.filed_on, on_or_before: {fact: outer.under.card_end}}
-                                          - {field: outer.end, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
-                                          - any_of: [{field: this.validity_start, present: false}, {field: this.validity_start, after: {fact: outer.end}}]
-                                          - any_of: [{field: this.outcome, in: [pending, approved]}, {field: this.outcome_on, on_or_after: {fact: outer.end}}]
-                                          - any_of: [{field: this.cos_ended_on, present: false}, {field: this.cos_ended_on, on_or_after: {fact: outer.end}}]
+                                - {field: this.end, on_or_before: {fact: outer.card_end}}
                       field: card_end
                       pick: earliest
                   - {optional: true, first: {of: {record: work, where: *stem_job_covered}, field: end, pick: latest}}
@@ -1941,26 +1935,9 @@ path:
             add: [{rule: stem.evaluation_due_days}]
             latest_of:
               - {fact: this.card_start}
+              - {first: {of: {record: authorization, where: [{field: this.id, same_as: outer.id}, {none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_end, add: [{rule: stem.evaluation_due_days}]}}]}}]}, field: card_start, pick: earliest}}
               - {earliest_of: *stem_training_end}
-          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
-    - id: cap_gap
-      label: "Cap-gap extension"
-      for_each:
-        record: petition
-        where:
-          - {field: this.change_of_status, in: ["yes"]}
-          - any_of: &petition_may_belong [{field: this.outcome, present: false}, {field: this.outcome, in: [pending, denied, rejected, withdrawn, revoked]}, {field: this.validity_start, present: false}, {all_of: *petition_belongs}]
-          - any_of: [{field: this.validity_start, present: false}, {field: this.validity_start, after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]
-      entered_when: [this.filed_on]
-      rule_ids: [capgap.end_month_day, capgap.ends_on_outcome, capgap.october_start_condition, capgap.status_ends_on_h1b_start]
-      span:
-        starts: {day_after: true, first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
-        ends:
-          earliest_of:
-            - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
-            - {optional: true, fact: this.validity_start}
-            - {optional: true, first: {of: {record: petition, where: [{field: this.id, same_as: outer.id}, {field: this.outcome, in: [rejected, denied, revoked, withdrawn]}]}, field: outcome_on, pick: earliest}}
-            - {optional: true, fact: this.cos_ended_on}
+          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
     - id: grace
       label: "Time after the program ends"
       for_each:
@@ -1968,10 +1945,6 @@ path:
         where:
           - {field: this.state, in: [completed]}
           - none: {record: move, where: [{field: this.from_program, same_as: outer.id}]}
-          - not:
-              all_of:
-                - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
-                - exists: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
       entered_when: [this.end_date]
       rule_ids: [grace.after_completion_days]
       span:
@@ -1980,44 +1953,33 @@ path:
           latest_of:
             - {fact: this.end_date, as_of: {fact: today}}
             - {optional: true, first: {of: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+            - earliest_of:
+                - {fact: this.end_date, as_of: {fact: today}}
+                - first:
+                    of:
+                      record: program
+                      where:
+                        - {field: this.id, same_as: outer.id}
+                        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.end_date, as_of: {fact: today}, add: [{rule: grace.after_completion_days}]}}]}
+                        - none: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}, {exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_end, add: [{rule: grace.after_completion_days}]}}]}}]}
+                    field: end_date
+                    pick: earliest
         ends:
           add: [{rule: grace.after_completion_days}]
           latest_of:
             - {fact: this.end_date, as_of: {fact: today}}
             - {optional: true, first: {of: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
-    - id: grace
-      label: "Time after the program ends"
-      for_each:
-        record: petition
-        where:
-          - {field: this.change_of_status, in: ["yes"]}
-          - {any_of: *petition_may_belong}
-          - {field: this.outcome, in: [pending, approved]}
-          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}
-          - not:
-              all_of:
-                - {field: this.outcome, in: [approved]}
-                - {field: this.validity_start, present: true}
-                - {field: this.validity_start, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
-      entered_when: [this.filed_on]
-      rule_ids: [grace.after_completion_days, capgap.end_month_day, capgap.ends_on_outcome]
-      span:
-        starts:
-          day_after: true
-          latest_of:
-            - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
             - earliest_of:
-                - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
-                - {optional: true, fact: this.validity_start}
-                - {optional: true, fact: this.cos_ended_on}
-        ends:
-          add: [{rule: grace.after_completion_days}]
-          latest_of:
-            - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
-            - earliest_of:
-                - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
-                - {optional: true, fact: this.validity_start}
-                - {optional: true, fact: this.cos_ended_on}
+                - {fact: this.end_date, as_of: {fact: today}}
+                - first:
+                    of:
+                      record: program
+                      where:
+                        - {field: this.id, same_as: outer.id}
+                        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.end_date, as_of: {fact: today}, add: [{rule: grace.after_completion_days}]}}]}
+                        - none: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}, {exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_end, add: [{rule: grace.after_completion_days}]}}]}}]}
+                    field: end_date
+                    pick: earliest
     - id: withdrawal
       label: "Time after a withdrawal"
       for_each: {record: withdrawal, where: [{field: this.dso_authorized, in: ["yes"]}]}
@@ -2064,34 +2026,25 @@ path:
                 record: work
                 where: &stem_job_before_another
                   - {field: this.id, same_as: outer.id}
-                  - any_of:
-                      - field: this.end
-                        on_or_before:
-                          earliest_of:
-                            - {fact: this.under.card_end}
-                            - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.under.program}]}, field: release_date, pick: earliest}}
-                            - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.under.program}, {field: this.to_program.level, differs_from: outer.under.program.level}]}, field: to_program.start_date, pick: earliest}}
-                      - exists:
-                          record: petition
-                          where:
-                            - {field: this.change_of_status, in: ["yes"]}
-                            - {field: this.filed_on, on_or_before: {fact: outer.under.card_end}}
-                            - {field: outer.end, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
-                            - any_of: [{field: this.validity_start, present: false}, {field: this.validity_start, after: {fact: outer.end}}]
-                            - any_of: [{field: this.outcome, in: [pending, approved]}, {field: this.outcome_on, on_or_after: {fact: outer.end}}]
-                            - any_of: [{field: this.cos_ended_on, present: false}, {field: this.cos_ended_on, on_or_after: {fact: outer.end}}]
+                  - field: this.end
+                    on_or_before:
+                      earliest_of:
+                        - {fact: this.under.card_end}
+                        - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.under.program}]}, field: release_date, pick: earliest}}
+                        - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.under.program}, {field: this.to_program.level, differs_from: outer.under.program.level}]}, field: to_program.start_date, pick: earliest}}
                   - exists:
                       record: work
                       where:
                         - {field: this.under, present: true}
                         - {field: this.under, same_as: outer.under}
                         - any_of: [{field: this.end, present: false}, {field: this.end, after: {fact: outer.end}}]
+                  - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.end, add: [{rule: stem.evaluation_due_days}]}}]}
               field: end
               pick: earliest
           closes:
             add: [{rule: stem.evaluation_due_days}]
             first: {of: {record: work, where: *stem_job_before_another}, field: end, pick: earliest}
-          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
+          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
   checks:
     - id: program.opt_start_not_too_early
       for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion, opt_post_completion]}]}
@@ -2206,15 +2159,9 @@ path:
     - id: stem.filed_while_opt_in_force
       for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
       only_if:
-        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
+        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
       holds:
         - {field: this.filed_on, on_or_before: {fact: this.extends.card_end}}
-      rule_ids: [stem.requires_post_completion_opt, stem.apply_window_closes_rule]
-    - id: stem.filed_during_cap_gap
-      kind: judgement
-      for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.filed_on, after: {fact: this.extends.card_end}}]}
-      holds:
-        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
       rule_ids: [stem.requires_post_completion_opt, stem.apply_window_closes_rule]
     - id: stem.basis_program
       for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
@@ -2264,37 +2211,11 @@ path:
                   - {field: this.outcome, in: [pending]}
                   - {field: this.outcome_on, after: {fact: outer.left_on}}
       rule_ids: [capgap.travel_while_pending]
-    - id: grace.after_cap_gap_outcome
+    - id: cap_gap.for_dso
       kind: judgement
-      for_each: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
       holds:
-        - {field: this.outcome, in: [pending, approved]}
-      rule_ids: [capgap.ends_on_outcome, grace.after_completion_days]
-    - id: petition.belongs_to_this_status
-      for_each: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
-      holds:
-        - any_of: [{all_of: *petition_belongs}, {not: {all_of: *petition_belongs}}]
-      rule_ids: [capgap.status_ends_on_h1b_start, stem.validation_ends_with_extension]
-    - id: unemployment.total.through_cap_gap
-      kind: judgement
-      for_each:
-        record: petition
-        where:
-          - {field: this.change_of_status, in: ["yes"]}
-          - {any_of: *petition_may_belong}
-          - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
-          - any_of:
-              - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {field: this.id, differs_from: outer.id}]}
-              - all_of:
-                  - {field: today, after: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
-                  - not:
-                      any_of:
-                        - all_of: [{field: this.validity_start, present: true}, {field: this.validity_start, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]
-                        - all_of: [{field: this.outcome, in: [rejected, denied, revoked, withdrawn]}, {field: this.outcome_on, present: true}, {field: this.outcome_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]
-                        - all_of: [{field: this.cos_ended_on, present: true}, {field: this.cos_ended_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]
-      holds:
-        - none: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
-      rule_ids: [stem.unemployment_limit_days, opt.unemployment_in_cap_gap]
+        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+      rule_ids: [capgap.petition_for_dso]
     - id: withdrawal.dso_authorized
       kind: judgement
       for_each: {record: withdrawal}
@@ -2344,10 +2265,6 @@ path:
           record: authorization
           where:
             - {field: this.type, in: [opt_post_completion]}
-            - not:
-                all_of:
-                  - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
-                  - {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
         group: record
       span:
         starts: {fact: this.card_start}
@@ -2355,81 +2272,32 @@ path:
           earliest_of:
             - {fact: this.card_end}
             - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
+            - first: &card_end_no_petition
+                of:
+                  record: authorization
+                  where:
+                    - {field: this.id, same_as: outer.id}
+                    - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.filed_on, on_or_before: {fact: outer.card_end, add: [{rule: grace.after_completion_days}]}}]}
+                field: card_end
+                pick: latest
       qualifying: {record: work, where: [{field: this.on_campus, present: false}, {field: this.under, same_as: outer.id}]}
       hours_rule: opt.min_hours_per_week
       not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
       limit_rule: opt.unemployment_limit_days
-      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap, opt.ends_on_transfer_or_new_level]
-    - id: unemployment.opt_card
-      calculator: days_without_qualifying_period
-      scope:
-        of:
-          record: petition
-          where:
-            - {field: this.change_of_status, in: ["yes"]}
-            - {any_of: *petition_may_belong}
-            - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
-        group: record
-      span:
-        starts: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}, field: card_start, pick: latest}}
-        ends:
-          latest_of:
-            - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
-            - earliest_of:
-                - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
-                - {optional: true, fact: this.validity_start}
-                - {optional: true, first: {of: {record: petition, where: [{field: this.id, same_as: outer.id}, {field: this.outcome, in: [rejected, denied, revoked, withdrawn]}]}, field: outcome_on, pick: earliest}}
-                - {optional: true, fact: this.cos_ended_on}
-      qualifying: {record: work, where: [{field: this.under.type, in: [opt_post_completion]}, {field: this.under.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
-      hours_rule: opt.min_hours_per_week
-      not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
-      limit_rule: opt.unemployment_limit_days
-      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap, capgap.end_month_day, capgap.ends_on_outcome]
+      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.ends_on_transfer_or_new_level]
     - id: unemployment.total
       calculator: days_without_qualifying_period
       scope: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, group: chain, chain_link: extends}
       span:
         starts: {fact: this.card_start}
-        ends:
-          latest_of:
-            - optional: true
-              first:
-                of:
-                  record: authorization
-                  where:
-                    - {field: this.id, same_as: outer.id}
-                    - any_of:
-                        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
-                        - {field: outer.card_end, before: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
-                field: card_end
-                pick: latest
-            - optional: true
-              latest_of:
-                - first:
-                    of:
-                      record: authorization
-                      where:
-                        - {field: this.id, same_as: outer.id}
-                        - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}]}
-                        - {field: outer.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
-                        - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {field: this.id, differs_from: outer.id}]}}]}
-                    field: card_end
-                    pick: latest
-                - earliest_of:
-                    - {optional: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {field: this.validity_start, present: true}, {field: this.validity_start, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: validity_start, pick: earliest}}
-                    - {optional: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {field: this.outcome, in: [rejected, denied, revoked, withdrawn]}, {field: this.outcome_on, present: true}, {field: this.outcome_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: outcome_on, pick: earliest}}
-                    - {optional: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {field: this.cos_ended_on, present: true}, {field: this.cos_ended_on, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: cos_ended_on, pick: earliest}}
-                    - optional: true
-                      latest_of:
-                        - {fact: today}
-                        - {first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {any_of: *petition_may_belong}, {field: today, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}]}, field: filed_on, pick: earliest}}
+        ends: {first: *card_end_no_petition}
       qualifying: {record: work, where: [{field: this.under, same_as: outer.id}]}
       hours_rule: stem.min_hours_per_week
       not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
       only_if:
         - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.extends, same_as: outer.id}]}
       limit_rule: stem.unemployment_limit_days
-      rule_ids: [stem.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap, capgap.end_month_day, capgap.ends_on_outcome]
+      rule_ids: [stem.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad]
     - id: cpt.full_time_days_at_level
       calculator: sum_of_days
       scope: {of: {record: authorization, where: [{field: this.type, in: [cpt]}, {field: this.time, in: [full_time]}]}, group: same_value, value_of: this.program.level}
