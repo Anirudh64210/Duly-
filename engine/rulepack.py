@@ -28,6 +28,7 @@ class Rulepack:
     version: str
     regimes: tuple[dict[str, Any], ...]
     parameters: tuple[dict[str, Any], ...]
+    path: dict[str, Any] | None = None
 
     @property
     def rules_checked_on(self) -> date | None:
@@ -109,6 +110,7 @@ def validate_pack(raw: dict[str, Any]) -> Rulepack:
         version=data["version"],
         regimes=tuple(data["regimes"]),
         parameters=tuple(data["parameters"]),
+        path=data.get("path"),
     )
 
 
