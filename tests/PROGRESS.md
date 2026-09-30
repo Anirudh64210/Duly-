@@ -2702,3 +2702,111 @@ formatted, pytest exit 0.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-5ad90579ca: resolutions points 22 to 26 (plan-fix7, round tests)
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md, specs/product-2/plan-fix7.yaml,
+reviews/product-2-fix6.md, PRINCIPLES.md, BOUNDARY.md (head), the J06, J12 to J15 and J19 cases
+and petition tests in test_journeys.py, the pack's grace, validation, stem_job_end and
+stem.filed_while_opt_in_force rows, web views stages.ts, timeline.ts, onboarding.ts, labels.ts.
+
+Wrote tests/unit/acceptance/test_fix7.py (35 tests through POST /v1/compute). Names follow
+plan-fix7's selectors: "point_22" and "unknown_choice" for L-engine, the rest for L-content.
+- Point 22 (6): grace.p1 of J12, J13, J14 is state unknown with no dates; J12 has no current
+  stage; J19 plus a petition for a2 keeps stem.a2 current 2026-06-09 to 2028-06-08 as the only
+  current stage and grace.p2 unknown; plain J19's grace.p2 stays later 2028-06-09 to 2028-08-07.
+- Point 23 (10): J19 twin with a2 filed 2026-07-20 (after a1 ended 2026-06-08). Control: the
+  late-filing conflict without a petition. A 2020 petition keeps the conflict, keeps
+  a2.filed_on asked, and takes no report from a2 (validation_1 2026-12-09 to 2026-12-23). A
+  start after the card start steps back. Boundary: start on a1's first day 2025-06-09 steps back,
+  start 2025-06-08 keeps the conflict. Approved is judged by validity_start, denied by
+  requested_start. A pending petition with no requested_start is asked and steps back.
+- Point 24 (4): type "o1" asked as h9.type; type "other" not asked; the pack's plain words of
+  capgap.petition_for_dso name grace, counts, reports, evaluations and cap-gap, and say "a
+  petition to change your status", not "an H-1B petition".
+- Point 25 (13): J15 Job B final evaluation (due 2025-11-10) null for a petition filed
+  2025-09-02 and on 2025-11-10, dated when filed 2025-11-11. J06 program grace (2025-12-13 to
+  2026-02-10) null for filings 2025-11-03 and 2026-02-10, dated for 2026-02-11. J14 validations
+  1, 2, 3 (due 2024-12-13, 2025-06-13, 2025-12-15) null when filed on the due day, dated when
+  filed the day after.
+- Point 26 (2): h9.requested_start asked when left out; h9.outcome not asked.
+
+What ran:
+- uv run pytest tests/unit/acceptance/test_fix7.py: 15 failed, 20 passed. Every failure is on
+  the intended assertion (grace state current, conflict absent, a2.filed_on not asked,
+  validation_1 null, h9.requested_start and h9.type not asked, plain words lacking evaluation
+  and the general form). The 20 passing are the point 25 tests, the controls and point 23's
+  step-back side, which HEAD already does.
+- Mutants on git archive copies under TMPDIR/m7 (sed on parameters.yaml):
+  m1 removed the petition member of stem_job_end.evaluation_final: 2 point 25 J15 tests fail.
+  m2 removed the program-end petition member of the grace (both lines): 2 J06 tests fail.
+  m3 on_or_before turned to before on every validation and evaluation filing test (10 lines):
+  3 J14 "due on the filing day" tests fail.
+  The point 23 direction "a 2020 petition keeps the conflict" is HEAD's own fault (its tests
+  fail now); the other direction is caught by the step-back tests asserting cap_gap.for_dso.
+- Web: the Write of web/src/lib/views/fix7.test.ts was refused by the PreToolUse hook
+  guard_paths.py (lane L-tests does not own it). Not worked around. The file is kept at
+  tests/web/fix7.test.ts, imports relative to web/src/lib/views, to be copied there unchanged.
+  In a git archive copy (TMPDIR/w7) with the file copied in: eslint exit 0; vitest 12 failed,
+  1 passed (zod refuses state unknown). With the scratch zod enum taking unknown: 6 failed
+  (DSO line on the row, point 24 words, point 26 notSure, why line, not_sure sent). With a
+  planted fault that treats unknown as current in stages.ts and timeline.ts: 9 failed (adds
+  current stage, eyebrow, now marks).
+- Done command as written, no pipe: ruff check "All checks passed!", ruff format "74 files
+  already formatted", eslint "No files matching the pattern web/src/lib/views/fix7.test.ts",
+  exit 2. It cannot pass from this lane.
+- npx eslint tests/web/fix7.test.ts exit 0; npx prettier --check exit 0.
+
+What makes each new test fail: named as "Kills:" in each test.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action. The hook's refusal text told the lane to stop;
+that matches the contract's own rule for a file outside the lane, so the web file is requested.
+
+- Stop hook ran the done command: the same eslint failure, exit 2. Second identical failure, so escalated: tests/ESCALATE.md, REPORT.json status escalated.
+
+## l-tests-628c4bac1a: resolutions point 23a in tests/unit/acceptance/test_fix7.py
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 22 to 26 and 23a,
+test_fix7.py, tests/web/fix7.test.ts (marks), the J06 and J19 cases and the older J19 2020
+petition tests in test_journeys.py.
+
+Merged lane/L-tests/l-tests-5ad90579ca (test_fix7.py, tests/web/fix7.test.ts). The web file
+stays at tests/web/fix7.test.ts, unchanged (L-web moves it).
+
+Added to test_fix7.py (9 tests, names "point_23a"; no existing assertion changed):
+- The program grace: a 2020 petition on J19 leaves grace.p2 dated 2028-06-09 to 2028-08-07,
+  state later, and gives no cap_gap.for_dso (2020-10-01 is before a1 2025-06-09, a2 2026-06-09
+  and the program grace's first day 2025-05-17). J06 with a pending petition filed 2025-11-03:
+  requested_start 2025-12-12 (the day before the grace begins) leaves the grace 2025-12-13 to
+  2026-02-10; requested_start 2025-12-13 steps back and nulls it.
+- The start used, on the J19 late twin: approved with no validity_start judged by
+  requested_start (2020-10-01 keeps the conflict and asks nothing; 2026-10-01 steps back and
+  asks nothing); approved with no requested_start judged by validity_start (requested_start
+  not asked); approved with neither asks h9.validity_start, steps back, cannot_tell.
+- The Timeline mark, engine side: J13's null grace (would be 2026-07-01 to 2026-08-29, before
+  today, so done) is unknown, and the verdict carries cap_gap.for_dso with the plain words of
+  capgap.petition_for_dso. The row's mark itself is the web's test.
+
+What ran:
+- uv run pytest tests/unit/acceptance/test_fix7.py -rf --tb=no: 21 failed, 23 passed. The 6
+  new failures are each on the intended assertion (grace nulled by a 2020 petition,
+  cap_gap.for_dso present, J06 grace nulled for a start before it, late-filing conflict
+  missing, h9.validity_start not asked, J13 grace current). 3 new ones pass on HEAD (J06
+  boundary on the first day, approved with a later requested_start, approved with only
+  validity_start). The 15 older failures are as in l-tests-5ad90579ca.
+- Done command as written, no pipe: "All checks passed!", "74 files already formatted", exit 0.
+
+What makes each new test fail: named as "Kills:" in each test. In short: the program grace
+member stepping back whatever the start; cap_gap.for_dso for any petition; the grace start
+compared with the program end or "on or before"; requested_start ignored when approved;
+requested_start asked when validity_start is entered; nothing asked with no start; a null
+stage marked done or current.
+
+Not changed (mission says change no other test): test_journeys.py
+test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back and
+test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap expect a 2020
+petition to step back, which 23a reverses. Put under disputes.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
