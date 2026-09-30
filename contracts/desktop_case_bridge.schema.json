@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/desktop_case_bridge.schema.json",
+  "title": "Desktop case bridge v1",
+  "description": "The calls the page makes through window.duly.case, and the replies from the desktop main process. Main keeps one case in one file in the app's data folder, encrypted with Electron safeStorage, whose key is in the macOS keychain. Main checks the case against case.schema.json on every read and every write, and refuses anything else. No path, file name or key comes from the page. documents-1 later moves the case into duly.db and deletes the file. A message is one call or one reply.",
+  "anyOf": [
+    { "$ref": "#/$defs/read_call" },
+    { "$ref": "#/$defs/write_call" },
+    { "$ref": "#/$defs/clear_call" },
+    { "$ref": "#/$defs/read_reply" },
+    { "$ref": "#/$defs/write_reply" },
+    { "$ref": "#/$defs/clear_reply" }
+  ],
+  "$defs": {
+    "read_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "case.read" }
+      },
+      "description": "window.duly.case.read(): the saved case, if any."
+    },
+    "write_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "case"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "case.write" },
+        "case": { "$ref": "case.schema.json" }
+      },
+      "description": "window.duly.case.write(case): replaces the saved case with this one."
+    },
+    "clear_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "case.clear" }
+      },
+      "description": "window.duly.case.clear(): deletes the saved case."
+    },
+    "refusal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ok", "refused"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "enum": ["case.read", "case.write", "case.clear"] },
+        "ok": { "const": false },
+        "refused": {
+          "enum": ["not_a_case", "cannot_decrypt", "keychain_unavailable", "cannot_store"],
+          "description": "not_a_case: the case sent, or the case on disk, does not match case.schema.json. cannot_decrypt: the file on disk cannot be read with the keychain's key. keychain_unavailable: safeStorage cannot encrypt on this computer, so nothing is written. cannot_store: the file could not be written or deleted."
+        },
+        "first_problem": {
+          "type": "string",
+          "maxLength": 240,
+          "description": "For not_a_case: where the case first fails the contract, as a path and the rule it breaks. Never a value from the case."
+        }
+      }
+    },
+    "read_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "case"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "case.read" },
+            "ok": { "const": true },
+            "case": {
+              "anyOf": [{ "$ref": "case.schema.json" }, { "type": "null" }],
+              "description": "The saved case, or null when none is saved."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "write_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "case.write" },
+            "ok": { "const": true }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "clear_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "case.clear" },
+            "ok": { "const": true }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    }
+  }
+}

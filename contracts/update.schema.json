@@ -8,6 +8,29 @@
   "properties": {
     "id": { "type": "string" },
     "headline": { "type": "string" },
+    "plain": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What the update says, in calm plain words that pass the plain checks. Every number in it appears in a claim's quote."
+    },
+    "source_label": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agency", "document", "dated"],
+      "properties": {
+        "agency": { "type": "string", "minLength": 1 },
+        "document": { "type": "string", "minLength": 1 },
+        "dated": { "type": "string", "format": "date" }
+      },
+      "description": "The source as the screen names it: the agency, the document, and the document's own date."
+    },
+    "topic": { "type": "string", "minLength": 1, "description": "A short plain name for what the update is about." },
+    "kind": { "enum": ["change", "reminder", "context"] },
+    "stages": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9_.]+$" },
+      "description": "The pack stage ids the update bears on. Matching reads them."
+    },
     "legal_status": {
       "enum": [
         "announced", "proposed", "comment_period", "omb_review", "final",
@@ -28,7 +51,11 @@
           "source_url": { "type": "string", "pattern": "^https://" },
           "source_kind": { "enum": ["primary", "signal"] },
           "snapshot_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-          "quote_found": { "type": "boolean" }
+          "quote_found": { "type": "boolean" },
+          "source_type": {
+            "enum": ["uscis_notice", "federal_register", "sevp_broadcast", "court_order", "regulation"],
+            "description": "What kind of document the source is."
+          }
         }
       }
     },
