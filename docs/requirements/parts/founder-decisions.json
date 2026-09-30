@@ -283,9 +283,9 @@
   "source": "DECISIONS.md D9",
   "text": "Duly onboarding owns legal status tagging.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No onboarding exists; the screen is a single F-1 form."
+  "status": "partial",
+  "evidence": "web/src/app/app.test.tsx (names all eleven legal statuses; never sends a status that is not F-1); web/src/app/Onboarding.test.tsx (goes from another status to Done with the name kept)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Onboarding tags F-1 as a category; any other status is kept as the person's words until its pack exists (design-1 section 16)."
  },
  {
   "id": "DEC-D09-002",
@@ -310,9 +310,9 @@
   "source": "DECISIONS.md D10",
   "text": "A quiet, premium completion moment replaces confetti.",
   "kind": "design",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No spec and no code for a completion moment."
+  "status": "met",
+  "evidence": "web/src/app/parts.tsx CompletionMark; web/src/app/Checklists.tsx all-confirmed; web/src/app/parts.test.tsx (draws the completion check); web/src/app/roundB.test.tsx (shows no completion moment on a finished CPT view)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Under F4 (D62)."
  },
  {
   "id": "DEC-D11-001",
@@ -364,45 +364,45 @@
   "source": "DECISIONS.md D12",
   "text": "F-1 pre-completion OPT is covered.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No rule or engine code for pre-completion OPT."
+  "status": "partial",
+  "evidence": "pack path stage opt_pre and checks opt_pre.*; tests/unit/acceptance/test_journeys.py::test_j05_pre_completion_filing_opens_90_days_before_the_first_year, ::test_j05_months_at_level_is_null_with_a_part_time_pre_completion_card",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Pre-completion OPT is a stage with its checks. The part-time deduction steps back (programs.md section 20 point 2, IMPL-017)."
  },
  {
   "id": "DEC-D12-006",
   "source": "DECISIONS.md D12",
   "text": "F-1 program extension is covered.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No rule or engine code."
+  "status": "met",
+  "evidence": "pack record end_date_change and check end_date_change.asked_before_end; tests/unit/acceptance/test_journeys.py::test_j09_windows_move_with_the_end_date_in_force_on_filed_on, ::test_j09_an_extension_asked_in_time_raises_no_conflict, ::test_j09_the_late_request_is_asked_about, ::test_j18_the_program_ends_on_the_extended_date",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Each extension is a dated record; windows follow the end date in force on the filing day; a late request is asked about. Tests pass."
  },
  {
   "id": "DEC-D12-007",
   "source": "DECISIONS.md D12",
   "text": "F-1 transfer is covered.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No rule or engine code."
+  "status": "partial",
+  "evidence": "pack stage transfer and checks transfer.new_dso_contacted_in_time, oncampus.ends_by_release; tests/unit/acceptance/test_journeys.py::test_j04_the_stem_card_ends_on_the_transfer_release_date, ::test_j10_no_grace_for_a_program_a_move_leaves",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Transfers are records with a release date. 8 CFR 214.3(g)(2)(iii) is not saved; transfer completion goes to the DSO (programs.md section 20 point 8), and a transfer stage with a null day is unknown."
  },
  {
   "id": "DEC-D12-008",
   "source": "DECISIONS.md D12",
   "text": "F-1 change of level is covered.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No rule or engine code."
+  "status": "met",
+  "evidence": "pack record move and path order; tests/unit/acceptance/test_journeys.py::test_j08_the_bachelors_opt_ends_the_day_before_the_masters_starts, ::test_j08_no_stem_extension_of_a_card_the_change_of_level_ended, ::test_j20_opt_on_the_mba_and_no_second_masters_opt",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to met. Change of level ends the earlier card and counts OPT per level under today's rule. The paused rule's changes (91 FR 44976) do not apply today (programs.md section 20 point 3). Tests pass."
  },
  {
   "id": "DEC-D12-009",
   "source": "DECISIONS.md D12",
   "text": "F-1 travel is covered.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No rule or engine code."
+  "status": "partial",
+  "evidence": "pack record trip and checks trip.back_within_absence_limit, trip.signature_for_opt_return, trip.job_on_return, trip.reentry_i20_after_move; tests/unit/acceptance/test_journeys.py::test_j11_unemployment_with_days_abroad_is_86, ::test_j08_unemployment_is_null_until_the_trip_list_is_whole",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Trips are records that change counts and raise checks. Visa and entry facts wait for documents-1 (design-1 section 16, TIME-010)."
  },
  {
   "id": "DEC-D12-010",
@@ -967,9 +967,9 @@
   "source": "DECISIONS.md D48",
   "text": "Step 2: the path model, so that the engine holds no scenario of its own.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "engine/f1.py holds the F-1 scenario in code; packs declare no stages or steps."
+  "status": "partial",
+  "evidence": "engine/path.py; rulepacks/f1-us/v2026.09/parameters.yaml path; tests/unit/engine/test_path.py::test_path_py_names_no_kind_field_choice_stage_or_rule_of_any_pack",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. F-1 runs on the path model through POST /v1/compute. engine/f1.py still holds the F-1 scenario in code for /v1/compute/f1 (resolutions point 1), and the h1b, o1 and eb1a packs declare no path."
  },
  {
   "id": "DEC-D48-003",
@@ -1679,8 +1679,8 @@
   "text": "A what comes next view computed from the dates entered: the dates ahead, each with its rule and quote.",
   "kind": "product",
   "status": "met",
-  "evidence": "engine/f1.py compute_f1 (upcoming, lists); tests/unit/engine/test_f1_product.py::test_what_comes_next_is_every_date_ahead_soonest_first; tests/unit/engine/test_f1_product.py::test_each_date_of_the_next_step_names_its_rules; web/src/components/Result.tsx (What comes next); web/src/components/Plain.test.tsx",
-  "note": "Audit product-1: the engine returns upcoming soonest first, each entry with rule_ids, status and reading; the screen lists them under What comes next and each opens to its rule, plain words first and the quote one tap away. Shown for F-1 OPT and STEM only; the general form is BACK-014."
+  "evidence": "engine/path.py next stages; web/src/app/Home.tsx WHAT COMES NEXT; web/src/app/roundB.test.tsx (gives each next stage a row with the B2 line, the count and the checklist); tests/unit/acceptance/test_journeys.py",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): status unchanged; evidence moved to the canvas app and the path engine. Audit product-1: the engine returns upcoming soonest first, each entry with rule_ids, status and reading; the screen lists them under What comes next and each opens to its rule, plain words first and the quote one tap away. Shown for F-1 OPT and STEM only; the general form is BACK-014."
  },
  {
   "id": "BACK-004",
@@ -1688,8 +1688,8 @@
   "text": "What comes next states the date a window opens and what the official source lists, and never whether the person can or should apply.",
   "kind": "legal",
   "status": "met",
-  "evidence": "engine/f1.py _add_next_step, _lists; tests/unit/engine/test_f1_product.py::test_with_opt_and_no_stem_the_engine_names_what_the_regulation_lists; web/src/lib/labels.ts NEXT_HEADING",
-  "note": "Audit product-1: the next step gives dates only and the 12 stem.requires.* rules in the regulation's words, under the line This is what the regulation says. Whether it applies to you is a question for your DSO."
+  "evidence": "engine/path.py windows and lists; web/src/lib/views/checklists.test.ts (carries the B2 line on a next stage); tests/unit/acceptance/test_journeys.py",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): status unchanged; evidence moved to the canvas app and the path engine. Audit product-1: the next step gives dates only and the 12 stem.requires.* rules in the regulation's words, under the line This is what the regulation says. Whether it applies to you is a question for your DSO."
  },
  {
   "id": "BACK-005",
@@ -1777,27 +1777,27 @@
   "source": "specs/product/BACKLOG.md B6",
   "text": "What comes next is produced for any stage from the rule packs: each pack declares its stages, their dated windows and the steps that can follow.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "contracts/rulepack.schema.json has no stages or steps."
+  "status": "partial",
+  "evidence": "engine/path.py; rulepacks/f1-us/v2026.09/parameters.yaml path.stages; tests/unit/acceptance/test_journeys.py",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Next stages and windows come from the F-1 pack's path for 12 stage kinds. No other pack declares a path."
  },
  {
   "id": "BACK-015",
   "source": "specs/product/BACKLOG.md B7",
   "text": "General checks for facts that do not fit run over every dated fact in every pack: done event after today, end before start, span longer than its rule, gap or overlap.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "engine/f1.py _conflicts",
-  "note": "Four checks are written by hand for F-1."
+  "status": "partial",
+  "evidence": "engine/path.py (after_today, ends_before_starts); pack path.checks",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. after_today and ends_before_starts are general over every dated fact of a pack with a path. Span longer than its rule and gap or overlap are F-1 pack checks, not general ones. Only the F-1 pack has a path."
  },
  {
   "id": "BACK-016",
   "source": "specs/product/BACKLOG.md proposed next",
   "text": "The path model: packs declare stages and steps as data with sourced rules; the engine reads them and holds no scenario of its own.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Not started; DECISIONS.md D48 places it after product round 1."
+  "status": "partial",
+  "evidence": "engine/path.py; tests/unit/engine/test_path.py::test_path_py_names_no_kind_field_choice_stage_or_rule_of_any_pack; tests/unit/engine/test_path.py::test_path_py_names_no_category",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. The path engine names no kind, field, choice, stage, rule or category (tests pass). engine/f1.py remains for /v1/compute/f1, and only F-1 has a path."
  },
  {
   "id": "BACK-017",
@@ -1840,9 +1840,9 @@
   "source": "law-liability-design-2026-09.md, Engine rule-regime flags",
   "text": "Under D/S the grace period is 15 days after a withdrawal and 0 after a violation.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Neither value is in the pack."
+  "status": "partial",
+  "evidence": "pack stage withdrawal, rule grace.withdrawal_days, check withdrawal.dso_authorized; probe TMPDIR/aud/probe_wd.py",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. Probe through POST /v1/compute on 2026-09-29: a DSO-authorized withdrawal on 2026-09-20 gives stage withdrawal.x1 ending 2026-10-05 (15 days); a 'no' or 'not sure' gives no date and the reason x1.dso_authorized, so nothing concludes 0 days. No test in tests/ pins the 15-day stage. The 0-after-violation half is never computed, by design (programs.md section 22)."
  },
  {
   "id": "IMPL-004",
@@ -2687,8 +2687,8 @@
   "text": "Every rule on the screen leads with plain words, calm and short, and the exact words, citation and source are one tap away.",
   "kind": "design",
   "status": "met",
-  "evidence": "web/src/components/Result.tsx; web/src/lib/labels.ts PLAIN_HEADING, EXACT_BUTTON; web/src/components/Plain.test.tsx (shows the plain words under their heading and keeps the quote behind one tap; puts the plain words before the exact words on the page)",
-  "note": "Audit product-1: every rule the screen shows leads with In plain words; Read the exact words opens the quote, citation, link and the day checked. All 55 F-1 rules carry plain words. The H-1B, O-1 and EB-1A packs hold no rules, and no screen shows them."
+  "evidence": "web/src/app/parts.tsx RuleBlocks; web/src/app/parts.test.tsx (puts plain words first and the exact words one tap away, with a reading)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): status unchanged; evidence moved to the canvas app and the path engine. Audit product-1: every rule the screen shows leads with In plain words; Read the exact words opens the quote, citation, link and the day checked. All 55 F-1 rules carry plain words. The H-1B, O-1 and EB-1A packs hold no rules, and no screen shows them."
  },
  {
   "id": "DEC-D56-002",
@@ -2842,5 +2842,50 @@
   "status": "partial",
   "evidence": "specs/path-1; specs/desktop-1; specs/documents-1; specs/updates-1",
   "note": "Audit product-1: the SPECs exist in that order; product round 1 is approved and not on main, and path-1 is not built (DEC-D48-002)."
+ },
+ {
+  "id": "DEC-D62-001",
+  "source": "DECISIONS.md D62",
+  "text": "The test screen leaves the student's path; the app is the approved canvas.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "web/src/main.tsx; web/src/entry.test.tsx (opens Onboarding in #root with no case entered)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): The bench stays mounted only by its own entry."
+ },
+ {
+  "id": "DEC-D62-002",
+  "source": "DECISIONS.md D62",
+  "text": "The app is built with the path model over every program a student has had.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "web/src/app/Onboarding.test.tsx (builds a records case with every program and posts it to /v1/compute); tests/unit/acceptance/test_journeys.py",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): Twenty journeys pass through POST /v1/compute."
+ },
+ {
+  "id": "DEC-D62-003",
+  "source": "DECISIONS.md D62",
+  "text": "The app runs inside the desktop window.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "desktop/src/protocol.ts; desktop/src/protocol.test.ts (serves every other path from web/dist)",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): desktop vitest: 139 passed."
+ },
+ {
+  "id": "DEC-D62-004",
+  "source": "DECISIONS.md D62",
+  "text": "F12 is replaced: the D59 checks are built now as questions, so a student who checks their typed dates can reach every verdict.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "tests/unit/engine/test_path_reach.py::test_an_open_window_with_every_date_checked_needs_you; tests/unit/engine/test_typed_dates.py",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): needs_you and talk_to_dso are reached with checked dates; no test found that reaches no_open_items through the path after the checks."
+ },
+ {
+  "id": "DEC-D62-005",
+  "source": "DECISIONS.md D62",
+  "text": "design-1 section 17 F1 to F11, F13 and F14 are adopted by Claude, open to the founder.",
+  "kind": "design",
+  "status": "partial",
+  "evidence": "DECISIONS.md D62; specs/design-1/SPEC.md section 17",
+  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): Adopted by Claude; the founder has not confirmed, and design-1 Done 3 (the founder's walk-through) has not happened."
  }
 ]
