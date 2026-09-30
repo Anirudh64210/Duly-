@@ -1792,3 +1792,40 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-4ba0df3312 (attempt 1): reconcile tests/unit and tests/holdout after path.py and /v1/compute
+
+### What I tried and what ran
+
+- Done command before any change, output to a file, no pipe: exit 1. Every test passed but
+  one: tests/unit/support/test_placeholders.py::test_every_api_test_posts_through_the_checked_client
+  (assert ['test_compute_generic.py:51'] == []). test_path.py (engine/path.py, commit 566879a),
+  test_typed_dates.py (D59) and the 16 other tests of test_compute_generic.py (POST /v1/compute,
+  commit fc96aad) already pass.
+- Read the builders' notes: engine/PROGRESS.md of l-engine-61ed2c8d55 and api/PROGRESS.md of
+  l-api-64e7959dbd (git show). Neither lists an open collision with tests/unit or tests/holdout;
+  the api note says its 14 failures in test_compute_generic.py were the missing route, which the
+  engine note confirms. The REPORT.json files of those two runs are not on disk (worktrees
+  removed; the files are gitignored). The REPORT.json files still on disk belong to older runs
+  whose disputes the current suite no longer shows as failures.
+- The engine note puts talk_to_dso ahead of the D59 reasons "because tests call for talk_to_dso
+  while typed dates are unchecked". Checked against specs/documents-1/SPEC.md lines 531 and 1030
+  (a typed value kept over a document gives talk_to_dso): the order the tests ask for is the
+  SPEC's. No dispute.
+- Change, tests/unit/api/test_compute_generic.py: the client fixture yields CheckedClient(app)
+  instead of TestClient(app); the docstring no longer says "expected to fail" and names the
+  guard. Point: SPEC-resolutions.md points 2, 3 and 7 (no placeholder answer reaches the api),
+  enforced for every api test by test_placeholders.py. No assertion changed.
+- Done command as written after the change: exit 0 ("All checks passed!", "65 files already
+  formatted", every test passed).
+
+### What change would make it fail
+
+- Back to TestClient(app) in the fixture: test_placeholders.py fails again, as it did at the
+  start of this run.
+- A test in test_compute_generic.py that posts a case holding ON_THE_DAY_IT_RUNS or an about
+  of {"question": id}: CheckedClient.post raises PlaceholderAnswerError before the request.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
