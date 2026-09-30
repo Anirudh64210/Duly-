@@ -348,6 +348,8 @@ export function DateField(props: {
   value: string;
   problem?: string | undefined;
   onChange: (value: string) => void;
+  /** A day the student may not know: a quiet "I'm not sure" beside the parts. */
+  notSure?: { pressed: boolean; onPress: () => void };
 }) {
   const [month, day, year] = splitDate(props.value);
   const set = (part: 0 | 1 | 2, text: string) => {
@@ -375,6 +377,18 @@ export function DateField(props: {
           </label>
         ))}
       </div>
+      {props.notSure !== undefined && (
+        <p className="not-sure">
+          <button
+            type="button"
+            className="text-button quiet"
+            aria-pressed={props.notSure.pressed}
+            onClick={props.notSure.onPress}
+          >
+            I'm not sure
+          </button>
+        </p>
+      )}
       {props.problem !== undefined && (
         <p className="problem" id={problemId}>
           {props.problem}
