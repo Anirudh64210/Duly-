@@ -164,6 +164,8 @@ export interface AppDeps {
   engine: () => EngineView;
   fetch: (input: string, init: RequestInit) => Promise<Response>;
   readFile: (root: string, relativePath: string) => Promise<Uint8Array<ArrayBuffer> | null>;
+  /** Files under web/dist this handler never serves. */
+  refuse?: (relativePath: string) => boolean;
 }
 
 function plain(status: number, sentence: string): Response {
@@ -178,6 +180,9 @@ export function createAppHandler(deps: AppDeps): (request: Request) => Promise<R
   return async (request) => {
     const route = routeRequest(request.url);
     if (route.kind === "refused") return plain(404, "Not found.");
+    if (route.kind === "file" && deps.refuse?.(route.relative) === true) {
+      return plain(404, "Not found.");
+    }
     const view = deps.engine();
     if (route.kind === "engine") {
       if (view.state !== "ready") return plain(503, "Duly's engine is not running.");

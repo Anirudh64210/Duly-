@@ -60,3 +60,33 @@ clean. prettier --write ran once before the done command.
 
 Not built: the shots runner of 14.4 (the mission named section 4 only). Not run: Electron
 itself; safeStorage is exercised only through a test cipher (AES-256-GCM).
+
+## 2026-09-30, run l-desktop-da6d9509e1, attempt 1
+
+Read specs/product-2/resolutions.md point 15 (and 11), specs/design-1/SPEC.md 14.3 and 14.4,
+web/src/lib/shots.ts, web/src/shots.tsx, web/samples/README.md and the Makefile's
+design-shots target (`cd desktop && npx electron . --shots <folder>`).
+
+Built the shots runner:
+
+- shots.ts, decisions only: `--shots <folder>` and `--shots=<folder>` (no folder is an
+  error, exit 2); the screens and the 1280 by 832 size, which a test compares with
+  web/src/lib/shots.ts; the samples in web/samples (each `<name>.json` beside its
+  `<name>.case.json`); one shot per screen, sample and theme (light, dark), loading
+  `duly://app/shots.html?screen=<route>&sample=<name>`; the file `<screen>-<sample>-<theme>.png`
+  ("/" is home); the page script that sets `data-theme`, waits for the webfont and two frames
+  and says whether the root drew; shots.json; exit 0 only when every shot drew.
+- SPEC 14.3: the app window's request map refuses shots.html (protocol.ts takes an optional
+  `refuse`, main.ts passes refusedInApp), so the samples never stand in for the engine there.
+  A shots run starts no engine and its handler answers 503 to /api/.
+- shotrun.ts: a hidden window of the shot size (useContentSize), capturePage, writes.
+  main.ts: `--shots` goes to launchShots, which starts no engine and no case bridge.
+
+What ran: the done command, exit 0. 10 test files, 123 tests passed. eslint clean, copy lint
+clean. prettier --write ran once before the done command.
+
+Not run: Electron itself; the founder runs `make design-shots` outside the sandbox.
+Not built: the 1200 by 832 size, landmark measuring and the check against
+tests/design/landmarks.json, the beside-canvas sheets and the halo still of 14.4; the
+mission named the 1280 by 832 render only. web's vite build takes index.html alone, so
+web/dist holds no shots.html yet; the runner then prints that and exits 1 (a request).
