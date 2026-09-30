@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { apiPath } from "./api-path";
 import type { paths } from "./api-types";
 import { VERDICT_STATES } from "./status";
 
@@ -241,7 +242,7 @@ async function problemIn(response: Response): Promise<string | null> {
 }
 
 export async function computeF1(body: F1Case, post: typeof fetch = fetch): Promise<EngineOutput> {
-  const response = await post(`/api${COMPUTE_PATH}`, {
+  const response = await post(apiPath(COMPUTE_PATH), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

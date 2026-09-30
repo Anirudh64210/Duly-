@@ -690,3 +690,27 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not done, not verified
 
 - Not seen in a browser against a live api.
+
+## Run l-web-ec5ae8562c (attempt 1)
+
+### Tried
+
+- specs/desktop-1/SPEC.md, the screen: `vite.config.ts` sets `base: "./"`, so the built
+  index.html loads `./assets/...` and the fonts in the built CSS are `url(./...)`.
+- New `lib/api-path.ts`: `apiPath("/v1/status")` gives `api/v1/status`, relative to the page.
+  `status.ts` and `compute.ts` use it. From duly://app/index.html that is
+  duly://app/api/v1/status; from http://localhost:5173/ it is /api/v1/status, which the dev
+  proxy still passes to :8000.
+- Tests: `lib/api-path.test.ts` (the path, both origins resolved with URL, the base, the dev
+  proxy), one in `status.test.ts` for the status path; the compute path in `compute.test.ts`
+  and `App.test.tsx` now expects `api/v1/compute/f1`.
+
+### Ran
+
+- The done command as written, output to a file, no pipe: exit 0. typecheck clean; 307 tests
+  passed; build clean; eslint clean; prettier clean; "copy lint: clean"; dist/index.html has
+  `src="./assets/...`.
+
+### Not done, not verified
+
+- Not loaded through duly://app/ in Electron (desktop lane) nor in a browser against a live api.
