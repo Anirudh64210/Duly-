@@ -2290,3 +2290,45 @@ written, no pipe (result below in REPORT.json commands_run).
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
 Done command printed: All checks passed!, 72 files already formatted, exit 0.
+
+## l-tests-d40bcf768c: resolutions point 15, tests first
+
+What I did:
+- tests/unit/acceptance/test_journeys.py: helpers _dated_after and _grace_after; new tests
+  test_j04_the_concluding_evaluation_is_dated_from_the_release_date (2022-08-15 to 08-25),
+  test_j04_no_validation_is_dated_after_the_stem_card_ended (validation_3 2022-12-22 and
+  validation_4 2023-06-22 gone; validation_2 2022-06-22 to 07-07, July 4 skipped),
+  test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed,
+  test_j14_the_concluding_evaluation_is_dated_from_the_last_day_of_the_job (07-15 to 07-25),
+  test_j14_no_validation_is_dated_after_the_training_ended. test_j12_grace_begins_after_the_cap_gap
+  is replaced by test_j12_no_grace_after_an_approved_change_of_status: point 15 reverses it.
+- tests/unit/engine/test_path_fix1.py: test_point4_grace_starts_after_an_active_cap_gap moved off
+  the approved J12 (point 15) onto J12 with h1 pending: cap-gap to 2027-04-01, grace.h1 from
+  2027-04-02. Point 4 is still tested; no assertion loosened.
+- tests/holdout/test_holdout_journeys.py: the validity_start twin now asserts no grace after
+  2026-11-15 (point 15); new twins: pending petition keeps grace.h1 from 2027-04-02; J04 twin
+  (release 2023-03-03, evaluation to 03-13, no validation after it); J14 twin (job ends
+  2025-04-18 before the card, evaluation to 04-28, no validation after); J06 twin pair (window
+  closed 2026-03-17: not next; window open to 2026-10-13: next).
+- tests/design/read_canvas.py and tests/design/landmarks.json: every landmark of the nine
+  canvas files (text, sized elements, svgs, sc-if parts marked) with declared style, drawn type,
+  the sidebar and column boxes by arithmetic, and the SPEC 14.1 overrides with reasons.
+
+What ran:
+- pytest on the new tests against today's engine: 12 fail on the behaviour they protect
+  (J04 evaluation 2023-06-21 to 07-01, validation_3/4 after the card, J06 opt_post.p1 next,
+  grace.h1 after the approved J12, J14 evaluation 2026-05-31 to 06-10, and the twins).
+  Pass today, as they should: test_j14_no_validation..., the pending twin, the open-window J06
+  twin, the point 4 pending test.
+- Chromium headless (playwright cache) died with SIGTRAP inside the sandbox, so landmarks.json
+  holds the markup reading only (measured_in_a_browser false); the founder can run it with CHROME.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: an engine that dates stem.evaluation_final from this.card_end
+(J04, J14, twins); one that keeps validation_n by card_start alone (J04, J04 and J14 twins);
+_closed counting opt.complete_by as open (J06, J06 closed twin); grace built after a cap-gap
+approved with a change of status (J12, validity twin); dropping grace for a pending petition
+(pending twin, point 4 test); not showing next while the window is open (open J06 twin).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

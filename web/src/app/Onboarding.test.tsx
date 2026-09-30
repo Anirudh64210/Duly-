@@ -140,6 +140,9 @@ describe("Onboarding (programs.md section 18)", () => {
     );
     pick("No");
     next();
+    flowTo("Have you withdrawn from classes during a program on an F-1?");
+    pick("No");
+    next();
     // Step 3 for the current program: OPT after the program end, with its card.
     expect(screen.getByText("Step 3 of 5")).toBeInTheDocument();
     pick("No");
@@ -259,6 +262,7 @@ describe("Onboarding (programs.md section 18)", () => {
       "petition",
       "program",
       "trip",
+      "withdrawal",
       "work",
     ]);
     expect(sent.complete.trip?.from).toBe("2020-08-20");
@@ -457,6 +461,7 @@ function answered(): AppCase {
     ["dual:p1", "no"],
     ["earlier", "no"],
     ["outside", "no"],
+    ["withdrawals", "no"],
     ["cpt:p1", "yes"],
     ["cpt-more:a1", "no"],
     ["opt:p1", "no"],
@@ -523,15 +528,26 @@ describe("Duly's questions after Onboarding (programs.md sections 10 and 12)", (
     next();
   });
 
+  it("lets a day the engine asks for stay unknown, and moves on", async () => {
+    const compute = await toQuestions(["p1.coursework_done_on", "a1.decision"]);
+    expect(title()).toBe("The day all course requirements were done");
+    fireEvent.click(screen.getByRole("button", { name: "I'm not sure" }));
+    next();
+    await settle();
+    expect(title()).toBe("You're set.");
+    const sent = compute.mock.calls.at(-1)?.[0];
+    expect(sent?.records.find((r) => r.id === "p1")?.fields.coursework_done_on).toBeUndefined();
+  });
+
   it("asks whether a list is whole, and records the statement with the day", async () => {
-    const compute = await toQuestions(["complete.withdrawal"]);
-    expect(title()).toBe("Is every withdrawal from a program in what you entered?");
+    const compute = await toQuestions(["complete.report"]);
+    expect(title()).toBe("Is every report made to your DSO in what you entered?");
     next();
     expect(screen.getByRole("alert")).toHaveTextContent("Choose an answer.");
     pick("Yes, every one is in");
     await settle();
     const sent = compute.mock.calls.at(-1)?.[0];
-    expect(sent?.complete.withdrawal?.on).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(sent?.complete.report?.on).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     next();
     expect(title()).toBe("You're set.");
   });

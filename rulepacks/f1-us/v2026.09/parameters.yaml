@@ -468,6 +468,38 @@ parameters:
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text. The 2026-09-15 text has the same words. The regulation does not state a repeating interval. It names two evaluations: one within 12 months of the approved starting date on the employment authorization document, and one at the conclusion. The word annual appears in the preamble of 81 FR 13040, not in the regulation. The 12 months run from the approved starting date on the document, for each practical training opportunity."
     plain: "Each STEM practical training opportunity needs an initial evaluation. It is due within 12 months of the start date on the 24-month OPT extension card. A concluding evaluation is also needed."
     plain_terms: ["initial evaluation", "concluding evaluation"]
+  - id: stem.validation_ends_with_extension
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(12)(ii)(B)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-30
+      quote: "The requirement for validation reporting starts on the date the 24-month OPT extension begins and ends when the student's F-1 status expires or the 24-month OPT extension concludes, whichever is first."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: verbatim
+    note: "The quote is the second sentence of (f)(12)(ii)(B), the paragraph of stem.validation_interval_months. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the same sentence, so the rule sits under no regime. The path dates no validation report whose reporting date falls after the day the extension's practical training ends (resolutions point 15); that day is read as stem.opportunity_ends_with_job says."
+    plain: "Validation reporting starts on the day the 24-month OPT extension begins. It stops when the student's F-1 status ends or the extension ends, whichever comes first."
+    plain_terms: ["validation reporting"]
+  - id: stem.opportunity_ends_with_job
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2016-05-10
+    source:
+      citation: "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
+      checked_on: 2026-09-30
+      quote: "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation."
+      snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
+      snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
+    derivation: reading
+    note: "Reading. The regulation does not say in so many words when a practical training opportunity concludes. The quoted sentence ties an opportunity to one employer, so Duly reads the opportunity under a STEM card as ending on the last day of the job with that employer, or on the day the employment authorization ends if that is sooner. The authorization ends at the card end, at the transfer release date (opt.ends_on_release_date), or the day before a program at another level starts (opt.ends_on_transfer_or_new_level). A job that ends after the card end counts only while a cap-gap extension covers that day: the petition asks for a change of status, was filed on or before the card end, and the day is on or before April 1 of the fiscal year of the requested start (capgap.end_month_day) and before any validity start, outcome day or day the change of status ended (capgap.ends_on_outcome). The path uses a job's end only when every job under the card has an end; while one runs on, the card end is used. With two employers on one card, only the later job gets its own final evaluation date; the earlier one is not dated. Paragraph (f)(10)(ii)(C)(9)(i) dates the final evaluation from the conclusion of the practical training opportunity (stem.evaluation_due_days). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-30; the 2026-09-15 text has the same sentence. The same quote is the source of stem.new_plan_due_days."
+    plain: "Duly reads each STEM practical training opportunity as a job with one employer. It ends on the last day of that job, or sooner if the permission to work ends first. This is Duly's reading, not the words of the rule."
+    plain_terms: ["practical training opportunity"]
   - id: cpt.full_time_bar_days
     value: 365
     unit: days
@@ -1132,6 +1164,22 @@ parameters:
     note: The sentence begins The automatic extension of an F-1 student's duration of status and employment authorization under paragraph (f)(5)(vi)(A) of this section; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(B). The preamble of 89 FR 103054 calls the extension the cap-gap extension. The plain check refuses the word terminate, so the plain words say ends on its own.
     plain: For an F-1 student with an H-1B petition, the extra time ends on its own if the H-1B petition is rejected, denied, revoked or withdrawn. It also ends if the change of status is denied or withdrawn.
     plain_terms: [H-1B petition]
+  - id: capgap.status_ends_on_h1b_start
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2016-05-10
+    source:
+      citation: "81 FR 13040 (preamble), FR Doc. 2016-04828"
+      url: "https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml"
+      checked_on: 2026-09-30
+      quote: "If an H-1B change-of-status petition requesting a start date of October 1 has been approved, the F-1 status will expire on the same day as the H-1B status begins."
+      snapshot: sources/fr-2016-04828.xml
+      snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794
+    derivation: reading
+    note: "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12). The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work."
+    plain: "Agency words from 2016 say that once an H-1B change-of-status petition is approved, F-1 status ends the day H-1B status begins. As Duly reads it, no 60-day period follows the H-1B start. This is guidance, not a regulation."
+    plain_terms: [change-of-status petition, H-1B status]
   - id: stem.max_lifetime_extensions
     value: 2
     unit: count
@@ -1721,24 +1769,128 @@ path:
           done_when: [this.filed_on]
         - id: stem.validation_1
           label: "First validation report"
-          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}]}
-          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+          opens:
+            add: [{rule: stem.validation_interval_months}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - field: this.card_start
+                    on_or_before:
+                      add: [{rule: stem.validation_interval_months, sign: -1}]
+                      earliest_of: &stem_training_end
+                        - optional: true
+                          first:
+                            of:
+                              record: authorization
+                              where:
+                                - {field: this.id, same_as: outer.id}
+                                - none:
+                                    record: work
+                                    where: &stem_job_covered
+                                      - {field: this.under, present: true}
+                                      - {field: this.under, same_as: outer.id}
+                                      - {field: this.end, present: true}
+                                      - none: {record: work, where: [{field: this.under, present: true}, {field: this.under, same_as: outer.under}, {field: this.end, present: false}]}
+                                      - any_of:
+                                          - {field: this.end, on_or_before: {fact: outer.card_end}}
+                                          - exists:
+                                              record: petition
+                                              where:
+                                                - {field: this.change_of_status, in: ["yes"]}
+                                                - {field: this.filed_on, on_or_before: {fact: outer.under.card_end}}
+                                                - {field: outer.end, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
+                                                - any_of: [{field: this.validity_start, present: false}, {field: this.validity_start, after: {fact: outer.end}}]
+                                                - any_of: [{field: this.outcome, in: [pending, approved]}, {field: this.outcome_on, on_or_after: {fact: outer.end}}]
+                                                - any_of: [{field: this.cos_ended_on, present: false}, {field: this.cos_ended_on, on_or_after: {fact: outer.end}}]
+                            field: card_end
+                            pick: earliest
+                        - {optional: true, first: {of: {record: work, where: *stem_job_covered}, field: end, pick: latest}}
+                        - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}
+                        - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
+              field: card_start
+              pick: earliest
+          closes:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
         - id: stem.validation_2
           label: "Second validation report"
-          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]}
-          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+          opens:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          closes:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
         - id: stem.validation_3
           label: "Third validation report"
-          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]}
-          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+          opens:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          closes:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
         - id: stem.validation_4
           label: "Fourth validation report"
-          opens: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]}
-          closes: {fact: this.card_start, add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]}
-          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law]
+          opens:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          closes:
+            add: [{rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_interval_months}, {rule: stem.validation_due_business_days}]
+            first:
+              of:
+                record: authorization
+                where:
+                  - {field: this.id, same_as: outer.id}
+                  - {field: this.card_start, on_or_before: {earliest_of: *stem_training_end, add: [{rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}, {rule: stem.validation_interval_months, sign: -1}]}}
+              field: card_start
+              pick: earliest
+          rule_ids: [stem.validation_interval_months, stem.validation_due_business_days, calendar.federal_holidays_law, stem.validation_ends_with_extension, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
         - id: stem.evaluation_12_month
           label: "Initial evaluation"
           opens: {fact: this.card_start}
@@ -1746,14 +1898,14 @@ path:
           rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required]
         - id: stem.evaluation_final
           label: "Concluding evaluation"
-          opens: {fact: this.card_end}
-          closes: {fact: this.card_end, add: [{rule: stem.evaluation_due_days}]}
-          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required]
+          opens: {earliest_of: *stem_training_end}
+          closes: {earliest_of: *stem_training_end, add: [{rule: stem.evaluation_due_days}]}
+          rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level, capgap.end_month_day, capgap.ends_on_outcome]
     - id: cap_gap
       label: "Cap-gap extension"
       for_each: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
       entered_when: [this.filed_on]
-      rule_ids: [capgap.end_month_day, capgap.ends_on_outcome, capgap.october_start_condition]
+      rule_ids: [capgap.end_month_day, capgap.ends_on_outcome, capgap.october_start_condition, capgap.status_ends_on_h1b_start]
       span:
         starts: {day_after: true, first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
         ends:
@@ -1794,6 +1946,11 @@ path:
           - {field: this.change_of_status, in: ["yes"]}
           - {field: this.outcome, in: [pending, approved]}
           - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}
+          - not:
+              all_of:
+                - {field: this.outcome, in: [approved]}
+                - {field: this.validity_start, present: true}
+                - {field: this.validity_start, on_or_before: {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}}
       entered_when: [this.filed_on]
       rule_ids: [grace.after_completion_days, capgap.end_month_day, capgap.ends_on_outcome]
       span:

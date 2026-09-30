@@ -194,3 +194,14 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - `unemployment.opt_card`, the declaration keyed on the authorization: the span now ends where the `opt_post` stage span ends, the earlier of the card end and the day before a program at another level starts (8 CFR 214.2(f)(10)(ii)(B), opt.ends_on_transfer_or_new_level, now in its rule_ids). Before, it ran to the card end, and days after a change of level counted as unemployment. The release-date reading stays in the stage's `ends_also` only; a counter span has no `ends_also`.
 - Its qualifying selector now first requires `on_campus` to be absent, so a job on campus is not read as work under the card and its `under` is not asked.
 - No row, value, quote, note, plain text or plain_terms changed. No network was used.
+
+### 2026-09-30, lane L-content, run l-content-76651d4388 (product-2 resolutions point 15, pack side)
+
+- Added stem.validation_ends_with_extension, flag, settled, 8 CFR 214.2(f)(12)(ii)(B): validation reporting ends when F-1 status expires or the 24-month OPT extension concludes, whichever is first.
+- Added stem.opportunity_ends_with_job, flag, settled, a reading of 8 CFR 214.2(f)(10)(ii)(C)(7)(iv): a practical training opportunity is with one employer, so it ends on the job's last day, or when the authorization ends if that is sooner.
+- Added capgap.status_ends_on_h1b_start, flag, guidance, a reading of the 81 FR 13040 preamble: once a change-of-status petition is approved, F-1 status ends the day H-1B status begins. It is in the `cap_gap` stage's rule_ids.
+- `stem`, `stem.evaluation_final`: dated from the end of the practical training opportunity, not the card end. That day is the earliest of the card end (or the last job's end when every job under the card has ended, on or before the card end or inside a cap-gap extension that covers it), the transfer release date and the day before a program at another level starts. J04: 2022-08-15 to 2022-08-25. J14: 2026-07-15 to 2026-07-25.
+- `stem.validation_1` to `_4`: a validation whose reporting date falls after that day has no dates (J04: validation_3 and validation_4; J15 and J19: validation_4, the day after the card ends).
+- `grace`, the declaration keyed on the petition: not entered for an approved petition whose validity_start is on or before the cap-gap end (J12: no grace.h1).
+- The training end is written once, as the YAML anchor stem_training_end (and stem_job_covered for the job condition), and reused by alias.
+- No existing row, value, quote, note, plain text or plain_terms changed. No network was used.

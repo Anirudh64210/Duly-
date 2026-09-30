@@ -27,7 +27,8 @@ export type RecordKind =
   | "employer"
   | "work"
   | "trip"
-  | "petition";
+  | "petition"
+  | "withdrawal";
 
 export type CaseRecord = { id: string; kind: string; fields: Record<string, FieldValue> };
 
@@ -52,6 +53,7 @@ export const PREFIX: Record<RecordKind, string> = {
   work: "w",
   trip: "t",
   petition: "h",
+  withdrawal: "wd",
 };
 
 // The fields the F-1 pack declares as dates, by kind. D59 asks about each one typed.
@@ -78,6 +80,7 @@ const DATE_FIELDS: Record<RecordKind, readonly string[]> = {
     "validity_start",
     "h1b_began_on",
   ],
+  withdrawal: ["on"],
 };
 
 // Onboarding's own inputs, kept in the draft and never sent: a job's change of hours is

@@ -961,3 +961,39 @@ pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
 - The transfer release date (ends_also of opt_post) is not an end of the counter; counters have no ends_also.
 - `unemployment.total` qualifying still reads `this.under` with no on_campus guard; not in this mission.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-76651d4388, attempt 1 (product-2 resolutions point 15, pack side)
+
+### What was tried
+
+- Read resolutions point 15, reviews/product-2-fix1.md finding 1 and note 1, journeys J04, J12, J14, J15, J19, and the saved texts: (f)(12)(ii)(B) (validation reporting ends when the extension concludes), (f)(10)(ii)(C)(7)(iv) and (9)(i) (the opportunity, the final evaluation), (f)(5)(vi) and the 81 FR 13040 preamble (F-1 status expires the day H-1B status begins).
+- Three new rows: stem.validation_ends_with_extension (verbatim), stem.opportunity_ends_with_job (reading), capgap.status_ends_on_h1b_start (guidance, reading).
+- STEM windows: the training end (anchor stem_training_end) is the earliest of the card end or the covered last job end, the release date and the day before another level starts. A job end counts when every job under the card has ended and it is on or before the card end or inside a cap-gap that covers it. evaluation_final runs from that day plus stem.evaluation_due_days. validation_n is dated only when card_start plus 6n months is on or before that day (a `first` over the same authorization with the condition; otherwise the window has no dates, since windows have no only_if).
+- Grace keyed on the petition: not entered for an approved petition with validity_start on or before the cap-gap end.
+- First try used `latest_of: [*anchor]` to add days to the anchored expression; the schema wants at least two members. Fixed by anchoring the member list: `earliest_of: *stem_training_end` with `add`.
+
+### What ran
+
+```
+done command (as written, no pipe): run 1 exit 1 (load_all: latest_of too short); run 2 exit 1 (plain words: 5 problems, 4 sentences, terms not in quote); run 3 exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 3 row(s) changed, the three new rows only
+probe (TMPDIR/lc15/probe.py):
+  J04 stem.evaluation_final.a2 2022-08-15 to 2022-08-25; validation_1 2021-12-22, validation_2 2022-06-22, validation_3 and _4 no dates
+  J14 stem.evaluation_final.a2 2026-07-15 to 2026-07-25
+  J12 no grace.h1 (cap_gap.h1 2026-06-01 to 2026-10-01)
+  J15 validation_1 to _3 as the journey; validation_4 no dates ("No validation after the card ends 2027-06-14")
+  J19 validation_4 no dates (2028-06-09 is the day after the card ends 2028-06-08)
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 30 failed, HEAD copy (git archive) 28 failed. New in the worktree, all three from point 15:
+  test_j12_grace_begins_after_the_cap_gap, test_path_fix1.py::test_point4_grace_starts_after_an_active_cap_gap,
+  test_j19_stem_validations_skip_juneteenth (validation_4). test_plain_changes fails in the HEAD copy only (no git history).
+```
+
+### Seen and not worked around
+
+- Windows have no only_if, so a validation past the training end shows with no dates, not left out.
+- With two employers on one STEM card, only the later job's final evaluation is dated.
+- An approved petition with no validity_start keeps the petition grace; validity_start is not asked for it.
+- No network was used. No instruction was found in any data.

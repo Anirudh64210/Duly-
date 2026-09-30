@@ -943,3 +943,45 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - Reports (validation, evaluations) and withdrawals are not asked in Onboarding; section 18
   does not list them. The engine asks for their lists and they stay unstated until answered.
 - Reading an I-20 on this computer: "Add my I-20" says it comes with documents.
+
+## Run l-web-b9981847b4 (attempt 1): resolutions point 15, Onboarding
+
+### Tried
+
+- Finding 2: "A job on campus" is one answer per US program on an F-1 (`campus:<program>`,
+  named by its school when there are several). It writes `on_campus` and no `under`, and the
+  view reads it back through `chosen()`, so Continue moves on. The mark "Its dates hold the
+  start" is left off a card when another program began between the card's start and the
+  job's first day (J08: the master's began on 2025-01-13).
+- Finding 4: every view has a why line; `why: ""` no longer appears in onboarding.ts. The
+  list questions share one line; Done has one too.
+- Finding 5: a date field can carry `notSure`. Its "I'm not sure" button (inside the date's
+  fieldset, parts.tsx DateField) clears the day and marks `unsure:<record>.<field>` in the
+  flow; the day is then left out of the case and the engine asks for it. Given to the day
+  course requirements were done, the DSO signing and recommendation days, the decision day,
+  every day of a move, and the withdrawal's day. A date the engine asks for later has it too;
+  "I'm not sure" there leaves the day out and goes on to Done, as "Not yet" does for a list.
+- Note 4: field problems lower only a first word that is a plain capitalised word, so DSO,
+  I-20 and CIP keep their capitals.
+- Note 5: step 2 asks "Have you withdrawn from classes during a program on an F-1?". Yes
+  opens a withdrawal record (program, day, DSO authorized with I'm not sure) and "Is that
+  every withdrawal?"; "This is everything" states `complete.withdrawal` with the other lists.
+  records.ts knows the withdrawal kind (prefix wd, date field `on`).
+- Tests: web/src/app/OnboardingWalk.test.tsx presses Continue through every view as J08
+  reads (55 or more views), with an on-campus job at the master's and four days left
+  unknown, checks a why line on each view, no problem after each Continue, the capitals in
+  the problems, and the case posted. Further tests: a transfer's four days left unknown, a
+  withdrawal, why lines on every kind of view, and an engine-asked day left unknown.
+  Onboarding.test.tsx answers the new withdrawal question; its list test now uses reports,
+  because Onboarding states the withdrawal list itself.
+
+### Ran
+
+- Done command, as written, output to a file, exit code read: exit 0. 25 files, 522 tests
+  passed, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done, not verified
+
+- The walk's case was not sent to the real /v1/compute route in this run.
+- "Its dates hold the start" is a hint the student can ignore; the rule for when a card ends
+  at a new level stays in the engine.
