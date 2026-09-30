@@ -10,6 +10,7 @@ Each date and count is worked out by hand beside its assertion. Today is 2026-09
 America/New_York, through an injected FixedClock.
 """
 
+import re
 from collections.abc import Iterator
 from typing import Any
 
@@ -86,13 +87,53 @@ def _dated_after(out: dict[str, Any], prefix: str, card: str, day: str) -> list[
     ]
 
 
-def _grace_after(out: dict[str, Any], day: str) -> list[str]:
-    return [
-        s["id"]
-        for s in out["stages"]
-        if s["id"].startswith("grace.")
-        and any(d is not None and d > day for d in (s["starts"], s["ends"]))
+# Resolutions point 19: while cap-gap waits for its own round, a case holding a
+# change-of-status petition steps back. The items it could change are null (the grace of the
+# program and card it could follow, every validation and evaluation from its filing onward,
+# the unemployment count from that day, any cap-gap stage) and the verdict carries the
+# judgement item cap_gap.for_dso (talk_to_dso). The state may be cannot_tell: the twins leave
+# typed dates unconfirmed (D59), and not knowing wins over a judgement item.
+
+STEP_BACK = "cap_gap.for_dso"
+
+
+def _not_the_step_back(out: dict[str, Any], petition: str) -> list[str]:
+    wrong: list[str] = []
+    if STEP_BACK not in reasons(out):
+        wrong.append("no " + STEP_BACK)
+    if out["verdict"]["state"] not in ("talk_to_dso", "cannot_tell"):
+        wrong.append("verdict " + out["verdict"]["state"])
+    wrong += ["stage " + i for i in stage_ids(out) if i.startswith("cap_gap.")]
+    wrong += [
+        "reason " + r
+        for r in reasons(out)
+        if r != STEP_BACK
+        and ("cap_gap" in r or (r.startswith("conflict:") and petition in re.split("[:.]", r)))
     ]
+    wrong += ["question " + q for q in question_ids(out) if q.startswith("cap_gap.")]
+    return wrong
+
+
+def _reports_dated_from(out: dict[str, Any], day: str) -> list[str]:
+    return [
+        w["id"]
+        for s in out["stages"]
+        for w in s["windows"]
+        if w["id"].startswith(("stem.validation_", "stem.evaluation_", "stem_job_end.evaluation_"))
+        and any(d is not None and d >= day for d in (w["opens"], w["closes"]))
+    ]
+
+
+def _grace_dated(out: dict[str, Any]) -> list[tuple[str, Any, Any]]:
+    return [
+        (s["id"], s["starts"], s["ends"])
+        for s in out["stages"]
+        if s["id"].startswith("grace.") and (s["starts"] is not None or s["ends"] is not None)
+    ]
+
+
+def _null_or_absent(out: dict[str, Any], item_id: str) -> bool:
+    return all(i["value"] is None for i in out["computed"] if i["id"] == item_id)
 
 
 # J01 twin: the master's card moved.
@@ -399,37 +440,57 @@ def test_twin_j11_personal_days_abroad_during_a_job_count(client: TestClient) ->
     assert value(out, "unemployment.opt_card.a1") == 105
 
 
-# J12 twins: another validity start, a pending petition, and the older row.
+# J12 and J13 twins: each holds a change-of-status petition h1, so resolutions point 19's
+# step back replaces them. Removed as petition-derived: cap_gap.h1 ending 2026-11-15, 2027-04-01,
+# 2024-06-01 to 2024-10-01 and 2026-07-01 to 2026-09-02; no grace after 2026-11-15; grace.h1
+# from 2027-04-02; the item grace.after_cap_gap_outcome.
 
 
 def _cap_gap_case(card: tuple[str, str], filed: str, start: str, **petition: Any) -> dict[str, Any]:
+    body = _no_petition_case(card)
+    body["records"].append(
+        rec(
+            "h1",
+            "petition",
+            type="h1b",
+            cap_subject="yes",
+            employer="e1",
+            filed_on=filed,
+            requested_start=start,
+            change_of_status="yes",
+            **petition,
+        )
+    )
+    return body
+
+
+def _no_petition_case(card: tuple[str, str]) -> dict[str, Any]:
     return case(
         [
             _masters("2025-05-16"),
             _opt("a1", "p1", *card),
             rec("e1", "employer", name="Employer M"),
             rec("w1", "work", employer="e1", under="a1", start=card[0], hours_per_week=40),
-            rec(
-                "h1",
-                "petition",
-                type="h1b",
-                cap_subject="yes",
-                employer="e1",
-                filed_on=filed,
-                requested_start=start,
-                change_of_status="yes",
-                **petition,
-            ),
         ],
         whole("program", "authorization:p1", "work", "petition", "trip"),
     )
 
 
-def test_twin_j12_cap_gap_ends_on_a_later_validity_start(client: TestClient) -> None:
-    # validity_start 2026-11-15 is before April 1 of FY 2027 (2027-04-01): ends 2026-11-15.
-    # resolutions point 15: the petition is approved with a change of status, so H-1B
-    # status begins on 2026-11-15 and no F-1 grace follows it: no grace stage holds a date
-    # after 2026-11-15 (this replaces the point 12 grace.h1 from 2026-11-16).
+def test_twin_j12_without_a_petition_keeps_the_grace_and_no_step_back(
+    client: TestClient,
+) -> None:
+    # Point 19: "A case with no petition is computed as before." Card 2025-06-01 to
+    # 2026-05-31, the petition list stated whole and empty: grace.p1 60 days from the day
+    # after the card end: June 1 to 30 is 30, July 1 to 30 is 60 -> 2026-06-01 to 2026-07-30.
+    out = _send(client, _no_petition_case(("2025-06-01", "2026-05-31")))
+    grace = stage(out, "grace.p1")
+    assert (grace["starts"], grace["ends"]) == ("2026-06-01", "2026-07-30")
+    assert STEP_BACK not in reasons(out)
+
+
+def test_twin_j12_a_later_validity_start_steps_back(client: TestClient) -> None:
+    # Approved 2026-06-20, validity_start 2026-11-15. The grace the case above gives
+    # (2026-06-01 to 2026-07-30) is null with the petition entered.
     body = _cap_gap_case(
         ("2025-06-01", "2026-05-31"),
         "2026-04-01",
@@ -439,39 +500,49 @@ def test_twin_j12_cap_gap_ends_on_a_later_validity_start(client: TestClient) -> 
         validity_start="2026-11-15",
     )
     out = _send(client, body)
-    assert stage(out, "cap_gap.h1")["ends"] == "2026-11-15"
-    assert _grace_after(out, "2026-11-15") == []
+    assert _not_the_step_back(out, "h1") == []
+    assert _grace_dated(out) == []
 
 
-def test_twin_j12_pending_petition_runs_to_april_1(client: TestClient) -> None:
-    # Journey variant (pending): filed 2026-04-01, from 2025-01-17 the row is 04-01; the
-    # fiscal year holding 2026-10-01 starts 2026-10-01 (FY 2027), so April 1 is 2027-04-01.
+def test_twin_j12_a_pending_petition_steps_back(client: TestClient) -> None:
+    # Pending, filed 2026-04-01: no cap_gap stage, and point 12's cap-gap count
+    # unemployment.opt_card.h1 counts days after the filing, so it is null or not given.
     body = _cap_gap_case(
         ("2025-06-01", "2026-05-31"), "2026-04-01", "2026-10-01", outcome="pending"
     )
     out = _send(client, body)
-    assert stage(out, "cap_gap.h1")["ends"] == "2027-04-01"
+    assert _not_the_step_back(out, "h1") == []
+    assert _null_or_absent(out, "unemployment.opt_card.h1")
 
 
-def test_twin_j12_a_petition_filed_under_the_older_row_runs_to_october_1(
-    client: TestClient,
-) -> None:
-    # Journey variant (old rule): filed 2024-04-01, before 2025-01-17, read with the 10-01
-    # row. Requested start 2024-10-01 lies in FY 2025 (2024-10-01 to 2025-09-30), whose
-    # October 1 is 2024-10-01. Card 2023-06-01 to 2024-05-31: cap-gap from 2024-06-01.
+def test_twin_j12_a_petition_filed_under_the_older_row_steps_back(client: TestClient) -> None:
+    # Card 2023-06-01 to 2024-05-31, pending petition filed 2024-04-01. Without it grace.p1
+    # would run 2024-06-01 to 2024-07-30 (30 + 30); with it the grace is null.
     body = _cap_gap_case(
         ("2023-06-01", "2024-05-31"), "2024-04-01", "2024-10-01", outcome="pending"
     )
     out = _send(client, body)
-    cap_gap = stage(out, "cap_gap.h1")
-    assert (cap_gap["starts"], cap_gap["ends"]) == ("2024-06-01", "2024-10-01")
+    assert _not_the_step_back(out, "h1") == []
+    assert _grace_dated(out) == []
+
+
+def test_twin_j12_a_pending_petition_nulls_the_grace(client: TestClient) -> None:
+    # Was ..._keeps_its_grace_after_the_cap_gap (grace.h1 from 2027-04-02). Point 19: no
+    # cap-gap and no grace, neither grace.p1 nor grace.h1.
+    body = _cap_gap_case(
+        ("2025-06-01", "2026-05-31"), "2026-04-01", "2026-10-01", outcome="pending"
+    )
+    out = _send(client, body)
+    assert _grace_dated(out) == []
 
 
 # J13 twin: denied later.
 
 
-def test_twin_j13_denied_later_ends_the_cap_gap_and_steps_back(client: TestClient) -> None:
-    # Card 2025-07-01 to 2026-06-30; denied 2026-09-02: cap-gap 2026-07-01 to 2026-09-02.
+def test_twin_j13_denied_later_steps_back(client: TestClient) -> None:
+    # Card 2025-07-01 to 2026-06-30; filed 2026-04-01, denied 2026-09-02. Point 19: "any
+    # change-of-status petition", a denied one too. Without it grace.p1 would be 2026-07-01
+    # to 2026-08-29 (July 31, August 29: 60); with it the grace is null.
     body = _cap_gap_case(
         ("2025-07-01", "2026-06-30"),
         "2026-04-01",
@@ -480,23 +551,8 @@ def test_twin_j13_denied_later_ends_the_cap_gap_and_steps_back(client: TestClien
         outcome_on="2026-09-02",
     )
     out = _send(client, body)
-    cap_gap = stage(out, "cap_gap.h1")
-    assert (cap_gap["starts"], cap_gap["ends"]) == ("2026-07-01", "2026-09-02")
-    assert any("grace.after_cap_gap_outcome" in r for r in reasons(out))
-
-
-# J12 twin: a pending petition, on the other side of point 15's line.
-
-
-def test_twin_j12_pending_petition_keeps_its_grace_after_the_cap_gap(client: TestClient) -> None:
-    # The other side of point 15's line: a petition not yet approved starts no H-1B status,
-    # so the grace of point 4 still follows the cap-gap. Card 2025-06-01 to 2026-05-31,
-    # pending: cap-gap to 2027-04-01 (FY 2027), grace.h1 from 2027-04-02.
-    body = _cap_gap_case(
-        ("2025-06-01", "2026-05-31"), "2026-04-01", "2026-10-01", outcome="pending"
-    )
-    out = _send(client, body)
-    assert stage(out, "grace.h1")["starts"] == "2027-04-02"
+    assert _not_the_step_back(out, "h1") == []
+    assert _grace_dated(out) == []
 
 
 # J04 twin: a STEM card cut short by a transfer on other days.
@@ -792,15 +848,16 @@ def test_twin_j19_validation_skips_christmas(client: TestClient) -> None:
     assert "opt_post.p1" not in [i for i in stage_ids(out) if stage(out, i)["state"] == "next"]
 
 
-# J19 twins with a change-of-status petition: resolutions point 17 (reviews/product-2-fix3.md
-# finding 2). A change-of-status petition ends validations only when it belongs to this STEM
-# card: filed while the card runs, approved, and its change of status not ended
-# (cos_ended_on empty) before the start. Point 18 replaces the test "filed while the card
-# runs" (its twins are below); the three here give the same answer under it. The STEM card
-# a2 runs 2025-12-12 to 2027-12-11.
-# Validations open at card_start plus 6, 12, 18 months: 2026-06-12, 2026-12-12, 2027-06-12;
-# the fourth, 2027-12-12, is after the card end (point 16). validation_1: 2026-06-12 plus
-# 10 business days is 2026-06-29 (test_twin_j19_validation_skips_juneteenth).
+# J19 twins with a change-of-status petition h9: the twins of resolutions points 17 and 18.
+# Point 19: "When any change-of-status petition is entered", whatever its outcome and however
+# old, the case steps back, and these twins "expect exactly this step back". The STEM card a2
+# runs 2025-12-12 to 2027-12-11. Its validations would open 2026-06-12, 2026-12-12 and
+# 2027-06-12; validation_1: 2026-06-12 (Friday) plus 10 business days: 15, 16, 17, 18,
+# (19 Juneteenth skipped) 22, 23, 24, 25, 26, 29 -> 2026-06-29. Without a petition the grace
+# is grace.p1, 2027-12-12 to 2028-02-09 (December 12 to 31 is 20, January 31 more is 51,
+# February 1 to 9 is 60). Removed as petition-derived (points 17 and 18): validations 1 to 3
+# kept beside an old, ended, denied or pending petition; validation_1 kept before an approved
+# petition's start; grace.p1 2027-12-12 to 2028-02-09 kept beside an old petition.
 
 
 def _twin_j19_with_petition(outcome: str | None = "approved", **fields: Any) -> dict[str, Any]:
@@ -836,13 +893,11 @@ def _twin_j19_with_petition(outcome: str | None = "approved", **fields: Any) -> 
     )
 
 
-def test_twin_j19_an_old_petition_before_this_f1_status_keeps_the_validations(
+def test_twin_j19_an_old_petition_before_this_f1_status_steps_back(
     client: TestClient,
 ) -> None:
-    # h9 filed 2018-04-02, approved 2018-06-15, validity_start 2018-10-01: years before p1
-    # began 2023-01-09 and a2 began 2025-12-12. Point 17: "An older petition from before this
-    # F-1 status never drops a report." validation_1 2026-06-12 to 2026-06-29; validation_2
-    # opens 2026-12-12; validation_3 opens 2027-06-12.
+    # h9 filed 2018-04-02, approved 2018-06-15, validity_start 2018-10-01, years before p1
+    # began 2023-01-09. Point 17 kept every validation; point 19 nulls each from 2018-04-02.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -852,18 +907,16 @@ def test_twin_j19_an_old_petition_before_this_f1_status_keeps_the_validations(
             validity_start="2018-10-01",
         ),
     )
-    assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
-    assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
-    assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+    assert _not_the_step_back(out, "h9") == []
+    assert _reports_dated_from(out, "2018-04-02") == []
 
 
-def test_twin_j19_a_change_of_status_ended_before_the_start_keeps_validation_3(
+def test_twin_j19_a_change_of_status_ended_before_the_start_steps_back(
     client: TestClient,
 ) -> None:
-    # h9 filed 2026-04-06, while a2 runs; approved 2026-06-01; validity_start 2026-10-01;
-    # cos_ended_on 2026-08-14, before the start. Point 17: it does not end validations. Had it
-    # ended them, the last F-1 day 2026-09-30 would drop validation_2 (2026-12-12) and
-    # validation_3 (2027-06-12). Both stand.
+    # h9 filed 2026-04-06, approved 2026-06-01, validity_start 2026-10-01, cos_ended_on
+    # 2026-08-14. Point 17 kept validations 2 and 3; point 19 nulls every report from
+    # 2026-04-06 (validation_1 opens 2026-06-12, after it) and the grace.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -874,17 +927,16 @@ def test_twin_j19_a_change_of_status_ended_before_the_start_keeps_validation_3(
             cos_ended_on="2026-08-14",
         ),
     )
-    assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
-    assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+    assert _not_the_step_back(out, "h9") == []
+    assert _reports_dated_from(out, "2026-04-06") == []
+    assert _grace_dated(out) == []
 
 
-def test_twin_j19_a_petition_filed_on_the_card_and_approved_ends_validations_at_its_start(
+def test_twin_j19_a_petition_filed_on_the_card_and_approved_steps_back(
     client: TestClient,
 ) -> None:
-    # The same h9 with no cos_ended_on: filed while a2 runs, approved, change of status not
-    # ended. H-1B status begins 2026-10-01 (point 15), so the last F-1 day is 2026-09-30.
-    # validation_1 (2026-06-12 to 2026-06-29) is before it and stays; validation_2 would open
-    # 2026-12-12, after it: no validation holds a date after 2026-09-30.
+    # The same h9 with no cos_ended_on. Point 17 kept validation_1 (2026-06-12 to
+    # 2026-06-29), which lies after the filing 2026-04-06, so point 19 nulls it.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -894,24 +946,35 @@ def test_twin_j19_a_petition_filed_on_the_card_and_approved_ends_validations_at_
             validity_start="2026-10-01",
         ),
     )
+    assert _not_the_step_back(out, "h9") == []
+    assert _reports_dated_from(out, "2026-04-06") == []
+    assert _grace_dated(out) == []
+
+
+def test_twin_j19_a_petition_filed_after_validation_1_keeps_it(client: TestClient) -> None:
+    # Point 19 nulls reports "from the petition's filing onward", not before it. h9 filed
+    # 2026-07-06, after validation_1 closed 2026-06-29; approved 2026-08-03, validity_start
+    # 2026-10-01. validation_1 stays 2026-06-12 to 2026-06-29; nothing holds a date from
+    # 2026-07-06 on (validation_2 would open 2026-12-12).
+    out = _send(
+        client,
+        _twin_j19_with_petition(
+            filed_on="2026-07-06",
+            requested_start="2026-10-01",
+            outcome_on="2026-08-03",
+            validity_start="2026-10-01",
+        ),
+    )
     assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
-    assert _dated_after(out, "stem.validation_", "a2", "2026-09-30") == []
+    assert _reports_dated_from(out, "2026-07-06") == []
+    assert _not_the_step_back(out, "h9") == []
 
 
-# J19 twins of resolutions point 18 (reviews/product-2-fix4.md findings 1, 2 and 4): a
-# change-of-status petition belongs to the current F-1 status when it is approved and its
-# validity start is on or after the start of the current post-completion OPT or STEM card
-# (a1 2024-12-12, a2 2025-12-12). Only then does it end validations, open cap_gap, or take the
-# grace away. Every validity start here is on or after 2025-12-12 or before 2024-12-12. Without
-# a petition the grace is grace.p1: a2's card_end 2027-12-11 plus 60 days, December 12 to 31
-# is 20, January 31 more is 51, February 1 to 9 is 60 -> 2027-12-12 to 2028-02-09.
-
-
-def test_twin_j19_an_old_petition_keeps_the_grace_and_raises_no_conflict(
+def test_twin_j19_an_old_petition_nulls_the_grace_and_opens_no_cap_gap(
     client: TestClient,
 ) -> None:
-    # h9 approved 2018-06-15, validity_start 2018-10-01, before a1 began 2024-12-12. It does
-    # not belong: grace.p1 2027-12-12 to 2028-02-09 stands, no cap_gap stage, no conflict.
+    # h9 approved 2018-06-15, validity_start 2018-10-01. Point 18 kept grace.p1 2027-12-12 to
+    # 2028-02-09; point 19: no cap_gap stage, no conflict, the grace null.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -921,20 +984,14 @@ def test_twin_j19_an_old_petition_keeps_the_grace_and_raises_no_conflict(
             validity_start="2018-10-01",
         ),
     )
-    grace = stage(out, "grace.p1")
-    assert (grace["starts"], grace["ends"]) == ("2027-12-12", "2028-02-09")
-    assert not [i for i in stage_ids(out) if i.startswith("cap_gap.")]
-    assert not [r for r in reasons(out) if r.startswith("conflict:") and "h9" in r]
+    assert _not_the_step_back(out, "h9") == []
+    assert _grace_dated(out) == []
 
 
-def test_twin_j19_a_petition_filed_during_opt_for_a_later_start_belongs(
+def test_twin_j19_a_petition_filed_during_opt_for_a_later_start_steps_back(
     client: TestClient,
 ) -> None:
-    # h9 filed 2025-06-02 while OPT a1 ran (2024-12-12 to 2025-12-11), before a2 began;
-    # approved 2025-09-15; validity_start 2026-10-01, after a2's start. It belongs: the last
-    # F-1 day is 2026-09-30. validation_1 (2026-06-12 to 2026-06-29) is before it and stays;
-    # validation_2 would open 2026-12-12: no validation and no grace dated after 2026-09-30.
-    # Point 17's "filed while the card runs" kept validations 2 and 3 here.
+    # h9 filed 2025-06-02 while a1 ran, approved 2025-09-15, validity_start 2026-10-01.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -944,17 +1001,13 @@ def test_twin_j19_a_petition_filed_during_opt_for_a_later_start_belongs(
             validity_start="2026-10-01",
         ),
     )
-    assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
-    assert _dated_after(out, "stem.validation_", "a2", "2026-09-30") == []
-    assert _grace_after(out, "2026-09-30") == []
+    assert _not_the_step_back(out, "h9") == []
+    assert _reports_dated_from(out, "2025-06-02") == []
+    assert _grace_dated(out) == []
 
 
-def test_twin_j19_a_denied_petition_on_the_card_keeps_the_validations(
-    client: TestClient,
-) -> None:
-    # h9 filed 2026-04-06 while a2 runs, validity_start 2026-10-01 as typed, denied
-    # 2026-06-01. Not approved: it ends nothing. validation_2 opens 2026-12-12 (card_start
-    # 2025-12-12 plus 12 months), validation_3 opens 2027-06-12 (plus 18 months).
+def test_twin_j19_a_denied_petition_on_the_card_steps_back(client: TestClient) -> None:
+    # h9 filed 2026-04-06, denied 2026-06-01. Point 18 kept validations 2 and 3.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -965,30 +1018,28 @@ def test_twin_j19_a_denied_petition_on_the_card_keeps_the_validations(
             validity_start="2026-10-01",
         ),
     )
-    assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
-    assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+    assert _not_the_step_back(out, "h9") == []
+    assert _reports_dated_from(out, "2026-04-06") == []
+    assert _grace_dated(out) == []
 
 
-def test_twin_j19_a_pending_petition_on_the_card_keeps_the_validations(
-    client: TestClient,
-) -> None:
-    # h9 filed 2026-04-06, pending, requested_start 2026-10-01. Not approved: the requested
-    # start is not read as a start. validation_2 opens 2026-12-12, validation_3 2027-06-12.
+def test_twin_j19_a_pending_petition_on_the_card_steps_back(client: TestClient) -> None:
+    # h9 filed 2026-04-06, pending. Point 18 kept validations 2 and 3.
     out = _send(
         client,
         _twin_j19_with_petition(
             outcome="pending", filed_on="2026-04-06", requested_start="2026-10-01"
         ),
     )
-    assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
-    assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+    assert _not_the_step_back(out, "h9") == []
+    assert _reports_dated_from(out, "2026-04-06") == []
+    assert _grace_dated(out) == []
 
 
 def test_twin_j19_an_approved_petition_with_no_validity_start_is_asked(
     client: TestClient,
 ) -> None:
-    # Point 18: a missing validity start is asked, never read as "does not belong"
-    # (PRINCIPLES 2). h9 filed 2026-04-06, approved 2026-06-01, validity_start left out.
+    # Point 18: a missing validity start is asked (PRINCIPLES 2); point 19 steps back too.
     out = _send(
         client,
         _twin_j19_with_petition(
@@ -997,6 +1048,7 @@ def test_twin_j19_an_approved_petition_with_no_validity_start_is_asked(
     )
     assert "h9.validity_start" in question_ids(out)
     assert out["verdict"]["state"] == "cannot_tell"
+    assert _not_the_step_back(out, "h9") == []
 
 
 # Resolutions point 16: a next STEM stage, before any STEM card, carries no report dates.
