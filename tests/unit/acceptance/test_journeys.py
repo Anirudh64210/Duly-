@@ -1914,6 +1914,105 @@ def test_j19_nothing_asked_about_stem_for_english_language_training(client: Test
     assert "opt_post.p0" not in stage_ids(out)
 
 
+# J19 with a change-of-status petition: resolutions point 17 (reviews/product-2-fix3.md
+# finding 2). A change-of-status petition ends validations only when it belongs to this STEM
+# card: filed while the card runs, approved, and its change of status not ended
+# (cos_ended_on empty) before the start. The rule read is capgap.status_ends_on_h1b_start;
+# the card a2 runs 2026-06-09 to 2028-06-08. The petitions filed while the card runs are
+# filed and decided before today (2026-09-29), so no after-today conflict enters the case,
+# and are cap exempt (cap_subject no), which a filing in July allows.
+
+
+def _j19_with_petition(**fields: Any) -> dict[str, Any]:
+    body = j19()
+    body["records"] += [
+        rec("e1", "employer", name="Employer One"),
+        rec(
+            "h9",
+            "petition",
+            type="h1b",
+            employer="e1",
+            change_of_status="yes",
+            outcome="approved",
+            **fields,
+        ),
+    ]
+    body["complete"].update(whole("petition"))
+    return body
+
+
+def test_j19_an_old_approved_petition_from_before_this_f1_status_keeps_every_validation(
+    client: TestClient,
+) -> None:
+    # The review's own input: h9 filed 2020-04-01, approved 2020-06-01, validity_start
+    # 2020-10-01, months before p0 began 2021-01-11 and years before a2 began 2026-06-09.
+    # Point 17: "An older petition from before this F-1 status never drops a report." So a2's
+    # validations stand as without h9: card_start plus 6, 12, 18 months: 2026-12-09,
+    # 2027-06-09, 2027-12-09. validation_3: 2027-12-09 (a Thursday) plus 10 business days:
+    # 10, 13, 14, 15, 16, 17, 20, 21, 22, 23 -> 2027-12-23 (Christmas 2027 falls on a
+    # Saturday, after it). The fix 3 run gave None for validations 1 to 3.
+    out = _send(
+        client,
+        _j19_with_petition(
+            cap_subject="yes",
+            filed_on="2020-04-01",
+            requested_start="2020-10-01",
+            outcome_on="2020-06-01",
+            validity_start="2020-10-01",
+        ),
+    )
+    assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
+    assert window(out, "stem.validation_2.a2")[0] == "2027-06-09"
+    assert window(out, "stem.validation_3.a2") == ("2027-12-09", "2027-12-23")
+
+
+def test_j19_a_change_of_status_ended_before_the_h1b_start_keeps_validation_3(
+    client: TestClient,
+) -> None:
+    # h9 is filed while a2 runs (2026-07-01, after 2026-06-09), approved 2026-09-15 with
+    # validity_start 2027-03-01, but cos_ended_on 2026-09-22: the change of status ended
+    # before the start, so point 17 says it does not end validations. Had it ended them, the
+    # last F-1 day 2027-02-28 would drop validation_2 (2027-06-09) and validation_3
+    # (2027-12-09). Both stand: validation_3 2027-12-09 to 2027-12-23 (working as in the test
+    # above). The fix 3 rule dropped them.
+    out = _send(
+        client,
+        _j19_with_petition(
+            cap_subject="no",
+            filed_on="2026-07-01",
+            requested_start="2027-03-01",
+            outcome_on="2026-09-15",
+            validity_start="2027-03-01",
+            cos_ended_on="2026-09-22",
+        ),
+    )
+    assert window(out, "stem.validation_2.a2")[0] == "2027-06-09"
+    assert window(out, "stem.validation_3.a2") == ("2027-12-09", "2027-12-23")
+
+
+def test_j19_a_petition_filed_while_the_card_runs_and_approved_ends_validations_at_its_start(
+    client: TestClient,
+) -> None:
+    # The same h9 with no cos_ended_on: filed while a2 runs, approved, change of status not
+    # ended. Point 17: it ends validations; H-1B status begins on validity_start 2027-03-01
+    # (point 15, capgap.status_ends_on_h1b_start), so the last day of F-1 status is
+    # 2027-02-28. validation_1 opens 2026-12-09, before it, and stays: 2026-12-09 to
+    # 2026-12-23. validation_2 would open 2027-06-09, after it: no date, nor any validation
+    # after 2027-02-28.
+    out = _send(
+        client,
+        _j19_with_petition(
+            cap_subject="no",
+            filed_on="2026-07-01",
+            requested_start="2027-03-01",
+            outcome_on="2026-09-15",
+            validity_start="2027-03-01",
+        ),
+    )
+    assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
+    assert _dated_after(out, "stem.validation_", "a2", "2027-02-28") == []
+
+
 # J20
 
 
