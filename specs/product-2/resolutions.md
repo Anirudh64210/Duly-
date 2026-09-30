@@ -40,3 +40,9 @@ Register rows: the rows specs/path-1/programs.md section 22 and specs/design-1/S
     - When the facts that decide it (the outcome, the validity start) are missing, Duly asks for them and never reads the gap as "does not belong" (PRINCIPLES 2).
     - Twins hold a denied and a pending petition on the card, and one with no validity start.
     - The shot run counts a screen as drawn when the page holds the element the app marks as that screen's landmark (data-landmark="<screen>"), which no error screen carries. Text is not compared (design-1 section 14.1 stands).
+19. Cap-gap gets a round of its own, designed from a full matrix of petition cases (approved, denied, pending, withdrawn, rejected, revoked; before, during and after each card; with facts missing). Three reviews in a row found wrong dates from the pack's petition rules. Until that round:
+    - When any change-of-status petition is entered, the items it could change are null: the grace of the program and card it could follow, every validation and evaluation from the petition's filing onward, the unemployment count from that day, and any cap-gap stage. The verdict carries the judgement item `cap_gap.for_dso` (talk_to_dso), whose plain words say that an H-1B petition can change these dates and that the question is for the DSO, citing 8 CFR 214.2(f)(5)(vi). No petition opens a stage, raises a conflict, or takes a date away on its own.
+    - A case with no petition is computed as before; every other journey is unchanged.
+    - The journeys that hold a petition (J12, J13, J14 and the twins of points 17 and 18) expect exactly this step back.
+    - The register rows on cap-gap stay not met until that round.
+20. The landmark each screen carries is its route (`data-landmark="/timeline"`), written by the web app and read by the shot run, with one test that joins the two sides.
