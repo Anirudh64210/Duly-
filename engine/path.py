@@ -972,9 +972,10 @@ class _Run:
         self._need(tr)
         if found is None:
             return result
-        # A count over a list the person has not stated whole is not known (PRINCIPLES 2).
-        qualifying = counter.get("qualifying")
-        whole = qualifying is None or self._stated(qualifying["record"])
+        # A count over a list the person has not stated whole is not known (PRINCIPLES 2):
+        # every list the count reads, trips as well as work (product-2 resolution 13).
+        read = [counter[k]["record"] for k in ("qualifying", "not_qualifying") if k in counter]
+        whole = all(self._stated(kind) for kind in read)
         groups: dict[str, list[Json]] = {}
         for record in found:
             key = self._group_key(scope, record)
@@ -984,9 +985,14 @@ class _Run:
             groups.setdefault("all", [])
         for key, members in groups.items():
             gtr = _Trace()
+            # only_if reads the group's own record: false, no item; unknown, no count.
+            head = self.records.get(key) or (members[0] if members else None)
+            shown = self._all(counter.get("only_if", []), head, head, gtr)
+            if shown is False:
+                continue
             limit = _number(self._rule_value(counter["limit_rule"], self.today, gtr))
             value, unit, over = self._calculate(counter, members, limit, gtr)
-            if not whole:
+            if not whole or shown is None:
                 value, over = None, False
             self._need(gtr)
             rules = _unique([*counter["rule_ids"], counter["limit_rule"], *gtr.rules])
