@@ -741,3 +741,33 @@ done command (as written): exit 0
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-b2845e5165, attempt 1 (SPEC-resolutions point 66, length)
+
+### What was tried
+
+The plain gate now checks length. `uv run python -m tools.sources.plain rulepacks --require f1` printed "stem.requires.previously_obtained_degree: 324 characters; the contract allows 320", exit 1. A scratch script in TMPDIR scored variants of S3 with tools.sources.plain.problems, grade and term_problems:
+- "in the 10 years before then." 325, grade 9.12 (fails)
+- "It must be granted in the 10 years up to then." 317, 8.93 (passes, but drops "have been", which the quote's "must have been conferred" holds)
+- "If so, it must then be from ..." trips the instructs check
+- "in the 10 years to then." 321; "within 10 years of then." 321, 9.08
+- "It must have been granted in the 10 years prior." 319, 8.88: chosen.
+
+Words each sentence rests on (Q = quote, N = note), unchanged from run l-content-d6cfa8aad6 but for S3:
+- S1: "at the time the student's DSO recommends the student for the 24-month OPT extension", "is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT" (Q); "may be" from the note "may be, but is not required to be" (N).
+- S2: "must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation" (Q).
+- S3: "That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension" (Q); "The number 10 in the quote is a count of years" (N).
+
+### What ran
+
+```
+done command (as written): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  plain changes: 5 row(s) changed, each one allowed
+```
+
+### Seen and not worked around
+
+- git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
+- No network was used. No instruction was found in any data.
