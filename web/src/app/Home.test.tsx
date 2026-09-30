@@ -5,60 +5,18 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import stemNext from "../../samples/path-stem-next.json";
-import { EMPTY_CASE } from "../lib/caseForm";
-import { CaseRefused, engineOutputSchema, type EngineOutput, type F1Case } from "../lib/compute";
+import { CaseRefused, engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { ASKING, NEXT, OUTPUT, STATUS } from "../lib/fixtures";
 import { CaseProvider, newCase, type AppCase } from "./caseStore";
+import { heldCase } from "./heldCase";
+import type { RecordsCase } from "../lib/records";
 import { createAppRouter } from "./Shell";
 
 // design-1 section 6: Home, in the states a student meets it in.
 
 const parse = (output: unknown): EngineOutput => engineOutputSchema.parse(output);
 
-function heldCase(): AppCase {
-  return {
-    status: "f1",
-    statusName: "",
-    programs: [
-      {
-        key: 1,
-        level: "master",
-        start: "2024-08-20",
-        end: "2026-05-15",
-        name: "",
-        cpt: false,
-        cptDays: "",
-        earlier: false,
-      },
-    ],
-    fields: {
-      ...EMPTY_CASE,
-      time_zone: "America/Los_Angeles",
-      opt_on: true,
-      opt: {
-        dso_recommendation_date: "2026-04-01",
-        i765_filed_date: "2026-04-10",
-        ead_start: "2026-06-01",
-        ead_end: "2027-05-31",
-      },
-      employment: [
-        { key: 1, start: "2026-06-20", end: "", hours_per_week: "40", employer_reported: true },
-        {
-          key: 2,
-          start: "2026-01-05",
-          end: "2026-03-01",
-          hours_per_week: "20",
-          employer_reported: false,
-        },
-      ],
-      next_key: 3,
-    },
-    flow: {},
-    onboarded: true,
-  };
-}
-
-function mount(props: { held?: AppCase; compute?: (body: F1Case) => Promise<EngineOutput> }) {
+function mount(props: { held?: AppCase; compute?: (body: RecordsCase) => Promise<EngineOutput> }) {
   vi.stubGlobal("fetch", () =>
     Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(STATUS) }),
   );
@@ -106,7 +64,7 @@ describe("Home while the case is computed, and when it is refused", () => {
   });
 
   it("names a status Duly has a category for but no rules, and never computes it", async () => {
-    const compute = vi.fn<(body: F1Case) => Promise<EngineOutput>>(() =>
+    const compute = vi.fn<(body: RecordsCase) => Promise<EngineOutput>>(() =>
       Promise.resolve(parse(OUTPUT)),
     );
     mount({ held: { ...newCase("UTC"), status: "h1b", onboarded: true }, compute });
@@ -164,26 +122,26 @@ describe("Home's counts (design-1 section 6)", () => {
 
 describe("Home's questions (design-1 section 6)", () => {
   it("records a Yes from the question's own pill and computes again", async () => {
-    const compute = vi.fn<(body: F1Case) => Promise<EngineOutput>>(() =>
+    const compute = vi.fn<(body: RecordsCase) => Promise<EngineOutput>>(() =>
       Promise.resolve(parse(ASKING)),
     );
     mount({ compute });
     fireEvent.click(await screen.findByRole("button", { name: /post-completion OPT before/ }));
     fireEvent.click(screen.getByRole("button", { name: "Yes, I had one" }));
     await waitFor(() => expect(compute).toHaveBeenCalledTimes(2));
-    const sent = compute.mock.calls.at(-1)?.[0] as F1Case;
+    const sent = compute.mock.calls.at(-1)?.[0] as RecordsCase;
     expect(sent.confirmations?.held_post_completion_opt?.answer).toBe(true);
   });
 
   it("records a No from the question's own pill", async () => {
-    const compute = vi.fn<(body: F1Case) => Promise<EngineOutput>>(() =>
+    const compute = vi.fn<(body: RecordsCase) => Promise<EngineOutput>>(() =>
       Promise.resolve(parse(ASKING)),
     );
     mount({ compute });
     fireEvent.click(await screen.findByRole("button", { name: /post-completion OPT before/ }));
     fireEvent.click(screen.getByRole("button", { name: "No, I did not" }));
     await waitFor(() => expect(compute).toHaveBeenCalledTimes(2));
-    const sent = compute.mock.calls.at(-1)?.[0] as F1Case;
+    const sent = compute.mock.calls.at(-1)?.[0] as RecordsCase;
     expect(sent.confirmations?.held_post_completion_opt?.answer).toBe(false);
   });
 
@@ -228,9 +186,7 @@ describe("Home's next dates and records (design-1 section 6)", () => {
       name: /Employment periods not marked as reported/,
     });
     fireEvent.click(row);
-    expect(screen.getByText("Jun 20, 2026 onward: marked as reported")).toBeInTheDocument();
-    expect(
-      screen.getByText("Jan 5, 2026 to Mar 1, 2026: not marked as reported"),
-    ).toBeInTheDocument();
+    // A records case holds reports as their own records; Onboarding does not ask for them yet.
+    expect(screen.getByText("Jun 20, 2026 onward: not marked as reported")).toBeInTheDocument();
   });
 });

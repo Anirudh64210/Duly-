@@ -69,6 +69,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/compute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Stateless. Computes dates and counts for a case of any category, from the facts and records the person entered. Nothing is stored and nothing from the body is logged. The request body follows contracts/case.schema.json and the response follows contracts/engine_output.schema.json. It gives the same refusals as /v1/compute/f1 (NOT_A_NUMBER, NOT_JSON, NOT_YET, and first_problem for a case that does not match). A category whose pack has no path gives cannot_tell with category_not_covered:<id>. /v1/compute/f1 stays, and translates its case into this one. */
+        post: operations["compute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Approved law updates only: those for which publish_blockers returns nothing. Each follows contracts/update.schema.json. Matching reads the categories, stage ids and field ids sent in the query, never a value the person entered. */
+        get: operations["getUpdates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ops/v1/status": {
         parameters: {
             query?: never;
@@ -117,6 +151,20 @@ export interface components {
             };
             /** Format: date-time */
             checked_at: string;
+        };
+        Updates: {
+            /** @description The number of updates that match the case. */
+            matching: number;
+            updates: components["schemas"]["ApprovedUpdate"][];
+        };
+        ApprovedUpdate: {
+            /** @description An approved update, following contracts/update.schema.json. */
+            update: Record<string, never>;
+            /** @description What in the case this update matched. Both empty when it matched none. */
+            matched: {
+                stages: string[];
+                fields: string[];
+            };
         };
         OpsStatus: {
             caller: string;
@@ -219,6 +267,64 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    compute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Engine output, following contracts/engine_output.schema.json. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description The case does not match the contract, or the pack refuses a record kind or field it does not declare. The body names the first problem. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getUpdates: {
+        parameters: {
+            query?: {
+                /** @description The categories of the case, such as f1. Absent means no update is matched. */
+                categories?: string[];
+                /** @description The stage ids in the case's engine output. */
+                stages?: string[];
+                /** @description The fact ids and record field ids the case holds a value for. Names only. */
+                fields?: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The approved updates, and how many match the case. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Updates"];
+                };
             };
         };
     };

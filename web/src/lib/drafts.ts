@@ -10,11 +10,17 @@ type Topic = "program" | "degree" | "cpt" | "opt" | "stem" | "employment" | "cap
 
 const CARDS: readonly Topic[] = ["program", "opt", "stem"];
 
-const DEGREES: Record<F1Case["degree_level"], string> = {
+const DEGREES: Record<string, string> = {
   bachelor: "a bachelor's",
   master: "a master's",
   doctorate: "a doctoral",
 };
+
+/**
+ * The student's own facts a draft may state. A records case has no single level or end
+ * date; the latest program's are given, or "" when not entered.
+ */
+export type Sent = Omit<F1Case, "degree_level"> & { degree_level: string };
 
 function card(block: EadBlock | null, name: string): string[] {
   if (block === null) return [];
@@ -36,12 +42,16 @@ function card(block: EadBlock | null, name: string): string[] {
 }
 
 /** The student's own facts on one topic, as entered, in the first person. */
-function factsOn(topic: Topic, sent: F1Case): string[] {
+function factsOn(topic: Topic, sent: Sent): string[] {
   switch (topic) {
     case "program":
-      return [`My program end date is ${formatDate(sent.program_end_date)}.`];
+      return sent.program_end_date === ""
+        ? []
+        : [`My program end date is ${formatDate(sent.program_end_date)}.`];
     case "degree":
-      return [`I am in ${DEGREES[sent.degree_level]} program.`];
+      return DEGREES[sent.degree_level] === undefined
+        ? []
+        : [`I am in ${DEGREES[sent.degree_level]} program.`];
     case "cpt":
       return sent.cpt_full_time_days === null
         ? []
@@ -130,7 +140,7 @@ const NOT_MADE = /^(.+)\.not_made$/;
 const PERIOD = /\.(\d+)$/;
 
 /** Point 61: the dates of the numbered employment period, as entered, or none. */
-function periodFacts(period: number, sent: F1Case): string[] {
+function periodFacts(period: number, sent: Sent): string[] {
   const entered = sent.employment[period - 1];
   if (entered === undefined) return [];
   const name = `My employment period ${period}`;
@@ -140,7 +150,7 @@ function periodFacts(period: number, sent: F1Case): string[] {
 }
 
 /** Point 57: the hours as entered, and no comparison with the rule. */
-function hoursAsk(sent: F1Case): Ask {
+function hoursAsk(sent: Sent): Ask {
   const hours = [...new Set(sent.employment.map((period) => period.hours_per_week))];
   const weeks =
     hours.length === 0
@@ -165,7 +175,7 @@ function stepBackAsk(output: EngineOutput): Ask {
   return periodBehind ? { ...known, topics: [...known.topics, "employment"] } : known;
 }
 
-function askFor(reason: string, output: EngineOutput, sent: F1Case): Ask {
+function askFor(reason: string, output: EngineOutput, sent: Sent): Ask {
   if (reason === "hours_under_threshold") return hoursAsk(sent);
   if (reason === NOT_IN_FORCE) return stepBackAsk(output);
   const known = ASKS.get(reason);
@@ -202,7 +212,7 @@ function letter(subject: string, facts: readonly string[], asks: readonly string
 }
 
 /** plain-1 section 4: the draft for a talk_to_dso verdict, from the facts behind its reasons. */
-export function dsoDraft(output: EngineOutput, sent: F1Case): string | null {
+export function dsoDraft(output: EngineOutput, sent: Sent): string | null {
   if (output.verdict.state !== "talk_to_dso") return null;
   const topics = new Set<Topic>();
   const periods = new Set<number>();
@@ -221,7 +231,7 @@ export function dsoDraft(output: EngineOutput, sent: F1Case): string | null {
 }
 
 /** plain-1 section 4: the draft for the STEM OPT step, with the student's own dates only. */
-export function stemDraft(sent: F1Case, citation: string): string {
+export function stemDraft(sent: Sent, citation: string): string {
   const facts = [...factsOn("program", sent), ...factsOn("opt", sent)];
   return letter("A question about the STEM OPT extension", facts, [
     `Could you tell me whether ${citation} applies to my case, and what your office would need from me for a 24-month STEM OPT extension?`,
@@ -240,7 +250,7 @@ const NO_ASK = new Set(["rules_never_checked", "rules_stale", "no_documents"]);
  * abstention has its DSO question drafted (PLAN03-076). A talk_to_dso verdict keeps
  * dsoDraft's asks. It holds the student's own dates only.
  */
-export function caseDraft(output: EngineOutput, sent: F1Case): string {
+export function caseDraft(output: EngineOutput, sent: Sent): string {
   const talk = dsoDraft(output, sent);
   if (talk !== null) return talk;
   const asks: string[] = [];
@@ -260,7 +270,7 @@ export function caseDraft(output: EngineOutput, sent: F1Case): string {
 }
 
 /** design-1 section 13: the STEM OPT draft, with no month count in its words. */
-export function stemStepDraft(sent: F1Case, citation: string): string {
+export function stemStepDraft(sent: Sent, citation: string): string {
   const facts = [...factsOn("program", sent), ...factsOn("opt", sent)];
   return letter("A question about the STEM OPT extension", facts, [
     `Could you tell me whether ${citation} applies to my case, and what your office would need from me for a STEM OPT extension?`,

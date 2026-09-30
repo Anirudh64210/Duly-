@@ -893,3 +893,53 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - Gate 6 was not run here (it needs the Python coverage.xml). Home's two lines left are the
   "Show every reason" button the hero cannot reach, as written in the run above.
+
+## Run l-web-5f1ae834e8 (attempt 1): resolutions points 1, 10 and 11 on the web side
+
+### Tried
+
+- Point 1: the app no longer sends case_f1. `lib/records.ts` turns Onboarding's draft of
+  records into the case of contracts/case.schema.json (categories, time_zone, facts, records,
+  complete, confirmations) and `computeCase` posts it to `/v1/compute` (the route name is
+  checked against the regenerated api-types.ts). Empty fields and links to missing records
+  are left out, never sent as no or zero. The store (`caseStore.tsx`) holds the draft, the
+  zone and the answers; drafts for the DSO read `sentFacts`, the latest program's facts.
+- Point 10: `lib/views/onboarding.ts` lists section 18 view by view, in five steps: the
+  current I-20 (school and code, level with every level and no default, major and CIP, STEM
+  list with "I'm not sure", dates, end date changes, still studying or finished with the
+  coursework and conferral days, dual degree, full course and online), earlier programs with
+  their moves and "That's every program", degrees outside the US or not on an F-1, CPT, OPT
+  and STEM OPT per program with decision, card, basis degree and split, first year and CPT
+  from the start, "Is that all the CPT and OPT", jobs with employer, hours, changes of hours,
+  permission (the card whose dates hold the start is marked, not chosen) and E-Verify for
+  STEM, trips, H-1B petitions, the record in order, the D59 typed dates step
+  (typed_dates.from_documents with every typed date, then typed_dates.checked.<field>), the
+  time zone, then the engine's questions. `applyFlow` adds the record a Yes opens and a No
+  removes it with every record that links to it. List statements are dated with the
+  person's own day.
+- The engine's questions after Onboarding: a `<record>.<field>` question opens the view that
+  asks for that field, and `complete.<kind>` asks whether the list is whole ("Not yet" leaves
+  it unstated). Found by running the Onboarding case through engine.path (below).
+- Point 11: `shots.html` and `src/shots.tsx` draw any built screen from a web/samples case
+  and its engine output at 1280x832 (`shots.html?screen=/timeline&sample=path-stem-next`).
+  The capture itself needs Electron: a request in the report.
+
+### Ran
+
+- Done command, as written, output to a file, exit code read: exit 0. 516 tests passed,
+  lines 96.95 percent, eslint clean, prettier clean, "copy lint: clean".
+- The case the walk test posts, dumped to TMPDIR and sent through the FastAPI app: 200, no
+  refusal, but `category_not_covered:f1` (api/ on this branch does not call path.py yet).
+- The same case through engine.path.compute with the shipped packs and a FixedClock on
+  2026-09-29: stages program.p1, program.p2, move.mv1, cpt.a2, opt_post.a1 (current),
+  stem.a1 (next); questions a2.decision, a1.time, p1.conferred_on, complete.withdrawal and
+  the typed_dates.checked items. That run led to the field and list questions above.
+
+### Not done, not verified
+
+- Home and Your case still show the latest program's facts for drafts and a short list of
+  permissions and jobs; editing any record other than a program's school and dates is in
+  Onboarding only.
+- Reports (validation, evaluations) and withdrawals are not asked in Onboarding; section 18
+  does not list them. The engine asks for their lists and they stay unstated until answered.
+- Reading an I-20 on this computer: "Add my I-20" says it comes with documents.

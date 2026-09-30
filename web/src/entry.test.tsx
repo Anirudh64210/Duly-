@@ -43,3 +43,23 @@ describe("bench.tsx (programs.md section 9)", () => {
     await expect(import("./bench")).rejects.toThrow("no root element");
   });
 });
+
+describe("shots.tsx (resolutions point 11)", () => {
+  it("draws a screen from an engine sample at the canvas size", async () => {
+    document.body.innerHTML = '<div id="root"></div>';
+    window.history.replaceState(null, "", "/?screen=/case&sample=path-stem-next");
+    await act(() => import("./shots"));
+    expect(await screen.findByText("State University, Master's")).toBeInTheDocument();
+    expect(document.getElementById("root")?.style.width).toBe("1280px");
+  });
+
+  it("refuses a screen or a sample it does not have", async () => {
+    document.body.innerHTML = '<div id="root"></div>';
+    window.history.replaceState(null, "", "/?screen=/nowhere&sample=path-stem-next");
+    await expect(import("./shots")).rejects.toThrow("no such screen or sample");
+  });
+
+  it("refuses to start without a root element", async () => {
+    await expect(import("./shots")).rejects.toThrow("no root element");
+  });
+});
