@@ -83,7 +83,8 @@ export async function runShots(run: ShotsRun): Promise<number> {
         process.stderr.write(`shots: ${shot.screen} has no landmark in ${run.landmarks}\n`);
       } else if (texts !== null && !ok) {
         process.stderr.write(
-          `shots: ${shot.file} does not hold ${String(landmarkName(landmark))}\n`,
+          `shots: ${shot.file} does not hold ${String(landmarkName(landmark))}, ` +
+            `${JSON.stringify(landmark.text)} in its type\n`,
         );
       }
       if (texts !== null) {

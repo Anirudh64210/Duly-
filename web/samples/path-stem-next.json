@@ -301,9 +301,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -315,9 +319,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -329,9 +337,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -343,9 +355,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -357,9 +373,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -371,9 +391,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -385,9 +409,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -399,9 +427,13 @@
       "rule_ids": [
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
-        "calendar.federal_holidays_law"
+        "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.status_ends_on_h1b_start"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -436,28 +468,38 @@
     {
       "id": "stem.evaluation_final.opens.a2",
       "inputs": {},
-      "reading": false,
+      "reading": true,
       "record": "a2",
       "rule_ids": [
         "stem.evaluation_interval_months",
         "stem.evaluation_due_days",
-        "stem.reporting_required"
+        "stem.reporting_required",
+        "stem.opportunity_ends_with_job",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.end_month_day",
+        "capgap.ends_on_outcome"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
     {
       "id": "stem.evaluation_final.closes.a2",
       "inputs": {},
-      "reading": false,
+      "reading": true,
       "record": "a2",
       "rule_ids": [
         "stem.evaluation_interval_months",
         "stem.evaluation_due_days",
-        "stem.reporting_required"
+        "stem.reporting_required",
+        "stem.opportunity_ends_with_job",
+        "opt.ends_on_release_date",
+        "opt.ends_on_transfer_or_new_level",
+        "capgap.end_month_day",
+        "capgap.ends_on_outcome"
       ],
-      "status": "settled",
+      "status": "guidance",
       "unit": "date",
       "value": null
     },
@@ -477,43 +519,28 @@
         "opt.unemployment_each_period",
         "opt.unemployment_abroad",
         "opt.unemployment_in_cap_gap",
+        "opt.ends_on_transfer_or_new_level",
         "opt.min_hours_per_week"
       ],
       "status": "guidance",
       "unit": "days",
-      "value": 5
-    },
-    {
-      "id": "unemployment.total.a2",
-      "inputs": {
-        "a2.card_end": "2027-02-09",
-        "a2.card_start": "2026-02-10",
-        "a2.id": "a2",
-        "w1.hours_per_week": 40,
-        "w1.start": "2026-02-15",
-        "w1.under": "a2"
-      },
-      "reading": true,
-      "rule_ids": [
-        "stem.unemployment_limit_days",
-        "opt.unemployment_each_period",
-        "opt.unemployment_abroad",
-        "opt.unemployment_in_cap_gap",
-        "stem.min_hours_per_week"
-      ],
-      "status": "guidance",
-      "unit": "days",
-      "value": 5
+      "value": null
     },
     {
       "id": "opt.months_at_level.master",
       "inputs": {
-        "a2.card_end": "2027-02-09",
         "a2.card_start": "2026-02-10",
+        "a2.id": "a2",
         "days": 0
       },
       "reading": true,
-      "rule_ids": ["opt.max_months", "opt.split_same_level", "levels.higher_order"],
+      "rule_ids": [
+        "opt.max_months",
+        "opt.split_same_level",
+        "levels.higher_order",
+        "opt.part_time_pre_completion_counts",
+        "opt.post_completion_remaining_time"
+      ],
       "status": "guidance",
       "unit": "months",
       "value": 12
@@ -528,7 +555,29 @@
       "value": 0
     }
   ],
-  "lists": [],
+  "lists": [
+    {
+      "id": "stem.requirements",
+      "record": "a2",
+      "rule_ids": [
+        "stem.requires.all_of_the_following",
+        "stem.requires.accreditation",
+        "stem.requires.dhs_approved_degree",
+        "stem.requires.degree_on_designated_list",
+        "stem.requires.previously_obtained_degree",
+        "stem.requires.eligible_practical_training_opportunity",
+        "stem.requires.employer_qualification",
+        "stem.requires.employer_reporting",
+        "stem.requires.training_plan",
+        "stem.requires.duties_hours_and_compensation",
+        "stem.requires.self_evaluation",
+        "stem.requires.employer_attestation",
+        "stem.requires.employer_attests_resources",
+        "stem.requires.employer_attests_no_replacement",
+        "stem.requires.employer_attests_training_goals"
+      ]
+    }
+  ],
   "questions": [
     {
       "because": ["missing:a1.dso_on"],
@@ -546,6 +595,16 @@
       "record": "p1"
     },
     {
+      "because": ["missing:p1.full_course_each_term"],
+      "id": "p1.full_course_each_term",
+      "record": "p1"
+    },
+    {
+      "because": ["missing:p1.online_within_limit"],
+      "id": "p1.online_within_limit",
+      "record": "p1"
+    },
+    {
       "because": ["missing:t1.signature_on"],
       "id": "t1.signature_on",
       "record": "t1"
@@ -556,24 +615,9 @@
       "record": "t1"
     },
     {
-      "because": ["missing:p1.coursework_done_on"],
-      "id": "p1.coursework_done_on",
-      "record": "p1"
-    },
-    {
-      "because": ["missing:a1.decision"],
-      "id": "a1.decision",
-      "record": "a1"
-    },
-    {
       "because": ["missing:t1.purpose"],
       "id": "t1.purpose",
       "record": "t1"
-    },
-    {
-      "because": ["missing:a2.time"],
-      "id": "a2.time",
-      "record": "a2"
     },
     {
       "because": ["unconfirmed:complete.authorization"],
@@ -646,6 +690,42 @@
       "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim",
       "value": true
     },
+    "capgap.end_month_day": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(5)(vi)(A)",
+      "derivation": "verbatim",
+      "note": "Start date from 89 FR 103054 (FR Doc. 2024-29354), effective 2025-01-17, saved as sources/fr-2024-29354.xml. Words checked in the 2026-09-14 text. The 2026-09-15 text keeps April 1 and moves the paragraph to (f)(5)(vii)(A). On 2026-09-29 the quote was widened to the start of paragraph (A), so that what is extended, and for whom, is in the quote. The conditions follow the colon and are not recorded as rows here. 8 CFR 274a.12(c)(3)(i)(B) and (C), named in the quote, are not saved and were not read; the plain words say only the employment authorization the rule names. The preamble of 89 FR 103054 calls the extension the cap-gap extension and speaks of a cap-subject H-1B petition; the preamble of 81 FR 13040 calls a petition not subject to the annual numerical cap on H-1B visas cap-exempt. Duly reads subject to section 214(g)(1)(A) of the Act as under the yearly H-1B cap; that is a reading of those preambles, not the words of the regulation.",
+      "plain": "It is for an F-1 student whose H-1B petition to change status is under the cap, as Duly reads it, and meets the terms. Duration of status and the employment authorization the rule names last on their own till April 1 of the H-1B fiscal year. If the approved petition starts first, they last on their own only until then.",
+      "quote": "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier, where such petition:",
+      "status": "settled",
+      "unit": "date",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": "04-01"
+    },
+    "capgap.ends_on_outcome": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(5)(vi)(B)",
+      "derivation": "verbatim",
+      "note": "The sentence begins The automatic extension of an F-1 student's duration of status and employment authorization under paragraph (f)(5)(vi)(A) of this section; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(B). The preamble of 89 FR 103054 calls the extension the cap-gap extension. The plain check refuses the word terminate, so the plain words say ends on its own.",
+      "plain": "For an F-1 student with an H-1B petition, the extra time ends on its own if the H-1B petition is rejected, denied, revoked or withdrawn. It also ends if the change of status is denied or withdrawn.",
+      "quote": "shall automatically terminate upon the rejection, denial, revocation, or withdrawal of the H-1B petition filed on such F-1 student's behalf or upon the denial or withdrawal of the request for change of nonimmigrant status",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "capgap.status_ends_on_h1b_start": {
+      "checked_on": "2026-09-30",
+      "citation": "81 FR 13040 (preamble), FR Doc. 2016-04828",
+      "derivation": "reading",
+      "note": "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12), and no validation report is dated on or after that day (stem.validation_ends_with_extension, resolutions point 16). The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work.",
+      "plain": "Agency words from 2016 say that once an H-1B change-of-status petition is approved, F-1 status ends the day H-1B status begins. As Duly reads it, no 60-day period follows the H-1B start. This is guidance, not a regulation.",
+      "quote": "If an H-1B change-of-status petition requesting a start date of October 1 has been approved, the F-1 status will expire on the same day as the H-1B status begins.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml",
+      "value": true
+    },
     "capgap.travel_while_pending": {
       "checked_on": "2026-09-29",
       "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.2",
@@ -689,6 +769,54 @@
       "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a program requires immediate participation is the school's fact; the path asks it as immediate_cpt and never computes it. The flag records what the regulation says. It says nothing about any one person.",
       "plain": "The rule of one academic year has an exception. It is for graduate studies that need the student to start curricular practical training at once.",
       "quote": "Exceptions to the one academic year requirement are provided for students enrolled in graduate studies that require immediate participation in curricular practical training.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "enrollment.final_term_reduced_load": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(6)(iii)(C)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a final term was approved is the school's fact; Duly holds reduced_load records and does not compute them in this round. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "The DSO may allow a reduced course load in the last term. This is when fewer courses are needed to complete the course of study.",
+      "quote": "The DSO may authorize a reduced course load in the student's final term, semester, or session if fewer courses are needed to complete the course of study.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "enrollment.full_course_required": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(6)(iii)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly does not check terms in this round; the path asks full_course_each_term for each program, and an answer of no or not sure is the judgement program.enrollment for the DSO. The plain check refuses the words out of status, so the plain words say having lost status. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "A student may not drop below a full course of study without the DSO's approval first. The rule treats a student who does so as having lost status.",
+      "quote": "A student who drops below a full course of study without the prior approval of the DSO will be considered out of status.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "enrollment.online_language_program": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(6)(i)(G)",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "This rule is for a language study program. There, no online or distance education class counts toward the full course of study.",
+      "quote": "If the F-1 student's course of study is in a language study program, no on-line or distance education classes may be considered to count toward a student's full course of study requirement.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "enrollment.online_limit": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(6)(i)(G)",
+      "derivation": "verbatim",
+      "note": "The sentence begins For F-1 students enrolled in classes for credit or classroom hours. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly does not count classes or credits in this round; the path asks online_within_limit for each program, and an answer of no or not sure is the judgement program.enrollment. Whether one online class can be the whole load of a final term with a reduced course load is not settled by the saved words (J17). The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "In each term, at most one class or three credits taken online or through distance education may count toward the full course of study. This is for classes that need no attendance in person.",
+      "quote": "no more than the equivalent of one class or three credits per session, term, semester, trimester, or quarter may be counted toward the full course of study requirement if the class is taken on-line or through distance education and does not require the student's physical attendance for classes, examination or other purposes integral to completion of the class.",
       "status": "settled",
       "unit": "flag",
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
@@ -756,6 +884,18 @@
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": 14
     },
+    "opt.ends_on_release_date": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.10",
+      "derivation": "verbatim",
+      "note": "Agency guidance, not regulation. The snapshot is text extracted from the saved PDF, sources/ice-sevp-policy-guidance-1004-03.pdf. Start date is the date of the guidance. Where this and 8 CFR 214.2(f)(10)(ii)(B) give different days, Duly shows both and asks the DSO.",
+      "plain": "SEVP's guidance says any OPT authorization ends on the transfer release date. This is for a student who asks for a transfer, or a change of education level at the same school. This is agency guidance, not a regulation.",
+      "quote": "Any OPT authorization ends on the transfer release date for a student who requests a transfer to another SEVP-certified school or a change of education level to continue at the same school.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
+      "value": true
+    },
     "opt.ends_on_transfer_or_new_level": {
       "checked_on": "2026-09-29",
       "citation": "8 CFR 214.2(f)(10)(ii)(B)",
@@ -817,6 +957,18 @@
       "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
       "value": 20
     },
+    "opt.part_time_pre_completion_counts": {
+      "checked_on": "2026-09-29",
+      "citation": "SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.6",
+      "derivation": "reading",
+      "note": "Reading. Agency guidance, not regulation. The snapshot is text extracted from the saved PDF, sources/ice-sevp-policy-guidance-1004-03.pdf. Start date is the date of the guidance. The quote ends an example in the answer to question 6.6, part-time pre-completion OPT from January 02, 2008, to January 01, 2009, with study finished on June 1, 2008, which leaves nine months. The example counts part-time pre-completion OPT against the total at the education level, at half its months. No saved source states a general rule or a number for the part-time deduction; 8 CFR 214.2(f)(10), recorded as opt.max_months, and (f)(11)(iii)(A), recorded as opt.post_completion_remaining_time, name none. So Duly does not compute it (IMPL-017). A level whose count holds a pre-completion card not marked full time has no count, and the judgement opt.months_at_level.part_time goes to the DSO. The flag records what the guidance says. It says nothing about any one person.",
+      "plain": "SEVP's guidance gives an example where six months of part-time OPT count as three months of the total at that education level. It states no general rule. This is agency guidance, not a regulation.",
+      "quote": "the six months of part-time OPT used by the student would account for three months of the total amount available at that education level",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf",
+      "value": true
+    },
     "opt.post_completion_definition": {
       "checked_on": "2026-09-29",
       "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
@@ -827,6 +979,18 @@
       "status": "guidance",
       "unit": "flag",
       "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": true
+    },
+    "opt.post_completion_remaining_time": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(11)(iii)(A)",
+      "derivation": "verbatim",
+      "note": "The sentence begins If granted. Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The words name no length for the remaining time. Duly takes the card end as printed and does not compute the time left (IMPL-017). The flag records what the regulation says. It says nothing about any one person.",
+      "plain": "Post-completion OPT starts on the start date asked for or the day Form I-765 is approved, whichever is later. It ends when the time left for post-completion OPT runs out.",
+      "quote": "the employment authorization period for post-completion OPT begins on the requested date of commencement or the date the Form I-765 or successor form is approved, whichever is later, and ends at the conclusion of the remaining time period of post-completion OPT eligibility.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": true
     },
     "opt.report_interruption": {
@@ -1046,6 +1210,18 @@
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": 20
     },
+    "stem.opportunity_ends_with_job": {
+      "checked_on": "2026-09-30",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)",
+      "derivation": "reading",
+      "note": "Reading. The regulation does not say in so many words when a practical training opportunity concludes. The quoted sentence ties an opportunity to one employer, so Duly reads the opportunity under a STEM card as ending on the last day of the job with that employer, or on the day the employment authorization ends if that is sooner. The authorization ends at the card end, at the transfer release date (opt.ends_on_release_date), or the day before a program at another level starts (opt.ends_on_transfer_or_new_level). A job that ends after the card end counts only while a cap-gap extension covers that day: the petition asks for a change of status, was filed on or before the card end, and the day is on or before April 1 of the fiscal year of the requested start (capgap.end_month_day) and before any validity start, outcome day or day the change of status ended (capgap.ends_on_outcome). For the concluding evaluation of the stage, the path uses the last job's end only when every job under the card has an end and no job under the card ends after it; while one runs on, the card end is used. Each other job under the card that ends on or before the authorization ends (or inside a cap-gap extension that covers it), while another job under the card runs on or ends later, gets its own final evaluation dated from its own end (stem_job_end.evaluation_final, resolutions point 16, J15 Job B). The path dates no validation report from a job's end (stem.validation_ends_with_extension). Paragraph (f)(10)(ii)(C)(9)(i) dates the final evaluation from the conclusion of the practical training opportunity (stem.evaluation_due_days). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-30; the 2026-09-15 text has the same sentence. The same quote is the source of stem.new_plan_due_days.",
+      "plain": "Duly reads each STEM practical training opportunity as a job with one employer. It ends on the last day of that job, or sooner if the permission to work ends first. This is Duly's reading, not the words of the rule.",
+      "quote": "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
     "stem.pending_card_extended": {
       "checked_on": "2026-09-29",
       "citation": "8 CFR 214.2(f)(11)(i)(C)",
@@ -1077,6 +1253,18 @@
       "note": "Reading: the quoted sentence says the degree is from an accredited institution and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is Accreditation. The words at the time of application are the regulation's; the regulation does not say in this sentence which application. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person. The words at the time of application close the sentence; they may limit the accreditation, the recognition, or both, and the plain words keep that open.",
       "plain": "As Duly reads it, this is one of the things on the list that must be met. The degree is from a U.S. educational institution. The school is accredited by an agency that the Department of Education has recognized at the time of application.",
       "quote": "The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution accredited by an accrediting agency recognized by the Department of Education at the time of application.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.all_of_the_following": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)",
+      "derivation": "verbatim",
+      "note": "The sentence is the last one of the opening text of paragraph (f)(10)(ii)(C). Eleven numbered paragraphs follow it, (1) to (11). Paragraphs (1) to (10) are recorded in rows whose ids begin stem.requires. Paragraph (11), headed Site visits, is not recorded as a row: its words are DHS, at its discretion, may conduct a site visit of any employer, which states what DHS may do and states nothing to be met by the student or the employer before the extension. The opening text also says a qualified student may apply while in a valid period of post-completion OPT; that is recorded as stem.requires_post_completion_opt. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "For an extension of post-completion OPT based on a STEM degree, each item on the list must be met.",
+      "quote": "In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met.",
       "status": "settled",
       "unit": "flag",
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
@@ -1202,6 +1390,30 @@
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": true
     },
+    "stem.requires.previously_obtained_degree": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(3)",
+      "derivation": "verbatim",
+      "note": "The quoted words are the second and third sentences of paragraph (f)(10)(ii)(C)(3), headed Previously obtained STEM degree(s). They begin with If: they state what is required where the application is based upon a degree obtained before the degree that was the basis for the period of post-completion OPT. The first sentence of the paragraph says the degree that is the basis for the extension may be, but is not required to be, the degree that is the basis for the post-completion OPT period. The number 10 in the quote is a count of years; it is not recorded as a value in this pack. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person.",
+      "plain": "When the DSO recommends the student for a 24-month OPT extension, it may rest on a degree older than the one for post-completion OPT. Then that degree must be from an accredited and SEVP-certified U.S. educational institution and in a category on the STEM list. It must be from the 10 years before that day.",
+      "quote": "If an application for a 24-month OPT extension under this paragraph (f)(10)(ii)(C) is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B), that previously obtained degree must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation. That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
+    "stem.requires.self_evaluation": {
+      "checked_on": "2026-09-29",
+      "citation": "8 CFR 214.2(f)(10)(ii)(C)(9)(i)",
+      "derivation": "reading",
+      "note": "Reading: the quote is the second part of a sentence, and the first part is needed to say what it states. The whole sentence begins A student may not be authorized for employment with an employer pursuant to paragraph (f)(10)(ii)(C)(2) of this section, and then the quoted words follow. The quote starts at unless because the saved copy prints the paragraph number 2 in italics and the source check cannot match a quote across it. The sentence is the first one of paragraph (f)(10)(ii)(C)(9)(i), under the heading Evaluation requirements and Training Plan modifications. The same paragraph is the source of stem.evaluation_interval_months and stem.evaluation_due_days. Paragraph (9)(ii), on a material change to the training plan, and paragraph (9)(iii), on what the educational institution is responsible for, are not recorded as rows. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person. The paragraph is under (f)(10)(ii)(C), headed 24-month extension of post-completion OPT for a science, technology, engineering, or mathematics (STEM) degree.",
+      "plain": "A student may be authorized to work for an employer on a 24-month OPT extension only if the student hands in a self-evaluation. It shows progress toward the training goals in Form I-983. This is Duly's reading, not the rule's exact words.",
+      "quote": "unless the student submits a self-evaluation of the student's progress toward the training goals described in the Form I-983 or successor form.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
     "stem.requires.training_plan": {
       "checked_on": "2026-09-29",
       "citation": "8 CFR 214.2(f)(10)(ii)(C)(7)(i)",
@@ -1238,18 +1450,6 @@
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": true
     },
-    "stem.unemployment_limit_days": {
-      "checked_on": "2026-09-28",
-      "citation": "8 CFR 214.2(f)(10)(ii)(E)",
-      "derivation": "verbatim",
-      "note": "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The limit for the earlier 17-month extension was a different number and is not recorded in this pack. The subject of the sentence in the saved text is Students granted a 24-month OPT extension under paragraph (f)(10)(ii)(C)(2) of this section; the quote starts after those words because the saved copy prints the paragraph number 2 in italics.",
-      "plain": "A student granted a 24-month OPT extension may not have more than 150 days of unemployment in all. The count runs over a total OPT period. That takes in any post-completion OPT period and any later 24-month extension period.",
-      "quote": "may not accrue an aggregate of more than 150 days of unemployment during a total OPT period, including any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B) and any subsequent 24-month extension period",
-      "status": "settled",
-      "unit": "days",
-      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
-      "value": 150
-    },
     "stem.validation_due_business_days": {
       "checked_on": "2026-09-28",
       "citation": "8 CFR 214.2(f)(12)(ii)(B)",
@@ -1261,6 +1461,18 @@
       "unit": "business_days",
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": 10
+    },
+    "stem.validation_ends_with_extension": {
+      "checked_on": "2026-09-30",
+      "citation": "8 CFR 214.2(f)(12)(ii)(B)",
+      "derivation": "verbatim",
+      "note": "The quote is the second sentence of (f)(12)(ii)(B), the paragraph of stem.validation_interval_months. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-30; both carry the same sentence, so the rule sits under no regime. The path dates a validation report only while a STEM card exists (resolutions point 16): a next STEM stage with no card has no report dates. A reporting date is dated only when it falls on or before the earliest of the card end, the transfer release date (opt.ends_on_release_date), the day before a program at another level starts (opt.ends_on_transfer_or_new_level), and the day before the validity start of an approved change-of-status petition (capgap.status_ends_on_h1b_start, a reading of guidance, for the day F-1 status expires). A job's end is neither the expiry of F-1 status nor the conclusion of the extension, so it does not end validation reporting.",
+      "plain": "Validation reporting starts on the day the 24-month OPT extension begins. It stops when the student's F-1 status ends or the extension ends, whichever comes first.",
+      "quote": "The requirement for validation reporting starts on the date the 24-month OPT extension begins and ends when the student's F-1 status expires or the 24-month OPT extension concludes, whichever is first.",
+      "status": "settled",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
     },
     "stem.validation_interval_months": {
       "checked_on": "2026-09-28",
@@ -1393,6 +1605,7 @@
       "rule_ids": [
         "opt.post_completion_definition",
         "opt.ends_on_transfer_or_new_level",
+        "opt.ends_on_release_date",
         "opt.apply_before_days",
         "opt.apply_after_days",
         "opt.latest_start_after_days",
@@ -1505,9 +1718,15 @@
         "stem.validation_interval_months",
         "stem.validation_due_business_days",
         "calendar.federal_holidays_law",
+        "stem.validation_ends_with_extension",
+        "opt.ends_on_release_date",
+        "capgap.status_ends_on_h1b_start",
         "stem.evaluation_interval_months",
         "stem.evaluation_due_days",
-        "stem.reporting_required"
+        "stem.reporting_required",
+        "stem.opportunity_ends_with_job",
+        "capgap.end_month_day",
+        "capgap.ends_on_outcome"
       ],
       "stage": "stem",
       "starts": null,
@@ -1554,9 +1773,13 @@
           "rule_ids": [
             "stem.validation_interval_months",
             "stem.validation_due_business_days",
-            "calendar.federal_holidays_law"
+            "calendar.federal_holidays_law",
+            "stem.validation_ends_with_extension",
+            "opt.ends_on_release_date",
+            "opt.ends_on_transfer_or_new_level",
+            "capgap.status_ends_on_h1b_start"
           ],
-          "status": "settled"
+          "status": "guidance"
         },
         {
           "closes": null,
@@ -1571,9 +1794,13 @@
           "rule_ids": [
             "stem.validation_interval_months",
             "stem.validation_due_business_days",
-            "calendar.federal_holidays_law"
+            "calendar.federal_holidays_law",
+            "stem.validation_ends_with_extension",
+            "opt.ends_on_release_date",
+            "opt.ends_on_transfer_or_new_level",
+            "capgap.status_ends_on_h1b_start"
           ],
-          "status": "settled"
+          "status": "guidance"
         },
         {
           "closes": null,
@@ -1588,9 +1815,13 @@
           "rule_ids": [
             "stem.validation_interval_months",
             "stem.validation_due_business_days",
-            "calendar.federal_holidays_law"
+            "calendar.federal_holidays_law",
+            "stem.validation_ends_with_extension",
+            "opt.ends_on_release_date",
+            "opt.ends_on_transfer_or_new_level",
+            "capgap.status_ends_on_h1b_start"
           ],
-          "status": "settled"
+          "status": "guidance"
         },
         {
           "closes": null,
@@ -1605,9 +1836,13 @@
           "rule_ids": [
             "stem.validation_interval_months",
             "stem.validation_due_business_days",
-            "calendar.federal_holidays_law"
+            "calendar.federal_holidays_law",
+            "stem.validation_ends_with_extension",
+            "opt.ends_on_release_date",
+            "opt.ends_on_transfer_or_new_level",
+            "capgap.status_ends_on_h1b_start"
           ],
-          "status": "settled"
+          "status": "guidance"
         },
         {
           "closes": null,
@@ -1634,14 +1869,19 @@
           "label": "Concluding evaluation",
           "opens": null,
           "opens_days_away": null,
-          "reading": false,
+          "reading": true,
           "record": "a2",
           "rule_ids": [
             "stem.evaluation_interval_months",
             "stem.evaluation_due_days",
-            "stem.reporting_required"
+            "stem.reporting_required",
+            "stem.opportunity_ends_with_job",
+            "opt.ends_on_release_date",
+            "opt.ends_on_transfer_or_new_level",
+            "capgap.end_month_day",
+            "capgap.ends_on_outcome"
           ],
-          "status": "settled"
+          "status": "guidance"
         }
       ]
     },
@@ -1747,12 +1987,11 @@
       "missing:a1.dso_on",
       "missing:p1.first_year_before_training",
       "missing:p1.immediate_cpt",
+      "missing:p1.full_course_each_term",
+      "missing:p1.online_within_limit",
       "missing:t1.signature_on",
       "missing:t1.job_on_return",
-      "missing:p1.coursework_done_on",
-      "missing:a1.decision",
       "missing:t1.purpose",
-      "missing:a2.time",
       "unconfirmed:complete.authorization",
       "unconfirmed:complete.end_date_change",
       "unconfirmed:complete.program",

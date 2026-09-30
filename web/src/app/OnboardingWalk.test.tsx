@@ -359,6 +359,48 @@ describe("A withdrawal (note 5)", () => {
   });
 });
 
+describe("Nothing preselected in the withdrawal views (resolutions point 16)", () => {
+  it("opens each view with nothing chosen, and Continue with nothing chosen stays", async () => {
+    let held = applyFlow(current(), "earlier", "no", "2026-09-29");
+    held = applyFlow(held, "outside", "no", "2026-09-29");
+    await walkTo(held, "Have you withdrawn from classes during a program on an F-1?");
+    const unchosen = () => {
+      expect(screen.queryAllByRole("radio", { checked: true })).toEqual([]);
+      expect(screen.queryAllByRole("button", { pressed: true })).toEqual([]);
+    };
+    const stays = (at: string) => {
+      expect(title()).toBe(at);
+      unchosen();
+      next();
+      expect(title()).toBe(at);
+      expect(document.querySelectorAll("p.problem").length).toBeGreaterThan(0);
+    };
+    stays("Have you withdrawn from classes during a program on an F-1?");
+    pick("Yes");
+    next();
+    stays("Which program did you withdraw from?");
+    pick("State University, Master's");
+    next();
+    stays("The day of the withdrawal");
+    notSureFor("The day of the withdrawal");
+    next();
+    stays("Did your DSO authorize the withdrawal?");
+    pick("No");
+    next();
+    stays("Is that every withdrawal?");
+    pick("Add another withdrawal");
+    next();
+    // The second withdrawal opens with no program either, though the first one named one.
+    stays("Which program did you withdraw from?");
+    await settle();
+    const two = posted.filter(
+      (body) => body.records.filter((record) => record.kind === "withdrawal").length === 2,
+    );
+    const programs = two.at(-1)?.records.filter((record) => record.kind === "withdrawal");
+    expect(programs?.map((record) => record.fields.program)).toEqual(["p1", undefined]);
+  });
+});
+
 describe("Why lines (finding 4)", () => {
   it("gives every view Onboarding can build a why line", () => {
     let held = current();

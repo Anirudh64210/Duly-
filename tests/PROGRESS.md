@@ -2438,3 +2438,91 @@ in J19.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-9c0a169aa5: resolutions point 17, a change-of-status petition ends validations only on its own card
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 15 to 17,
+specs/product-2/plan-fix4.yaml, reviews/product-2-fix3.md finding 2 and 3, the pack's
+`stem_validation_end` (rulepacks/f1-us/v2026.09/parameters.yaml:1783-1787), programs.md
+section 10 (petition fields, cos_ended_on).
+
+What I did:
+- tests/unit/acceptance/test_journeys.py: helper _j19_with_petition (J19 plus employer e1 and an
+  approved change-of-status petition h9; the petition list stated whole) and three tests on a2
+  (card 2026-06-09 to 2028-06-08):
+  - test_j19_an_old_approved_petition_from_before_this_f1_status_keeps_every_validation: the
+    review's own input (filed 2020-04-01, approved 2020-06-01, validity_start 2020-10-01).
+    validation_1 2026-12-09 to 12-23, validation_2 opens 2027-06-09, validation_3 2027-12-09 to
+    12-23 (Thursday; 10, 13-17, 20-23; Christmas 2027 is a Saturday, after it).
+  - test_j19_a_change_of_status_ended_before_the_h1b_start_keeps_validation_3: filed 2026-07-01
+    while a2 runs, cap exempt, approved 2026-09-15, validity_start 2027-03-01, cos_ended_on
+    2026-09-22. validation_2 opens 2027-06-09; validation_3 2027-12-09 to 12-23.
+  - test_j19_a_petition_filed_while_the_card_runs_and_approved_ends_validations_at_its_start:
+    the same with no cos_ended_on. Last F-1 day 2027-02-28; validation_1 2026-12-09 to 12-23
+    stays; no validation dated after 2027-02-28.
+  The petitions filed on the card are filed and decided before today (2026-09-29) so that no
+  after-today conflict enters the case (lesson from an earlier run). My first draft dated them
+  in 2027; I moved them before running further.
+- tests/holdout/test_holdout_journeys.py: _twin_j19_with_petition (master's p1 from 2023-01-09,
+  STEM a2 2025-12-12 to 2027-12-11) and three twins: an old petition (2018) keeps
+  validation_1 2026-06-12 to 06-29, validation_2 opening 2026-12-12 and validation_3 opening
+  2027-06-12; a petition filed 2026-04-06, approved, validity_start 2026-10-01, cos_ended_on
+  2026-08-14 keeps validations 2 and 3; the same without cos_ended_on keeps validation_1 and
+  dates nothing after 2026-09-30. validation_2 and _3 closing days are not asserted: 2027-06-12
+  runs across Juneteenth observed on a Friday, which the saved words do not settle here.
+
+What ran:
+- The new tests against today's pack: the two "keeps" tests in each file fail (validation_1 or
+  validation_2 None), as reviews/product-2-fix3.md finding 2 describes; the two "ends" tests pass.
+- Scratch copy (git archive HEAD into TMPDIR, new test files copied in) with the pack's petition
+  line narrowed to point 17 (filed_on within card_start..card_end, cos_ended_on absent or not
+  before validity_start): all six new tests pass, and tests/unit/acceptance plus tests/holdout
+  pass in full, exit 0.
+- Second scratch copy with the petition line removed (the review's mutant b): the two "ends"
+  tests fail, the four "keeps" tests pass. Both scratch folders removed.
+- Worktree, tests/unit/acceptance and tests/holdout: exactly the four "keeps" tests fail.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: a stem_validation_end that reads any approved change-of-status
+petition (today's pack: the old-petition tests and the cos-ended tests); one that ignores
+cos_ended_on (the cos-ended tests); one that drops the petition line or never ends validations at
+an approved start on this card (the two "ends" tests).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-0d2abdcb45: resolutions point 17 checked against the pack that now carries it
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md points 16 and 17, the pack's
+`stem_validation_end` petition line (rulepacks/f1-us/v2026.09/parameters.yaml, now with
+filed_on within card_start..card_end and the cos_ended_on any_of, from L-content e96f9dd).
+
+What ran first: the done command as written, no pipe: All checks passed!, 73 files already
+formatted, pytest all dots, exit 0. The six point 17 tests of l-tests-9c0a169aa5 (three in
+tests/unit/acceptance/test_journeys.py, three twins in tests/holdout/test_holdout_journeys.py)
+all pass now; the four "keeps" tests that failed on the fix 3 pack are green.
+
+Searched tests/unit and tests/holdout for change_of_status with validations. The other hits are
+the retained compute_f1 path (point 1) and cap-gap tests, which point 17 does not touch. No
+assertion needed to change; none was loosened.
+
+Added (tests/unit/acceptance/test_journeys.py), point 17's edge of "filed while the card runs",
+a2 begins 2026-06-09, petition cap exempt, approved 2026-09-15, validity_start 2027-03-01:
+- test_j19_a_petition_filed_the_day_before_the_card_began_keeps_the_validations: filed
+  2026-06-08. validation_2 opens 2027-06-09; validation_3 2027-12-09 to 2027-12-23.
+- test_j19_a_petition_filed_on_the_cards_first_day_ends_validations_at_its_start: filed
+  2026-06-09. validation_1 2026-12-09 to 2026-12-23 stays; nothing dated after 2027-02-28.
+
+What makes each fail, run in a scratch copy (git archive HEAD into TMPDIR, pack mutated, folder
+removed after):
+- lower bound dropped from the petition line: the day-before test fails, the other passes.
+- lower bound made strict (after: instead of on_or_after:): the first-day test fails
+  (validation_2 and _3 dated after 2027-02-28).
+- A first mutant that added {days: 1} was refused by the pack schema; not a test result.
+- Unmutated pack: both pass.
+
+Done command after the change, as written, no pipe: All checks passed!, 73 files already
+formatted, all dots, exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
