@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { apiPath } from "./api-path";
 import type { components } from "./api-types";
 
 export const VERDICT_STATES = ["no_open_items", "needs_you", "talk_to_dso", "cannot_tell"] as const;
@@ -30,7 +31,7 @@ type Contract = components["schemas"]["Status"];
 export const contractMatches: Status extends Contract ? true : never = true;
 
 export async function fetchStatus(get: typeof fetch = fetch): Promise<Status> {
-  const response = await get("/api/v1/status");
+  const response = await get(apiPath("/v1/status"));
   if (!response.ok) throw new Error(`status ${response.status}`);
   return statusSchema.parse(await response.json());
 }

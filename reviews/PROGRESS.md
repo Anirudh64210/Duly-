@@ -190,3 +190,14 @@
 - Failure: a fix made in the review's own example words invites a pass that was never tested.
 - Fix: test the example words like any rewrite, and run the tighter wording through the gate.
 - Evidence: reviews/product-1-fix10.md note 2.
+
+## 2026-09-29, run l-review-c51c95e205 (desktop round 1)
+- Read specs/desktop-1/SPEC.md, the threat model, and the diff product-1...HEAD (8e212b8): desktop/src, api/local_token.py, api/main.py, web api-path, vite base, tools/factory efficiency and phase.
+- Ran: desktop typecheck (exit 0); desktop vitest on a TMPDIR copy (66 passed; worktree run refused mkdir coverage); web vitest (307 passed); vite build (relative assets, no inline script); eslint, copy lint, ruff, mypy clean; tests/unit/api passed; test_phase 4 failures from sandbox-exec, 3 of them same on product-1.
+- Probed routeRequest/readInside with about 30 plain, encoded, absolute and symlink paths: no read outside web/dist. Raw HTTP to the real api with DULY_LOCAL_TOKEN=abc: 403 on everything but /health. Links off the host list are refused. Mutants: 10 of 12 killed (detached spawn and username check survive).
+- Wrote reviews/desktop-1.md (APPROVE), REVIEW.json, REPORT.json. A probe uvicorn on 127.0.0.1:18765 could not be killed from the sandbox.
+
+## Lesson
+- Failure: a background probe server could not be stopped from inside the sandbox.
+- Fix: probe in the foreground with a timeout, or through TestClient.
+- Evidence: kill 18296: operation not permitted.

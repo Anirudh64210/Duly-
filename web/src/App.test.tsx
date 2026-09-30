@@ -77,8 +77,8 @@ function serve(...replies: [Reply, ...Reply[]]) {
   const posted: unknown[] = [];
   vi.stubGlobal("fetch", (url: string, init?: RequestInit) => {
     const compute = replies[Math.min(posted.length, replies.length - 1)] ?? replies[0];
-    const reply = url === "/api/v1/compute/f1" ? compute : { status: 200, body: STATUS };
-    if (url === "/api/v1/compute/f1") posted.push(JSON.parse(String(init?.body)));
+    const reply = url === "api/v1/compute/f1" ? compute : { status: 200, body: STATUS };
+    if (url === "api/v1/compute/f1") posted.push(JSON.parse(String(init?.body)));
     return Promise.resolve({
       ok: reply.status >= 200 && reply.status < 300,
       status: reply.status,

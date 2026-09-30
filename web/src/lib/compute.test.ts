@@ -195,7 +195,7 @@ describe("computeF1", () => {
   it("posts the case as json to the compute path", async () => {
     const post = reply(OUTPUT);
     await expect(computeF1(CASE, asFetch(post))).resolves.toEqual(OUTPUT);
-    expect(post).toHaveBeenCalledWith("/api/v1/compute/f1", {
+    expect(post).toHaveBeenCalledWith("api/v1/compute/f1", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(CASE),

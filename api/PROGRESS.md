@@ -184,3 +184,22 @@ Point 35 of specs/product-1/SPEC-resolutions.md: /v1/status uses the packs' own 
   rules_checked_on, so the body now goes past the contract. The test asks for the field;
   the contract change is the founder's and must land first and alone. No api test checks
   the body against openapi.yaml, so nothing fails today.
+
+## Run l-api-f9619de750 (desktop-1, attempt 1)
+Goal: specs/desktop-1/SPEC.md "The api (L-api)": when DULY_LOCAL_TOKEN is set, every
+request but /health carries the same value in X-Duly-Local, compared in constant time,
+or gets 403 in plain words. Unset: nothing changes.
+- api/local_token.py (new): request_allowed(path, sent, expected), a plain function.
+  hmac.compare_digest on UTF-8 bytes, so a header outside ASCII is refused, not a 500.
+  The variable is read from os.environ at each request (not through the lru_cached
+  Settings), so a test's monkeypatch.setenv takes effect. An empty value counts as set.
+- api/main.py: an http middleware returns 403 {"detail": "This request did not come from
+  the Duly app on this Mac."} before any route runs. Only the exact path /health is open.
+- ruff S105 flagged the names TOKEN_ENV and TOKEN_HEADER as passwords; marked noqa with
+  the reason (they are names, not values).
+- tests/unit/api/test_local_token.py is not on any branch yet (L-tests writes it this
+  round). A scratch test under TMPDIR checked: /health open, no header 403, wrong header
+  403, non-ASCII header 403, POST 403, right header 200, unset 200. 2 passed.
+- Done command, run as written with no pipe: all tests in tests/unit/api pass, mypy
+  "Success: no issues found in 60 source files", ruff check "All checks passed!",
+  ruff format "9 files already formatted". Exit 0. Copy lint clean.
