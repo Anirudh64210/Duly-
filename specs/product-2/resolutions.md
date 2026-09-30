@@ -113,3 +113,11 @@ asked, because point 23 needs it.
   asked there.
 - An `unknown` stage's Timeline row carries no mark (not now, not done); it holds the DSO line
   and the words of cap_gap.for_dso.
+
+## 24a. Point 24, corrected for the pack (fix7 content lane escalation)
+
+The pack's plain words are never about a person (contracts/rulepack.schema.json, the plain
+gate), so they cannot say "your". The pack says "A petition for a change of status, such as one
+for H-1B" and never "An H-1B petition" for a petition of any type. Only web/src/lib/labels.ts,
+which speaks to the person, says "A petition to change your status". The test of the pack's
+words checks that it names every kind of date taken away and does not say "An H-1B petition".

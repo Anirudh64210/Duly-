@@ -1,0 +1,69 @@
+# plan-fix7b from the content lane's kept work, with point 24a.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: content
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Your work is on lane/L-content/l-content-34076aca69; bring it in (git merge lane/L-content/l-content-34076aca69).
+      The engine''s unknown stage state (point 22) is now on this branch. Point 24a answers your dispute:
+      the pack words stay as you wrote them. Finish and pass.
+
+      '
+    done: bash -c 'uv run python -m tools.sources.verify && uv run python -m tools.sources.plain && uv
+      run python -m tools.gates.engine_literals && uv run pytest tests/unit/acceptance/test_fix7.py -q
+      -p no:cacheprovider -k "not pack_words_say"'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with points 22 to 26, 23a and 24a;
+      write the point beside each change; never loosen an assertion; escalate any failure no point explains.
+
+      The two J19 tests that expect a 2020 petition to step back change under point 23a.
+
+      Remove tests/web/fix7.test.ts (its copy lives in web/src/lib/views).
+
+      Change test_point_24_the_pack_words_say_a_petition_to_change_your_status under point 24a.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and
+      make npm test -w web pass, changing only tests that points 22 to 26 and 23a require, with the point
+      beside each.
+
+      '
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 against specs/product-2/resolutions.md in ONE pass. Close or name every
+      finding and note of reviews/product-2-fix6.md. Send all twenty journeys and their twins through
+      POST /v1/compute; for J12, J13, J14 and J19 with a petition, check Home and the Timeline views name
+      no stage the petition could change as now. Try the point 25 mutants. Write reviews/product-2-fix7.md
+      and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix7.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+      name; cap-gap rows stay not met (point 19). Update docs/requirements/audits/product-2.md and report
+      the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register
+      check'
