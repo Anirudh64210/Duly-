@@ -791,6 +791,109 @@ def test_twin_j19_validation_skips_christmas(client: TestClient) -> None:
     assert "opt_post.p1" not in [i for i in stage_ids(out) if stage(out, i)["state"] == "next"]
 
 
+# J19 twins with a change-of-status petition: resolutions point 17 (reviews/product-2-fix3.md
+# finding 2). A change-of-status petition ends validations only when it belongs to this STEM
+# card: filed while the card runs, approved, and its change of status not ended
+# (cos_ended_on empty) before the start. The STEM card a2 runs 2025-12-12 to 2027-12-11.
+# Validations open at card_start plus 6, 12, 18 months: 2026-06-12, 2026-12-12, 2027-06-12;
+# the fourth, 2027-12-12, is after the card end (point 16). validation_1: 2026-06-12 plus
+# 10 business days is 2026-06-29 (test_twin_j19_validation_skips_juneteenth).
+
+
+def _twin_j19_with_petition(**fields: Any) -> dict[str, Any]:
+    return case(
+        [
+            _masters("2024-11-15", stem_list="on_list", start_date="2023-01-09"),
+            _opt("a1", "p1", "2024-12-12", "2025-12-11"),
+            rec(
+                "a2",
+                "authorization",
+                type="stem_extension",
+                program="p1",
+                extends="a1",
+                basis_program="p1",
+                decision="approved",
+                card_start="2025-12-12",
+                card_end="2027-12-11",
+            ),
+            rec("e1", "employer", name="Employer Two"),
+            rec(
+                "h9",
+                "petition",
+                type="h1b",
+                cap_subject="yes",
+                employer="e1",
+                change_of_status="yes",
+                outcome="approved",
+                **fields,
+            ),
+        ],
+        whole("program", "authorization:p1", "petition", "trip"),
+    )
+
+
+def test_twin_j19_an_old_petition_before_this_f1_status_keeps_the_validations(
+    client: TestClient,
+) -> None:
+    # h9 filed 2018-04-02, approved 2018-06-15, validity_start 2018-10-01: years before p1
+    # began 2023-01-09 and a2 began 2025-12-12. Point 17: "An older petition from before this
+    # F-1 status never drops a report." validation_1 2026-06-12 to 2026-06-29; validation_2
+    # opens 2026-12-12; validation_3 opens 2027-06-12.
+    out = _send(
+        client,
+        _twin_j19_with_petition(
+            filed_on="2018-04-02",
+            requested_start="2018-10-01",
+            outcome_on="2018-06-15",
+            validity_start="2018-10-01",
+        ),
+    )
+    assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
+    assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
+    assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+
+
+def test_twin_j19_a_change_of_status_ended_before_the_start_keeps_validation_3(
+    client: TestClient,
+) -> None:
+    # h9 filed 2026-04-06, while a2 runs; approved 2026-06-01; validity_start 2026-10-01;
+    # cos_ended_on 2026-08-14, before the start. Point 17: it does not end validations. Had it
+    # ended them, the last F-1 day 2026-09-30 would drop validation_2 (2026-12-12) and
+    # validation_3 (2027-06-12). Both stand.
+    out = _send(
+        client,
+        _twin_j19_with_petition(
+            filed_on="2026-04-06",
+            requested_start="2026-10-01",
+            outcome_on="2026-06-01",
+            validity_start="2026-10-01",
+            cos_ended_on="2026-08-14",
+        ),
+    )
+    assert window(out, "stem.validation_2.a2")[0] == "2026-12-12"
+    assert window(out, "stem.validation_3.a2")[0] == "2027-06-12"
+
+
+def test_twin_j19_a_petition_filed_on_the_card_and_approved_ends_validations_at_its_start(
+    client: TestClient,
+) -> None:
+    # The same h9 with no cos_ended_on: filed while a2 runs, approved, change of status not
+    # ended. H-1B status begins 2026-10-01 (point 15), so the last F-1 day is 2026-09-30.
+    # validation_1 (2026-06-12 to 2026-06-29) is before it and stays; validation_2 would open
+    # 2026-12-12, after it: no validation holds a date after 2026-09-30.
+    out = _send(
+        client,
+        _twin_j19_with_petition(
+            filed_on="2026-04-06",
+            requested_start="2026-10-01",
+            outcome_on="2026-06-01",
+            validity_start="2026-10-01",
+        ),
+    )
+    assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
+    assert _dated_after(out, "stem.validation_", "a2", "2026-09-30") == []
+
+
 # Resolutions point 16: a next STEM stage, before any STEM card, carries no report dates.
 
 
