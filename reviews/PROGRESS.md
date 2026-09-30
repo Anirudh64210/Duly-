@@ -225,3 +225,17 @@
 - Failure: a unit test that sets a field directly passed while the rendered view refused the same choice.
 - Fix: walk each named journey through the rendered views with a title-keyed click driver and save the posted case.
 - Evidence: the J08 walk stops at "Which permission was this job under?" with "Choose an answer."
+
+## 2026-09-30, run l-review-c18232d7c2 (product round 2, fix 2)
+- Read resolutions.md point 15, reviews/product-2-fix1.md, and the diff 6585ae9..66bbfae (engine/path.py _closed, the pack's stem windows, grace entry and three new rows, the web Onboarding, desktop shots, Makefile, tests/design, the acceptance and holdout journeys).
+- Ran: unit and holdout suites (exit 0); copy lint, ruff, sources verify (clean); web tsc (exit 0) and vitest (522 passed apart from my own stale drivers); desktop vitest (123 passed) on a git archive copy.
+- TMPDIR/rvc18/journeys.py sent all twenty journeys through POST /v1/compute (all 200, cannot_tell), diffed against the fix 1 run. J04, J06, J12, J14, J15, J19 right by hand. J01, J02, J03, J05, J09, J11, J20: the next STEM stage now carries validation and concluding-evaluation dates taken from the OPT card.
+- Probes (TMPDIR/rvc18/probe.py): J15 without Job C drops all validations while the card runs; J15 Job B final evaluation absent.
+- Walked Onboarding for J01 (71 views), J08 (62), J16 (49): every view has a why line, the on-campus job moves on, I'm not sure works, complete.withdrawal is sent. The withdrawal program is preselected.
+- make design-shots: builds pass, Electron SIGTRAP in the sandbox; no shot compared. web/samples are stale against the engine.
+- Wrote reviews/product-2-fix2.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a fix that made a done stage right gave dates to the virtual next stage of the same kind.
+- Fix: diff the full route output of every journey against the previous run, not only the named ones.
+- Evidence: reviews/product-2-fix2.md finding 1.
