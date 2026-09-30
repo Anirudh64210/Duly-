@@ -1208,3 +1208,24 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   unknown stage in place, with the DSO line and the step back". Its nulled grace carries the
   step back in the verdict only, not in the stage's reasons, which point 22b now requires.
   Left for the reconcile round of plan-fix8 (L-web: change only tests point 22b requires).
+
+## l-web-eed95df3c2: samples and the web suite after point 22b (plan-fix8, reconcile round)
+
+### Tried
+
+- Ran `make samples` from the repository root. No file under web/samples changed.
+- web/src/lib/views/fix7.test.ts: `nulled()` now gives the nulled stage `reasons:
+  [cap_gap.for_dso]`, with point 22b beside it, and one header line says so. Point 22b puts
+  the step back in the reasons of the stage a petition nulled, and the Timeline reads it from
+  there only. No assertion changed.
+
+### Ran
+
+- `make samples`: exit 0, no change. git printed "tests/holdout/...: Operation not permitted"
+  (sandbox, as the contract says).
+- `npm test -w web` before the change: exit 1, 574 passed, 1 failed (fix7 "shows the unknown
+  stage in place, with the DSO line and the step back").
+- Done command, as written, output to a file: exit 1. make samples passed, web 575 of 575
+  passed, `npm test -w desktop` failed with "EPERM: operation not permitted, mkdir
+  .../desktop/coverage": the sandbox refuses writes under desktop/, outside this lane.
+- `npx vitest run` in desktop/ (no coverage write): exit 0, 11 files, 139 tests passed.

@@ -18,6 +18,7 @@ import { timelineView, type TimelineRow } from "./timeline";
 // 2027-02-09, stem.a2 next, grace.p1 later 2027-02-10 to 2027-04-10, trip.t1 done), changed
 // only as contracts/engine_output.schema.json allows: a stage whose dates point 19 makes null
 // has starts null, ends null and state "unknown", and the verdict carries cap_gap.for_dso.
+// Point 22b: the nulled stage also carries cap_gap.for_dso in its own reasons.
 // Each output goes through engineOutputSchema, so the web's copy of the contract must take
 // the state "unknown". Not expected to pass before the build round of plan-fix7.
 
@@ -37,6 +38,9 @@ function nulled(stage: RawStage): RawStage {
     ends_days_away: null,
     days_in: null,
     days_total: null,
+    // Point 22b (specs/product-2/resolutions.md): the engine puts the step back in the
+    // reasons of the stage a petition nulled, and the Timeline reads it from there only.
+    reasons: [STEP_BACK],
   };
 }
 
