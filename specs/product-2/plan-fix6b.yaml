@@ -1,0 +1,69 @@
+# Desktop beside integration, after the web landmarks landed.
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+- name: integrate
+  checkpoint: false
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'All parts are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py
+      pass through POST /v1/compute, fixing engine/. A journey asserting what the saved words do not support
+      is a finding in your report.
+
+      '
+    done: bash -c 'uv run pytest tests/unit/acceptance -q && uv run python -m tools.gates.engine_literals
+      && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - lane: L-desktop
+    agent: builder
+    mission: Your work is on lane/L-desktop/l-desktop-bc4b445878; bring it in (git merge lane/L-desktop/l-desktop-bc4b445878).
+      The web side of point 20 is now on this branch, so your join test can pass. Finish and pass.
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings
+      0 && uv run python -m tools.copy_lint.lint'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with specs/product-2/resolutions.md
+      points 19 and 20; write the point beside each change; never loosen an assertion; escalate any failure
+      no point explains.
+
+      '
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  - lane: L-web
+    agent: builder
+    mission: 'Regenerate the engine samples: run make samples from the repository root and commit what
+      it changes under web/samples. Change nothing else.
+
+      '
+    done: bash -c 'make samples && npm test -w web'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review product-2 against specs/product-2/resolutions.md, following your role file, in ONE
+      pass. Send all twenty journeys through POST /v1/compute and check every date against the saved words;
+      for a case with a petition, check that nothing a petition could change is dated and that the step
+      back is given. Walk Onboarding for J01, J08 and J16. Close or name every finding of reviews/product-2-fix5.md.
+      Write reviews/product-2-fix6.md and reviews/REVIEW.json.
+
+      '
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix6.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+      name; cap-gap rows stay not met (point 19). Update docs/requirements/audits/product-2.md and report
+      the share met.
+
+      '
+    done: bash -c 'test -f docs/requirements/audits/product-2.md && uv run python -m tools.requirements.register
+      check'
