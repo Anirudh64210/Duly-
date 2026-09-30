@@ -1974,6 +1974,9 @@ def test_j19_nothing_asked_about_stem_for_english_language_training(client: Test
 # denied, pending or ended petition; grace.p2 2028-06-09 to 2028-08-07 beside an old petition.
 # The petitions are filed and decided before today (2026-09-29), so no after-today conflict
 # enters the case.
+# Point 23a narrows point 19: a petition whose start (validity_start when approved and
+# entered, else requested_start) is before the period it would extend takes nothing from it,
+# so the 2020 petition steps back for nothing on J19 and the reports and grace above stand.
 
 
 def _j19_with_petition(outcome: str | None = "approved", **fields: Any) -> dict[str, Any]:
@@ -1988,44 +1991,52 @@ def _j19_with_petition(outcome: str | None = "approved", **fields: Any) -> dict[
     return body
 
 
-def test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back(
-    client: TestClient,
-) -> None:
-    # The fix 3 review's input: h9 filed 2020-04-01, approved 2020-06-01, validity_start
-    # 2020-10-01, before p0 began 2021-01-11. Point 17 kept every validation; point 19 nulls
-    # every report from 2020-04-01 onward, which is all of a2's.
-    out = _send(
-        client,
-        _j19_with_petition(
-            cap_subject="yes",
-            filed_on="2020-04-01",
-            requested_start="2020-10-01",
-            outcome_on="2020-06-01",
-            validity_start="2020-10-01",
-        ),
+def _j19_with_a_2020_petition() -> dict[str, Any]:
+    # The fix 3 and fix 4 reviews' input: h9 filed 2020-04-01, approved 2020-06-01,
+    # validity_start 2020-10-01, before p0 began 2021-01-11.
+    return _j19_with_petition(
+        cap_subject="yes",
+        filed_on="2020-04-01",
+        requested_start="2020-10-01",
+        outcome_on="2020-06-01",
+        validity_start="2020-10-01",
     )
-    assert _not_the_step_back(out, "h9") == []
-    assert _reports_dated_from(out, "2020-04-01") == []
 
 
-def test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap(
+def test_j19_an_old_approved_petition_from_before_this_f1_status_keeps_the_reports(
     client: TestClient,
 ) -> None:
-    # The fix 4 review's input (finding 1): the same h9. Point 18 kept grace.p2; the fix 4 run
-    # gave cap_gap.h9 from 2028-06-09 to 2020-10-01 and the conflict
-    # cap_gap.h9.ends_before_starts. Point 19: no cap_gap stage, no conflict, the grace null.
-    out = _send(
-        client,
-        _j19_with_petition(
-            cap_subject="yes",
-            filed_on="2020-04-01",
-            requested_start="2020-10-01",
-            outcome_on="2020-06-01",
-            validity_start="2020-10-01",
-        ),
-    )
-    assert _not_the_step_back(out, "h9") == []
-    assert _grace_dated(out) == []
+    # Point 23a (was point 19's step back): the start used is validity_start 2020-10-01, before
+    # a1's start 2025-06-09 and a2's start 2026-06-09, so the petition cannot extend either card
+    # and point 19 takes nothing from them. a2's reports are those of plain J19:
+    # validation_1 opens 2026-06-09 plus 6 months, 2026-12-09, and closes 14 days later,
+    # 2026-12-23 (December 9 plus 14). No cap_gap.for_dso and no cap_gap stage.
+    # Kills: a petition stepping back whatever its start; a card's reports nulled by a petition
+    # whose start is before the card begins.
+    out = _send(client, _j19_with_a_2020_petition())
+    plain = _send(client, j19())
+    assert STEP_BACK not in reasons(out)
+    assert [i for i in stage_ids(out) if i.startswith("cap_gap.")] == []
+    assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
+    assert _reports_dated_from(out, "2020-04-01") == _reports_dated_from(plain, "2020-04-01")
+
+
+def test_j19_an_old_approved_petition_keeps_the_grace_and_opens_no_cap_gap(
+    client: TestClient,
+) -> None:
+    # Point 23a (was point 19's null grace): grace.p2 follows a2 (begins 2026-06-09) and p2
+    # (ends 2025-05-16, so the program grace begins 2025-05-17). The start 2020-10-01 is before
+    # both, so neither member nulls it: 2028-06-09 to 2028-08-07 (a2's card_end 2028-06-08 plus
+    # 60: June 9 to 30 is 22 days, July 31 more is 53, August 1 to 7 is 60). The fix 4 run gave
+    # cap_gap.h9 from 2028-06-09 to 2020-10-01 and cap_gap.h9.ends_before_starts: still no
+    # cap_gap stage, no conflict naming h9, no cap_gap question.
+    # Kills: the program-end member of the grace stepping back for a 2020 start; a cap_gap
+    # stage or conflict opened by a petition that cannot extend the card.
+    out = _send(client, _j19_with_a_2020_petition())
+    assert _grace_dated(out) == [("grace.p2", "2028-06-09", "2028-08-07")]
+    assert [i for i in stage_ids(out) if i.startswith("cap_gap.")] == []
+    assert [r for r in reasons(out) if "cap_gap" in r or "h9" in re.split("[:.]", r)] == []
+    assert [q for q in question_ids(out) if q.startswith("cap_gap.")] == []
 
 
 def test_j19_a_change_of_status_ended_before_the_h1b_start_steps_back(

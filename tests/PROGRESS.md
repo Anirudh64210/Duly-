@@ -2810,3 +2810,48 @@ petition to step back, which 23a reverses. Put under disputes.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-2a462beaa8: tests/unit and tests/holdout in line with points 22 to 26, 23a and 24a
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md, the J19 petition tests and
+twins, test_fix7.py's point 23a and 24 tests, the pack's capgap.petition_for_dso plain words.
+
+What ran first: the done command as written: ruff clean, pytest exit 1, 5 failures, each
+explained by a point:
+- test_fix7.py test_point_24_the_pack_words_say_a_petition_to_change_your_status: point 24a.
+- test_journeys.py test_j19_an_old_approved_petition_from_before_this_f1_status_steps_back and
+  test_j19_an_old_approved_petition_nulls_the_grace_and_opens_no_cap_gap: point 23a.
+- test_holdout_journeys.py test_twin_j19_an_old_petition_before_this_f1_status_steps_back and
+  test_twin_j19_an_old_petition_nulls_the_grace_and_opens_no_cap_gap: point 23a (the same
+  2018 petition on the twin).
+
+Changed:
+- Point 24a, test_fix7.py: renamed test_point_24a_the_pack_words_say_a_petition_for_a_change_of_status.
+  Asserts "a petition for a change of status", no "an h-1b petition", no word "your" (the
+  plain gate), and every kind of date taken away (grace, days without work, report,
+  evaluation, cap-gap). Stronger than before, not looser: the old "your status" check was
+  replaced by the form 24a states.
+- Point 23a, test_journeys.py: *_steps_back became
+  test_j19_an_old_approved_petition_from_before_this_f1_status_keeps_the_reports (no
+  cap_gap.for_dso, no cap_gap stage, validation_1.a2 2026-12-09 to 2026-12-23, every report
+  dated as in plain J19); *_nulls_the_grace_* became
+  test_j19_an_old_approved_petition_keeps_the_grace_and_opens_no_cap_gap (grace.p2 2028-06-09
+  to 2028-08-07, no cap_gap stage, reason naming h9 or cap_gap, or cap_gap question).
+  Section comment notes point 23a. Working beside each test.
+- Point 23a, test_holdout_journeys.py: the same two twins, keeps_the_reports (validation_1.a2
+  2026-06-12 to 2026-06-29, validation_2 opens 2026-12-12, validation_3 2027-06-12) and
+  keeps_the_grace_and_opens_no_cap_gap (grace.p1 2027-12-12 to 2028-02-09).
+- Removed tests/web/fix7.test.ts (web/src/lib/views/fix7.test.ts holds it).
+
+What makes each fail (scratch plugin under TMPDIR wrapping engine.path.compute, removed after):
+- FAULT=start (every petition start moved to 2030-01-01, so any petition steps back): the 4
+  J19 tests fail, the words test passes.
+- FAULT=h1b (plain words say "An H-1B petition ..."): the words test fails.
+- FAULT=your ("your F-1 status" in the plain words): the words test fails.
+- FAULT=kinds (" and evaluations" dropped): the words test fails.
+- No fault: 5 passed.
+
+Done command as written, no pipe: "All checks passed!", "74 files already formatted", exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
