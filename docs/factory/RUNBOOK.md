@@ -108,6 +108,7 @@ now chosen by what a change can break.
 - Independent work runs in parallel lanes of the same round, not in plans one after another.
 - A reviewer reads everything in one pass and names every finding; a fix plan answers all of them together.
 - Before a phase is built, real student journeys are run against its data model, so a gap in the model is found before code is written, not after.
+- A plan that changes the pack or the engine regenerates the web samples (`make samples`) in its reconcile round, by a web lane beside the test lane, so the samples drift test never stops a plan.
 - `make efficiency SINCE=<time>` reports wall time, agent time by lane, CI waits, stops and the time from each stop to the restart, and reviews with vetoes. Every status report carries it.
 
 ## A change of behaviour lands in two rounds
