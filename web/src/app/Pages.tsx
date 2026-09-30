@@ -14,8 +14,9 @@ import {
 import { STORAGE_SENTENCE } from "../lib/privacy";
 import { fetchStatus } from "../lib/status";
 import { updatesTitle, type UpdatesResponse } from "../lib/views/updates";
-import { useStore, type AppCase, type Program } from "./caseStore";
-import { DateField, Footer, OneOpen, OptionCards, Row, TextField } from "./parts";
+import { authLabel, programLabel, removeRecords, setField, value } from "../lib/views/onboarding";
+import { useStore, type AppCase } from "./caseStore";
+import { DateField, Footer, OneOpen, Row, TextField } from "./parts";
 
 export const UPDATES_EMPTY =
   "Duly shows an update only after its words are found in a primary source, two checks pass and a person at Duly approves it. Every item links to its original source.";
@@ -53,38 +54,48 @@ export function Updates({
   );
 }
 
-function programMeta(program: Program): string {
-  const days = [program.start, program.end].filter((day) => /^\d{4}-\d{2}-\d{2}$/.test(day));
+function programMeta(held: AppCase, id: string): string {
+  const days = [value(held, id, "start_date"), value(held, id, "end_date")].filter((day) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(day),
+  );
   return days.length === 2
     ? `${formatDate(days[0] ?? "")} to ${formatDate(days[1] ?? "")}`
     : "Dates not entered";
 }
 
-function ProgramRow(props: { held: AppCase; index: number }) {
+function ProgramRow(props: { held: AppCase; id: string }) {
   const { save } = useStore();
-  const program = props.held.programs[props.index] as Program;
-  const [editing, setEditing] = useState<Program | null>(null);
+  const [editing, setEditing] = useState<AppCase | null>(null);
   const [removing, setRemoving] = useState(false);
-  const title =
-    program.name.trim() !== ""
-      ? program.name.trim()
-      : program.level === ""
-        ? "Program"
-        : `${levelName(program.level)} program`;
-  const put = (programs: Program[]) => save({ ...props.held, programs });
+  const title = programLabel(props.held, props.id);
+  const programs = props.held.draft.records.filter((r) => r.kind === "program");
+  const field = (name: string, label: string) => {
+    const id = `p-${name}-${props.id}`;
+    const shown = editing === null ? "" : value(editing, props.id, name);
+    const onChange = (entered: string) =>
+      editing !== null && setEditing(setField(editing, props.id, name, entered));
+    return name === "school_name" ? (
+      <TextField id={id} label={label} value={shown} maxLength={120} onChange={onChange} />
+    ) : (
+      <DateField id={id} label={label} value={shown} onChange={onChange} />
+    );
+  };
   return (
     <div className="row case-row">
       <div className="row-head static">
         <span className="row-text">
           <span className="row-title">{title}</span>
-          <span className="row-meta">{programMeta(program)}</span>
+          <span className="row-meta">
+            {levelName(value(props.held, props.id, "level") || "other")} ·{" "}
+            {programMeta(props.held, props.id)}
+          </span>
         </span>
         {editing === null && (
           <button
             type="button"
             className="text-button"
             aria-label={`Change ${title}`}
-            onClick={() => setEditing(program)}
+            onClick={() => setEditing(props.held)}
           >
             Change
           </button>
@@ -92,27 +103,11 @@ function ProgramRow(props: { held: AppCase; index: number }) {
       </div>
       {editing !== null && (
         <div className="row-open edit">
-          <TextField
-            id={`p-name-${program.key}`}
-            label="The program's name, in your words"
-            value={editing.name}
-            maxLength={80}
-            onChange={(name) => setEditing({ ...editing, name })}
-          />
-          <DateField
-            id={`p-start-${program.key}`}
-            label="Start date on the I-20"
-            value={editing.start}
-            onChange={(start) => setEditing({ ...editing, start })}
-          />
-          <DateField
-            id={`p-end-${program.key}`}
-            label="Program end date on the I-20"
-            value={editing.end}
-            onChange={(end) => setEditing({ ...editing, end })}
-          />
+          {field("school_name", "School name")}
+          {field("start_date", "Program start date")}
+          {field("end_date", "Program end date")}
           <div className="edit-actions">
-            {props.held.programs.length > 1 && (
+            {programs.length > 1 && (
               <button type="button" className="text-button quiet" onClick={() => setRemoving(true)}>
                 Remove
               </button>
@@ -125,7 +120,7 @@ function ProgramRow(props: { held: AppCase; index: number }) {
               type="button"
               className="pill-primary small"
               onClick={() => {
-                put(props.held.programs.map((p, i) => (i === props.index ? editing : p)));
+                save(editing);
                 setEditing(null);
               }}
             >
@@ -138,7 +133,7 @@ function ProgramRow(props: { held: AppCase; index: number }) {
               <button
                 type="button"
                 className="text-button quiet"
-                onClick={() => put(props.held.programs.filter((_, i) => i !== props.index))}
+                onClick={() => save(removeRecords(props.held, [props.id]))}
               >
                 Remove
               </button>
@@ -157,30 +152,9 @@ function ProgramRow(props: { held: AppCase; index: number }) {
 export function YourCase() {
   const { held, save, output, withdraw } = useStore();
   if (held === null) return null;
-  const f = held.fields;
   const read = new Set(output?.answers_read ?? []);
-  const answers = Object.entries(f.confirmations);
-  const ead = (on: boolean, start: string, end: string) =>
-    !on
-      ? "No"
-      : start !== "" && end !== ""
-        ? `${formatDate(start)} to ${formatDate(end)}`
-        : "Yes, card dates not entered";
-  const choice = (label: string, on: boolean, set: (on: boolean) => void) => (
-    <div className="choice-row">
-      <p>{label}</p>
-      <OptionCards
-        label={label}
-        compact
-        options={[
-          { value: "yes", title: "Yes" },
-          { value: "no", title: "No" },
-        ]}
-        value={on ? "yes" : "no"}
-        onChange={(value) => set(value === "yes")}
-      />
-    </div>
-  );
+  const answers = Object.entries(held.confirmations);
+  const of = (kind: string) => held.draft.records.filter((record) => record.kind === kind);
   return (
     <OneOpen>
       <div className="page">
@@ -198,7 +172,7 @@ export function YourCase() {
                     ? held.statusName || "Another status"
                     : categoryName(held.status)}
                 </span>
-                <span className="row-meta">Dates are counted in {zoneName(f.time_zone)}.</span>
+                <span className="row-meta">Dates are counted in {zoneName(held.time_zone)}.</span>
               </span>
             </div>
           </div>
@@ -209,54 +183,44 @@ export function YourCase() {
               <h2 className="eyebrow" id="c-programs">
                 PROGRAMS
               </h2>
-              {held.programs.map((program, index) => (
-                <ProgramRow key={program.key} held={held} index={index} />
+              {of("program").map((program) => (
+                <ProgramRow key={program.id} held={held} id={program.id} />
               ))}
             </section>
             <section className="section" aria-labelledby="c-training">
               <h2 className="eyebrow" id="c-training">
                 PRACTICAL TRAINING
               </h2>
-              {choice("Did you apply for post-completion OPT?", f.opt_on, (on) =>
-                save({ ...held, fields: { ...f, opt_on: on, stem_on: on && f.stem_on } }),
-              )}
-              <p className="row-meta">OPT card: {ead(f.opt_on, f.opt.ead_start, f.opt.ead_end)}</p>
-              {choice("Did you apply for a STEM OPT extension?", f.stem_on, (on) =>
-                save({ ...held, fields: { ...f, stem_on: on } }),
-              )}
-              <p className="row-meta">
-                STEM OPT card: {ead(f.stem_on, f.stem.ead_start, f.stem.ead_end)}
-              </p>
+              {of("authorization").length === 0 && <p className="row-meta">None entered.</p>}
+              {of("authorization").map((auth) => (
+                <p key={auth.id} className="row-meta">
+                  {authLabel(held, auth.id)}, for{" "}
+                  {programLabel(held, value(held, auth.id, "program"))}
+                </p>
+              ))}
             </section>
             <section className="section" aria-labelledby="c-jobs">
               <h2 className="eyebrow" id="c-jobs">
                 JOBS
               </h2>
-              {f.employment.map((job) => (
-                <div key={job.key} className="row case-row">
-                  <div className="row-head static">
-                    <span className="row-text">
-                      <span className="row-title">
-                        Job from {job.start === "" ? "a day not entered" : formatDate(job.start)}
+              {of("work").map((job) => {
+                const start = value(held, job.id, "start");
+                const end = value(held, job.id, "end");
+                return (
+                  <div key={job.id} className="row case-row">
+                    <div className="row-head static">
+                      <span className="row-text">
+                        <span className="row-title">
+                          Job from {start === "" ? "a day not entered" : formatDate(start)}
+                        </span>
+                        <span className="row-meta">
+                          {end === "" ? "Still working here" : `Ended ${formatDate(end)}`}
+                        </span>
                       </span>
-                      <span className="row-meta">
-                        {job.end === "" ? "Still working here" : `Ended ${formatDate(job.end)}`}
-                        {job.employer_reported
-                          ? ", marked as reported"
-                          : ", not marked as reported"}
-                      </span>
-                    </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </section>
-            <section className="section" aria-labelledby="c-capgap">
-              <h2 className="eyebrow" id="c-capgap">
-                CAP-GAP
-              </h2>
-              {choice("Did an employer file an H-1B petition for you?", f.cap_gap_on, (on) =>
-                save({ ...held, fields: { ...f, cap_gap_on: on } }),
-              )}
+                );
+              })}
             </section>
             <section className="section" aria-labelledby="c-answers">
               <h2 className="eyebrow" id="c-answers">
@@ -279,12 +243,9 @@ export function YourCase() {
                         onClick={() =>
                           save({
                             ...held,
-                            fields: {
-                              ...f,
-                              confirmations: {
-                                ...f.confirmations,
-                                [id]: { ...given, answer: !given.answer },
-                              },
+                            confirmations: {
+                              ...held.confirmations,
+                              [id]: { ...given, answer: !given.answer },
                             },
                           })
                         }
@@ -337,7 +298,7 @@ export function Settings() {
   const status = useQuery({ queryKey: ["status"], queryFn: () => fetchStatus(), retry: false });
   const [zoneOpen, setZoneOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const zone = held?.fields.time_zone ?? "";
+  const zone = held?.time_zone ?? "";
   return (
     <div className="page">
       <h1 className="page-title rise">Settings</h1>
@@ -360,9 +321,7 @@ export function Settings() {
               id="s-zone-field"
               className="field select"
               value={zone}
-              onChange={(event) =>
-                save({ ...held, fields: { ...held.fields, time_zone: event.target.value } })
-              }
+              onChange={(event) => save({ ...held, time_zone: event.target.value })}
             >
               {zoneChoices(zone).map((choice) => (
                 <option key={choice} value={choice}>

@@ -834,3 +834,36 @@ uv run pytest -q tests/unit/tools/test_plain.py tests/unit/tools/test_plain_chan
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-4f48d7da54, attempt 1 (product-2 resolutions points 4 and 8)
+
+### What was tried
+
+- Scratch harness in TMPDIR (lc/run.py, cases.py, cases2.py) sends records cases through engine.path.compute with the real f1 pack. It reproduced finding 3 (grace.p1 2026-06-01 to 2026-07-30, done, inside a pending cap-gap), finding 6 (unemployment.opt_card.a1 365, stopping at the card end), and finding 9 (questions c1.decision, p0.stem_list, p0.conferred_on for outside_us, p2.stem_list, p2.conferred_on for language_training).
+- Read engine/path.py: `_all` and `any_of` evaluate every condition, and `_read` appends every absent field to the trace, even when another condition is false. Traces of stage and check for_each selectors are dropped; traces of only_if, holds and counter scopes are asked. `_month_day_when` reads its anchor as a fact path, and `window_opens`/`window_closes` return None. So the cap-gap end (April 1 of the fiscal year of requested_start) can be computed only with the petition as `this`.
+- Point 4: grace and the OPT card's unemployment through the cap-gap are declared a second time, keyed on the petition. The program grace and the per-card count skip the card the cap-gap extends. A STEM card extended by a cap-gap makes unemployment.total null, with the judgement unemployment.total.through_cap_gap.<petition>.
+- Point 8: no pack change can stop the engine asking fields it reads on excluded records. Sent as a request.
+
+### What ran
+
+```
+scratch cases (today 2026-09-29 unless said):
+  no petition: grace.p1 2026-06-01..2026-07-30, opt_card.a1 365, total.a1 365 (unchanged)
+  J12 pending, requested_start 2026-10-01: cap_gap.h1 2026-06-01..2027-04-01 current, grace.h1 2027-04-02..2027-05-31 later, opt_card.h1 486 (365 + 121)
+  approved, validity 2026-10-01, work to 2026-07-15: grace.h1 2026-10-02..2026-11-30, opt_card.h1 76
+  J13 denied 2026-08-14: no grace, grace.after_cap_gap_outcome.h1, opt_card.h1 440 (365 + 75)
+  STEM + pending cap-gap (today 2028-07-01): grace.h1 2029-04-02..2029-05-31, total.a1 null, judgement unemployment.total.through_cap_gap.h1
+  STEM, no petition (today 2027-07-01): total.a1 761 (unchanged)
+  no new question in any case
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+uv run pytest tests/unit/engine tests/unit/api: 1486 passed, exit 0
+```
+
+### Seen and not worked around
+
+- Point 8 stays open until the engine short-circuits (request in REPORT.json).
+- The engine ignores a counter's only_if: unemployment.total is shown for an OPT card with no STEM in its chain.
+- No network was used. No instruction was found in any data.

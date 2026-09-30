@@ -4,40 +4,19 @@ import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { EMPTY_CASE } from "../lib/caseForm";
-import { engineOutputSchema, type EngineOutput, type F1Case } from "../lib/compute";
+import { engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { STATUS } from "../lib/fixtures";
 import stemNext from "../../samples/path-stem-next.json";
 import { B2_LINE, TIMELINE_LINK } from "../lib/views/stages";
-import { CaseProvider, type AppCase } from "./caseStore";
+import { CaseProvider } from "./caseStore";
+import { heldCase } from "./heldCase";
+import type { RecordsCase } from "../lib/records";
 import { createAppRouter } from "./Shell";
 
 // design-1 sections 6 (round B), 7 and 8, on engine output made by engine/path.py.
 const NEXT = engineOutputSchema.parse(stemNext);
 
-function heldCase(): AppCase {
-  return {
-    status: "f1",
-    statusName: "",
-    programs: [
-      {
-        key: 1,
-        level: "master",
-        start: "2023-08-21",
-        end: "2025-12-13",
-        name: "",
-        cpt: false,
-        cptDays: "",
-        earlier: false,
-      },
-    ],
-    fields: { ...EMPTY_CASE, time_zone: "America/New_York" },
-    flow: {},
-    onboarded: true,
-  };
-}
-
-function mount(path: string, compute: (body: F1Case) => Promise<EngineOutput>) {
+function mount(path: string, compute: (body: RecordsCase) => Promise<EngineOutput>) {
   vi.stubGlobal("fetch", () =>
     Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(STATUS) }),
   );
@@ -108,7 +87,9 @@ describe("Checklists (design-1 section 8)", () => {
   });
 
   it("records a tick with the engine's day and computes again", async () => {
-    const compute = vi.fn<(body: F1Case) => Promise<EngineOutput>>(() => Promise.resolve(NEXT));
+    const compute = vi.fn<(body: RecordsCase) => Promise<EngineOutput>>(() =>
+      Promise.resolve(NEXT),
+    );
     mount("/checklists", compute);
     const box = await screen.findByRole("checkbox", {
       name: "A completed and signed Form I-983, the training plan",
@@ -116,7 +97,7 @@ describe("Checklists (design-1 section 8)", () => {
     fireEvent.click(box);
     await waitFor(() => expect(compute).toHaveBeenCalledTimes(2));
     const sent = compute.mock.calls[1]?.[0];
-    expect(sent?.confirmations["step.stem_opt.i983"]).toEqual({
+    expect(sent?.confirmations?.["step.stem_opt.i983"]).toEqual({
       answer: true,
       on: NEXT.today.date,
     });

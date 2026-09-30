@@ -1709,6 +1709,10 @@ path:
         where:
           - {field: this.state, in: [completed]}
           - none: {record: move, where: [{field: this.from_program, same_as: outer.id}]}
+          - not:
+              all_of:
+                - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+                - exists: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
       entered_when: [this.end_date]
       rule_ids: [grace.after_completion_days]
       span:
@@ -1722,6 +1726,33 @@ path:
           latest_of:
             - {fact: this.end_date, as_of: {fact: today}}
             - {optional: true, first: {of: {record: authorization, where: [{field: this.program, same_as: outer.id}, {field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+    - id: grace
+      label: "Time after the program ends"
+      for_each:
+        record: petition
+        where:
+          - {field: this.change_of_status, in: ["yes"]}
+          - {field: this.outcome, in: [pending, approved]}
+          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}
+      entered_when: [this.filed_on]
+      rule_ids: [grace.after_completion_days, capgap.end_month_day, capgap.ends_on_outcome]
+      span:
+        starts:
+          day_after: true
+          latest_of:
+            - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+            - earliest_of:
+                - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
+                - {optional: true, fact: this.validity_start}
+                - {optional: true, fact: this.cos_ended_on}
+        ends:
+          add: [{rule: grace.after_completion_days}]
+          latest_of:
+            - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+            - earliest_of:
+                - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
+                - {optional: true, fact: this.validity_start}
+                - {optional: true, fact: this.cos_ended_on}
     - id: withdrawal
       label: "Time after a withdrawal"
       for_each: {record: withdrawal, where: [{field: this.dso_authorized, in: ["yes"]}]}
@@ -1925,6 +1956,16 @@ path:
       holds:
         - {field: this.outcome, in: [pending, approved]}
       rule_ids: [capgap.ends_on_outcome, grace.after_completion_days]
+    - id: unemployment.total.through_cap_gap
+      kind: judgement
+      for_each:
+        record: petition
+        where:
+          - {field: this.change_of_status, in: ["yes"]}
+          - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
+      holds:
+        - none: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
+      rule_ids: [stem.unemployment_limit_days, opt.unemployment_in_cap_gap]
     - id: withdrawal.dso_authorized
       kind: judgement
       for_each: {record: withdrawal}
@@ -1969,7 +2010,16 @@ path:
   counters:
     - id: unemployment.opt_card
       calculator: days_without_qualifying_period
-      scope: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}]}, group: record}
+      scope:
+        of:
+          record: authorization
+          where:
+            - {field: this.type, in: [opt_post_completion]}
+            - not:
+                all_of:
+                  - exists: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+                  - {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
+        group: record
       span:
         starts: {fact: this.card_start}
         ends: {fact: this.card_end}
@@ -1978,12 +2028,46 @@ path:
       not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
       limit_rule: opt.unemployment_limit_days
       rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap]
+    - id: unemployment.opt_card
+      calculator: days_without_qualifying_period
+      scope:
+        of:
+          record: petition
+          where:
+            - {field: this.change_of_status, in: ["yes"]}
+            - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
+        group: record
+      span:
+        starts: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion]}, {field: this.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}, field: card_start, pick: latest}}
+        ends:
+          latest_of:
+            - {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}
+            - earliest_of:
+                - {month_day_rule: capgap.end_month_day, in_fiscal_year_of: this.requested_start, fiscal_year_rule: capgap.fiscal_year_start_month_day}
+                - {optional: true, fact: this.validity_start}
+                - {optional: true, first: {of: {record: petition, where: [{field: this.id, same_as: outer.id}, {field: this.outcome, in: [rejected, denied, revoked, withdrawn]}]}, field: outcome_on, pick: earliest}}
+                - {optional: true, fact: this.cos_ended_on}
+      qualifying: {record: work, where: [{field: this.under.type, in: [opt_post_completion]}, {field: this.under.card_end, on_or_after: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}]}
+      hours_rule: opt.min_hours_per_week
+      not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}
+      limit_rule: opt.unemployment_limit_days
+      rule_ids: [opt.unemployment_limit_days, opt.unemployment_each_period, opt.unemployment_abroad, opt.unemployment_in_cap_gap, capgap.end_month_day, capgap.ends_on_outcome]
     - id: unemployment.total
       calculator: days_without_qualifying_period
       scope: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, group: chain, chain_link: extends}
       span:
         starts: {fact: this.card_start}
-        ends: {fact: this.card_end}
+        ends:
+          first:
+            of:
+              record: authorization
+              where:
+                - {field: this.id, same_as: outer.id}
+                - any_of:
+                    - none: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}]}
+                    - {field: outer.card_end, before: {first: {of: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}]}, field: card_end, pick: latest}}}
+            field: card_end
+            pick: latest
       qualifying: {record: work, where: [{field: this.under, same_as: outer.id}]}
       hours_rule: stem.min_hours_per_week
       not_qualifying: {record: trip, where: [{field: this.purpose, in: [personal, study_abroad]}]}

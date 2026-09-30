@@ -5,62 +5,26 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { calmProblems } from "../lib/calm";
-import { EMPTY_CASE } from "../lib/caseForm";
-import { engineOutputSchema, type EngineOutput, type F1Case } from "../lib/compute";
+import { engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { caseDraft } from "../lib/drafts";
 import { ASKING, CONFLICT, CPT_OVER, NEXT, OUTPUT, STATUS } from "../lib/fixtures";
 import { updateStatusWords } from "../lib/labels";
 import { STORAGE_POINTER, STORAGE_SENTENCE } from "../lib/privacy";
-import { onboardingSteps, stepLabel } from "../lib/views/onboarding";
+import { onboardingSteps } from "../lib/views/onboarding";
 import { updatesTitle } from "../lib/views/updates";
-import { CaseProvider, caseBody, newCase, type AppCase } from "./caseStore";
+import { CaseProvider, caseBody, newCase, sentFacts, type AppCase } from "./caseStore";
+import { heldCase } from "./heldCase";
+import type { RecordsCase } from "../lib/records";
 import { barShare } from "./Home";
 import { composeDate } from "./parts";
 import { createAppRouter } from "./Shell";
 
 const parse = (output: unknown): EngineOutput => engineOutputSchema.parse(output);
 
-/** A case as entered: F-1, one master's program, OPT with a card, one job. */
-function heldCase(): AppCase {
-  return {
-    status: "f1",
-    statusName: "",
-    programs: [
-      {
-        key: 1,
-        level: "master",
-        start: "2024-08-20",
-        end: "2026-05-15",
-        name: "",
-        cpt: false,
-        cptDays: "",
-        earlier: false,
-      },
-    ],
-    fields: {
-      ...EMPTY_CASE,
-      time_zone: "America/Los_Angeles",
-      opt_on: true,
-      opt: {
-        dso_recommendation_date: "2026-04-01",
-        i765_filed_date: "2026-04-10",
-        ead_start: "2026-06-01",
-        ead_end: "2027-05-31",
-      },
-      employment: [
-        { key: 1, start: "2026-06-20", end: "", hours_per_week: "40", employer_reported: true },
-      ],
-      next_key: 2,
-    },
-    flow: {},
-    onboarded: true,
-  };
-}
-
 function mount(props: {
   path: string;
   held?: AppCase | null;
-  compute?: (body: F1Case) => Promise<EngineOutput>;
+  compute?: (body: RecordsCase) => Promise<EngineOutput>;
   now?: () => Date;
 }) {
   vi.stubGlobal("fetch", () =>
@@ -248,24 +212,19 @@ describe("Home (design-1 section 6)", () => {
 });
 
 describe("Onboarding (design-1 section 5)", () => {
-  it("keeps each section's pip and label, and ends on Done", () => {
+  it("keeps each step's pip, asks every program's level, and ends on Done", () => {
     const held = heldCase();
-    const [latest] = held.programs as [AppCase["programs"][number]];
-    held.programs = [
-      { ...latest, earlier: true },
-      { ...latest, key: 2, earlier: false },
-    ];
+    held.flow = { earlier: "yes" };
+    held.draft.records.push(
+      { id: "p2", kind: "program", fields: { where: "us_on_f1" } },
+      { id: "mv1", kind: "move", fields: { from_program: "p2", to_program: "p1" } },
+    );
     const views = onboardingSteps(held, 1);
-    for (const view of views.filter((v) => v.kind === "level" || v.kind === "earlier")) {
-      expect(stepLabel(view)).toBe("Step 2 of 5");
-    }
-    for (const view of views.filter((v) => v.kind === "cpt")) {
-      expect(stepLabel(view)).toBe("Step 3 of 5");
-    }
-    expect(views.filter((v) => v.kind === "level")).toHaveLength(2);
+    expect(views.find((v) => v.id === "level:p1")?.section).toBe(1);
+    expect(views.find((v) => v.id === "level:p2")?.section).toBe(2);
+    expect(views.find((v) => v.id === "flow:cpt:p2")?.section).toBe(3);
     expect(views.at(-1)?.kind).toBe("done");
-    expect(views.map(stepLabel).at(-1)).toBe("Done");
-    expect(views.some((v) => /work type|field of/i.test(v.title))).toBe(false);
+    expect(views.some((v) => /work type/i.test(v.title))).toBe(false);
   });
 
   it("says where answers are stored once, on the first view", () => {
@@ -281,7 +240,7 @@ describe("Onboarding (design-1 section 5)", () => {
 
   it("never sends a status that is not F-1", () => {
     expect(caseBody({ ...heldCase(), status: "other" })).toBeNull();
-    expect(caseBody(heldCase())?.documents_count).toBe(0);
+    expect(caseBody(heldCase())?.categories).toEqual(["f1"]);
   });
 
   it("keeps answers across Back and Continue, and shows problems without red", async () => {
@@ -291,13 +250,16 @@ describe("Onboarding (design-1 section 5)", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Choose the status you hold now.");
     fireEvent.click(await screen.findByRole("radio", { name: "F-1" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByText("What level is your latest program?")).toBeInTheDocument();
-    expect(screen.getByText("Step 2 of 5")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("radio", { name: "Master's" }));
+    expect(screen.getByText("Add your current I-20.")).toBeInTheDocument();
+    expect(screen.getByText("Step 1 of 5")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: "Type it in" }));
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(screen.getByRole("radio", { name: "F-1" })).toHaveAttribute("aria-checked", "true");
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByRole("radio", { name: "Master's" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: "Type it in" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 
   it("composes typed dates into ISO dates", () => {
@@ -345,7 +307,7 @@ describe("Updates, Settings and words (design-1 sections 9, 10 and 12)", () => {
   });
 
   it("drafts for every verdict without Duly or a computed date", () => {
-    const sent = caseBody(heldCase()) as F1Case;
+    const sent = sentFacts(heldCase());
     for (const sample of [OUTPUT, ASKING, CONFLICT, CPT_OVER, NEXT]) {
       const output = parse(sample);
       const draft = caseDraft(output, sent);

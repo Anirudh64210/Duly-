@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { stemStepDraft } from "../lib/drafts";
-import type { EngineOutput, F1Case } from "../lib/compute";
+import type { EngineOutput } from "../lib/compute";
+import type { Sent } from "../lib/drafts";
 import { formatDate } from "../lib/labels";
 import {
   B2_LINE,
@@ -29,7 +30,7 @@ function StepRow(props: {
   step: StepView;
   ticked: boolean;
   output: EngineOutput;
-  sent: F1Case;
+  sent: Sent;
   onToggle: (step: StepView, ticked: boolean) => void;
 }) {
   const { step, ticked, output } = props;
@@ -63,7 +64,7 @@ function StepRow(props: {
   );
 }
 
-function Steps(props: { view: StepsView; output: EngineOutput; sent: F1Case }) {
+function Steps(props: { view: StepsView; output: EngineOutput; sent: Sent }) {
   const { view, output } = props;
   const { answer, withdraw } = useStore();
   // The box shows the person's own tick at once; the count follows the engine's answer.
@@ -116,9 +117,9 @@ function Steps(props: { view: StepsView; output: EngineOutput; sent: F1Case }) {
 }
 
 export function Checklists() {
-  const { output, body, busy } = useStore();
+  const { output, sent, busy } = useStore();
   const [selected, setSelected] = useState<string | null>(null);
-  if (busy || output === undefined || body === null) {
+  if (busy || output === undefined || sent === null) {
     return (
       <div className="page">
         <p className="busy-line">Working it out from your dates.</p>
@@ -147,7 +148,7 @@ export function Checklists() {
       {shown.view !== null && (
         <section className="checklist drop-in" key={shown.selected}>
           {shown.view.kind === "steps" ? (
-            <Steps view={shown.view} output={output} sent={body} />
+            <Steps view={shown.view} output={output} sent={sent} />
           ) : (
             <>
               <h1 className="checklist-title">{shown.view.title}</h1>

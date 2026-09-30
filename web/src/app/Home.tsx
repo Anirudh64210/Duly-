@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import { caseDraft, stemStepDraft } from "../lib/drafts";
-import type { EngineOutput, F1Case } from "../lib/compute";
+import type { EngineOutput } from "../lib/compute";
+import type { Sent } from "../lib/drafts";
 import {
   GROUPS,
   LIST_LINE,
@@ -235,7 +236,7 @@ function Metrics({ output }: { output: EngineOutput }) {
   );
 }
 
-function QuestionsSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
+function QuestionsSection({ output, sent }: { output: EngineOutput; sent: Sent }) {
   const { answer } = useStore();
   if (output.questions.length === 0) return null;
   return (
@@ -333,7 +334,7 @@ function StagedNext({ output }: { output: EngineOutput }) {
   );
 }
 
-function NextSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
+function NextSection({ output, sent }: { output: EngineOutput; sent: Sent }) {
   if (stagesOf(output).length > 0) return <StagedNext output={output} />;
   const opens = output.upcoming.find((entry) => entry.id === "next.stem.apply_window_opens");
   const closes = output.upcoming.find((entry) => entry.id === "next.stem.apply_window_closes");
@@ -390,7 +391,7 @@ function periodLine(start: string, end: string | null, reported: boolean): strin
   return `${span}: ${reported ? "marked as reported" : "not marked as reported"}`;
 }
 
-function DataSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
+function DataSection({ output, sent }: { output: EngineOutput; sent: Sent }) {
   const named = new Set<string>();
   const stages = stagesOf(output);
   for (const entry of [
@@ -479,7 +480,7 @@ function DataSection({ output, sent }: { output: EngineOutput; sent: F1Case }) {
 }
 
 export function Home() {
-  const { held, body, output, busy, error, retry } = useStore();
+  const { held, sent, output, busy, error, retry } = useStore();
   if (held !== null && !(held.status === "f1")) {
     const name = held.status === "other" ? "" : categoryName(held.status);
     return (
@@ -507,7 +508,7 @@ export function Home() {
       </div>
     );
   }
-  if (busy || output === undefined || body === null) {
+  if (busy || output === undefined || sent === null) {
     return (
       <div className="page">
         <Busy />
@@ -539,7 +540,7 @@ export function Home() {
               {next.reading && <span className="reading"> {READING_TAG}</span>}
             </p>
           )}
-          {state === "talk_to_dso" && <DraftPill text={caseDraft(output, body)} />}
+          {state === "talk_to_dso" && <DraftPill text={caseDraft(output, sent)} />}
           {state === "cannot_tell" &&
             (output.questions.length > 0 ? (
               <button
@@ -552,13 +553,13 @@ export function Home() {
                 Answer Duly's questions
               </button>
             ) : (
-              <DraftPill text={caseDraft(output, body)} />
+              <DraftPill text={caseDraft(output, sent)} />
             ))}
         </section>
         <Metrics output={output} />
-        <QuestionsSection output={output} sent={body} />
-        <NextSection output={output} sent={body} />
-        <DataSection output={output} sent={body} />
+        <QuestionsSection output={output} sent={sent} />
+        <NextSection output={output} sent={sent} />
+        <DataSection output={output} sent={sent} />
         <div className="spacer" />
         <Footer />
       </div>
