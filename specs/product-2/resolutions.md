@@ -51,7 +51,49 @@ Register rows: the rows specs/path-1/programs.md section 22 and specs/design-1/S
 
 Point 19 steps back for any change-of-status petition whatever its outcome, so the outcome and
 the validity start decide nothing yet. Asking for them keeps a question open that no answer can
-close (review finding 9). The two J19 twins that expect `h9.outcome` and `h9.validity_start`
+close (reviews/product-2.md, finding 9). The two J19 twins that expect `h9.outcome` and `h9.validity_start`
 as questions keep their step-back assertions as passing tests; the question assertions move to
 `pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")`, so the
 cap-gap round turns them back on.
+
+## 22. A stage whose dates a petition makes null is `unknown`, never `current`
+
+Review fix6 finding 1. When point 19 makes a stage's start and end null, the stage's state is
+`unknown` (contracts/engine_output.schema.json). An `unknown` stage is never the first current
+stage, never feeds Home's eyebrow, and is never marked "now" on the Timeline; the Timeline shows
+it in place with "Your DSO can tell you these dates" and the step back. If no stage is current,
+Home's eyebrow names none. A stage that has its own dates keeps its state as before (J19's
+stem.a2 stays current).
+
+## 23. A petition steps back only for a card it could extend
+
+Review fix6 finding 2. Cap-gap extends status and permission to work until the petition's start
+date (8 CFR 214.2(f)(5)(vi)(A), a reading). A petition whose start (validity_start when
+approved, else requested_start) falls before a card's start cannot extend that card, so point 19
+does not step back for that card and nothing is taken away from it: its conflicts and questions
+(for example `conflict:stem.filed_while_opt_in_force` and `a2.filed_on`) stay. When the start
+needed to decide this is missing, it is asked, and point 19 steps back until it is answered.
+The filing-day test on every validation stays `on_or_before`.
+
+## 24. The words name what is taken away, and do not name a kind the person did not enter
+
+Review fix6 finding 3. The step-back words (web/src/lib/labels.ts and the pack's plain words)
+name every kind of date point 19 nulls: the grace period, counts from the filing day, STEM
+reports and evaluations, and any cap-gap period. They say "A petition to change your status",
+not "An H-1B petition", unless the petition's type is h1b. A petition type outside the pack's
+choices (for example "o1") is treated as missing and asked; it is never taken in silence
+(review note 2).
+
+## 25. The tests pin what point 19 and 23 take away, including the boundary day
+
+Review fix6 finding 4. Tests that fail on each of: removing the petition member of
+stem_job_end.evaluation_final; removing the program-end petition member of the grace;
+`on_or_before` turned to `before` on a validation's filing test (a report due on the filing day);
+the point 23 skip in each direction (a 2020 petition keeps J19's late-filing conflict; a
+petition starting after the card start steps back).
+
+## 26. Onboarding does not require the petition's outcome while cap-gap is deferred
+
+Review fix6 finding 5 and point 21. The outcome step offers "I'm not sure" and may be left;
+its why line says Duly will point to the DSO for these dates for now. The requested start stays
+asked, because point 23 needs it.
