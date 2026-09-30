@@ -1493,3 +1493,25 @@ Status: done.
 - No engine code changed.
 
 Status: done.
+
+## l-engine-38572dc906: points 22 and 24 (unknown stage, unknown choice value)
+
+- Before any change: the target selection (-k "point_22 or unknown_choice") failed 6 of 8.
+  Baseline of tests/unit (tools excluded, they fail on the sandbox) saved under TMPDIR: 21
+  failures, all in test_fix7.py.
+- Point 22: engine/path.py `_state`. A stage is current only when today falls between two known
+  days. starts after today is later, ends before today is done, and any other null day is
+  unknown, never the current fall-back. A stage with no span (opt_job_end, stem_job_end) is
+  placed by its windows' opens and closes. The tests needed more than the grace: on J13/J14
+  opt_job_end.w1 and stem_job_end.w2 were undated current, and on J19 transfer.mv1/mv2 were
+  current with a null end (transfer.contact_new_dso_within_days has no saved copy for 2021 and
+  2023). All now read done or unknown.
+- Point 24 (unknown choice): `ask_unknown_choices` runs after `_refuse_undeclared`; a choice
+  field whose value is outside the pack's `choices` (not_sure aside) is missing and asked as
+  `<record>.<field>`. `_field` reads such a value as absent, so no rule takes it in silence.
+- After: tests/unit (tools excluded) failures 21 -> 14, none new; the 14 left are point 23,
+  23a, 24 pack words and 26, L-content's.
+- Done command as written, output to a TMPDIR file: exit 0 (8 passed; mypy 62 files clean;
+  ruff check clean; 19 files already formatted).
+
+Status: done.

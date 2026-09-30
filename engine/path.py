@@ -159,10 +159,28 @@ class _Run:
                 if name not in self.fields[kind]:
                     raise ValueError(f"records: the field {name} is not declared for {kind}")
 
+    def ask_unknown_choices(self) -> None:
+        """A choice value outside the pack's list is missing and asked, never taken in silence
+        (resolutions point 24)."""
+        for record in self.records.values():
+            for name, value in record["fields"].items():
+                if self._outside_choices(record, name, value):
+                    self._need(_Trace(missing=[(f"{record[ID]}.{name}", record[ID])]))
+
+    def _outside_choices(self, record: Json, name: str, value: Any) -> bool:
+        decl = self._decl(record, name)
+        if decl.get("kind") != "choice" or value is ABSENT or value is None:
+            return False
+        return value not in decl.get("choices", []) and value != NOT_SURE
+
     def _decl(self, record: Json, name: str) -> Json:
         return self.fields.get(record["kind"], {}).get(name, {})
 
     def _field(self, record: Json, name: str, on: date | None) -> Any:
+        value = self._as_given(record, name, on)
+        return ABSENT if self._outside_choices(record, name, value) else value
+
+    def _as_given(self, record: Json, name: str, on: date | None) -> Any:
         value = record["fields"].get(name, ABSENT)
         history = self._decl(record, name).get("history")
         if on is None or history is None:
@@ -604,14 +622,7 @@ class _Run:
         else:
             self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed, differ=tr.differ))
         self._rules(rule_ids)
-        if next_of is not None:
-            state = "next"
-        elif starts is not None and starts > self.today:
-            state = "later"
-        elif ends is not None and ends < self.today:
-            state = "done"
-        else:
-            state = "current"
+        state = "next" if next_of is not None else self._state(span, starts, ends, windows)
         entry: Json = {
             ID: sid,
             "category": self.pack.category,
@@ -638,6 +649,25 @@ class _Run:
         if next_of is None:
             for step in stage.get("next", []):
                 self._next(step, record)
+
+    def _state(
+        self, span: Json, starts: date | None, ends: date | None, windows: list[Json]
+    ) -> str:
+        """A stage is current only when today falls between two known days (resolutions point
+        22): a null day never falls back to current. A stage with no span of its own is placed
+        by its windows."""
+        if not span:
+            opens = [d for w in windows if (d := _as_date(w["opens"])) is not None]
+            closes = [d for w in windows if (d := _as_date(w["closes"])) is not None]
+            starts = min(opens) if windows and len(opens) == len(windows) else None
+            ends = max(closes) if windows and len(closes) == len(windows) else None
+        if starts is not None and starts > self.today:
+            return "later"
+        if ends is not None and ends < self.today:
+            return "done"
+        if starts is None or ends is None:
+            return "unknown"
+        return "current"
 
     def _ends_also(
         self,
@@ -1265,6 +1295,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
         own = [r for r in records if r.get("category", categories[0]) == category]
         run = _Run(case, pack, today, own)
         run._refuse_undeclared()
+        run.ask_unknown_choices()
         runs.append(run)
     for run in runs:
         run.run_checks()
