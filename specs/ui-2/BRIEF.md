@@ -1,0 +1,106 @@
+# ui-2 brief: Duly as a helpful assistant with memory, not a cautious form
+
+The founder tested the preview on 2026-09-30. This brief is the source for the ui-2 prototype. The
+founder's words are quoted where they decide something.
+
+## What Duly is
+
+A safe, private place for a student's whole immigration life, with a memory:
+
+- documents are uploaded once and kept;
+- the student sees where they stand at a glance;
+- they know when to start preparing for the next step and what it needs;
+- they can track their applications;
+- they stay up to date on news for their status.
+
+It should be an accelerant, not an extra step. "log on, and not have to worry about entering all
+the dates manually, and see, okay, when do i have to start preparing to apply for my next step."
+
+## The line between safe and useful
+
+"theres a difference between duly being useful and actually helpful from duly being too careful
+and afraid to answer anything." Accuracy lives in the engine. The screen is calm and plain:
+
+- **Plain words, no disclosures in the way.** Say what the date is, what to do, and when. Never
+  "Can't tell yet" as a headline.
+- **The law is one tap away.** A small source mark on an item opens the rule, its quote and how
+  it was counted. Citations, rule ids, "inputs used" and "Duly's reading" never show at first
+  glance.
+- **Unknowns are specific and actionable.** "Add your EAD card to see this date", with the one
+  place to add it. Never "not computed", never "Asked because of: missing a1.dso_on".
+- **Internal ids never appear on screen:** p1, a1, t1, field names, receipt-number checklists.
+- **One quiet footer line on screens that give dates:** "Records and dates from your documents,
+  not legal advice."
+- **Hard limits stay:** no personal legal conclusion on a disputed point (that goes to the DSO,
+  in the student's words), no filing on their behalf, no dashes, no emoji.
+
+## Onboarding: get in fast
+
+Onboarding asks only this skeleton, then lets the student in:
+
+1. status;
+2. school;
+3. level and major, with STEM detected from the major ("This looks like a STEM degree" with
+   Confirm or Change);
+4. program dates;
+5. where they are now (studying, CPT, OPT, STEM OPT, other);
+6. the EAD card, uploaded or typed, when they are on OPT.
+
+Every question also offers "I'm not sure". The step list is visible and any answered step can be
+opened directly, never ten presses of Back. The final screen is short and warm and opens Home.
+
+Everything else is asked later, inside the section it affects, as a short checklist shown as
+"waiting for you". Asking follows these rules:
+
+- **Infer when the answer is in front of you.** No "are you still in school" after an end date.
+  No "when did you finish all your courses". Ask about conferral once. A conferred degree means
+  the requirements were met.
+- **Ask about a degree from outside the US only when it changes something** (the STEM basis), in
+  normal words.
+- **Choices, not interrogations.** Offer choices with nuance instead of a bare yes or no.
+- **Several documents of one kind are normal.** For example, two or three CPT I-20s for two
+  internships: add another.
+- **Documents fill fields.** Upload the I-20s and the EAD, and Duly reads them on this device
+  (D55). The student confirms what was found in one tap per document. There is no
+  "check against document" chore and no list of twenty checkboxes.
+
+## Screens
+
+- **Home:** as the canvas (Main.png). The shape is:
+  1. where you stand in one sentence;
+  2. three numbers (days of OPT used or unemployment days, EAD valid until, the next date);
+  3. your next move, with its date;
+  4. what's new for your status.
+
+  The student feels in good hands, and alerted only when it matters.
+- **What's next:** ask intent first ("Planning to apply for STEM OPT?"). Then show:
+  1. when the window opens, from the EAD end date;
+  2. when to start preparing;
+  3. what they will need, in plain tasks ("Get your I-983 signed by your manager");
+  4. their school's own form step;
+  5. a draft email to the DSO.
+- **The DSO email** is in the student's voice, normal words, never a CFR cite, in a full-width
+  readable panel with Copy.
+- **Applications:** add the receipt number and track the status. Manual status now, USCIS case
+  status later if approved access allows.
+- **Timeline:** phases in plain words. Past phases summarize what was done ("CPT: two internships,
+  done"). The current phase shows what matters now, and a missing fact is a clear
+  "Add ... to see this".
+- **Checklists:** plain tasks. Done phases show a short "You did this" summary, and the
+  confirmations the student already lived through are not asked again.
+- **Updates:** "For your status" (rule changes with their source) plus "In the news" (general
+  news for the status, labelled as news, with source and date).
+- **Documents:** everything in one place, sorted by kind and phase, with versions kept. Add any
+  document from anywhere.
+- **Your case:** readable cards (a job has its title and employer). Each answer sits beside its
+  question. Edit in place.
+- **Settings and Feedback:** follow the same clean system as the rest.
+
+## Design laws
+
+- **Spacing:** only the scale 4, 8, 12, 16, 24, 32, 48, 64.
+- **One content column,** 720px, with a clear type scale: page title, section, row title, body,
+  meta.
+- **Hairlines and whitespace, not boxes.** No text walls. Nothing scrolls sideways.
+- **One hero per screen,** and one primary action per screen.
+- The canvas tokens and laws apply (design/canvas/DESIGN-SPEC.md).
