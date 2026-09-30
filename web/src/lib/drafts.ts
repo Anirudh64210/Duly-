@@ -124,6 +124,11 @@ const ASKS: ReadonlyMap<string, Ask> = new Map(
       topics: ["degree", "opt"],
       ask: "I used OPT before at this degree level. Could you tell me how many months of OPT I have left at this level?",
     },
+    // resolutions point 19: the petition's dates stay as entered; the DSO says what follows.
+    "cap_gap.for_dso": {
+      topics: [...CARDS, "employment", "cap_gap"],
+      ask: "I have an H-1B petition. Could you tell me which of my dates it changes, and what your office needs from me?",
+    },
     [NOT_IN_FORCE]: {
       topics: [...CARDS, "cap_gap"],
       ask: "Could you tell me which rules apply to these dates in my case?",

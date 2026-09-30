@@ -1082,3 +1082,36 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   tests/design/landmarks.json; reading `[data-landmark="<screen>"]` is desktop's part.
 - Home lists a field question such as h1.outcome as "Duly has a question about what you
   entered." with no answer there; it is answered in Onboarding's questions view.
+
+## l-web-ca7769b2a4: resolutions points 19 and 20, web side
+
+### Tried
+
+- Point 19: `cap_gap.for_dso` has its words in web/src/lib/labels.ts FINDINGS, beside the
+  other judgement items: an H-1B petition can change these dates (the grace period, the
+  counts from its filing day, any cap-gap period), so Duly does not show them; which it
+  changes is a question for the DSO; the rule is 8 CFR 214.2(f)(5)(vi). No date, no count.
+  web/src/lib/drafts.ts ASKS gives it a DSO question, with the cards, employment and the
+  petition as entered.
+- Point 20: web/src/lib/shots.ts `LANDMARKS` maps each route in SHOT_SCREENS to itself
+  (typed so each value is its own route). web/src/app/Shell.tsx builds the router from
+  SHOT_SCREENS (a SCREENS record typed `satisfies Record<ShotScreen, ComponentType>`), so
+  the router and the landmarks read one table. The screens' JSX is unchanged.
+- web/src/app/landmarks.test.tsx joins the two sides: the router's routesByPath equals
+  SHOT_SCREENS; each LANDMARKS value is its route; web's SHOT_SCREENS equals
+  desktop/src/shots.ts SHOT_SCREENS; on each screen from each sample, desktop's
+  landmarkSelector(route) finds the one marked h1 and desktop's holdsLandmark holds.
+
+### Ran
+
+- Planted the old names (home, timeline, ...) in LANDMARKS: 17 of 21 landmark tests fail;
+  restored.
+- `npx prettier --write src` run from inside web/ skipped the root .prettierignore and
+  reformatted the generated web/src/lib/api-types.ts; restored with git checkout.
+- Done command, as written, output to a file: exit 0. 27 files, 553 tests passed, lines
+  97.59 percent, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done
+
+- The engine does not emit `cap_gap.for_dso` yet in this worktree (no match under engine/),
+  so no sample holds it; the words are tested on the reason id alone.

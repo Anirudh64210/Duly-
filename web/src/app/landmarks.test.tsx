@@ -10,14 +10,21 @@ import windowOpenCase from "../../samples/path-window-open.case.json";
 import windowOpen from "../../samples/path-window-open.json";
 import { CaseRefused, engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { STATUS } from "../lib/fixtures";
+import {
+  LANDMARK_ATTRIBUTE,
+  SHOT_SCREENS as RUN_SCREENS,
+  holdsLandmark,
+  landmarkSelector,
+} from "../../../desktop/src/shots";
 import type { RecordsCase } from "../lib/records";
 import { LANDMARKS, SHOT_SCREENS, heldFromCase, type ShotScreen } from "../lib/shots";
 import { CaseProvider } from "./caseStore";
 import { createAppRouter } from "./Shell";
 
-// resolutions point 18: the shot run counts a screen as drawn when the page holds the
-// element marked data-landmark="<screen>". Each screen marks its own heading, once, and no
-// error or busy screen carries a landmark.
+// resolutions points 18 and 20: the shot run counts a screen as drawn when the page holds the
+// element marked data-landmark="<route>". Each screen marks its own heading, once, with its
+// route, read from the table the router is built from, and no error or busy screen carries
+// a landmark. The shot run's own selector and check (desktop/src/shots.ts) read the page.
 
 const SAMPLES = {
   "path-stem-next": { output: stemNext, body: stemNextCase },
@@ -55,15 +62,17 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("each screen's landmark (resolutions point 18)", () => {
-  it("names every built screen, each by its own name", () => {
-    expect(Object.keys(LANDMARKS).sort()).toEqual([...SHOT_SCREENS].sort());
-    const names = Object.values(LANDMARKS);
-    expect(new Set(names).size).toBe(names.length);
-    expect(LANDMARKS["/"]).toBe("home");
-    for (const route of SHOT_SCREENS.filter((r) => r !== "/")) {
-      expect(LANDMARKS[route]).toBe(route.slice(1));
-    }
+describe("each screen's landmark (resolutions points 18 and 20)", () => {
+  it("is the route, for every route the router is built from", () => {
+    const router = createAppRouter(createMemoryHistory({ initialEntries: ["/"] }));
+    const paths = Object.keys(router.routesByPath).filter((path) => path !== "__root__");
+    expect(paths.sort()).toEqual([...SHOT_SCREENS].sort());
+    for (const route of SHOT_SCREENS) expect(LANDMARKS[route]).toBe(route);
+    expect(LANDMARKS["/timeline"]).toBe("/timeline");
+  });
+
+  it("is the same list of screens the shot run asks for", () => {
+    expect([...SHOT_SCREENS]).toEqual([...RUN_SCREENS]);
   });
 
   for (const sample of Object.keys(SAMPLES) as (keyof typeof SAMPLES)[]) {
@@ -72,7 +81,15 @@ describe("each screen's landmark (resolutions point 18)", () => {
         mount(route, sample);
         await waitFor(() => expect(marked()).toHaveLength(1));
         const [mark] = marked();
-        expect(mark).toHaveAttribute("data-landmark", LANDMARKS[route]);
+        expect(mark).toHaveAttribute("data-landmark", route);
+        // The two sides joined: the shot run's selector finds it, and its check holds.
+        expect(document.querySelector(landmarkSelector(route))).toBe(mark);
+        const found = {
+          landmark: mark?.getAttribute(LANDMARK_ATTRIBUTE) ?? "",
+          width: 1,
+          height: 1,
+        };
+        expect(holdsLandmark([found], route)).toBe(true);
         expect(mark?.tagName).toBe("H1");
         expect(mark?.textContent).not.toBe("");
       });
