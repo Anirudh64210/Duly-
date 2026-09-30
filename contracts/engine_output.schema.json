@@ -156,6 +156,11 @@
           "reading": {
             "type": "boolean",
             "description": "True when any rule this item used is Duly's reading of the source and not the source's own words. The screen marks the item wherever it is shown."
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
           }
         }
       }
@@ -181,7 +186,7 @@
     },
     "rules": {
       "type": "object",
-      "description": "Every rule named in computed, keyed by id.",
+      "description": "Every rule named in computed, upcoming, lists, stages, their windows, and checklist steps, keyed by id. A rule named by a stage that is only next is here too.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
@@ -263,6 +268,11 @@
           "about": {
             "type": "object",
             "description": "The values of the inputs that raised the question. The screen sends them back with the answer, so that an answer is never carried over to values it was not given for."
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
           }
         }
       }
@@ -367,6 +377,19 @@
               }
             },
             "description": "Present with alternates. The regime whose value is shown as the item's value, and that regime's legal status from the pack."
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
+          },
+          "days_away": {
+            "type": "integer",
+            "description": "Whole calendar days from today to date, in the person's zone. Arithmetic only, with its working in inputs."
+          },
+          "inputs": {
+            "type": "object",
+            "description": "The values the date and days_away were computed from, as on computed items"
           }
         }
       }
@@ -392,6 +415,11 @@
               "type": "string"
             },
             "minItems": 1
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
           }
         }
       }
@@ -437,6 +465,358 @@
         "pattern": "^[a-z0-9_.:]+$"
       },
       "description": "The ids of the questions whose answers the engine read and used for this output. An answer sent for any other id was not read, and the screen never shows it as standing."
+    },
+    "stages": {
+      "type": "array",
+      "description": "The person's path, one entry for each stage entered and each stage that may come next. Every id in computed and upcoming is in exactly one stage's items.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "label",
+          "state",
+          "rule_ids",
+          "items"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$",
+            "description": "The stage id, or <stage id>.<record id> for a stage entered once for each record"
+          },
+          "stage": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$",
+            "description": "The pack's stage id, when id carries a record id"
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
+          },
+          "category": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "own_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The person's own name for what the stage rests on, such as a program's school and field, as entered"
+          },
+          "state": {
+            "enum": [
+              "done",
+              "current",
+              "next",
+              "later"
+            ]
+          },
+          "starts": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "ends": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "ends_days_away": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Whole days from today to ends, in the person's zone"
+          },
+          "days_in": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Whole days from starts through today, in the person's zone"
+          },
+          "days_total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Whole days from starts through ends"
+          },
+          "rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids of the computed and upcoming items that belong to this stage"
+          },
+          "windows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "opens",
+                "closes",
+                "opens_days_away",
+                "closes_days_away",
+                "rule_ids",
+                "status",
+                "reading"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_.]+$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "record": {
+                  "type": "string",
+                  "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+                  "description": "The record this belongs to"
+                },
+                "opens": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date"
+                },
+                "closes": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date"
+                },
+                "opens_days_away": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "Whole days from today to opens, in the person's zone; zero or less once it has opened. Screens read opened from this, never by comparing dates"
+                },
+                "closes_days_away": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "Whole days from today to closes, in the person's zone; negative once it has closed"
+                },
+                "rule_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                },
+                "status": {
+                  "enum": [
+                    "settled",
+                    "guidance",
+                    "litigated",
+                    "proposed",
+                    "school"
+                  ]
+                },
+                "reading": {
+                  "type": "boolean"
+                },
+                "alternates": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "regime",
+                      "legal_status",
+                      "value"
+                    ],
+                    "properties": {
+                      "regime": {
+                        "type": "string"
+                      },
+                      "legal_status": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": [
+                          "number",
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "operative": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "regime",
+                    "legal_status"
+                  ],
+                  "properties": {
+                    "regime": {
+                      "type": "string"
+                    },
+                    "legal_status": {
+                      "type": "string"
+                    }
+                  },
+                  "description": "Present with alternates. The regime whose value is shown as the item's value, and that regime's legal status from the pack."
+                },
+                "inputs": {
+                  "type": "object",
+                  "description": "The values the dates were computed from"
+                }
+              },
+              "description": "A window kept from before it opens until the day after it closes, so that its opening date stays while it is open"
+            }
+          },
+          "lists": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids of entries in lists shown for this stage"
+          },
+          "checklist": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The id of this stage's entry in checklists"
+          },
+          "facts": {
+            "type": "object",
+            "description": "The fact ids, or <record id>.<field> paths, entered for this stage, with their values as entered"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The verdict reasons that rest on this stage's items or facts"
+          }
+        }
+      }
+    },
+    "checklists": {
+      "type": "array",
+      "description": "The steps an official source lists for a stage, with the person's own confirmations. Confirmations read here are listed in answers_read.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "reading",
+          "confirmed",
+          "total",
+          "steps"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$",
+            "description": "The pack's checklist id, or <checklist id>.<record id> for a stage entered once for each record"
+          },
+          "stage": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$",
+            "description": "The id of the stage entry it belongs to"
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
+          },
+          "label": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "boolean",
+            "description": "True when the list is Duly's assembly of several rules"
+          },
+          "confirmed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "label",
+                "rule_ids",
+                "who",
+                "confirmed_on"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_]+$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "rule_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                },
+                "who": {
+                  "enum": [
+                    "student",
+                    "employer",
+                    "school"
+                  ]
+                },
+                "school": {
+                  "type": "boolean"
+                },
+                "confirmed_on": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date",
+                  "description": "The day of the person's confirmation step.<checklist>.<step>, or null"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
