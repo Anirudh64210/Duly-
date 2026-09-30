@@ -179,3 +179,40 @@ was piped through tail by mistake; it was run again unpiped, exit 0.
 Request: L-web must set data-landmark to the route exactly ("/timeline", "/" for home), on each of
 the eight SHOT_SCREENS, and never on an error hero. No web file holds data-landmark on this branch
 yet, so `make design-shots` exits 1 until L-web's part lands. Not run: Electron itself.
+
+## 2026-09-30, run l-desktop-bc4b445878, attempt 1
+
+Read specs/product-2/resolutions.md point 20 and plan-fix6.yaml (L-web and L-desktop halves).
+
+Point 20: the landmark is the route, written by the web app, read by the shot run, one test joins them.
+
+- The shot run already looked for `[data-landmark="<route>"]` (point 18 work); shots.ts only gains
+  a comment citing point 20 and web/src/lib/shots.ts LANDMARKS.
+- shots.test.ts: new block "the web app's landmark table (resolutions point 20)". It imports
+  web/src/lib/shots.ts itself (not its text), and checks: LANDMARKS names exactly SHOT_SCREENS;
+  each value is its route; for each screen, the selector the shot run uses matches what the web
+  writes, and a mark with the web's value is counted for that screen and for no other.
+
+What ran: the done command once, exit 1. typecheck clean; vitest 137 passed, 2 failed, both in the
+new block: web writes "welcome" where the shot run looks for "/welcome". eslint exit 0, copy lint
+clean. prettier --write ran before (no change). On a scratch copy under TMPDIR with web's LANDMARKS
+set to the routes, the new block passes (3 passed), so the test fails only on the difference point 20
+removes. Not run again: the failure is the web half, which is L-web's lane this round.
+
+Request: L-web sets each LANDMARKS value in web/src/lib/shots.ts to its route (or keeps a table named
+LANDMARKS keyed by route in that file). When that lands on this branch the done command passes.
+
+Stop hook ran the done command again: same 2 failures (expected '/welcome', received 'welcome').
+Same failure twice: escalated, desktop/ESCALATE.md written, test left as it is.
+
+## 2026-09-30, run l-desktop-fa27a1e1ec, attempt 1
+
+Merged lane/L-desktop/l-desktop-bc4b445878 (the point 20 join test in shots.test.ts and the comment in
+shots.ts). web/src/lib/shots.ts on this branch now builds LANDMARKS from SHOT_SCREENS, route to route,
+so the difference the last run escalated on ("welcome" against "/welcome") is gone. No desktop code
+changed in this run beyond the merge.
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0. typecheck clean;
+vitest 11 files, 139 tests passed (the three point 20 tests among them); eslint clean; copy lint clean.
+git printed "tests/holdout: Operation not permitted" during the merge and status: the sandbox denies
+reads there, as the contract says. Not run: Electron itself.

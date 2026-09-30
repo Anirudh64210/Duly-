@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import * as web from "../../web/src/lib/shots";
 import { webDist } from "./engine";
 import { createAppHandler, readInside } from "./protocol";
 import {
@@ -184,6 +185,31 @@ describe("each screen's landmark (resolutions point 18)", () => {
   it("gives every built screen a landmark of its own", () => {
     const selectors = SHOT_SCREENS.map(landmarkSelector);
     expect(new Set(selectors).size).toBe(SHOT_SCREENS.length);
+  });
+});
+
+describe("the web app's landmark table (resolutions point 20)", () => {
+  // The table the web app writes into data-landmark, read from its own module, so the value the
+  // app writes and the value the shot run looks for cannot differ.
+  const webScreens: readonly string[] = web.SHOT_SCREENS;
+  const webLandmarks: Readonly<Record<string, string>> = web.LANDMARKS;
+
+  it("names each screen the shot run takes, and no other", () => {
+    expect(Object.keys(webLandmarks).sort()).toEqual([...SHOT_SCREENS].sort());
+    expect(webScreens).toEqual(SHOT_SCREENS);
+  });
+
+  it("marks each screen with its route", () => {
+    for (const screen of SHOT_SCREENS) expect(webLandmarks[screen]).toBe(screen);
+  });
+
+  it("gives marks the shot run counts for their own screen and for no other", () => {
+    for (const screen of SHOT_SCREENS) {
+      const written = webLandmarks[screen] ?? "";
+      expect(landmarkSelector(screen)).toBe(`[data-landmark=${JSON.stringify(written)}]`);
+      const drawn = [mark(written)];
+      for (const asked of SHOT_SCREENS) expect(holdsLandmark(drawn, asked)).toBe(asked === screen);
+    }
   });
 });
 
