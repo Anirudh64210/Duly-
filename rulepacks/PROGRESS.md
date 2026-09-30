@@ -1034,3 +1034,34 @@ probe (TMPDIR/lc16/probe.py, CLOCK of the acceptance tests):
 - J14 validation_4 (2026-06-01) lost its date: it falls after the card end, and the cap-gap is not the 24-month extension.
 - The per-job window shows on each stem_job_end stage, with no dates for the last job (its final evaluation is the stage's).
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-c9d501e790, attempt 1 (product-2 resolutions point 17, pack side)
+
+### What was tried
+
+- Read resolutions point 17, reviews/product-2-fix3.md finding 2, the `stem_validation_end` anchor and engine/path.py `_when`, `_first`, `_select`, `_all`, `_any` (inside a `first` lookup of the anchor, `outer` is the STEM authorization; `_all` stops on the first False, so later conditions are not asked).
+- Petition member of `stem_validation_end` now also requires filed_on on or after outer.card_start and on or before outer.card_end, and any_of [cos_ended_on absent, cos_ended_on on or after this.validity_start]. Written in block style; the old member was one line.
+- Note of capgap.status_ends_on_h1b_start extended; plain text untouched.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+probe (TMPDIR/lc17/probe.py, CLOCK of the acceptance tests):
+  J19: validation_1 2026-12-09, _2 2027-06-09, _3 2027-12-09, _4 None
+  J19 + h9 (filed 2020-04-01, approved, validity_start 2020-10-01): the same three dates (before the fix: all None)
+  J19 + h9 filed 2027-04-01, validity_start 2027-10-01, cos_ended_on 2027-08-01: the same three dates
+  J19 + h9 filed 2027-04-01, validity_start 2027-10-01, not ended: validation_3 None, _1 and _2 dated
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 27 failed; HEAD copy (git archive into TMPDIR) 28 failed; no failure only in the worktree
+  (the extra one in the copy is test_plain_changes, which needs git history)
+```
+
+### Seen and not worked around
+
+- Finding 3 (no test holds an approved change-of-status petition on a running STEM card, and no twin holds an older one) is for tests/, not this lane. Asked for under requests.
+- A petition on the card with cos_ended_on given and no validity_start: the dates stay (2026-12-09, 2027-06-09, 2027-12-09) and validity_start is not asked, as before (probed).
+- No network was used. No instruction was found in any data.

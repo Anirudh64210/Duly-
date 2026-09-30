@@ -1177,7 +1177,7 @@ parameters:
       snapshot: sources/fr-2016-04828.xml
       snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794
     derivation: reading
-    note: "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12), and no validation report is dated on or after that day (stem.validation_ends_with_extension, resolutions point 16). The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work."
+    note: "Reading. The quote is from the preamble of 81 FR 13040, effective 2016-05-10, not from the regulation. It speaks of the October 1 start of the 2016 rule. 89 FR 103054 (FR Doc. 2024-29354), saved as sources/fr-2024-29354.xml, extends the cap-gap until April 1 of the fiscal year or until the validity start date of the approved petition, whichever is earlier (8 CFR 214.2(f)(5)(vi)(A), capgap.end_month_day). Duly reads the preamble as saying the same of any approved start date on or before that April 1: F-1 status ends that day and H-1B status begins, so no grace.after_completion_days period follows it (resolutions point 15, J12), and no validation report is dated on or after that day (stem.validation_ends_with_extension, resolutions point 16). For validations the petition must belong to this STEM card: filed on or after the card start and on or before the card end, approved, and its change of status not ended (cos_ended_on) before the validity start (resolutions point 17). An approved start before this card began did not end the F-1 status the student holds now. The 60-day period of 8 CFR 214.2(f)(5)(iv) is for a student who has completed a course of study and any practical training, to prepare to leave or to transfer. The preamble sentence before the quote says a student with a timely-filed, non-frivolous change-of-status petition is in a period of authorized stay while it is pending, and is not authorized to work."
     plain: "Agency words from 2016 say that once an H-1B change-of-status petition is approved, F-1 status ends the day H-1B status begins. As Duly reads it, no 60-day period follows the H-1B start. This is guidance, not a regulation."
     plain_terms: [change-of-status petition, H-1B status]
   - id: stem.max_lifetime_extensions
@@ -1784,7 +1784,19 @@ path:
                         - {fact: this.card_end}
                         - {optional: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}]}, field: release_date, pick: earliest}}
                         - {optional: true, day_before: true, first: {of: {record: move, where: [{field: this.from_program, same_as: outer.program}, {field: this.to_program.level, differs_from: outer.program.level}]}, field: to_program.start_date, pick: earliest}}
-                        - {optional: true, day_before: true, first: {of: {record: petition, where: [{field: this.change_of_status, in: ["yes"]}, {field: this.outcome, in: [approved]}]}, field: validity_start, pick: earliest}}
+                        - optional: true
+                          day_before: true
+                          first:
+                            of:
+                              record: petition
+                              where:
+                                - {field: this.change_of_status, in: ["yes"]}
+                                - {field: this.outcome, in: [approved]}
+                                - {field: this.filed_on, on_or_after: {fact: outer.card_start}}
+                                - {field: this.filed_on, on_or_before: {fact: outer.card_end}}
+                                - any_of: [{field: this.cos_ended_on, present: false}, {field: this.cos_ended_on, on_or_after: {fact: this.validity_start}}]
+                            field: validity_start
+                            pick: earliest
               field: card_start
               pick: earliest
           closes:
