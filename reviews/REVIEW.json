@@ -1,68 +1,19 @@
 {
-  "run_id": "l-review-1ff190a1d6",
-  "reviewed_commit": "317ad86",
+  "run_id": "l-review-e8924056e5",
+  "reviewed_commit": "fa26e0c",
   "scores": {
-    "correct": {
-      "score": 1,
-      "evidence": "Engine side right by hand on all twenty journeys (J01, J02, J03, J05, J09, J11, J20 next STEM stage has no report dates; J14, J15 validations and J15 Job B evaluation 2025-10-31 to 2025-11-10). But point 16 names the withdrawal view and it still opens with School A, Master's checked on HEAD; an old approved petition drops every validation."
-    },
-    "sourced": {
-      "score": 4,
-      "evidence": "tools.sources.verify exit 0, plain gate exit 0; notes say how each row is used. The petition cutoff applies a guidance reading wider than it goes, and validation windows show guidance for students with no petition."
-    },
-    "never_assumes": {
-      "score": 2,
-      "evidence": "Withdrawal program preselected (onboarding.ts:1562, walk shows aria-checked true); validations drop with no reason or question on J19 plus an approved 2020 change-of-status petition."
-    },
-    "inside_the_boundary": {
-      "score": 4,
-      "evidence": "No new user-readable string in the diff; no conclusion about a person found. A due report shown as nothing due is a wrong fact, not advice."
-    },
-    "secure": {
-      "score": 4,
-      "evidence": "No new outside input; twenty journeys, three walked cases and seven probes all 200; landmarks file parsed defensively with exit 1 on a bad file."
-    },
-    "tested": {
-      "score": 3,
-      "evidence": "Pack mutants (a) validation type filter and (c) stem_job_end.evaluation_final are caught; mutant (b) removing the approved-petition end passes all of tests/unit and tests/holdout; no web test for point 16 on the branch."
-    }
+    "correct": {"score": 3, "evidence": "All SPEC-named inputs right: five acceptance and three holdout point 17 twins by hand, withdrawal view opens unchosen, samples made and checked by make.py (planted drift caught), heading text compared. Beside them: a 2020 petition still removes grace.p2 and raises cap_gap.h9.ends_before_starts; P1 (filed during OPT, start inside the card) shows validations after the pack's own end of F-1 status; /welcome, / and /updates can never pass the shot text check."},
+    "sourced": {"score": 4, "evidence": "tools.sources.verify and plain exit 0; capgap.status_ends_on_h1b_start note says how point 17 uses it. The filed-on filter applies (f)(12)(ii)(B) narrower than the pack's own end-of-status reading (P1)."},
+    "never_assumes": {"score": 3, "evidence": "An approved change-of-status petition with no filed_on (or no validity_start) is read as not belonging, with no question; a conflict is invented for an old petition on a record that holds none."},
+    "inside_the_boundary": {"score": 4, "evidence": "No new string states a conclusion about a person; the invented conflict reads as 'Two documents disagree on ...' (status.ts:65), untrue of the record."},
+    "secure": {"score": 4, "evidence": "No new outside input beyond the samples test spawning a fixed uv command; twenty journeys, eight twins, eight probes and three walked cases all 200."},
+    "tested": {"score": 3, "evidence": "Mutants m1 (filed_on >= card_start) and m3 (cos_ended_on) caught; m4 (approved filter removed) passes acceptance and holdout; no test for grace or cap_gap with an old petition; no test compares a real screen heading with its landmark."}
   },
   "findings": [
-    {
-      "severity": "blocking",
-      "title": "Point 16 web side not on the branch; withdrawal program preselected and samples drift",
-      "file": "web/src/lib/views/onboarding.ts:1562",
-      "input": "Onboarding walk answering Yes to 'Have you withdrawn from classes during a program on an F-1?'; web/samples recomputed on their saved cases and days",
-      "what_happens": "'Which program did you withdraw from?' opens with School A, Master's aria-checked true and Continue moves on. L-web commit 3db6249 is not an ancestor of HEAD. Samples hold unemployment.opt_card.a2 and unemployment.total.a2 = 5 where the engine gives None; no web/samples/make.py."
-    },
-    {
-      "severity": "should_fix",
-      "title": "Any approved change-of-status petition ends validations, even one from before the card",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1787",
-      "input": "J19 plus petition h9 {h1b, change_of_status yes, approved, filed_on 2020-04-01, validity_start 2020-10-01}; and J19 plus h9 approved validity_start 2027-10-01 with cos_ended_on 2027-08-01",
-      "what_happens": "First: validations 1 to 3 of the running STEM card (2026-12-09, 2027-06-09, 2027-12-09) all become None with no reason or question. Second: validation_3 (2027-12-09) drops although the change of status ended; cos_ended_on is not read here."
-    },
-    {
-      "severity": "should_fix",
-      "title": "The approved-petition end of validations has no test",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1787",
-      "input": "Scratch copy with that line removed (mutant b), pytest tests/unit tests/holdout --ignore=tests/unit/tools",
-      "what_happens": "Every test passes."
-    },
-    {
-      "severity": "note",
-      "title": "Shot landmark matched by type only",
-      "file": "desktop/src/shots.ts:232",
-      "input": "tests/design/landmarks.json: Checklist, Onboarding, Updates all 30px/600/-0.02em; Home error hero uses h1.hero-headline like Main",
-      "what_happens": "A shot drawing another screen's heading of the same type counts as drawn; no input found that reaches the error hero in the shot page."
-    },
-    {
-      "severity": "note",
-      "title": "Validation windows show guidance for every student",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1802",
-      "input": "J19 with no petition through POST /v1/compute",
-      "what_happens": "stem.validation_1.a2 status guidance, reading true, from capgap.status_ends_on_h1b_start in rule_ids; same as fix 2."
-    }
+    {"severity": "should_fix", "title": "An old approved change-of-status petition removes the grace and invents a cap-gap conflict", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1938", "input": "J19 plus h9 {h1b, change_of_status yes, approved, filed_on 2020-04-01, validity_start 2020-10-01} (acceptance twin of point 17)", "what_happens": "grace.p2 2028-06-09 to 2028-08-07 disappears; cap_gap.h9 runs 2028-06-09 to 2020-10-01 with conflict and question cap_gap.h9.ends_before_starts, read to the person as two documents disagreeing."},
+    {"severity": "should_fix", "title": "'Filed while the card runs' leaves out a petition filed during the first OPT with its start inside the STEM card", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1795", "input": "J19 plus h9 {h1b, cap_subject yes, change_of_status yes, approved, filed_on 2026-04-01, validity_start 2026-10-01}", "what_happens": "Grace is dropped (F-1 read as ending 2026-10-01) yet validation_2 2027-06-09 and validation_3 2027-12-09 are shown as due in the same output. Disputed against point 17's wording."},
+    {"severity": "should_fix", "title": "Shot heading check compares canvas copy the app never draws", "file": "desktop/src/shots.ts:261", "input": "holdsLandmark with the app's heading ('Which visa status do you hold now?', 'Can't tell yet', 'No published update matches your status.') in each landmark's exact type", "what_happens": "false for /welcome, / and /updates (true for /timeline); 12 of 20 planned shots can never count as drawn, so make design-shots fails every run."},
+    {"severity": "should_fix", "title": "Approved filter untested; a missing filed_on is read as not belonging with no question", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1794", "input": "(a) pack with outcome in [approved] removed, T3 with outcome denied; (b) T3 with no filed_on", "what_happens": "(a) mutant drops validations 2 and 3 and every acceptance and holdout test passes; (b) validations 2 and 3 shown due, no h9.filed_on question, no reason."}
   ],
   "decision": "VETO"
 }
