@@ -109,6 +109,13 @@ now chosen by what a change can break.
 - A reviewer reads everything in one pass and names every finding; a fix plan answers all of them together.
 - Before a phase is built, real student journeys are run against its data model, so a gap in the model is found before code is written, not after.
 - A plan that changes the pack or the engine regenerates the web samples (`make samples`) in its reconcile round, by a web lane beside the test lane, so the samples drift test never stops a plan.
+- Journeys are a gate, not a final exam. Product-2 took 13 reviews and 11 vetoes because wrong
+  dates were first found by the reviewer. Every builder that touches engine/, the pack or a view is
+  held, in its done command, to the acceptance journeys and to the tests of the points it answers,
+  so a wrong date stops that lane within minutes. The reviewer then confirms and reads what tests
+  cannot (sources, words, screens); it does not discover dates.
+- An area that fails review twice (cap-gap) leaves the plan and gets its own round, designed from a
+  full table of cases before any code.
 - `make efficiency SINCE=<time>` reports wall time, agent time by lane, CI waits, stops and the time from each stop to the restart, and reviews with vetoes. Every status report carries it.
 
 ## A change of behaviour lands in two rounds
