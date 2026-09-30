@@ -16,6 +16,7 @@ def plan(repo: Path, rounds: list[dict], spec: str = "README.md") -> Path:
             {
                 "branch": "phase-x",
                 "spec": spec,
+                "goal": "Check the plan.",
                 "merge": "local",
                 "audited": False,
                 "rounds": rounds,
@@ -136,3 +137,21 @@ def test_a_broken_plan_and_the_command(tmp_path, capsys):
     assert preflight.main([]) == 2
     assert preflight.main([str(bad)]) == 1
     assert "preflight: 1 problem(s)" in capsys.readouterr().out
+
+
+def test_a_plan_with_no_goal_is_found(tmp_path):
+    repo = mini.build(tmp_path)
+    path = repo / "plan.yaml"
+    path.write_text(
+        yaml.safe_dump(
+            {
+                "branch": "phase-x",
+                "spec": "README.md",
+                "audited": False,
+                "rounds": [{"name": "A", "lanes": [lane("L-engine", "builder", "Build.")]}],
+            }
+        )
+    )
+    assert preflight.problems(path, repo) == [
+        "the plan has no goal: every lane is told it, so it sees the whole picture"
+    ]

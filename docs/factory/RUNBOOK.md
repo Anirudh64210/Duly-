@@ -143,3 +143,19 @@ An agent cannot declare itself done. Done is a command in the plan, run by the o
 ## Reproducing a run
 
 The model is pinned in factory/config.yaml and in each contract, and a run on any other model is refused. Dependencies are pinned by uv.lock and package-lock.json. Each run starts from a recorded commit (`Factory-Base`). A model's output is not repeatable in itself, which is why the checks, and not the agent's words, decide.
+
+## Build only what is needed, seeing the whole
+
+A lane sees its own mission and its own paths, so it solves its slice in full, even when the
+whole needs much less. Two things close that gap:
+
+- Every plan has a `goal`. Each lane is told it, and what the lanes beside it in the round are
+  doing, before its own part (phase.briefing). Preflight refuses a plan with no goal.
+- Every agent asks before building: is it required (which SPEC point, test or finding), does it
+  already exist (this repository, the standard library, a locked dependency), and what is the
+  smallest change that fits the whole. It reports what it chose not to build. The reviewer names
+  overbuilding as a finding: code nothing needs, single-use layers, and anything that repeats
+  the standard library or existing code.
+
+The same holds for the founder lane: a SPEC point is written for the whole area, from a full
+table of cases, not one review finding at a time.

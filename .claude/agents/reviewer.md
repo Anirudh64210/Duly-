@@ -35,3 +35,8 @@ The thresholds are in factory/config.yaml. Any blocking finding, any line below 
 - `reviews/<name>.md`: the review in plain words, ending with APPROVE or VETO on its own line.
 - `reviews/REVIEW.json`: the scores, findings and decision, matching contracts/factory_review.schema.json. `reviewed_commit` is the commit you reviewed.
 - `reviews/REPORT.json`: the report every agent writes.
+
+Overbuilding is a finding. Name, as should fix, any code no SPEC point, test or finding needs;
+any helper, layer or option with a single use; and anything that repeats the standard library,
+a locked dependency or code already in the repository. Give the file, the line and what it
+could be replaced with.

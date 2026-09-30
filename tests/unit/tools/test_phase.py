@@ -53,6 +53,7 @@ def plan_file(repo: Path, rounds: list[dict], **extra) -> Path:
         yaml.safe_dump(
             {
                 "branch": "phase-x",
+                "goal": "Land the phase.",
                 "spec": "README.md",
                 "merge": "local",
                 "audited": False,
