@@ -213,3 +213,15 @@
 - Failure: a green suite hid a route that computes nothing.
 - Fix: send one SPEC journey through the route and the engine function and compare.
 - Evidence: reviews/product-2.md finding 1.
+
+## 2026-09-30, run l-review-3a41706e57 (product round 2, fix 1)
+- Read resolutions.md points 1 to 14, reviews/product-2.md, programs.md sections 14, 18, 19 and 22, journeys.json, the diff 233625c..6585ae9 (api/case.py, engine/path.py and f1.py, the pack, the web onboarding and records, the acceptance and holdout journeys).
+- Ran: unit and holdout suites (exit 0); web tsc and vite build (exit 0) and vitest (516 passed) on a TMPDIR copy; TMPDIR/rv3a/journeys.py sent all twenty journeys through POST /v1/compute (all 200, all cannot_tell with reasons); a click driver walked Onboarding for J01 (70 views), J08 and J16 (48 views) and sent each posted case to the route.
+- Hand checks: 17 journeys right. J04 and J14 give the concluding evaluation from the card end (2023-07-01, 2026-06-10), where the source and journeys give 2022-08-25 and 2026-07-25. J06 keeps opt_post.p1 next after its filing window closed on 2026-02-10.
+- Onboarding: J01 and J16 posted cases give the journey counts; J08's on-campus job cannot be chosen (setField writes under ""); many views lack a why line; several dates must be typed with no not-sure choice. Point 11 not built.
+- Wrote reviews/product-2-fix1.md (VETO), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: a unit test that sets a field directly passed while the rendered view refused the same choice.
+- Fix: walk each named journey through the rendered views with a title-keyed click driver and save the posted case.
+- Evidence: the J08 walk stops at "Which permission was this job under?" with "Choose an answer."

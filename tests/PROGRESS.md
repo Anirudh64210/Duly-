@@ -2167,3 +2167,126 @@ Nothing read in this run asked for an action.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## l-tests-9d76786149: guard the run helpers of test_f1_translation.py (escalated)
+
+Mission: test_every_run_helper_passes_its_case_through_the_guard failed on
+test_f1_translation.py:72 in _records and :82 in _both.
+
+What I did: a helper _sent builds the case as every other run helper does
+(with_the_about_asked, asked by compute_f1 through refuse_placeholders), and _records and
+_both call f1.parse_case(refuse_placeholders(_sent(**changes)), CLOCK). The guard test passes.
+What would make it fail again: parse_case called on _raw(...) directly in either helper.
+
+What ran:
+- The done command before the change: 1 failed (the guard test), 41 passed.
+- Guard only, no about step: 15 translation tests raise PlaceholderAnswerError (13 on
+  nothing_more_to_record, 2 on opt.earlier_at_this_level): _answers writes about_asked(q).
+- Guard with about step asked by compute_f1 (kept): ruff clean, 6 failed, exit 1.
+- Guard with about step asked by compute_f1_records: 7 failed (the path asks complete.*,
+  never nothing_more_to_record or opt.earlier_at_this_level, so both answers are dropped).
+
+Why the 6 fail: with_the_about_asked leaves out an answer whose question is never asked
+(SPEC-resolutions point 7). compute_f1 asks only opt.earlier_at_this_level on the OPT case
+(a job is entered, so nothing_more_to_record is not asked), and only nothing_more_to_record
+and full_time_cpt_used on the no-OPT case. The tests leaned on answers to unasked questions,
+held up by the marker about:
+- opt/stem parity and translation tests: WHOLE's nothing_more_to_record is dropped, the work
+  list is not whole, unemployment.opt_card.a1 is None instead of 14.
+- test_no_to_earlier_opt_at_this_level_states_p1_authorizations_whole: the answer is dropped.
+- test_answers_keep_their_ids_answers_days_and_about: the about step adds an about to
+  full_time_cpt_used, so the input the test compares against changes.
+- test_compute_f1_records_is_path_on_the_hand_written_records: the hand-written case keeps
+  marker abouts that the translated case no longer has.
+
+Not done: no case, no assertion changed. That is the founder's decision (see REPORT.json).
+- Stop hook (lane_test.py) ran the done command: the same 6 failures, a second time. Stopped
+  as the contract says, status escalated; no case or assertion changed.
+
+## l-tests-8a15fee5f8: the translation tests follow resolution 14 (blocked on engine/f1.py)
+
+Merged lane/L-tests/l-tests-9d76786149 (the guard in _records and _both, kept).
+
+What I did:
+- tests/support/f1_pack.py, with_the_about_asked: a question asked with no about (the path's
+  complete.<kind>) raised KeyError 'about'. The answer now goes with no about and without the
+  marker. New test in tests/unit/support/test_placeholders.py for it.
+- test_f1_translation.py: _answers writes no marker about; _sent asks the about step with the
+  questions of compute_f1 and compute_f1_records together, so one case is sent to both;
+  WHOLE answers complete.<kind> yes for every kind plus opt.earlier_at_this_level no, and the
+  guard leaves out what neither engine asks. The six tests of the escalation:
+  - answers_keep_their_ids: compared with the case as sent (full_time_cpt_used gains the
+    about {"cpt_full_time_days": None}; the {"x": "1"} about is kept).
+  - no_to_earlier_opt: on the OPT case (asked there); new twin on a no-OPT case states nothing.
+  - hand_written_records: complete is the eight kinds the path asks on this case plus
+    authorization:p1; confirmations are those sent. New test states the sent case whole.
+  - opt dates, OPT parity, STEM parity: unchanged assertions; the lists are whole by
+    complete.<kind> now.
+- Point 14 read as written: yes to nothing_more_to_record states nothing whole (old test
+  reversed); new tests for complete.<kind> yes (on its day) and no.
+
+What ran:
+- The done command, as written, no pipe: ruff clean, 72 files formatted, 7 failed, exit 1.
+  All 7 in test_f1_translation.py; engine coverage of the plain run 98 (f1.py 100).
+- A scratch plugin under TMPDIR replacing engine.f1._statements with point 14 (complete.<kind>
+  yes to that kind on its day; earlier no to authorization:p1 on a case with OPT; nothing
+  from nothing_more_to_record): tests/unit/support and tests/unit/engine all pass.
+- Faults planted on that reference, each caught: complete.<kind> no read as yes
+  (test_no_to_complete_kind...); earlier yes read as no (test_yes_to_earlier...); the
+  statement dated today, not the answer's day (test_yes_to_complete_kind...). The engine as
+  it is (nothing_more read, complete.<kind> not read) is caught by the 7 failing tests.
+  Not caught by these tests: an engine that reads earlier on a no-OPT case, because the
+  guard drops that answer before the engine sees it.
+- Scratch removed.
+
+Why it stops here: engine/f1.py _statements still turns nothing_more_to_record into every
+statement and does not read complete.<kind>. Point 14 needs that change; it is outside
+tests/. Status blocked; request to L-engine in REPORT.json. No assertion loosened.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+- Stop hook (lane_test.py) ran the done command: the same 7 failures, a second time.
+  Status changed to escalated as the contract says; no case or assertion changed.
+
+## l-tests-2839a42b3a: point 14 clarified, opt.earlier_at_this_level states nothing on any case
+
+Merged lane/L-tests/l-tests-8a15fee5f8 (clean merge).
+
+What I did, in tests/unit/engine/test_f1_translation.py only:
+- Removed test_no_to_earlier_opt_at_this_level_states_p1_authorizations_whole, as the mission
+  says. In its place, test_no_to_earlier_opt_on_a_case_with_opt_states_nothing_whole: the
+  same OPT case, the answer is sent with the card's about (2026-06-01 to 2027-05-31, master),
+  and complete is {}. It fails on an engine that turns earlier no into authorization:p1.
+- Removed the authorization:p1 key from the complete of _hand_written_opt_case; complete is
+  now the eight complete.<kind> kinds, each {"on": "2026-09-30"}. Docstring says why.
+- Module docstring and the confirmations comment now say earlier states nothing on any case.
+
+What ran:
+- uv run ruff format tests: 72 files already formatted.
+- The done command, as written, no pipe: All checks passed, 72 files already formatted,
+  collection clean, exit 0.
+- pytest tests/unit/engine/test_f1_translation.py: 8 failed. Expected until the engine
+  follows point 14 next round (the old 7 less the removed test, plus the new OPT twin, plus
+  the hand-written case now without authorization:p1, which already failed).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-2839a42b3a attempt 2: report lists every changed file
+
+Why attempt 1 was not accepted: REPORT.json left out tests/support/f1_pack.py and
+tests/unit/support/test_placeholders.py. Both changed through the merge of
+lane/L-tests/l-tests-8a15fee5f8 (with_the_about_asked answers a question asked with no about
+with none, and its test), not by hand in this run, and the list was built from hand edits.
+
+What I did: checked the work of attempt 1 is intact (the p1 test is gone, the hand-written
+case holds no authorization:p1), then set files_changed from git diff --name-only 5d5d1e7
+HEAD plus REPORT.json. No test changed in this attempt.
+
+What ran: git diff --name-only 5d5d1e7 HEAD (4 files under tests/); the done command, as
+written, no pipe (result below in REPORT.json commands_run).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+Done command printed: All checks passed!, 72 files already formatted, exit 0.
