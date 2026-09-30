@@ -508,14 +508,227 @@ export function questionCopy(questionId: string): QuestionCopy | null {
   return QUESTIONS.get(questionId) ?? numberedQuestion(questionId);
 }
 
-/** The title a question is shown under, on every screen that lists it. */
-export function questionTitle(questionId: string): string {
-  return questionCopy(questionId)?.ask ?? "Duly has a question about what you entered.";
+// ui-1 point 5: the path's records, by kind. Mirrors path.records in the pack
+// (rulepacks/f1-us/v2026.09/parameters.yaml): the letters of a record id, its name, and
+// the words that ask whether the list of that kind is whole.
+const RECORD_KINDS: ReadonlyMap<string, { prefix: string; name: string; whole: string }> = new Map(
+  Object.entries({
+    program: {
+      prefix: "p",
+      name: "Program of study",
+      whole: "Is this every program of study, in the US or not?",
+    },
+    move: {
+      prefix: "mv",
+      name: "Move between programs",
+      whole: "Is this every move between programs?",
+    },
+    end_date_change: {
+      prefix: "ec",
+      name: "Change of program end date",
+      whole: "Is this every change of a program end date?",
+    },
+    authorization: {
+      prefix: "a",
+      name: "Permission to work",
+      whole: "Is this every CPT, OPT and other work permission?",
+    },
+    employer: { prefix: "e", name: "Employer", whole: "Is this every employer?" },
+    work: { prefix: "w", name: "Job", whole: "Is this every job, through today?" },
+    report: {
+      prefix: "r",
+      name: "Report to the DSO",
+      whole: "Is this every report made to the DSO, through today?",
+    },
+    trip: {
+      prefix: "t",
+      name: "Trip abroad",
+      whole: "Is this every trip outside the US in the time asked?",
+    },
+    petition: {
+      prefix: "h",
+      name: "H-1B petition",
+      whole: "Is this every H-1B petition filed for this person?",
+    },
+    withdrawal: {
+      prefix: "wd",
+      name: "Withdrawal from classes",
+      whole: "Is this every withdrawal from classes?",
+    },
+    term: { prefix: "tm", name: "Term", whole: "Is this every term?" },
+    reduced_load: {
+      prefix: "rl",
+      name: "Reduced course load",
+      whole: "Is this every reduced course load?",
+    },
+    reinstatement: { prefix: "ri", name: "Reinstatement", whole: "Is this every reinstatement?" },
+  }),
+);
+
+// ui-1 point 5: what Duly asks for each field of a record, keyed by the record's kind and
+// the field. The pack's labels, with "it" named. Fields held only to translate an older
+// case are never asked.
+const FIELD_WORDS: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    "program.where": "Where was the program, and on what status?",
+    "program.school_name": "School name",
+    "program.school_code": "School code, as printed on the Form I-20",
+    "program.level": "Level, as the Form I-20 shows it",
+    "program.field_name": "Field of study, as printed",
+    "program.cip_code": "CIP code on the Form I-20",
+    "program.stem_list": "Is the degree on the STEM Designated Degree Program List?",
+    "program.start_date": "Program start date on the Form I-20",
+    "program.end_date": "Program end date on the newest Form I-20",
+    "program.state": "Where does the program stand?",
+    "program.coursework_done_on":
+      "Day all course requirements were done, apart from a thesis or its equivalent",
+    "program.conferred_on": "Day the degree was conferred",
+    "program.first_year_done_on": "Day the first full academic year was done, from the school",
+    "program.first_year_before_training":
+      "Was one full academic year done before the training began?",
+    "program.immediate_cpt": "Does the program require CPT from the start?",
+    "program.dual_with": "The other program of a dual degree",
+    "program.full_course_each_term": "Was every term a full course of study?",
+    "program.online_within_limit": "Did online classes stay within the school's limit each term?",
+    "move.how": "How was the move made?",
+    "move.from_program": "Program moved from",
+    "move.to_program": "Program moved to",
+    "move.told_school_on": "Day the school was told of the transfer",
+    "move.release_date": "SEVIS release date",
+    "move.i20_issued_on": "Day the new Form I-20 was issued",
+    "move.contacted_new_dso_on": "Day the DSO at the new school was contacted",
+    "move.registered_on": "Day of registration at the new school",
+    "end_date_change.program": "Program whose end date changed",
+    "end_date_change.change": "Was the end date extended or shortened?",
+    "end_date_change.old_end": "End date before the change",
+    "end_date_change.new_end": "End date after the change",
+    "end_date_change.requested_on": "Day the extension was asked for",
+    "end_date_change.granted_on": "Day the change was granted",
+    "end_date_change.reason": "Reason on the Form I-20",
+    "authorization.type": "Kind of permission",
+    "authorization.program": "Program the permission rests on",
+    "authorization.extends": "OPT the permission extends",
+    "authorization.basis_program": "Degree the STEM extension rests on",
+    "authorization.time": "Full or part time, as the Form I-20 shows it",
+    "authorization.employer": "Employer on the Form I-20",
+    "authorization.dso_on": "Day the DSO signed or entered the recommendation",
+    "authorization.filed_on": "Day Form I-765 was filed",
+    "authorization.decision": "Decision on the permission",
+    "authorization.decided_on": "Day of the decision",
+    "authorization.card_start": "Start date on the card, or on the Form I-20 for CPT",
+    "authorization.card_end": "End date on the card, or on the Form I-20 for CPT",
+    "authorization.split_noted": "Did the DSO note a split of OPT time in SEVIS?",
+    "employer.name": "Employer name",
+    "employer.e_verify": "Is the employer enrolled in E-Verify?",
+    "work.employer": "Employer for the job",
+    "work.under": "Permission the job was under",
+    "work.on_campus": "Program whose school the on-campus job was at",
+    "work.start": "First day of the job",
+    "work.end": "Last day of the job",
+    "work.hours_per_week": "Hours a week",
+    "work.hours_changes": "Times the hours a week changed",
+    "report.type": "Kind of report",
+    "report.about": "Permission or job the report is about",
+    "report.made_on": "Day the report was made",
+    "trip.left_on": "Day of leaving the US",
+    "trip.returned_on": "Day of return to the US",
+    "trip.purpose": "What was the trip?",
+    "trip.reentry_i20": "Program whose Form I-20 was shown on return",
+    "trip.signature_on": "Day of the DSO's travel signature on that Form I-20",
+    "trip.job_on_return": "Was there a job to return to?",
+    "petition.type": "Kind of petition",
+    "petition.cap_subject": "Is the petition under the yearly cap?",
+    "petition.employer": "Employer on the petition",
+    "petition.filed_on": "Day the petition was filed",
+    "petition.receipt_on": "Receipt date",
+    "petition.requested_start": "Start date asked for in the petition",
+    "petition.change_of_status": "Does the petition ask for a change of status?",
+    "petition.cos_ended_on": "Day the change of status was withdrawn or moved to a consulate",
+    "petition.outcome": "Outcome of the petition",
+    "petition.outcome_on": "Day of the outcome",
+    "petition.validity_start": "Validity start date of the approved petition",
+    "petition.h1b_began_on": "Day H-1B status began",
+    "withdrawal.program": "Program withdrawn from",
+    "withdrawal.on": "Day of the withdrawal",
+    "withdrawal.dso_authorized": "Did the DSO authorize the withdrawal?",
+    "term.program": "Program the term was in",
+    "term.start": "First day of the term",
+    "term.end": "Last day of the term",
+    "term.type": "Kind of term",
+    "term.credits": "Credits taken in the term",
+    "term.online_credits": "Online credits taken in the term",
+    "term.full_course_credits": "Credits the school counts as a full course",
+    "reduced_load.program": "Program with the reduced course load",
+    "reduced_load.reason": "Reason for the reduced course load",
+    "reduced_load.starts": "First day of the reduced course load",
+    "reduced_load.ends": "Last day of the reduced course load",
+    "reduced_load.approved_on": "Day the DSO approved it",
+    "reduced_load.credits": "Credits taken with the reduced course load",
+    "reduced_load.resumed_on": "Day a full course resumed",
+    "reinstatement.program": "Program the reinstatement is for",
+    "reinstatement.filed_on": "Day the reinstatement was filed",
+    "reinstatement.decided_on": "Day of the decision",
+    "reinstatement.decision": "Decision on the reinstatement",
+  }),
+);
+
+const RECORD_ID = /^([a-z]+)(\d+)$/;
+const TYPED_DATES = "typed_dates.from_documents";
+const CHECKED_DATE = /^typed_dates\.checked\.(.+)$/;
+const ENDS_BEFORE_TODAY = "record.ends_before_today";
+const UNCONFIRMED_TYPED = "unconfirmed:typed_dates";
+
+/** A record id as the person reads it, "Trip abroad 1", or null for an id that is not one. */
+function recordName(recordId: string): { kind: string; name: string } | null {
+  const parts = RECORD_ID.exec(recordId);
+  if (!parts) return null;
+  for (const [kind, record] of RECORD_KINDS) {
+    if (record.prefix === parts[1]) return { kind, name: `${record.name} ${parts[2]}` };
+  }
+  return null;
 }
 
-/** ui-1 point 1: the line under Home's headline while questions are open. */
-export function openQuestionsLine(count: number): string {
-  return `${count} ${count === 1 ? "answer" : "answers"} would let Duly go on with your dates.`;
+/** The words for a record's field, "Trip abroad 1: Was there a job to return to?", or null. */
+function fieldTitle(key: string): string | null {
+  const split = key.indexOf(".");
+  const record = recordName(key.slice(0, split));
+  const words = record && FIELD_WORDS.get(`${record.kind}.${key.slice(split + 1)}`);
+  return record && words ? `${record.name}: ${words}` : null;
+}
+
+/** ui-1 point 5: the words for a question of the path, keyed by what it asks. */
+function pathTitle(questionId: string): string | null {
+  if (questionId === TYPED_DATES) return "Did you type these dates from your documents?";
+  if (questionId === ENDS_BEFORE_TODAY) {
+    return "Your record ends before today. Is there anything after it to add?";
+  }
+  const checked = CHECKED_DATE.exec(questionId);
+  if (checked) {
+    const field = fieldTitle(checked[1] ?? "");
+    return field && `Check this date against your document. ${field}`;
+  }
+  if (questionId.startsWith("complete.")) {
+    return RECORD_KINDS.get(questionId.slice("complete.".length))?.whole ?? null;
+  }
+  const parts = questionId.split(".");
+  // A date entered that is after today: <record>.<field>.after_today.
+  if (parts.length === 3 && parts[2] === "after_today") {
+    const field = fieldTitle(`${parts[0]}.${parts[1]}`);
+    return field && `${field}. The date entered is after today.`;
+  }
+  // A check that does not hold for a record: <check>.<record>.
+  const last = recordName(parts[parts.length - 1] ?? "");
+  if (parts.length > 1 && last !== null) return `${last.name}: ${FACT_NOT_NAMED}`;
+  return fieldTitle(questionId);
+}
+
+/** The title a question is shown under, on every screen that lists it. */
+export function questionTitle(questionId: string): string {
+  return (
+    questionCopy(questionId)?.ask ??
+    pathTitle(questionId) ??
+    "Duly has a question about what you entered."
+  );
 }
 
 /**
@@ -555,7 +768,23 @@ export const ANSWER_NOT_SHOWN =
 /** A judgement item this screen has no words for. It is never shown as nothing. */
 export const JUDGEMENT_NOT_NAMED = "Something in what you entered needs an answer.";
 
+// ui-1 point 5: why a question of the path is asked, by the kind of its reason.
+const PATH_BECAUSE: ReadonlyMap<string, string> = new Map(
+  Object.entries({
+    missing: "nothing is entered for it yet",
+    unconfirmed: "Duly waits for your answer before it goes on",
+    conflict: "the dates entered do not fit together",
+  }),
+);
+
 export function becauseLine(because: readonly string[]): string {
+  const path = because.flatMap((reason) => {
+    if (reason === UNCONFIRMED_TYPED) return ["some dates you typed are not checked yet"];
+    const split = reason.indexOf(":");
+    const words = PATH_BECAUSE.get(reason.slice(0, split));
+    return words !== undefined && pathTitle(reason.slice(split + 1)) !== null ? [words] : [];
+  });
+  if (path.length > 0) return `Asked because ${[...new Set(path)].join(", and ")}.`;
   return `Asked because of: ${because.map(inputName).join(", ")}.`;
 }
 

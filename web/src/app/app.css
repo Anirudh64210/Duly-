@@ -339,19 +339,6 @@ p {
   }
 }
 
-/* ui-1 point 1: the reasons one tap away, and the next move under the verdict. */
-.why {
-  margin-top: 2px;
-}
-
-.why .reason {
-  margin-top: 6px;
-}
-
-.next-move {
-  margin-top: 16px;
-}
-
 /* Metrics */
 .metrics {
   margin-top: 44px;

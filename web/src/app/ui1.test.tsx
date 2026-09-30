@@ -7,13 +7,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import stemNext from "../../samples/path-stem-next.json";
 import { engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { STATUS } from "../lib/fixtures";
-import { appReasonLine, openQuestionsLine, questionTitle } from "../lib/labels";
 import { shotStatus } from "../lib/shots";
 import { CaseProvider, type AppCase } from "./caseStore";
 import { heldCase } from "./heldCase";
 import { createAppRouter } from "./Shell";
 
-// specs/ui-1/SPEC.md points 1, 3 and 4, as the founder sees the screens.
+// specs/ui-1/SPEC.md points 1, 3, 4, 5, 6 and 8, as the founder sees the screens.
 
 const output: EngineOutput = engineOutputSchema.parse(stemNext);
 
@@ -45,41 +44,114 @@ afterEach(() => {
 const lines = (root: HTMLElement) =>
   [...root.querySelectorAll(".reason-line")].map((line) => line.textContent ?? "");
 
-describe("Home with the path-stem-next sample (point 1)", () => {
-  it("says under the headline how many answers are open, and never a field id", async () => {
+// Every id the sample holds, in each form a screen could show it: as is, with dots or
+// underscores turned into spaces, or both (point 5).
+function idForms(): string[] {
+  const ids = new Set<string>();
+  for (const question of output.questions) {
+    ids.add(question.id);
+    if (question.record !== undefined) ids.add(question.record);
+    for (const reason of question.because) ids.add(reason.slice(reason.indexOf(":") + 1));
+  }
+  for (const reason of output.verdict.reasons) ids.add(reason.slice(reason.indexOf(":") + 1));
+  return [...ids].flatMap((id) => [
+    id,
+    id.replaceAll(".", " "),
+    id.replaceAll("_", " "),
+    id.replaceAll(/[._]/g, " "),
+  ]);
+}
+
+// Point 6: what Why reads on path-stem-next, written out, one line for each reason.
+const WHY_LINES = [
+  "No document is attached to these dates yet.",
+  "Did you type these dates from your documents?",
+  "Permission to work 1: Day the DSO signed or entered the recommendation",
+  "Program of study 1: Was one full academic year done before the training began?",
+  "Program of study 1: Does the program require CPT from the start?",
+  "Program of study 1: Was every term a full course of study?",
+  "Program of study 1: Did online classes stay within the school's limit each term?",
+  "Trip abroad 1: Day of the DSO's travel signature on that Form I-20",
+  "Trip abroad 1: Was there a job to return to?",
+  "Trip abroad 1: What was the trip?",
+  "Is this every CPT, OPT and other work permission?",
+  "Is this every change of a program end date?",
+  "Is this every program of study, in the US or not?",
+  "Is this every move between programs?",
+  "Is this every job, through today?",
+  "Is this every trip outside the US in the time asked?",
+  "Is this every H-1B petition filed for this person?",
+  "Is this every withdrawal from classes?",
+  "A court paused a change to a rule that applies here, and the two rules give different dates.",
+  "The rule Duly would use was not yet in force on the day this counts from, so Duly does not compute the date. This is a question for your DSO.",
+  "Something in what you entered needs an answer.",
+];
+
+describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
+  it("says under the headline how many answers are open", async () => {
     mount({ path: "/" });
     const hero = await screen.findByRole("region", { name: "Verdict" });
-    expect(within(hero).getByText(openQuestionsLine(output.questions.length))).toBeVisible();
-    expect(openQuestionsLine(output.questions.length)).toBe(
-      `${output.questions.length} answers would let Duly go on with your dates.`,
-    );
-    fireEvent.click(within(hero).getByRole("button", { name: /^Why/ }));
-    for (const question of output.questions) {
-      expect(hero.textContent).not.toContain(question.id);
-      expect(hero.textContent).not.toContain(question.id.replaceAll("_", " "));
-    }
+    expect(lines(hero)).toEqual(["17 answers would let Duly go on with your dates."]);
   });
 
-  it("shows each reason line once, with every reason one tap away under Why", async () => {
+  it("shows each reason once under Why, in its own words", async () => {
     mount({ path: "/" });
     const hero = await screen.findByRole("region", { name: "Verdict" });
-    expect(lines(hero)).toHaveLength(1);
     fireEvent.click(within(hero).getByRole("button", { name: /^Why/ }));
-    const shown = lines(hero);
-    expect(new Set(shown).size).toBe(shown.length);
-    for (const reason of output.verdict.reasons) {
-      const asked = output.questions.find((question) => question.because.includes(reason));
-      const line = asked ? questionTitle(asked.id) : appReasonLine(reason, output.computed);
-      expect(shown).toContain(line);
+    expect(lines(hero).slice(1)).toEqual(WHY_LINES);
+  });
+
+  it("shows no id in any form, anywhere on Home", async () => {
+    mount({ path: "/" });
+    const hero = await screen.findByRole("region", { name: "Verdict" });
+    fireEvent.click(within(hero).getByRole("button", { name: /^Why/ }));
+    const text = document.body.textContent ?? "";
+    for (const form of idForms()) {
+      expect(text).not.toMatch(new RegExp(`(^|[^\\w])${form.replaceAll(".", "\\.")}($|[^\\w])`));
     }
-    expect(shown).not.toContain("Duly is waiting for your answer to a question below.");
+    expect(text).not.toMatch(/\b[a-z]+_[a-z_]+\b/);
+    expect(text).not.toContain("Duly has a question about what you entered.");
+    expect(text).not.toContain("Duly is waiting for your answer to a question below.");
+  });
+
+  it("gives each question on Home its own title and a because line in words", async () => {
+    mount({ path: "/" });
+    const section = await screen.findByRole("region", { name: "QUESTIONS FOR YOU" });
+    const titles = [...section.querySelectorAll(".row-title")].map((t) => t.textContent);
+    expect(new Set(titles).size).toBe(17);
+    expect(
+      within(section).getAllByText("Asked because nothing is entered for it yet."),
+    ).toHaveLength(8);
+    expect(
+      within(section).getAllByText("Asked because Duly waits for your answer before it goes on."),
+    ).toHaveLength(8);
+    expect(
+      within(section).getByText("Asked because some dates you typed are not checked yet."),
+    ).toBeInTheDocument();
+  });
+
+  it("follows the canvas: headline, calm line, the metrics, then Your next move", async () => {
+    mount({ path: "/" });
+    const hero = await screen.findByRole("region", { name: "Verdict" });
+    const order = [
+      within(hero).getByRole("heading", { level: 1 }),
+      within(hero).getByText(/^17 answers/),
+      screen.getByRole("region", { name: "Counts" }),
+      screen.getByRole("region", { name: "YOUR NEXT MOVE" }),
+      screen.getByRole("region", { name: "QUESTIONS FOR YOU" }),
+    ];
+    for (let index = 1; index < order.length; index += 1) {
+      const before = order[index - 1] as Node;
+      expect(
+        before.compareDocumentPosition(order[index] as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
   });
 
   it("has a Your next move row that goes to the questions on Home", async () => {
     mount({ path: "/" });
-    const hero = await screen.findByRole("region", { name: "Verdict" });
-    expect(within(hero).getByText("YOUR NEXT MOVE")).toBeInTheDocument();
-    fireEvent.click(within(hero).getByRole("button", { name: "Answer Duly's questions" }));
+    const move = await screen.findByRole("region", { name: "YOUR NEXT MOVE" });
+    fireEvent.click(within(move).getByRole("button", { name: "Answer Duly's questions" }));
     const questions = document.getElementById("questions");
     expect(questions).not.toBeNull();
     expect(questions?.contains(document.activeElement)).toBe(true);
