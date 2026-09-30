@@ -23,3 +23,21 @@ design/canvas/png. Timeline, Checklists, Your case and Updates match the canvas.
    as a student sees it.
 
 Nothing here changes a date, a count or what is asked. Words follow D56 and the copy lint.
+
+## From the review (reviews/ui-1.md)
+
+5. Plain words for every question the pack can ask (findings 1 and 2). Most question ids have no
+   copy, so seventeen become "Duly has a question about what you entered." and the questions
+   section reads "Missing a1 dso on.". Write the copy once in web/src/lib/labels.ts, keyed by what
+   is asked, not by the record id: `<record>.<field>` by the field and the record's kind,
+   `complete.<kind>` by the kind, `typed_dates.*` by its own words. The `because` line uses the
+   same words. A test reads rulepacks/f1-us/v2026.09/parameters.yaml and fails for any field,
+   list kind or confirmation the pack can ask that has no copy, and fails if any rendered Home line
+   holds an id in any form (dots, underscores, or either turned into spaces).
+6. The "each reason once" test states its expected lines literally, never by the code's formula
+   (finding 3).
+7. The shot run fails when a screen is wider than its window: document scrollWidth greater than
+   innerWidth, at 1280x832 and at 390x844 (finding 4). desktop/src/shots.ts records it per shot.
+8. Home follows the canvas order: headline, calm line, the metrics, then Your next move
+   (finding 5). openQuestionsLine goes back into Home as a literal; the two extra .why margins go
+   (finding 6).
