@@ -97,3 +97,19 @@ petition starting after the card start steps back).
 Review fix6 finding 5 and point 21. The outcome step offers "I'm not sure" and may be left;
 its why line says Duly will point to the DSO for these dates for now. The requested start stays
 asked, because point 23 needs it.
+
+## 23a. Point 23, clarified (fix7 test lane escalation)
+
+- The period a petition would extend: for a card's dates (reports, evaluations, unemployment,
+  the card grace), the card, which begins on the card's start; for the program grace, the grace,
+  which begins the day after the program ends. A petition whose start falls before that
+  beginning cannot extend it: point 19 takes nothing from it. So a 2020 petition nulls nothing on
+  J19, the program grace included, and gives no cap_gap.for_dso for those periods. The two older
+  J19 tests that expect a 2020 petition to step back change under this point.
+- The start used: validity_start when approved and entered, else requested_start. Only when both
+  are missing is a start asked (`<petition>.requested_start`, or `validity_start` when approved
+  and requested_start is missing), and point 19 steps back until it is answered. Point 21's
+  strict xfail (approved, requested_start entered, validity_start missing) stays: nothing is
+  asked there.
+- An `unknown` stage's Timeline row carries no mark (not now, not done); it holds the DSO line
+  and the words of cap_gap.for_dso.
