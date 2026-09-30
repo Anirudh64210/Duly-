@@ -71,98 +71,120 @@ def test_point3_a_move_at_the_same_level_does_not_end_the_card_the_day_before() 
 
 
 # Point 4: grace and unemployment end at the cap-gap end while a cap-gap is active
-# (findings 3 and 6, J12, J13).
+# (findings 3 and 6, J12, J13). Resolutions point 19 defers this to a cap-gap round of its
+# own: "When any change-of-status petition is entered, the items it could change are null:
+# the grace of the program and card it could follow, every validation and evaluation from
+# the petition's filing onward, the unemployment count from that day, and any cap-gap
+# stage", and the verdict carries cap_gap.for_dso. Until that round the point 4 inputs
+# expect that step back (the check is test_journeys._not_the_step_back). The values point 4
+# gave (cap_gap.h1 to 2027-04-01, grace.h1 from 2027-04-02, 45 and 85) wait for that round.
 
 
-def test_point4_grace_starts_after_an_active_cap_gap() -> None:
-    # J12 with h1 still pending (the journey's pending variant): no outcome and no
-    # validity_start, so cap_gap.h1 runs from 2026-06-01 to April 1 of the fiscal year of
-    # 2026-10-01 (FY 2027): 2027-04-01. Section 14 grace span: "the latest end of the
-    # program, its cards and its cap-gap": 2027-04-01, so grace starts 2027-04-02 and is
-    # later on 2026-09-29. Resolution 12: its id is grace.<petition>, here grace.h1.
-    # Resolution 15 moved this test off the approved J12: after a change of status approved
-    # with validity_start 2026-10-01, H-1B status begins then and no F-1 grace follows
-    # (tests/unit/acceptance/test_journeys.py test_j12_no_grace_after_an_approved_change_of_status).
+def _pending_j12() -> dict[str, Any]:
     body = copy.deepcopy(journeys.j12())
     for r in body["records"]:
         if r["id"] == "h1":
             r["fields"]["outcome"] = "pending"
             r["fields"].pop("outcome_on")
             r["fields"].pop("validity_start")
-    out = _compute(body)
-    assert stage(out, "cap_gap.h1")["ends"] == "2027-04-01"
-    grace = stage(out, "grace.h1")
-    assert grace["starts"] == "2027-04-02"
-    assert grace["state"] == "later"
+    return body
+
+
+def test_point4_grace_starts_after_an_active_cap_gap() -> None:
+    # J12 with h1 still pending (filed 2026-04-01): point 4 opened cap_gap.h1 and moved the
+    # grace after it. Point 19: no cap_gap stage, no grace dated, cap_gap.for_dso.
+    out = _compute(_pending_j12())
+    assert journeys._not_the_step_back(out, "h1") == []
+    assert journeys._grace_dated(out) == []
 
 
 def test_point4_unemployment_runs_through_the_cap_gap() -> None:
-    # J13 with the job ending with the card on 2026-06-30. Section 14 counter
-    # unemployment.opt_card: "each opt_post: its span, extended by its cap-gap". The
-    # cap-gap runs 2026-07-01 to 2026-08-14 (denied). Days without work: July (31) and
-    # August 1-14 (14) = 45. On the card alone the count would be 0. Resolution 12: the
-    # cap-gap count is unemployment.opt_card.<petition>, here h1.
-    # Resolution 13: the count reads the trip list too, so it is given only because the
-    # journey states that list whole (the timeline holds every trip, none).
+    # J13 with the job ending with the card on 2026-06-30, h1 filed 2026-04-01 (denied
+    # 2026-08-14). The card count spans the filing day, so point 19 makes it null, and the
+    # cap-gap count unemployment.opt_card.h1 is not given with a value.
     out = _compute(_set(journeys.j13(), "w1", end="2026-06-30"))
-    assert value(out, "unemployment.opt_card.h1") == 45
+    assert journeys._not_the_step_back(out, "h1") == []
+    assert journeys._null_or_absent(out, "unemployment.opt_card.a1")
+    assert journeys._null_or_absent(out, "unemployment.opt_card.h1")
 
 
 def test_point4_unemployment_total_runs_through_the_cap_gap_on_stem() -> None:
-    # J14: 40 on OPT, 35 on STEM, and 2026-07-16 to 2026-07-25 in the cap-gap (10): 85.
-    # Resolution 13: the count reads the trip list too, so it is given only because the
-    # journey states that list whole (the timeline holds every trip, none).
+    # J14, h1 filed 2026-04-01 while the STEM card a2 runs (to 2026-05-31): the total spans
+    # the filing day and is null (point 19). The OPT card a1 ended 2024-05-31, before the
+    # filing, so its count stays: card from 2023-06-01, work from 2023-07-11, June (30) and
+    # July 1-10 (10) = 40.
     out = _compute(journeys.j14())
-    assert value(out, "unemployment.total.a1") == 85
+    assert journeys._not_the_step_back(out, "h1") == []
+    assert journeys._null_or_absent(out, "unemployment.total.a1")
+    assert value(out, "unemployment.opt_card.a1") == 40
 
 
 # Point 5: a count that reads a list is null until the list is stated whole (finding 4).
+# Point 19 nulls a count spanning a petition's filing whatever the lists say, so these
+# cases leave the petition out ("A case with no petition is computed as before"); the
+# count is then the card's own, unemployment.opt_card.a1.
 
 
 def test_point5_no_unemployment_count_while_the_work_list_is_not_stated_whole() -> None:
-    # J12 with no work records and no statement for work: the review's input. PRINCIPLES 2.
-    # The cap-gap count is unemployment.opt_card.h1 (resolution 12).
-    body = _without(journeys.j12(), "w1")
+    # J12 with no work records, no petition and no statement for work. PRINCIPLES 2.
+    body = _without(journeys.j12(), "w1", "h1")
     del body["complete"]["work"]
     out = _compute(body)
-    assert value(out, "unemployment.opt_card.h1") is None
-    assert "unemployment.opt_card.at_or_over_limit.h1" not in reasons(out)
+    assert value(out, "unemployment.opt_card.a1") is None
+    assert "unemployment.opt_card.at_or_over_limit.a1" not in reasons(out)
     assert "unconfirmed:complete.work" in reasons(out)
 
 
 def test_point5_the_count_is_given_once_the_list_is_stated_whole() -> None:
-    # The other side of the line: J12 with no work and "work" stated whole on 2026-09-29.
-    # The span runs through the cap-gap to 2026-10-01 (point 4) and no day after today is
-    # counted, so every day from 2025-06-01 to 2026-09-29 counts: June 2025 (30) + July to December
-    # (31 + 31 + 30 + 31 + 30 + 31 = 184) + January to August 2026 (31 + 28 + 31 + 30 + 31 +
-    # 30 + 31 + 31 = 243) + September 1-29 (29) = 486.
-    # The id is unemployment.opt_card.h1, the petition's (resolution 12).
+    # The other side of the line: J12 with no work, no petition, and "work" stated whole.
+    # With no cap-gap the span is the card, 2025-06-01 to 2026-05-31, all before today
+    # 2026-09-29: June to December 2025 (30 + 31 + 31 + 30 + 31 + 30 + 31 = 214) + January
+    # to May 2026 (31 + 28 + 31 + 30 + 31 = 151) = 365.
     # Resolution 13: the count reads the trip list too, so it is given only because the
     # journey states that list whole (the timeline holds every trip, none).
-    out = _compute(_without(journeys.j12(), "w1"))
-    assert value(out, "unemployment.opt_card.h1") == 486
+    out = _compute(_without(journeys.j12(), "w1", "h1"))
+    assert value(out, "unemployment.opt_card.a1") == 365
 
 
 # Point 13: every list a count reads needs a statement, trips as well as work. The other
-# side of each line is the test above on the same case with the trip list stated whole.
+# side of each line is the same case with the trip list stated whole. Point 19: the cases
+# leave the petition out, as for point 5.
 
 
-def test_point13_no_cap_gap_count_while_the_trip_list_is_not_stated_whole() -> None:
-    # The input of test_point4_unemployment_runs_through_the_cap_gap (45 with trips stated)
-    # with the trip statement taken out and the work statement kept. A trip changes the
-    # count, so the count is null and the person is asked (resolution 13, PRINCIPLES 2).
-    body = _set(journeys.j13(), "w1", end="2026-06-30")
+def _j13_job_to_may_without_petition() -> dict[str, Any]:
+    return _set(_without(journeys.j13(), "h1"), "w1", end="2026-05-31")
+
+
+def test_point13_the_card_count_with_the_trip_list_stated_whole() -> None:
+    # J13, no petition, card 2025-07-01 to 2026-06-30, the job to 2026-05-31: June 2026
+    # without work, 30 days.
+    out = _compute(_j13_job_to_may_without_petition())
+    assert value(out, "unemployment.opt_card.a1") == 30
+
+
+def test_point13_no_card_count_while_the_trip_list_is_not_stated_whole() -> None:
+    # The case above (30 with trips stated) with the trip statement taken out and the work
+    # statement kept. A trip changes the count, so the count is null and the person is
+    # asked (resolution 13, PRINCIPLES 2).
+    body = _j13_job_to_may_without_petition()
     del body["complete"]["trip"]
     out = _compute(body)
-    assert value(out, "unemployment.opt_card.h1") is None
+    assert value(out, "unemployment.opt_card.a1") is None
     assert "unconfirmed:complete.trip" in reasons(out)
     assert "complete.trip" in question_ids(out)
 
 
+def test_point13_the_total_count_with_the_trip_list_stated_whole() -> None:
+    # J14 with no petition: 40 on OPT (2023-06-01 to 2023-07-10) and 35 on STEM (card from
+    # 2024-06-01, w2 from 2024-07-06: June (30) + July 1-5 (5)). w2 runs past the STEM card
+    # end 2026-05-31 and no cap-gap extends it: 40 + 35 = 75.
+    out = _compute(_without(journeys.j14(), "h1"))
+    assert value(out, "unemployment.total.a1") == 75
+
+
 def test_point13_no_total_count_while_the_trip_list_is_not_stated_whole() -> None:
-    # J14 gives 85 with trips stated (test_point4_unemployment_total_runs_through_the_cap_gap
-    # _on_stem); without the trip statement unemployment.total is null (resolution 13).
-    body = journeys.j14()
+    # The case above (75 with trips stated) without the trip statement: null (resolution 13).
+    body = _without(journeys.j14(), "h1")
     del body["complete"]["trip"]
     out = _compute(body)
     assert value(out, "unemployment.total.a1") is None

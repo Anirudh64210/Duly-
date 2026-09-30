@@ -2657,3 +2657,48 @@ stepping back with no petition.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-45aff696ff: resolutions points 19, 20 and 21 across tests/unit and tests/holdout
+
+Read: tests/PROGRESS.md (tail), specs/product-2/resolutions.md (points 19 to 21), the J19
+petition tests and twins, tests/unit/engine/test_path_fix1.py, test_f1_translation.py change 4.
+
+What ran first: the done command as written, no pipe: exit 1, 10 failures. The engine now
+applies points 19 and 21: J19 unit and twin question tests (h9.validity_start, h9.outcome no
+longer asked), test_change_4 (expected grace.after_cap_gap_outcome.h1), and six point 4, 5 and
+13 tests in test_path_fix1.py (expected cap_gap.h1, grace.h1, unemployment.opt_card.h1 45 and
+486, unemployment.total.a1 85). Every failure is explained by point 19 or point 21.
+
+Changed:
+- Point 21, tests/unit/acceptance/test_journeys.py: each J19 twin split in two. The step-back
+  assertions (cannot_tell, _not_the_step_back) are the new passing tests
+  test_j19_an_approved_petition_with_no_validity_start_steps_back and
+  test_j19_a_petition_with_no_outcome_steps_back; the question assertions stay under the old
+  names with pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round").
+- Point 21, tests/holdout/test_holdout_journeys.py: the same split for
+  test_twin_j19_an_approved_petition_with_no_validity_start_is_asked (the only holdout test
+  asking a petition question; there is no holdout outcome twin).
+- Point 19, test_path_fix1.py point 4 tests: the petition inputs now expect the step back
+  (journeys._not_the_step_back, no grace dated, the counts spanning the filing null). J14's
+  unemployment.opt_card.a1 40 kept (card ended 2024-05-31, before the 2026-04-01 filing).
+  The old point 4 values are named in the section comment for the cap-gap round.
+- Point 19, test_path_fix1.py point 5 and 13 tests: a petition now nulls the count whatever the
+  lists say, so these tests could no longer fail on the list statement. They move to the same
+  journeys without the petition ("computed as before"), each with its other side: J12 no work
+  365 (June to Dec 2025 214 + Jan to May 2026 151), J13 job to 2026-05-31 gives 30 (June 2026),
+  J14 total 75 (40 + 35). Two new other-side tests (30 and 75).
+- Point 19, test_f1_translation.py change 4: cap_gap.for_dso expected, and
+  grace.after_cap_gap_outcome.h1 must be absent (no petition takes a date away on its own).
+- Point 20: no test in tests/unit or tests/holdout reads a landmark; nothing to change here.
+
+What makes each fail (scratch plugin $TMPDIR/f21/fault21.py wrapping engine.path.compute):
+- engine asks h9.validity_start and h9.outcome again: the 3 strict xfails XPASS and fail.
+- cap_gap.for_dso dropped: 3 point 4 tests, change 4, 3 step-back tests fail.
+- petition ignored (computed as if absent): the same 7 fail.
+- work and trip lists read as whole when not stated: 3 point 5/13 null tests and the J01 test fail.
+- the 365, 30 and 75 tests fail on any other count (hand-worked, above).
+With no fault: all pass. Done command after the change: All checks passed!, 73 files already
+formatted, pytest exit 0.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
