@@ -1,0 +1,19 @@
+# product-2 resolutions
+
+From the review of product-2 (reviews/product-2.md). Each point answers its finding.
+
+## Covers
+
+Register rows: the rows specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers name. That is 0 of 2456 new requirements; these points finish what those SPECs asked.
+
+1. Wired end to end. POST /v1/compute calls engine/path.py on the records case and returns its output (finding 1). compute_f1 becomes the translation of today's case onto records and path.py (path-1 SPEC point 7, programs.md section 19). The web app builds the records case from Onboarding and posts it to /v1/compute; /v1/compute/f1 stays for old callers only.
+2. Acceptance, not only units. The twenty journeys of specs/path-1/journeys.json are cases in tests/unit/acceptance/test_journeys.py, each sent through POST /v1/compute with the answers a student would give, each asserting the stages, dates, counts and verdict its timeline and rules give (programs.md section 22). Hidden twins with other dates are in tests/holdout. Every build lane's done command runs the acceptance tests it touches.
+3. Links are followed. A field path through a link (`to_program.start_date`) reads the linked record (finding 2, J08).
+4. The grace span and the unemployment span end at the cap-gap end while a cap-gap is active, as specs/path-1/programs.md section 14 says (findings 3 and 6, J12, J13).
+5. A count or an at-or-over item that reads a list is null until that list has a completeness statement (finding 4). PRINCIPLES 2.
+6. A next stage whose window has closed is not shown as next (finding 5, J01, J19).
+7. `stem.basis_ten_years_end.<program>` is produced (finding 8, J02). Disagreeing CPT day and month bars raise the step-back item (finding 10, J06). `lists` carries the stage's lists (note 13). `ends_also`, `follows`, `gap_allowed` and periods outside a span are built (note 14).
+8. The pack asks only what programs.md section 17 asks: no `c<n>.decision`, no `stem_list` or `conferred_on` for outside_us or English language programs (finding 9).
+9. The litigation reason follows product-1 points 25 and 49: only when an item shown carries an alternate with a different value. An F-1 case can reach every verdict.
+10. Onboarding is programs.md section 18 in full: every level (associate, English language, other included), every program with its state and conferral day, moves, trips, "I'm not sure", and the D59 step. No default level is sent (finding 7, J16).
+11. `make design-shots` and desktop/src/shots.ts render each built screen at 1280x832 from engine samples, and tests/design/landmarks.json holds each canvas landmark (finding 11).

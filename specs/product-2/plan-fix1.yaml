@@ -1,0 +1,106 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+# The review of product-2 found the parts unwired. Every build lane is held to acceptance
+# tests that send real journeys through the real api, not only to its unit tests.
+rounds:
+  - name: tests
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          specs/product-2/resolutions.md point 2 first: the twenty journeys of
+          specs/path-1/journeys.json as tests/unit/acceptance/test_journeys.py, each through POST
+          /v1/compute with FastAPI's TestClient, asserting what each journey's timeline and rules
+          give, dates checked against the saved words; hidden twins in tests/holdout. Then tests for
+          points 3 to 9 in tests/unit/engine/test_path_fix1.py, each with the review's input, and a
+          web-independent api test that a records case from Onboarding's shape reaches path.py.
+          They are expected to fail until the build round.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null
+          && test -f tests/unit/acceptance/test_journeys.py && test -f tests/unit/engine/test_path_fix1.py'
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-2/resolutions.md points 4 and 8 in rulepacks/f1-us/v2026.09: the grace and
+          unemployment spans end at the cap-gap end while a cap-gap is active, and the pack asks
+          only what specs/path-1/programs.md section 17 asks. Existing plain words are frozen.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
+          && uv run python -m tools.sources.plain rulepacks --require f1'
+  - name: build
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md points 1 (compute_f1 as the translation onto records and
+          path.py), 3, 5, 6, 7 and 9 in engine/. Your targets: tests/unit/engine/test_path_fix1.py
+          and tests/unit/acceptance/test_journeys.py, which run through the api; say in your report
+          which journeys pass. List older tests that collide.
+        done: >-
+          bash -c 'uv run pytest tests/unit/engine/test_path_fix1.py tests/unit/acceptance -q
+          && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+      - lane: L-api
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 1: POST /v1/compute calls engine/path.py on the
+          records case. Target: tests/unit/api/test_compute_generic.py and
+          tests/unit/acceptance/test_journeys.py.
+        done: >-
+          bash -c 'uv run pytest tests/unit/api -q && uv run mypy
+          && uv run ruff check api && uv run ruff format --check api'
+      - lane: L-web
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md points 1, 10 and 11 in web/ and the shots: the app builds
+          the records case from Onboarding and posts it to /v1/compute; Onboarding is
+          specs/path-1/programs.md section 18 in full with no default level; make design-shots with
+          desktop/src/shots.ts is the web lane's request in your report if the Makefile or desktop
+          needs it, and web/scripts may hold the render. Tests beside the code, including one that
+          a case built by Onboarding reaches /v1/compute with every program.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+  - name: reconcile
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          The engine, api and web are wired end to end (specs/product-2/resolutions.md). Bring every
+          test in tests/unit and tests/holdout in line; the builders' collisions are in their
+          reports. Write the point beside each change; never loosen an assertion; escalate any
+          failure no point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-2" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review product-2 again against specs/product-2/resolutions.md and the SPECs it names,
+          following your role file, in ONE pass. Send all twenty journeys through POST /v1/compute
+          and say what each shows. Build the web app and walk Onboarding for J01, J08 and J16.
+          Close or name every finding of reviews/product-2.md. Write reviews/product-2-fix1.md and
+          reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix1.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+          name. Update docs/requirements/audits/product-2.md and report the share met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-2.md
+          && uv run python -m tools.requirements.register check'
