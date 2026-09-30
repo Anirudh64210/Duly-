@@ -1,9 +1,10 @@
-/* Settings. Three groups, each three or four hairline rows: title and one meta line on
-   the left, the control on the right.
-     Reminders and updates   remind before dates, when a rule changes, news
+/* Settings. Three groups, each three or four hairline rows: the title (and a short
+   value, such as a date, when there is one) on the left, the control on the right.
+   Round 3: no explaining lines. What a row does sits behind an ⓘ by its title.
+     Reminders and updates   remind before dates, rule changes, news articles
      This Mac                lock, Touch ID, time zone, theme
      Your records            back up, restore, export, delete everything (last on the page)
-   Where the records live is the page's one line under the title, not a row of its own.
+   Where the records live is the ⓘ by the page title, not a row of its own.
    Every row action is the same pill; the page has no filled primary (only the delete
    dialog carries one). Every change happens in place: no redraw, no scroll jump.
    Routes:
@@ -24,22 +25,24 @@
     const v = App.state[key];
     return v == null ? fallback : v;
   }
-  function tzMeta(tz) { return tz === TZ_MAC ? TZ_MAC + ', set from this Mac' : tz + ', set by you'; }
+  function tzMeta(tz) { return tz; }
+  /* "Last backup Sep 12, 2026", or "Last backup today" once one is made here. */
   function backupMeta(data) {
-    const m = data.settings.backup.meta;
-    return App.state.lastBackup ? m.replace(/Last backup: .*$/, 'Last backup: ' + App.state.lastBackup + '.') : m;
+    const m = String(data.settings.backup.meta || '').match(/Last backup: (.*?)\.?$/);
+    const when = App.state.lastBackup || (m ? m[1] : '');
+    return when ? 'Last backup ' + when : '';
   }
-  /* The rule-change row says plainly that dates and steps follow the rules either way;
-     the toggle only decides whether a note is sent. */
-  function rulesMeta(on) {
-    return on ? 'Your dates and steps are updated for you, with a note on what changed.'
-      : 'Your dates and steps are still updated for you. No note is sent.';
-  }
-  function lockMeta(on, after) { return on ? 'After ' + after + ' away' : 'Off'; }
+  /* While the lock is on, the chosen chip says how long; the row says only Off. */
+  function lockMeta(on) { return on ? '' : 'Off'; }
 
-  /* C.settingRow with a data-key and an optional drop-in panel under the row. */
+  /* C.settingRow with a data-key, an optional ⓘ by the title and an optional
+     drop-in panel under the row. */
   function srow(key, p, panel) {
     let html = C.settingRow(p).replace('<div class="item srow', '<div data-key="' + C.esc(key) + '" class="item srow');
+    if (p.info) {
+      const t = '<span class="row-title">' + C.esc(p.title) + '</span>';
+      html = html.replace(t, '<span class="row-title">' + C.esc(p.title) + C.info(p.info) + '</span>');
+    }
     if (panel) html = html.replace(/<\/div>$/, panel + '</div>');
     return html;
   }
@@ -87,48 +90,50 @@
 
       const header = C.pageHeader({
         title: 'Settings',
-        subline: 'Your records stay encrypted on this Mac. Choose what reaches you and when.',
+        info: 'Your records stay encrypted on this Mac.',
       });
 
       /* 1. Reminders and updates: what reaches the student, and when. */
       const reminders = group('Reminders and updates', [
         srow('remind', { title: 'Remind me before dates', meta: remind ? s.remind : 'Off',
           control: C.toggle({ key: 'remind', on: remind, label: 'Remind me before dates' }) }),
-        srow('statusUpdates', { title: 'When a rule changes', meta: rulesMeta(rulesOn),
-          control: C.toggle({ key: 'statusUpdates', on: rulesOn, label: 'Send a note when a rule changes' }) }),
-        srow('news', { title: 'News for F-1 students', meta: 'Court cases and other news, labelled as news.',
-          control: C.toggle({ key: 'news', on: st('news', true), label: 'News for F-1 students' }) }),
+        srow('statusUpdates', { title: 'Rule changes',
+          info: 'A note when a rule behind your dates changes. Your dates update either way.',
+          control: C.toggle({ key: 'statusUpdates', on: rulesOn, label: 'Rule changes' }) }),
+        srow('news', { title: 'News articles',
+          info: 'New articles about the rules for your status.',
+          control: C.toggle({ key: 'news', on: st('news', true), label: 'News articles' }) }),
       ]);
 
       /* 2. This Mac: lock, unlock, time zone, look. The lock-after chips drop in under
          the lock row while the lock is on; the time zone chips open from Change. */
       const thisMac = group('This Mac', [
-        srow('lock', { title: 'Lock when you step away', meta: lockMeta(lockOn, lockAfter),
+        srow('lock', { title: 'Lock when you step away', meta: lockMeta(lockOn),
           control: C.toggle({ key: 'lockOn', on: lockOn, label: 'Lock when you step away' }) },
           panel('sx-lock', C.segment({ key: 'lockAfter', label: 'Lock after', selected: lockAfter,
             options: s.lockOptions.map((o) => ({ value: o, label: o })) }), lockOn)),
-        srow('touchId', { title: 'Unlock with Touch ID', meta: 'Instead of typing your Mac password.',
+        srow('touchId', { title: 'Unlock with Touch ID',
           control: C.toggle({ key: 'touchId', on: st('touchId', false), label: 'Unlock with Touch ID' }) }),
-        srow('tz', { title: 'Time zone', meta: tzMeta(tz),
+        srow('tz', { title: 'Time zone', meta: tzMeta(tz), info: 'Every date is counted in this time zone. It starts as the one set on this Mac.',
           control: pill('Change', { 'data-sx-open': 'sx-tz', 'aria-expanded': 'false', 'aria-controls': 'sx-tz', 'aria-label': 'Change time zone' }) },
-          panel('sx-tz', '<p>Every date is counted in this time zone.</p>' +
+          panel('sx-tz',
             C.segment({ key: 'tz', label: 'Time zone', selected: tz, options: TZ_OPTIONS.map((o) => ({ value: o, label: o })) }))),
-        srow('theme', { title: 'Theme', meta: 'System follows your Mac.', wide: true,
+        srow('theme', { title: 'Theme', wide: true,
           control: C.segment({ key: 'theme', label: 'Theme', selected: App.state.theme || s.theme,
             options: [{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] }) }),
       ]);
 
       /* 3. Your records: copies in and out, then delete, last on the page. */
       const records = group('Your records', [
-        srow('backup', { title: s.backup.title, meta: backupMeta(data),
+        srow('backup', { title: s.backup.title, meta: backupMeta(data), info: 'An encrypted copy you keep.',
           control: pill('Back up now', { 'data-sx': 'backup' }) }),
-        srow('restore', { title: 'Restore from a backup', meta: 'Replaces what is on this Mac with a backup you saved.',
+        srow('restore', { title: 'Restore from a backup', info: 'Replaces what is on this Mac with a backup you saved.',
           control: pill('Choose a file', { 'data-sx': 'restore', 'aria-controls': 'sx-restore' }) +
             '<input type="file" hidden data-sx-file accept=".duly,application/octet-stream" aria-label="Choose a backup file">' },
           panel('sx-restore')),
-        srow('export', { title: 'Export your records', meta: 'A PDF summary and your ' + data.documents.count + ' documents, in one folder.',
+        srow('export', { title: 'Export your records', info: 'A PDF summary and your ' + data.documents.count + ' documents, in one folder.',
           control: pill('Export', { 'data-sx': 'export' }) }),
-        srow('delete', { title: 'Delete everything', meta: s.deleteMeta,
+        srow('delete', { title: 'Delete everything', info: s.deleteMeta,
           control: pill('Delete', { 'data-sx': 'delete', 'aria-haspopup': 'dialog' }) }),
       ]);
 
@@ -153,7 +158,16 @@
     mount(root, data) {
       const s = data.settings;
       const item = (k) => root.querySelector('.item[data-key="' + k + '"]');
-      const setMeta = (k, text) => { const m = item(k) && item(k).querySelector('.row-meta'); if (m) m.textContent = text; };
+      /* Sets a row's short value in place; an empty value removes the line. */
+      const setMeta = (k, text) => {
+        const it = item(k);
+        const box = it && it.querySelector('.row-text');
+        if (!box) return;
+        let m = box.querySelector('.row-meta');
+        if (!text) { if (m) m.remove(); return; }
+        if (!m) { m = document.createElement('span'); m.className = 'row-meta'; box.appendChild(m); }
+        m.textContent = text;
+      };
 
       function setPanel(it, open) {
         if (!it) return;
@@ -174,8 +188,7 @@
         setPanel(it, true);
         setTimeout(() => {
           if (!document.contains(p)) return;
-          p.innerHTML = '<p class="t-meta" role="status">Read on this Mac. Nothing left it.</p>' +
-            C.found([['File', name || 'Backup file'], ['Name', data.student.name], ['From', s.restoreFrom.replace(/^From /, '')], ['Documents', String(data.documents.count)]]) +
+          p.innerHTML = C.found([['File', name || 'Backup file'], ['Name', data.student.name], ['From', s.restoreFrom.replace(/^From /, '')], ['Documents', String(data.documents.count)]]) +
             C.buttonRow({
               back: C.button({ label: 'Cancel', kind: 'back', attrs: { 'data-sx': 'restore-no' } }),
               primary: C.button({ label: 'Restore this backup', kind: 'pill', attrs: { 'data-sx': 'restore-yes' } }),
@@ -268,14 +281,10 @@
         if (!document.contains(root)) { if (offChange) offChange(); return; }
         const d = e.detail;
         if (d.kind === 'toggle' && d.key === 'lockOn') {
-          setMeta('lock', lockMeta(!!d.value, st('lockAfter', s.lockAfter)));
+          setMeta('lock', lockMeta(!!d.value));
           setPanel(item('lock'), !!d.value);
         } else if (d.kind === 'toggle' && d.key === 'remind') {
           setMeta('remind', d.value ? s.remind : 'Off');
-        } else if (d.kind === 'toggle' && d.key === 'statusUpdates') {
-          setMeta('statusUpdates', rulesMeta(!!d.value));
-        } else if (d.kind === 'choice' && d.key === 'lockAfter') {
-          setMeta('lock', lockMeta(true, d.value));
         } else if (d.kind === 'choice' && d.key === 'tz') {
           setMeta('tz', tzMeta(d.value));
           setTimeout(() => {

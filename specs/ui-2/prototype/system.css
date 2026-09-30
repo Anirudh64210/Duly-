@@ -56,7 +56,7 @@
   --gap-section: var(--s-48);
   --gap-footer: var(--s-64);
   --gap-buttons: var(--s-12);
-  --tabbar-clear: calc(var(--s-64) + var(--s-24));
+  --tabbar-clear: calc(var(--s-64) + var(--s-48)); /* two-line tab labels (Next steps, USCIS status) */
 
   /* radii */
   --r-nav: 7px; --r-field: 10px; --r-card: 12px; --r-sheet: 16px; --r-pill: 99px; --r-tag: 5px;
@@ -318,10 +318,10 @@ a.wordmark:hover { color: var(--ink); }
   padding: var(--s-8) var(--s-8) calc(var(--s-24) + env(safe-area-inset-bottom));
 }
 .tab {
-  flex: 0 0 25%; min-width: 0;
+  flex: 1 1 0; min-width: 0;
   display: flex; flex-direction: column; align-items: center; gap: var(--s-4);
-  min-height: 44px;
-  font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta);
+  min-height: 44px; text-align: center;
+  font-size: var(--t-small); font-weight: 500; line-height: var(--lh-meta); letter-spacing: -.02em;
   color: var(--ink-3);
 }
 .tab[aria-current="page"], .tab[aria-current="page"]:hover { color: var(--accent); }
@@ -358,6 +358,9 @@ a.wordmark:hover { color: var(--ink); }
 @media (max-width: 359px) {
   .topbar { padding: 0 var(--s-16); }
   .col { padding-left: var(--s-16); padding-right: var(--s-16); }
+  /* Five tabs: give each label the full width so Documents does not touch its neighbors. */
+  .tabbar { padding-left: 0; padding-right: 0; }
+  .tab { letter-spacing: -.03em; }
 }
 
 /* ------------------------------------------------------------------ */
@@ -448,6 +451,7 @@ a.wordmark:hover { color: var(--ink); }
   padding-bottom: var(--gap-section-head);
 }
 .section-head .sh-label { display: flex; align-items: center; gap: var(--s-8); min-width: 0; }
+.section-head .sh-start { display: flex; align-items: center; gap: var(--s-8); min-width: 0; }
 .section-head a, .section-head .sh-link { font-size: var(--t-small); font-weight: 600; flex: none; }
 .section > .t-body, .section > .t-lead { margin-top: var(--s-8); }
 .section-body + .section-body { margin-top: var(--s-24); }
@@ -869,10 +873,16 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   padding: var(--s-24);
 }
 .email-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-16); margin-bottom: var(--s-16); }
-.email-fields {
-  display: flex; flex-direction: column; gap: var(--s-8);
+/* To and Subject, with the note's ⓘ at the right edge. */
+.email-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-16);
   padding-bottom: var(--s-16); margin-bottom: var(--s-16);
   border-bottom: 1px solid var(--hairline-inner);
+}
+.email-top > .src { margin-top: var(--s-4); }
+.email-fields {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; gap: var(--s-8);
   font-size: var(--t-small); line-height: var(--lh-meta);
 }
 .email-fields > div { display: flex; gap: var(--s-8); min-width: 0; }
@@ -882,11 +892,12 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body);
   max-width: 600px;
   display: flex; flex-direction: column; gap: var(--s-16);
+  /* Inner padding so the focus ring clears the text; the negative margin keeps the text in place. */
+  padding: var(--s-12); margin: calc(-1 * var(--s-12));
   border-radius: var(--r-nav);
 }
 .email-body:focus-visible { box-shadow: var(--focus-ring); }
 .email-body ol { list-style: decimal; padding-left: var(--s-24); display: flex; flex-direction: column; gap: var(--s-4); }
-.email-foot { margin-top: var(--s-16); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
 /* email({ copyBelow: true }): the panel has no header row; Copy sits under it. */
 .email-actions { margin-top: var(--s-16); }
 @media (max-width: 640px) {
@@ -1002,16 +1013,41 @@ a.mark.is-updated:hover { color: var(--accent-hover); }
   .task .task-action .draft > [data-part="open"] { margin-left: calc(-1 * (18px + var(--s-16))); }
 }
 
-/* Your school's steps */
-.school-add { margin-top: var(--s-16); display: flex; flex-direction: column; align-items: flex-start; }
-.school-form { width: 100%; display: flex; flex-direction: column; gap: var(--s-16); padding-top: var(--s-8); }
-.school-form .chips { margin-bottom: 0; }
-.school-form .choices.is-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.school-form .choices.is-row .choice { min-height: 44px; padding: var(--s-8) var(--s-12); }
-.school-form .select { height: 44px; width: 100%; }
-.school-form .btn-row { margin-top: var(--s-8); }
-.school-link-form { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); margin-top: var(--s-8); }
-.school-link-form .input { flex: 1 1 224px; }
+/* Your school's steps, from the school's page (C.schoolImport). */
+.school-import { margin-top: var(--s-24); }
+.school-paste { display: flex; flex-direction: column; gap: var(--s-8); }
+.school-paste-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); }
+.school-paste-row .input { flex: 1 1 240px; min-width: 0; }
+.school-paste.is-over .input { border-color: var(--accent); }
+.school-or { display: flex; align-items: center; gap: var(--s-8); }
+.school-or label { cursor: pointer; }
+.school-found { display: flex; flex-direction: column; gap: var(--s-12); }
+.school-found .btn-row { margin-top: var(--s-12); }
+.school-src { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); }
+.school-src .icon { color: var(--ink-3); flex: none; }
+
+/* The ⓘ (C.info): a title with its mark beside it, and the popover that
+   holds the explanation alone. */
+.title-row { display: flex; align-items: center; gap: var(--s-12); min-width: 0; }
+.title-row > h1 { min-width: 0; }
+.hero .title-row { margin-top: var(--s-12); }
+.hero .title-row > .hero-title { margin-top: 0; }
+.title-row > .src { flex: none; }
+.src.is-info { color: var(--ink-3); }
+.src.is-info:hover, .src.is-info:focus-visible { color: var(--ink-2); }
+.src.is-info[aria-expanded="true"] { color: var(--accent); }
+.pop.is-info { width: 320px; gap: var(--s-8); }
+.pop.is-info .pop-plain { margin-top: 0; }
+.rules-line { display: flex; align-items: center; gap: var(--s-8); }
+.rules-line .inline-src { margin-left: 0; }
+
+/* News rows (C.updateRow): a headline, its date and source, one short line. */
+.news-row .row { align-items: flex-start; padding-top: var(--s-16); padding-bottom: var(--s-16); }
+.news-row .row-text { gap: var(--s-4); }
+.news-row .row-trail { padding-top: var(--s-4); }
+.news-row.is-headline .row { padding-top: var(--s-24); padding-bottom: var(--s-24); }
+.news-title { display: block; }
+.news-dek { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); }
 
 /* ------------------------------------------------------------------ */
 /* 12. Toast                                                            */

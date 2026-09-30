@@ -1,5 +1,5 @@
-/* Feedback. The title and one line on what the page does, then the field
-   with its label and one help line, then Send on the right under the field
+/* Feedback. The title (what the page does sits behind its ⓘ), then the
+   field with its label, then Send on the right under the field
    (the one button placement rule in system.css). After sending, the field
    gives way to a short thank you, in place: no page redraw, no scroll jump.
    No footer: this screen gives no dates. The product name is not used in the
@@ -34,7 +34,7 @@ window.SCREENS['feedback'] = {
 
     const header = C.pageHeader({
       title: 'Feedback',
-      subline: 'Tell us what helped and what got in the way. It shapes what changes next.',
+      info: 'Tell us what helped and what got in the way. Nothing from your records is attached.',
     });
 
     return '<div class="screen-feedback">' + style + header +
@@ -58,7 +58,6 @@ window.SCREENS['feedback'] = {
         value: draft,
         label: 'What should we do better?',
         placeholder: 'The dates on Home were clear, but',
-        help: 'A sentence is plenty. Nothing from your records is attached.',
       }) +
       '<div class="btn-row">' +
       C.button({ label: 'Send', kind: 'primary', type: 'submit', disabled: !hasText, attrs: { 'data-fb-send': '' } }) +
