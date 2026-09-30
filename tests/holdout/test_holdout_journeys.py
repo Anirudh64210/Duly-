@@ -74,6 +74,26 @@ def _opt(rid: str, program: str, start: str, end: str, **extra: Any) -> dict[str
     )
 
 
+def _dated_after(out: dict[str, Any], prefix: str, card: str, day: str) -> list[str]:
+    return [
+        w["id"]
+        for s in out["stages"]
+        for w in s["windows"]
+        if w["id"].startswith(prefix)
+        and w["id"].endswith("." + card)
+        and any(d is not None and d > day for d in (w["opens"], w["closes"]))
+    ]
+
+
+def _grace_after(out: dict[str, Any], day: str) -> list[str]:
+    return [
+        s["id"]
+        for s in out["stages"]
+        if s["id"].startswith("grace.")
+        and any(d is not None and d > day for d in (s["starts"], s["ends"]))
+    ]
+
+
 # J01 twin: the master's card moved.
 
 
@@ -406,7 +426,9 @@ def _cap_gap_case(card: tuple[str, str], filed: str, start: str, **petition: Any
 
 def test_twin_j12_cap_gap_ends_on_a_later_validity_start(client: TestClient) -> None:
     # validity_start 2026-11-15 is before April 1 of FY 2027 (2027-04-01): ends 2026-11-15.
-    # Grace follows the cap-gap: it starts 2026-11-16, as grace.h1 (resolutions point 12).
+    # resolutions point 15: the petition is approved with a change of status, so H-1B
+    # status begins on 2026-11-15 and no F-1 grace follows it: no grace stage holds a date
+    # after 2026-11-15 (this replaces the point 12 grace.h1 from 2026-11-16).
     body = _cap_gap_case(
         ("2025-06-01", "2026-05-31"),
         "2026-04-01",
@@ -417,7 +439,7 @@ def test_twin_j12_cap_gap_ends_on_a_later_validity_start(client: TestClient) -> 
     )
     out = _send(client, body)
     assert stage(out, "cap_gap.h1")["ends"] == "2026-11-15"
-    assert stage(out, "grace.h1")["starts"] == "2026-11-16"
+    assert _grace_after(out, "2026-11-15") == []
 
 
 def test_twin_j12_pending_petition_runs_to_april_1(client: TestClient) -> None:
@@ -460,6 +482,166 @@ def test_twin_j13_denied_later_ends_the_cap_gap_and_steps_back(client: TestClien
     cap_gap = stage(out, "cap_gap.h1")
     assert (cap_gap["starts"], cap_gap["ends"]) == ("2026-07-01", "2026-09-02")
     assert any("grace.after_cap_gap_outcome" in r for r in reasons(out))
+
+
+# J12 twin: a pending petition, on the other side of point 15's line.
+
+
+def test_twin_j12_pending_petition_keeps_its_grace_after_the_cap_gap(client: TestClient) -> None:
+    # The other side of point 15's line: a petition not yet approved starts no H-1B status,
+    # so the grace of point 4 still follows the cap-gap. Card 2025-06-01 to 2026-05-31,
+    # pending: cap-gap to 2027-04-01 (FY 2027), grace.h1 from 2027-04-02.
+    body = _cap_gap_case(
+        ("2025-06-01", "2026-05-31"), "2026-04-01", "2026-10-01", outcome="pending"
+    )
+    out = _send(client, body)
+    assert stage(out, "grace.h1")["starts"] == "2027-04-02"
+
+
+# J04 twin: a STEM card cut short by a transfer on other days.
+
+
+def _j04_like() -> dict[str, Any]:
+    return case(
+        [
+            _masters("2020-12-18", field_name="Physics", stem_list="on_list"),
+            rec(
+                "p2",
+                "program",
+                where="us_on_f1",
+                school_name="School K",
+                level="doctorate",
+                field_name="Physics",
+                start_date="2023-03-20",
+                end_date="2028-05-12",
+                state="in_progress",
+            ),
+            rec(
+                "mv1",
+                "move",
+                how="transfer",
+                from_program="p1",
+                to_program="p2",
+                release_date="2023-03-03",
+            ),
+            _opt("a1", "p1", "2021-01-11", "2022-01-10"),
+            rec(
+                "a2",
+                "authorization",
+                type="stem_extension",
+                program="p1",
+                extends="a1",
+                basis_program="p1",
+                decision="approved",
+                card_start="2022-01-11",
+                card_end="2024-01-10",
+            ),
+        ],
+        whole("program", "authorization:p1", "authorization:p2", "move", "trip"),
+    )
+
+
+def test_twin_j04_concluding_evaluation_from_the_release_date(client: TestClient) -> None:
+    # resolutions point 15, (f)(10)(ii)(C)(9)(i). The release 2023-03-03 is before the day
+    # before the doctorate (2023-03-19) and the card end 2024-01-10, so a2 ends 2023-03-03.
+    # Plus 10 days: Mar 4 (1) ... Mar 13 (10). The card end would give 2024-01-10 to 01-20.
+    out = _send(client, _j04_like())
+    assert stage(out, "stem.a2")["ends"] == "2023-03-03"
+    assert window(out, "stem.evaluation_final.a2") == ("2023-03-03", "2023-03-13")
+
+
+def test_twin_j04_validations_stop_at_the_release_date(client: TestClient) -> None:
+    # a2 starts 2022-01-11: validations 2022-07-11, 2023-01-11, 2023-07-11, 2024-01-11. The
+    # last two lie after 2023-03-03, so none of a2's validations holds a later date; the
+    # second still opens 2023-01-11.
+    out = _send(client, _j04_like())
+    assert _dated_after(out, "stem.validation_", "a2", "2023-03-03") == []
+    assert window(out, "stem.validation_2.a2")[0] == "2023-01-11"
+
+
+# J14 twin: the STEM job ends long before the card, with no cap-gap.
+
+
+def _j14_like() -> dict[str, Any]:
+    return case(
+        [
+            _masters("2022-12-16", field_name="Statistics", stem_list="on_list"),
+            _opt("a1", "p1", "2023-01-09", "2024-01-08"),
+            rec(
+                "a2",
+                "authorization",
+                type="stem_extension",
+                program="p1",
+                extends="a1",
+                basis_program="p1",
+                employer="e1",
+                decision="approved",
+                card_start="2024-01-09",
+                card_end="2026-01-08",
+            ),
+            rec("e1", "employer", name="Employer Q", e_verify="yes"),
+            rec(
+                "w1",
+                "work",
+                employer="e1",
+                under="a1",
+                start="2023-01-09",
+                end="2024-01-08",
+                hours_per_week=40,
+            ),
+            rec(
+                "w2",
+                "work",
+                employer="e1",
+                under="a2",
+                start="2024-01-09",
+                end="2025-04-18",
+                hours_per_week=40,
+            ),
+        ],
+        whole("program", "authorization:p1", "work", "trip"),
+    )
+
+
+def test_twin_j14_concluding_evaluation_from_the_jobs_end(client: TestClient) -> None:
+    # resolutions point 15: the job's end (2025-04-18) is sooner than the card's (2026-01-08).
+    # Plus 10 days: Apr 19 (1) ... Apr 28 (10). The card end would give 2026-01-08 to 01-18.
+    out = _send(client, _j14_like())
+    assert window(out, "stem.evaluation_final.a2") == ("2025-04-18", "2025-04-28")
+
+
+def test_twin_j14_no_validation_after_the_jobs_end(client: TestClient) -> None:
+    # a2 starts 2024-01-09: validations 2024-07-09, 2025-01-09, 2025-07-09, 2026-01-09. The
+    # last two lie after 2025-04-18; the second still opens 2025-01-09.
+    out = _send(client, _j14_like())
+    assert _dated_after(out, "stem.validation_", "a2", "2025-04-18") == []
+    assert window(out, "stem.validation_2.a2")[0] == "2025-01-09"
+
+
+# J06 twin: the OPT filing window on either side of today.
+
+
+def _no_opt_yet(end: str) -> dict[str, Any]:
+    # Without a start_date this run built no opt_post.p1 stage, so the twin gives one.
+    program = _masters(end, start_date="2024-08-26")
+    return case([program], whole("program", "authorization:p1", "trip"))
+
+
+def test_twin_j06_opt_is_not_next_once_its_filing_window_closed(client: TestClient) -> None:
+    # resolutions point 15. p1 ends 2026-01-16. Minus 90: 12-17 (30), 11-17 (60), 10-18 (90).
+    # Plus 60: 01-31 (15), 02-28 (43), 03-17 (60). 2026-03-17 is before 2026-09-29; only
+    # opt.complete_by (to 2027-03-16) is open, and nothing is filed in it.
+    out = _send(client, _no_opt_yet("2026-01-16"))
+    assert window(out, "opt.apply_window.p1") == ("2025-10-18", "2026-03-17")
+    assert all(s["state"] != "next" for s in out["stages"] if s["id"] == "opt_post.p1")
+
+
+def test_twin_j06_opt_is_next_while_its_filing_window_is_open(client: TestClient) -> None:
+    # The other side: p1 ends 2026-08-14. Plus 60: 08-31 (17), 09-30 (47), 10-13 (60), so
+    # the filing window is open on 2026-09-29 and opt_post.p1 is next.
+    out = _send(client, _no_opt_yet("2026-08-14"))
+    assert window(out, "opt.apply_window.p1")[1] == "2026-10-13"
+    assert stage(out, "opt_post.p1")["state"] == "next"
 
 
 # J15 twin: a STEM card whose first validation crosses Thanksgiving.
