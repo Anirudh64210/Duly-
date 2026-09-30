@@ -165,7 +165,12 @@ def compute_case(
     today = day_in_zone(clock, raw["time_zone"])
     if records_case.answered_after(raw, today):
         raise HTTPException(status_code=422, detail=NOT_YET)
-    return records_case.compute(raw, packs, clock, today)
+    try:
+        return records_case.compute(raw, packs, clock)
+    except ValueError:
+        # A kind, a field or a category the packs do not declare. The engine's words name
+        # what was sent, so they are not shown.
+        raise HTTPException(status_code=422, detail=records_case.NOT_IN_THE_PACK) from None
 
 
 @app.get("/ops/v1/status")
