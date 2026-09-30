@@ -4,54 +4,35 @@
      'unsure'  A plus the dates and what you'll need
      'yes'     B. the plan: dates, tasks, school step, DSO email, application tracker
      'no'      C. a short line and "Change my answer"
+   The hero is the page title here: no pageHeader above it. Its eyebrow
+   carries the screen name, "What's next · STEM OPT extension".
    #/next/ask, #/next/yes, #/next/no and #/next/unsure force a state for review. */
 (function () {
   'use strict';
 
   const STYLE = '<style>' +
     '.screen-next .hero-note { margin-top: var(--s-12); }' +
-    '.screen-next .hero-sub { display: block; }' +
-    '.screen-next .hero-sub .src { margin-left: var(--s-4); vertical-align: baseline; }' +
-    '.screen-next .next-after { margin-top: var(--s-24); display: flex; flex-direction: column; gap: var(--s-8); }' +
-    '.screen-next .next-line { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-8); }' +
-    '.screen-next .section > .progress { margin: var(--s-4) 0 var(--s-16); }' +
-    '.screen-next .row-text > .caution { margin-top: var(--s-8); }' +
-    '.screen-next .row-text > .next-line { margin-top: var(--s-8); }' +
-    '.screen-next .email-head { display: none; }' +
-    '.screen-next .next-actions { margin-top: var(--s-24); gap: var(--s-12); }' +
-    '.screen-next .next-receipt { display: flex; align-items: flex-end; gap: var(--s-12); }' +
+    '.screen-next .section > .progress { margin-bottom: var(--s-16); }' +
+    '.screen-next .next-receipt { display: flex; align-items: flex-end; gap: var(--gap-buttons); }' +
     '.screen-next .next-receipt .field { flex: 1 1 auto; }' +
     '.screen-next .next-gap { margin-top: var(--s-24); }' +
     '.screen-next .next-track { margin-top: var(--s-16); display: flex; flex-direction: column; gap: var(--s-12); }' +
-    '.screen-next .next-track .chips { margin-bottom: 0; }' +
     '.screen-next .disc .tracker { margin-top: var(--s-8); }' +
-    '@media (min-width: 641px) {' +
-    '  .screen-next .dates.has-today { padding-left: var(--s-32); }' +
-    '  .screen-next .dates-today { transform: none; align-items: flex-start; }' +
-    '}' +
     '@media (max-width: 640px) { .screen-next .next-receipt { flex-wrap: wrap; } .screen-next .next-receipt .btn { width: 100%; } }' +
     '</style>';
 
   const FORCED = { ask: null, yes: 'yes', no: 'no', unsure: 'unsure' };
   const RECEIPT = /^[A-Z]{3}\d{10}$/;
 
-  /* Home sends 'Yes, I plan to', Timeline 'Yes', inline asks 'unsure'. */
-  function intentOf(v) {
-    if (v == null || v === '') return null;
-    const s = String(v).toLowerCase();
-    if (s === 'unsure' || s.indexOf('not sure') !== -1) return 'unsure';
-    if (s.indexOf('yes') === 0) return 'yes';
-    if (s.indexOf('no') === 0) return 'no';
-    return null;
-  }
+  /* This screen owns the STEM OPT question. Every other screen links here. */
   function currentIntent(data, params) {
     const p = params && params[0];
     if (p && Object.prototype.hasOwnProperty.call(FORCED, p)) return FORCED[p];
-    const st = App.state;
-    return intentOf('stemIntent' in st ? st.stemIntent : data.stem.intent);
+    return App.stemIntent();
   }
   const isDone = (key) => App.state['task:' + key] === true;
   const e = (s) => C.esc(s);
+  const eyebrow = (topic) => "What's next · " + topic;
 
   /* ---------------- hero ---------------- */
 
@@ -60,34 +41,32 @@
       C.button({ label: 'Yes, I plan to', kind: 'primary', attrs: { 'data-answer': 'stemIntent', 'data-value': 'yes' } }) +
       C.button({ label: 'No, not this time', kind: 'pill', attrs: { 'data-answer': 'stemIntent', 'data-value': 'no' } }) +
       (unsure ? '' : C.button({ label: "I'm not sure yet", kind: 'text', cls: 'is-quiet is-small', attrs: { 'data-answer': 'stemIntent', 'data-value': 'unsure' } }));
-    return C.hero({ eyebrow: stem.eyebrow, title: stem.askTitle, subline: stem.askLine, icon: null, source: 'stemList', actions: actions }) +
+    return C.hero({ eyebrow: eyebrow(stem.eyebrow), title: stem.askTitle, subline: stem.askLine, icon: null, source: 'stemList', actions: actions }) +
       (unsure ? '<p class="t-lead hero-note">' + e(stem.unsureLine) + '</p>' : '');
   }
   function heroYes(stem) {
-    return C.hero({ eyebrow: stem.eyebrow, title: stem.yesTitle, subline: stem.yesLine, icon: null, source: 'stemOpens' });
+    return C.hero({ eyebrow: eyebrow(stem.eyebrow), title: stem.yesTitle, subline: stem.yesLine, icon: null, source: 'stemOpens' });
   }
   function heroNo(stem) {
     return C.hero({
-      eyebrow: 'After OPT', title: stem.noTitle, subline: stem.noLine, icon: null, source: 'eadEnds',
+      eyebrow: eyebrow('After OPT'), title: stem.noTitle, subline: stem.noLine, icon: null, source: 'eadEnds',
       actions: C.button({ label: 'Change my answer', kind: 'text', attrs: { 'data-next': 'change' } }),
     });
   }
 
   /* ---------------- 1. dates ---------------- */
 
+  /* The first date starts at the column edge; the Today tick overlaps it. */
   function datesSection(stem) {
     return C.section({
       eyebrow: 'Your dates',
-      content: C.dates({ points: stem.dates, today: { label: stem.today.label, pct: 0 } }) +
-        '<div class="next-after">' +
-        '<p class="t-small">' + e(stem.within60) + '</p>' +
-        '<p class="next-line">' + C.unknown(stem.recUnknown) + C.source(stem.recUnknown.source, { inline: true }) + '</p>' +
-        '</div>',
+      content: C.dates({ points: stem.dates, today: { label: stem.today.label, pct: 0 } }),
     });
   }
 
-  /* ---------------- 2. what you'll need ---------------- */
+  /* ---------------- 2. what you'll need, including the school's step ---------------- */
 
+  /* One list of steps, shared with Checklists (data.stem.tasks). */
   function tasksSection(data, planned) {
     const stem = data.stem;
     const suffix = data.checklists.stem.progressMeta;
@@ -95,7 +74,10 @@
     const pct = Math.round((done / stem.tasks.length) * 100);
     const rows = stem.tasks.map((t) => C.task({
       key: t.key, title: t.title, meta: t.meta, source: t.source, done: isDone(t.key),
-      open: planned && t.key === 'receipt' && !App.state.nextReceiptSaved ? { label: 'Add', href: '#next-track' } : null,
+      caution: t.caution, cautionSource: t.cautionSource,
+      below: t.unknown ? C.unknown(t.unknown) : null,
+      onDone: t.onDone ? C.unknown(t.onDone) + C.source(t.onDone.source, { inline: true }) : null,
+      action: planned && t.action ? C.button({ label: t.action, kind: 'pill', attrs: { 'data-next': 'to-email' } }) : null,
     }));
     return C.section({
       eyebrow: "What you'll need",
@@ -104,37 +86,21 @@
     });
   }
 
-  /* ---------------- 3. at the school ---------------- */
+  /* ---------------- 3. email your DSO ---------------- */
 
-  function schoolSection(data) {
-    const s = data.stem.school;
-    return C.section({
-      eyebrow: 'At ' + data.student.school,
-      content: C.list([C.row({
-        title: s.title, meta: s.meta,
-        below: '<span class="caution">' + e(s.caution) + '</span>' +
-          '<span class="next-line">' + C.unknown(s.unknown) + '</span>',
-      })], { accordion: false }),
-    });
-  }
-
-  /* ---------------- 4. email your DSO ---------------- */
-
+  /* Copy email is this state's one primary. Same email options as Checklists. */
   function emailSection(data) {
-    const panel = C.email(data.email);
-    const m = panel.match(/data-copy="([^"]+)"/);
-    const bodyId = m ? m[1] : '';
     return C.section({
+      id: 'next-email',
       eyebrow: 'Email your DSO',
-      content: panel +
-        '<div class="btn-group next-actions">' +
-        '<button type="button" class="btn btn-pill" data-copy="' + e(bodyId) + '">Copy email</button>' +
-        C.button({ label: 'Open in Mail', kind: 'text', attrs: { 'data-next': 'mail', 'data-body': bodyId } }) +
-        '</div>',
+      content: C.email(Object.assign({}, data.email, {
+        copyBelow: true, primary: true,
+        extra: C.button({ label: 'Open in Mail', kind: 'text', attrs: { 'data-next': 'mail' } }),
+      })),
     });
   }
 
-  /* ---------------- 5. your application ---------------- */
+  /* ---------------- 4. your application ---------------- */
 
   function trackSection(data) {
     const app = data.application;
@@ -144,7 +110,7 @@
     if (!saved) {
       top = '<div class="next-receipt">' +
         C.field({ label: 'Receipt number', key: 'nextReceipt', value: st.nextReceipt || '', placeholder: app.receiptPlaceholder, autocomplete: 'off' }) +
-        C.button({ label: 'Add', kind: 'primary', attrs: { 'data-next': 'add-receipt' } }) +
+        C.button({ label: 'Add', kind: 'pill', attrs: { 'data-next': 'add-receipt' } }) +
         '</div>' +
         (st.nextReceiptError ? '<p class="field-error" role="alert">' + e(st.nextReceiptError) + '</p>' : '');
     } else {
@@ -183,9 +149,9 @@
     render(data, params) {
       const stem = data.stem;
       const intent = currentIntent(data, params);
-      const out = [STYLE, C.pageHeader({ title: "What's next", subline: 'Your next step after OPT, with its dates and what it needs.' })];
+      const out = [STYLE];
       if (intent === 'yes') {
-        out.push(heroYes(stem), datesSection(stem), tasksSection(data, true), schoolSection(data), emailSection(data), trackSection(data));
+        out.push(heroYes(stem), datesSection(stem), tasksSection(data, true), emailSection(data), trackSection(data));
       } else if (intent === 'no') {
         out.push(heroNo(stem));
       } else {
@@ -227,15 +193,14 @@
     st.nextReceipt = '';
     st.nextReceiptError = null;
     st.nextAppCurrent = 0;
-    st['task:receipt'] = true;
-    App.emit('task', 'receipt', true, null);
     App.rerender();
     App.toast('Receipt number added');
   }
 
   function openMail(btn) {
-    const body = document.getElementById(btn.dataset.body);
-    const subject = document.querySelector('.screen-next [data-subject]');
+    const sec = btn.closest('.section');
+    const body = sec && sec.querySelector('.email-body');
+    const subject = sec && sec.querySelector('[data-subject]');
     const href = 'mailto:?subject=' + encodeURIComponent(subject ? subject.textContent : '') +
       '&body=' + encodeURIComponent(body ? body.innerText.trim() : '');
     window.location.href = href;
@@ -260,24 +225,21 @@
     document.addEventListener('click', (ev) => {
       if (!here()) return;
       const t = ev.target;
-      const jump = t.closest('a.task-open[href="#next-track"]');
-      if (jump) {
-        ev.preventDefault();
-        const sec = document.getElementById('next-track');
-        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        const input = document.querySelector('.screen-next [data-field="nextReceipt"]');
-        if (input) input.focus({ preventScroll: true });
-        return;
-      }
       const act = t.closest('[data-next]');
       if (!act) return;
       const what = act.dataset.next;
       if (what === 'add-receipt') { addReceipt(); return; }
+      if (what === 'to-email') {
+        const sec = document.getElementById('next-email');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const body = sec && sec.querySelector('.email-body');
+        if (body) body.focus({ preventScroll: true });
+        return;
+      }
       if (what === 'status') { App.state.nextStatusOpen = !App.state.nextStatusOpen; App.rerender(); return; }
       if (what === 'change-receipt') {
         App.state.nextReceipt = App.state.nextReceiptSaved || '';
         App.state.nextReceiptSaved = null;
-        App.state['task:receipt'] = false;
         App.rerender();
         return;
       }

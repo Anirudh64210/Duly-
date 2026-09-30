@@ -1,6 +1,7 @@
-/* Feedback. Title, one line that doubles as the field's label, a five line
-   field, one meta line, and Send. After sending, the field gives way to a
-   short thank you. No footer: this screen gives no dates.
+/* Feedback. Title, then the field with its visible label and one help line,
+   then Send on the right under the field (the one button placement rule in
+   system.css). After sending, the field gives way to a short thank you.
+   No footer: this screen gives no dates.
    Routes:
      #/feedback          the form
      #/feedback/offline  the form as it behaves with no connection
@@ -20,24 +21,16 @@ window.SCREENS['feedback'] = {
       '.col.is-entering > .screen-feedback > * { animation: rise .55s var(--ease-rise) backwards; }' +
       '.col.is-entering > .screen-feedback > :nth-child(2) { animation-delay: .06s; }' +
       '.col.is-entering > .screen-feedback > :nth-child(3) { animation-delay: .16s; }' +
-      /* title, 8, subline, 16, field */
-      '.screen-feedback .page-header { margin-bottom: var(--s-16); }' +
-      /* field, 8, meta (field-help), 24, Send */
-      '.screen-feedback .fb-form .btn-row { margin-top: var(--s-24); }' +
       '.screen-feedback .fb-offline { margin-top: var(--s-12); }' +
-      '.screen-feedback .fb-thanks { display: flex; flex-direction: column; align-items: flex-start; padding-top: var(--s-16); }' +
+      '.screen-feedback .fb-thanks { display: flex; flex-direction: column; align-items: flex-start; }' +
       '.screen-feedback .fb-thanks .t-lead { margin-top: var(--s-8); }' +
-      /* the link keeps a 44 tall hit box; 12 margin plus 12 padding reads as 24 */
-      '.screen-feedback .fb-thanks .link { margin-top: var(--s-12); padding: var(--s-12) 0; }' +
+      '.screen-feedback .fb-thanks .btn-text { margin-top: var(--s-12); }' +
       '.screen-feedback [data-fb-thanks]:focus-visible { box-shadow: none; }' +
       '.screen-feedback .fb-thanks, .screen-feedback .fb-form.is-back { animation: fade .28s ease both; }' +
       '@media (prefers-reduced-motion: reduce) { .screen-feedback .fb-thanks, .screen-feedback .fb-form.is-back { animation: none; } }' +
       '</style>';
 
-    const header = C.pageHeader({
-      title: 'Feedback',
-      subline: 'What should Duly do better? A sentence is plenty.',
-    });
+    const header = C.pageHeader({ title: 'Feedback' });
 
     return '<div class="screen-feedback">' + style + header +
       '<div class="fb-body" data-fb-body aria-live="polite">' +
@@ -53,11 +46,11 @@ window.SCREENS['feedback'] = {
         key: 'feedback',
         rows: 5,
         value: draft,
-        placeholder: 'Tell us what you noticed',
-        ariaLabel: 'What should Duly do better?',
-        help: 'Nothing from your records is attached.',
+        label: 'What should Duly do better?',
+        placeholder: 'The dates on Home were clear, but',
+        help: 'A sentence is plenty. Nothing from your records is attached.',
       }) +
-      '<div class="btn-row is-start">' +
+      '<div class="btn-row">' +
       C.button({ label: 'Send', kind: 'primary', type: 'submit', disabled: !hasText, attrs: { 'data-fb-send': '' } }) +
       '</div>' +
       (offline ? '<p class="t-meta fb-offline">You\'re offline. Duly will send this when you\'re back.</p>' : '') +
@@ -68,7 +61,7 @@ window.SCREENS['feedback'] = {
     return '<div class="fb-thanks">' +
       '<h2 class="t-sub" tabindex="-1" data-fb-thanks>Thank you.</h2>' +
       '<p class="t-lead">' + (offline ? 'You\'re offline. Duly will send this when you\'re back.' : 'We read every note.') + '</p>' +
-      '<button type="button" class="link" data-fb-again>Write another</button>' +
+      C.button({ label: 'Write another', kind: 'text', attrs: { 'data-fb-again': '' } }) +
       '</div>';
   },
 

@@ -110,36 +110,28 @@ window.DULY_SAMPLE = {
     metricNoStem: { eyebrow: 'Next date', value: 'Feb 13, 2027', date: true, unit: 'Your card ends · in 136 days', source: 'eadEnds' },
     /* Third metric with no EAD card on file. */
     metricNoEad: { eyebrow: 'Next date', add: { action: 'Add your EAD card', rest: 'to see this date.', href: '#/documents/add' } },
-    /* Your next move holds moves only: things the student does. Rule changes
-       and news live under whatsNew. The 'sevp' entry is a standing duty with
-       no date: there is no fixed six-month check on post-completion OPT, only
-       the rule to report a change within 10 days. */
+    /* Your next move holds moves only: things the student does, with a date.
+       Rule changes and news live under whatsNew.
+       'stemIntent' is not asked here: the question is owned by What's next,
+       and this row links to it.
+       'changes' is the standing rule to report a change within 10 days. It
+       has no date and is owned by Checklists > OPT; Home shows it only when
+       there is no dated move, as a link to its owner. There is no fixed
+       six-month check on post-completion OPT. */
     nextMoves: [
       {
-        key: 'sevp',
+        key: 'stemIntent',
+        title: 'Decide on STEM OPT',
+        meta: 'Start preparing by Oct 15',
+        text: 'Your STEM OPT window opens Nov 15, 2026. If you plan to apply, start preparing by Oct 15.',
+        primary: { label: "Decide in What's next", href: '#/next' },
+        source: 'startPreparing',
+      },
+      {
+        key: 'changes',
         title: 'Changed your address or job?',
         meta: 'Report it within 10 days',
-        text: 'If your address or employer changes, update it in the SEVP portal within 10 days. It takes about five minutes.',
-        primary: { label: 'Open the SEVP portal', href: 'https://sevp.ice.gov/opt/' },
-        quiet: { label: 'Nothing has changed' },
-        source: 'reportChanges',
-      },
-      {
-        key: 'stemIntent',
-        title: 'Planning to apply for STEM OPT?',
-        meta: 'Start preparing by Oct 15',
-        text: 'Your card ends Feb 13, 2027. Tell Duly and it lays out your dates and steps.',
-        choices: ['Yes, I plan to', 'No, not this time'],
-        notSure: "I'm not sure yet",
-        source: 'stemOpens',
-      },
-      /* Retired as a move: shown under whatsNew. Kept only until home.js stops asking for it. */
-      {
-        key: 'feeUpdate',
-        title: 'The fee for Form I-765 is changing',
-        meta: 'Rule change · USCIS',
-        text: 'This is the form you file for STEM OPT. Duly added a note about it to your I-765 step.',
-        link: { label: 'See the update', href: '#/updates' },
+        href: '#/checklists/opt',
       },
     ],
     /* What's new for your status: the rule change first, then the news. */
@@ -147,7 +139,6 @@ window.DULY_SAMPLE = {
       { key: 'fee', kind: 'rule', title: 'The fee for Form I-765 is changing', meta: 'Rule change · USCIS', href: '#/updates' },
       { key: 'court', kind: 'news', title: 'A court paused a change to an F-1 rule', meta: 'In the news · U.S. District Court, Massachusetts · Sep 14, 2026', href: '#/updates/court' },
     ],
-    news: { title: 'A court paused a change to an F-1 rule', meta: 'In the news · U.S. District Court, Massachusetts · Sep 14, 2026', href: '#/updates/court' },
   },
 
   /* What's next: STEM OPT */
@@ -167,27 +158,22 @@ window.DULY_SAMPLE = {
       { date: 'Nov 15, 2026', label: 'Window opens', source: 'stemOpens' },
       { date: 'Feb 13, 2027', label: 'Last day to file · your card ends', source: 'stemCloses', end: true },
     ],
-    /* Retired from the dates section: the student cannot know this date until
-       the 'i20' step is done. Shown then, inside that step (steps[3].onDone). */
-    within60: 'You also file within 60 days of the day your school recommends you.',
-    recUnknown: { action: 'Add the date your school recommends you', rest: 'to see your exact last day.', href: '#/case', source: 'within60' },
     /* The one list of STEM OPT steps. What's next and Checklists both render
        it (checklists.stem.steps is this same array). The receipt number is
-       not a step: the 'Your application' field covers it. */
+       not a step: the 'Your application' field covers it. The school's own
+       step ('request') is part of this list, not a second list.
+       onDone shows inside a step once it is checked: the recommendation date
+       cannot be known before the new I-20 arrives. */
     tasks: [
       { key: 'everify', title: 'Check that Northwind Systems uses E-Verify', meta: "Ask HR for the company's E-Verify number.", source: 'stemEmployer' },
       { key: 'i983', title: 'Fill out your training plan with your manager', meta: 'Form I-983. Your manager signs it.', source: 'stemPlan' },
-      { key: 'request', title: "Send State University's STEM OPT request", meta: 'Include your signed I-983.', caution: "Each school runs this step its own way. Your school's page is the one to follow.", action: 'Write the email to your DSO' },
+      { key: 'request', title: "Send State University's STEM OPT request", meta: 'Include your signed I-983.', caution: "Each school runs this step its own way. Your school's page is the one to follow.", action: 'Write the email to your DSO',
+        unknown: { action: "Add your school's form link", rest: 'to keep it here.', href: '#/case' } },
       { key: 'i20', title: 'Get your new I-20 from your school', meta: "It carries your school's STEM OPT recommendation.", source: 'within60',
         onDone: { action: 'Add the date your school recommends you', rest: 'to see your exact last day to file.', href: '#/case', source: 'within60' } },
-      { key: 'i765', title: 'File Form I-765 with USCIS', meta: "Between Nov 15, 2026 and Feb 13, 2027, within 60 days of your school's recommendation. The fee is changing; the USCIS notice has the new amount.", source: 'stemOpens', feeSource: 'feeChange' },
+      { key: 'i765', title: 'File Form I-765 with USCIS', meta: "Between Nov 15, 2026 and Feb 13, 2027, within 60 days of your school's recommendation.", source: 'stemOpens',
+        caution: 'The fee is changing. The USCIS notice has the new amount.', cautionSource: 'feeChange' },
     ],
-    school: {
-      title: "Send your school's STEM OPT request",
-      meta: 'Include your signed I-983.',
-      caution: "Each school runs this step its own way. Your school's page is the one to follow.",
-      unknown: { action: "Add your school's form link", rest: 'to keep it here.', href: '#/case' },
-    },
   },
 
   email: {
@@ -250,10 +236,10 @@ window.DULY_SAMPLE = {
     },
     {
       key: 'stem', state: 'next', title: 'STEM OPT extension', meta: 'Window opens Nov 15, 2026',
-      /* Retired: intent is asked only on What's next and Home. Use 'undecided' instead. */
-      ask: { title: 'Planning to apply?', choices: ['Yes', 'No'], notSure: "I'm not sure yet" },
+      /* Intent is asked only on What's next. Here it is one quiet line with a link. */
       undecided: { text: 'STEM OPT: not decided yet.', link: { label: "Decide in What's next", href: '#/next' } },
       after: { text: 'Start preparing by Oct 15.', link: { label: 'See the plan', href: '#/next' } },
+      declined: { text: 'Not this time.', link: { label: "Change in What's next", href: '#/next' } },
     },
     {
       key: 'after', state: 'next', title: 'After OPT', meta: 'H-1B and other paths',
@@ -311,14 +297,15 @@ window.DULY_SAMPLE = {
     ],
     emptyStatus: 'Nothing new for your status this week.',
     emptyNews: 'No news this week.',
-    footer: 'Records and dates from your documents, not legal advice. Checked today, 6:00 AM.',
+    /* 'Checked today, 6:00 AM' sits in the hero meta, not here. */
+    footer: 'Records and dates from your documents, not legal advice.',
   },
 
   /* Documents */
   documents: {
     count: 12,
     headline: '12 documents, one record.',
-    meta: 'Names and dates match across them. Checked today. Kept on this Mac.',
+    meta: 'Every version kept, encrypted on this Mac.',
     tabs: [
       { key: 'all', label: 'All' },
       { key: 'i20', label: 'I-20s', count: 4 },
@@ -328,7 +315,9 @@ window.DULY_SAMPLE = {
     ],
     i20Groups: [
       { key: 'opt', title: 'OPT', items: [
-        { title: 'OPT recommendation', meta: 'Current · 3 earlier versions kept', current: true, versions: 3 },
+        { title: 'OPT recommendation', meta: 'Oct 2025', current: true,
+          /* Earlier versions of the same I-20, kept for the record. */
+          versions: ['Travel signature, Dec 2024', 'Travel signature, Dec 2023', 'Program start, Aug 2023'] },
       ] },
       { key: 'cpt', title: 'CPT', items: [
         { title: 'Lumen Labs', meta: 'Jan 13 to May 2, 2025' },
@@ -377,8 +366,6 @@ window.DULY_SAMPLE = {
         { key: 'lumen', label: 'Lumen Labs', value: 'Jan 13 to May 2, 2025' },
       ], add: 'Add another internship' },
       { key: 'opt', eyebrow: 'OPT',
-        /* Retired: there is no dated check to confirm. Kept only until case.js stops reading it. */
-        waiting: [{ key: 'sevp', title: 'Changed your address or job? Report it within 10 days', choices: ['Nothing has changed', 'Open the SEVP portal'], notSure: "I'm not sure" }],
         rows: [
           { key: 'permit', label: 'Work permit', value: 'Feb 14, 2026 to Feb 13, 2027' },
           { key: 'application', label: 'Application', value: 'IOE0912345678 · approved Dec 20, 2025' },
@@ -390,8 +377,7 @@ window.DULY_SAMPLE = {
         { key: 'reported', label: 'Reported to school', value: 'Yes' },
       ] },
       { key: 'plans', eyebrow: 'Plans',
-        /* Retired: intent is asked only on What's next and Home. Use 'undecided' instead. */
-        waiting: [{ key: 'stemIntent', title: 'Planning to apply for STEM OPT?', choices: ['Yes', 'No'], notSure: "I'm not sure yet" }],
+        /* Intent is asked only on What's next. Here it is one quiet line with a link. */
         undecided: { text: 'STEM OPT: not decided yet.', link: { label: "Decide in What's next", href: '#/next' } },
         rows: [] },
     ],
@@ -410,8 +396,19 @@ window.DULY_SAMPLE = {
     deleteMeta: 'Removes your records and documents from this Mac. Backups you saved stay where you put them.',
   },
 
-  /* Where the waiting dot shows in the nav */
-  waitingIn: ['home', 'case'],
+  /* Where the waiting dot shows in the nav. app.js adds 'next' while the
+     STEM OPT intent is unanswered and 'case' while a Your case question waits. */
+  waitingIn: [],
+
+  /* Asked once, in Your case > Study, only when no document shows it
+     (a degree certificate or an I-20 settles it). Never in onboarding. */
+  awardedAsk: {
+    key: 'awarded',
+    title: 'Was your degree awarded?',
+    meta: 'Add your degree certificate and Duly reads it, or answer here.',
+    choices: [{ label: 'Yes, on Dec 18, 2025', value: 'end' }, { label: 'Yes, on another date', value: 'other' }, { label: 'Not yet', value: 'no' }],
+    notSure: "I'm not sure",
+  },
 
   /* Source marks. Quotes are verbatim from the saved rule text. */
   sources: {

@@ -158,7 +158,8 @@
     return '<span class="shield" aria-hidden="true">' + (o && o.halo ? '<span class="halo"></span>' : '') + icon('shield') + '</span>';
   }
 
-  /* metrics([{ eyebrow, value?, unit?, date?, bar? (0..100), source?, add? {action, rest, href} }]) */
+  /* metrics([{ eyebrow, value?, unit?, bar? (0..100), source?, add? {action, rest, href} }])
+     Every value, a count or a date, is set at the one metric figure size. */
   function metrics(cells) {
     const out = [];
     cells.forEach((m, i) => {
@@ -168,7 +169,7 @@
         body = '<p class="metric-add">' + unknown(m.add) + '</p>';
       } else {
         body = '<div class="metric-value-row">' +
-          '<span class="' + cls('metric-value', m.date && 'is-date') + '">' + esc(m.value) + '</span>' +
+          '<span class="metric-value">' + esc(m.value) + '</span>' +
           (m.unit ? '<span class="metric-unit">' + esc(m.unit) + '</span>' : '') +
           (m.source ? source(m.source, { inline: true }) : '') + '</div>' +
           (m.bar != null ? bar(m.bar) : '');
@@ -291,10 +292,17 @@
       ' aria-label="' + esc(p.label || 'Done') + '">' + icon('tick', { size: 12 }) + '</button>';
   }
 
-  /* task({ key, title, meta?, done?, doneMeta?, source?, open? {label, href}, caution?, action? (html) }) */
+  /* task({ key, title, meta?, done?, doneMeta?, source?, open? {label, href}, caution?, cautionSource?,
+             below? (html), action? (html), onDone? (html) })
+     caution: a quiet line under the meta (e.g. a fee change), with its own
+     source mark when cautionSource is given. below: extra html under the
+     meta (e.g. C.unknown). onDone: html shown only while the task is
+     checked; app.js shows and hides it when the checkbox changes. */
   function task(p) {
     const openLink = p.open ? '<a class="task-open"' + attrs(hrefAttrs(p.open.href)) + '>' + esc(p.open.label) + '</a>' : '';
-    const below = (p.caution ? '<span class="caution">' + esc(p.caution) + '</span>' : '') +
+    const below = (p.caution ? '<span class="caution">' + esc(p.caution) + (p.cautionSource ? source(p.cautionSource, { inline: true }) : '') + '</span>' : '') +
+      (p.below ? '<span class="task-below">' + p.below + '</span>' : '') +
+      (p.onDone ? '<span class="task-on-done" data-on-done' + (p.done ? '' : ' hidden') + '>' + p.onDone + '</span>' : '') +
       (p.action ? '<span class="task-action">' + p.action + '</span>' : '');
     return '<div class="' + cls('item task', p.done && 'is-done') + '" data-key="' + esc(p.key || '') + '"><div class="row is-static">' +
       checkbox({ checked: p.done, key: p.key, label: p.title }) +
@@ -349,15 +357,16 @@
   /* waiting({ items: [{ title, meta?, add? {label='Add', href} } | ask props with choices], max = 3, more? {label, href}, eyebrow?, id? })
      The one look for "Waiting for you": a section eyebrow with the dot, then
      plain rows. Use it on every screen that asks something; never put an
-     eyebrow inside a row. Items that are asks render with C.ask. */
+     eyebrow inside a row. Items that are asks render with C.ask. A row
+     without add has no trailing action (e.g. onboarding's finish list). */
   function waiting(p) {
     const max = p.max || 3;
     const shown = p.items.slice(0, max).map((it) => {
       if (it.choices) return ask(it);
-      const add = it.add || {};
+      const add = it.add;
       return row({
         title: it.title, meta: it.meta, key: it.key,
-        trailing: '<a class="btn btn-text is-small"' + attrs(hrefAttrs(add.href || '#')) + '>' + esc(add.label || 'Add') + '</a>',
+        trailing: add ? '<a class="btn btn-text is-small"' + attrs(hrefAttrs(add.href || '#')) + '>' + esc(add.label || 'Add') + '</a>' : '',
       });
     });
     const rest = p.items.length - max;
@@ -393,9 +402,12 @@
     if (p.href && !p.disabled) return '<a class="' + c + '"' + attrs(Object.assign(hrefAttrs(p.href), extra)) + '>' + esc(p.label) + '</a>';
     return '<button type="' + (p.type || 'button') + '" class="' + c + '"' + attrs(extra) + (p.disabled ? ' disabled' : '') + '>' + esc(p.label) + '</button>';
   }
-  /* buttonRow({ back? (html), primary? (html) }) : Back left, primary right, 24 above */
+  /* buttonRow({ back? (html or html[]), primary? (html) }) : the one placement rule
+     (system.css): a right-aligned group, the quiet actions (Back, Cancel, Fix one)
+     first on the left, the primary last on the right, 24 above. */
   function buttonRow(p) {
-    return '<div class="btn-row">' + (p.back || '') + (p.primary || '') + '</div>';
+    const quiet = Array.isArray(p.back) ? p.back.join('') : (p.back || '');
+    return '<div class="btn-row">' + quiet + (p.primary || '') + '</div>';
   }
   function btnGroup(html) { return '<div class="btn-group">' + (Array.isArray(html) ? html.join('') : html) + '</div>'; }
 
@@ -411,10 +423,11 @@
       '<button type="button" class="btn btn-pill" data-confirm="' + id + '">' + esc(p.label) + '</button>' +
       '<div class="danger-confirm" id="' + id + '" hidden role="group" aria-label="' + esc(p.label) + '">' +
       '<p>' + esc(p.confirm) + '</p>' +
-      '<div class="btn-group">' +
-      '<button type="button" class="btn btn-pill" data-confirmed="' + esc(p.key || '') + '">' + esc(p.confirmLabel || p.label) + '</button>' +
-      '<button type="button" class="btn btn-text is-quiet" data-keep="' + id + '">' + esc(p.keepLabel || 'Keep') + '</button>' +
-      '</div></div></div>';
+      buttonRow({
+        back: '<button type="button" class="btn btn-text is-quiet" data-keep="' + id + '">' + esc(p.keepLabel || 'Keep') + '</button>',
+        primary: '<button type="button" class="btn btn-pill" data-confirmed="' + esc(p.key || '') + '">' + esc(p.confirmLabel || p.label) + '</button>',
+      }) +
+      '</div></div>';
   }
 
   /* ---------------------------------------------------------------- */
@@ -580,7 +593,9 @@
       '<div class="email-body" id="' + id + '" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Email text">' + body + '</div>' +
       '<p class="email-foot">' + esc(p.foot || 'Edit anything before you send. Duly never sends it for you.') + '</p>' +
       '</section>';
-    const actions = below ? '<div class="btn-group email-actions">' + copyBtn + (p.extra || '') + '</div>' : '';
+    /* Under the panel the buttons follow the one placement rule: the quiet
+       extra (Open in Mail) on the left, Copy on the right. */
+    const actions = below ? '<div class="btn-row email-actions">' + (p.extra || '') + copyBtn + '</div>' : '';
     return panel + actions;
   }
 

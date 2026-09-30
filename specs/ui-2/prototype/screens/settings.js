@@ -1,5 +1,7 @@
 /* Settings. Hairline rows: title and one meta line on the left, the control on the right.
-   One hero line (your data, kept on this Mac) and one filled button (Back up now).
+   Four groups (Your data, Privacy, Notifications, General), then Delete everything
+   as a quiet row with no heading of its own. Every row action is the same 36px pill;
+   the page has no filled primary (only the delete dialog carries one).
    Routes:
      #/settings           the sample settings
      #/settings/offline   shows the offline line at the bottom
@@ -21,7 +23,7 @@
   function tzMeta(tz) { return tz === TZ_MAC ? TZ_MAC + ', set from this Mac' : tz + ', set by you'; }
   function backupMeta(data) {
     const m = data.settings.backup.meta;
-    return App.state.lastBackup ? m.replace(/never\.?$/, App.state.lastBackup + '.') : m;
+    return App.state.lastBackup ? m.replace(/Last backup: .*$/, 'Last backup: ' + App.state.lastBackup + '.') : m;
   }
 
   /* C.settingRow with a data-key and an optional drop-in panel under the row. */
@@ -30,11 +32,11 @@
     if (panel) html = html.replace(/<\/div>$/, panel + '</div>');
     return html;
   }
-  function panel(id, inner) {
-    return '<div class="disc sx-panel" id="' + id + '" hidden>' + (inner || '') + '</div>';
+  function panel(id, inner, open) {
+    return '<div class="disc sx-panel" id="' + id + '"' + (open ? '' : ' hidden') + '>' + (inner || '') + '</div>';
   }
-  function changeBtn(id, hidden) {
-    return C.button({ label: 'Change', kind: 'text', small: true, attrs: { 'data-sx-open': id, 'aria-expanded': 'false', 'aria-controls': id, hidden: !!hidden } });
+  function pill(label, attrs) {
+    return C.button({ label: label, kind: 'pill', attrs: attrs });
   }
 
   const STYLE = '<style>' +
@@ -45,22 +47,15 @@
     '.col.is-entering > .screen-settings > :nth-child(3) { animation-delay: .16s; }' +
     '.col.is-entering > .screen-settings > :nth-child(4) { animation-delay: .28s; }' +
     '.col.is-entering > .screen-settings > :nth-child(n+5) { animation-delay: .42s; }' +
-    '.screen-settings .page-header { margin-bottom: var(--s-48); }' +
-    '.screen-settings .page-header + .section { margin-top: 0; }' +
-    '.screen-settings .section-head { padding-bottom: var(--s-12); }' +
-    '.screen-settings .sx-hero .row-title { font-size: var(--t-body); font-weight: 600; }' +
     '.screen-settings .sx-panel { gap: var(--s-12); }' +
-    '.screen-settings .sx-panel .btn-group { margin-top: var(--s-12); }' +
-    '.screen-settings .sx-ink { color: var(--ink); }' +
-    '.screen-settings .sx-ink:hover { color: var(--ink-2); }' +
+    /* the panel already has a 12 gap, so 12 more makes the usual 24 above the buttons */
+    '.screen-settings .sx-panel .btn-row { margin-top: var(--s-12); }' +
     '.screen-settings .sx-offline { margin-top: var(--s-48); }' +
-    '.screen-settings .footer { margin-top: var(--s-64); }' +
     '.screen-settings .sx-dialog { width: 360px; max-width: calc(100vw - var(--s-32)); padding: var(--s-24); margin: auto;' +
       ' background: var(--surface); color: var(--ink); border: 1px solid var(--hairline); border-radius: var(--r-card); box-shadow: var(--shadow-pop); }' +
     '.screen-settings .sx-dialog[open] { animation: drop .28s ease-out; }' +
     '.screen-settings .sx-dialog::backdrop { background: var(--scrim); }' +
     '.screen-settings .sx-dialog .t-lead { margin-top: var(--s-8); }' +
-    '.screen-settings .sx-dialog .btn-group { margin-top: var(--s-24); justify-content: flex-end; gap: var(--s-12); }' +
     '</style>';
 
   window.SCREENS['settings'] = {
@@ -76,33 +71,30 @@
 
       const header = C.pageHeader({ title: 'Settings' });
 
-      /* Your data: the one hero line */
+      /* Your data: where it lives, back up, restore, export */
       const yourData = C.section({
-        eyebrow: 'Your data', cls: 'sx-hero',
-        content: C.list([C.row({ lead: C.shield(), title: s.storage.title, meta: s.storage.meta, href: '#/documents' })], { accordion: false }),
-      });
-
-      /* Backup */
-      const backup = C.section({
-        eyebrow: 'Backup',
+        eyebrow: 'Your data',
         content: C.list([
-          srow('backup', { title: s.backup.title, meta: backupMeta(data), wide: true,
-            control: C.button({ label: 'Back up now', kind: 'primary', attrs: { 'data-sx': 'backup' } }) }),
+          srow('storage', { title: s.storage.title, meta: s.storage.meta }),
+          srow('backup', { title: s.backup.title, meta: backupMeta(data),
+            control: pill('Back up now', { 'data-sx': 'backup' }) }),
           srow('restore', { title: 'Restore from a backup', meta: 'Replaces what is on this Mac with a backup you saved.',
-            control: C.button({ label: 'Choose a file', kind: 'text', small: true, attrs: { 'data-sx': 'restore', 'aria-controls': 'sx-restore' } }) +
+            control: pill('Choose a file', { 'data-sx': 'restore', 'aria-controls': 'sx-restore' }) +
               '<input type="file" hidden data-sx-file accept=".duly,application/octet-stream" aria-label="Choose a backup file">' },
             panel('sx-restore')),
+          srow('export', { title: 'Export your records', meta: 'A PDF summary and your documents, in one folder.',
+            control: pill('Export', { 'data-sx': 'export' }) }),
         ], { accordion: false }),
       });
 
-      /* Lock */
-      const lock = C.section({
-        eyebrow: 'Lock',
+      /* Privacy: one control per row. The lock-after chips drop in under the row while the lock is on. */
+      const privacy = C.section({
+        eyebrow: 'Privacy',
         content: C.list([
           srow('lock', { title: 'Lock Duly when you step away', meta: lockOn ? 'After ' + lockAfter : 'Off',
-            control: changeBtn('sx-lock', !lockOn) + C.toggle({ key: 'lockOn', on: lockOn, label: 'Lock Duly when you step away' }) },
+            control: C.toggle({ key: 'lockOn', on: lockOn, label: 'Lock Duly when you step away' }) },
             panel('sx-lock', C.segment({ key: 'lockAfter', label: 'Lock after', selected: lockAfter,
-              options: s.lockOptions.map((o) => ({ value: o, label: o })) }))),
+              options: s.lockOptions.map((o) => ({ value: o, label: o })) }), lockOn)),
           srow('touchId', { title: 'Unlock with Touch ID', meta: 'Instead of typing your Mac password.',
             control: C.toggle({ key: 'touchId', on: st('touchId', false), label: 'Unlock with Touch ID' }) }),
         ], { accordion: false }),
@@ -121,56 +113,43 @@
         ], { accordion: false }),
       });
 
-      /* Dates */
-      const dates = C.section({
-        eyebrow: 'Dates',
+      /* General: time zone and theme */
+      const general = C.section({
+        eyebrow: 'General',
         content: C.list([
-          srow('tz', { title: 'Time zone', meta: tzMeta(tz), control: changeBtn('sx-tz') },
+          srow('tz', { title: 'Time zone', meta: tzMeta(tz),
+            control: pill('Change', { 'data-sx-open': 'sx-tz', 'aria-expanded': 'false', 'aria-controls': 'sx-tz', 'aria-label': 'Change time zone' }) },
             panel('sx-tz', '<p>Duly counts every date in this time zone.</p>' +
               C.segment({ key: 'tz', label: 'Time zone', selected: tz, options: TZ_OPTIONS.map((o) => ({ value: o, label: o })) }))),
-        ], { accordion: false }),
-      });
-
-      /* Appearance */
-      const look = C.section({
-        eyebrow: 'Appearance',
-        content: C.list([
           srow('theme', { title: 'Theme', meta: 'System follows your Mac.', wide: true,
             control: C.segment({ key: 'theme', label: 'Theme', selected: App.state.theme || s.theme,
               options: [{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] }) }),
         ], { accordion: false }),
       });
 
-      /* Export */
-      const exp = C.section({
-        eyebrow: 'Export',
-        content: C.list([
-          srow('export', { title: 'Export your records', meta: 'A PDF summary and your documents, in one folder.',
-            control: C.button({ label: 'Export', kind: 'pill', attrs: { 'data-sx': 'export' } }) }),
-        ], { accordion: false }),
-      });
-
-      /* Delete */
+      /* Delete everything: last, a quiet row with no heading of its own */
       const del = C.section({
-        eyebrow: 'Delete',
         content: C.list([
           srow('delete', { title: 'Delete everything', meta: s.deleteMeta,
-            control: C.button({ label: 'Delete', kind: 'text', cls: 'sx-ink', attrs: { 'data-sx': 'delete', 'aria-haspopup': 'dialog' } }) }),
-        ], { accordion: false }),
+            control: pill('Delete', { 'data-sx': 'delete', 'aria-haspopup': 'dialog' }) }),
+        ], { accordion: false, label: 'Delete everything' }),
       });
 
       const dialog = '<dialog class="sx-dialog" aria-labelledby="sx-del-title">' +
         '<h2 class="t-sub" id="sx-del-title">Delete everything on this Mac?</h2>' +
         '<p class="t-lead">This can\'t be undone.</p>' +
-        '<div class="btn-group">' +
-        C.button({ label: 'Delete everything', kind: 'pill', attrs: { 'data-sx': 'delete-yes' } }) +
-        C.button({ label: 'Keep my records', kind: 'primary', attrs: { 'data-sx': 'delete-no', autofocus: true } }) +
-        '</div></dialog>';
+        /* The one placement rule: the other choice on the left, the primary
+           (keep, the safe answer) on the right, in a right-aligned row. */
+        C.buttonRow({
+          back: C.button({ label: 'Delete everything', kind: 'pill', attrs: { 'data-sx': 'delete-yes' } }),
+          primary: C.button({ label: 'Keep my records', kind: 'primary', attrs: { 'data-sx': 'delete-no', autofocus: true } }),
+        }) +
+        '</dialog>';
 
       const offlineLine = offline ? '<p class="t-meta sx-offline">' + C.esc(data.checked.offline) + '</p>' : '';
       const footer = C.footer(offline ? data.version : data.version + ' · ' + data.checked.rules);
 
-      return '<div class="screen-settings">' + STYLE + header + yourData + backup + lock + notes + dates + look + exp + del +
+      return '<div class="screen-settings">' + STYLE + header + yourData + privacy + notes + general + del +
         offlineLine + footer + dialog + '</div>';
     },
 
@@ -198,11 +177,11 @@
         setTimeout(() => {
           if (!document.contains(p)) return;
           p.innerHTML = '<p class="t-meta" role="status">Read on this Mac. Nothing left it.</p>' +
-            C.found([['File', name || 'Duly backup'], ['Name', data.student.name], ['Made on', 'Sep 12, 2026'], ['Documents', String(data.documents.count)]]) +
-            C.btnGroup([
-              C.button({ label: 'Restore this backup', kind: 'pill', attrs: { 'data-sx': 'restore-yes' } }),
-              C.button({ label: 'Cancel', kind: 'back', attrs: { 'data-sx': 'restore-no' } }),
-            ]);
+            C.found([['File', name || 'Duly backup'], ['Name', data.student.name], ['From', s.restoreFrom], ['Documents', String(data.documents.count)]]) +
+            C.buttonRow({
+              back: C.button({ label: 'Cancel', kind: 'back', attrs: { 'data-sx': 'restore-no' } }),
+              primary: C.button({ label: 'Restore this backup', kind: 'pill', attrs: { 'data-sx': 'restore-yes' } }),
+            });
           const first = p.querySelector('[data-sx="restore-yes"]');
           if (first) first.focus();
         }, 900);
@@ -226,6 +205,8 @@
       }
 
       const dialog = root.querySelector('.sx-dialog');
+      /* The lock-after chips show whenever the lock is on. */
+      setPanel(item('lock'), st('lockOn', true));
 
       root.addEventListener('click', (e) => {
         const opener = e.target.closest('[data-sx-open]');
@@ -287,14 +268,11 @@
         const d = e.detail;
         if (d.kind === 'toggle' && d.key === 'lockOn') {
           setMeta('lock', d.value ? 'After ' + st('lockAfter', s.lockAfter) : 'Off');
-          const c = item('lock').querySelector('[data-sx-open]');
-          if (c) c.hidden = !d.value;
-          if (!d.value) setPanel(item('lock'), false);
+          setPanel(item('lock'), !!d.value);
         } else if (d.kind === 'toggle' && d.key === 'remind') {
           setMeta('remind', d.value ? s.remind : 'Off');
         } else if (d.kind === 'choice' && d.key === 'lockAfter') {
           setMeta('lock', 'After ' + d.value);
-          setTimeout(() => setPanel(item('lock'), false), 200);
         } else if (d.kind === 'choice' && d.key === 'tz') {
           setMeta('tz', tzMeta(d.value));
           setTimeout(() => setPanel(item('tz'), false), 200);

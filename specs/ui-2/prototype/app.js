@@ -32,6 +32,42 @@ window.SCREENS = window.SCREENS || {};
   };
   window.App = App;
 
+  /* The STEM OPT intent, shared by every screen: null, 'yes', 'no' or 'unsure'.
+     The question itself is asked only on What's next. */
+  function stemIntent() {
+    const v = 'stemIntent' in App.state && App.state.stemIntent != null ? App.state.stemIntent : data.stem.intent;
+    if (v == null || v === '') return null;
+    const s = String(v).toLowerCase();
+    if (s === 'unsure' || s.indexOf('not sure') !== -1) return 'unsure';
+    if (s.charAt(0) === 'y') return 'yes';
+    if (s.charAt(0) === 'n') return 'no';
+    return null;
+  }
+  App.stemIntent = stemIntent;
+
+  /* Is "Was your degree awarded?" waiting in Your case? Only after onboarding
+     with a passed end date and no answer yet, or on the #/case/no-degree demo. */
+  function awardedWaiting() {
+    const st = App.state;
+    if (st.caseAwarded && st.caseAwarded !== 'unsure') return false;
+    if (st.caseAwardedDemo) return true;
+    const onb = st.onb;
+    if (!onb || onb.awarded || !onb.end) return false;
+    const end = new Date(String(onb.end).trim());
+    return !isNaN(end.getTime()) && end < new Date(data.today.iso + 'T00:00:00');
+  }
+  App.awardedWaiting = awardedWaiting;
+
+  /* Nav dots: where something is waiting for the student. */
+  function waitingIn() {
+    const out = (data.waitingIn || []).filter((k) => k !== 'next' && k !== 'case');
+    const intent = stemIntent();
+    if (intent === null || intent === 'unsure') out.push('next');
+    if (awardedWaiting()) out.push('case');
+    return out;
+  }
+  App.waitingIn = waitingIn;
+
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isPhone = () => window.matchMedia('(max-width: 640px)').matches;
 
@@ -73,7 +109,7 @@ window.SCREENS = window.SCREENS || {};
     if (screen && screen.bare) {
       app.innerHTML = '<main class="bare' + enter + '" id="main">' + body + '</main>';
     } else {
-      const nav = { route: r.name, waiting: data.waitingIn || [] };
+      const nav = { route: r.name, waiting: waitingIn() };
       app.innerHTML =
         '<div class="shell">' + C.sidebar(nav) +
         '<div class="main">' + C.topbar({ date: phoneDate() }) +
@@ -266,6 +302,8 @@ window.SCREENS = window.SCREENS || {};
         const doneMeta = meta.dataset.doneMeta || ('Done ' + shortToday());
         meta.textContent = on ? doneMeta : meta.dataset.meta;
       }
+      const onDone = item.querySelector('[data-on-done]');
+      if (onDone) onDone.hidden = !on;
     }
     App.state['task:' + key] = on;
     updateProgress(check.closest('main'));
@@ -336,9 +374,10 @@ window.SCREENS = window.SCREENS || {};
     const label = row.querySelector('.v-label').textContent;
     const box = document.createElement('div');
     box.className = 'v-edit';
+    /* The one placement rule: Cancel on the left, Save on the right. */
     box.innerHTML = '<input class="input" type="text" aria-label="' + C.esc(label) + '" value="' + C.esc(btn.textContent) + '">' +
-      '<button type="button" class="btn btn-pill" data-edit-save>Save</button>' +
-      '<button type="button" class="btn btn-text is-quiet" data-edit-cancel>Cancel</button>';
+      '<button type="button" class="btn btn-text is-quiet" data-edit-cancel>Cancel</button>' +
+      '<button type="button" class="btn btn-pill" data-edit-save>Save</button>';
     btn.hidden = true;
     row.querySelector('.row').appendChild(box);
     row.querySelector('.row').style.flexWrap = 'wrap';
@@ -427,7 +466,7 @@ window.SCREENS = window.SCREENS || {};
   function toggleMenu() { if (menuOpen) closeMenu(); else openMenu(); }
   function openMenu() {
     const holder = document.createElement('div');
-    holder.innerHTML = C.menuSheet({ route: App.route, waiting: data.waitingIn || [] });
+    holder.innerHTML = C.menuSheet({ route: App.route, waiting: waitingIn() });
     document.body.appendChild(holder.firstChild);
     const b = document.querySelector('[data-menu]');
     if (b) { b.setAttribute('aria-expanded', 'true'); b.textContent = 'Close'; }

@@ -1,4 +1,11 @@
 /* Documents: everything in one place, sorted by kind and phase, every version kept.
+   The bar (BRIEF.md): faster than a WhatsApp self chat or the school's
+   approval email. A tap on a row opens the document; Share sits on the row
+   (on hover or focus with a mouse, always visible on touch). Earlier
+   versions of a document fold under it ("3 earlier versions").
+   Search sits under the title: typing filters the documents live by name,
+   kind and phase ('I-20', 'EAD', 'Lumen', 'OPT'), within the chosen chip.
+   Enter opens the first match; Escape clears the search.
    Routes: #/documents, #/documents/<tab> (i20, work, identity, school), #/documents/add.
    A file dropped anywhere, or Cmd O, arrives here through App.addDocument and opens the
    document sheet. Reading is simulated: the file shows "Reading on this Mac", then the
@@ -7,18 +14,21 @@
   'use strict';
 
   const TABS = ['all', 'i20', 'work', 'identity', 'school'];
-  const S = { ready: false, docs: [], groups: [], tab: 'all', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null };
+  const S = { ready: false, docs: [], groups: [], tab: 'all', query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, expanded: {} };
 
   const STYLE = '<style>' +
     '.screen-documents .page-header .ph-top { align-items: center; flex-wrap: wrap; row-gap: var(--s-16); }' +
-    '.screen-documents .doc-hero { display: flex; flex-direction: column; gap: var(--s-4); margin-bottom: var(--s-48); }' +
-    '.screen-documents .doc-hero-line { display: flex; align-items: center; gap: var(--s-12); }' +
-    '.screen-documents .doc-hero .t-meta { padding-left: calc(16px + var(--s-12)); }' +
     '.screen-documents .doc-view > .section:first-child { margin-top: 0; }' +
-    '.screen-documents .doc-current { margin-right: var(--s-8); font-size: var(--t-eyebrow); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); vertical-align: 1px; }' +
+    '.screen-documents .doc-search { margin-bottom: var(--s-16); }' +
+    /* the whole row opens the document: the title button stretches over the row */
+    '.screen-documents .doc-open { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }' +
+    '.screen-documents .doc-open::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-field); }' +
+    '.screen-documents .doc-open:focus-visible { box-shadow: none; }' +
+    '.screen-documents .doc-open:focus-visible::after { box-shadow: var(--focus-ring); }' +
+    '.screen-documents .doc-row > .row:hover { background: var(--row-hover); }' +
+    '.screen-documents .doc-row .row-trail, .screen-documents .doc-versions { position: relative; z-index: 1; }' +
     '.screen-documents .doc-earlier > .row { padding-left: calc(var(--s-12) + var(--s-16)); }' +
-    '.screen-documents .doc-earlier .row-title { color: var(--ink-2); font-weight: 400; }' +
-    '.screen-documents .doc-group > .row .row-title { font-weight: 600; }' +
+    '.screen-documents .doc-earlier .row-title { color: var(--ink-2); }' +
     '.screen-documents .doc-group > .disc .item { margin: 0 calc(-1 * var(--s-12)); }' +
     '.screen-documents .doc-group > .disc .item:first-child { border-top-color: transparent; }' +
     '.screen-documents .doc-group > .disc .item:last-child { border-bottom: 0; }' +
@@ -37,7 +47,6 @@
     '.doc-layer .doc-sheet-inner > h2:focus-visible { box-shadow: none; }' +
     '.doc-layer .doc-sheet-meta { margin-top: var(--s-8); }' +
     '.doc-layer .doc-sheet-body { margin-top: var(--s-24); display: flex; flex-direction: column; }' +
-    '.doc-layer .doc-sheet-body .btn-group { margin-top: var(--s-24); gap: var(--s-12); }' +
     '.doc-layer .doc-or { margin-top: var(--s-12); }' +
     '.doc-layer .doc-samples { margin-top: var(--s-48); }' +
     '.doc-layer .doc-samples .t-eyebrow { margin-bottom: var(--s-12); }' +
@@ -48,7 +57,7 @@
     '.doc-layer .doc-reading .bar > i { width: 40%; animation: doc-scan 1.2s ease-in-out infinite; }' +
     '@keyframes doc-scan { from { transform: translateX(-100%); } to { transform: translateX(250%); } }' +
     '@media (max-width: 640px) {' +
-    '  .doc-layer .doc-sheet { top: auto; left: 0; width: auto; max-height: 85vh; border-left: 0; border-radius: 16px 16px 0 0; padding: var(--s-16) var(--s-24) calc(var(--s-24) + env(safe-area-inset-bottom)); animation: sheet .28s var(--ease-rise); }' +
+    '  .doc-layer .doc-sheet { top: auto; left: 0; width: auto; max-height: 85vh; border-left: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--s-16) var(--s-24) calc(var(--s-24) + env(safe-area-inset-bottom)); animation: sheet .28s var(--ease-rise); }' +
     '}' +
     '</style>';
 
@@ -58,7 +67,10 @@
     if (S.ready) return;
     const d = data.documents;
     S.groups = d.i20Groups.map((g) => ({ key: g.key, title: g.title, add: g.add }));
-    const push = (kind, it, extra) => S.docs.push(Object.assign({ id: nextId(), kind: kind, title: it.title, meta: it.meta, current: !!it.current, earlier: [] }, extra));
+    const push = (kind, it, extra) => S.docs.push(Object.assign({
+      id: nextId(), kind: kind, title: it.title, meta: it.meta, current: !!it.current,
+      earlier: (it.versions || []).map((v) => ({ title: v, meta: 'Earlier version, kept' })),
+    }, extra));
     d.i20Groups.forEach((g) => g.items.forEach((it) => push('i20', it, { group: g.key, type: 'i20' })));
     d.work.forEach((it) => push('work', it, { type: /^EAD/.test(it.title) ? 'ead' : (/^I-797/.test(it.title) ? 'i797' : 'letter') }));
     d.identity.forEach((it) => push('identity', it, { type: 'identity' }));
@@ -73,7 +85,7 @@
 
   /* What Duly reads from each kind of document (illustrative sample values). */
   function kinds(data) {
-    const st = data.student, opt = data.opt, today = shortToday(data);
+    const st = data.student, opt = data.opt, today = shortToday(data), read = data.documents.sampleRead;
     return {
       ead: {
         name: 'EAD card', tab: 'work',
@@ -83,7 +95,7 @@
       },
       i20: {
         name: 'I-20', tab: 'i20', group: 'cpt', many: true,
-        fields: () => [['Name', st.name], ['School', st.school], ['Program', data.program.degree], ['Issued for', 'CPT'], ['Employer', '[employer on the I-20]'], ['Dates', '[dates on the I-20]']],
+        fields: () => [['Name', st.name], ['School', st.school], ['Program', data.program.degree], ['Issued for', 'CPT'], ['Employer', read.employer], ['Dates', read.dates]],
         title: (f) => (isBlank(f.Employer) ? 'New CPT I-20' : f.Employer),
         meta: (f) => (isBlank(f.Dates) ? 'Added ' + today : f.Dates),
       },
@@ -111,34 +123,113 @@
 
   /* ---------------- page ---------------- */
 
-  function openBtn(title) {
-    return '<button type="button" class="btn btn-text is-small" data-toast="' + C.esc('Opening ' + title + ' in Preview') + '">Open</button>';
+  /* The title is the open button, stretched over the row. */
+  function openTitle(label, title) {
+    return C.raw('<button type="button" class="doc-open" data-toast="' + C.esc('Opening ' + title + ' in Preview') + '">' + C.esc(label) + '</button>');
+  }
+  function shareBtn(title) {
+    return '<button type="button" class="btn btn-text is-small row-reveal" data-doc-share="' + C.esc(title) + '" aria-label="' + C.esc('Share ' + title) + '">Share</button>';
   }
   function docRows(list, prefixFor) {
     const out = [];
     list.forEach((doc) => {
       const prefix = prefixFor ? prefixFor(doc) : '';
+      const n = doc.earlier.length;
+      /* A search that matches only an earlier version opens the versions. */
+      const auto = searching() && !hasAll(haystack(doc), tokens(S.query));
+      const open = Object.prototype.hasOwnProperty.call(S.expanded, doc.id) ? S.expanded[doc.id] : auto;
+      const versions = n ? ' · <button type="button" class="link doc-versions" data-doc-versions="' + C.esc(doc.id) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+        C.esc(n + ' earlier version' + (n === 1 ? '' : 's')) + '</button>' : '';
       out.push(C.row({
         key: doc.id,
-        title: doc.current ? C.raw('<span class="doc-current">Current</span>' + C.esc(doc.title)) : doc.title,
-        meta: (prefix ? prefix + ' · ' : '') + doc.meta,
-        trailing: openBtn(doc.title),
-        cls: S.newId === doc.id ? 'doc-new' : '',
+        title: openTitle(doc.title, doc.title),
+        meta: C.raw(C.esc((prefix ? prefix + ' · ' : '') + doc.meta) + versions),
+        trailing: shareBtn(doc.title),
+        cls: C.cls('doc-row', S.newId === doc.id && 'doc-new'),
       }));
-      doc.earlier.forEach((e) => out.push(C.row({
-        title: 'Earlier version · kept for the record',
-        meta: e.meta,
-        trailing: openBtn('the earlier ' + doc.title),
-        cls: 'doc-earlier',
-      })));
+      if (open) {
+        doc.earlier.forEach((e) => out.push(C.row({
+          title: openTitle(e.title, 'the earlier ' + doc.title),
+          meta: e.meta,
+          trailing: shareBtn('the earlier ' + doc.title),
+          cls: 'doc-row doc-earlier',
+        })));
+      }
     });
     return out;
   }
   function groupTitle(key) { const g = S.groups.find((x) => x.key === key); return g ? g.title : ''; }
 
+  /* ---------------- search ---------------- */
+
+  /* Words a student might type for each kind of document, besides its name. */
+  const TYPE_WORDS = {
+    i20: 'I-20 Form I-20',
+    ead: 'EAD card work permit I-766',
+    i797: 'I-797 approval notice',
+    letter: 'letter',
+    identity: '',
+    school: 'degree',
+    other: 'other',
+  };
+  /* The phase a kind of document belongs to, for kinds without their own group. */
+  const PHASE_OF_KIND = { work: 'OPT', identity: 'Arrival', school: "Master's" };
+
+  /* Lower case, with hyphens, dots and apostrophes taken out, so 'I-20' and
+     'i20' meet, and so do "Master's" and 'masters'. */
+  function norm(v) { return String(v || '').toLowerCase().replace(/[-.'\u2019]/g, ''); }
+  function tokens(q) { return norm(q).split(/[\s,·]+/).filter(Boolean); }
+  function kindLabel(kind) {
+    const t = App.data.documents.tabs.find((x) => x.key === kind);
+    return t ? t.label : '';
+  }
+  function haystack(doc) {
+    return norm([doc.title, doc.meta, kindLabel(doc.kind), TYPE_WORDS[doc.type] || '',
+      doc.group ? groupTitle(doc.group) : '', PHASE_OF_KIND[doc.kind] || ''].join(' '));
+  }
+  function hasAll(text, toks) { return toks.every((t) => text.indexOf(t) !== -1); }
+  /* An earlier version matches on its own words plus the document's. */
+  function earlierMatch(doc, toks) {
+    const base = haystack(doc);
+    return doc.earlier.some((e) => hasAll(base + ' ' + norm(e.title + ' ' + e.meta), toks));
+  }
+  function matches(doc, toks) {
+    if (!toks.length) return true;
+    return hasAll(haystack(doc), toks) || earlierMatch(doc, toks);
+  }
+  function searching() { return tokens(S.query).length > 0; }
+  /* The documents of one kind that match the search (all of them when it is empty). */
+  function shown(kind) {
+    const toks = tokens(S.query);
+    return ofKind(kind).filter((d) => matches(d, toks));
+  }
+  function inTab(tab) {
+    const kinds = tab === 'all' ? ['i20', 'work', 'identity', 'school', 'other'] : [tab];
+    return kinds.reduce((n, k) => n + shown(k).length, 0);
+  }
+
+  function searchHtml() {
+    return '<div class="doc-search" role="search">' +
+      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search by name, kind or phase', ariaLabel: 'Search documents' }) +
+      '<p class="sr-only" role="status" aria-live="polite" data-doc-status></p>' +
+      '</div>';
+  }
+  function statusText() {
+    if (!searching()) return '';
+    const n = inTab(S.tab);
+    return n ? plural(n, 'document') + ' match' + (n === 1 ? 'es' : '') : 'No documents match';
+  }
+  /* The quiet line when nothing matches. When the chosen chip hides matches
+     of another kind, one tap shows them. */
+  function noneHtml() {
+    const all = S.tab === 'all' ? 0 : inTab('all');
+    return '<p class="t-meta doc-none">No documents match.' +
+      (all ? ' <button type="button" class="link" data-doc-all>' + C.esc('See ' + all + ' in All') + '</button>' : '') + '</p>';
+  }
+
   function i20View() {
     const groups = S.groups.map((g) => {
-      const items = ofKind('i20').filter((x) => x.group === g.key);
+      const items = shown('i20').filter((x) => x.group === g.key);
       if (!items.length) return '';
       const add = g.add ? '<button type="button" class="link doc-add-another" data-doc-add="i20">' + C.esc(g.add) + '</button>' : '';
       return C.row({
@@ -156,20 +247,35 @@
 
   function allView() {
     const sec = (eyebrow, html) => C.section({ eyebrow: eyebrow, content: html });
-    const out = [
-      sec('I-20s', C.list(docRows(ofKind('i20'), (d) => groupTitle(d.group)), { accordion: false })),
-      sec('Work', C.list(docRows(ofKind('work')), { accordion: false })),
-      sec('Identity', C.list(docRows(ofKind('identity')), { accordion: false })),
-      sec('School', C.list(docRows(ofKind('school')), { accordion: false })),
+    const kinds = [
+      ['i20', 'I-20s', (d) => groupTitle(d.group)],
+      ['work', 'Work'],
+      ['identity', 'Identity'],
+      ['school', 'School'],
+      ['other', 'Other'],
     ];
-    if (ofKind('other').length) out.push(sec('Other', C.list(docRows(ofKind('other')), { accordion: false })));
-    return out.join('');
+    /* Other shows only once a document of that kind exists; while searching,
+       a kind with no match is left out. */
+    return kinds.map((k) => {
+      const docs = shown(k[0]);
+      if (!docs.length && (searching() || k[0] === 'other')) return '';
+      return sec(k[1], C.list(docRows(docs, k[2]), { accordion: false }));
+    }).join('');
   }
 
   function viewHtml(tab) {
+    if (searching() && !inTab(tab)) return noneHtml();
     if (tab === 'i20') return i20View();
     if (tab === 'all') return allView();
-    return C.list(docRows(ofKind(tab)), { accordion: false, label: tab });
+    return C.list(docRows(shown(tab)), { accordion: false, label: kindLabel(tab) });
+  }
+
+  /* Redraw the list only, so the search field keeps focus while typing. */
+  function refreshView() {
+    const view = document.querySelector('[data-doc-view]');
+    if (view) view.innerHTML = viewHtml(S.tab);
+    const status = document.querySelector('[data-doc-status]');
+    if (status) status.textContent = statusText();
   }
 
   function tabsHtml(data) {
@@ -184,12 +290,6 @@
     });
   }
 
-  function heroHtml(data) {
-    return '<section class="doc-hero" aria-label="Your record">' +
-      '<p class="doc-hero-line">' + C.shield({ halo: true }) + '<span class="t-sub">' + C.esc(plural(S.docs.length, 'document') + ', one record.') + '</span></p>' +
-      '<p class="t-meta">' + C.esc(data.documents.meta) + '</p>' +
-      '</section>';
-  }
 
   function setHash(tab) {
     const h = '#/documents' + (tab && tab !== 'all' ? '/' + tab : '');
@@ -257,13 +357,15 @@
           ],
         }) + '</div>'
       : '';
-    const title = sh.kind === 'other' ? 'We read your document.' : 'We read your ' + k.name + '.';
+    const title = sh.kind === 'other' ? 'Duly read your document.' : 'Duly read your ' + k.name + '.';
     return head(title, 'Read on this Mac. Nothing left it.') +
       '<div class="doc-sheet-body">' + rows + dup +
-      '<div class="btn-group">' +
-      C.button({ label: 'Looks right', kind: 'primary', attrs: { 'data-doc-save': '' } }) +
-      (sh.fixing ? '' : '<button type="button" class="btn btn-text is-quiet" data-doc-fix>Fix one</button>') +
-      '</div></div>';
+      /* The one placement rule: Fix one on the left, Looks right on the right. */
+      C.buttonRow({
+        back: sh.fixing ? '' : '<button type="button" class="btn btn-text is-quiet" data-doc-fix>Fix one</button>',
+        primary: C.button({ label: 'Looks right', kind: 'primary', attrs: { 'data-doc-save': '' } }),
+      }) +
+      '</div>';
   }
 
   function layerEl() { return document.querySelector('.doc-layer'); }
@@ -356,7 +458,7 @@
     let message;
     if (!unsure && sh.dup && sh.version === 'version') {
       const existing = S.docs.find((x) => x.type === kind);
-      existing.earlier.unshift({ meta: existing.meta + ' · replaced ' + shortToday(data) });
+      existing.earlier.unshift({ title: existing.meta, meta: 'Earlier version, replaced ' + shortToday(data) });
       existing.meta = k.meta(f);
       existing.current = true;
       S.newId = existing.id;
@@ -368,7 +470,7 @@
         group: k.group,
         type: kind,
         title: k.title(f),
-        meta: unsure ? sh.file + ' · we\'ll ask what it is later' : k.meta(f),
+        meta: unsure ? sh.file + ' · Duly will ask what it is later' : k.meta(f),
         current: false,
         earlier: [],
       };
@@ -377,6 +479,7 @@
       message = 'Saved to Documents. ' + plural(S.docs.length, 'document') + ' now.';
     }
     S.tab = k.tab;
+    S.query = ''; /* the new document is always in view */
     closeSheet(false);
     App.rerender();
     App.toast(message);
@@ -428,8 +531,13 @@
     if (d.kind === 'choice' && d.key === 'docTab') {
       S.tab = d.value;
       setHash(S.tab);
-      const view = document.querySelector('[data-doc-view]');
-      if (view) view.innerHTML = viewHtml(S.tab);
+      refreshView();
+      return;
+    }
+    if (d.kind === 'field' && d.key === 'docSearch') {
+      if (S.query === d.value) return;
+      S.query = d.value;
+      refreshView();
       return;
     }
     if (!S.sheet) return;
@@ -443,8 +551,16 @@
 
   window.addEventListener('hashchange', () => {
     const name = (location.hash || '').replace(/^#\/?/, '').split('/')[0];
-    if (name !== 'documents') { clearTimeout(S.timer); S.sheet = null; removeLayer(); }
+    if (name !== 'documents') { clearTimeout(S.timer); S.sheet = null; S.query = ''; removeLayer(); }
   });
+
+  function focusSearch() {
+    const input = document.querySelector('#main [data-field="docSearch"]');
+    if (!input) return;
+    input.focus();
+    const n = input.value.length;
+    try { input.setSelectionRange(n, n); } catch (err) { /* not every input type allows a caret */ }
+  }
 
   /* ---------------- screen ---------------- */
 
@@ -465,16 +581,18 @@
         if (file) startReading(file, false);
       }
 
+      /* No hero here: the count is a plain line under the title. */
       const header = C.pageHeader({
         title: 'Documents',
+        subline: plural(S.docs.length, 'document') + ', one record. ' + data.documents.meta,
         aside: C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }),
       });
       return STYLE +
         '<div class="screen-documents">' +
-        header + heroHtml(data) + tabsHtml(data) +
+        header + searchHtml() + tabsHtml(data) +
         '<div class="doc-view" data-doc-view>' + viewHtml(S.tab) + '</div>' +
         '</div>' +
-        C.footer('Every version kept. Encrypted on this Mac.');
+        C.footer();
     },
     mount(root) {
       removeLayer();
@@ -486,8 +604,44 @@
       }
       root.addEventListener('click', (e) => {
         const add = e.target.closest('[data-doc-add]');
-        if (add) { e.preventDefault(); openSheet({ hint: add.dataset.docAdd || null }); }
+        if (add) { e.preventDefault(); openSheet({ hint: add.dataset.docAdd || null }); return; }
+        const ver = e.target.closest('[data-doc-versions]');
+        if (ver) {
+          const id = ver.dataset.docVersions;
+          S.expanded[id] = ver.getAttribute('aria-expanded') !== 'true';
+          refreshView();
+          const again = root.querySelector('[data-doc-versions="' + id + '"]');
+          if (again) again.focus();
+          return;
+        }
+        /* "See N in All": the matches were under another chip. */
+        if (e.target.closest('[data-doc-all]')) {
+          S.tab = 'all';
+          setHash('all');
+          App.rerender();
+          focusSearch();
+          return;
+        }
+        const share = e.target.closest('[data-doc-share]');
+        if (share) App.toast('Share ' + share.dataset.docShare + ' to Messages, Mail or any app');
       });
+      /* Enter opens the first match; Escape clears the search. */
+      root.addEventListener('keydown', (e) => {
+        if (!e.target.matches || !e.target.matches('[data-field="docSearch"]')) return;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const first = root.querySelector('[data-doc-view] .doc-open');
+          if (first && searching()) first.click();
+        } else if (e.key === 'Escape' && e.target.value) {
+          e.preventDefault();
+          e.target.value = '';
+          App.state.docSearch = '';
+          S.query = '';
+          refreshView();
+        }
+      });
+      const status = root.querySelector('[data-doc-status]');
+      if (status) status.textContent = statusText();
     },
   };
 })();

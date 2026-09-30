@@ -8,37 +8,18 @@
 
   const STYLE =
     '<style>' +
-    '.screen-timeline .page-header { margin-bottom: var(--s-48); }' +
     '.screen-timeline .tl-bar { margin-top: var(--s-12); max-width: 50%; }' +
-    '.screen-timeline .disc .item { border: 0; }' +
-    '.screen-timeline .disc .item > .row { min-height: 0; padding: var(--s-8) 0; }' +
     '.screen-timeline .disc > .list + .disc-link { margin-top: var(--s-4); }' +
     '.screen-timeline .disc > .t-eyebrow + .list { margin-top: var(--s-4); }' +
     '.screen-timeline .disc > p + .t-eyebrow { margin-top: var(--s-16); }' +
     '.screen-timeline .tl-line { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-8); }' +
-    '.screen-timeline .tl-after { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-16); }' +
-    '.screen-timeline .tl-after .btn-text { padding: var(--s-8) 0; }' +
-    '.screen-timeline .footer { margin-top: var(--s-64); }' +
     '</style>';
 
   const EAD_UNKNOWN = { action: 'Add your EAD card', rest: 'to see these dates.', href: '#/documents/add' };
 
-  function state() { return (window.App && App.state) || {}; }
-
-  /* Normalise the STEM OPT intent, which Home, Your case and this screen share. */
-  function stemIntent(data) {
-    const v = state().stemIntent != null ? state().stemIntent : data.stem.intent;
-    if (!v) return null;
-    if (v === 'unsure') return 'unsure';
-    if (/^yes/i.test(v)) return 'yes';
-    if (/^no/i.test(v)) return 'no';
-    return null;
-  }
-
-  function sevpDone() {
-    const s = state();
-    return s['task:sevp'] === true || /done/i.test(String(s.sevp || ''));
-  }
+  /* The STEM OPT intent. The question is owned by What's next; this screen
+     shows the answer as one quiet line with a link there. */
+  function stemIntent() { return App.stemIntent(); }
 
   function docsLink(link) {
     return '<a class="disc-link" href="' + C.esc(link.href) + '">' + C.esc(link.label) + '</a>';
@@ -56,10 +37,7 @@
   function optContent(p, noEad) {
     const rows = [];
     p.now.forEach((n) => {
-      if (n.kind === 'task') {
-        const done = sevpDone();
-        rows.push(C.task({ key: n.key, title: n.title, meta: n.meta, done: done, doneMeta: done ? 'Done' : null, open: done ? null : n.open }));
-      } else if (!(noEad && n.source === 'unemployment')) {
+      if (!(noEad && n.source === 'unemployment')) {
         rows.push(C.valueRow({ label: n.label, value: n.value, source: n.source, editable: false, num: true }));
       }
     });
@@ -71,24 +49,13 @@
 
   function stemContent(data, p, intent, noEad) {
     const lead = noEad ? '<p>' + C.unknown({ action: 'Add your EAD card', rest: 'to see when your window opens.', href: '#/documents/add' }) + '</p>' : '';
-    const change = C.button({ label: 'Change my answer', kind: 'text', cls: 'is-quiet is-small', key: 'tl-change-intent' });
     if (intent === 'yes') {
       return lead +
         '<p class="tl-line"><span>' + C.esc(p.after.text) + '</span>' + C.source('startPreparing', { inline: true }) + '</p>' +
-        '<div class="tl-after">' + docsLink(p.after.link) + change + '</div>';
+        docsLink(p.after.link);
     }
-    if (intent === 'no') {
-      return lead +
-        '<p class="tl-line"><span>' + C.esc(data.stem.noTitle + ' ' + data.stem.noLine) + '</span>' + C.source('eadEnds', { inline: true }) + '</p>' +
-        '<div class="tl-after">' + change + '</div>';
-    }
-    return lead + C.ask({
-      key: 'stemIntent',
-      title: p.ask.title,
-      choices: p.ask.choices.map((c) => ({ label: c, value: c.toLowerCase() })),
-      notSure: p.ask.notSure,
-      note: intent === 'unsure' ? "We'll ask again later." : null,
-    });
+    const line = intent === 'no' ? p.declined : p.undecided;
+    return lead + '<p>' + C.esc(line.text) + '</p>' + docsLink(line.link);
   }
 
   function stemMeta(p, intent, noEad) {
@@ -104,7 +71,7 @@
     const keys = data.phases.map((p) => p.key);
     const asked = (params || []).find((k) => keys.indexOf(k) !== -1);
     const openKey = asked || (data.phases.find((p) => p.state === 'now') || {}).key;
-    const intent = stemIntent(data);
+    const intent = stemIntent();
 
     const items = data.phases.map((p) => {
       const base = { key: p.key, title: p.title, meta: p.meta, lead: C.phaseMark(p.state), open: p.key === openKey };
@@ -131,28 +98,9 @@
 
   /* ---------------- behaviour ---------------- */
 
-  let onChange = null;
-
-  function mount(root, data, params) {
+  function mount(root, data) {
     root.classList.add('screen-timeline');
-    const noEad = (params || []).indexOf('no-ead') !== -1;
     const phase = (key) => data.phases.find((p) => p.key === key);
-    const stemItem = () => root.querySelector('.item[data-key="stem"]');
-
-    function refreshStem(focus) {
-      const item = stemItem();
-      if (!item) return;
-      const intent = stemIntent(data);
-      const p = phase('stem');
-      const disc = item.querySelector(':scope > .disc');
-      const meta = item.querySelector(':scope > .row .row-meta');
-      if (disc) disc.innerHTML = stemContent(data, p, intent, noEad);
-      if (meta) meta.textContent = stemMeta(p, intent, noEad);
-      if (focus && disc) {
-        const first = disc.querySelector('a, button');
-        if (first) first.focus({ preventScroll: true });
-      }
-    }
 
     /* Confetti once per finished phase, the first time it opens. */
     function watchOpen(head) {
@@ -168,29 +116,12 @@
       }, 0);
     }
     root.addEventListener('click', (e) => {
-      const change = e.target.closest('[data-action="tl-change-intent"]');
-      if (change) {
-        App.state.stemIntent = null;
-        App.emit('answer', 'stemIntent', null, change);
-        refreshStem(true);
-        return;
-      }
       const head = e.target.closest('[data-disclosure]');
       if (head && !e.target.closest('a, button')) watchOpen(head);
     });
     root.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-disclosure]')) watchOpen(e.target);
     });
-
-    if (onChange) document.removeEventListener('duly:change', onChange);
-    onChange = (e) => {
-      if (!document.contains(root)) return;
-      const d = e.detail || {};
-      if (d.kind === 'answer' && d.key === 'stemIntent' && d.value && d.value !== 'unsure') {
-        setTimeout(() => refreshStem(true), 300);
-      }
-    };
-    document.addEventListener('duly:change', onChange);
   }
 
   window.SCREENS['timeline'] = {

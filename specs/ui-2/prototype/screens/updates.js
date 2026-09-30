@@ -1,5 +1,7 @@
 /* Updates. One hero (the rule change for this student's status), then the
-   news, each labelled as news with its source and date.
+   news. The section eyebrow "In the news" labels the rows; each row's meta
+   carries only its source and date, with no per-row "News" tag.
+   The hero is the page title here: no pageHeader above it.
    Routes:
      #/updates            the sample week
      #/updates/<newsKey>  opens that news row (for links from Home)
@@ -11,48 +13,27 @@ window.SCREENS['updates'] = {
     const u = data.updates;
     const empty = params[0] === 'empty';
     const openKey = !empty && params[0] ? params[0] : null;
-
-    const style = '<style>' +
-      '.screen-updates { flex: 1; display: flex; flex-direction: column; }' +
-      '.col.is-entering > .screen-updates { animation: none; }' +
-      '.col.is-entering > .screen-updates > * { animation: rise .55s var(--ease-rise) backwards; }' +
-      '.col.is-entering > .screen-updates > :nth-child(2) { animation-delay: .06s; }' +
-      '.col.is-entering > .screen-updates > :nth-child(3) { animation-delay: .16s; }' +
-      '.col.is-entering > .screen-updates > :nth-child(4) { animation-delay: .28s; }' +
-      '.col.is-entering > .screen-updates > :nth-child(n+5) { animation-delay: .42s; }' +
-      '.screen-updates .page-header { margin-bottom: var(--s-48); }' +
-      '.screen-updates .section-head { padding-bottom: var(--s-12); }' +
-      '.screen-updates .up-kicker { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-12); row-gap: var(--s-4); }' +
-      '.screen-updates .up-title { margin-top: var(--s-12); max-width: 600px; }' +
-      '.screen-updates .up-body { margin-top: var(--s-12); }' +
-      '.screen-updates .up-actions { margin-top: var(--s-24); display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-24); row-gap: var(--s-8); }' +
-      '.screen-updates .up-tag { display: block; margin-bottom: var(--s-4); }' +
-      '.screen-updates .up-empty { margin: 0; }' +
-      '.screen-updates .disc .disc-link { align-self: flex-start; }' +
-      '.screen-updates .footer { margin-top: var(--s-64); }' +
-      '</style>';
-
-    const header = C.pageHeader({ title: 'Updates', meta: data.checked.today });
+    const intent = App.stemIntent();
 
     /* ---- For your status: the one hero ---- */
-    const kicker = (meta) => '<p class="up-kicker"><span class="t-eyebrow-hero">For your status</span>' +
-      (meta ? '<span class="t-meta">' + C.esc(meta) + '</span>' : '') + '</p>';
-
     let hero;
     if (empty || !u.status) {
-      hero = '<section class="section up-hero" aria-labelledby="up-hero-title">' + kicker(null) +
-        '<h2 class="t-sub up-title" id="up-hero-title">' + C.esc(u.emptyStatus) + '</h2>' +
-        '</section>';
+      hero = C.hero({ eyebrow: 'For your status', title: u.emptyStatus, meta: data.checked.today, icon: null });
     } else {
       const s = u.status;
-      const readRule = s.source
-        ? '<button type="button" class="btn btn-text is-quiet" data-source="' + C.esc(s.source) + '" aria-haspopup="dialog" aria-expanded="false">Read the rule</button>'
-        : '';
-      hero = '<section class="section up-hero" aria-labelledby="up-hero-title">' + kicker(s.meta) +
-        '<h2 class="t-sub up-title" id="up-hero-title">' + C.esc(s.title) + '</h2>' +
-        '<p class="t-body up-body">' + C.esc(s.body) + '</p>' +
-        '<div class="up-actions">' + C.button({ label: s.link.label, kind: 'primary', href: s.link.href }) + readRule + '</div>' +
-        '</section>';
+      /* Until the student has said yes, the link explains STEM OPT instead of
+         pointing at steps they have not planned. */
+      const link = intent === 'yes' ? s.linkPlanned : s.link;
+      hero = C.hero({
+        eyebrow: 'For your status',
+        title: s.title,
+        subline: s.body,
+        source: s.source,
+        meta: s.meta + ' · ' + data.checked.today,
+        icon: null,
+        actions: C.button({ label: link.label, kind: 'primary', href: link.href }) +
+          C.button({ label: s.notice.label, kind: 'text', href: s.notice.href }),
+      });
     }
 
     /* ---- In the news ---- */
@@ -67,21 +48,21 @@ window.SCREENS['updates'] = {
 
     let newsBody;
     if (empty || !u.news || !u.news.length) {
-      newsBody = '<p class="t-lead up-empty">' + C.esc(u.emptyNews) + '</p>';
+      newsBody = C.empty({ text: u.emptyNews });
     } else {
+      /* The eyebrow already says news: drop a leading "News · " from the meta. */
+      const newsMeta = (m) => (m || '').replace(/^\s*news\s*·\s*/i, '');
       newsBody = C.list(u.news.map((n) => C.row({
         key: n.key,
-        title: C.raw('<span class="up-tag t-eyebrow">News</span>' + C.esc(n.title)),
-        meta: n.meta.replace(/^News · /, ''),
+        title: n.title,
+        meta: newsMeta(n.meta),
         open: n.key === openKey,
         content: C.disclosure({ text: n.text }) + courtLink(n.link),
-      })), { label: 'News' });
+      })));
     }
     const news = C.section({ eyebrow: 'In the news', content: newsBody });
 
-    const footer = C.footer('Rule changes appear once their source is checked. News is labelled as news.');
-
-    return '<div class="screen-updates">' + style + header + hero + news + footer + '</div>';
+    return hero + news + C.footer(u.footer);
   },
 
   mount(root, data, params) {

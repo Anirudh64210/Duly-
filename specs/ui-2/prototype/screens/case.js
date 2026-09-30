@@ -1,25 +1,26 @@
 /* Your case: what Duly knows about the student. Each answer sits beside its
-   question and is edited in place (app.js wires data-edit). Open questions sit
-   at the top of their section as "Waiting for you" rows. Internships can be
-   added from a CPT I-20 (read on this device, simulated) or typed. */
+   question and is edited in place (app.js wires data-edit). Open questions
+   sit once at the top of the page in C.waiting (never an eyebrow inside a
+   row). Today the only one is "Was your degree awarded?", asked when no
+   document shows it (#/case/no-degree forces it for review).
+   The STEM OPT question is owned by What's next; Plans shows the answer as
+   a quiet line with a link. Internships can be added from a CPT I-20 (read
+   on this device, simulated) or typed. */
 (function () {
   'use strict';
 
   const STYLE = '<style>' +
     '.screen-case{display:flex;flex-direction:column;flex:1 0 auto;min-width:0}' +
-    '.screen-case>.page-header{margin-bottom:var(--s-48)}' +
-    '.screen-case .section-head{padding-bottom:var(--s-12)}' +
-    '.screen-case .case-named .v-label{color:var(--ink);font-weight:500}' +
-    '.screen-case .vrow.is-title .v-value{flex:1 1 auto;text-align:left}' +
-    '.screen-case .case-wait{display:flex;align-items:center;gap:var(--s-8);margin-bottom:var(--s-8)}' +
     '.screen-case .case-after{align-self:flex-start;margin-top:var(--s-4)}' +
+    '.screen-case .case-line{margin-top:var(--s-8)}' +
     '.screen-case .case-panel{margin-top:var(--s-16);display:flex;flex-direction:column;gap:var(--s-24)}' +
     '.screen-case .case-stage{display:flex;flex-direction:column;gap:var(--s-24)}' +
     '.screen-case .case-stage-head{display:flex;flex-direction:column;gap:var(--s-4)}' +
-    '.screen-case .btn-group{gap:var(--s-12)}' +
-    '.screen-case .footer{margin-top:var(--s-64)}' +
+    /* the stage spaces its children with its gap, so its button row adds no margin */
+    '.screen-case .case-stage > .btn-row{margin-top:0}' +
     '</style>';
 
+  /* The same illustrative read as Documents (data.documents.sampleRead). */
   const SAMPLE_READ = { employer: 'Harbor Analytics', start: 'Jun 2, 2025', end: 'Aug 22, 2025' };
 
   /* ---------------- state ---------------- */
@@ -28,28 +29,7 @@
     const v = App.state['edit:' + key];
     return v != null && v !== '' ? v : value;
   }
-  function sevpState() {
-    const v = App.state.sevp;
-    if (v == null) return null;
-    return v === 'unsure' ? 'unsure' : 'done';
-  }
-  function intentState(data) {
-    const v = App.state.stemIntent != null ? App.state.stemIntent : data.stem.intent;
-    if (!v) return null;
-    const s = String(v).toLowerCase();
-    if (s === 'unsure' || s.indexOf('not sure') !== -1) return 'unsure';
-    if (s.charAt(0) === 'y') return 'yes';
-    if (s.charAt(0) === 'n') return 'no';
-    return null;
-  }
-  function syncWaitingDot(data) {
-    const intent = intentState(data);
-    const stillWaiting = sevpState() !== 'done' || intent === null || intent === 'unsure';
-    const list = data.waitingIn || (data.waitingIn = []);
-    const i = list.indexOf('case');
-    if (stillWaiting && i === -1) list.push('case');
-    if (!stillWaiting && i !== -1) list.splice(i, 1);
-  }
+  function intentState() { return App.stemIntent(); }
   function fmtRange(start, end) {
     const s = (start || '').trim();
     const e = (end || '').trim();
@@ -68,23 +48,6 @@
     const derived = r.readonly || r.key === 'stem';
     return C.valueRow({ label: r.label, value: edited(key, r.value), key: key, source: r.source, editable: !derived, num: r.num });
   }
-  /* A row whose answer is its own title, e.g. a job: "Software Engineer, Northwind Systems". */
-  function titleRow(r) {
-    const key = 'case-' + r.key;
-    const v = edited(key, r.value);
-    return '<div class="item vrow is-title" data-key="' + C.esc(key) + '"><div class="row is-static">' +
-      '<span class="v-label sr-only">' + C.esc(r.label) + '</span>' +
-      '<button type="button" class="v-value" data-edit="' + C.esc(key) + '" aria-label="' + C.esc(r.label + ': ' + v + '. Change') + '">' + C.esc(v) + '</button>' +
-      '</div></div>';
-  }
-  /* A "Waiting for you" ask: the label sits above the question inside the row. */
-  function waitAsk(ask, afterFirst) {
-    let html = C.ask(ask);
-    html = html.replace('<span class="row-title">',
-      '<span class="t-eyebrow case-wait"><span class="wait-dot" aria-hidden="true"></span>Waiting for you</span><span class="row-title">');
-    if (afterFirst) html = html.replace('</button>', '</button>' + afterFirst);
-    return html;
-  }
   function list(items) { return C.list(items, { accordion: false }); }
 
   /* ---------------- sections ---------------- */
@@ -94,7 +57,7 @@
     const rows = sec.rows.concat(added).map(vrow);
     return C.section({
       eyebrow: sec.eyebrow,
-      content: '<div class="case-named">' + list(rows) + '</div>' +
+      content: '<div class="vrows-named">' + list(rows) + '</div>' +
         C.button({ label: sec.add || 'Add another internship', kind: 'text', small: true, cls: 'case-after', attrs: { 'data-case-add': '' } }) +
         '<div class="case-panel" data-case-panel hidden>' +
         C.choices({
@@ -110,60 +73,58 @@
     });
   }
 
-  function optSection(sec, data) {
-    const state = sevpState();
-    const items = [];
-    if (state !== 'done') {
-      const w = sec.waiting[0];
-      const portal = (data.home.nextMoves[0] && data.home.nextMoves[0].primary && data.home.nextMoves[0].primary.href) || 'https://sevp.ice.gov/opt/';
-      items.push(waitAsk({
-        key: 'sevp', title: w.title,
-        choices: [{ label: w.choices[0], value: 'done' }],
-        notSure: w.notSure,
-        note: state === 'unsure' ? "We'll ask again later." : null,
-      }, C.button({ label: w.choices[1], kind: 'pill', href: portal })));
-    }
-    sec.rows.forEach((r) => items.push(vrow(Object.assign({ num: r.key === 'application' || r.key === 'unemployment' }, r))));
-    if (state === 'done') {
-      items.push(vrow({ key: 'sevp-on', label: 'Details confirmed with school', value: App.state.caseSevpOn || data.today.short, readonly: true }));
-    }
+  function optSection(sec) {
+    const items = sec.rows.map((r) => vrow(Object.assign({ num: r.key === 'application' || r.key === 'unemployment' }, r)));
     return C.section({ eyebrow: sec.eyebrow, content: list(items) });
   }
 
-  function jobSection(sec) {
-    const rows = sec.rows.map((r, i) => (i === 0 ? titleRow(r) : vrow(r)));
-    return C.section({ eyebrow: sec.eyebrow, content: list(rows) });
+  /* Study: the awarded row shows the answer once there is one; while the
+     question waits (top of page) the row is left out. */
+  function studySection(sec, data) {
+    const waitingAwarded = App.awardedWaiting();
+    const answered = App.state.caseAwarded;
+    const rows = sec.rows.filter((r) => r.key !== 'awarded' || !waitingAwarded).map((r) => {
+      if (r.key !== 'awarded' || !answered) return r;
+      const v = answered === 'no' ? 'Not yet' : answered === 'unsure' ? 'Not sure yet'
+        : answered === 'other' ? 'Tap to add the date' : r.value;
+      return Object.assign({}, r, { value: v });
+    });
+    return C.section({ eyebrow: sec.eyebrow, content: list(rows.map(vrow)) });
   }
 
-  function plansSection(sec, data) {
-    const intent = intentState(data);
+  function waitingHtml(data) {
+    if (!App.awardedWaiting()) return '';
+    const a = data.awardedAsk;
+    return C.waiting({
+      items: [Object.assign({}, a, { note: App.state.caseAwarded === 'unsure' ? 'Duly will ask again later.' : null })],
+    });
+  }
+
+  /* The STEM OPT answer, never the question: that lives on What's next. */
+  function plansSection(sec) {
+    const intent = intentState();
     if (intent === null || intent === 'unsure') {
-      const w = sec.waiting[0];
+      const u = sec.undecided;
       return C.section({
         eyebrow: sec.eyebrow,
-        content: list([waitAsk({
-          key: 'stemIntent', title: w.title,
-          choices: [{ label: w.choices[0], value: 'yes' }, { label: w.choices[1], value: 'no' }],
-          notSure: w.notSure,
-          note: intent === 'unsure' ? "We'll ask again later." : null,
-        })]),
+        content: '<p class="t-meta case-line">' + C.esc(u.text) + ' ' + C.link(u.link) + '</p>',
       });
     }
     const row = intent === 'yes'
-      ? C.row({ title: 'STEM OPT extension', meta: 'Planning to apply · start preparing by Oct 15', source: 'startPreparing', trailing: '<a class="link" href="#/next">See the plan</a>' })
-      : C.row({ title: 'STEM OPT extension', meta: 'Not this time' });
-    return C.section({
-      eyebrow: sec.eyebrow,
-      content: list([row]) +
-        C.button({ label: 'Change my answer', kind: 'back', small: true, cls: 'case-after', attrs: { 'data-case-reset-intent': '' } }),
-    });
+      ? C.row({ title: 'STEM OPT extension', meta: 'Planning to apply · start preparing by Oct 15', href: '#/next' })
+      : C.row({ title: 'STEM OPT extension', meta: "Not this time · change in What's next", href: '#/next' });
+    return C.section({ eyebrow: sec.eyebrow, content: list([row]) });
   }
 
   /* ---------------- add-internship stages ---------------- */
 
-  function actions(primary, extra) {
-    return '<div class="btn-group">' + (primary || '') + (extra || '') +
-      C.button({ label: 'Cancel', kind: 'back', attrs: { 'data-case-cancel': '' } }) + '</div>';
+  /* The one placement rule (system.css): Cancel and any other quiet action
+     on the left, the primary on the right, in a right-aligned row. */
+  function actions(primary, quiet) {
+    return C.buttonRow({
+      back: [C.button({ label: 'Cancel', kind: 'back', attrs: { 'data-case-cancel': '' } }), quiet || ''],
+      primary: primary || '',
+    });
   }
   function pickStage() {
     return '<div class="case-stage-head"><p class="t-row">Choose a photo or PDF of the I-20</p>' +
@@ -175,7 +136,7 @@
       '<p class="t-meta">Reading on this device</p></div>';
   }
   function foundStage(f) {
-    return '<div class="case-stage-head" role="status"><p class="t-row">We read your CPT I-20.</p>' +
+    return '<div class="case-stage-head" role="status"><p class="t-row">Duly read your CPT I-20.</p>' +
       '<p class="t-meta">Read on this device. Nothing left it.</p></div>' +
       C.found([['Kind', 'CPT I-20'], ['Employer', f.employer], ['Dates', fmtRange(f.start, f.end)]]) +
       actions(C.button({ label: 'Looks right', kind: 'primary', attrs: { 'data-case-confirm': '' } }),
@@ -197,17 +158,18 @@
   window.SCREENS['case'] = {
     title: 'Your case',
 
-    render(data) {
-      syncWaitingDot(data);
+    render(data, params) {
+      App.state.caseAwardedDemo = (params || [])[0] === 'no-degree';
       const body = data.caseFile.sections.map((sec) => {
+        if (sec.key === 'study') return studySection(sec, data);
         if (sec.key === 'cpt') return cptSection(sec);
-        if (sec.key === 'opt') return optSection(sec, data);
-        if (sec.key === 'job') return jobSection(sec);
-        if (sec.key === 'plans') return plansSection(sec, data);
+        if (sec.key === 'opt') return optSection(sec);
+        if (sec.key === 'plans') return plansSection(sec);
         return C.section({ eyebrow: sec.eyebrow, content: list(sec.rows.map(vrow)) });
       }).join('');
       return '<div class="screen-case">' + STYLE +
         C.pageHeader({ title: 'Your case', subline: 'What Duly knows about you. Tap any answer to change it.' }) +
+        waitingHtml(data) +
         body +
         C.footer('Records and dates from your documents, not legal advice.') +
         '</div>';
@@ -262,17 +224,12 @@
         App.toast('Internship added');
       }
       function onAnswer(key, value) {
-        if (value === 'unsure') {
-          if (key === 'stemIntent') data.stem.intent = 'unsure';
-          return;
-        }
-        if (key === 'sevp') App.state.caseSevpOn = data.today.short;
-        if (key === 'stemIntent') data.stem.intent = value;
+        App.state.caseAwarded = value;
+        if (value === 'unsure') return;
+        App.state.caseAwardedDemo = false;
         setTimeout(() => {
-          App.rerender();
-          if (key === 'sevp') App.toast('Marked as done');
-          else if (value === 'yes') App.toast('Saved', { action: 'See the plan', onAction: () => App.go('next') });
-          else App.toast('Saved');
+          if (App.params && App.params.length) App.go('case'); else App.rerender();
+          App.toast('Saved');
         }, 320);
       }
 
@@ -299,18 +256,8 @@
           addCpt(employer, fmtRange(v('case-cpt-start'), v('case-cpt-end')) || 'Dates not added');
           return;
         }
-        if (t.closest('[data-case-reset-intent]')) {
-          delete App.state.stemIntent;
-          data.stem.intent = null;
-          App.rerender();
-          const ask = document.querySelector('.screen-case [data-key="stemIntent"] .btn');
-          if (ask) ask.focus();
-          return;
-        }
         const ans = t.closest('[data-answer]');
-        if (ans && (ans.dataset.answer === 'sevp' || ans.dataset.answer === 'stemIntent')) {
-          onAnswer(ans.dataset.answer, ans.dataset.value);
-        }
+        if (ans && ans.dataset.answer === 'awarded') onAnswer('awarded', ans.dataset.value);
       });
 
       fileInput.addEventListener('change', () => {

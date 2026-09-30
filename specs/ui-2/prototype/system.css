@@ -61,12 +61,17 @@
   /* radii */
   --r-nav: 7px; --r-field: 10px; --r-card: 12px; --r-sheet: 16px; --r-pill: 99px; --r-tag: 5px;
 
-  /* Type scale. Six text levels and nothing else:
+  /* Type scale. Seven text levels and nothing else:
        hero 40/600, title 32/600, sub 20/600 (section-sized headline),
        row 15/500, body 15/400, meta 13/400, eyebrow 11/600 caps.
-     Metric figures are numbers, not text, and have their own two sizes.
-     Screens never set a raw font-size. The older names below are aliases
-     so existing markup keeps working; do not use them in new code. */
+     Every row-level title (.row-title, .choice-title, .note-title,
+     .pop-name, .dp-date, a value in a value row, a Documents group) is the
+     row level: 15/500. Nothing is 600 at 15 or 13.
+     The metric figure (Home's three numbers, days and dates alike) is the
+     one number size, 28/600, stepping down on smaller screens.
+     Controls (buttons, chips, links, field labels) sit at the row or meta
+     size. The wordmark is the logo, not a text level.
+     Screens never set a font-size or a font-weight in their own <style>. */
   --font: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --t-hero: 40px;
   --t-title: 32px;
@@ -76,20 +81,10 @@
   --t-meta: 13px;
   --t-eyebrow: 11px;
   --t-figure: 28px;
-  --t-figure-date: 24px;
+  --t-wordmark: 17px;
   --lh-row: 24px;
   --lh-meta: 20px;
   --lh-eyebrow: 16px;
-
-  /* aliases */
-  --t-wordmark: 17px;
-  --t-metric: var(--t-figure);
-  --t-metric-date: var(--t-figure-date);
-  --t-eyebrow-hero: var(--t-eyebrow);
-  --t-small: var(--t-body);
-  --t-micro: var(--t-meta);
-  --t-button: var(--t-row);
-  --t-nav: var(--t-row);
 
   /* layout */
   --sidebar: 208px;
@@ -139,13 +134,18 @@
   }
 }
 
+/* Narrower columns: the metric figure steps down so a date such as
+   "Feb 13, 2027" stays on one line in its third of the column. */
+@media (max-width: 960px) {
+  :root { --t-figure: 24px; }
+}
+
 /* Phone type: the hero stays larger than the page title. */
 @media (max-width: 640px) {
   :root {
     --t-hero: 29px;
     --t-title: 26px;
-    --t-figure: 24px;
-    --t-figure-date: 20px;
+    --t-figure: 22px;
   }
 }
 
@@ -264,7 +264,7 @@ a.wordmark:hover { color: var(--ink); }
   transition: background .16s ease;
 }
 .nav-item:hover { background: var(--row-hover); color: var(--ink-2); }
-.nav-item[aria-current="page"] { color: var(--accent); font-weight: 600; }
+.nav-item[aria-current="page"] { color: var(--accent); font-weight: 500; }
 .nav-item[aria-current="page"]:hover { color: var(--accent); }
 .nav-item .wait-dot { margin-left: auto; }
 @media (pointer: coarse) { .nav-item { min-height: 44px; } }
@@ -416,7 +416,6 @@ a.wordmark:hover { color: var(--ink); }
 .metric .t-eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .metric-value-row { display: flex; align-items: baseline; gap: var(--s-8); flex-wrap: wrap; }
 .metric-value { font-size: var(--t-figure); font-weight: 600; line-height: 1.1; letter-spacing: -.01em; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.metric-value.is-date { font-size: var(--t-figure-date); }
 .metric-unit { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .metric-add { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink-2); }
 .metric-add a { color: var(--accent); }
@@ -514,7 +513,10 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .vrow .v-value.num { font-variant-numeric: tabular-nums; }
 .vrow button.v-value { background: none; border: 0; padding: 0; cursor: text; border-radius: var(--r-nav); }
 .vrow button.v-value:hover { color: var(--accent); }
-.vrow .v-edit { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); }
+.vrow .v-edit { flex: 1 1 100%; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--gap-buttons); }
+/* A list whose labels are names (an employer, a document) shows the label
+   at the row level, like any other row title. */
+.vrows-named .vrow .v-label { color: var(--ink); font-weight: 500; }
 .vrow .v-edit .input { flex: 1 1 224px; }
 /* Rows inside a disclosure keep their hairlines and height but line up
    with the disclosure text instead of being inset again. */
@@ -557,6 +559,7 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .check[aria-checked="true"] svg { opacity: 1; }
 .task.is-done .row-title { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--ink-4); }
 .task .caution { margin-top: var(--s-8); }
+.task .task-below, .task .task-on-done { margin-top: var(--s-8); }
 .task .task-action { margin-top: var(--s-12); }
 .task .task-open { font-size: var(--t-meta); font-weight: 600; }
 
@@ -572,7 +575,7 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .phase-mark.is-next { border: 1.5px solid var(--accent-muted); }
 .now-tag {
   position: absolute; right: calc(100% + var(--s-12)); top: var(--s-16);
-  font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: .1em; line-height: var(--lh-eyebrow);
+  font-size: var(--t-eyebrow); font-weight: 600; letter-spacing: .1em; line-height: var(--lh-eyebrow);
   padding: var(--s-4) var(--s-8); border-radius: var(--r-tag);
   background: var(--accent); color: var(--on-accent);
 }
@@ -645,15 +648,19 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .btn-text.is-small { font-size: var(--t-meta); padding: var(--s-12) 0; }
 .btn.is-full { width: 100%; }
 
-/* Where the primary goes, one rule for the whole app:
-   - steps in a flow (onboarding, a sheet or dialog with Back or Cancel):
-     .btn-row, Back on the left, primary on the right;
-   - a single form on a page (Feedback, add a receipt): .btn-row.is-start,
-     the primary left-aligned under the field. */
-.btn-row { display: flex; justify-content: space-between; align-items: center; gap: var(--gap-buttons); margin-top: var(--s-24); }
-.btn-row > :only-child { margin-left: auto; }
-.btn-row.is-start { justify-content: flex-start; }
-.btn-row.is-start > :only-child { margin-left: 0; }
+/* Where buttons go. One rule for the whole app, with no exceptions:
+   the buttons that end a step, a form, a sheet, a dialog or a panel are one
+   .btn-row, a right-aligned group. The quiet actions (Back, Cancel, Fix
+   one, Keep) come first, on the left; the primary comes last, on the right.
+   A row with only a primary puts it on the right too. C.buttonRow({ back,
+   primary }) writes it; in markup, the quiet buttons go first.
+   .btn-group is for everything that is not the end of a flow: a hero's
+   answers, a row's own actions, a disclosure's one button. It reads left
+   to right with the text above it.
+   Inside a container that already spaces its children with a gap, the row
+   takes no margin of its own. */
+.btn-row { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--gap-buttons); margin-top: var(--s-24); }
+.danger-confirm > .btn-row { margin-top: 0; }
 .btn-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); }
 
 .link { font-size: var(--t-meta); font-weight: 600; color: var(--accent); background: none; border: 0; padding: 0; }
@@ -679,6 +686,7 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
   transition: border-color .16s ease;
 }
 .input::placeholder { color: var(--ink-3); }
+.input[type="search"] { -webkit-appearance: none; appearance: none; }
 .input:hover { border-color: var(--control-border-hover); }
 .input:focus, .input:focus-visible { border-color: var(--accent); box-shadow: var(--focus-ring); border-radius: var(--r-field); }
 textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-16); line-height: 1.55; resize: vertical; display: block; }
@@ -725,7 +733,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .choice:active { transform: scale(.99); }
 .choice[aria-checked="true"] { border-color: var(--accent); }
 .choice-text { display: flex; flex-direction: column; min-width: 0; }
-.choice-title { font-size: var(--t-row); font-weight: 600; line-height: var(--lh-row); }
+.choice-title { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); }
 .choice-meta { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
 .choice-mark { flex: none; width: 18px; height: 18px; color: var(--accent); opacity: 0; transition: opacity .16s ease; }
 .choice[aria-checked="true"] .choice-mark { opacity: 1; }
@@ -829,7 +837,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .pop-quote.is-all { display: block; }
 .pop-more { align-self: flex-start; margin-top: calc(-1 * var(--s-8)); }
 .pop-counted { display: flex; flex-direction: column; gap: var(--s-4); }
-.pop-counted h3 { font-size: var(--t-meta); font-weight: 600; line-height: var(--lh-meta); color: var(--ink); }
+.pop-counted h3 { font-size: var(--t-eyebrow); font-weight: 600; line-height: var(--lh-eyebrow); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
 .pop-counted p { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); }
 .pop-foot { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-16); padding-top: var(--s-4); }
 .pop-foot a { font-size: var(--t-meta); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
@@ -886,7 +894,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 
 .note { display: flex; align-items: flex-start; gap: var(--s-8); }
 .note-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s-4); }
-.note-title { font-size: var(--t-row); font-weight: 600; line-height: var(--lh-row); color: var(--ink); }
+.note-title { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); }
 .note-line { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); }
 .note .btn-group { margin-top: var(--s-8); }
 .note > .shield { margin-top: calc((var(--lh-row) - 16px) / 2); }
@@ -907,7 +915,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   background: var(--ground); border: 2px solid var(--accent);
 }
 .date-pt.is-end::before { background: var(--accent); }
-.date-pt .dp-date { font-size: var(--t-row); font-weight: 600; line-height: var(--lh-row); color: var(--ink); font-variant-numeric: tabular-nums; }
+.date-pt .dp-date { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); font-variant-numeric: tabular-nums; }
 .date-pt .dp-label { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-2); }
 .date-pt .src { align-self: flex-start; margin-top: var(--s-8); }
 @media (max-width: 640px) {
@@ -924,7 +932,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .tracker li.is-reached .bar > i { width: 100%; }
 .tracker .t-step { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
 .tracker li.is-reached .t-step { color: var(--ink-2); }
-.tracker li.is-current .t-step { color: var(--ink); font-weight: 600; }
+.tracker li.is-current .t-step { color: var(--ink); }
 
 /* ------------------------------------------------------------------ */
 /* 12. Toast                                                            */
@@ -985,7 +993,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .step.is-done .pip { background: var(--accent-muted); }
 .step.is-done svg { color: var(--accent); }
 .step.is-done:hover { color: var(--ink); }
-.step.is-current { color: var(--ink); font-weight: 600; }
+.step.is-current { color: var(--ink); }
 .step.is-current .pip { background: var(--accent); }
 .step[disabled] { cursor: default; }
 @media (max-width: 640px) {

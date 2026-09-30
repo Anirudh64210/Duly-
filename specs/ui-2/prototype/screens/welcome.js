@@ -2,7 +2,10 @@
    Routes: #/welcome (start), #/welcome/<step>, #/welcome/done.
    Steps: status, school, degree, dates, now, ead (ead only when on OPT or STEM OPT).
    Answers live in App.state.onb for the prototype. Every "I'm not sure" is saved
-   and listed on the final screen as a question Duly asks again later. */
+   and listed on the final screen as a question Duly asks again later.
+   Onboarding asks the six-part skeleton only. Degree conferral is never asked
+   here: Duly reads it from a degree certificate or I-20 when one is added,
+   or asks once in Your case > Study (App.awardedWaiting). */
 (function () {
   'use strict';
 
@@ -28,6 +31,10 @@
     { value: 'stem', title: 'On STEM OPT' },
     { value: 'other', title: 'Something else' },
   ];
+  /* which "now" answers fit the program dates: after the end date nobody is still
+     studying under that I-20, before it nobody is on post-completion OPT yet */
+  const NOW_AFTER = ['opt', 'stem', 'other'];
+  const NOW_BEFORE = ['studying', 'cpt', 'other'];
   const STEM_FIELDS = ['Computer Science', 'Computer Engineering', 'Data Science', 'Electrical Engineering',
     'Mechanical Engineering', 'Civil Engineering', 'Biomedical Engineering', 'Information Technology',
     'Mathematics', 'Statistics', 'Physics', 'Chemistry'];
@@ -39,24 +46,24 @@
     school: 'Which school issued your I-20?',
     degree: 'What are you studying?',
     dates: 'When does your program start and end?',
-    awarded: 'Was your degree awarded?',
-    now: 'Where are you right now?',
+    awarded: 'Was your degree awarded?', /* asked in Your case, listed on the finish screen */
+    now: 'What are you doing now?',
   };
   const HINT = {
     status: "It's printed on your visa stamp and at the top of your I-20. You can add it later.",
-    school: "It's printed at the top of your I-20. We'll ask again later.",
+    school: "It's printed at the top of your I-20. Duly will ask again later.",
     degree: 'Your I-20 lists your major. Add it and Duly reads it for you.',
-    dates: "Your I-20 has both dates. We'll ask again later.",
-    awarded: "We'll ask again later.",
-    now: "We'll ask again later.",
+    dates: 'Your I-20 has both dates. Duly will ask again later.',
+    now: 'Duly will ask again later.',
   };
   /* a choice clears the "I'm not sure" of the step it answers */
-  const UNSURE_OF = { status: 'status', level: 'degree', now: 'now', awarded: 'awarded', eadMode: 'ead' };
+  const UNSURE_OF = { status: 'status', level: 'degree', now: 'now', eadMode: 'ead' };
 
   const TODAY = new Date(D.today.iso + 'T00:00:00');
   let readTimer = null;
 
   const STYLE = '<style>' +
+    '.screen-welcome .w-gap-8 { margin-top: var(--s-8); }' +
     '.screen-welcome .w-gap-12 { margin-top: var(--s-12); }' +
     '.screen-welcome .w-gap-16 { margin-top: var(--s-16); }' +
     '.screen-welcome .w-gap-24 { margin-top: var(--s-24); }' +
@@ -68,10 +75,6 @@
     '.screen-welcome .w-hint { margin-top: var(--s-8); }' +
     '.screen-welcome .w-reading { display: flex; flex-direction: column; gap: var(--s-8); }' +
     '.screen-welcome .w-lines { display: flex; flex-direction: column; gap: var(--s-8); }' +
-    '.screen-welcome .w-line { font-size: var(--t-body); line-height: 1.55; color: var(--ink-2); }' +
-    '.screen-welcome .w-line b { font-weight: 600; color: var(--ink); }' +
-    '.screen-welcome .w-confirmed { display: inline-flex; align-items: center; gap: var(--s-4); font-size: var(--t-meta); font-weight: 600; color: var(--ink-2); }' +
-    '.screen-welcome .w-confirmed svg { color: var(--accent); }' +
     '.screen-welcome .onb-unsure:has(> [data-onb-area]:empty) { display: none; }' +
     '.screen-welcome .suggest { max-height: calc(var(--s-64) * 4); overflow-y: auto; }' +
     '.is-entering > .screen-welcome { animation: none; }' +
@@ -106,6 +109,32 @@
   }
   function fmt(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
   function endPassed(s) { const d = parseDate(s.end); return !!d && d < TODAY; }
+  /* the end date fell within the last 14 months: most students in that window are on OPT */
+  function endRecent(s) {
+    const d = parseDate(s.end);
+    if (!d || d >= TODAY) return false;
+    const floor = new Date(TODAY);
+    floor.setMonth(floor.getMonth() - 14);
+    return d >= floor;
+  }
+  function nowOptions(s) {
+    const end = parseDate(s.end);
+    if (!end) return NOW;
+    const keep = end < TODAY ? NOW_AFTER : NOW_BEFORE;
+    return NOW.filter((o) => keep.indexOf(o.value) !== -1);
+  }
+  /* drop an answer the dates rule out, and preselect On OPT when the dates point to it */
+  function settleNow(s) {
+    const opts = nowOptions(s);
+    if (s.now && !opts.some((o) => o.value === s.now)) s.now = null;
+    if (!s.now && !s.unsure.now && endRecent(s)) s.now = 'opt';
+  }
+  /* the first name, only when Duly has read it from the student's own EAD card */
+  function readName(s) {
+    if (s.ead !== 'added' || !s.read || s.read.kind !== 'ead' || s.read.state !== 'found') return '';
+    const row = (s.eadRows || D.onboarding.eadFound).find((r) => r[0] === 'Name');
+    return row ? trim(row[1]).split(/\s+/)[0] : '';
+  }
 
   function titleOf(list, v) { const o = list.find((x) => x.value === v); return o ? o.title : ''; }
   function degreeText(s) {
@@ -169,17 +198,8 @@
       sig: (s) => [s.changing, s.majorChosen, s.stem].join('|'),
       html: stemArea,
     },
-    awarded: {
-      sig: (s) => [endPassed(s), endPassed(s) ? fmt(parseDate(s.end)) : '', s.awarded, !!s.unsure.awarded].join('|'),
-      html: awardedArea,
-    },
-    /* once the end date has passed, the degree question carries the only "I'm not sure" */
-    datesUnsure: {
-      sig: (s) => [endPassed(s), !!s.unsure.dates].join('|'),
-      html: (s) => (endPassed(s) && !s.unsure.dates ? '' : unsure('dates', s)),
-    },
     i20: {
-      sig: (s) => [s.read && s.read.kind === 'i20' ? s.read.name : '', !!s.datesFrom].join('|'),
+      sig: (s) => String(!!s.datesFrom),
       html: i20Area,
     },
   };
@@ -202,45 +222,22 @@
     }
     const m = s.majorChosen;
     if (!m || !isStem(m)) return '';
-    const rule = m.toLowerCase() === 'computer science' ? 'stemList' : Object.assign({}, D.sources.stemList, {
-      plain: m + ' is on the list of STEM fields.',
+    /* The list goes by the field code on the I-20, not the major's name, so the
+       note stays a likely match. Continue is the confirmation; Change corrects it. */
+    const rule = Object.assign({}, D.sources.stemList, {
+      plain: m + ' fields are on the list of STEM fields. Your I-20 shows the exact field.',
       counted: ['You told Duly your major is ' + m + '.'],
     });
-    const actions = s.stem === 'confirmed'
-      ? '<span class="w-confirmed">' + C.icon('tick') + 'Confirmed</span>' + C.button({ kind: 'text', small: true, label: 'Change', attrs: { 'data-onb': 'change' } })
-      : C.button({ kind: 'pill', label: 'Confirm', attrs: { 'data-onb': 'confirm-stem' } }) + C.button({ kind: 'pill', label: 'Change', attrs: { 'data-onb': 'change' } });
     return '<div class="w-gap-16">' + C.note({
       title: 'This looks like a STEM degree.',
-      text: m + " is on the government's STEM list.",
+      text: m + " fields are on the government's STEM list. Your I-20 shows the exact field.",
       source: rule,
-      actions: actions,
+      actions: '<button type="button" class="link" data-onb="change">Not right? Change</button>',
     }) + '</div>';
   }
 
-  function awardedArea(s) {
-    if (!endPassed(s)) return '';
-    const end = fmt(parseDate(s.end));
-    const on = !!s.unsure.awarded;
-    /* the quiet "I'm not sure" sits at the end of the choice row, so the step keeps one of its own below */
-    return '<div class="w-follow">' +
-      '<p class="t-row">' + C.esc(QUESTION.awarded) + '</p>' +
-      '<div class="w-choice-row">' +
-      C.chips({ key: 'onb.awarded', inline: true, label: QUESTION.awarded, items: [
-        { value: 'end', label: 'Yes, on ' + end, selected: s.awarded === 'end' },
-        { value: 'other', label: 'Yes, on a different date', selected: s.awarded === 'other' },
-        { value: 'no', label: 'Not yet', selected: s.awarded === 'no' },
-      ] }) +
-      '<button type="button" class="btn btn-text is-quiet is-small" data-onb="unsure" data-for="awarded" aria-pressed="' + (on ? 'true' : 'false') + '">' + "I'm not sure" + '</button>' +
-      '</div>' +
-      '<p class="t-meta w-hint" data-onb-hint="awarded"' + (on ? '' : ' hidden') + '>' + C.esc(HINT.awarded) + '</p>' +
-      (s.awarded === 'other' ? '<div class="w-gap-16">' + C.dateField({ label: 'Date awarded', key: 'onb.awardedOn', value: s.awardedOn, placeholder: 'Month day, year' }) + '</div>' : '') +
-      '</div>';
-  }
-
   function i20Area(s) {
-    if (s.read && s.read.kind === 'i20') return '<div class="w-gap-24">' + reading(s.read.name) + '</div>';
-    if (s.datesFrom) return '<p class="t-meta w-gap-12">Filled in from your I-20. Tap a date to change it.</p>';
-    return '<div class="w-gap-16"><button type="button" class="link" data-onb="pick-i20">Or add your I-20 and Duly fills these in</button></div>';
+    return s.datesFrom ? '<p class="t-meta w-gap-12">Filled in from your I-20. Tap a date to change it.</p>' : '';
   }
 
   /* ---------------- steps ---------------- */
@@ -270,30 +267,44 @@
         why: 'Some next steps depend on your field.',
         content: C.choices({ key: 'onb.level', options: LEVELS, selected: s.level, layout: 'row', cols: 4, label: 'Degree level' }) +
           '<div class="w-gap-24">' + C.field({ label: 'Your major', key: 'onb.major', value: s.major, placeholder: 'Start typing your major', suggest: true }) + '</div>' +
+          '<div class="w-gap-8">' + unsure('degree', s) + '</div>' +
           area('stem', s),
-        notSure: unsure('degree', s),
       };
     },
 
     dates(s) {
+      const pick = C.choices({ key: 'onb.datesMode', layout: 'pair', selected: s.datesMode, label: 'How to add your dates', options: [
+        { value: 'i20', title: 'Add your I-20', meta: 'Fastest, Duly reads both dates' },
+        { value: 'type', title: 'Type the dates', meta: 'Start and end, from your I-20' },
+      ] });
+      let more = '';
+      if (s.read && s.read.kind === 'i20') {
+        more = '<div class="w-gap-24">' + reading(s.read.name) + '</div>';
+      } else if (s.datesMode === 'type' || s.i20Read) {
+        /* the range shows to type into, or to confirm what the I-20 gave */
+        more = '<div class="w-gap-24">' + C.dateRange({
+          from: { label: 'Start', key: 'onb.start', value: s.start, placeholder: 'Month day, year' },
+          to: { label: 'End', key: 'onb.end', value: s.end, placeholder: 'Month day, year' },
+        }) + '</div>' + area('i20', s);
+      } else if (s.datesMode === 'i20') {
+        more = '<p class="t-meta w-gap-12">Or drop the file anywhere on this page.</p>';
+      }
       return {
         title: QUESTION.dates,
         why: 'Duly counts every later date from these.',
-        content: C.dateRange({
-          from: { label: 'Start', key: 'onb.start', value: s.start, placeholder: 'Month day, year' },
-          to: { label: 'End', key: 'onb.end', value: s.end, placeholder: 'Month day, year' },
-        }) + area('i20', s) + area('awarded', s) + fileInput(),
-        notSure: area('datesUnsure', s),
+        content: pick + more + fileInput(),
+        notSure: unsure('dates', s),
       };
     },
 
     now(s) {
+      settleNow(s);
       const end = parseDate(s.end);
       const meta = end ? '<p class="t-meta">Your program ' + (end < TODAY ? 'ended ' : 'ends ') + C.esc(fmt(end)) + '.</p>' : '';
       return {
         title: QUESTION.now,
         why: 'So Home shows what matters today.',
-        content: meta + C.choices({ key: 'onb.now', options: NOW, selected: s.now, label: 'Where you are now' }),
+        content: meta + C.choices({ key: 'onb.now', options: nowOptions(s), selected: s.now, label: 'What you are doing now' }),
         notSure: unsure('now', s),
       };
     },
@@ -368,6 +379,7 @@
         status: 'f1', school: D.student.school, level: 'master', major: D.program.major,
         start: D.program.start, end: D.program.end, awarded: 'end', now: 'opt',
         ead: 'added', eadUntil: D.opt.cardUntil, reached: ORDER.length - 1,
+        read: { kind: 'ead', name: 'EAD card', state: 'found' },
       });
     }
     const lines = [];
@@ -383,19 +395,21 @@
       if (onWork) lines.push(D.onboarding.summary[2].split(' · '));
     }
 
-    const waiting = ['status', 'school', 'degree', 'dates', 'awarded', 'now']
+    const waiting = ['status', 'school', 'degree', 'dates', 'now']
       .filter((k) => s.unsure[k])
-      .map((k) => C.row({ title: QUESTION[k], meta: k === 'now' ? 'Waiting on Home' : 'Waiting in Your case', key: 'wait-' + k }));
-    if (s.ead === 'later') waiting.push(C.row({ title: 'Add your EAD card', meta: 'Waiting on Home, whenever you are ready', key: 'wait-ead' }));
+      .map((k) => ({ title: QUESTION[k], meta: k === 'now' ? 'Waiting on Home' : 'Waiting in Your case', key: 'wait-' + k }));
+    /* Conferral is not asked in onboarding; it waits in Your case when no document shows it. */
+    if (endPassed(s) && !s.awarded) waiting.push({ title: QUESTION.awarded, meta: 'Waiting in Your case', key: 'wait-awarded' });
+    if (s.ead === 'later') waiting.push({ title: 'Add your EAD card', meta: 'Waiting on Home, whenever you are ready', key: 'wait-ead' });
 
     const content =
       (lines.length ? '<div class="w-lines">' + lines.map((parts) =>
-        '<p class="w-line"><b>' + C.esc(parts[0]) + '</b>' + (parts.length > 1 ? ' · ' + C.esc(parts.slice(1).join(' · ')) : '') + '</p>').join('') + '</div>' : '') +
+        '<p class="t-lead"><span class="t-row">' + C.esc(parts[0]) + '</span>' + (parts.length > 1 ? ' · ' + C.esc(parts.slice(1).join(' · ')) : '') + '</p>').join('') + '</div>' : '') +
       '<p class="t-lead' + (lines.length ? ' w-gap-24' : '') + '">Duly will ask anything else when it matters, one short question at a time.</p>' +
-      (waiting.length ? C.section({ eyebrow: 'Waiting for you', waiting: true, content: C.list(waiting, { accordion: false }) }) : '');
+      (waiting.length ? C.waiting({ items: waiting, max: waiting.length }) : '');
 
     return C.onboarding({
-      title: "You're all set, " + D.student.first + '.',
+      title: readName(s) ? "You're all set, " + readName(s) + '.' : "You're all set.",
       content: content,
       primary: C.button({ kind: 'primary', label: 'Open Duly', href: '#/home' }),
     });
@@ -429,6 +443,8 @@
   function next(key) {
     const s = S();
     if (key === 'ead' && s.eadMode === 'type' && !s.read) s.ead = 'typed';
+    /* Continue past the STEM note is the confirmation; Change is the way to correct it */
+    if (key === 'degree') s.stem = !s.changing && s.majorChosen && isStem(s.majorChosen) ? 'confirmed' : null;
     const keys = stepKeys(s);
     const i = keys.indexOf(key);
     s.reached = Math.max(s.reached, i);
@@ -445,12 +461,6 @@
     s.unsure[k] = true;
     if (k === 'status') s.status = null;
     if (k === 'now') s.now = null;
-    if (k === 'awarded') {
-      s.awarded = null;
-      updateArea(r, 'awarded', true);
-      focusSel('[data-onb="unsure"][data-for="awarded"]');
-      return;
-    }
     if (k === 'status' || k === 'now') { refresh('[data-onb="unsure"][data-for="' + k + '"]'); return; }
     setUnsureDom(r, k, true);
     syncNext(r);
@@ -465,7 +475,7 @@
     const s = S();
     const name = file && file.name ? file.name : (kind === 'ead' ? 'EAD card' : 'I-20');
     s.read = { kind: kind, name: name, state: 'reading' };
-    if (kind === 'ead') { s.eadMode = 'photo'; s.fix = false; }
+    if (kind === 'ead') { s.eadMode = 'photo'; s.fix = false; } else { s.datesMode = 'i20'; }
     refresh();
     clearTimeout(readTimer);
     readTimer = setTimeout(() => {
@@ -475,6 +485,8 @@
         s.start = D.program.start;
         s.end = D.program.end;
         s.datesFrom = true;
+        s.i20Read = true;
+        s.datesMode = 'i20';
         s.read = null;
         delete s.unsure.dates;
       } else {
@@ -526,8 +538,7 @@
     if (main && main.value !== v) main.value = v;
     updateArea(r, 'stem', true);
     syncNext(r);
-    const confirm = r.querySelector('[data-onb="confirm-stem"]');
-    (confirm || r.querySelector('[data-onb="next"]') || main).focus({ preventScroll: true });
+    (r.querySelector('[data-onb="next"]') || main).focus({ preventScroll: true });
   }
 
   function choose(r, field, value) {
@@ -563,11 +574,6 @@
       case 'next': if (valid(key, s)) next(key); break;
       case 'back': back(key); break;
       case 'unsure': markUnsure(r, b.dataset.for); break;
-      case 'confirm-stem':
-        s.stem = 'confirmed';
-        updateArea(r, 'stem', true);
-        focusSel('[data-onb="change"]');
-        break;
       case 'change': {
         s.changing = true;
         updateArea(r, 'stem', true);
@@ -575,7 +581,6 @@
         if (input) { input.focus(); suggest(r, 'onb.majorSearch', ALL_FIELDS, '', true); }
         break;
       }
-      case 'pick-i20': openPicker(); break;
       case 'later':
         s.ead = 'later';
         s.eadMode = null;
@@ -685,13 +690,8 @@
       s[k] = d.value;
       const u = UNSURE_OF[k];
       if (u) delete s.unsure[u];
-      if (k === 'awarded') {
-        updateArea(r, 'awarded', true);
-        focusSel('[data-choices="onb.awarded"] [aria-checked="true"]');
-        return;
-      }
       refresh('[data-choices="' + d.key + '"] [aria-checked="true"]');
-      if (k === 'eadMode' && d.value === 'photo') openPicker();
+      if ((k === 'eadMode' && d.value === 'photo') || (k === 'datesMode' && d.value === 'i20')) openPicker();
       return;
     }
 
@@ -719,8 +719,6 @@
           if (trim(s.start) && trim(s.end)) clearUnsure(r, 'dates');
           s.datesFrom = false;
           updateArea(r, 'i20');
-          updateArea(r, 'awarded');
-          updateArea(r, 'datesUnsure');
           break;
         case 'eadFrom':
         case 'eadUntil':
@@ -743,6 +741,7 @@
       e.stopImmediatePropagation();
       if (document.querySelector('#main [data-onb-file]')) {
         if (stepKey() === 'ead') S().eadMode = 'photo';
+        if (stepKey() === 'dates') S().datesMode = 'i20';
         openPicker();
       } else {
         App.toast("You can add documents once you're in Duly.");
