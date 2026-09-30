@@ -35,6 +35,8 @@ export type FieldSpec = {
   type: "text" | "date" | "number";
   optional?: boolean;
   pattern?: RegExp;
+  /** A day the student may not know: "I'm not sure" leaves it out, and the engine asks later. */
+  notSure?: boolean;
 };
 
 export type View = {
@@ -73,6 +75,8 @@ const YES_NO: Option[] = [
 ];
 
 export const NOT_SURE = "not_sure";
+
+const WHOLE = "Duly counts only what you enter, so it asks whether the list is whole.";
 
 export function value(held: AppCase, id: string, name: string): string {
   const found = held.draft.records.find((record) => record.id === id)?.fields[name];
@@ -203,7 +207,12 @@ function programViews(held: AppCase, id: string, section: number, dual: boolean)
         { record: id, name: "end_date", label: "Program end date", type: "date" },
       ],
     },
-    flow(`ec:${id}`, section, "Has your DSO changed this program's end date?", ""),
+    flow(
+      `ec:${id}`,
+      section,
+      "Has your DSO changed this program's end date?",
+      "Many dates count from the end date, so Duly keeps each change your DSO made.",
+    ),
   ];
   const changes = records(held, "end_date_change").filter((c) => c.fields.program === id);
   if (held.flow[`ec:${id}`] === "yes") {
@@ -214,7 +223,7 @@ function programViews(held: AppCase, id: string, section: number, dual: boolean)
           kind: "choice",
           section,
           title: "Did the end date move later or earlier?",
-          why: "",
+          why: "A later and an earlier end date follow different rules.",
           record: change.id,
           field: "change",
           options: [
@@ -261,7 +270,12 @@ function programViews(held: AppCase, id: string, section: number, dual: boolean)
           ],
           notSure: true,
         },
-        flow(`ec-more:${change.id}`, section, "Did the end date change again?", ""),
+        flow(
+          `ec-more:${change.id}`,
+          section,
+          "Did the end date change again?",
+          "Duly keeps every change, in order.",
+        ),
       );
     }
   }
@@ -270,7 +284,7 @@ function programViews(held: AppCase, id: string, section: number, dual: boolean)
     kind: "choice",
     section,
     title: `Are you still in ${name}?`,
-    why: "",
+    why: "Some dates count from the day you finished, and others from the end date on your I-20.",
     record: id,
     field: "state",
     options: [
@@ -284,13 +298,14 @@ function programViews(held: AppCase, id: string, section: number, dual: boolean)
       kind: "fields",
       section,
       title: "When you finished",
-      why: "Leave the conferral day empty if the degree is not conferred yet.",
+      why: "Leave the conferral day empty if the degree is not conferred yet. If you do not know a day, choose I'm not sure and Duly asks again later.",
       fields: [
         {
           record: id,
           name: "coursework_done_on",
           label: "The day all course requirements were done",
           type: "date",
+          notSure: true,
         },
         {
           record: id,
@@ -303,7 +318,14 @@ function programViews(held: AppCase, id: string, section: number, dual: boolean)
     });
   }
   if (!dual) {
-    views.push(flow(`dual:${id}`, section, "Is this program part of a dual degree?", ""));
+    views.push(
+      flow(
+        `dual:${id}`,
+        section,
+        "Is this program part of a dual degree?",
+        "Duly keeps each program of a dual degree as its own record, with its own dates.",
+      ),
+    );
   }
   views.push(
     {
@@ -345,7 +367,14 @@ function authViews(held: AppCase, program: string): View[] {
   const section = 3;
   const name = programLabel(held, program);
   const level = value(held, program, "level");
-  const views: View[] = [flow(`cpt:${program}`, section, `During ${name}, did you have CPT?`, "")];
+  const views: View[] = [
+    flow(
+      `cpt:${program}`,
+      section,
+      `During ${name}, did you have CPT?`,
+      "Duly counts CPT days at each level from what you enter here.",
+    ),
+  ];
   const auths = authsOf(held, program);
   const cpts = auths.filter((a) => a.fields.type === "cpt");
   if (held.flow[`cpt:${program}`] === "yes") {
@@ -357,7 +386,7 @@ function authViews(held: AppCase, program: string): View[] {
           kind: "fields",
           section,
           title: "This CPT, as your I-20 shows it",
-          why: "",
+          why: "Each date as your I-20 shows it for this CPT.",
           fields: [
             { record: cpt.id, name: "card_start", label: "CPT start date", type: "date" },
             { record: cpt.id, name: "card_end", label: "CPT end date", type: "date" },
@@ -367,6 +396,7 @@ function authViews(held: AppCase, program: string): View[] {
               name: "dso_on",
               label: "The day your DSO signed the I-20 for it",
               type: "date",
+              notSure: true,
             },
           ],
         },
@@ -375,7 +405,7 @@ function authViews(held: AppCase, program: string): View[] {
           kind: "choice",
           section,
           title: "Full or part time, as your DSO marked it",
-          why: "",
+          why: "Full-time and part-time CPT are counted apart.",
           record: cpt.id,
           field: "time",
           options: [
@@ -384,12 +414,24 @@ function authViews(held: AppCase, program: string): View[] {
           ],
           notSure: true,
         },
-        flow(`cpt-more:${cpt.id}`, section, "Did you have another CPT during this program?", ""),
+        flow(
+          `cpt-more:${cpt.id}`,
+          section,
+          "Did you have another CPT during this program?",
+          "Duly counts every CPT at this level together.",
+        ),
       );
     }
   }
   const opts = auths.filter((a) => a.fields.type !== "cpt" && a.fields.type !== "stem_extension");
-  views.push(flow(`opt:${program}`, section, `During or after ${name}, did you have OPT?`, ""));
+  views.push(
+    flow(
+      `opt:${program}`,
+      section,
+      `During or after ${name}, did you have OPT?`,
+      "OPT is counted in months at each level, from what you enter here.",
+    ),
+  );
   if (held.flow[`opt:${program}`] === "yes") {
     for (const opt of opts) {
       views.push({
@@ -397,7 +439,7 @@ function authViews(held: AppCase, program: string): View[] {
         kind: "choice",
         section,
         title: "Was this OPT before or after the program end date?",
-        why: "",
+        why: "OPT before and after the program end date follow different rules.",
         record: opt.id,
         field: "type",
         options: [
@@ -411,7 +453,7 @@ function authViews(held: AppCase, program: string): View[] {
           kind: "choice",
           section,
           title: "Full or part time, as your I-20 shows it",
-          why: "",
+          why: "Full-time and part-time OPT are counted apart.",
           record: opt.id,
           field: "time",
           options: [
@@ -424,7 +466,12 @@ function authViews(held: AppCase, program: string): View[] {
       views.push(...grantViews(held, opt.id, section));
       if (opt.fields.type === "opt_post_completion") {
         views.push(
-          flow(`stem:${opt.id}`, section, "Did you get a STEM extension after this OPT?", ""),
+          flow(
+            `stem:${opt.id}`,
+            section,
+            "Did you get a STEM extension after this OPT?",
+            "A STEM extension brings its own reports and dates.",
+          ),
         );
         const stems = records(held, "authorization").filter((a) => a.fields.extends === opt.id);
         if (held.flow[`stem:${opt.id}`] === "yes") {
@@ -451,7 +498,7 @@ function authViews(held: AppCase, program: string): View[] {
             kind: "choice",
             section,
             title: "Did your DSO note in SEVIS that you are splitting OPT between these programs?",
-            why: "",
+            why: "Your DSO can tell you. Duly does not assume either answer.",
             record: opt.id,
             field: "split_noted",
             options: YES_NO,
@@ -460,7 +507,12 @@ function authViews(held: AppCase, program: string): View[] {
         }
       }
       views.push(
-        flow(`opt-more:${opt.id}`, section, "Did you have another OPT for this program?", ""),
+        flow(
+          `opt-more:${opt.id}`,
+          section,
+          "Did you have another OPT for this program?",
+          "Duly counts every OPT at this level together.",
+        ),
       );
     }
   }
@@ -510,7 +562,7 @@ function authViews(held: AppCase, program: string): View[] {
     });
   }
   views.push(
-    flow(`auth-all:${program}`, section, `Is that all the CPT and OPT for ${name}?`, "", [
+    flow(`auth-all:${program}`, section, `Is that all the CPT and OPT for ${name}?`, WHOLE, [
       { value: "all", title: "That's all" },
       { value: "cpt", title: "Add a CPT" },
       { value: "opt", title: "Add an OPT" },
@@ -538,9 +590,15 @@ function grantViews(held: AppCase, id: string, section: number): View[] {
       kind: "fields",
       section,
       title: `${authLabel(held, id)}: the recommendation and the filing`,
-      why: "",
+      why: "Some filing dates count from the day your DSO recommended it. Leave the filing day empty if you have not filed.",
       fields: [
-        { record: id, name: "dso_on", label: "The day your DSO recommended it", type: "date" },
+        {
+          record: id,
+          name: "dso_on",
+          label: "The day your DSO recommended it",
+          type: "date",
+          notSure: true,
+        },
         {
           record: id,
           name: "filed_on",
@@ -555,7 +613,7 @@ function grantViews(held: AppCase, id: string, section: number): View[] {
       kind: "choice",
       section,
       title: "What has happened with the application so far?",
-      why: "",
+      why: "Each answer leads to different dates.",
       record: id,
       field: "decision",
       options: [
@@ -574,8 +632,10 @@ function grantViews(held: AppCase, id: string, section: number): View[] {
       kind: "fields",
       section,
       title: "The day of the decision",
-      why: "",
-      fields: [{ record: id, name: "decided_on", label: "Decision day", type: "date" }],
+      why: "As the notice from USCIS shows it.",
+      fields: [
+        { record: id, name: "decided_on", label: "Decision day", type: "date", notSure: true },
+      ],
     });
   }
   if (decision === "approved") {
@@ -597,7 +657,14 @@ function grantViews(held: AppCase, id: string, section: number): View[] {
 function jobViews(held: AppCase): View[] {
   const section = 4;
   const since = firstTrainingStart(held);
-  const views: View[] = [flow("jobs", section, "Have you had a job in the US?", "")];
+  const views: View[] = [
+    flow(
+      "jobs",
+      section,
+      "Have you had a job in the US?",
+      "Days without a job on OPT are counted from the jobs you enter here.",
+    ),
+  ];
   if (held.flow.jobs !== "yes") return views;
   const auths = records(held, "authorization");
   for (const job of records(held, "work")) {
@@ -608,7 +675,7 @@ function jobViews(held: AppCase): View[] {
       kind: "fields",
       section,
       title: "This job",
-      why: "",
+      why: "Each as your offer letter or pay records show it.",
       fields: [
         { record: employer, name: "name", label: "Employer", type: "text" },
         { record: job.id, name: "start", label: "First day", type: "date" },
@@ -616,10 +683,16 @@ function jobViews(held: AppCase): View[] {
       ],
     });
     views.push(
-      flow(`still:${job.id}`, section, "Do you still work here?", "", [
-        { value: "yes", title: "Still working here" },
-        { value: "no", title: "It ended" },
-      ]),
+      flow(
+        `still:${job.id}`,
+        section,
+        "Do you still work here?",
+        "The last day of a job changes the count of days without one.",
+        [
+          { value: "yes", title: "Still working here" },
+          { value: "no", title: "It ended" },
+        ],
+      ),
     );
     if (held.flow[`still:${job.id}`] === "no") {
       views.push({
@@ -627,12 +700,17 @@ function jobViews(held: AppCase): View[] {
         kind: "fields",
         section,
         title: "The last day of this job",
-        why: "",
+        why: "As your employer's records show it.",
         fields: [{ record: job.id, name: "end", label: "Last day", type: "date" }],
       });
     }
     views.push(
-      flow(`hours-changed:${job.id}`, section, "Did the hours a week change during this job?", ""),
+      flow(
+        `hours-changed:${job.id}`,
+        section,
+        "Did the hours a week change during this job?",
+        "Some counts read the hours a week, so Duly keeps each change.",
+      ),
     );
     if (held.flow[`hours-changed:${job.id}`] === "yes") {
       views.push({
@@ -664,14 +742,20 @@ function jobViews(held: AppCase): View[] {
         ...auths.map((a) => {
           const from = value(held, a.id, "card_start");
           const to = value(held, a.id, "card_end");
-          const holds = start !== "" && from !== "" && to !== "" && from <= start && start <= to;
+          const holds =
+            start !== "" &&
+            from !== "" &&
+            to !== "" &&
+            from <= start &&
+            start <= to &&
+            !laterProgramBegan(held, value(held, a.id, "program"), from, start);
           return {
             value: a.id,
             title: authLabel(held, a.id),
             ...(holds ? { line: "Its dates hold the start" } : {}),
           };
         }),
-        { value: "campus", title: "A job on campus" },
+        ...campusOptions(held),
       ],
     });
     const under = value(held, job.id, "under");
@@ -693,12 +777,121 @@ function jobViews(held: AppCase): View[] {
         `job-more:${job.id}`,
         section,
         since === "" ? "Is that every job?" : `Is that every job since ${formatDate(since)}?`,
-        "",
+        WHOLE,
         [
           { value: "no", title: "That's every job" },
           { value: "yes", title: "Add another job" },
         ],
       ),
+    );
+  }
+  return views;
+}
+
+/**
+ * A card's printed dates can hold a job's start while another program had already begun
+ * (programs.md J08: a new level ends the OPT of the old one). The mark is left off then; the
+ * student still chooses.
+ */
+function laterProgramBegan(held: AppCase, program: string, from: string, start: string): boolean {
+  return f1Programs(held).some((p) => {
+    const began = value(held, p, "start_date");
+    return p !== program && began !== "" && from < began && began <= start;
+  });
+}
+
+/** One on-campus answer for each US program on an F-1, named by its school when there are several. */
+function campusOptions(held: AppCase): Option[] {
+  const programs = f1Programs(held);
+  return programs.map((p) => ({
+    value: `${CAMPUS}${p}`,
+    title: "A job on campus",
+    ...(programs.length > 1 ? { line: `At ${programLabel(held, p)}` } : {}),
+  }));
+}
+
+const CAMPUS = "campus:";
+
+/**
+ * The answer a choice view shows as chosen. A job on campus is held as its program in
+ * on_campus, with no permission, and is shown as the on-campus answer for that program.
+ */
+export function chosen(held: AppCase, view: View): string {
+  const record = view.record ?? "";
+  const field = view.field ?? "";
+  const found = value(held, record, field);
+  if (found === "" && field === "under") {
+    const campus = value(held, record, "on_campus");
+    if (campus !== "") return `${CAMPUS}${campus}`;
+  }
+  return found;
+}
+
+/** The flow key that holds "I'm not sure" for a day the student may not know. */
+export function unsureKey(spec: FieldSpec): string {
+  return `unsure:${spec.record}.${spec.name}`;
+}
+
+/** A day left unknown: nothing is sent, and the engine asks for it later. */
+export function markUnsure(held: AppCase, spec: FieldSpec, unsure: boolean): AppCase {
+  const next = unsure ? setField(held, spec.record, spec.name, "") : held;
+  return { ...next, flow: { ...next.flow, [unsureKey(spec)]: unsure ? "yes" : "" } };
+}
+
+function withdrawalViews(held: AppCase): View[] {
+  const section = 2;
+  const views: View[] = [
+    flow(
+      "withdrawals",
+      section,
+      "Have you withdrawn from classes during a program on an F-1?",
+      "Some dates count from the day of a withdrawal. Duly asks so it does not assume either way.",
+    ),
+  ];
+  if (held.flow.withdrawals !== "yes") return views;
+  for (const withdrawal of records(held, "withdrawal")) {
+    views.push(
+      {
+        id: `wd-program:${withdrawal.id}`,
+        kind: "choice",
+        section,
+        title: "Which program did you withdraw from?",
+        why: "Duly keeps the withdrawal with that program.",
+        record: withdrawal.id,
+        field: "program",
+        options: f1Programs(held).map((p) => ({ value: p, title: programLabel(held, p) })),
+      },
+      {
+        id: `wd-day:${withdrawal.id}`,
+        kind: "fields",
+        section,
+        title: "The day of the withdrawal",
+        why: "As your school's records show it. If you do not know the day, choose I'm not sure and Duly asks again later.",
+        fields: [
+          {
+            record: withdrawal.id,
+            name: "on",
+            label: "The day of the withdrawal",
+            type: "date",
+            notSure: true,
+          },
+        ],
+      },
+      {
+        id: `wd-dso:${withdrawal.id}`,
+        kind: "choice",
+        section,
+        title: "Did your DSO authorize the withdrawal?",
+        why: "Your DSO can tell you. Duly does not assume either answer.",
+        record: withdrawal.id,
+        field: "dso_authorized",
+        options: YES_NO,
+        notSure: true,
+      },
+      flow(`withdrawal-more:${withdrawal.id}`, section, "Is that every withdrawal?", WHOLE, [
+        { value: "no", title: "That's every withdrawal" },
+        { value: "yes", title: "Add another withdrawal" },
+      ]),
     );
   }
   return views;
@@ -712,7 +905,7 @@ function tripViews(held: AppCase): View[] {
       "trips",
       section,
       since === "" ? "Have you left the US?" : `Have you left the US since ${formatDate(since)}?`,
-      "",
+      "Some counts and some I-20 dates read your time outside the US.",
     ),
   ];
   if (held.flow.trips !== "yes") return views;
@@ -750,7 +943,7 @@ function tripViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: "What was the trip?",
-        why: "",
+        why: "Different kinds of trips follow different rules.",
         record: trip.id,
         field: "purpose",
         options: [
@@ -766,7 +959,7 @@ function tripViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: "Which I-20 did you show when you came back?",
-        why: "",
+        why: "Duly keeps the I-20 you showed with the trip.",
         record: trip.id,
         field: "reentry_i20",
         options: f1Programs(held).map((p) => ({ value: p, title: programLabel(held, p) })),
@@ -778,7 +971,7 @@ function tripViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: "Did you have a job to return to?",
-        why: "",
+        why: "Some counts read whether a job was waiting when you came back.",
         record: trip.id,
         field: "job_on_return",
         options: YES_NO,
@@ -786,7 +979,7 @@ function tripViews(held: AppCase): View[] {
       });
     }
     views.push(
-      flow(`trip-more:${trip.id}`, section, "Is that every trip?", "", [
+      flow(`trip-more:${trip.id}`, section, "Is that every trip?", WHOLE, [
         { value: "no", title: "That's every trip" },
         { value: "yes", title: "Add another trip" },
       ]),
@@ -798,7 +991,12 @@ function tripViews(held: AppCase): View[] {
 function petitionViews(held: AppCase): View[] {
   const section = 4;
   const views: View[] = [
-    flow("h1b", section, "Has an employer filed an H-1B petition for you?", ""),
+    flow(
+      "h1b",
+      section,
+      "Has an employer filed an H-1B petition for you?",
+      "An H-1B petition can change some OPT dates. Duly asks so it does not assume either way.",
+    ),
   ];
   if (held.flow.h1b !== "yes") return views;
   for (const petition of records(held, "petition")) {
@@ -834,7 +1032,7 @@ function petitionViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: "Does it ask to change your status in the US?",
-        why: "",
+        why: "As the petition shows it. Your employer can tell you.",
         record: petition.id,
         field: "change_of_status",
         options: YES_NO,
@@ -855,7 +1053,7 @@ function petitionViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: "What has happened with it so far?",
-        why: "",
+        why: "Each outcome leads to different dates.",
         record: petition.id,
         field: "outcome",
         options: [
@@ -895,12 +1093,12 @@ function petitionViews(held: AppCase): View[] {
         kind: "fields",
         section,
         title: "When it happened",
-        why: "",
+        why: "As the notice from USCIS shows it.",
         fields,
       });
     }
     views.push(
-      flow(`h1b-more:${petition.id}`, section, "Is that every H-1B petition?", "", [
+      flow(`h1b-more:${petition.id}`, section, "Is that every H-1B petition?", WHOLE, [
         { value: "no", title: "That's every petition" },
         { value: "yes", title: "Add another petition" },
       ]),
@@ -929,7 +1127,7 @@ function earlierViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: `How did you move from ${programLabel(held, from)} to ${programLabel(held, to)}?`,
-        why: "",
+        why: "Each kind of move has its own steps and dates.",
         record: move.id,
         field: "how",
         options: [
@@ -946,6 +1144,7 @@ function earlierViews(held: AppCase): View[] {
           name: "told_school_on",
           label: "The day you told the school",
           type: "date",
+          notSure: true,
         });
       }
       fields.push(
@@ -955,8 +1154,15 @@ function earlierViews(held: AppCase): View[] {
           label: "The release date",
           type: "date",
           optional: !transfer,
+          notSure: transfer,
         },
-        { record: move.id, name: "i20_issued_on", label: "The new I-20's date", type: "date" },
+        {
+          record: move.id,
+          name: "i20_issued_on",
+          label: "The new I-20's date",
+          type: "date",
+          notSure: true,
+        },
       );
       if (transfer) {
         fields.push({
@@ -964,6 +1170,7 @@ function earlierViews(held: AppCase): View[] {
           name: "contacted_new_dso_on",
           label: "The day you contacted the new DSO",
           type: "date",
+          notSure: true,
         });
       }
       views.push({
@@ -971,7 +1178,7 @@ function earlierViews(held: AppCase): View[] {
         kind: "fields",
         section,
         title: "The dates of that move",
-        why: "",
+        why: "Each date as your schools and your I-20s show it. If you do not know a day, choose I'm not sure and Duly asks again later.",
         fields,
       });
       views.push(
@@ -979,7 +1186,7 @@ function earlierViews(held: AppCase): View[] {
           `more:${from}`,
           section,
           "Is that every program you studied in the US on an F-1?",
-          "",
+          WHOLE,
           [
             { value: "no", title: "That's every program" },
             { value: "yes", title: "Add another program" },
@@ -1004,7 +1211,7 @@ function earlierViews(held: AppCase): View[] {
           kind: "choice",
           section,
           title: "Where was this degree?",
-          why: "",
+          why: "The rule for a STEM extension names a degree from a U.S. educational institution.",
           record: other.id,
           field: "where",
           options: [
@@ -1017,7 +1224,7 @@ function earlierViews(held: AppCase): View[] {
           kind: "choice",
           section,
           title: "The degree's level",
-          why: "",
+          why: "Many rules count by level.",
           record: other.id,
           field: "level",
           options: LEVELS.map((level) => ({ value: level, title: levelName(level) })),
@@ -1027,7 +1234,7 @@ function earlierViews(held: AppCase): View[] {
           kind: "fields",
           section,
           title: "The degree",
-          why: "",
+          why: "As your diploma shows it. Leave the day empty if you do not know it.",
           fields: [
             { record: other.id, name: "school_name", label: "School name", type: "text" },
             { record: other.id, name: "field_name", label: "Field", type: "text" },
@@ -1058,7 +1265,7 @@ function earlierViews(held: AppCase): View[] {
         });
       }
       views.push(
-        flow(`outside-more:${other.id}`, section, "Is that every such degree?", "", [
+        flow(`outside-more:${other.id}`, section, "Is that every such degree?", WHOLE, [
           { value: "no", title: "That's every degree" },
           { value: "yes", title: "Add another degree" },
         ]),
@@ -1087,7 +1294,7 @@ export function onboardingSteps(held: AppCase, questions: number): View[] {
     kind: "done",
     section: 5,
     title: "You're set.",
-    why: "",
+    why: "Duly works out each date from these answers and shows where each rule is written.",
   };
   if (held.status === "other") {
     views.push({
@@ -1113,6 +1320,7 @@ export function onboardingSteps(held: AppCase, questions: number): View[] {
     ),
     ...programViews(held, current, 1, false),
     ...earlierViews(held),
+    ...withdrawalViews(held),
   );
   for (const program of f1Programs(held)) views.push(...authViews(held, program));
   views.push(...jobViews(held), ...tripViews(held), ...petitionViews(held));
@@ -1347,6 +1555,15 @@ export function applyFlow(held: AppCase, key: string, answer: string, today: str
       ids = [id];
       break;
     }
+    case "withdrawals":
+    case "withdrawal-more": {
+      if (!opens) break;
+      const program = f1Programs(next)[0] ?? "";
+      const [withWithdrawal, id] = add(next, "withdrawal", { program });
+      next = withWithdrawal;
+      ids = [id];
+      break;
+    }
     case "h1b":
     case "h1b-more": {
       if (!opens) break;
@@ -1365,6 +1582,7 @@ export function applyFlow(held: AppCase, key: string, answer: string, today: str
         "authorization",
         "work",
         "petition",
+        "withdrawal",
       ]) {
         next = state(next, kind, { on: today });
       }
@@ -1385,7 +1603,10 @@ function state(held: AppCase, key: string, statement: { on: string; from?: strin
   };
 }
 
-/** A record's field, as entered. A choice of "campus" for a job is its on-campus program. */
+/**
+ * A record's field, as entered. A choice of "campus:<program>" for a job is its on-campus
+ * program, with no permission; "campus" alone is the current program.
+ */
 export function setField(
   held: AppCase,
   id: string,
@@ -1396,9 +1617,11 @@ export function setField(
     if (record.id !== id) return record;
     const fields = { ...record.fields };
     if (record.kind === "work" && name === "under") {
-      const campus = entered === "campus";
+      const text = typeof entered === "string" ? entered : "";
+      const campus = text === "campus" || text.startsWith(CAMPUS);
+      const program = text.startsWith(CAMPUS) ? text.slice(CAMPUS.length) : "";
       fields.under = campus ? "" : entered;
-      fields.on_campus = campus ? (f1Programs(held)[0] ?? "") : "";
+      fields.on_campus = campus ? program || (f1Programs(held)[0] ?? "") : "";
     } else if (record.kind === "work" && (name === "change_start" || name === "change_hours")) {
       if (name === "change_start") fields.change_start = entered;
       if (name === "change_hours") fields.change_hours = entered;
@@ -1457,7 +1680,9 @@ export function fieldQuestion(held: AppCase, question: string): View | null {
     .flatMap((v) => v.fields ?? [])
     .find((f) => f.record === id && f.name === field);
   if (spec !== undefined) {
-    return { ...base, kind: "fields", title: spec.label, fields: [{ ...spec, optional: false }] };
+    // A day asked later may still not be known: "I'm not sure" leaves it out again.
+    const field = { ...spec, optional: false, notSure: spec.type === "date" };
+    return { ...base, kind: "fields", title: spec.label, fields: [field] };
   }
   const known = ASKED_CHOICES[`${record.kind}.${field}`];
   if (known !== undefined) {
@@ -1477,7 +1702,7 @@ export function fieldQuestion(held: AppCase, question: string): View | null {
       ...base,
       kind: "fields",
       title: `The ${label}`,
-      fields: [{ record: id, name: field, label: `The ${label}`, type: "date" }],
+      fields: [{ record: id, name: field, label: `The ${label}`, type: "date", notSure: true }],
     };
   }
   return null;

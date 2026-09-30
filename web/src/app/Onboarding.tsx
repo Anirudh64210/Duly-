@@ -11,12 +11,15 @@ import {
   SECTIONS,
   applyFlow,
   authLabel,
+  chosen,
   fieldQuestion,
   listQuestion,
+  markUnsure,
   onboardingSteps,
   programLabel,
   setField,
   stateWhole,
+  unsureKey,
   value,
   type FieldSpec,
   type View,
@@ -43,10 +46,19 @@ function fieldId(spec: FieldSpec): string {
   return `f-${spec.record}-${spec.name}`;
 }
 
-function fieldProblem(spec: FieldSpec, entered: string): string | null {
+/** A label inside a sentence: its first word in lower case, names such as DSO and I-20 kept. */
+function inSentence(label: string): string {
+  const [first = "", ...rest] = label.split(" ");
+  const word = /^[A-Z][a-z']*$/.test(first) ? first.toLowerCase() : first;
+  return [word, ...rest].join(" ");
+}
+
+function fieldProblem(spec: FieldSpec, entered: string, unsure: boolean): string | null {
   const text = entered.trim();
-  if (text === "") return spec.optional === true ? null : `Enter ${spec.label.toLowerCase()}.`;
-  if (spec.type === "date" && !isDay(text)) return `Enter ${spec.label.toLowerCase()} as a date.`;
+  if (text === "") {
+    return spec.optional === true || unsure ? null : `Enter ${inSentence(spec.label)}.`;
+  }
+  if (spec.type === "date" && !isDay(text)) return `Enter ${inSentence(spec.label)} as a date.`;
   if (spec.type === "number" && !(NUMBER.test(text) && Number(text) <= 168)) {
     return "Enter the hours a week as a number from 0 to 168.";
   }
@@ -61,7 +73,7 @@ function viewProblems(view: View, held: AppCase): Problems {
   const found: Problems = {};
   if (view.kind === "status" && held.status === "")
     found.choice = "Choose the status you hold now.";
-  if (view.kind === "choice" && value(held, view.record ?? "", view.field ?? "") === "") {
+  if (view.kind === "choice" && chosen(held, view) === "") {
     const basis = view.field === "basis_program" && held.flow[`unsure:${view.id}`] === "yes";
     if (!basis) found.choice = "Choose an answer.";
   }
@@ -72,7 +84,8 @@ function viewProblems(view: View, held: AppCase): Problems {
     found.choice = "Choose an answer.";
   }
   for (const spec of view.fields ?? []) {
-    const problem = fieldProblem(spec, value(held, spec.record, spec.name));
+    const unsure = spec.notSure === true && held.flow[unsureKey(spec)] === "yes";
+    const problem = fieldProblem(spec, value(held, spec.record, spec.name), unsure);
     if (problem !== null) found[fieldId(spec)] = problem;
   }
   return found;
@@ -139,7 +152,11 @@ export function Onboarding() {
         setProblems(found);
         return;
       }
-      if (questions.length > 1) return;
+      // Still not known: the day stays out, the verdict stays Can't tell yet, and Home asks.
+      const unknown = (asked.fields ?? []).some(
+        (spec) => value(held, spec.record, spec.name) === "",
+      );
+      if (questions.length > 1 && !unknown) return;
       go(at + 1);
       return;
     }
@@ -255,7 +272,7 @@ export function Onboarding() {
     case "choice": {
       const record = shown.record ?? "";
       const field = shown.field ?? "";
-      const current = value(held, record, field);
+      const current = chosen(held, shown);
       const unsure = current === NOT_SURE || held.flow[`unsure:${shown.id}`] === "yes";
       body = (
         <>
@@ -297,8 +314,19 @@ export function Onboarding() {
           {(shown.fields ?? []).map((spec) => {
             const id = fieldId(spec);
             const shown = value(held, spec.record, spec.name);
-            const onChange = (entered: string) =>
-              update(setField(held, spec.record, spec.name, entered));
+            const onChange = (entered: string) => {
+              const changed = setField(held, spec.record, spec.name, entered);
+              update(spec.notSure === true ? markUnsure(changed, spec, false) : changed);
+            };
+            const notSure =
+              spec.notSure === true
+                ? {
+                    notSure: {
+                      pressed: held.flow[unsureKey(spec)] === "yes",
+                      onPress: () => update(markUnsure(held, spec, true)),
+                    },
+                  }
+                : {};
             return spec.type === "date" ? (
               <DateField
                 key={id}
@@ -307,6 +335,7 @@ export function Onboarding() {
                 value={shown}
                 problem={problems[id]}
                 onChange={onChange}
+                {...notSure}
               />
             ) : (
               <TextField
