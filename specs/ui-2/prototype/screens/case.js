@@ -1,17 +1,23 @@
-/* Your case: what Duly knows about the student. Each answer sits beside its
-   question and is edited in place (app.js wires data-edit). Open questions
-   sit once at the top of the page in C.waiting (never an eyebrow inside a
-   row). Today the only one is "Was your degree awarded?", asked when no
-   document shows it (#/case/no-degree forces it for review).
-   The STEM OPT question is owned by What's next; Plans shows the answer as
-   a quiet line with a link. Internships can be added from a CPT I-20 (read
-   on this device, simulated) or typed. */
+/* Your case: the facts the student's dates are counted from, in four plain
+   groups (Round 2, note 8):
+     1. You and your degree
+     2. Work on OPT (the job has its own title and employer rows)
+     3. Internships (CPT), with "Add another internship"
+     4. Applications and plans (opens Applications; the STEM OPT answer)
+   Each answer sits beside its question and is edited in place (app.js wires
+   data-edit; values live in App.state['edit:case-<key>']). The only open
+   question, "Was your degree awarded?", sits once at the top in C.waiting,
+   asked when no document shows it (#/case/no-degree forces it for review).
+   The STEM OPT question is owned by What's next; here it is the answer with
+   a link. Internships are added from a CPT I-20 (read on this Mac,
+   simulated) or typed. The product name is not used in this screen's text. */
 (function () {
   'use strict';
 
+  /* Layout only. Type sizes come from the shared classes. */
   const STYLE = '<style>' +
     '.screen-case{display:flex;flex-direction:column;flex:1 0 auto;min-width:0}' +
-    '.screen-case .case-after{align-self:flex-start;margin-top:var(--s-4)}' +
+    '.screen-case .case-after{align-self:flex-start;margin-top:var(--s-8)}' +
     '.screen-case .case-line{margin-top:var(--s-8)}' +
     '.screen-case .case-panel{margin-top:var(--s-16);display:flex;flex-direction:column;gap:var(--s-24)}' +
     '.screen-case .case-stage{display:flex;flex-direction:column;gap:var(--s-24)}' +
@@ -29,7 +35,6 @@
     const v = App.state['edit:' + key];
     return v != null && v !== '' ? v : value;
   }
-  function intentState() { return App.stemIntent(); }
   function fmtRange(start, end) {
     const s = (start || '').trim();
     const e = (end || '').trim();
@@ -40,30 +45,77 @@
     return from + ' to ' + e;
   }
 
+  /* Every row in data.caseFile, by key, whatever section it sits in. */
+  function rowsByKey(data) {
+    const out = {};
+    data.caseFile.sections.forEach((sec) => (sec.rows || []).forEach((r) => { out[r.key] = r; }));
+    return out;
+  }
+  function sectionOf(data, key) { return data.caseFile.sections.filter((s) => s.key === key)[0] || {}; }
+
   /* ---------------- rows ---------------- */
 
   function vrow(r) {
     const key = 'case-' + r.key;
-    /* Values Duly works out (STEM from the major, unemployment days) are not typed over. */
+    /* Values worked out from other answers (STEM from the major, unemployment
+       days from the card and the job) are not typed over. */
     const derived = r.readonly || r.key === 'stem';
     return C.valueRow({ label: r.label, value: edited(key, r.value), key: key, source: r.source, editable: !derived, num: r.num });
   }
   function list(items) { return C.list(items, { accordion: false }); }
 
-  /* ---------------- sections ---------------- */
+  /* ---------------- groups ---------------- */
 
-  function cptSection(sec) {
-    const added = (App.state.caseCpt || []).map((c, i) => ({ key: 'cpt-added-' + i, label: c.employer, value: c.dates }));
-    const rows = sec.rows.concat(added).map(vrow);
+  /* 1. You and your degree. The awarded row shows the answer once there is
+     one; while the question waits (top of page) the row is left out. */
+  function youGroup(data, by) {
+    const waitingAwarded = App.awardedWaiting();
+    const answered = App.state.caseAwarded;
+    const keys = ['name', 'visa', 'school', 'degree', 'stem', 'dates', 'awarded', 'earlier'];
+    const rows = keys.map((k) => by[k]).filter(Boolean)
+      .filter((r) => r.key !== 'awarded' || !waitingAwarded)
+      .map((r) => {
+        if (r.key !== 'awarded' || !answered) return r;
+        const v = answered === 'no' ? 'Not yet' : answered === 'unsure' ? 'Not sure yet'
+          : answered === 'other' ? 'Tap to add the date' : r.value;
+        return Object.assign({}, r, { value: v });
+      });
+    return C.section({ id: 'case-you', eyebrow: 'You and your degree', content: list(rows.map(vrow)) });
+  }
+
+  /* 2. Work on OPT. The job reads as a job: its title and its employer are
+     two answers, each changed on its own. */
+  function workGroup(data, by) {
+    const job = String((by.job && by.job.value) || '');
+    const cut = job.indexOf(', ');
+    const title = cut === -1 ? job : job.slice(0, cut);
+    const employer = cut === -1 ? '' : job.slice(cut + 2);
+    const rows = [
+      by.permit && Object.assign({}, by.permit, { num: true }),
+      { key: 'job-title', label: 'Job title', value: title || 'Tap to add' },
+      { key: 'job-employer', label: 'Employer', value: employer || 'Tap to add' },
+      by.started && Object.assign({}, by.started, { num: true }),
+      by.reported,
+      by.unemployment && Object.assign({}, by.unemployment, { num: true }),
+    ].filter(Boolean);
+    return C.section({ id: 'case-work', eyebrow: 'Work on OPT', content: list(rows.map(vrow)) });
+  }
+
+  /* 3. Internships (CPT): the employer beside its dates. */
+  function cptGroup(data) {
+    const sec = sectionOf(data, 'cpt');
+    const added = (App.state.caseCpt || []).map((c, i) => ({ key: 'cpt-added-' + i, label: c.employer, value: c.dates, num: true }));
+    const rows = (sec.rows || []).map((r) => Object.assign({ num: true }, r)).concat(added).map(vrow);
     return C.section({
-      eyebrow: sec.eyebrow,
+      id: 'case-cpt',
+      eyebrow: sec.eyebrow || 'Internships (CPT)',
       content: '<div class="vrows-named">' + list(rows) + '</div>' +
         C.button({ label: sec.add || 'Add another internship', kind: 'text', small: true, cls: 'case-after', attrs: { 'data-case-add': '' } }) +
         '<div class="case-panel" data-case-panel hidden>' +
         C.choices({
           key: 'case-cpt-how', layout: 'pair', label: 'How to add the internship',
           options: [
-            { value: 'file', title: 'Add its I-20', meta: 'Fastest. Read on this device.' },
+            { value: 'file', title: 'Add its I-20', meta: 'Fastest. Read on this Mac.' },
             { value: 'type', title: 'Type the dates' },
           ],
         }) +
@@ -73,47 +125,44 @@
     });
   }
 
-  function optSection(sec) {
-    const items = sec.rows.map((r) => vrow(Object.assign({ num: r.key === 'application' || r.key === 'unemployment' }, r)));
-    return C.section({ eyebrow: sec.eyebrow, content: list(items) });
-  }
-
-  /* Study: the awarded row shows the answer once there is one; while the
-     question waits (top of page) the row is left out. */
-  function studySection(sec, data) {
-    const waitingAwarded = App.awardedWaiting();
-    const answered = App.state.caseAwarded;
-    const rows = sec.rows.filter((r) => r.key !== 'awarded' || !waitingAwarded).map((r) => {
-      if (r.key !== 'awarded' || !answered) return r;
-      const v = answered === 'no' ? 'Not yet' : answered === 'unsure' ? 'Not sure yet'
-        : answered === 'other' ? 'Tap to add the date' : r.value;
-      return Object.assign({}, r, { value: v });
+  /* 4. Applications and plans. Filed applications open their own page; the
+     STEM OPT answer, never the question (that lives on What's next). */
+  function plansGroup(data) {
+    const apps = ((data.applications && data.applications.items) || [])
+      .filter((a) => a.receipt || a.current != null)
+      .map((a) => C.applicationRow(a));
+    const intent = App.stemIntent();
+    const plans = sectionOf(data, 'plans');
+    let plan = '';
+    let recommended = '';
+    /* The new I-20 step (What's next, Checklists, Timeline) sends the student
+       here to add this date once the I-20 is in hand; the 60 day filing limit
+       counts from it. So the row is here whenever that step can send her:
+       she plans to apply, or she has ticked the I-20 step. */
+    if (intent === 'yes' || App.isDone('i20')) {
+      recommended = vrow({ key: 'stem-recommended', label: "School's STEM OPT recommendation", value: 'Tap to add the date', source: 'within60', num: true });
+    }
+    if (intent === 'yes') {
+      plan = C.row({ title: 'STEM OPT extension', meta: 'Planning to apply · start preparing by Oct 15, 2026', href: '#/next' });
+    } else if (intent === 'no') {
+      plan = C.row({ title: 'STEM OPT extension', meta: "Not this time · change in What's next", href: '#/next' });
+    }
+    const undecided = !plan && plans.undecided
+      ? '<p class="t-meta case-line">' + C.esc(plans.undecided.text) + ' ' + C.link(plans.undecided.link) + '</p>'
+      : '';
+    const items = apps.concat(plan ? [plan] : [], recommended ? [recommended] : []);
+    return C.section({
+      id: 'case-plans',
+      eyebrow: 'Applications and plans',
+      link: { label: 'All applications', href: '#/applications' },
+      content: (items.length ? list(items) : '') + undecided,
     });
-    return C.section({ eyebrow: sec.eyebrow, content: list(rows.map(vrow)) });
   }
 
   function waitingHtml(data) {
     if (!App.awardedWaiting()) return '';
-    const a = data.awardedAsk;
-    return C.waiting({
-      items: [Object.assign({}, a, { note: App.state.caseAwarded === 'unsure' ? 'Duly will ask again later.' : null })],
-    });
-  }
-
-  /* The STEM OPT answer, never the question: that lives on What's next. */
-  function plansSection(sec) {
-    const intent = intentState();
-    if (intent === null || intent === 'unsure') {
-      const u = sec.undecided;
-      return C.section({
-        eyebrow: sec.eyebrow,
-        content: '<p class="t-meta case-line">' + C.esc(u.text) + ' ' + C.link(u.link) + '</p>',
-      });
-    }
-    const row = intent === 'yes'
-      ? C.row({ title: 'STEM OPT extension', meta: 'Planning to apply · start preparing by Oct 15', href: '#/next' })
-      : C.row({ title: 'STEM OPT extension', meta: "Not this time · change in What's next", href: '#/next' });
-    return C.section({ eyebrow: sec.eyebrow, content: list([row]) });
+    /* The default note under an unsure answer reads "You'll be asked again later." */
+    return C.waiting({ items: [Object.assign({}, data.awardedAsk)] });
   }
 
   /* ---------------- add-internship stages ---------------- */
@@ -128,18 +177,18 @@
   }
   function pickStage() {
     return '<div class="case-stage-head"><p class="t-row">Choose a photo or PDF of the I-20</p>' +
-      '<p class="t-meta">Duly reads it on this device. Nothing is uploaded anywhere.</p></div>' +
+      '<p class="t-meta">It is read on this Mac. Nothing is uploaded anywhere.</p></div>' +
       actions(C.button({ label: 'Choose a file', kind: 'pill', attrs: { 'data-case-pick': '' } }));
   }
   function readingStage(name) {
     return '<div class="case-stage-head" role="status"><p class="t-row">' + C.esc(name || 'Your I-20') + '</p>' +
-      '<p class="t-meta">Reading on this device</p></div>';
+      '<p class="t-meta">Reading on this Mac</p></div>';
   }
   function foundStage(f) {
-    return '<div class="case-stage-head" role="status"><p class="t-row">Duly read your CPT I-20.</p>' +
-      '<p class="t-meta">Read on this device. Nothing left it.</p></div>' +
+    return '<div class="case-stage-head" role="status"><p class="t-row">Found in your CPT I-20</p>' +
+      '<p class="t-meta">Read on this Mac. Nothing left it.</p></div>' +
       C.found([['Kind', 'CPT I-20'], ['Employer', f.employer], ['Dates', fmtRange(f.start, f.end)]]) +
-      actions(C.button({ label: 'Looks right', kind: 'primary', attrs: { 'data-case-confirm': '' } }),
+      actions(C.button({ label: 'Add internship', kind: 'primary', attrs: { 'data-case-confirm': '' } }),
         C.button({ label: 'Fix one', kind: 'back', attrs: { 'data-case-fix': '' } }));
   }
   function typeStage(pre) {
@@ -155,27 +204,47 @@
 
   /* ---------------- screen ---------------- */
 
+  /* After an edit in place, the button's spoken label follows the new answer.
+     One listener for the life of the page, whatever the screen. */
+  if (!window.__caseEditLabel) {
+    window.__caseEditLabel = true;
+    document.addEventListener('duly:change', (e) => {
+      const d = e.detail || {};
+      if (d.kind !== 'edit' || !d.el || !d.el.closest || !d.el.closest('.screen-case')) return;
+      const row = d.el.closest('.vrow');
+      const label = row && row.querySelector('.v-label');
+      if (label) d.el.setAttribute('aria-label', label.textContent + ': ' + d.value + '. Change');
+    });
+  }
+
   window.SCREENS['case'] = {
     title: 'Your case',
 
     render(data, params) {
       App.state.caseAwardedDemo = (params || [])[0] === 'no-degree';
-      const body = data.caseFile.sections.map((sec) => {
-        if (sec.key === 'study') return studySection(sec, data);
-        if (sec.key === 'cpt') return cptSection(sec);
-        if (sec.key === 'opt') return optSection(sec);
-        if (sec.key === 'plans') return plansSection(sec);
-        return C.section({ eyebrow: sec.eyebrow, content: list(sec.rows.map(vrow)) });
-      }).join('');
+      const by = rowsByKey(data);
       return '<div class="screen-case">' + STYLE +
-        C.pageHeader({ title: 'Your case', subline: 'What Duly knows about you. Tap any answer to change it.' }) +
+        C.pageHeader({ title: 'Your case', subline: 'The facts your dates are counted from. Tap any answer to change it.' }) +
         waitingHtml(data) +
-        body +
+        youGroup(data, by) +
+        workGroup(data, by) +
+        cptGroup(data) +
+        plansGroup(data) +
         C.footer('Records and dates from your documents, not legal advice.') +
         '</div>';
     },
 
-    mount(root, data) {
+    mount(root, data, params) {
+      /* #/case/recommended: sent from the new I-20 step. Land on the row that
+         takes the date, with its answer ready to change. */
+      if ((params || [])[0] === 'recommended') {
+        const row = root.querySelector('.vrow[data-key="case-stem-recommended"]');
+        if (row) {
+          row.scrollIntoView({ block: 'center' });
+          const b = row.querySelector('[data-edit]');
+          if (b) b.focus({ preventScroll: true });
+        }
+      }
       const panel = root.querySelector('[data-case-panel]');
       const addBtn = root.querySelector('[data-case-add]');
       const fileInput = root.querySelector('[data-case-file]');
@@ -215,20 +284,26 @@
       function showType(pre) {
         howGroup.hidden = false;
         const t = howGroup.querySelector('[data-value="type"]');
-        if (t) { howGroup.querySelectorAll('[role="radio"]').forEach((r) => r.setAttribute('aria-checked', r === t ? 'true' : 'false')); }
+        if (t) {
+          howGroup.querySelectorAll('[role="radio"]').forEach((r) => {
+            r.setAttribute('aria-checked', r === t ? 'true' : 'false');
+            r.tabIndex = r === t ? 0 : -1;
+          });
+        }
         setStage(typeStage(pre), 'input');
       }
       function addCpt(employer, dates) {
+        clearTimeout(readTimer);
         App.state.caseCpt = (App.state.caseCpt || []).concat({ employer: employer, dates: dates });
         App.rerender();
         App.toast('Internship added');
       }
-      function onAnswer(key, value) {
+      function onAnswer(value) {
         App.state.caseAwarded = value;
         if (value === 'unsure') return;
         App.state.caseAwardedDemo = false;
         setTimeout(() => {
-          if (App.params && App.params.length) App.go('case'); else App.rerender();
+          if (App.params && App.params.length) App.go('case', { replace: true }); else App.rerender();
           App.toast('Saved');
         }, 320);
       }
@@ -256,8 +331,8 @@
           addCpt(employer, fmtRange(v('case-cpt-start'), v('case-cpt-end')) || 'Dates not added');
           return;
         }
-        const ans = t.closest('[data-answer]');
-        if (ans && ans.dataset.answer === 'awarded') onAnswer('awarded', ans.dataset.value);
+        const ans = t.closest('[data-answer="awarded"]');
+        if (ans) onAnswer(ans.dataset.value);
       });
 
       fileInput.addEventListener('change', () => {
@@ -267,6 +342,7 @@
         setStage(readingStage(file.name));
         clearTimeout(readTimer);
         readTimer = setTimeout(() => {
+          if (!stage.isConnected) return;
           found = Object.assign({}, SAMPLE_READ);
           setStage(foundStage(found), '[data-case-confirm]');
         }, 1200);

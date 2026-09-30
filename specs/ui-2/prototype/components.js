@@ -14,6 +14,14 @@
     if (typeof v === 'object' && '__html' in v) return v.__html;
     return String(v).replace(/[&<>"']/g, (c) => MAP[c]);
   }
+  /* Display text: escaped, and the hyphen in a form or status name (I-20,
+     I-983, E-Verify, F-1, H-1B) made non-breaking, so a phone never splits
+     it across two lines. Used for titles, metas and hero text; not for
+     attributes, fields or the email a student copies. */
+  function escText(v) {
+    if (v != null && typeof v === 'object' && '__html' in v) return v.__html;
+    return esc(v).replace(/\b([A-Z])-(?=[0-9A-Z])/g, '$1\u2011');
+  }
   function raw(html) { return { __html: html == null ? '' : String(html) }; }
   function cls() { return Array.prototype.filter.call(arguments, Boolean).join(' '); }
   function attrs(obj) {
@@ -67,6 +75,7 @@
   const NAV = [
     { name: 'home', label: 'Home', tab: 'Home', icon: 'home' },
     { name: 'next', label: "What's next", tab: 'Next', icon: 'next' },
+    { name: 'applications', label: 'Applications' },
     { name: 'timeline', label: 'Timeline', tab: 'Timeline', icon: 'timeline' },
     { name: 'checklists', label: 'Checklists' },
     { name: 'documents', label: 'Documents', tab: 'Documents', icon: 'documents' },
@@ -78,9 +87,13 @@
     { name: 'feedback', label: 'Feedback' },
   ];
 
+  /* wordmark({ large?, link = true }) : link false draws it as plain text,
+     for onboarding, where the logo must not be a way out of setup. */
   function wordmark(o) {
     const p = o || {};
-    return '<a class="' + cls('wordmark', p.large && 'is-large') + '" href="#/home" aria-label="Duly, home">Duly<span class="dot">.</span></a>';
+    const c = cls('wordmark', p.large && 'is-large');
+    const inner = 'Duly<span class="dot" aria-hidden="true">.</span>';
+    return p.link === false ? '<span class="' + c + '">' + inner + '</span>' : '<a class="' + c + '" href="#/home">' + inner + '</a>';
   }
 
   function navItem(p) {
@@ -95,7 +108,7 @@
     })).join('') + '</nav>';
   }
   function sidebar(p) {
-    return '<aside class="sidebar" aria-label="Duly">' + wordmark() +
+    return '<aside class="sidebar" aria-label="Main">' + wordmark() +
       navList(NAV, p.route, p.waiting) +
       '<div class="sidebar-spacer"></div>' +
       navList(NAV_SECONDARY, p.route, p.waiting) +
@@ -121,17 +134,34 @@
   /* Headers and hero                                                   */
   /* ---------------------------------------------------------------- */
 
-  /* pageHeader({ title, subline?, meta?, eyebrow?, aside? (html), progress? {pct, label} }) */
+  /* backLink({ label?, href? }) : the quiet link at the top of a drilled-in
+     page (an update, an application, a document). It points to the page the
+     student came from (App.from, kept by the router); label and href are the
+     fallback when the page was opened directly. app.js turns a click into
+     history.back() when that returns to the same place, so the scroll
+     position comes back too. */
+  function backLink(p) {
+    const o = p || {};
+    const from = window.App && window.App.from;
+    const href = from && from.hash ? from.hash : (o.href || '#/home');
+    const label = from && from.title ? from.title : (o.label || 'Home');
+    return '<a class="back-link" href="' + esc(href) + '" data-back>' + icon('chevron', { cls: 'back-chev' }) + '<span>' + esc(label) + '</span></a>';
+  }
+
+  /* pageHeader({ title, subline?, meta?, eyebrow?, aside? (html), progress? {pct, label},
+                  back? (true or backLink props) })
+     subline: the one line saying what the page does for the student. */
   function pageHeader(p) {
     const hasMeta = !!p.meta;
-    return '<header class="page-header">' +
-      (p.eyebrow ? '<p class="ph-eyebrow t-eyebrow-hero">' + esc(p.eyebrow) + '</p>' : '') +
+    return (p.back ? backLink(p.back === true ? null : p.back) : '') +
+      '<header class="page-header">' +
+      (p.eyebrow ? '<p class="ph-eyebrow t-eyebrow-hero">' + escText(p.eyebrow) + '</p>' : '') +
       '<div class="' + cls('ph-top', hasMeta && 'has-meta') + '">' +
-      '<h1 class="t-title" tabindex="-1">' + esc(p.title) + '</h1>' +
+      '<h1 class="t-big" tabindex="-1">' + escText(p.title) + '</h1>' +
       (hasMeta ? '<span class="ph-meta">' + esc(p.meta) + '</span>' : '') +
       (p.aside ? '<div class="ph-aside">' + p.aside + '</div>' : '') +
       '</div>' +
-      (p.subline ? '<p class="ph-sub t-lead">' + esc(p.subline) + '</p>' : '') +
+      (p.subline ? '<p class="ph-sub t-lead">' + escText(p.subline) + '</p>' : '') +
       (p.progress ? progress(p.progress) : '') +
       '</header>';
   }
@@ -144,11 +174,12 @@
      e.g. 'Checked today, 6:00 AM'. */
   function hero(p) {
     const iconHtml = p.icon === null ? '' : shield({ halo: p.halo });
-    return (p.date ? dateLine(p.date) : '') +
+    return (p.back ? backLink(p.back === true ? null : p.back) : '') +
+      (p.date ? dateLine(p.date) : '') +
       '<section class="hero" aria-labelledby="hero-title">' +
       (p.eyebrow ? '<p class="hero-eyebrow">' + iconHtml + '<span class="t-eyebrow-hero">' + esc(p.eyebrow) + '</span></p>' : '') +
-      '<h1 class="hero-title t-hero" id="hero-title" tabindex="-1">' + esc(p.title) + '</h1>' +
-      (p.subline ? '<p class="hero-sub t-lead"><span>' + esc(p.subline) + '</span>' + (p.source ? source(p.source, { inline: true }) : '') + '</p>' : '') +
+      '<h1 class="hero-title t-big" id="hero-title" tabindex="-1">' + escText(p.title) + '</h1>' +
+      (p.subline ? '<p class="hero-sub t-lead"><span>' + escText(p.subline) + '</span>' + (p.source ? source(p.source, { inline: true }) : '') + '</p>' : '') +
       (p.meta ? '<p class="hero-meta">' + esc(p.meta) + '</p>' : '') +
       (p.actions ? '<div class="hero-actions">' + p.actions + '</div>' : '') +
       '</section>';
@@ -231,8 +262,8 @@
     ].join('');
     const inner = (p.lead ? '<span class="row-lead">' + p.lead + '</span>' : '') +
       '<span class="row-text">' +
-      '<span class="row-title">' + (p.nowTag ? nowTag() : '') + esc(p.title) + '</span>' +
-      (p.meta ? '<span class="' + cls('row-meta', p.metaAct && 'is-act') + '">' + esc(p.meta) + '</span>' : '') +
+      '<span class="row-title">' + (p.nowTag ? nowTag() : '') + escText(p.title) + '</span>' +
+      (p.meta ? '<span class="' + cls('row-meta', p.metaAct && 'is-act') + '">' + escText(p.meta) + '</span>' : '') +
       (p.below || '') +
       '</span>' +
       (trail ? '<span class="row-trail">' + trail + '</span>' : '');
@@ -253,7 +284,7 @@
   /* disclosure({ text?: string|string[], content? (html), actions? (html), link? {label, href} }) */
   function disclosure(p) {
     const paras = p.text == null ? [] : (Array.isArray(p.text) ? p.text : [p.text]);
-    return paras.map((t) => '<p>' + esc(t) + '</p>').join('') +
+    return paras.map((t) => '<p>' + escText(t) + '</p>').join('') +
       (p.content || '') +
       (p.actions ? '<div class="btn-group">' + p.actions + '</div>' : '') +
       (p.link ? '<a class="disc-link"' + attrs(hrefAttrs(p.link.href)) + '>' + esc(p.link.label) + '</a>' : '');
@@ -298,17 +329,29 @@
      source mark when cautionSource is given. below: extra html under the
      meta (e.g. C.unknown). onDone: html shown only while the task is
      checked; app.js shows and hides it when the checkbox changes. */
+  /* task(... also:
+       school?     true: a quiet "Your school" mark beside the title
+       updated?    { date, href }: a rule change touched this step, "Updated Sep 30"
+       waitingOn?  { key, title, done }: a Before school step. Shows
+                   "Waiting on: <title>" until that step is done; app.js hides
+                   and shows it in place when the school step is checked.
+       afterOf?    { key, done }: an After school step. The row stays hidden
+                   until the federal step <key> is done; app.js reveals it in place. */
   function task(p) {
     const openLink = p.open ? '<a class="task-open"' + attrs(hrefAttrs(p.open.href)) + '>' + esc(p.open.label) + '</a>' : '';
-    const below = (p.caution ? '<span class="caution">' + esc(p.caution) + (p.cautionSource ? source(p.cautionSource, { inline: true }) : '') + '</span>' : '') +
+    const w = p.waitingOn;
+    const below = (w ? '<span class="task-waiting" data-waits="' + esc(w.key) + '"' + (w.done ? ' hidden' : '') + '>Waiting on: ' + esc(w.title) + '</span>' : '') +
+      (p.caution ? '<span class="caution">' + escText(p.caution) + (p.cautionSource ? source(p.cautionSource, { inline: true }) : '') + '</span>' : '') +
       (p.below ? '<span class="task-below">' + p.below + '</span>' : '') +
       (p.onDone ? '<span class="task-on-done" data-on-done' + (p.done ? '' : ' hidden') + '>' + p.onDone + '</span>' : '') +
       (p.action ? '<span class="task-action">' + p.action + '</span>' : '');
-    return '<div class="' + cls('item task', p.done && 'is-done') + '" data-key="' + esc(p.key || '') + '"><div class="row is-static">' +
+    const marks = (p.school ? schoolMark() : '') + (p.updated ? updatedMark(p.updated) : '');
+    const after = p.afterOf ? ' data-after="' + esc(p.afterOf.key) + '"' + (p.afterOf.done ? '' : ' hidden') : '';
+    return '<div class="' + cls('item task', p.done && 'is-done', p.school && 'is-school') + '" data-key="' + esc(p.key || '') + '"' + after + '><div class="row is-static">' +
       checkbox({ checked: p.done, key: p.key, label: p.title }) +
-      '<span class="row-text"><span class="row-title">' + esc(p.title) + '</span>' +
-      '<span class="row-meta" data-meta="' + esc(p.meta || '') + '"' + (p.doneMeta ? ' data-done-meta="' + esc(p.doneMeta) + '"' : '') + '>' +
-      esc(p.done && p.doneMeta ? p.doneMeta : p.meta) + '</span>' + below + '</span>' +
+      '<span class="row-text"><span class="row-title">' + escText(p.title) + (marks ? ' <span class="marks">' + marks + '</span>' : '') + '</span>' +
+      '<span class="row-meta" data-meta="' + escText(p.meta || '') + '"' + (p.doneMeta ? ' data-done-meta="' + escText(p.doneMeta) + '"' : '') + '>' +
+      escText(p.done && p.doneMeta ? p.doneMeta : p.meta) + '</span>' + below + '</span>' +
       ((openLink || p.source) ? '<span class="row-trail">' + openLink + (p.source ? source(p.source) : '') + '</span>' : '') +
       '</div></div>';
   }
@@ -317,8 +360,8 @@
      within 10 days". A plain row with no checkbox, since it is never done. */
   function ongoing(p) {
     return '<div class="item ongoing"' + (p.key ? ' data-key="' + esc(p.key) + '"' : '') + '><div class="row is-static">' +
-      '<span class="row-text"><span class="row-title">' + esc(p.title) + '</span>' +
-      (p.meta ? '<span class="row-meta">' + esc(p.meta) + '</span>' : '') + '</span>' +
+      '<span class="row-text"><span class="row-title">' + escText(p.title) + '</span>' +
+      (p.meta ? '<span class="row-meta">' + escText(p.meta) + '</span>' : '') + '</span>' +
       (p.source ? '<span class="row-trail">' + source(p.source) + '</span>' : '') +
       '</div></div>';
   }
@@ -350,7 +393,7 @@
       '<span class="row-title">' + esc(p.title) + '</span>' +
       (p.meta ? '<span class="row-meta">' + esc(p.meta) + '</span>' : '') +
       '<span class="ask-actions">' + choices + unsure + '</span>' +
-      '<span class="ask-note" data-ask-note' + (p.note ? '' : ' hidden') + '>' + esc(p.note || 'Duly will ask again later.') + '</span>' +
+      '<span class="ask-note" data-ask-note' + (p.note ? '' : ' hidden') + '>' + esc(p.note || "You'll be asked again later.") + '</span>' +
       '</span></div></div>';
   }
 
@@ -486,7 +529,7 @@
   /* choices({ key, options: [{ value, title, meta? }], selected?, notSure? (true or meta text), layout: 'stack'|'pair'|'row', cols?, label? }) */
   function choices(p) {
     const opts = (p.options || []).slice();
-    if (p.notSure) opts.push({ value: 'unsure', title: "I'm not sure", meta: typeof p.notSure === 'string' ? p.notSure : 'Duly will ask again later' });
+    if (p.notSure) opts.push({ value: 'unsure', title: "I'm not sure", meta: typeof p.notSure === 'string' ? p.notSure : "You'll be asked again later" });
     const layout = p.layout || 'stack';
     const style = layout === 'row' ? ' style="--cols:' + (p.cols || opts.length) + '"' : '';
     return '<div class="' + cls('choices', layout === 'pair' && 'is-pair', layout === 'row' && 'is-row') + '" role="radiogroup" data-choices="' + esc(p.key) + '"' +
@@ -553,7 +596,7 @@
   function popover(rule, id) {
     const nameId = id + '-name';
     const counted = rule.counted && rule.counted.length
-      ? '<div class="pop-counted"><h3>How Duly counted</h3>' + rule.counted.map((c) => '<p>' + esc(c) + '</p>').join('') + '</div>' : '';
+      ? '<div class="pop-counted"><h3>How it was counted</h3>' + rule.counted.map((c) => '<p>' + esc(c) + '</p>').join('') + '</div>' : '';
     const quoteLong = rule.quote && rule.quote.length > 220;
     return '<div class="pop" id="' + id + '" role="dialog" aria-labelledby="' + nameId + '" tabindex="-1">' +
       '<p class="t-eyebrow">The rule</p>' +
@@ -591,13 +634,177 @@
       '<dl class="email-fields" style="margin:0"><div><dt>To</dt><dd>' + esc(p.to) + '</dd></div>' +
       '<div><dt>Subject</dt><dd data-subject>' + esc(p.subject) + '</dd></div></dl>' +
       '<div class="email-body" id="' + id + '" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Email text">' + body + '</div>' +
-      '<p class="email-foot">' + esc(p.foot || 'Edit anything before you send. Duly never sends it for you.') + '</p>' +
+      '<p class="email-foot">' + esc(p.foot || 'Edit anything before you send it. You send it yourself.') + '</p>' +
       '</section>';
     /* Under the panel the buttons follow the one placement rule: the quiet
        extra (Open in Mail) on the left, Copy on the right. */
     const actions = below ? '<div class="btn-row email-actions">' + (p.extra || '') + copyBtn + '</div>' : '';
     return panel + actions;
   }
+
+  /* emailDraft({ key, to, subject, paragraphs, questions?, signoff?, foot?, step?, openLabel?,
+                  primary?, today? })
+     The DSO email as a step, not a panel stuck open (Note 4). Four states, kept in
+     App.state['draft:' + key] and switched in place by app.js:
+       closed  one button, openLabel ('Write the email to your DSO')
+       open    the editable email, then Close, Open in Mail and Copy email
+       left    after Copy or Open in Mail: "Email sent?" Mark done, Reopen the draft
+       done    "Email sent Sep 30." Reopen the draft
+     step: a task key ('school:su-stem-request'). Mark done also checks that task.
+     primary: Copy is the screen's one filled button while the draft is open.
+     Edits to the text are kept in App.state['draftHtml:' + key]. */
+  function emailDraft(p) {
+    const st = (window.App && window.App.state) || {};
+    const key = p.key || 'dso';
+    const state = st['draft:' + key] || 'closed';
+    const saved = st['draftHtml:' + key];
+    const today = p.today || (window.DULY_SAMPLE ? window.DULY_SAMPLE.today.short.replace(/, \d{4}$/, '') : '');
+    let panel = email(Object.assign({}, p, { head: false, copyBelow: false, extra: null }));
+    if (saved) panel = panel.replace(/(<div class="email-body"[^>]*>)[\s\S]*?(<\/div><p class="email-foot">)/, '$1' + saved + '$2');
+    const act = (a, label, kind, extra) => '<button type="button" class="' + cls('btn', kind) + '" data-draft-act="' + a + '"' + (extra || '') + '>' + esc(label) + '</button>';
+    return '<div class="draft" data-draft="' + esc(key) + '" data-state="' + esc(state) + '"' + (p.step ? ' data-draft-step="' + esc(p.step) + '"' : '') + '>' +
+      '<div class="draft-part" data-part="closed">' + act('open', p.openLabel || 'Write the email to your DSO', 'btn-pill', ' aria-expanded="false"') + '</div>' +
+      '<div class="draft-part" data-part="open">' + panel +
+      '<div class="btn-row draft-actions">' +
+      act('close', 'Close', 'btn-text is-quiet') +
+      act('mail', 'Open in Mail', 'btn-text') +
+      act('copy', 'Copy email', p.primary ? 'btn-primary' : 'btn-pill') +
+      '</div></div>' +
+      '<div class="draft-part" data-part="left"><p class="draft-line">Email sent?</p><div class="btn-group">' +
+      act('done', 'Mark done', 'btn-pill') + act('open', 'Reopen the draft', 'btn-text') + '</div></div>' +
+      '<div class="draft-part" data-part="done"><div class="btn-group"><p class="draft-line">Email sent ' + esc(today) + '.</p>' +
+      act('open', 'Reopen the draft', 'btn-text is-quiet') + '</div></div>' +
+      '</div>';
+  }
+
+  /* schoolMark() : the quiet "Your school" mark on every school step. */
+  function schoolMark() { return '<span class="mark">Your school</span>'; }
+  /* updatedMark({ date, href? }) : "Updated Sep 30" on a step a rule change touched. */
+  function updatedMark(u) {
+    const text = 'Updated ' + (u.date || '');
+    return u.href ? '<a class="mark is-updated" href="' + esc(u.href) + '">' + esc(text) + '</a>'
+      : '<span class="mark is-updated">' + esc(text) + '</span>';
+  }
+
+  /* rulesLine(rules = DULY_SAMPLE.rules) : one visible quiet line on every
+     screen that shows federal steps (What's next, Checklists, Timeline):
+     "Worked out from the current rules · Rules checked Sep 30". The steps are
+     live, not a saved draft (Note 11): they are recomputed from the rule pack
+     whenever an approved change lands. The date links to Updates, where each
+     change is explained. No tooltip: it has to read the same on a phone. */
+  function rulesLine(r) {
+    const rules = r || (window.DULY_SAMPLE && window.DULY_SAMPLE.rules) || {};
+    return '<p class="rules-line t-meta"><span>' + esc(rules.short || 'Worked out from the current rules') + '</span> · ' +
+      '<a class="link is-quiet" href="' + esc(rules.href || '#/updates') + '">' + esc(rules.checked || 'Rules checked') + '</a></p>';
+  }
+
+  /* schoolStep(entry) : one school step, from an App.steps() entry of type 'school'
+     (or a DULY_SAMPLE.schoolSteps item). A task with the "Your school" mark; its
+     link opens the school's page, a missing link is one tap to add, and a step with
+     draft: 'dso' carries the DSO email draft (pass email: DULY_SAMPLE.email). */
+  function schoolStep(entry, o) {
+    const opt = o || {};
+    const s = entry.step || entry;
+    const key = entry.key || ('school:' + s.id);
+    const needLink = !s.link && s.addLink;
+    return task({
+      key: key, title: s.title, meta: s.meta, done: entry.done != null ? entry.done : !!s.done,
+      school: true,
+      open: s.link ? { label: s.link.label || 'Open', href: s.link.href } : null,
+      below: needLink ? '<span class="unknown"><button type="button" class="link" data-school-link="' + esc(s.id) + '">' + esc(s.addLink.action) + '</button> ' + esc(s.addLink.rest || '') + '</span>' +
+        '<span class="school-link-form" data-school-link-form="' + esc(s.id) + '" hidden>' +
+        '<input class="input" type="url" inputmode="url" placeholder="Paste the link to your school\'s form" aria-label="Link to your school\'s form">' +
+        '<button type="button" class="btn btn-pill" data-school-link-save="' + esc(s.id) + '">Save link</button></span>' : null,
+      afterOf: entry.afterOf || null,
+      action: s.draft && opt.email ? emailDraft(Object.assign({}, opt.email, { step: key, primary: opt.primary })) : (opt.action || null),
+    });
+  }
+
+  /* addSchoolStep({ path, federal: [{ key, title }], kinds = DULY_SAMPLE.schoolStepKinds })
+     "Add your school's step" under any checklist. Opens in place: a title, quick-add
+     kinds, an optional link, and where it goes (Before, Alongside or After one of
+     the federal steps). app.js saves it to DULY_SAMPLE.schoolSteps, emits
+     duly:change { kind: 'school-step', key: 'add', value: step } and redraws the
+     page in place. */
+  function addSchoolStep(p) {
+    const kinds = p.kinds || (window.DULY_SAMPLE && window.DULY_SAMPLE.schoolStepKinds) || [];
+    const fed = p.federal || [];
+    const id = uid('sa');
+    return '<div class="school-add" data-school-add-wrap="' + esc(p.path || '') + '">' +
+      '<button type="button" class="btn btn-text" data-school-add="open" aria-expanded="false" aria-controls="' + id + '">Add your school\'s step</button>' +
+      '<div class="school-form" id="' + id + '" hidden>' +
+      '<p class="t-meta">Your school may ask for its own steps. Add one and it stays with this checklist.</p>' +
+      chips({ key: 'schoolStep:kind', label: 'Kind of step', items: kinds.map((k) => ({ value: k.key, label: k.label })) }) +
+      '<div class="fields">' +
+      field({ label: 'Step', key: 'schoolStep:title', placeholder: 'Send the STEM OPT request form' }) +
+      field({ label: 'Link, if there is one', key: 'schoolStep:link', type: 'url', inputmode: 'url', placeholder: 'https://' }) +
+      '<div class="field"><p class="field-label">Where it goes</p>' +
+      choices({ key: 'schoolStep:placement', layout: 'row', cols: 3, label: 'Where it goes', selected: 'before', options: [
+        { value: 'before', title: 'Before' }, { value: 'alongside', title: 'Alongside' }, { value: 'after', title: 'After' },
+      ] }) + '</div>' +
+      '<div class="field"><label class="field-label" for="' + id + '-f">Which step</label>' +
+      '<select class="select" id="' + id + '-f" data-field="schoolStep:federal">' +
+      fed.map((f) => '<option value="' + esc(f.key) + '">' + esc(f.title) + '</option>').join('') + '</select></div>' +
+      '</div>' +
+      buttonRow({
+        back: '<button type="button" class="btn btn-text is-quiet" data-school-add="cancel">Cancel</button>',
+        primary: '<button type="button" class="btn btn-pill" data-school-add="save">Add step</button>',
+      }) +
+      '</div></div>';
+  }
+
+  /* affectsFor(item, intent = App.stemIntent()) : the "does this affect you"
+     answer for this student, { short, line, todo }. The one place for Home,
+     Updates and the update's own page, so the three never disagree. The fee
+     answer follows the STEM OPT choice: after a No, it is a plain No with
+     nothing to do. */
+  function affectsFor(item, intent) {
+    const a = item && item.affects && typeof item.affects === 'object' ? item.affects : { short: item && item.affects, line: '' };
+    const want = intent !== undefined ? intent : (window.App && window.App.stemIntent ? window.App.stemIntent() : null);
+    const b = (a.byIntent && want && a.byIntent[want]) || {};
+    return { short: b.short || a.short || '', line: b.line || a.line || '', todo: b.todo || (item && item.todo) || '' };
+  }
+  /* The first sentence of "anything to do", for a row. */
+  function todoShort(t) {
+    if (!t) return '';
+    return String(t).split(/\.\s/)[0].replace(/\.$/, '');
+  }
+  /* updateRow(item, { meta? }) : an update or news row for Home and Updates.
+     item is a DULY_SAMPLE.updates.items entry. It opens the item's own page
+     and says inline, in one formatter for both screens:
+       Affects you: Not yet · Nothing now
+       Your Form I-765 step was updated Sep 30   (when the change touched a step)
+     The second line is the moment that shows the steps move with the rules:
+     the student sees it where she already looks, without opening anything.
+     The "Affects you:" prefix is dropped when the answer already says "you". */
+  function updateRow(item, o) {
+    const id = item.id || item.key;
+    const ans = affectsFor(item);
+    const short = ans.short;
+    const affects = short ? (/\byou\b/i.test(short) ? short : 'Affects you: ' + short) : '';
+    const line = [affects, todoShort(ans.todo)].filter(Boolean).join(' · ');
+    const changed = item.changed || [];
+    const changedLine = changed.length === 1
+      ? (changed[0].short || '1 step in your checklist') + ' was updated ' + (changed[0].date || '')
+      : changed.length ? changed.length + ' steps in your checklist were updated ' + (changed[0].date || '') : '';
+    return row({
+      key: id, title: item.title, meta: (o && o.meta != null) ? o.meta : item.meta, href: item.href || ('#/updates/' + id),
+      below: (line ? '<span class="row-affects">' + escText(line) + '</span>' : '') +
+        (changedLine ? '<span class="row-affects is-changed">' + escText(changedLine) + '</span>' : ''),
+    });
+  }
+
+  /* applicationRow(app) : one application, from DULY_SAMPLE.applications.items.
+     Opens #/applications/<id>. Status is always shown with its "as of" date. */
+  function applicationRow(a) {
+    return row({
+      key: a.id, title: a.title,
+      meta: (a.receipt ? a.receipt + ' · ' : '') + statusLine(a),
+      href: '#/applications/' + a.id,
+    });
+  }
+  /* statusLine(app) : "Approved, as of Dec 20, 2025" */
+  function statusLine(a) { return a.status + (a.asOf ? ', as of ' + a.asOf : ''); }
 
   /* note({ title, text?, source?, actions? (html), icon = 'shield' }) : inline finding, e.g. STEM detected */
   function note(p) {
@@ -610,11 +817,13 @@
 
   function caution(text) { return '<p class="caution">' + esc(text) + '</p>'; }
 
-  /* dates({ points: [{ date, label, source?, end? }], today? { label, pct } }) */
+  /* dates({ points: [{ date, label, source?, end?, today? }], today? { label, pct } })
+     A point with today: true is today as its own first point, drawn as a
+     small quiet dot, so it never sits over a dated milestone. */
   function dates(p) {
     const today = p.today ? '<span class="dates-today" style="left:' + Number(p.today.pct) + '%"><span>' + esc(p.today.label) + '</span><i></i></span>' : '';
     return '<div class="' + cls('dates', p.today && 'has-today') + '" style="--n:' + p.points.length + '">' + today +
-      p.points.map((d) => '<div class="' + cls('date-pt', d.end && 'is-end') + '">' +
+      p.points.map((d) => '<div class="' + cls('date-pt', d.end && 'is-end', d.today && 'is-today') + '">' +
         '<span class="dp-date">' + esc(d.date) + '</span><span class="dp-label">' + esc(d.label) + '</span>' +
         (d.source ? source(d.source) : '') + '</div>').join('') + '</div>';
   }
@@ -655,7 +864,7 @@
 
   /* onboarding({ steps? (html from C.steps), title, why?, content? (html), notSure? (html), back? (html), primary? (html) }) */
   function onboarding(p) {
-    return '<div class="onb">' + wordmark({ large: true }) + (p.steps || '') +
+    return '<div class="onb">' + wordmark({ large: true, link: false }) + (p.steps || '') +
       '<div class="onb-body">' +
       pageHeader({ title: p.title, subline: p.why }) +
       (p.content ? '<div class="onb-content">' + p.content + '</div>' : '') +
@@ -668,14 +877,16 @@
     esc, raw, cls, attrs, uid, icon,
     NAV, NAV_SECONDARY,
     wordmark, navItem, sidebar, topbar, menuSheet, tabbar,
-    pageHeader, dateLine, hero, shield, metrics, bar, progress,
+    backLink, pageHeader, dateLine, hero, shield, metrics, bar, progress,
     section, list, row, disclosure, valueRow, settingRow,
     checkbox, task, ongoing, doneGroup, phaseMark, nowTag,
     ask, waiting, unknown, empty,
     button, buttonRow, btnGroup, link, danger,
     field, textarea, dateField, dateRange, choices, chips, segment, toggle, select,
     source, getRule, popover,
-    email, note, caution, dates, tracker, found, footer,
+    email, emailDraft, schoolMark, updatedMark, rulesLine, schoolStep, addSchoolStep,
+    escText, affectsFor, todoShort, updateRow, applicationRow, statusLine,
+    note, caution, dates, tracker, found, footer,
     steps, onboarding,
   };
 })();

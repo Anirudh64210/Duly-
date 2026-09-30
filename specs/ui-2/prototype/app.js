@@ -3,14 +3,33 @@
      window.SCREENS.home = {
        title: 'Home',
        bare?: true,                 // no sidebar (onboarding)
+       paramsInPlace?: true,        // a change of params on this screen (e.g. a
+                                    // chip that switches a view) swaps in place,
+                                    // keeping the scroll, instead of a page change
        render(data, params) -> html,
        mount?(root, data, params),  // wire screen-specific behaviour
      };
    Routes are #/<name>[/<param>...]; params arrive as an array of strings.
+
+   How pages move (Note 1):
+   - The shell (sidebar, top bar, tab bar) is drawn once. A page change swaps
+     only the content column (<main id="main">), with a quiet 120ms crossfade
+     and no slide. The current nav item moves at once.
+   - The rise stagger plays only the first time the shell is drawn.
+   - App.rerender() redraws the column in place: no fade, same scroll, the
+     same disclosures open, focus kept. Checkboxes, answers, disclosures and
+     the email draft change the DOM directly and never redraw.
+   - Back and Forward bring back the scroll position and open rows; a new
+     page starts at the top. App.from is the page the student came from,
+     used by C.backLink().
+   The root passed to mount() is a fresh element on every render, so
+   listeners added to it never pile up.
+
    Shared behaviour is wired here once, by data attributes, and every change
    is announced as a 'duly:change' event on document:
      detail = { kind, key, value, el }
-     kind: 'task' | 'choice' | 'answer' | 'toggle' | 'edit' | 'field' | 'confirm' | 'step' */
+     kind: 'task' | 'choice' | 'answer' | 'toggle' | 'edit' | 'field' | 'confirm'
+           | 'step' | 'draft' | 'school-step' | 'document' */
 
 window.SCREENS = window.SCREENS || {};
 
@@ -23,17 +42,18 @@ window.SCREENS = window.SCREENS || {};
     state: {},
     route: null,
     params: [],
+    from: null,
     go: go,
-    rerender: () => render(false),
+    rerender: () => render('inplace'),
     toast: toast,
     confetti: confetti,
+    complete: complete,
     closePopover: closePopover,
     emit: emit,
   };
   window.App = App;
 
-  /* The STEM OPT intent, shared by every screen: null, 'yes', 'no' or 'unsure'.
-     The question itself is asked only on What's next. */
+  /* The STEM OPT intent, shared by every screen: null, 'yes', 'no' or 'unsure'. */
   function stemIntent() {
     const v = 'stemIntent' in App.state && App.state.stemIntent != null ? App.state.stemIntent : data.stem.intent;
     if (v == null || v === '') return null;
@@ -68,8 +88,61 @@ window.SCREENS = window.SCREENS || {};
   }
   App.waitingIn = waitingIn;
 
+  /* ---------------- steps: federal plus the student's school steps ---------------- */
+
+  /* Is a task done? App.state wins over the data. School step keys are
+     'school:<id>'. */
+  function isDone(key, fallback) {
+    const v = App.state['task:' + key];
+    if (v != null) return !!v;
+    if (fallback != null) return !!fallback;
+    if (String(key).indexOf('school:') === 0) {
+      const s = findSchoolStep(String(key).slice(7));
+      return !!(s && s.done);
+    }
+    return false;
+  }
+  App.isDone = isDone;
+
+  function findSchoolStep(id) { return (data.schoolSteps || []).filter((s) => s.id === id)[0] || null; }
+  App.findSchoolStep = findSchoolStep;
+  App.findUpdate = (id) => ((data.updates && data.updates.items) || []).filter((u) => u.id === id)[0] || null;
+  App.findApplication = (id) => ((data.applications && data.applications.items) || []).filter((a) => a.id === id)[0] || null;
+
+  /* App.steps(path) : the checklist for a path ('stem', 'opt', ...) in order,
+     the standard federal steps with the student's school steps placed against
+     them. Each entry:
+       { type: 'federal', key, step, done, waitingOn? { key, title, done } }
+       { type: 'school',  key: 'school:<id>', step, done, placement, afterOf? { key, done } }
+     Render a federal entry with C.task({ ...entry.step, key, done, waitingOn })
+     and a school entry with C.schoolStep(entry, { email: data.email }). */
+  function steps(path) {
+    const fed = path === 'stem' ? data.stem.tasks : (((data.checklists || {})[path] || {}).steps || []);
+    const school = (data.schoolSteps || []).filter((s) => s.path === path);
+    const schoolEntry = (s) => ({ type: 'school', key: 'school:' + s.id, step: s, done: isDone('school:' + s.id, s.done), placement: s.placement });
+    const out = [];
+    fed.forEach((f) => {
+      const fDone = isDone(f.key, f.done);
+      const before = school.filter((s) => s.placement === 'before' && s.federal === f.key);
+      before.forEach((s) => out.push(schoolEntry(s)));
+      const blocking = before.filter((s) => !isDone('school:' + s.id, s.done))[0] || before[0];
+      out.push({
+        type: 'federal', key: f.key, step: f, done: fDone,
+        waitingOn: blocking ? { key: 'school:' + blocking.id, title: blocking.title, done: isDone('school:' + blocking.id, blocking.done) } : null,
+      });
+      school.filter((s) => s.placement === 'alongside' && s.federal === f.key).forEach((s) => out.push(schoolEntry(s)));
+      school.filter((s) => s.placement === 'after' && s.federal === f.key).forEach((s) => {
+        out.push(Object.assign(schoolEntry(s), { afterOf: { key: f.key, done: fDone } }));
+      });
+    });
+    school.filter((s) => !fed.some((f) => f.key === s.federal)).forEach((s) => out.push(schoolEntry(s)));
+    return out;
+  }
+  App.steps = steps;
+
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isPhone = () => window.matchMedia('(max-width: 640px)').matches;
+  const cssEsc = (v) => (window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, '\\$&'));
 
   /* ---------------- theme ---------------- */
   function readTheme() { try { return localStorage.getItem('duly-theme') || 'system'; } catch (e) { return 'system'; } }
@@ -88,44 +161,217 @@ window.SCREENS = window.SCREENS || {};
     const parts = h.split('/').filter(Boolean).map(decodeURIComponent);
     return { name: parts[0] || 'home', params: parts.slice(1) };
   }
-  function go(path) {
+
+  /* go(path, { replace?, inPlace? }) : replace swaps the current history
+     entry; inPlace keeps the scroll and skips the fade. */
+  let pending = null;
+  function go(path, opts) {
+    const o = opts || {};
     const target = path.charAt(0) === '#' ? path : '#/' + path.replace(/^\//, '');
-    if (location.hash === target) render(false); else location.hash = target;
+    if (location.hash === target) { render('inplace'); return; }
+    pending = o;
+    if (o.replace) location.replace(target); else location.hash = target;
   }
 
-  function render(animate) {
+  /* History entries: each gets a key and an index in history.state, so Back
+     and Forward find their scroll and open rows, and App.from is the entry
+     before this one. */
+  const session = Date.now().toString(36);
+  let seq = 0;
+  let curKey = null;
+  let curIdx = 0;
+  const entries = {};   /* idx -> { hash, title } */
+  const saved = {};     /* key -> snapshot */
+  try { history.scrollRestoration = 'manual'; } catch (e) { /* older browsers */ }
+
+  function stamp(replace) {
+    const st = history.state;
+    if (st && st.dulyKey && !replace) {
+      curKey = st.dulyKey;
+      curIdx = st.idx || 0;
+      return saved[curKey] || null;
+    }
+    if (!replace && curKey != null) curIdx += 1;
+    curKey = session + '-' + (seq += 1);
+    try { history.replaceState({ dulyKey: curKey, idx: curIdx }, '', location.href); } catch (e) { /* file:// */ }
+    Object.keys(entries).forEach((i) => { if (Number(i) > curIdx) delete entries[i]; });
+    return null;
+  }
+
+  function onNavigate() {
+    const o = pending || {};
+    pending = null;
+    const root = document.getElementById('main');
+    if (curKey && root) saved[curKey] = snapshot(root);
+    const prevRoute = App.route;
+    const back = stamp(!!o.replace);
+    const r = parse();
+    const screen = window.SCREENS[r.name];
+    const quiet = o.inPlace || (screen && screen.paramsInPlace && r.name === prevRoute);
+    if (quiet) render('inplace');
+    else render('page', back);
+  }
+
+  let frame = null;    /* 'shell' | 'bare' */
+  let shellDrawn = false;
+
+  /* render(mode, restore?) : mode is 'launch', 'page' or 'inplace'. */
+  function render(mode, restore) {
     const r = parse();
     let screen = window.SCREENS[r.name];
     if (!screen) { r.name = 'home'; screen = window.SCREENS.home; }
+    const old = document.getElementById('main');
+    const keep = mode === 'inplace' && old ? snapshot(old) : null;
+
     App.route = r.name;
     App.params = r.params;
-    closePopover();
+    entries[curIdx] = { hash: location.hash || '#/home', title: titleOf(screen, r) };
+    const prev = entries[curIdx - 1];
+    App.from = prev && prev.hash !== entries[curIdx].hash ? prev : null;
+    closePopover(false);
     closeMenu();
 
+    const main = document.createElement('main');
+    main.id = 'main';
+    main.className = screen.bare ? 'bare' : 'col';
+    main.innerHTML = screen.render(data, r.params);
+
+    const motion = !reduced();
+    const want = screen.bare ? 'bare' : 'shell';
     const app = document.getElementById('app');
-    const body = screen ? screen.render(data, r.params) : '';
-    const enter = animate !== false && !reduced() ? ' is-entering' : '';
-
-    if (screen && screen.bare) {
-      app.innerHTML = '<main class="bare' + enter + '" id="main">' + body + '</main>';
-    } else {
-      const nav = { route: r.name, waiting: waitingIn() };
-      app.innerHTML =
-        '<div class="shell">' + C.sidebar(nav) +
-        '<div class="main">' + C.topbar({ date: phoneDate() }) +
-        '<main class="col' + enter + '" id="main">' + body + '</main>' +
-        '</div></div>' + C.tabbar(nav);
+    if (want !== frame) {
+      if (want === 'bare') {
+        app.innerHTML = '';
+        app.appendChild(main);
+        if (motion && mode !== 'launch') main.classList.add('is-fading');
+        else if (motion) main.classList.add('is-entering');
+      } else {
+        const nav = { route: r.name, waiting: waitingIn() };
+        app.innerHTML = '<div class="shell">' + C.sidebar(nav) +
+          '<div class="main" id="main-wrap">' + C.topbar({ date: phoneDate() }) + '</div></div>' + C.tabbar(nav);
+        document.getElementById('main-wrap').appendChild(main);
+        /* The rise plays once, the first time the shell appears. */
+        if (motion) main.classList.add(shellDrawn ? 'is-fading' : 'is-entering');
+        shellDrawn = true;
+      }
+      frame = want;
+    } else if (old) {
+      if (mode === 'page' && motion) {
+        old.parentNode.insertBefore(main, old);
+        leave(old);
+        main.classList.add('is-fading');
+      } else {
+        old.parentNode.replaceChild(main, old);
+      }
     }
-    document.title = (screen ? screen.title + ' · ' : '') + 'Duly';
+    updateNav();
+    /* Onboarding pages carry the product name once, in the wordmark. */
+    document.title = screen.bare ? screen.title : screen.title + ' · Duly';
 
-    const root = document.getElementById('main');
-    if (animate !== false) {
-      window.scrollTo(0, 0);
-      const h1 = root.querySelector('h1');
+    if (mode === 'inplace') {
+      if (keep) reopen(main, keep, true);
+      window.scrollTo(0, keep ? keep.y : window.scrollY);
+    } else {
+      if (restore) reopen(main, restore, false);
+      window.scrollTo(0, restore ? restore.y : 0);
+      const h1 = main.querySelector('h1');
       if (h1 && App.booted) h1.focus({ preventScroll: true });
     }
-    if (screen && typeof screen.mount === 'function') screen.mount(root, data, r.params);
+    if (typeof screen.mount === 'function') screen.mount(main, data, r.params);
+    if (keep && keep.focus) refocus(main, keep.focus);
   }
+
+  function titleOf(screen, r) {
+    if (typeof screen.titleFor === 'function') {
+      try { return screen.titleFor(r.params, data) || screen.title; } catch (e) { return screen.title; }
+    }
+    return screen.title;
+  }
+
+  /* The old column fades out where it stood while the new one fades in. */
+  function leave(old) {
+    const box = old.getBoundingClientRect();
+    old.removeAttribute('id');
+    old.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+    old.setAttribute('aria-hidden', 'true');
+    old.inert = true;
+    old.classList.remove('is-entering', 'is-fading');
+    old.classList.add('is-leaving-page');
+    Object.assign(old.style, {
+      top: box.top + 'px', left: box.left + 'px', width: box.width + 'px', height: box.height + 'px',
+    });
+    document.body.appendChild(old);
+    setTimeout(() => old.remove(), 180);
+  }
+
+  /* What a redraw must keep: scroll, open rows, focus. */
+  function snapshot(root) {
+    return {
+      y: window.scrollY,
+      open: Array.from(root.querySelectorAll('.item.is-open[data-key]')).map((el) => el.dataset.key),
+      focus: describeFocus(root),
+    };
+  }
+  function reopen(root, snap, still) {
+    (snap.open || []).forEach((k) => {
+      const item = root.querySelector('.item[data-key="' + cssEsc(k) + '"]');
+      if (!item || item.classList.contains('is-open')) return;
+      const list = item.parentElement;
+      if (list && list.hasAttribute('data-accordion') && list.querySelector(':scope > .item.is-open')) return;
+      setOpen(item, true);
+      const d = item.querySelector(':scope > .disc');
+      if (d) d.style.animation = 'none';
+    });
+    if (still) root.querySelectorAll('.bar > i').forEach((i) => { i.style.animation = 'none'; });
+  }
+  const FOCUS_ATTRS = ['data-task', 'data-field', 'data-draft-act', 'data-school-add', 'data-edit', 'data-next', 'data-action', 'data-toggle', 'data-copy'];
+  function describeFocus(root) {
+    const el = document.activeElement;
+    if (!el || el === document.body || !root.contains(el)) return null;
+    if (el.id && !/^(c|f|d|sh|disc|email|pop|src|sa|danger)-\d+(-\w+)?$/.test(el.id)) return '#' + cssEsc(el.id);
+    if (el.matches('[data-answer]')) return '[data-answer="' + cssEsc(el.dataset.answer) + '"][data-value="' + cssEsc(el.dataset.value || '') + '"]';
+    if (el.matches('[role="radio"][data-value]')) {
+      const g = el.closest('[data-choices]');
+      if (g) return '[data-choices="' + cssEsc(g.dataset.choices) + '"] [data-value="' + cssEsc(el.dataset.value) + '"]';
+    }
+    for (let i = 0; i < FOCUS_ATTRS.length; i++) {
+      const a = FOCUS_ATTRS[i];
+      if (el.hasAttribute(a)) {
+        const scope = el.closest('[data-key]');
+        return (scope ? '[data-key="' + cssEsc(scope.dataset.key) + '"] ' : '') + '[' + a + '="' + cssEsc(el.getAttribute(a)) + '"]';
+      }
+    }
+    if (el.matches('[data-disclosure]')) {
+      const item = el.closest('.item[data-key]');
+      if (item) return '.item[data-key="' + cssEsc(item.dataset.key) + '"] > [data-disclosure]';
+    }
+    if (el.matches('a[href]')) return 'a[href="' + cssEsc(el.getAttribute('href')) + '"]';
+    return null;
+  }
+  function refocus(root, sel) {
+    if (document.activeElement && document.activeElement !== document.body && root.contains(document.activeElement)) return;
+    let el = null;
+    try { el = root.querySelector(sel); } catch (e) { el = null; }
+    if (el && !el.closest('[hidden]')) el.focus({ preventScroll: true });
+  }
+
+  /* The nav is never redrawn: the current item and the waiting dots move in place. */
+  function updateNav() {
+    const waiting = waitingIn();
+    document.querySelectorAll('.nav-item').forEach((a) => {
+      const name = (a.getAttribute('href') || '').replace(/^#\//, '');
+      if (name === App.route) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      const dot = a.querySelector('.wait-dot');
+      const on = waiting.indexOf(name) !== -1;
+      if (on && !dot) a.insertAdjacentHTML('beforeend', '<span class="wait-dot" role="img" aria-label="Something here is waiting for you"></span>');
+      if (!on && dot) dot.remove();
+    });
+    document.querySelectorAll('.tabbar .tab').forEach((a) => {
+      const name = (a.getAttribute('href') || '').replace(/^#\//, '');
+      if (name === App.route) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  App.updateNav = updateNav;
 
   function phoneDate() {
     const t = data.today.long.split(', ');
@@ -135,6 +381,7 @@ window.SCREENS = window.SCREENS || {};
   /* ---------------- events ---------------- */
   function emit(kind, key, value, el) {
     document.dispatchEvent(new CustomEvent('duly:change', { detail: { kind: kind, key: key, value: value, el: el } }));
+    updateNav();
   }
 
   document.addEventListener('click', onClick);
@@ -163,6 +410,12 @@ window.SCREENS = window.SCREENS || {};
     if (t.closest('[data-menu]')) { toggleMenu(); return; }
     if (menuOpen && !t.closest('.menu')) closeMenu();
 
+    /* back link: return through history when it leads to the same place */
+    const back = t.closest('[data-back]');
+    if (back && !e.metaKey && !e.ctrlKey && App.from && back.getAttribute('href') === App.from.hash) {
+      e.preventDefault(); history.back(); return;
+    }
+
     /* disclosure rows: one open per list */
     const head = t.closest('[data-disclosure]');
     if (head && !t.closest('a, button, input, textarea, select, [contenteditable]')) { toggleDisclosure(head); return; }
@@ -170,6 +423,18 @@ window.SCREENS = window.SCREENS || {};
     /* checkbox tasks */
     const check = t.closest('[role="checkbox"][data-task]');
     if (check) { setTask(check, check.getAttribute('aria-checked') !== 'true'); return; }
+
+    /* the email draft */
+    const dact = t.closest('[data-draft-act]');
+    if (dact) { draftAction(dact); return; }
+
+    /* your school's steps */
+    const sa = t.closest('[data-school-add]');
+    if (sa) { schoolAdd(sa); return; }
+    const sl = t.closest('[data-school-link]');
+    if (sl) { schoolLinkOpen(sl); return; }
+    const sls = t.closest('[data-school-link-save]');
+    if (sls) { schoolLinkSave(sls); return; }
 
     /* radios: choice cards and chips */
     const radio = t.closest('[role="radiogroup"] [role="radio"]');
@@ -208,7 +473,7 @@ window.SCREENS = window.SCREENS || {};
     const confirmed = t.closest('[data-confirmed]');
     if (confirmed) { emit('confirm', confirmed.dataset.confirmed, true, confirmed); return; }
 
-    /* copy email */
+    /* copy email (the older always-open panel, C.email) */
     const copy = t.closest('[data-copy]');
     if (copy) { copyEmail(copy); return; }
 
@@ -247,6 +512,9 @@ window.SCREENS = window.SCREENS || {};
     if (e.key === 'Enter' && t.closest && t.closest('.vrow.is-editing') && t.matches('input')) {
       e.preventDefault(); finishEdit(t.closest('.vrow'), true); return;
     }
+    if (e.key === 'Enter' && t.closest && t.closest('[data-school-link-form]') && t.matches('input')) {
+      e.preventDefault(); schoolLinkSave(t.closest('[data-school-link-form]').querySelector('[data-school-link-save]')); return;
+    }
     /* arrow keys inside a radiogroup */
     if (/^Arrow(Up|Down|Left|Right)$/.test(e.key) && t.matches && t.matches('[role="radio"]')) {
       const group = t.closest('[role="radiogroup"]');
@@ -265,7 +533,10 @@ window.SCREENS = window.SCREENS || {};
 
   function onInput(e) {
     const el = e.target;
+    const body = el.closest && el.closest('.draft .email-body');
+    if (body) { App.state['draftHtml:' + body.closest('[data-draft]').dataset.draft] = body.innerHTML; return; }
     if (!el.dataset || !el.dataset.field) return;
+    if (el.dataset.auto) el.dataset.auto = '';
     App.state[el.dataset.field] = el.value;
     emit('field', el.dataset.field, el.value, el);
   }
@@ -279,6 +550,14 @@ window.SCREENS = window.SCREENS || {};
       Array.from(listEl.children).forEach((sib) => { if (sib !== item) setOpen(sib, false); });
     }
     setOpen(item, open);
+    /* The drop plays only here, when the student opens the row. */
+    const disc = item.querySelector(':scope > .disc');
+    if (open && disc && !reduced()) {
+      disc.classList.remove('is-dropping');
+      void disc.offsetWidth;
+      disc.classList.add('is-dropping');
+      disc.addEventListener('animationend', () => disc.classList.remove('is-dropping'), { once: true });
+    }
   }
   function setOpen(item, open) {
     const head = item.querySelector(':scope > [data-disclosure]');
@@ -306,16 +585,33 @@ window.SCREENS = window.SCREENS || {};
       if (onDone) onDone.hidden = !on;
     }
     App.state['task:' + key] = on;
+    if (key.indexOf('school:') === 0) {
+      const s = findSchoolStep(key.slice(7));
+      if (s) s.done = on;
+    }
+    /* Other copies of the same task on the page, and the steps that wait on it. */
+    document.querySelectorAll('[role="checkbox"][data-task="' + cssEsc(key) + '"]').forEach((c) => {
+      if (c === check) return;
+      c.setAttribute('aria-checked', on ? 'true' : 'false');
+      const it = c.closest('.task'); if (it) it.classList.toggle('is-done', on);
+    });
+    document.querySelectorAll('[data-waits="' + cssEsc(key) + '"]').forEach((el) => { el.hidden = on; });
+    document.querySelectorAll('[data-after="' + cssEsc(key) + '"]').forEach((el) => { el.hidden = !on; });
     updateProgress(check.closest('main'));
     emit('task', key, on, check);
   }
+  App.setTask = (key, on) => {
+    const c = document.querySelector('[role="checkbox"][data-task="' + cssEsc(key) + '"]');
+    if (c) setTask(c, on);
+    else { App.state['task:' + key] = on; emit('task', key, on, null); }
+  };
   function shortToday() { return data.today.short.replace(/, \d{4}$/, ''); }
   function updateProgress(root) {
     if (!root) return;
     const prog = root.querySelector('[data-progress]');
     if (!prog) return;
-    const checks = root.querySelectorAll('[role="checkbox"][data-task]');
-    const done = Array.from(checks).filter((c) => c.getAttribute('aria-checked') === 'true').length;
+    const checks = Array.from(root.querySelectorAll('[role="checkbox"][data-task]')).filter((c) => !c.closest('[hidden]'));
+    const done = checks.filter((c) => c.getAttribute('aria-checked') === 'true').length;
     const pct = checks.length ? Math.round((done / checks.length) * 100) : 0;
     const fill = prog.querySelector('.bar > i');
     if (fill) fill.style.width = pct + '%';
@@ -326,7 +622,10 @@ window.SCREENS = window.SCREENS || {};
       const suffix = label.dataset.suffix || '';
       label.textContent = done + ' of ' + checks.length + ' done' + (suffix ? ' · ' + suffix : '');
     }
-    if (checks.length && done === checks.length) confetti(prog);
+    if (checks.length && done === checks.length) {
+      const key = 'tasks:' + checks.map((c) => c.dataset.task).sort().join(',');
+      complete(key, prog);
+    }
   }
   App.updateProgress = updateProgress;
 
@@ -341,6 +640,7 @@ window.SCREENS = window.SCREENS || {};
     const key = group.dataset.choices;
     App.state[key] = radio.dataset.value;
     if (key === 'theme') applyTheme(radio.dataset.value);
+    if (key === 'schoolStep:kind') prefillSchoolTitle(radio);
     emit('choice', key, radio.dataset.value, radio);
   }
 
@@ -362,6 +662,129 @@ window.SCREENS = window.SCREENS || {};
       }
     }
     emit('answer', key, value, btn);
+  }
+
+  /* ---------------- the email draft (C.emailDraft) ---------------- */
+  function setDraft(box, state) {
+    const key = box.dataset.draft;
+    App.state['draft:' + key] = state;
+    document.querySelectorAll('[data-draft="' + cssEsc(key) + '"]').forEach((b) => { b.dataset.state = state; });
+    const part = box.querySelector('[data-part="' + state + '"]');
+    const target = part && (state === 'open' ? part.querySelector('.email-body') : part.querySelector('button'));
+    if (target) target.focus({ preventScroll: true });
+    if (state === 'open' && part && part.scrollIntoView && !reduced()) part.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    emit('draft', key, state, box);
+  }
+  function draftText(box) {
+    const subject = (box.querySelector('[data-subject]') || {}).textContent || '';
+    const body = box.querySelector('.email-body');
+    return { subject: subject, body: body ? body.innerText.trim() : '' };
+  }
+  function draftAction(btn) {
+    const box = btn.closest('[data-draft]');
+    if (!box) return;
+    const act = btn.dataset.draftAct;
+    if (act === 'open') { setDraft(box, 'open'); return; }
+    if (act === 'close') { setDraft(box, App.state['draftLeft:' + box.dataset.draft] ? 'left' : 'closed'); return; }
+    if (act === 'copy' || act === 'mail') {
+      const m = draftText(box);
+      App.state['draftLeft:' + box.dataset.draft] = true;
+      if (act === 'copy') {
+        const text = (m.subject ? 'Subject: ' + m.subject + '\n\n' : '') + m.body;
+        const done = () => toast('Email copied');
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done); else done();
+        setDraft(box, 'left');
+      } else {
+        setDraft(box, 'left');
+        window.location.href = 'mailto:?subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body);
+      }
+      return;
+    }
+    if (act === 'done') {
+      const step = box.dataset.draftStep;
+      setDraft(box, 'done');
+      if (step && !isDone(step)) App.setTask(step, true);
+      toast('Marked done');
+    }
+  }
+
+  /* ---------------- your school's steps (C.addSchoolStep, C.schoolStep) ---------------- */
+  function schoolAdd(btn) {
+    const wrap = btn.closest('[data-school-add-wrap]');
+    if (!wrap) return;
+    const form = wrap.querySelector('.school-form');
+    const opener = wrap.querySelector('[data-school-add="open"]');
+    const what = btn.dataset.schoolAdd;
+    if (what === 'open') {
+      form.hidden = false; opener.hidden = true; opener.setAttribute('aria-expanded', 'true');
+      const first = form.querySelector('[role="radio"]'); if (first) first.focus();
+      return;
+    }
+    if (what === 'cancel') {
+      form.hidden = true; opener.hidden = false; opener.setAttribute('aria-expanded', 'false'); opener.focus();
+      return;
+    }
+    if (what === 'save') {
+      const val = (sel) => { const el = form.querySelector(sel); return el ? String(el.value || '').trim() : ''; };
+      const title = val('[data-field="schoolStep:title"]');
+      if (!title) {
+        const input = form.querySelector('[data-field="schoolStep:title"]');
+        if (input) { input.setAttribute('aria-invalid', 'true'); input.focus(); }
+        toast('Name the step first');
+        return;
+      }
+      const kind = form.querySelector('[data-choices="schoolStep:kind"] [aria-checked="true"]');
+      const place = form.querySelector('[data-choices="schoolStep:placement"] [aria-checked="true"]');
+      const link = val('[data-field="schoolStep:link"]');
+      const step = {
+        id: 'mine-' + ((data.schoolSteps || []).length + 1) + '-' + Date.now().toString(36),
+        path: wrap.dataset.schoolAddWrap || 'stem',
+        title: title,
+        kind: kind ? kind.dataset.value : 'other',
+        meta: kind ? (data.schoolStepKinds.filter((k) => k.key === kind.dataset.value)[0] || {}).label || '' : '',
+        link: link ? { label: 'Open', href: /^https?:/.test(link) ? link : 'https://' + link } : null,
+        placement: place ? place.dataset.value : 'before',
+        federal: val('[data-field="schoolStep:federal"]'),
+        done: false, addedBy: 'you', added: shortToday(), saved: true,
+      };
+      if (step.meta === 'Something else') step.meta = '';
+      data.schoolSteps = data.schoolSteps || [];
+      data.schoolSteps.push(step);
+      ['schoolStep:title', 'schoolStep:link', 'schoolStep:kind', 'schoolStep:placement', 'schoolStep:federal'].forEach((k) => { delete App.state[k]; });
+      emit('school-step', 'add', step, btn);
+      render('inplace');
+      toast('Step added');
+    }
+  }
+  function prefillSchoolTitle(radio) {
+    const form = radio.closest('.school-form');
+    const input = form && form.querySelector('[data-field="schoolStep:title"]');
+    if (!input) return;
+    if (input.value.trim() && input.dataset.auto !== '1') return;
+    const kind = radio.dataset.value;
+    input.value = kind === 'other' ? '' : radio.textContent.trim();
+    input.dataset.auto = kind === 'other' ? '' : '1';
+    App.state['schoolStep:title'] = input.value;
+  }
+  function schoolLinkOpen(btn) {
+    const id = btn.dataset.schoolLink;
+    const form = document.querySelector('[data-school-link-form="' + cssEsc(id) + '"]');
+    if (!form) return;
+    btn.closest('.unknown').hidden = true;
+    form.hidden = false;
+    const input = form.querySelector('input'); if (input) input.focus();
+  }
+  function schoolLinkSave(btn) {
+    if (!btn) return;
+    const id = btn.dataset.schoolLinkSave;
+    const form = btn.closest('[data-school-link-form]');
+    const v = form ? form.querySelector('input').value.trim() : '';
+    if (!v) { toast('Paste the link first'); return; }
+    const s = findSchoolStep(id);
+    if (s) s.link = { label: 'Open', href: /^https?:/.test(v) ? v : 'https://' + v };
+    emit('school-step', 'link', s, btn);
+    render('inplace');
+    toast('Link saved');
   }
 
   /* ---------------- edit in place ---------------- */
@@ -482,7 +905,7 @@ window.SCREENS = window.SCREENS || {};
     menuOpen = false;
   }
 
-  /* ---------------- copy email ---------------- */
+  /* ---------------- copy email (C.email) ---------------- */
   function copyEmail(btn) {
     const body = document.getElementById(btn.dataset.copy);
     /* Copy may sit in the panel's header or under it (email({ copyBelow: true })). */
@@ -516,27 +939,73 @@ window.SCREENS = window.SCREENS || {};
     toastTimer = setTimeout(() => el.remove(), o.action ? 6000 : 3000);
   }
 
-  /* ---------------- confetti ---------------- */
-  function confetti(anchor) {
+  /* ---------------- completions and confetti ---------------- */
+
+  /* complete(key, anchor?) : records that something was completed. Returns true
+     and fires confetti from anchor only the first time; a key already in
+     DULY_SAMPLE.completions (things done before, a finished checklist
+     reopened) never fires. */
+  function complete(key, anchor) {
+    data.completions = data.completions || [];
+    if (!key || data.completions.indexOf(key) !== -1) return false;
+    data.completions.push(key);
+    if (anchor) burst(anchor);
+    return true;
+  }
+
+  /* confetti(anchor, key?) : kept for existing callers. Without a key, the key
+     is route:param:row, e.g. 'checklists:cpt' or 'timeline:cpt', so opening
+     something already done never fires. Pass a key for anything new. */
+  function confetti(anchor, key) {
+    let k = key;
+    if (!k) {
+      const row = anchor && anchor.closest && anchor.closest('[data-key]');
+      k = [App.route, App.params && App.params[0], row && row.dataset.key].filter(Boolean).join(':');
+    }
+    return complete(k, anchor);
+  }
+
+  /* Soft arcs in the canvas colours, about 1.2 to 1.6 seconds. */
+  function burst(anchor) {
     if (reduced() || !anchor || !anchor.getBoundingClientRect || !Element.prototype.animate) return;
     const r = anchor.getBoundingClientRect();
     const cs = getComputedStyle(document.documentElement);
-    const colors = [cs.getPropertyValue('--accent').trim(), cs.getPropertyValue('--accent-soft').trim()];
-    for (let i = 0; i < 8; i++) {
+    const colors = ['--accent', '--accent-soft', '--accent-muted', '--tint-border', '--caution']
+      .map((v) => cs.getPropertyValue(v).trim()).filter(Boolean);
+    /* On a phone the burst starts from the middle of the screen; on a wider
+       window from the start of the anchor. The fan is then narrowed to the
+       room on either side, so no arc leaves the window. */
+    const ox = isPhone() ? innerWidth / 2
+      : Math.min(Math.max(r.left + Math.min(r.width, 240) / 2, 120), innerWidth - 120);
+    const oy = r.top + Math.min(r.height, 24) / 2;
+    const room = Math.min(ox, innerWidth - ox) - 24;
+    const spread = Math.max(0.3, Math.min(1, room / 240));
+    const n = 18;
+    for (let i = 0; i < n; i++) {
       const p = document.createElement('span');
-      p.className = 'confetti';
-      p.style.left = (r.left + Math.min(r.width, 180) / 2) + 'px';
-      p.style.top = (r.top) + 'px';
-      p.style.background = colors[i % 2];
+      p.className = 'confetti' + (i % 3 === 0 ? ' is-strip' : '');
+      p.style.left = ox + 'px';
+      p.style.top = oy + 'px';
+      p.style.background = colors[i % colors.length];
       document.body.appendChild(p);
-      const angle = (Math.PI * (i + 0.5)) / 8;
-      const dx = Math.cos(angle) * (48 + (i % 3) * 16) * (i % 2 ? 1 : -1);
-      const dy = -Math.sin(angle) * 48 - 16;
-      p.animate([
-        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
-        { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (i * 45) + 'deg)', opacity: 1, offset: 0.6 },
-        { transform: 'translate(' + dx * 1.2 + 'px,' + (dy + 48) + 'px) rotate(' + (i * 90) + 'deg)', opacity: 0 },
-      ], { duration: 680, easing: 'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => p.remove();
+      const a = -Math.PI / 2 + ((i / (n - 1)) - 0.5) * Math.PI * 0.8 + (Math.random() - 0.5) * 0.2;
+      const v = 150 + Math.random() * 90;
+      const vx = Math.cos(a) * v * spread;
+      const vy = Math.sin(a) * v;
+      const g = 360 + Math.random() * 80;
+      const spin = (Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 220);
+      const frames = [];
+      for (let k = 0; k <= 12; k++) {
+        const t = k / 12;
+        const x = vx * t + Math.sin(t * Math.PI * 2 + i) * 6;
+        const y = vy * t + g * t * t * 0.5;
+        frames.push({
+          transform: 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (i * 23 + spin * t).toFixed(0) + 'deg)',
+          opacity: t < 0.7 ? 1 : Math.max(0, 1 - (t - 0.7) / 0.3),
+          offset: t,
+        });
+      }
+      p.animate(frames, { duration: 1200 + Math.random() * 400, easing: 'cubic-bezier(.25,.6,.35,1)' }).onfinish = () => p.remove();
     }
   }
 
@@ -544,7 +1013,7 @@ window.SCREENS = window.SCREENS || {};
   function addDocument(file) {
     App.state.pendingDocument = file ? file.name : null;
     emit('document', 'add', file ? file.name : null, null);
-    if (App.route !== 'documents') go('#/documents/add'); else render(false);
+    if (App.route !== 'documents') go('#/documents/add'); else render('inplace');
   }
   App.addDocument = addDocument;
   window.addEventListener('dragover', (e) => { e.preventDefault(); });
@@ -555,10 +1024,11 @@ window.SCREENS = window.SCREENS || {};
   });
 
   /* ---------------- boot ---------------- */
-  window.addEventListener('hashchange', () => render(true));
+  window.addEventListener('hashchange', onNavigate);
   window.addEventListener('DOMContentLoaded', () => {
     if (!location.hash) history.replaceState(null, '', '#/home');
-    render(true);
+    stamp(true);
+    render('launch');
     App.booted = true;
   });
 })();

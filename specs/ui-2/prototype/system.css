@@ -61,30 +61,22 @@
   /* radii */
   --r-nav: 7px; --r-field: 10px; --r-card: 12px; --r-sheet: 16px; --r-pill: 99px; --r-tag: 5px;
 
-  /* Type scale. Seven text levels and nothing else:
-       hero 40/600, title 32/600, sub 20/600 (section-sized headline),
-       row 15/500, body 15/400, meta 13/400, eyebrow 11/600 caps.
-     Every row-level title (.row-title, .choice-title, .note-title,
-     .pop-name, .dp-date, a value in a value row, a Documents group) is the
-     row level: 15/500. Nothing is 600 at 15 or 13.
-     The metric figure (Home's three numbers, days and dates alike) is the
-     one number size, 28/600, stepping down on smaller screens.
-     Controls (buttons, chips, links, field labels) sit at the row or meta
-     size. The wordmark is the logo, not a text level.
+  /* Type scale. Three sizes and nothing else (Note 5):
+       big     32/600  page title and hero, the one h1 on a screen
+       medium  20/600  only when needed: a figure on Home, a headline inside a page
+       small   15      everything else. Row titles are small/500, body small/400,
+                       meta small/400 in a lighter ink, and the eyebrow is the small
+                       size set in small caps (600).
+     Weights are 400, 500 and 600 only. Line heights follow the size:
+     big 1.15, medium 28, small 24 (20 for a meta line).
      Screens never set a font-size or a font-weight in their own <style>. */
   --font: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --t-hero: 40px;
-  --t-title: 32px;
-  --t-sub: 20px;
-  --t-row: 15px;
-  --t-body: 15px;
-  --t-meta: 13px;
-  --t-eyebrow: 11px;
-  --t-figure: 28px;
-  --t-wordmark: 17px;
-  --lh-row: 24px;
+  --t-big: 32px;
+  --t-medium: 20px;
+  --t-small: 15px;
+  --lh-medium: 28px;
+  --lh-small: 24px;
   --lh-meta: 20px;
-  --lh-eyebrow: 16px;
 
   /* layout */
   --sidebar: 208px;
@@ -134,18 +126,11 @@
   }
 }
 
-/* Narrower columns: the metric figure steps down so a date such as
-   "Feb 13, 2027" stays on one line in its third of the column. */
-@media (max-width: 960px) {
-  :root { --t-figure: 24px; }
-}
-
-/* Phone type: the hero stays larger than the page title. */
+/* Phone type: the same three sizes, a step smaller. */
 @media (max-width: 640px) {
   :root {
-    --t-hero: 29px;
-    --t-title: 26px;
-    --t-figure: 22px;
+    --t-big: 26px;
+    --t-medium: 18px;
   }
 }
 
@@ -194,8 +179,8 @@
 html, body { margin: 0; overflow-x: clip; }
 body {
   font-family: var(--font);
-  font-size: var(--t-body);
-  line-height: var(--lh-row);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
   background: var(--ground);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -209,6 +194,9 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-hover); }
 :focus { outline: none; }
 :focus-visible { box-shadow: var(--focus-ring); border-radius: var(--r-nav); }
+/* Page titles take focus on a page change for screen readers, with no ring:
+   the hero stays pure type. */
+:is(h1, h2, h3)[tabindex="-1"]:focus-visible { box-shadow: none; }
 [hidden] { display: none !important; }
 .num { font-variant-numeric: tabular-nums; }
 .sr-only {
@@ -216,20 +204,28 @@ a:hover { color: var(--accent-hover); }
   clip: rect(0 0 0 0); white-space: nowrap;
 }
 
-/* Type roles. Hierarchy: hero, title, sub, eyebrow, row, body, meta.
-   .t-small and .t-micro are kept as aliases of body and meta. */
-.t-hero { font-size: var(--t-hero); font-weight: 600; line-height: 1.1; letter-spacing: -.02em; color: var(--ink); }
-.t-title { font-size: var(--t-title); font-weight: 600; line-height: 1.15; letter-spacing: -.02em; color: var(--ink); }
-.t-sub { font-size: var(--t-sub); font-weight: 600; line-height: 1.3; letter-spacing: -.01em; color: var(--ink); }
-.t-eyebrow-hero { font-size: var(--t-eyebrow); font-weight: 600; line-height: var(--lh-eyebrow); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
-.t-eyebrow { font-size: var(--t-eyebrow); font-weight: 600; line-height: var(--lh-eyebrow); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
-.t-row { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); }
-.t-body { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); max-width: 600px; }
-.t-lead { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-2); max-width: 600px; }
-.t-small { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); }
-.t-meta { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }
-.t-meta-act { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-2); overflow-wrap: anywhere; }
-.t-micro { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+/* Type roles: the three sizes.
+     .t-big     big: page title and hero
+     .t-medium  medium: only when needed
+     .t-small   small: body
+   Roles on the small size: .t-row (row title, 500), .t-body and .t-lead
+   (body), .t-meta (meta, lighter ink), .t-eyebrow (small caps) and
+   .t-eyebrow-hero (small caps in the accent). The older names .t-hero,
+   .t-title and .t-sub are the same as .t-big and .t-medium, and .t-micro
+   is .t-meta, so screens written before the change keep working. */
+.t-big, .t-hero, .t-title { font-size: var(--t-big); font-weight: 600; line-height: 1.15; letter-spacing: -.02em; color: var(--ink); }
+.t-medium, .t-sub { font-size: var(--t-medium); font-weight: 600; line-height: var(--lh-medium); letter-spacing: -.01em; color: var(--ink); }
+.t-eyebrow, .t-eyebrow-hero {
+  font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta);
+  font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--ink-3);
+}
+.t-eyebrow-hero { color: var(--accent); }
+.t-row { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink); }
+.t-small, .t-body { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }
+.t-body { max-width: 600px; }
+.t-lead { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); max-width: 600px; }
+.t-meta, .t-micro { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }
+.t-meta-act { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); overflow-wrap: anywhere; }
 .t-faint { color: var(--ink-4); }
 
 /* ------------------------------------------------------------------ */
@@ -248,8 +244,7 @@ a:hover { color: var(--accent-hover); }
 .sidebar .wordmark { padding: 0 var(--s-12); margin-bottom: var(--s-24); }
 .sidebar-spacer { flex: 1; min-height: var(--s-24); }
 
-.wordmark { font-size: var(--t-wordmark); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; color: var(--ink); }
-.wordmark.is-large { font-size: var(--t-sub); }
+.wordmark { font-size: var(--t-medium); font-weight: 600; line-height: var(--lh-medium); letter-spacing: -.01em; color: var(--ink); }
 .wordmark .dot { color: var(--accent); }
 a.wordmark:hover { color: var(--ink); }
 
@@ -259,7 +254,7 @@ a.wordmark:hover { color: var(--ink); }
   display: flex; align-items: center; gap: var(--s-8);
   min-height: 36px; padding: var(--s-8) var(--s-12);
   border-radius: var(--r-nav);
-  font-size: var(--t-row); line-height: var(--lh-meta); font-weight: 400;
+  font-size: var(--t-small); line-height: var(--lh-meta); font-weight: 400;
   color: var(--ink-2);
   transition: background .16s ease;
 }
@@ -286,7 +281,7 @@ a.wordmark:hover { color: var(--ink); }
 
 .footer {
   margin-top: var(--gap-footer);
-  font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3);
+  font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3);
 }
 
 /* Top bar (tablet and phone) */
@@ -326,7 +321,7 @@ a.wordmark:hover { color: var(--ink); }
   flex: 0 0 25%; min-width: 0;
   display: flex; flex-direction: column; align-items: center; gap: var(--s-4);
   min-height: 44px;
-  font-size: var(--t-eyebrow); font-weight: 600; line-height: var(--lh-eyebrow);
+  font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta);
   color: var(--ink-3);
 }
 .tab[aria-current="page"], .tab[aria-current="page"]:hover { color: var(--accent); }
@@ -334,8 +329,8 @@ a.wordmark:hover { color: var(--ink); }
 
 /* Prototype note */
 .proto-note {
-  position: fixed; left: var(--s-12); bottom: var(--s-4); z-index: 5;
-  font-size: var(--t-meta); color: var(--ink-4);
+  position: fixed; right: var(--s-16); bottom: var(--s-4); z-index: 5;
+  font-size: var(--t-small); color: var(--ink-4);
   padding: var(--s-4) var(--s-12);
   pointer-events: none;
 }
@@ -373,7 +368,7 @@ a.wordmark:hover { color: var(--ink); }
 .page-header .ph-eyebrow { margin-bottom: var(--s-12); }
 .page-header .ph-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-16); }
 .page-header .ph-top > h1 { min-width: 0; }
-.page-header .ph-meta { flex: none; font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; }
+.page-header .ph-meta { flex: none; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; }
 .page-header .ph-meta.t-faint { color: var(--ink-4); }
 .page-header .ph-sub { margin-top: var(--s-8); }
 .page-header .ph-aside { flex: none; }
@@ -384,16 +379,16 @@ a.wordmark:hover { color: var(--ink); }
   .page-header .ph-top.has-meta .ph-meta { order: 3; margin-top: var(--s-4); }
 }
 
-.date-line { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); margin-bottom: var(--s-32); }
+.date-line { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); margin-bottom: var(--s-32); }
 
 /* The one hero per screen. It is the page title where it is used: a screen
-   with a hero has no pageHeader above it. Phone size comes from --t-hero. */
+   with a hero has no pageHeader above it. Phone size comes from --t-big. */
 .hero { display: flex; flex-direction: column; }
 .hero-eyebrow { display: flex; align-items: center; gap: var(--s-8); }
 .hero-title { margin-top: var(--s-12); }
 .hero-sub { margin-top: var(--s-12); display: block; }
 .hero-actions { margin-top: var(--s-24); display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); }
-.hero-meta { margin-top: var(--s-8); font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.hero-meta { margin-top: var(--s-8); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
 
 .shield { position: relative; width: 16px; height: 16px; flex: none; display: inline-block; color: var(--accent); }
 .shield svg { position: relative; display: block; }
@@ -415,9 +410,9 @@ a.wordmark:hover { color: var(--ink); }
 .metric-divider { width: 1px; flex: none; align-self: stretch; background: var(--hairline); }
 .metric .t-eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .metric-value-row { display: flex; align-items: baseline; gap: var(--s-8); flex-wrap: wrap; }
-.metric-value { font-size: var(--t-figure); font-weight: 600; line-height: 1.1; letter-spacing: -.01em; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.metric-unit { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.metric-add { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink-2); }
+.metric-value { font-size: var(--t-medium); font-weight: 600; line-height: var(--lh-medium); letter-spacing: -.01em; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.metric-unit { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.metric-add { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink-2); }
 .metric-add a { color: var(--accent); }
 @media (max-width: 640px) {
   .metrics { flex-wrap: wrap; }
@@ -431,11 +426,17 @@ a.wordmark:hover { color: var(--ink); }
 }
 
 .bar { height: 3px; border-radius: 2px; background: var(--track); overflow: hidden; }
-.bar > i { display: block; height: 100%; border-radius: 2px; background: var(--accent); animation: fillw 1.1s .5s var(--ease-rise) backwards; }
+.bar > i { display: block; height: 100%; border-radius: 2px; background: var(--accent); transition: width .32s var(--ease-rise); }
+/* The fill plays on first launch only. A page change shows the bar at its
+   value; a value that changes in place moves by the width transition. */
+.is-entering .bar > i { animation: fillw .9s .12s var(--ease-rise) backwards; }
 
 .progress { display: flex; align-items: center; gap: var(--s-16); }
 .progress .bar { width: 180px; flex: none; }
-@media (max-width: 359px) { .progress .bar { width: 120px; } }
+@media (max-width: 640px) {
+  .progress .bar { flex: 1 1 auto; width: auto; min-width: 64px; }
+  .progress [data-progress-label] { white-space: nowrap; }
+}
 
 /* ------------------------------------------------------------------ */
 /* 6. Sections and lists                                                */
@@ -447,7 +448,7 @@ a.wordmark:hover { color: var(--ink); }
   padding-bottom: var(--gap-section-head);
 }
 .section-head .sh-label { display: flex; align-items: center; gap: var(--s-8); min-width: 0; }
-.section-head a, .section-head .sh-link { font-size: var(--t-meta); font-weight: 600; flex: none; }
+.section-head a, .section-head .sh-link { font-size: var(--t-small); font-weight: 600; flex: none; }
 .section > .t-body, .section > .t-lead { margin-top: var(--s-8); }
 .section-body + .section-body { margin-top: var(--s-24); }
 
@@ -476,11 +477,11 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .row.is-static { cursor: default; }
 .row-lead { flex: none; display: flex; align-items: center; justify-content: center; width: 16px; }
 .row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.row-title { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); }
-.row-meta { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }
+.row-title { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink); }
+.row-meta { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }
 .row-meta.is-act { color: var(--ink-2); }
 .row-trail { flex: none; display: flex; align-items: center; gap: var(--s-12); }
-.row-value { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
+.row-value { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
 /* An action that only shows on hover or focus, e.g. "Open" on a document row. */
 .row-reveal { opacity: 0; transition: opacity .16s ease; }
 .row:hover .row-reveal, .row:focus-within .row-reveal, .row:focus-visible .row-reveal { opacity: 1; }
@@ -493,12 +494,14 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .disc {
   padding: 0 var(--s-12) var(--s-16);
   display: flex; flex-direction: column; gap: var(--s-8);
-  font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body);
-  animation: drop .28s ease-out;
+  font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body);
 }
+/* The drop plays only when the student opens a row (app.js adds is-dropping
+   in toggleDisclosure); a row that is open when a page draws stays still. */
+.disc.is-dropping { animation: drop .28s ease-out; }
 .item.has-lead > .disc { padding-left: calc(var(--s-12) + var(--s-32)); }
 .disc p { max-width: 600px; }
-.disc .disc-link { font-size: var(--t-meta); font-weight: 600; align-self: flex-start; }
+.disc .disc-link { font-size: var(--t-small); font-weight: 600; align-self: flex-start; }
 .disc .btn-group { margin-top: var(--s-8); }
 .disc .list { margin-top: var(--s-4); }
 .disc .item { margin: 0; }
@@ -507,9 +510,9 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
    left-aligned at 216px, with the source mark trailing the answer text.
    Same density everywhere, including inside disclosures. */
 .vrow > .row { min-height: 48px; padding-top: var(--s-12); padding-bottom: var(--s-12); align-items: baseline; }
-.vrow .v-label { flex: 0 0 200px; min-width: 0; font-size: var(--t-row); line-height: var(--lh-row); color: var(--ink-2); }
+.vrow .v-label { flex: 0 0 200px; min-width: 0; font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); }
 .vrow .v-cell { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--s-8); }
-.vrow .v-value { flex: 0 1 auto; min-width: 0; font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); text-align: left; overflow-wrap: anywhere; }
+.vrow .v-value { flex: 0 1 auto; min-width: 0; font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink); text-align: left; overflow-wrap: anywhere; }
 .vrow .v-value.num { font-variant-numeric: tabular-nums; }
 .vrow button.v-value { background: none; border: 0; padding: 0; cursor: text; border-radius: var(--r-nav); }
 .vrow button.v-value:hover { color: var(--accent); }
@@ -539,11 +542,11 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 /* ------------------------------------------------------------------ */
 
 .task > .row { align-items: flex-start; }
-.task .row-trail { min-height: var(--lh-row); }
+.task .row-trail { min-height: var(--lh-small); }
 /* Marks that sit beside a row title are centred on its first line. */
 .check {
   position: relative; flex: none;
-  width: 18px; height: 18px; margin-top: calc((var(--lh-row) - 18px) / 2); padding: 0;
+  width: 18px; height: 18px; margin-top: calc((var(--lh-small) - 18px) / 2); padding: 0;
   border-radius: 50%;
   border: 1.5px solid var(--chip-selected-border);
   background: var(--surface);
@@ -561,21 +564,21 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .task .caution { margin-top: var(--s-8); }
 .task .task-below, .task .task-on-done { margin-top: var(--s-8); }
 .task .task-action { margin-top: var(--s-12); }
-.task .task-open { font-size: var(--t-meta); font-weight: 600; }
+.task .task-open { font-size: var(--t-small); font-weight: 600; }
 
-.caution { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--caution); max-width: 600px; }
+.caution { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--caution); max-width: 600px; }
 /* An ongoing rule (e.g. report a change within 10 days): a plain row, no checkbox. */
 .ongoing > .row { align-items: flex-start; }
 
 .phase-mark { width: 16px; height: 16px; flex: none; border-radius: 50%; display: grid; place-items: center; }
-.task > .row > .row-lead, .item.has-lead > .row > .row-lead { align-self: flex-start; height: var(--lh-row); }
+.task > .row > .row-lead, .item.has-lead > .row > .row-lead { align-self: flex-start; height: var(--lh-small); }
 .phase-mark.is-done { background: var(--accent); color: var(--on-accent); }
 .phase-mark.is-now { border: 1.5px solid var(--accent); }
 .phase-mark.is-now::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 .phase-mark.is-next { border: 1.5px solid var(--accent-muted); }
 .now-tag {
   position: absolute; right: calc(100% + var(--s-12)); top: var(--s-16);
-  font-size: var(--t-eyebrow); font-weight: 600; letter-spacing: .1em; line-height: var(--lh-eyebrow);
+  font-size: var(--t-small); font-weight: 600; letter-spacing: .06em; font-variant-caps: all-small-caps; line-height: var(--lh-meta);
   padding: var(--s-4) var(--s-8); border-radius: var(--r-tag);
   background: var(--accent); color: var(--on-accent);
 }
@@ -594,7 +597,7 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .waiting-more { margin-top: var(--s-8); }
 .ask > .row { align-items: flex-start; cursor: default; }
 .ask-actions { margin-top: var(--s-12); display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); }
-.ask .ask-note { margin-top: var(--s-8); font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.ask .ask-note { margin-top: var(--s-8); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
 .item.is-leaving { opacity: 0; transition: opacity .28s ease; }
 
 .empty { margin-top: var(--s-32); display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-16); }
@@ -621,7 +624,7 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
   border-radius: var(--r-pill);
   border: 1.5px solid transparent;
   background: var(--accent); color: var(--on-accent);
-  font-size: var(--t-row); line-height: 1;
+  font-size: var(--t-small); line-height: 1;
 }
 .btn-primary:hover { background: var(--button-hover); color: var(--on-accent); }
 /* A disabled primary is waiting, not broken: an outline at reduced ink. */
@@ -634,18 +637,18 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
   border-radius: var(--r-pill);
   background: var(--surface); color: var(--ink);
   border: 1.5px solid var(--chip-border);
-  font-size: var(--t-row); font-weight: 500; line-height: 1;
+  font-size: var(--t-small); font-weight: 500; line-height: 1;
 }
 .btn-pill::after { content: ""; position: absolute; inset: -4px 0; }
 .btn-pill:hover { border-color: var(--chip-selected-border); color: var(--ink); }
 .btn-text {
   padding: var(--s-12) 0;
-  font-size: var(--t-row); line-height: var(--lh-meta); color: var(--accent);
+  font-size: var(--t-small); line-height: var(--lh-meta); color: var(--accent);
 }
 .btn-text:hover { color: var(--accent-hover); }
 .btn-text.is-quiet { color: var(--ink-3); }
 .btn-text.is-quiet:hover { color: var(--ink-2); }
-.btn-text.is-small { font-size: var(--t-meta); padding: var(--s-12) 0; }
+.btn-text.is-small { font-size: var(--t-small); padding: var(--s-12) 0; }
 .btn.is-full { width: 100%; }
 
 /* Where buttons go. One rule for the whole app, with no exceptions:
@@ -663,23 +666,23 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .danger-confirm > .btn-row { margin-top: 0; }
 .btn-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); }
 
-.link { font-size: var(--t-meta); font-weight: 600; color: var(--accent); background: none; border: 0; padding: 0; }
+.link { font-size: var(--t-small); font-weight: 600; color: var(--accent); background: none; border: 0; padding: 0; }
 .link:hover { color: var(--accent-hover); }
 .link.is-quiet { color: var(--ink-3); font-weight: 500; }
 .link.is-quiet:hover { color: var(--ink-2); }
-.unknown { font-size: var(--t-row); line-height: var(--lh-row); color: var(--ink-2); }
+.unknown { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); }
 .unknown a { font-weight: 500; }
 
 .danger-confirm { display: flex; flex-direction: column; gap: var(--s-12); }
-.danger-confirm p { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); }
+.danger-confirm p { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }
 
 .field { display: flex; flex-direction: column; min-width: 0; }
 .fields { display: flex; flex-direction: column; gap: var(--s-24); }
-.field-label { font-size: var(--t-meta); font-weight: 500; line-height: var(--lh-meta); color: var(--ink); margin-bottom: var(--s-8); }
+.field-label { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-meta); color: var(--ink); margin-bottom: var(--s-8); }
 .input {
   height: 44px; width: 100%;
   padding: 0 var(--s-16);
-  font-size: var(--t-body); line-height: 1.4;
+  font-size: var(--t-small); line-height: 1.4;
   background: var(--surface); color: var(--ink);
   border: 1.5px solid var(--control-border);
   border-radius: var(--r-field);
@@ -690,8 +693,8 @@ a.row:hover, .row[role="button"]:hover { background: var(--row-hover); color: in
 .input:hover { border-color: var(--control-border-hover); }
 .input:focus, .input:focus-visible { border-color: var(--accent); box-shadow: var(--focus-ring); border-radius: var(--r-field); }
 textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-16); line-height: 1.55; resize: vertical; display: block; }
-.field-help { margin-top: var(--s-8); font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
-.field-error { margin-top: var(--s-8); font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-2); display: flex; align-items: center; gap: var(--s-8); }
+.field-help { margin-top: var(--s-8); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
+.field-error { margin-top: var(--s-8); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); display: flex; align-items: center; gap: var(--s-8); }
 .field-error::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
 
 .suggest {
@@ -701,16 +704,16 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   padding: var(--s-4);
   display: flex; flex-direction: column;
 }
-.suggest button { text-align: left; background: none; border: 0; padding: var(--s-8) var(--s-12); border-radius: var(--r-nav); font-size: var(--t-row); }
+.suggest button { text-align: left; background: none; border: 0; padding: var(--s-8) var(--s-12); border-radius: var(--r-nav); font-size: var(--t-small); }
 .suggest button:hover, .suggest button[aria-selected="true"] { background: var(--row-hover); }
 
 .date-wrap { display: flex; align-items: baseline; gap: var(--s-16); flex-wrap: wrap; }
 .date-box { position: relative; width: 224px; max-width: 100%; flex: none; }
 .date-box .input { padding-right: calc(var(--s-16) + 16px + var(--s-8)); font-variant-numeric: tabular-nums; }
 .date-box svg { position: absolute; right: var(--s-16); top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
-.date-prov { margin-top: var(--s-8); display: flex; align-items: baseline; gap: var(--s-8); font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.date-prov { margin-top: var(--s-8); display: flex; align-items: baseline; gap: var(--s-8); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
 .date-range { display: flex; align-items: flex-end; gap: var(--s-12); flex-wrap: wrap; }
-.date-range .to { font-size: var(--t-meta); color: var(--ink-3); height: 44px; display: flex; align-items: center; }
+.date-range .to { font-size: var(--t-small); color: var(--ink-3); height: 44px; display: flex; align-items: center; }
 @media (max-width: 640px) {
   .date-box { width: 100%; flex: 1 1 100%; }
   .date-wrap { flex-direction: column; align-items: flex-start; gap: var(--s-8); }
@@ -733,8 +736,8 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .choice:active { transform: scale(.99); }
 .choice[aria-checked="true"] { border-color: var(--accent); }
 .choice-text { display: flex; flex-direction: column; min-width: 0; }
-.choice-title { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); }
-.choice-meta { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.choice-title { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); }
+.choice-meta { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
 .choice-mark { flex: none; width: 18px; height: 18px; color: var(--accent); opacity: 0; transition: opacity .16s ease; }
 .choice[aria-checked="true"] .choice-mark { opacity: 1; }
 .choices.is-row .choice { padding: var(--s-16); justify-content: center; text-align: center; }
@@ -755,7 +758,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   border-radius: var(--r-pill);
   border: 1.5px solid var(--chip-border);
   background: none; color: var(--ink);
-  font-size: var(--t-row); font-weight: 500; line-height: 1;
+  font-size: var(--t-small); font-weight: 500; line-height: 1;
   transition: background .16s ease, border-color .16s ease, transform .12s ease;
 }
 .chip:hover { border-color: var(--chip-selected-border); color: var(--ink); }
@@ -789,7 +792,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   border-radius: var(--r-field);
   border: 1.5px solid var(--chip-border);
   background: var(--surface); color: var(--ink);
-  font-size: var(--t-row);
+  font-size: var(--t-small);
 }
 .select:hover { border-color: var(--chip-selected-border); }
 
@@ -827,20 +830,20 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   display: flex; flex-direction: column; gap: var(--s-12);
   animation: drop .28s ease-out;
 }
-.pop-name { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); }
-.pop-plain { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); margin-top: calc(-1 * var(--s-8)); }
+.pop-name { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink); }
+.pop-plain { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); margin-top: calc(-1 * var(--s-8)); }
 .pop-quote {
-  font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-body);
+  font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-body);
   padding-left: var(--s-12); border-left: 2px solid var(--tint-border);
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
 }
 .pop-quote.is-all { display: block; }
 .pop-more { align-self: flex-start; margin-top: calc(-1 * var(--s-8)); }
 .pop-counted { display: flex; flex-direction: column; gap: var(--s-4); }
-.pop-counted h3 { font-size: var(--t-eyebrow); font-weight: 600; line-height: var(--lh-eyebrow); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
-.pop-counted p { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); }
+.pop-counted h3 { font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta); letter-spacing: .06em; font-variant-caps: all-small-caps; color: var(--ink-3); }
+.pop-counted p { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }
 .pop-foot { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-16); padding-top: var(--s-4); }
-.pop-foot a { font-size: var(--t-meta); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.pop-foot a { font-size: var(--t-small); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .pop-foot .t-micro { flex: none; }
 
 .scrim { position: fixed; inset: 0; z-index: 45; background: var(--scrim); animation: fade .2s ease-out; }
@@ -870,20 +873,20 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   display: flex; flex-direction: column; gap: var(--s-8);
   padding-bottom: var(--s-16); margin-bottom: var(--s-16);
   border-bottom: 1px solid var(--hairline-inner);
-  font-size: var(--t-meta); line-height: var(--lh-meta);
+  font-size: var(--t-small); line-height: var(--lh-meta);
 }
 .email-fields > div { display: flex; gap: var(--s-8); min-width: 0; }
 .email-fields dt { width: 64px; flex: none; color: var(--ink-3); }
 .email-fields dd { margin: 0; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
 .email-body {
-  font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body);
+  font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body);
   max-width: 600px;
   display: flex; flex-direction: column; gap: var(--s-16);
   border-radius: var(--r-nav);
 }
 .email-body:focus-visible { box-shadow: var(--focus-ring); }
 .email-body ol { list-style: decimal; padding-left: var(--s-24); display: flex; flex-direction: column; gap: var(--s-4); }
-.email-foot { margin-top: var(--s-16); font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.email-foot { margin-top: var(--s-16); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
 /* email({ copyBelow: true }): the panel has no header row; Copy sits under it. */
 .email-actions { margin-top: var(--s-16); }
 @media (max-width: 640px) {
@@ -894,10 +897,10 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 
 .note { display: flex; align-items: flex-start; gap: var(--s-8); }
 .note-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s-4); }
-.note-title { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); }
-.note-line { font-size: var(--t-body); line-height: var(--lh-row); color: var(--ink-body); }
+.note-title { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink); }
+.note-line { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }
 .note .btn-group { margin-top: var(--s-8); }
-.note > .shield { margin-top: calc((var(--lh-row) - 16px) / 2); }
+.note > .shield { margin-top: calc((var(--lh-small) - 16px) / 2); }
 
 /* Dates strip, built on the 8 grid: a 16px row of dots with the track
    centred through it, then the dates 16 below. The first point starts at
@@ -906,7 +909,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .dates::before { content: ""; position: absolute; left: 0; right: 0; top: var(--s-8); height: 2px; transform: translateY(-50%); border-radius: 1px; background: var(--track); }
 .dates-today { position: absolute; top: 0; display: flex; flex-direction: column; align-items: flex-start; }
 .dates-today i { width: 1px; height: 16px; background: var(--ink-3); display: block; }
-.dates-today span { position: absolute; bottom: calc(100% + var(--s-8)); left: 0; font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; }
+.dates-today span { position: absolute; bottom: calc(100% + var(--s-8)); left: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; }
 .dates.has-today { margin-top: var(--s-32); }
 .date-pt { position: relative; display: flex; flex-direction: column; min-width: 0; }
 .date-pt::before {
@@ -915,8 +918,12 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   background: var(--ground); border: 2px solid var(--accent);
 }
 .date-pt.is-end::before { background: var(--accent); }
-.date-pt .dp-date { font-size: var(--t-row); font-weight: 500; line-height: var(--lh-row); color: var(--ink); font-variant-numeric: tabular-nums; }
-.date-pt .dp-label { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-2); }
+/* Today as its own first point: an 8px quiet dot centred in the 16px dot
+   row, and its date in the body weight, so it never reads as a milestone. */
+.date-pt.is-today::before { width: 8px; height: 8px; border: 0; background: var(--ink-3); margin: var(--s-4); }
+.date-pt.is-today .dp-date { color: var(--ink-2); font-weight: 400; }
+.date-pt .dp-date { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink); font-variant-numeric: tabular-nums; }
+.date-pt .dp-label { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); }
 .date-pt .src { align-self: flex-start; margin-top: var(--s-8); }
 @media (max-width: 640px) {
   .dates { grid-template-columns: 1fr; padding-top: 0; padding-left: var(--s-32); gap: var(--s-16); }
@@ -930,9 +937,81 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 .tracker li { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--s-8); }
 .tracker .bar > i { width: 0; }
 .tracker li.is-reached .bar > i { width: 100%; }
-.tracker .t-step { font-size: var(--t-meta); line-height: var(--lh-meta); color: var(--ink-3); }
+.tracker .t-step { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }
 .tracker li.is-reached .t-step { color: var(--ink-2); }
-.tracker li.is-current .t-step { color: var(--ink); }
+.tracker li.is-current .t-step { color: var(--ink); font-weight: 500; }
+/* On a phone the five steps stack, a short bar beside each label. */
+@media (max-width: 640px) {
+  .tracker { flex-direction: column; gap: var(--s-4); }
+  .tracker li { flex-direction: row; align-items: center; gap: var(--s-12); }
+  .tracker .bar { width: 32px; flex: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* 11b. Back link, marks, email draft, school steps, updates           */
+/* ------------------------------------------------------------------ */
+
+/* Back link on a drilled-in page: quiet, above the title, 24 to it. */
+.back-link {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: var(--s-4);
+  min-height: 44px; margin: calc(-1 * var(--s-12)) 0 var(--s-12);
+  font-size: var(--t-small); font-weight: 500; line-height: var(--lh-meta); color: var(--ink-3);
+}
+.back-link:hover { color: var(--ink-2); }
+.back-link .back-chev { transform: rotate(180deg); color: currentColor; }
+
+/* Marks beside a row title: "Your school" and "Updated Sep 30". Small caps
+   text, no box. Inline-block so a done step's line-through skips them.
+   The markup puts a plain space before .marks instead of a margin, so a mark
+   that wraps under a long title starts on the title's edge. */
+.marks { display: inline-flex; flex-wrap: wrap; gap: var(--s-8); vertical-align: baseline; }
+.mark {
+  display: inline-block;
+  font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta);
+  font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--ink-3);
+  text-decoration: none;
+}
+.mark.is-updated { color: var(--accent); }
+a.mark.is-updated:hover { color: var(--accent-hover); }
+.task-waiting { margin-top: var(--s-8); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); }
+.task-waiting::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: var(--s-8); border-radius: 50%; background: var(--accent-muted); vertical-align: 2px; }
+.rules-line { margin-top: var(--s-12); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
+.rules-line a { white-space: nowrap; }
+/* Right under a page header it reads as the header's last line. */
+.page-header + .rules-line { margin-top: calc(var(--s-12) - var(--gap-header)); }
+.row-affects { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); }
+/* "1 step in your checklist updated Sep 30": the same accent as the Updated mark. */
+.row-affects.is-changed { color: var(--accent); }
+
+/* Email draft: one of four parts shows, by data-state. */
+.draft { display: flex; flex-direction: column; }
+.draft > .draft-part { display: none; }
+.draft[data-state="closed"] > [data-part="closed"],
+.draft[data-state="left"] > [data-part="left"],
+.draft[data-state="done"] > [data-part="done"] { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-8); }
+.draft[data-state="open"] > [data-part="open"] { display: block; animation: fade .12s ease-out; }
+.draft[data-state="done"] > [data-part="done"] .btn-group { gap: var(--s-12); }
+.draft-line { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); }
+.draft .email { margin-top: var(--s-4); }
+.draft .btn-row.draft-actions { margin-top: var(--s-16); }
+/* The draft opens to the full width of the column, even inside a task row. */
+.task .task-action .draft .email { max-width: 100%; }
+/* On a phone the open draft steps out to the column edge, past the checkbox. */
+@media (max-width: 640px) {
+  .task .task-action .draft > [data-part="open"] { margin-left: calc(-1 * (18px + var(--s-16))); }
+}
+
+/* Your school's steps */
+.school-add { margin-top: var(--s-16); display: flex; flex-direction: column; align-items: flex-start; }
+.school-form { width: 100%; display: flex; flex-direction: column; gap: var(--s-16); padding-top: var(--s-8); }
+.school-form .chips { margin-bottom: 0; }
+.school-form .choices.is-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.school-form .choices.is-row .choice { min-height: 44px; padding: var(--s-8) var(--s-12); }
+.school-form .select { height: 44px; width: 100%; }
+.school-form .btn-row { margin-top: var(--s-8); }
+.school-link-form { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-buttons); margin-top: var(--s-8); }
+.school-link-form .input { flex: 1 1 224px; }
 
 /* ------------------------------------------------------------------ */
 /* 12. Toast                                                            */
@@ -947,7 +1026,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   padding: var(--s-12) var(--s-16);
   border-radius: var(--r-field);
   background: var(--inverse); color: var(--on-inverse);
-  font-size: var(--t-body); font-weight: 500; line-height: var(--lh-row);
+  font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small);
   box-shadow: var(--shadow-pop);
   display: flex; align-items: center; gap: var(--s-16);
   animation: toast-in .28s var(--ease-rise);
@@ -984,7 +1063,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   display: flex; flex-direction: column; gap: var(--s-8);
   min-width: 56px; flex: 1 1 0;
   background: none; border: 0; padding: 0 0 var(--s-4); text-align: left;
-  font-size: var(--t-meta); line-height: var(--lh-meta);
+  font-size: var(--t-small); line-height: var(--lh-meta);
   color: var(--ink-3);
 }
 .step .pip { height: 4px; border-radius: 2px; background: var(--pip-empty); display: block; }
@@ -1000,7 +1079,7 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
   .steps { gap: var(--s-4); }
   .step { min-width: 0; }
   .step .step-label { font-size: 0; }
-  .step.is-current .step-label { font-size: var(--t-meta); position: relative; }
+  .step.is-current .step-label { font-size: var(--t-small); position: relative; }
 }
 
 .found { display: flex; flex-direction: column; }
@@ -1017,14 +1096,26 @@ textarea.input { min-height: 144px; height: auto; padding: var(--s-12) var(--s-1
 @keyframes toast-in-phone { from { transform: translateY(8px); } to { transform: none; } }
 @keyframes sheet { from { transform: translateY(24px); } to { transform: none; } }
 @keyframes fade { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
 
+/* First launch only: the column rises in, child by child. */
 .is-entering > * { animation: rise .55s var(--ease-rise) backwards; }
 .is-entering > *:nth-child(1) { animation-delay: .06s; }
 .is-entering > *:nth-child(2) { animation-delay: .16s; }
 .is-entering > *:nth-child(3) { animation-delay: .28s; }
 .is-entering > *:nth-child(n+4) { animation-delay: .42s; }
 
-.confetti { position: fixed; z-index: 70; width: 6px; height: 6px; pointer-events: none; border-radius: 1px; }
+/* A page change: the new column fades in while the old one fades out where
+   it stood (app.js sets its top, left, width and height). No slide. */
+.is-fading { animation: fade .12s ease-out both; }
+.is-leaving-page {
+  position: fixed; z-index: 1; margin: 0; max-width: none; min-height: 0;
+  overflow: hidden; pointer-events: none;
+  animation: fade-out .12s ease-in forwards;
+}
+
+.confetti { position: fixed; z-index: 70; width: 6px; height: 6px; margin: -3px 0 0 -3px; pointer-events: none; border-radius: 50%; }
+.confetti.is-strip { width: 4px; height: 10px; border-radius: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

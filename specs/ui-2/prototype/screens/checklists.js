@@ -1,34 +1,51 @@
-/* Checklists. One view per path, switched by the chips: CPT (done), OPT (now),
-   STEM OPT (next filing, default) and H-1B (later). Task state is shared with
-   What's next through App.state['task:<key>'], and both screens render the
-   same list of steps (data.stem.tasks). The STEM OPT question is owned by
-   What's next; here the answer shows as one quiet line with a link.
-   The 10-day reporting rule is owned here, on the OPT view (C.ongoing). */
+/* Checklists. One view per path, switched in place by the chips: CPT (done),
+   OPT (now), STEM OPT (next filing, default) and H-1B (later).
+
+   The federal steps are live, not a saved draft (Note 11): they are worked
+   out from the sourced rule pack and recomputed when an approved rule
+   change lands. The page shows it with the quiet "Rules checked Sep 30"
+   line under the header, and a step a rule change touched carries
+   "Updated Sep 30", linking to that update's page.
+
+   Each path renders App.steps(path): the standard federal steps with the
+   student's own school steps placed Before, Alongside or After them
+   (Note 10). A Before step makes its federal step show "Waiting on: ...";
+   an After step appears once its federal step is done. Every school step
+   carries the "Your school" mark, and the one with draft: 'dso' carries the
+   DSO email draft (Note 4), shared with What's next through App.state.
+   "Add your school's step" sits under every list of steps.
+
+   Task state is shared through App.state['task:<key>']. Confetti fires only
+   the first time a list is finished (App.complete, via the progress bar in
+   app.js), never on opening a finished path (Note 6). The STEM OPT question
+   is owned by What's next; here the answer shows as one quiet line. */
 (function () {
   'use strict';
 
   const PATHS = ['cpt', 'opt', 'stem', 'h1b'];
   const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
-  /* The screen title is the one h1 (C.pageHeader). Each path's heading is an
-     h2 at the sub size, under the chips. Spacing below it: 12 to the quiet
-     STEM OPT line, 24 to a list, and the standard section gap to a section. */
+  const LABELS = { cpt: 'CPT checklist', opt: 'OPT checklist', stem: 'STEM OPT checklist', h1b: 'H-1B checklist' };
+
+  /* Layout only; type comes from the shared classes. The path heading is an
+     h2 at the medium size under the chips; the rules line reads as the page
+     header's last line and keeps the header gap to the chips. */
   const STYLE = '<style>' +
+    '.screen-checklists .rules-line { margin-bottom: var(--gap-header); }' +
     '.screen-checklists .cl-head { display: flex; flex-direction: column; }' +
     '.screen-checklists .cl-head .cl-eyebrow { margin-bottom: var(--s-8); }' +
     '.screen-checklists .cl-head .cl-sub { margin-top: var(--s-8); }' +
     '.screen-checklists .cl-head .progress { margin-top: var(--s-16); }' +
     '.screen-checklists .cl-head + .cl-intent { margin-top: var(--s-12); }' +
     '.screen-checklists .cl-head + .list, .screen-checklists .cl-intent + .list { margin-top: var(--s-24); }' +
-    '.screen-checklists .cl-email, .screen-checklists .cl-done { margin-top: var(--s-32); }' +
+    '.screen-checklists .school-add { margin-top: var(--s-8); }' +
+    '.screen-checklists .cl-done { margin-top: var(--s-32); }' +
     '.screen-checklists .cl-done .t-lead { margin-top: var(--s-4); }' +
+    '.screen-checklists .cl-done .btn-row { justify-content: flex-start; margin-top: var(--s-16); }' +
     '</style>';
 
-  function state() { return window.App ? window.App.state : {}; }
-  function isDone(key, fallback) {
-    const v = state()['task:' + key];
-    return v == null ? !!fallback : !!v;
-  }
-  function intent() { return window.App.stemIntent(); }
+  const state = () => (window.App ? window.App.state : {});
+  const intent = () => window.App.stemIntent();
+
   function pathFrom(data, params) {
     const p = params && params[0];
     if (PATHS.indexOf(p) !== -1) { state()['checklists:path'] = p; return p; }
@@ -40,7 +57,7 @@
   function tabHead(p) {
     return '<header class="cl-head">' +
       (p.eyebrow ? '<p class="cl-eyebrow t-eyebrow-hero">' + C.esc(p.eyebrow) + '</p>' : '') +
-      '<h2 class="t-sub" tabindex="-1">' + C.esc(p.title) + '</h2>' +
+      '<h2 class="t-medium" tabindex="-1">' + C.esc(p.title) + '</h2>' +
       (p.subline ? '<p class="cl-sub t-lead">' + C.esc(p.subline) + '</p>' : '') +
       (p.progress ? C.progress(p.progress) : '') +
       '</header>';
@@ -55,6 +72,41 @@
     });
   }
 
+  /* ---------------- steps: federal and your school's ---------------- */
+
+  /* One row for an App.steps() entry. */
+  function stepRow(entry, data) {
+    if (entry.type === 'school') return C.schoolStep(entry, { email: data.email, primary: true });
+    const t = entry.step;
+    if (t.ongoing) return C.ongoing({ key: t.key, title: t.title, meta: t.meta, source: t.source });
+    return C.task({
+      key: entry.key,
+      title: t.title,
+      meta: t.meta,
+      done: entry.done,
+      doneMeta: t.doneMeta || t.meta,
+      source: t.source,
+      caution: t.caution,
+      cautionSource: t.cautionSource,
+      updated: t.updated || null,
+      waitingOn: entry.waitingOn || null,
+      below: t.unknown ? C.unknown(t.unknown) : null,
+      onDone: t.onDone ? C.unknown(t.onDone) + C.source(t.onDone.source, { inline: true }) : null,
+    });
+  }
+
+  /* The rows that count toward progress: checkable and showing now. An After
+     step stays hidden until its federal step is done. */
+  function counted(entries) {
+    return entries.filter((en) => !(en.type === 'federal' && en.step.ongoing) && !(en.afterOf && !en.afterOf.done));
+  }
+
+  /* The federal steps a school step can be placed against. A standing rule
+     (never done) is left out, since an After step would never show. */
+  function federalChoices(entries) {
+    return entries.filter((en) => en.type === 'federal' && !en.step.ongoing).map((en) => ({ key: en.key, title: en.step.title }));
+  }
+
   /* ---------------- STEM OPT ---------------- */
 
   /* One quiet line under the header; the question lives on What's next. */
@@ -66,53 +118,27 @@
     return '<p class="t-meta cl-intent">' + C.esc(text) + ' ' + C.link({ label: label, href: '#/next' }) + '</p>';
   }
 
-  function mailtoFrom(subject, body) {
-    return 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-  }
-
   function stemView(data) {
     const s = data.checklists.stem;
-    const steps = s.steps;
-    const done = steps.filter((t) => isDone(t.key, t.done)).length;
-    const all = done === steps.length;
-    const pct = Math.round((done / steps.length) * 100);
+    const entries = App.steps('stem');
+    const live = counted(entries);
+    const done = live.filter((en) => en.done).length;
+    const all = live.length > 0 && done === live.length;
+    const pct = live.length ? Math.round((done / live.length) * 100) : 0;
     const doneParts = s.doneLine.split('. ');
 
-    const tasks = steps.map((t) => C.task({
-      key: t.key,
-      title: t.title,
-      meta: t.meta,
-      done: isDone(t.key, t.done),
-      doneMeta: t.meta,
-      source: t.source,
-      caution: t.caution,
-      cautionSource: t.cautionSource,
-      below: t.unknown ? C.unknown(t.unknown) : null,
-      onDone: t.onDone ? C.unknown(t.onDone) + C.source(t.onDone.source, { inline: true }) : null,
-      action: t.action ? C.button({
-        label: t.action, kind: 'pill',
-        attrs: { 'data-cl-email': true, 'aria-expanded': 'false', 'aria-controls': 'cl-email' },
-      }) : null,
-    }));
-
     return tabHead({
-        eyebrow: 'Your next filing · ' + s.eyebrow,
-        title: s.title,
-        progress: { pct: pct, label: done + ' of ' + steps.length + ' done · ' + s.progressMeta, suffix: s.progressMeta },
-      }) +
+      eyebrow: 'Your next filing · ' + s.eyebrow,
+      title: s.title,
+      progress: { pct: pct, label: done + ' of ' + live.length + ' done · ' + s.progressMeta, suffix: s.progressMeta },
+    }) +
       intentLine() +
-      C.list(tasks, { accordion: false, label: 'Steps' }) +
-      '<div class="cl-email" id="cl-email" hidden>' +
-      /* Same email options as What's next: no header row, Copy under the panel. */
-      C.email(Object.assign({}, data.email, {
-        copyBelow: true,
-        extra: C.button({ label: 'Open in Mail', kind: 'text', attrs: { 'data-cl-mail': '' } }),
-      })) +
-      '</div>' +
+      C.list(entries.map((en) => stepRow(en, data)), { accordion: false, label: 'Steps' }) +
+      C.addSchoolStep({ path: 'stem', federal: federalChoices(entries) }) +
       '<div class="cl-done" data-cl-done' + (all ? '' : ' hidden') + '>' +
       '<p class="t-row">' + C.esc(doneParts[0] + '.') + '</p>' +
       '<p class="t-lead">' + C.esc(doneParts.slice(1).join('. ')) + '</p>' +
-      C.buttonRow({ primary: C.button({ label: 'Add receipt number', kind: 'primary', href: '#/next' }) }) +
+      C.buttonRow({ primary: C.button({ label: 'Add receipt number', kind: 'primary', href: '#/applications/stem' }) }) +
       '</div>';
   }
 
@@ -120,15 +146,7 @@
 
   function optView(data) {
     const o = data.checklists.opt;
-    const rows = o.steps.map((t) => {
-      if (t.ongoing) return C.ongoing({ key: t.key, title: t.title, meta: t.meta, source: t.source });
-      return C.task({
-        key: t.key, title: t.title, meta: t.meta,
-        done: isDone(t.key, t.done),
-        doneMeta: t.done ? t.meta : null,
-        source: t.source,
-      });
-    });
+    const entries = App.steps('opt');
     return tabHead({
       eyebrow: 'Now',
       title: "You're on OPT.",
@@ -136,16 +154,18 @@
     }) +
       C.section({
         eyebrow: 'Applying for OPT · You did this',
-        content: C.list([C.row({ title: o.applied, lead: C.phaseMark('done') })], { accordion: false }),
+        content: C.list([C.row({ title: o.applied, lead: C.phaseMark('done'), href: '#/applications/opt' })], { accordion: false }),
       }) +
       C.section({
         eyebrow: "While you're on OPT",
-        content: C.list(rows, { accordion: false }),
+        content: C.list(entries.map((en) => stepRow(en, data)), { accordion: false, label: 'Steps' }) +
+          C.addSchoolStep({ path: 'opt', federal: federalChoices(entries) }),
       });
   }
 
   /* ---------------- CPT ---------------- */
 
+  /* A finished path: a short "You did this" summary, nothing asked again. */
   function cptView(data) {
     const n = data.cpt.length;
     const count = WORDS[n] || String(n);
@@ -163,18 +183,16 @@
     return tabHead({ eyebrow: h.eyebrow, title: h.title, subline: h.line });
   }
 
-  /* ---------------- shared behaviour ---------------- */
+  /* ---------------- live changes ---------------- */
 
-  function mainEl() { return document.getElementById('main'); }
-
+  /* The "Every step done" line follows the checkboxes in place. */
   function syncDone() {
-    const root = mainEl();
+    const root = document.getElementById('main');
     if (!root) return;
     const box = root.querySelector('[data-cl-done]');
     if (!box) return;
-    const checks = Array.from(root.querySelectorAll('[role="checkbox"][data-task]'));
-    const all = checks.length > 0 && checks.every((c) => c.getAttribute('aria-checked') === 'true');
-    box.hidden = !all;
+    const checks = Array.from(root.querySelectorAll('[role="checkbox"][data-task]')).filter((c) => !c.closest('[hidden]'));
+    box.hidden = !(checks.length > 0 && checks.every((c) => c.getAttribute('aria-checked') === 'true'));
   }
 
   let listening = false;
@@ -188,33 +206,12 @@
     });
   }
 
-  function onRootClick(e) {
-    const t = e.target;
-    const root = e.currentTarget;
-
-    const emailBtn = t.closest('[data-cl-email]');
-    if (emailBtn) {
-      const panel = root.querySelector('#cl-email');
-      if (!panel) return;
-      const open = panel.hidden;
-      panel.hidden = !open;
-      emailBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      return;
-    }
-
-    if (t.closest('[data-cl-mail]')) {
-      const panel = root.querySelector('#cl-email');
-      const subject = (panel.querySelector('[data-subject]') || {}).textContent || '';
-      const body = (panel.querySelector('.email-body') || {}).innerText || '';
-      window.location.href = mailtoFrom(subject, body.trim());
-      return;
-    }
-
-  }
-
   window.SCREENS['checklists'] = {
     title: 'Checklists',
+    paramsInPlace: true,
+    titleFor(params, data) {
+      return LABELS[pathFrom(data, params)] || 'Checklists';
+    },
     render(data, params) {
       const path = pathFrom(data, params);
       let body;
@@ -223,19 +220,14 @@
       else if (path === 'h1b') body = h1bView(data);
       else body = stemView(data);
       return STYLE +
-        C.pageHeader({ title: 'Checklists', subline: 'Every step for each path, in order.' }) +
+        C.pageHeader({ title: 'Checklists', subline: 'Every step for each path, in order, with what each one needs.' }) +
+        C.rulesLine(data.rules) +
         chips(data, path) + body + C.footer();
     },
-    mount(root, data, params) {
+    mount(root) {
       root.classList.add('screen-checklists');
-      root.addEventListener('click', onRootClick);
       listen();
-      const path = pathFrom(data, params);
-      if (path === 'cpt' && !state()['checklists:cptCelebrated']) {
-        state()['checklists:cptCelebrated'] = true;
-        const head = root.querySelector('.cl-head h2');
-        if (head) setTimeout(() => window.App.confetti(head), 400);
-      }
+      syncDone();
     },
   };
 })();

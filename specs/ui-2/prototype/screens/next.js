@@ -1,36 +1,44 @@
 /* What's next: the student's next step after OPT (STEM OPT extension).
    States, from App.state.stemIntent (shared with Home, Timeline and Your case):
      null      A. ask intent first (hero with Yes / No / I'm not sure yet)
-     'unsure'  A plus the dates and what you'll need
-     'yes'     B. the plan: dates, tasks, school step, DSO email, application tracker
+     'unsure'  A plus the dates and the steps, to read before deciding
+     'yes'     B. the plan: dates, your steps (federal plus your school's, with
+               the DSO email draft on the school step), your applications
      'no'      C. a short line and "Change my answer"
    The hero is the page title here: no pageHeader above it. Its eyebrow
    carries the screen name, "What's next · STEM OPT extension".
+
+   The steps are live, not a saved draft (Note 11). They come from
+   App.steps('stem'): the federal steps worked out from the sourced rule pack,
+   with the student's own school steps placed Before, Alongside or After them
+   (Note 10). One quiet line says so and links to Updates, and a step a rule
+   change touched carries "Updated Sep 30", linking to that update's page.
+
+   The DSO email opens only when asked (Note 4): it lives on the school step
+   and moves closed, open, "Email sent?", done, in place (C.emailDraft).
+
+   Every change inside the page happens in place: checkboxes, the draft, the
+   school step form and the intent answer never move the scroll.
    #/next/ask, #/next/yes, #/next/no and #/next/unsure force a state for review. */
 (function () {
   'use strict';
 
+  /* Layout only. Type sizes come from system.css. */
   const STYLE = '<style>' +
     '.screen-next .hero-note { margin-top: var(--s-12); }' +
-    '.screen-next .section > .progress { margin-bottom: var(--s-16); }' +
-    '.screen-next .next-receipt { display: flex; align-items: flex-end; gap: var(--gap-buttons); }' +
-    '.screen-next .next-receipt .field { flex: 1 1 auto; }' +
-    '.screen-next .next-gap { margin-top: var(--s-24); }' +
-    '.screen-next .next-track { margin-top: var(--s-16); display: flex; flex-direction: column; gap: var(--s-12); }' +
-    '.screen-next .disc .tracker { margin-top: var(--s-8); }' +
-    '@media (max-width: 640px) { .screen-next .next-receipt { flex-wrap: wrap; } .screen-next .next-receipt .btn { width: 100%; } }' +
+    '.screen-next .next-steps-head { display: flex; flex-direction: column; gap: var(--s-12); margin-bottom: var(--s-16); }' +
+    '.screen-next .next-steps-head .rules-line { margin-top: 0; }' +
+    '.screen-next .next-change { margin-top: var(--s-24); }' +
     '</style>';
 
   const FORCED = { ask: null, yes: 'yes', no: 'no', unsure: 'unsure' };
-  const RECEIPT = /^[A-Z]{3}\d{10}$/;
 
   /* This screen owns the STEM OPT question. Every other screen links here. */
-  function currentIntent(data, params) {
+  function currentIntent(params) {
     const p = params && params[0];
     if (p && Object.prototype.hasOwnProperty.call(FORCED, p)) return FORCED[p];
     return App.stemIntent();
   }
-  const isDone = (key) => App.state['task:' + key] === true;
   const e = (s) => C.esc(s);
   const eyebrow = (topic) => "What's next · " + topic;
 
@@ -56,89 +64,69 @@
 
   /* ---------------- 1. dates ---------------- */
 
-  /* The first date starts at the column edge; the Today tick overlaps it. */
-  function datesSection(stem) {
+  /* Today is its own first point (Sep 30, from data.today), so it never
+     shares an x position with a dated point: the strip reads Today, then
+     Start preparing, Window opens, Latest day to file. Its dot is a small
+     quiet one (.date-pt.is-today in system.css), not an accent milestone. */
+  function datesSection(data) {
+    const stem = data.stem;
+    const today = { date: data.today.short, label: stem.today.label, today: true };
     return C.section({
       eyebrow: 'Your dates',
-      content: C.dates({ points: stem.dates, today: { label: stem.today.label, pct: 0 } }),
+      content: '<div class="next-dates">' + C.dates({ points: [today].concat(stem.dates) }) + '</div>',
     });
   }
 
-  /* ---------------- 2. what you'll need, including the school's step ---------------- */
+  /* ---------------- 2. your steps: federal plus your school's ---------------- */
 
-  /* One list of steps, shared with Checklists (data.stem.tasks). */
-  function tasksSection(data, planned) {
-    const stem = data.stem;
-    const suffix = data.checklists.stem.progressMeta;
-    const done = stem.tasks.filter((t) => isDone(t.key)).length;
-    const pct = Math.round((done / stem.tasks.length) * 100);
-    const rows = stem.tasks.map((t) => C.task({
-      key: t.key, title: t.title, meta: t.meta, source: t.source, done: isDone(t.key),
+  function federalTask(entry) {
+    const t = entry.step;
+    return C.task({
+      key: entry.key, title: t.title, meta: t.meta, source: t.source, done: entry.done,
       caution: t.caution, cautionSource: t.cautionSource,
+      updated: t.updated ? { date: t.updated.date, href: t.updated.href } : null,
+      waitingOn: entry.waitingOn,
       below: t.unknown ? C.unknown(t.unknown) : null,
       onDone: t.onDone ? C.unknown(t.onDone) + C.source(t.onDone.source, { inline: true }) : null,
-      action: planned && t.action ? C.button({ label: t.action, kind: 'pill', attrs: { 'data-next': 'to-email' } }) : null,
-    }));
-    return C.section({
-      eyebrow: "What you'll need",
-      content: C.progress({ pct: pct, label: done + ' of ' + stem.tasks.length + ' done · ' + suffix, suffix: suffix }) +
-        C.list(rows, { accordion: false }),
     });
   }
 
-  /* ---------------- 3. email your DSO ---------------- */
-
-  /* Copy email is this state's one primary. Same email options as Checklists. */
-  function emailSection(data) {
+  /* One list of steps, shared with Checklists through App.steps('stem').
+     planned: the DSO email draft and "Add your school's step" show only once
+     the student plans to apply. */
+  function stepsSection(data, planned) {
+    const entries = App.steps('stem');
+    const shown = entries.filter((x) => !x.afterOf || x.afterOf.done);
+    const done = shown.filter((x) => x.done).length;
+    const pct = shown.length ? Math.round((done / shown.length) * 100) : 0;
+    const suffix = data.checklists.stem.progressMeta;
+    const rows = entries.map((x) => x.type === 'school'
+      ? C.schoolStep(x, { email: planned ? data.email : null, primary: true })
+      : federalTask(x));
+    const add = planned ? C.addSchoolStep({
+      path: 'stem',
+      federal: data.stem.tasks.map((t) => ({ key: t.key, title: t.title })),
+    }) : '';
     return C.section({
-      id: 'next-email',
-      eyebrow: 'Email your DSO',
-      content: C.email(Object.assign({}, data.email, {
-        copyBelow: true, primary: true,
-        extra: C.button({ label: 'Open in Mail', kind: 'text', attrs: { 'data-next': 'mail' } }),
-      })),
+      id: 'next-steps',
+      eyebrow: 'Your steps',
+      content: '<div class="next-steps-head">' +
+        C.progress({ pct: pct, label: done + ' of ' + shown.length + ' done · ' + suffix, suffix: suffix }) +
+        C.rulesLine(data.rules) + '</div>' +
+        C.list(rows, { accordion: false, label: 'Steps' }) + add,
     });
   }
 
-  /* ---------------- 4. your application ---------------- */
+  /* ---------------- 3. your applications ---------------- */
 
-  function trackSection(data) {
-    const app = data.application;
-    const st = App.state;
-    const saved = st.nextReceiptSaved;
-    let top;
-    if (!saved) {
-      top = '<div class="next-receipt">' +
-        C.field({ label: 'Receipt number', key: 'nextReceipt', value: st.nextReceipt || '', placeholder: app.receiptPlaceholder, autocomplete: 'off' }) +
-        C.button({ label: 'Add', kind: 'pill', attrs: { 'data-next': 'add-receipt' } }) +
-        '</div>' +
-        (st.nextReceiptError ? '<p class="field-error" role="alert">' + e(st.nextReceiptError) + '</p>' : '');
-    } else {
-      const cur = st.nextAppCurrent == null ? 0 : st.nextAppCurrent;
-      const picker = st.nextStatusOpen ? C.segment({
-        key: 'nextAppStep', label: 'Application status', selected: String(cur),
-        options: app.steps.map((s, i) => ({ value: String(i), label: s })),
-      }) : '';
-      top = C.list([C.row({
-        title: 'STEM OPT work permit',
-        meta: saved + ' · ' + app.steps[cur],
-        below: '<span class="next-track">' + C.tracker({ steps: app.steps, current: cur }) + picker +
-          '<span class="btn-group">' +
-          C.button({ label: st.nextStatusOpen ? 'Done' : 'Update status', kind: 'pill', attrs: { 'data-next': 'status', 'aria-expanded': st.nextStatusOpen ? 'true' : 'false' } }) +
-          C.button({ label: 'USCIS case status', kind: 'text', href: 'https://egov.uscis.gov/' }) +
-          C.button({ label: 'Change number', kind: 'text', cls: 'is-quiet', attrs: { 'data-next': 'change-receipt' } }) +
-          '</span></span>',
-      })], { accordion: false });
-    }
-    const past = C.list([C.row({
-      title: app.past.title,
-      meta: app.past.receipt + ' · Approved ' + data.opt.approved,
-      content: C.disclosure({ text: app.past.meta, content: C.tracker({ steps: app.steps, current: app.steps.length - 1 }) }),
-    })]);
+  /* The STEM OPT application first, then the OPT one it follows. Each opens
+     its own page in Applications (receipt number, status as of a date). */
+  function appsSection(data) {
+    const items = (data.applications && data.applications.items) || [];
+    const order = ['stem', 'opt'].map((id) => items.filter((a) => a.id === id)[0]).filter(Boolean);
     return C.section({
-      id: 'next-track',
-      eyebrow: 'Your application',
-      content: top + '<div class="next-gap">' + past + '</div>',
+      eyebrow: 'Your applications',
+      content: C.list(order.map(C.applicationRow), { accordion: false, label: 'Applications' }),
     });
   }
 
@@ -146,116 +134,75 @@
 
   window.SCREENS['next'] = {
     title: "What's next",
+    paramsInPlace: true,
     render(data, params) {
       const stem = data.stem;
-      const intent = currentIntent(data, params);
+      const intent = currentIntent(params);
       const out = [STYLE];
       if (intent === 'yes') {
-        out.push(heroYes(stem), datesSection(stem), tasksSection(data, true), emailSection(data), trackSection(data));
+        out.push(heroYes(stem), datesSection(data), stepsSection(data, true), appsSection(data),
+          '<p class="next-change">' + C.button({ label: 'Not planning to apply? Change my answer', kind: 'text', cls: 'is-quiet is-small', attrs: { 'data-next': 'change' } }) + '</p>');
       } else if (intent === 'no') {
         out.push(heroNo(stem));
       } else {
         out.push(heroAsk(stem, intent === 'unsure'));
-        if (intent === 'unsure') out.push(datesSection(stem), tasksSection(data, false));
+        if (intent === 'unsure') out.push(datesSection(data), stepsSection(data, false));
       }
       out.push(C.footer());
       return out.join('');
     },
     mount(root) {
       root.classList.add('screen-next');
-      const saved = App.state.nextEmailHtml;
-      const body = root.querySelector('.email-body');
-      if (saved && body) body.innerHTML = saved;
-      wire();
+      root.addEventListener('click', onClick);
+      listen();
+      if (App.state.nextFocusHero) {
+        App.state.nextFocusHero = false;
+        const h = root.querySelector('#hero-title');
+        if (h) h.focus({ preventScroll: true });
+      }
     },
   };
 
-  /* ---------------- behaviour, wired once ---------------- */
+  /* ---------------- behaviour ---------------- */
 
-  let wired = false;
   function here() { return App.route === 'next' && document.querySelector('main.screen-next'); }
-  function refresh() { if (App.params && App.params.length) App.go('next'); else App.rerender(); }
 
-  function addReceipt() {
-    const input = document.querySelector('.screen-next [data-field="nextReceipt"]');
-    const raw = input ? input.value : '';
-    const v = raw.toUpperCase().replace(/[\s-]/g, '');
-    const st = App.state;
-    if (!RECEIPT.test(v)) {
-      st.nextReceipt = raw;
-      st.nextReceiptError = v ? "That doesn't look like a receipt number. It has three letters and ten digits." : 'Add the number from your USCIS notice.';
-      App.rerender();
-      const again = document.querySelector('.screen-next [data-field="nextReceipt"]');
-      if (again) { again.setAttribute('aria-invalid', 'true'); again.focus(); }
-      return;
+  /* A new intent redraws in place, then puts focus on the new title. */
+  function refresh() {
+    App.state.nextFocusHero = true;
+    if (App.params && App.params.length) App.go('next', { replace: true, inPlace: true });
+    else App.rerender();
+  }
+
+  function onClick(ev) {
+    const act = ev.target.closest('[data-next]');
+    if (!act) return;
+    if (act.dataset.next === 'change') {
+      App.state.stemIntent = null;
+      App.emit('answer', 'stemIntent', null, act);
     }
-    st.nextReceiptSaved = v;
-    st.nextReceipt = '';
-    st.nextReceiptError = null;
-    st.nextAppCurrent = 0;
-    App.rerender();
-    App.toast('Receipt number added');
   }
 
-  function openMail(btn) {
-    const sec = btn.closest('.section');
-    const body = sec && sec.querySelector('.email-body');
-    const subject = sec && sec.querySelector('[data-subject]');
-    const href = 'mailto:?subject=' + encodeURIComponent(subject ? subject.textContent : '') +
-      '&body=' + encodeURIComponent(body ? body.innerText.trim() : '');
-    window.location.href = href;
+  /* Unchecking the school step after "Mark done" brings the draft back to
+     "Email sent?", so the two never disagree. */
+  function syncDraft(key, on) {
+    const email = App.data.email || {};
+    if (key !== email.step || on) return;
+    const k = email.key || 'dso';
+    if (App.state['draft:' + k] !== 'done') return;
+    App.state['draft:' + k] = 'left';
+    document.querySelectorAll('.screen-next [data-draft="' + k + '"]').forEach((b) => { b.dataset.state = 'left'; });
   }
 
-  function wire() {
-    if (wired) return;
-    wired = true;
-
+  let listening = false;
+  function listen() {
+    if (listening) return;
+    listening = true;
     document.addEventListener('duly:change', (ev) => {
       if (!here()) return;
       const d = ev.detail || {};
       if (d.kind === 'answer' && d.key === 'stemIntent') { refresh(); return; }
-      if (d.kind === 'choice' && d.key === 'nextAppStep') {
-        App.state.nextAppCurrent = Number(d.value);
-        App.state.nextStatusOpen = false;
-        App.rerender();
-        App.toast('Status updated');
-      }
-    });
-
-    document.addEventListener('click', (ev) => {
-      if (!here()) return;
-      const t = ev.target;
-      const act = t.closest('[data-next]');
-      if (!act) return;
-      const what = act.dataset.next;
-      if (what === 'add-receipt') { addReceipt(); return; }
-      if (what === 'to-email') {
-        const sec = document.getElementById('next-email');
-        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        const body = sec && sec.querySelector('.email-body');
-        if (body) body.focus({ preventScroll: true });
-        return;
-      }
-      if (what === 'status') { App.state.nextStatusOpen = !App.state.nextStatusOpen; App.rerender(); return; }
-      if (what === 'change-receipt') {
-        App.state.nextReceipt = App.state.nextReceiptSaved || '';
-        App.state.nextReceiptSaved = null;
-        App.rerender();
-        return;
-      }
-      if (what === 'change') { App.state.stemIntent = null; refresh(); return; }
-      if (what === 'mail') { openMail(act); }
-    });
-
-    document.addEventListener('keydown', (ev) => {
-      if (!here() || ev.key !== 'Enter') return;
-      if (ev.target.matches && ev.target.matches('[data-field="nextReceipt"]')) { ev.preventDefault(); addReceipt(); }
-    });
-
-    document.addEventListener('input', (ev) => {
-      if (!here()) return;
-      const b = ev.target.closest && ev.target.closest('.email-body');
-      if (b) App.state.nextEmailHtml = b.innerHTML;
+      if (d.kind === 'task') syncDraft(d.key, d.value);
     });
   }
 })();

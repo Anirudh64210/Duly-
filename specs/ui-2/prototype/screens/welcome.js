@@ -2,10 +2,13 @@
    Routes: #/welcome (start), #/welcome/<step>, #/welcome/done.
    Steps: status, school, degree, dates, now, ead (ead only when on OPT or STEM OPT).
    Answers live in App.state.onb for the prototype. Every "I'm not sure" is saved
-   and listed on the final screen as a question Duly asks again later.
+   and listed on the final screen as a question asked again later.
    Onboarding asks the six-part skeleton only. Degree conferral is never asked
-   here: Duly reads it from a degree certificate or I-20 when one is added,
-   or asks once in Your case > Study (App.awardedWaiting). */
+   here: it is read from a degree certificate or I-20 when one is added, or
+   asked once in Your case > Study (App.awardedWaiting).
+   Copy rule (Round 2 note 12): the wordmark is the one "Duly" on every
+   onboarding page. Screen text never names the product and never makes it a
+   character ("Every later date is counted from these", not "Duly counts"). */
 (function () {
   'use strict';
 
@@ -51,10 +54,10 @@
   };
   const HINT = {
     status: "It's printed on your visa stamp and at the top of your I-20. You can add it later.",
-    school: "It's printed at the top of your I-20. Duly will ask again later.",
-    degree: 'Your I-20 lists your major. Add it and Duly reads it for you.',
-    dates: 'Your I-20 has both dates. Duly will ask again later.',
-    now: 'Duly will ask again later.',
+    school: "It's printed at the top of your I-20. You can add it later.",
+    degree: 'Your I-20 lists your major. Add the I-20 later and it fills this in.',
+    dates: 'Your I-20 has both dates. You can add them later.',
+    now: 'You can answer this later on Home.',
   };
   /* a choice clears the "I'm not sure" of the step it answers */
   const UNSURE_OF = { status: 'status', level: 'degree', now: 'now', eadMode: 'ead' };
@@ -129,7 +132,7 @@
     if (s.now && !opts.some((o) => o.value === s.now)) s.now = null;
     if (!s.now && !s.unsure.now && endRecent(s)) s.now = 'opt';
   }
-  /* the first name, only when Duly has read it from the student's own EAD card */
+  /* the first name, only when it was read from the student's own EAD card */
   function readName(s) {
     if (s.ead !== 'added' || !s.read || s.read.kind !== 'ead' || s.read.state !== 'found') return '';
     const row = (s.eadRows || D.onboarding.eadFound).find((r) => r[0] === 'Name');
@@ -157,6 +160,9 @@
       default: return false;
     }
   }
+
+  /* answered: valid, or the EAD card was added, typed or left for later */
+  function answered(k, s) { return valid(k, s) || (k === 'ead' && !!s.ead); }
 
   function answerFor(k, s) {
     if (s.unsure[k]) return 'Not sure yet';
@@ -189,7 +195,7 @@
   }
   function reading(name) {
     return '<div class="w-reading"><p class="t-row">' + C.esc(name) + '</p>' +
-      C.progress({ pct: 100, label: 'Reading on this device' }) + '</div>';
+      C.progress({ pct: 100, label: 'Reading on this Mac' }) + '</div>';
   }
 
   /* areas are small parts of a step that update in place, so typing never loses focus */
@@ -226,7 +232,7 @@
        note stays a likely match. Continue is the confirmation; Change corrects it. */
     const rule = Object.assign({}, D.sources.stemList, {
       plain: m + ' fields are on the list of STEM fields. Your I-20 shows the exact field.',
-      counted: ['You told Duly your major is ' + m + '.'],
+      counted: ['You said your major is ' + m + '.'],
     });
     return '<div class="w-gap-16">' + C.note({
       title: 'This looks like a STEM degree.',
@@ -246,7 +252,7 @@
     status(s) {
       return {
         title: QUESTION.status,
-        why: 'This decides which rules Duly counts for you.',
+        why: 'This sets which rules your dates are counted by.',
         content: C.choices({ key: 'onb.status', options: STATUS, selected: s.status, label: 'Your visa' }),
         notSure: unsure('status', s),
       };
@@ -255,7 +261,7 @@
     school(s) {
       return {
         title: QUESTION.school,
-        why: "Your school's own forms and steps show up in your checklists.",
+        why: "Your dates follow your school's record, and you can add your school's own steps to any checklist.",
         content: C.field({ key: 'onb.school', value: s.school, placeholder: 'Start typing your school', ariaLabel: 'Your school', suggest: true }),
         notSure: unsure('school', s),
       };
@@ -274,7 +280,7 @@
 
     dates(s) {
       const pick = C.choices({ key: 'onb.datesMode', layout: 'pair', selected: s.datesMode, label: 'How to add your dates', options: [
-        { value: 'i20', title: 'Add your I-20', meta: 'Fastest, Duly reads both dates' },
+        { value: 'i20', title: 'Add your I-20', meta: 'Fastest, both dates are read for you' },
         { value: 'type', title: 'Type the dates', meta: 'Start and end, from your I-20' },
       ] });
       let more = '';
@@ -291,7 +297,7 @@
       }
       return {
         title: QUESTION.dates,
-        why: 'Duly counts every later date from these.',
+        why: 'Every later date is counted from these.',
         content: pick + more + fileInput(),
         notSure: unsure('dates', s),
       };
@@ -312,7 +318,7 @@
     ead(s) {
       const base = {
         title: 'Add your EAD card.',
-        why: 'Your work dates come from this card. Duly reads it on this Mac. Nothing is uploaded anywhere.',
+        why: 'Your work dates come from this card. It is read on this Mac and never uploaded.',
       };
       const read = s.read && s.read.kind === 'ead' ? s.read : null;
       if (read && read.state === 'reading') {
@@ -363,12 +369,19 @@
     });
   }
 
-  function renderStart() {
+  function renderStart(s) {
+    /* coming back to the start after answering: pick up at the first open step */
+    let primary = C.button({ kind: 'primary', label: 'Start', href: '#/welcome/status' });
+    if (s.reached >= 0) {
+      const keys = stepKeys(s);
+      const open = keys.find((k) => !answered(k, s));
+      primary = C.button({ kind: 'primary', label: open ? 'Pick up where you left off' : 'See your answers', href: '#/welcome/' + (open || 'done') });
+    }
     return C.onboarding({
       title: 'Your student visa records, in one private place.',
-      why: 'Duly keeps your documents, counts your dates and tells you when to start on your next step. Everything stays on this Mac.',
-      back: '<span class="t-meta">About two minutes.</span>',
-      primary: C.button({ kind: 'primary', label: 'Start', href: '#/welcome/status' }),
+      why: 'Add your documents once, then see where you stand, when to start your next step, and what changes for you when the rules do.',
+      back: '<span class="t-meta">About two minutes. Kept on this Mac.</span>',
+      primary: primary,
     });
   }
 
@@ -378,7 +391,7 @@
       Object.assign(s, {
         status: 'f1', school: D.student.school, level: 'master', major: D.program.major,
         start: D.program.start, end: D.program.end, awarded: 'end', now: 'opt',
-        ead: 'added', eadUntil: D.opt.cardUntil, reached: ORDER.length - 1,
+        ead: 'added', eadUntil: D.opt.cardUntil, stem: 'confirmed', majorChosen: D.program.major, reached: ORDER.length - 1,
         read: { kind: 'ead', name: 'EAD card', state: 'found' },
       });
     }
@@ -392,7 +405,11 @@
         ? (trim(s.eadUntil) ? 'card valid until ' + trim(s.eadUntil) : '')
         : '';
       lines.push([titleOf(NOW, s.now)].concat(onWork && card ? [card] : []));
-      if (onWork) lines.push(D.onboarding.summary[2].split(' · '));
+      /* the STEM OPT dates hold only for the sample case: on OPT, a confirmed
+         STEM major and the sample card end date. Anyone else is pointed to Home. */
+      const sampleStem = s.now === 'opt' && s.stem === 'confirmed' && trim(s.eadUntil) === D.opt.cardUntil;
+      if (sampleStem) lines.push(D.onboarding.summary[2].split(' · '));
+      else if (onWork) lines.push(['Next', 'Your next step is on Home']);
     }
 
     const waiting = ['status', 'school', 'degree', 'dates', 'now']
@@ -404,14 +421,21 @@
 
     const content =
       (lines.length ? '<div class="w-lines">' + lines.map((parts) =>
-        '<p class="t-lead"><span class="t-row">' + C.esc(parts[0]) + '</span>' + (parts.length > 1 ? ' · ' + C.esc(parts.slice(1).join(' · ')) : '') + '</p>').join('') + '</div>' : '') +
-      '<p class="t-lead' + (lines.length ? ' w-gap-24' : '') + '">Duly will ask anything else when it matters, one short question at a time.</p>' +
+        '<p class="t-lead"><span class="t-row">' + C.escText(parts[0]) + '</span>' + (parts.length > 1 ? ' · ' + C.escText(parts.slice(1).join(' · ')) : '') + '</p>').join('') + '</div>' : '') +
+      '<p class="t-lead' + (lines.length ? ' w-gap-24' : '') + '">Anything else is asked when it matters, one short question at a time. When a rule changes, your steps update and you see what changed.</p>' +
       (waiting.length ? C.waiting({ items: waiting, max: waiting.length }) : '');
 
+    s.finished = true;
+    /* every answer stays one tap away: the step list shows all ticks and opens any step */
+    const keys = stepKeys(s);
+    const list = C.steps({ steps: keys.map((k) => ({ key: k, label: LABEL[k], answer: answerFor(k, s) })), current: -1, reached: keys.length - 1 })
+      .replace(/<span class="sr-only">[^<]*<\/span>/, '<span class="sr-only">All steps answered. Open one to change it.</span>');
+
     return C.onboarding({
+      steps: list,
       title: readName(s) ? "You're all set, " + readName(s) + '.' : "You're all set.",
       content: content,
-      primary: C.button({ kind: 'primary', label: 'Open Duly', href: '#/home' }),
+      primary: C.button({ kind: 'primary', label: 'Open Home', href: '#/home' }),
     });
   }
 
@@ -448,6 +472,13 @@
     const keys = stepKeys(s);
     const i = keys.indexOf(key);
     s.reached = Math.max(s.reached, i);
+    /* after the finish, a changed answer goes straight back to the summary,
+       unless a later step now needs an answer (On OPT adds the EAD card) */
+    if (s.finished) {
+      const open = keys.slice(i + 1).find((k) => !answered(k, s));
+      App.go('welcome/' + (open || 'done'));
+      return;
+    }
     App.go('welcome/' + (keys[i + 1] || 'done'));
   }
   function back(key) {
@@ -665,7 +696,7 @@
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
     if (k === 'ead') startRead('ead', f);
     else if (k === 'dates') startRead('i20', f);
-    else App.toast("You can add documents once you're in Duly.");
+    else App.toast('You can add documents once setup is done.');
   }
 
   function onChange(e) {
@@ -744,7 +775,7 @@
         if (stepKey() === 'dates') S().datesMode = 'i20';
         openPicker();
       } else {
-        App.toast("You can add documents once you're in Duly.");
+        App.toast('You can add documents once setup is done.');
       }
     }, true);
   }
@@ -758,7 +789,7 @@
       let html;
       if (key === 'done') html = renderDone(s);
       else if (BUILD[key]) html = renderStep(key, s);
-      else html = renderStart();
+      else html = renderStart(s);
       return STYLE + html.replace('<div class="onb">', '<div class="onb screen-welcome" data-onb-screen="' + C.esc(key) + '">');
     },
     mount(r, data, params) {
