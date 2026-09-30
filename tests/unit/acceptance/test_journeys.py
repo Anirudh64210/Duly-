@@ -69,6 +69,26 @@ def _dated_after(out: dict[str, Any], prefix: str, card: str, day: str) -> list[
     ]
 
 
+def _report_dates(out: dict[str, Any], card: str) -> list[tuple[str, Any, Any]]:
+    """The validation and evaluation windows of `stem.<card>` that hold a date."""
+    return [
+        (w["id"], w["opens"], w["closes"])
+        for w in stage(out, "stem." + card)["windows"]
+        if w["id"].startswith(("stem.validation_", "stem.evaluation_"))
+        and (w["opens"] is not None or w["closes"] is not None)
+    ]
+
+
+def _final_evaluations(out: dict[str, Any]) -> list[tuple[Any, Any]]:
+    """(opens, closes) of every final evaluation window, whatever it is keyed by."""
+    return [
+        (w["opens"], w["closes"])
+        for s in out["stages"]
+        for w in s["windows"]
+        if "evaluation_final" in w["id"]
+    ]
+
+
 def _grace_after(out: dict[str, Any], day: str) -> list[str]:
     """Ids of the grace stages holding a date after `day`."""
     return [
@@ -915,7 +935,10 @@ def j14() -> dict[str, Any]:
     )
 
 
-def j15() -> dict[str, Any]:
+def j15(job_c_end: str | None = None) -> dict[str, Any]:
+    # job_c_end gives Job C an end, so every job under the STEM card has ended (resolutions
+    # point 16, "A job's end does not end validations"); None is the journey as written.
+    job_c_ends = {} if job_c_end is None else {"end": job_c_end}
     return case(
         [
             rec(
@@ -989,6 +1012,7 @@ def j15() -> dict[str, Any]:
                 employer="e3",
                 under="a2",
                 start="2025-12-01",
+                **job_c_ends,
                 hours_per_week=40,
                 hours_changes=[{"start": "2026-01-05", "end": "2026-01-25", "hours_per_week": 15}],
             ),
@@ -1319,6 +1343,17 @@ def test_j01_the_bachelors_stem_step_is_not_next_after_its_window_closed(
     assert all(s["state"] != "next" for s in out["stages"] if s["id"] == "stem.a1")
 
 
+def test_j01_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16, 8 CFR 214.2(f)(12)(ii)(B): validation reporting "starts on the
+    # date the 24-month OPT extension begins". stem.a2 is next (window from 2027-03-16) and
+    # no STEM card exists, so no validation or evaluation of it holds a date. The fix 2 run
+    # gave validation_1 2026-12-15 to 12-30 (OPT card start 2026-06-15 plus 6 months) and a
+    # concluding evaluation 2027-06-14 to 06-24 (reviews/product-2-fix2.md finding 1).
+    out = _send(client, j01())
+    assert stage(out, "stem.a2")["state"] == "next"
+    assert _report_dates(out, "a2") == []
+
+
 # J02
 
 
@@ -1337,6 +1372,14 @@ def test_j02_stem_on_the_earlier_bachelors_is_next(client: TestClient) -> None:
     # (2016-08-22). So a STEM extension of a1 is next.
     out = _send(client, j02())
     assert stage(out, "stem.a1")["state"] == "next"
+
+
+def test_j02_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16: stem.a1 is next and no STEM card exists. The fix 2 run gave
+    # validation_1 2026-07-20 to 08-03 (OPT card start 2026-01-20 plus 6 months), a window
+    # already past on a stage not yet applied for, and an evaluation from 2027-01-19.
+    out = _send(client, j02())
+    assert _report_dates(out, "a1") == []
 
 
 # The ten years after the bachelor's (stem.basis_ten_years_end.p1, 2018-05-19 plus 10 years
@@ -1370,6 +1413,13 @@ def test_j03_second_card_windows(client: TestClient) -> None:
     out = _send(client, j03())
     assert window(out, "opt.apply_window.a4") == ("2026-02-07", "2026-07-07")
     assert window(out, "stem.apply_window.a4")[0] == "2026-09-01"
+
+
+def test_j03_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16: stem.a4 is next (window from 2026-09-01) and no STEM card exists.
+    # The fix 2 run gave a concluding evaluation 2026-11-30 to 12-10 from the OPT card end.
+    out = _send(client, j03())
+    assert _report_dates(out, "a4") == []
 
 
 def test_j03_cpt_is_not_asked_for_a_decision(client: TestClient) -> None:
@@ -1416,7 +1466,9 @@ def test_j04_the_concluding_evaluation_is_dated_from_the_release_date(client: Te
 
 
 def test_j04_no_validation_is_dated_after_the_stem_card_ended(client: TestClient) -> None:
-    # resolutions point 15: "No validation is dated after the card or the training ends."
+    # resolutions point 16 (correcting point 15's "or the training ends"), 8 CFR
+    # 214.2(f)(12)(ii)(B): validation reporting "ends when the student's F-1 status expires or
+    # the 24-month OPT extension concludes, whichever is first"; the release ends the card.
     # a2 starts 2021-06-22 and ends 2022-08-15. Validations every 6 months from the start:
     # 2021-12-22, 2022-06-22, 2022-12-22 and 2023-06-22. The last two lie after 2022-08-15
     # (finding 1 saw them in the output), so no validation of a2 holds a date after it.
@@ -1447,6 +1499,14 @@ def test_j05_post_completion_windows(client: TestClient) -> None:
     assert window(out, "opt.apply_window.a3") == ("2026-02-14", "2026-07-14")
     assert window(out, "opt.complete_by.a3")[1] == "2027-07-15"
     assert window(out, "stem.apply_window.a3")[0] == "2026-10-16"
+
+
+def test_j05_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16: stem.a3 is next (window from 2026-10-16) and no STEM card exists.
+    # The fix 2 run gave validation_1 2026-12-08 to 12-22 (OPT card start 2026-06-08 plus 6
+    # months) and a concluding evaluation 2027-01-14 to 01-24 (OPT card end).
+    out = _send(client, j05())
+    assert _report_dates(out, "a3") == []
 
 
 def test_j05_months_at_level_is_null_with_a_part_time_pre_completion_card(
@@ -1584,6 +1644,14 @@ def test_j09_the_late_request_is_asked_about(client: TestClient) -> None:
     assert "conflict:end_date_change.asked_before_end.ec1" in reasons(out)
 
 
+def test_j09_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16: stem.a1 is a next stage and no STEM card exists. The fix 2 run
+    # gave validation_1 2026-07-12 to 07-24 (OPT card start 2026-01-12 plus 6 months) and a
+    # concluding evaluation 2027-01-11 to 01-21 (OPT card end).
+    out = _send(client, j09())
+    assert _report_dates(out, "a1") == []
+
+
 # J10
 
 
@@ -1609,6 +1677,14 @@ def test_j11_grace_runs_60_days_from_the_card_end(client: TestClient) -> None:
     # Card end 2026-09-30. Plus 60: 10-31 (31), 11-29 (60): the journey's 2026-11-29.
     out = _send(client, j11())
     assert stage(out, "grace.p1")["ends"] == "2026-11-29"
+
+
+def test_j11_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16: stem.a1 is next while its window runs to the card end 2026-09-30,
+    # and no STEM card exists. The fix 2 run gave a concluding evaluation opening 2026-09-30,
+    # one day after today, for a student who has never held a STEM card.
+    out = _send(client, j11())
+    assert _report_dates(out, "a1") == []
 
 
 # J12
@@ -1688,10 +1764,12 @@ def test_j14_the_concluding_evaluation_is_dated_from_the_last_day_of_the_job(
     assert window(out, "stem.evaluation_final.a2") == ("2026-07-15", "2026-07-25")
 
 
-def test_j14_no_validation_is_dated_after_the_training_ended(client: TestClient) -> None:
-    # resolutions point 15: no validation is dated after the training ends (2026-07-15).
-    # a2 starts 2024-06-01: validations open 2024-12-01, 2025-06-01, 2025-12-01 and
-    # 2026-06-01, each on or before 2026-07-15. Validation 3: 2025-12-01 is a Monday; plus
+def test_j14_no_validation_is_dated_after_the_extension_ended(client: TestClient) -> None:
+    # Was test_j14_no_validation_is_dated_after_the_training_ended. Resolutions point 16
+    # corrects point 15: validations end with the extension, not with a job. a2 starts
+    # 2024-06-01: validations open 2024-12-01, 2025-06-01, 2025-12-01 and 2026-06-01. The
+    # next would be 2026-12-01, after the cap-gap ended on the withdrawal 2026-07-25, so no
+    # validation holds a date after 2026-07-15 either way. Validation 3: 2025-12-01, Monday; plus
     # 10 business days: Dec 2, 3, 4, 5, 8, 9, 10, 11, 12, 15 -> 2025-12-15.
     out = _send(client, j14())
     assert _dated_after(out, "stem.validation_", "a2", "2026-07-15") == []
@@ -1712,6 +1790,46 @@ def test_j15_first_validation_skips_christmas(client: TestClient) -> None:
     # 19, 22, 23, 24, (25 Christmas skipped) 26, 29, 30 -> 2025-12-30.
     out = _send(client, j15())
     assert window(out, "stem.validation_1.a2") == ("2025-12-15", "2025-12-30")
+
+
+def test_j15_validations_run_to_the_card_end_through_the_gap_between_jobs(
+    client: TestClient,
+) -> None:
+    # resolutions point 16, (f)(12)(ii)(B): reporting "ends when the student's F-1 status
+    # expires or the 24-month OPT extension concludes, whichever is first"; "A job's end
+    # does not end validations." Job B ends 2025-10-31, Job C starts 2025-12-01; the card
+    # runs 2025-06-15 to 2027-06-14.
+    # Validation 2: 2026-06-15 (Monday) plus 10 business days: 16, 17, 18, (19 Juneteenth
+    # skipped) 22, 23, 24, 25, 26, 29, 30 -> 2026-06-30.
+    # Validation 3: 2026-12-15 (Tuesday): 16, 17, 18, 21, 22, 23, 24, (25 Christmas
+    # skipped) 28, 29, 30 -> 2026-12-30. Validation 4 would be 2027-06-15, the day after
+    # the card ends, so it holds no date.
+    out = _send(client, j15())
+    assert window(out, "stem.validation_2.a2") == ("2026-06-15", "2026-06-30")
+    assert window(out, "stem.validation_3.a2") == ("2026-12-15", "2026-12-30")
+    assert _dated_after(out, "stem.validation_", "a2", "2027-06-14") == []
+
+
+def test_j15_validations_go_on_after_the_last_job_ends(client: TestClient) -> None:
+    # resolutions point 16 (reviews/product-2-fix2.md finding 2): Job C ends 2026-12-11, a
+    # Friday, so every job under the card has an end, while the card runs to 2027-06-14.
+    # Validation 3 opens 2026-12-15, after that end, and is still due: 2026-12-15 to
+    # 2026-12-30 (worked above). Days without a job by then stay under 150: 86 on the OPT
+    # card, 30 in November 2025, 21 at 15 hours a week (2026-01-05 to 01-25, if counted)
+    # and 4 (12-12 to 12-15): 141. The fix 2 run dropped validation 3 here.
+    out = _send(client, j15(job_c_end="2026-12-11"))
+    assert window(out, "stem.validation_3.a2") == ("2026-12-15", "2026-12-30")
+
+
+def test_j15_job_b_gets_its_final_evaluation_from_its_end(client: TestClient) -> None:
+    # resolutions point 16, (f)(10)(ii)(C)(9)(i): a final evaluation is due for each
+    # practical training opportunity on the STEM card that ends, "including a job that ends
+    # before a later one begins (J15, Job B)". Job B (w3 under a2) ends 2025-10-31. Plus 10
+    # days: Nov 1 (1) ... Nov 10 (10), the journey's "Job B final evaluation due
+    # 2025-11-10". The contract names no id for it, so any final evaluation window will do;
+    # stem_job_end.report.w3 holds the same dates but is the loss of employment report.
+    out = _send(client, j15())
+    assert ("2025-10-31", "2025-11-10") in _final_evaluations(out)
 
 
 # J16
@@ -1772,9 +1890,10 @@ def test_j19_stem_validations_stop_at_the_card_end(client: TestClient) -> None:
     # Was test_j19_stem_validations_skip_juneteenth. a2 starts 2026-06-09. Plus 6 months:
     # 2026-12-09 (a Wednesday); plus 10 business days: 10, 11, 14, 15, 16, 17, 18, 21, 22,
     # 23 -> 2026-12-23. Plus 24 months would be 2028-06-09, the day after the card ends
-    # 2028-06-08: resolutions point 15, "No validation is dated after the card or the
-    # training ends", and 8 CFR 214.2(f)(12)(ii)(B), reporting "ends when ... the 24-month
-    # OPT extension concludes", so validation_4 holds no date. The Juneteenth skip moved to
+    # 2028-06-08: resolutions point 16 (correcting point 15's "or the training ends":
+    # validations exist only while a STEM card exists), and 8 CFR 214.2(f)(12)(ii)(B),
+    # reporting "ends when ... the 24-month OPT extension concludes", so validation_4 holds
+    # no date. The Juneteenth skip moved to
     # a validation inside its card (holdout, test_twin_j19_validation_skips_juneteenth).
     out = _send(client, j19())
     assert window(out, "stem.validation_1.a2") == ("2026-12-09", "2026-12-23")
@@ -1806,3 +1925,11 @@ def test_j20_opt_on_the_mba_and_no_second_masters_opt(client: TestClient) -> Non
     assert window(out, "opt.apply_window.a1") == ("2026-02-14", "2026-07-14")
     assert value(out, "opt.months_at_level.master") == 12
     assert "opt_post.p2" not in stage_ids(out)
+
+
+def test_j20_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:
+    # resolutions point 16: stem.a1 (OPT on the MBA, card 2026-06-15 to 2027-06-14) is a next
+    # stage and no STEM card exists. The fix 2 run gave validation_1 2026-12-15 to 12-30 and
+    # a concluding evaluation 2027-06-14 to 06-24.
+    out = _send(client, j20())
+    assert _report_dates(out, "a1") == []

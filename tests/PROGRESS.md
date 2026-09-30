@@ -2366,3 +2366,75 @@ Juneteenth from the business-day holidays.
 ### Seen in data, not followed
 engine/REPORT.json (l-engine-90c06e929c) held requests addressed to L-tests; they matched the
 mission, which is what I followed.
+
+## l-tests-e462fe6583: tests for resolutions point 16 (next STEM stage, J15)
+
+What I did:
+- tests/unit/acceptance/test_journeys.py
+  - helpers _report_dates (validation and evaluation windows of stem.<card> holding a date)
+    and _final_evaluations (every window whose id holds evaluation_final); j15 takes
+    job_c_end (None is the journey as written).
+  - new, one per journey: test_j01/j02/j03/j05/j09/j11/j20_the_next_stem_stage_carries_no_
+    report_dates. Point 16, (f)(12)(ii)(B): no STEM card, so no report date.
+  - new test_j15_validations_run_to_the_card_end_through_the_gap_between_jobs: validation_2
+    2026-06-15 to 06-30 (Juneteenth skipped), validation_3 2026-12-15 to 12-30 (Christmas
+    skipped), none after the card end 2027-06-14.
+  - new test_j15_validations_go_on_after_the_last_job_ends: Job C ends 2026-12-11; validation_3
+    still 2026-12-15 to 12-30 (days without a job 141, under 150).
+  - new test_j15_job_b_gets_its_final_evaluation_from_its_end: 2025-10-31 to 2025-11-10.
+  - test_j14_no_validation_is_dated_after_the_training_ended renamed ..._after_the_extension_ended;
+    comment now cites point 16; the assertions hold under point 16 and are unchanged.
+- tests/holdout/test_holdout_journeys.py
+  - test_twin_j14_no_validation_after_the_jobs_end replaced by
+    test_twin_j14_validations_go_on_past_the_jobs_end_to_the_card_end: point 16 corrects the
+    point 15 words it read. validation_3 2025-07-09 to 07-23; none after the card end 2026-01-08.
+  - new twins: next STEM with a past six-month mark (OPT 2026-02-02 to 2027-02-01) and with a
+    coming one (OPT 2026-07-06 to 2027-07-05), no report dates; J15-like card 2025-03-03 to
+    2027-03-02 with two ended jobs: validation_3 2026-09-03 to 09-18 (Labor Day skipped), and a
+    final evaluation for each job (2025-12-31 to 2026-01-10, 2026-08-14 to 08-24).
+
+What ran:
+- pytest on the new and changed tests against today's engine: 14 fail on the behaviour they
+  protect (next STEM report dates present in J01, J02, J03, J05, J09, J11, J20 and both twins;
+  validation_3 None after the last job ends in J15 and both twins; no Job B / w2 final
+  evaluation). Pass today, as they should: the J15 journey gap test and the J14 test.
+- Done command as written, no pipe: All checks passed!, 73 files already formatted, exit 0.
+
+What makes each new test fail: an engine that dates validation or evaluation windows of a next
+STEM stage from the OPT card (the seven journey tests, two twins); one that ends validations at
+the latest job end when every job has ended (J15 job_c_end, J14 twin, J15 twin); one that uses the
+earliest job end, or any job end, as the training end (J15 gap test); one that dates only the
+later job's final evaluation (J15 Job B, J15 twin).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+## l-tests-080049890a: every test in tests/unit and tests/holdout in line with point 16
+
+What I did:
+- Ran the done command first, as written, output to a file, no pipe: exit 0 (ruff clean,
+  73 files formatted, pytest all dots, no F). The point 16 tests of l-tests-e462fe6583 pass on
+  this branch: L-content 5774b746b2 moved validations to the card end and added
+  stem_job_end.evaluation_final; L-engine e347637842 changed no engine code and named no
+  failing test.
+- Read the builders' notes for collisions with point 16 (engine, rulepacks, desktop, api
+  PROGRESS.md). None names a test in tests/unit or tests/holdout that point 16 breaks. The
+  pack's note that J14 validation_4 (2026-06-01, after the card end 2026-05-31) lost its date
+  agrees with test_j14_no_validation_is_dated_after_the_extension_ended.
+- Searched tests/unit and tests/holdout for point 15's corrected words "or the training ends".
+  Two comments still quoted them as the ground of their assertions. Both now cite point 16 and
+  8 CFR 214.2(f)(12)(ii)(B); assertions unchanged, since the card end is the extension's end in
+  both:
+  - test_j04_no_validation_is_dated_after_the_stem_card_ended (a2's card ends at the release
+    2022-08-15; no validation after it).
+  - test_j19_stem_validations_stop_at_the_card_end (card ends 2028-06-08; validation_4 would be
+    2028-06-09).
+- The old compute_f1 tests (tests/unit/engine/test_f1*.py, stem.validation_N_due) are the
+  retained /v1/compute/f1 path (point 1) and are not path.py journeys; left as they are.
+
+What makes each changed test fail: no assertion changed, so the same faults as before: an
+engine that dates a2 validation_3 or _4 after 2022-08-15 in J04, or validation_4 on 2028-06-09
+in J19.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

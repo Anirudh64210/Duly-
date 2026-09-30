@@ -1448,3 +1448,18 @@ Status: done.
   check clean, 9 files already formatted.
 
 Status: done.
+
+## l-engine-e347637842: every journey through POST /v1/compute (after point 16 tests)
+
+- Before any change: the done command as written, output to a file, exit 0. Acceptance all
+  passed (no skips), engine literals clean, mypy 62 files clean, ruff check clean, 9 files
+  already formatted. tests/unit/engine and tests/unit/api: exit 0.
+- Point 16 journeys (J01, J02, J03, J05, J09, J11 next STEM stage carries no report dates;
+  J15 validations run to the card end through a gap and after the last job ends) already
+  pass on this branch. The quote "The requirement for validation reporting starts on the
+  date the 24-month OPT extension begins" is in the saved eCFR XML under
+  rulepacks/f1-us/v2026.09/sources and in parameters.yaml, so the journeys are backed by the
+  saved words. No finding.
+- No engine code changed.
+
+Status: done.

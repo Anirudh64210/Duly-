@@ -997,3 +997,40 @@ pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
 - With two employers on one STEM card, only the later job's final evaluation is dated.
 - An approved petition with no validity_start keeps the petition grace; validity_start is not asked for it.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-30, run l-content-5774b746b2, attempt 1 (product-2 resolutions point 16, pack side)
+
+### What was tried
+
+- Read resolutions point 16, reviews/product-2-fix2.md findings 1 to 3, the `stem` and `stem_job_end` stages, and engine/path.py `_next`, `_window`, `_when`, `_first`, `_select` (a next stage's virtual record carries the host's id, the OPT card, which is why `this.id same_as outer.id` found the OPT card).
+- Validations: added `this.type in [stem_extension]` to each lookup; the end is a new anchor stem_validation_end (card end, release date, day before a new level, day before the validity start of an approved change-of-status petition). No job end.
+- stem.evaluation_final: `latest_of: [this.card_start, earliest_of: *stem_training_end]`, so a virtual record (no card_start, never asked) gives no date. Training end anchor moved into this window; its card member filters on stem_extension; stem_job_covered requires under.type stem_extension and no job under the card ending after the job.
+- New window stem_job_end.evaluation_final (anchor stem_job_before_another).
+- First write put the training-end members 6 spaces too far left under `- earliest_of:`; fixed before any run.
+
+### What ran
+
+```
+uv run pytest tests/unit/acceptance -q: all passed
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 0 row(s) changed
+pytest tests/unit/engine tests/unit/api tests/unit/acceptance tests/unit/tools:
+  worktree 27 failed, 1828 passed; HEAD copy (git archive into TMPDIR) 28 failed; no new failure
+  (the extra one in the copy is test_plain_changes, which needs git history)
+probe (TMPDIR/lc16/probe.py, CLOCK of the acceptance tests):
+  J01 J05 J09 J11 J20 next stem stage: every validation and evaluation_final None, no stem report in upcoming
+  J04 validation_1 2021-12-22 to 2022-01-05, _2 2022-06-22 to 2022-07-07, _3 _4 None, final 2022-08-15 to 2022-08-25
+  J14 validations 1 to 3 dated, _4 (2026-06-01, after the card end 2026-05-31) None; final 2026-07-15 to 2026-07-25
+  J15 validations 1 to 3 as the journey, final a2 2027-06-14 to 2027-06-24, stem_job_end.evaluation_final.w3 2025-10-31 to 2025-11-10
+  J15 without w4: validations 1 to 3 still dated; final a2 2025-10-31 to 2025-11-10
+  J19 validation_4 None
+```
+
+### Seen and not worked around
+
+- Validation windows now show status guidance, because capgap.status_ends_on_h1b_start (guidance, reading) is in their rule_ids for the F-1 status member.
+- J14 validation_4 (2026-06-01) lost its date: it falls after the card end, and the cap-gap is not the 24-month extension.
+- The per-job window shows on each stem_job_end stage, with no dates for the last job (its final evaluation is the stage's).
+- No network was used. No instruction was found in any data.

@@ -610,12 +610,20 @@ def test_twin_j14_concluding_evaluation_from_the_jobs_end(client: TestClient) ->
     assert window(out, "stem.evaluation_final.a2") == ("2025-04-18", "2025-04-28")
 
 
-def test_twin_j14_no_validation_after_the_jobs_end(client: TestClient) -> None:
-    # a2 starts 2024-01-09: validations 2024-07-09, 2025-01-09, 2025-07-09, 2026-01-09. The
-    # last two lie after 2025-04-18; the second still opens 2025-01-09.
+def test_twin_j14_validations_go_on_past_the_jobs_end_to_the_card_end(
+    client: TestClient,
+) -> None:
+    # Was test_twin_j14_no_validation_after_the_jobs_end, which read point 15's "or the
+    # training ends"; resolutions point 16 corrects it: "A job's end does not end
+    # validations." a2 runs 2024-01-09 to 2026-01-08: validations 2024-07-09, 2025-01-09,
+    # 2025-07-09 and 2026-01-09. The third lies after the job's end 2025-04-18 and inside
+    # the card: 2025-07-09 (Wednesday) plus 10 business days: 10, 11, 14, 15, 16, 17, 18,
+    # 21, 22, 23 -> 2025-07-23. Days without a job by then: 04-19 to 07-09, 12 + 31 + 30 + 9
+    # = 82, under 150. The fourth is the day after the card, so it holds no date.
     out = _send(client, _j14_like())
-    assert _dated_after(out, "stem.validation_", "a2", "2025-04-18") == []
     assert window(out, "stem.validation_2.a2")[0] == "2025-01-09"
+    assert window(out, "stem.validation_3.a2") == ("2025-07-09", "2025-07-23")
+    assert _dated_after(out, "stem.validation_", "a2", "2026-01-08") == []
 
 
 # J06 twin: the OPT filing window on either side of today.
@@ -781,3 +789,130 @@ def test_twin_j19_validation_skips_christmas(client: TestClient) -> None:
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2026-12-15", "2026-12-30")
     assert "opt_post.p1" not in [i for i in stage_ids(out) if stage(out, i)["state"] == "next"]
+
+
+# Resolutions point 16: a next STEM stage, before any STEM card, carries no report dates.
+
+
+def _stem_next_case(start: str, end: str) -> dict[str, Any]:
+    return case(
+        [
+            _masters("2024-05-17", stem_list="on_list", start_date="2022-08-22"),
+            _opt("a1", "p1", start, end),
+        ],
+        whole("program", "authorization:p1", "move", "trip"),
+    )
+
+
+def _stem_report_dates(out: dict[str, Any], card: str) -> list[tuple[str, Any, Any]]:
+    return [
+        (w["id"], w["opens"], w["closes"])
+        for w in stage(out, "stem." + card)["windows"]
+        if w["id"].startswith(("stem.validation_", "stem.evaluation_"))
+        and (w["opens"] is not None or w["closes"] is not None)
+    ]
+
+
+def test_twin_next_stem_with_a_past_six_month_mark_has_no_report_dates(
+    client: TestClient,
+) -> None:
+    # OPT card 2026-02-02 to 2027-02-01. STEM window opens minus 90: 01-02 (30), 12-03 (60),
+    # 11-03 (90), so stem.a1 is next. The OPT card start plus 6 months is 2026-08-02, which
+    # the fix 2 build dated as a validation already past; the card end 2027-02-01 gave a
+    # concluding evaluation. No STEM card exists, so (f)(12)(ii)(B) gives neither.
+    out = _send(client, _stem_next_case("2026-02-02", "2027-02-01"))
+    assert window(out, "stem.apply_window.a1")[0] == "2026-11-03"
+    assert _stem_report_dates(out, "a1") == []
+
+
+def test_twin_next_stem_with_a_coming_six_month_mark_has_no_report_dates(
+    client: TestClient,
+) -> None:
+    # OPT card 2026-07-06 to 2027-07-05. STEM window opens minus 90: 06-05 (30), 05-06
+    # (60), 04-06 (90). OPT start plus 6 months is 2027-01-06, a date still to come that
+    # the fix 2 build would list as upcoming. No STEM card, so no report date.
+    out = _send(client, _stem_next_case("2026-07-06", "2027-07-05"))
+    assert window(out, "stem.apply_window.a1")[0] == "2027-04-06"
+    assert _stem_report_dates(out, "a1") == []
+
+
+# J15 twin: two jobs on the STEM card, both ended, with a gap between them.
+
+
+def _j15_like() -> dict[str, Any]:
+    return case(
+        [
+            _masters("2024-01-12", field_name="Data Science", stem_list="on_list"),
+            _opt("a1", "p1", "2024-03-03", "2025-03-02"),
+            rec(
+                "a2",
+                "authorization",
+                type="stem_extension",
+                program="p1",
+                extends="a1",
+                basis_program="p1",
+                decision="approved",
+                card_start="2025-03-03",
+                card_end="2027-03-02",
+            ),
+            rec("e1", "employer", name="Employer R", e_verify="yes"),
+            rec("e2", "employer", name="Employer S", e_verify="yes"),
+            rec(
+                "w1",
+                "work",
+                employer="e1",
+                under="a1",
+                start="2024-03-03",
+                end="2025-03-02",
+                hours_per_week=40,
+            ),
+            rec(
+                "w2",
+                "work",
+                employer="e1",
+                under="a2",
+                start="2025-03-03",
+                end="2025-12-31",
+                hours_per_week=40,
+            ),
+            rec(
+                "w3",
+                "work",
+                employer="e2",
+                under="a2",
+                start="2026-01-20",
+                end="2026-08-14",
+                hours_per_week=40,
+            ),
+        ],
+        whole("program", "authorization:p1", "work", "trip"),
+    )
+
+
+def test_twin_j15_validation_after_the_last_job_ends_skips_labor_day(
+    client: TestClient,
+) -> None:
+    # resolutions point 16. a2 runs 2025-03-03 to 2027-03-02; the last job ends 2026-08-14.
+    # Validations open 2025-09-03, 2026-03-03, 2026-09-03 and 2027-03-03 (after the card, no
+    # date). The third, 2026-09-03 (Thursday), plus 10 business days: Sep 4 (1), (7 Labor
+    # Day skipped) 8, 9, 10, 11, 14, 15, 16, 17, 18 (10) -> 2026-09-18. Days without a job
+    # by 09-03: 01-01 to 01-19 (19) and 08-15 to 09-03 (17 + 3 = 20), 39.
+    out = _send(client, _j15_like())
+    assert window(out, "stem.validation_3.a2") == ("2026-09-03", "2026-09-18")
+    assert _dated_after(out, "stem.validation_", "a2", "2027-03-02") == []
+
+
+def test_twin_j15_each_ended_job_gets_its_final_evaluation(client: TestClient) -> None:
+    # resolutions point 16, (f)(10)(ii)(C)(9)(i): a final evaluation for each opportunity on
+    # the STEM card that ends, from that job's end. w2 ends 2025-12-31: Jan 1 (1) ... Jan 10
+    # (10) -> 2026-01-10. w3 ends 2026-08-14: Aug 15 (1) ... Aug 24 (10) -> 2026-08-24. The
+    # contract names no id for a job's final evaluation, so any such window will do.
+    out = _send(client, _j15_like())
+    finals = [
+        (w["opens"], w["closes"])
+        for s in out["stages"]
+        for w in s["windows"]
+        if "evaluation_final" in w["id"]
+    ]
+    assert ("2025-12-31", "2026-01-10") in finals
+    assert ("2026-08-14", "2026-08-24") in finals

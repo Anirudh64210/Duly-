@@ -90,3 +90,32 @@ Not built: the 1200 by 832 size, landmark measuring and the check against
 tests/design/landmarks.json, the beside-canvas sheets and the halo still of 14.4; the
 mission named the 1280 by 832 render only. web's vite build takes index.html alone, so
 web/dist holds no shots.html yet; the runner then prints that and exits 1 (a request).
+
+## 2026-09-30, run l-desktop-14b085dbfa, attempt 1
+
+Read specs/product-2/resolutions.md point 16, reviews/product-2-fix2.md finding 6,
+specs/design-1/SPEC.md 14.1 and 14.4, tests/design/landmarks.json and read_canvas.py.
+
+Point 16, the shot run's half: a shot counted as drawn when #root had any child, so an error
+screen (the router's error component, or the shell around a failed screen) counted. Now:
+
+- shots.ts: SHOT_CANVAS maps each built screen to its canvas screen in landmarks.json
+  ("/welcome" Onboarding, "/" Main, "/timeline" Timeline, "/checklists" Checklist,
+  "/updates" Updates). screenLandmark reads the file and takes the screen's heading: the first
+  landmark in its largest type. Text is never compared (SPEC 14.1), so the landmark is found by
+  size, weight and letter spacing (em turned to px); colour is left out for dark shots.
+  drawScript now gives back the computed type and box of every visible element under the root
+  that draws text of its own; holdsLandmark decides outside the page. shots.json names the
+  landmark each shot looked for.
+- shotrun.ts reads tests/design/landmarks.json (a path from main.ts, designLandmarks); if it
+  cannot, exit 1. A picture is still written when the page answered, so a miss can be seen.
+- /case, /settings and /feedback have no canvas screen, so no landmark: those shots are never
+  counted as drawn and `make design-shots` exits 1 until landmarks.json holds them (a request).
+- Tests: shots.test.ts (the landmark read from the real file, holdsLandmark, pageTexts,
+  spacing), shots.page.test.ts (jsdom: the page script on a heading and on an error screen).
+
+What ran: the done command, exit 0. 11 test files, 137 tests passed. eslint clean, copy lint
+clean. prettier --write ran once before the done command.
+
+Not run: Electron itself. Not built: the samples script in web/ (L-web's half of point 16),
+the full box and colour comparison of SPEC 14.4.
