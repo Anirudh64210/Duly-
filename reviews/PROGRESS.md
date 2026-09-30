@@ -201,3 +201,15 @@
 - Failure: a background probe server could not be stopped from inside the sandbox.
 - Fix: probe in the foreground with a timeout, or through TestClient.
 - Evidence: kill 18296: operation not permitted.
+
+## 2026-09-29, run l-review-b7ccda7ad9 (product round 2)
+- Read the plan, path-1 SPEC, programs.md sections 8 to 22, design-1 sections 4, 14.4 and 18 parts, the engine and content progress logs, api/case.py, engine/path.py, the pack's path, caseStore and Onboarding.
+- Ran: unit and holdout suites (exit 0). TMPDIR/rv/journeys.py sent J01, J02, J03, J06, J08, J09, J09 late, J12, J13, J16, J19 through /v1/compute (all 200, cannot_tell, category_not_covered:f1) and engine.path.compute. Dates checked by hand.
+- Found: api never calls path.py; J08 OPT end wrong (_first ignores link paths); J12 grace ignores cap-gap; unemployment counted on an unanswered work list; onboarding is round A's shape; no design-shots; no journey pairs in holdout.
+- Screens: no render tool (no shots.ts, no playwright package); compared Timeline and Onboarding PNGs by structure.
+- Wrote reviews/product-2.md (VETO), REVIEW.json, REPORT.json, both valid.
+
+## Lesson
+- Failure: a green suite hid a route that computes nothing.
+- Fix: send one SPEC journey through the route and the engine function and compare.
+- Evidence: reviews/product-2.md finding 1.
