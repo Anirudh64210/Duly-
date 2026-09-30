@@ -75,6 +75,15 @@ def _unique(values: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(values))
 
 
+def _judgement_id(check: Json, record: Json | None) -> str | None:
+    """A judgement on one record's own answers, `<kind>.<name>` over records of that kind,
+    is the item `<record>.<name>` (programs.md section 14, `<program>.enrollment`)."""
+    if record is None:
+        return None
+    kind, _, name = str(check[ID]).partition(".")
+    return f"{record[ID]}.{name}" if name and kind == record["kind"] else None
+
+
 def _add_business_days(day: date, n: int) -> date:
     step = ONE_DAY if n >= 0 else -ONE_DAY
     left = abs(n)
@@ -923,7 +932,7 @@ class _Run:
         self._rules(check["rule_ids"])
         if holds is False:
             if check.get("kind") == "judgement":
-                self._judge(cid)
+                self._judge(_judgement_id(check, record) or cid)
             else:
                 self._conflict(cid, dict(tr.inputs), rid)
         elif holds is None:
