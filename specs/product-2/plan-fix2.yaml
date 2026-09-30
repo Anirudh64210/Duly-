@@ -71,10 +71,12 @@ rounds:
   - lane: L-tests
     agent: test-author
     mission: 'Bring every test in tests/unit and tests/holdout in line with specs/product-2/resolutions.md
-      point 15; write the point beside each change; never loosen an assertion; escalate any failure no
-      point explains.
-
-      '
+      point 15, starting with the two the engine builder showed wrong (its report, engine/REPORT.json
+      on lane/L-engine/l-engine-90c06e929c): test_j06_the_masters_opt_is_not_next_after_its_filing_windows_closed
+      must not ask for the window of a stage point 15 does not show (keep its not-next assertion); test_j19_stem_validations_skip_juneteenth
+      must not ask for a validation dated after the card ends ((f)(12)(ii)(B)); keep its other assertions.
+      Write the point beside each change; never loosen an assertion a point supports; escalate any failure
+      no point explains.'
     done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
       tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
   checks:
