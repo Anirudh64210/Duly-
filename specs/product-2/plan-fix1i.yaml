@@ -1,7 +1,7 @@
 branch: product-2
 spec: specs/product-2/resolutions.md
 merge: pr
-audited: false  # the translation tests inside product-2; plan-fix1g's review and audit follow
+audited: false  # the translation inside product-2; plan-fix1g's review and audit follow
 rounds:
   - name: guard
     checkpoint: false
@@ -9,14 +9,27 @@ rounds:
       - lane: L-tests
         agent: test-author
         mission: >
-          Your work is on lane/L-tests/l-tests-9d76786149; bring it in (git merge lane/L-tests/l-tests-9d76786149). You were right to escalate:
-          specs/product-2/resolutions.md point 14 now settles each question. Bring the six
-          translation tests in line with it: state each list whole with the path's complete.<kind>
-          where the case means it, drop reliance on answers to unasked questions, compare with the
-          case as sent, and hold no placeholder marker. Keep the engine's coverage at 95.
+          Your work is on lane/L-tests/l-tests-8a15fee5f8; bring it in (git merge lane/L-tests/l-tests-8a15fee5f8). Point 14 is clarified: the translated case
+          answers the path's own questions only, so opt.earlier_at_this_level states nothing on any
+          case. Remove test_no_to_earlier_opt_at_this_level_states_p1_authorizations_whole and the
+          authorization:p1 key of the hand-written case, and say so. The engine is changed next
+          round; your tests are expected to fail until then.
         done: >-
           bash -c 'uv run ruff check tests && uv run ruff format --check tests
-          && uv run pytest tests/unit/support tests/unit/engine -q -p no:cacheprovider --cov=engine
+          && uv run pytest tests/unit -q --co -p no:cacheprovider >/dev/null'
+  - name: translation
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 14 in engine/f1.py: the translation's _statements reads
+          the path's complete.<kind> statements and never nothing_more_to_record or
+          opt.earlier_at_this_level. Your target is tests/unit/engine/test_f1_translation.py.
+        done: >-
+          bash -c 'uv run pytest tests/unit/support tests/unit/engine -q -p no:cacheprovider --cov=engine
           --cov-report=xml:.scratch/engine-coverage.xml
-          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*"
-          --fail-under=95 --compare-branch=product-2'
+          && uv run diff-cover .scratch/engine-coverage.xml --include "engine/*" --fail-under=95
+          --compare-branch=product-2
+          && uv run python -m tools.gates.engine_literals && uv run mypy
+          && uv run ruff check engine && uv run ruff format --check engine'
