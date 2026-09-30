@@ -29,3 +29,34 @@ prettier clean, copy lint clean after one fix (a comment held a phrase from the 
 tsc into a scratch folder built all nine files; preload.js requires only electron.
 
 Not run: Electron itself. The founder runs `make desktop-smoke` outside the sandbox.
+
+## 2026-09-29, run l-desktop-7d4a70250f, attempt 1
+
+Read specs/design-1/SPEC.md sections 4, 11 (RQ-K1), 14.3 and 17 (F1),
+contracts/desktop_case_bridge.schema.json and contracts/case.schema.json.
+
+Built the case bridge (RQ-K1):
+
+- schema.ts: a checker for the JSON Schema words the two contracts use. The ajv in
+  node_modules is 6.15 and cannot read draft 2020-12, and a new dependency would change the
+  root package-lock.json, which this lane does not own. A contract word the checker does not
+  know is refused when the checker is made, so no rule is skipped silently. A problem names a
+  path and a rule; a key the schema does not name is written `*`, so no value from the case
+  reaches first_problem. Values must be plain data first: no NaN, Infinity, Date, Map,
+  undefined or loop, since IPC structured clone can carry them.
+- casefile.ts: one file, case.bin, in app.getPath("userData"), encrypted with the Cipher
+  given (safeStorage in main), written to case.bin.writing with mode 600 then renamed.
+  Read and write check the case against case.schema.json; refusals are not_a_case,
+  cannot_decrypt, keychain_unavailable and cannot_store as the contract lists. A message that
+  is not exactly one of the three calls is rejected, so the page can name no path, file or
+  key. Calls run one at a time. A case on disk that fails the contract is refused and left in
+  place, never deleted.
+- preload.ts: window.duly.case.read(), .write(case), .clear(), each sending only the
+  contract's call. main.ts: ipcMain.handle on duly:case, answered only for the app's own page
+  in the main frame.
+
+What ran: the done command, exit 0. 9 test files, 98 tests passed. eslint clean, copy lint
+clean. prettier --write ran once before the done command.
+
+Not built: the shots runner of 14.4 (the mission named section 4 only). Not run: Electron
+itself; safeStorage is exercised only through a test cipher (AES-256-GCM).

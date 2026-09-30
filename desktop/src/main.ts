@@ -1,8 +1,18 @@
 import { join } from "node:path";
 
-import { app, BrowserWindow, protocol, session, shell, type WebContents } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  protocol,
+  safeStorage,
+  session,
+  shell,
+  type WebContents,
+} from "electron";
 
 import { APP_ORIGIN, APP_SCHEME } from "./about";
+import { CASE_CHANNEL, createCaseBridge, loadChecker, mayUseCase } from "./casefile";
 import { repoRoot, startEngine, webDist } from "./engine";
 import {
   WINDOW,
@@ -78,6 +88,22 @@ function launch(folder: string | null): void {
         readFile: readInside,
       }),
     );
+
+    const answer = createCaseBridge({
+      folder: app.getPath("userData"),
+      checker: loadChecker(repoRoot(appPath)),
+      cipher: {
+        available: () => safeStorage.isEncryptionAvailable(),
+        encrypt: (text) => safeStorage.encryptString(text),
+        decrypt: (data) => safeStorage.decryptString(data),
+      },
+    });
+    ipcMain.handle(CASE_CHANNEL, (event, message: unknown) => {
+      const frame = event.senderFrame;
+      const main = frame !== null && frame === event.sender.mainFrame;
+      if (!mayUseCase(frame?.url, main)) throw new Error("not the app's page");
+      return answer(message);
+    });
 
     const shown = new BrowserWindow({
       ...WINDOW,
