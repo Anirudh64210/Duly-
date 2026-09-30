@@ -712,3 +712,32 @@ done command (as written): exit 0
 
 - git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-d6cfa8aad6, attempt 1 (SPEC-resolutions point 66)
+
+### What was tried
+
+The plain check now counts "U.S." as one word. `uv run python -m tools.sources.plain rulepacks --require f1` first printed five problems: stem.min_hours_per_week 16.3, stem.requires.accreditation 19.8, stem.requires.previously_obtained_degree 23.9, stem.requires.duties_hours_and_compensation 17.6, stem.requires.employer_attests_no_replacement 13.5 (limit 9). Only these five plain texts were rewritten; plain_terms unchanged. Scratch scripts in TMPDIR scored variants with tools.sources.plain.problems, grade and term_problems.
+
+The degree row was the hard one: with "category", "the student", "for the ... extension", "accredited", "SEVP-certified" and "U.S. educational institution" kept, most three-sentence variants sat at 9.2 to 9.8. What brought it under was naming the degree once: S1 makes "the degree it rests on" the subject, so S2 can say "it". Grade 8.98. Clauses such as "and be from" or "then be from" trip the instructs check; avoided.
+
+What each sentence rests on (Q = quote, N = note):
+- stem.min_hours_per_week. S1: "A student may not engage in practical training for less than 20 hours per week" (Q); "On a 24-month extension" from the heading of (f)(10)(ii)(C) (N: "that heading is why the plain words name the extension"). S2 and S3: "excluding time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment" (Q); N: "The time off left out is only time off taken consistent with leave-related policies ...".
+- stem.requires.accreditation. S1: "Duly reads it as a requirement because of the sentence before the list", "all of the following requirements must be met" (N). S2: "The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution" (Q). S3: "accredited by an accrediting agency recognized by the Department of Education at the time of application" (Q); N: "they may limit the accreditation, the recognition, or both, and the plain words keep that open".
+- stem.requires.previously_obtained_degree. S1: "at the time the student's DSO recommends the student for the 24-month OPT extension" and "is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT" (Q); "may be" from N: "the degree that is the basis for the extension may be, but is not required to be, the degree that is the basis for the post-completion OPT period". S2: "If" (Q, "They begin with If" N); "must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation" (Q). S3: "That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension" (Q); N: "The number 10 in the quote is a count of years".
+- stem.requires.duties_hours_and_compensation. S1: "The terms and conditions of a STEM practical training opportunity during the period of the 24-month OPT extension" (Q). S2: "including duties, hours, and compensation" (Q). S3: "must be commensurate with terms and conditions applicable to the employer's similarly situated U.S. workers in the area of employment" (Q).
+- stem.requires.employer_attests_no_replacement. S1: "Duly reads them together with those opening words", "in which the employer attests" (N). S2: "The student on a STEM OPT extension will not replace a full- or part-time, temporary or permanent U.S. worker" (Q).
+
+### What ran
+
+```
+uv run python -m tools.sources.plain rulepacks --require f1 : first exit 1, "plain words: 5 problem(s)"
+done command (as written): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  plain changes: 5 row(s) changed, each one allowed
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
