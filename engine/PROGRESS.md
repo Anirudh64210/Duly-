@@ -1431,3 +1431,20 @@ Status: done.
   diff coverage 98%; mypy clean on 62 files; ruff check clean; 9 files already formatted.
 
 Status: done.
+
+## l-engine-e65365f570: resolutions point 15 (a next stage only while a filing window is open)
+
+- Before: test_path.py passed already (57). J06 through the API showed `opt_post.p1` as next with
+  apply_window and latest_start closed 2026-02-10, kept only by `opt.complete_by` (2027-02-12).
+- Change: `_closed` in engine/path.py now takes the pack stage beside the output entry and reads
+  only the windows that declare done_when (the facts that record a filing). A window without
+  them, such as opt.complete_by, no longer keeps a next stage. A next stage whose filing windows
+  have not closed, including one not yet open (J07), is still shown. No id is named.
+- Ran: tests/unit/engine and tests/unit/acceptance, all passed. A scratch test under TMPDIR
+  printing J06's next stages: [] now; with HEAD's path.py, opt_post.p1 as above.
+- A scratch test written under tests/ was refused by the sandbox; `git stash push` was refused
+  too ("Cannot save the current status"). Neither was worked around.
+- Done command as written: exit 0; 57 passed, engine literals clean, mypy 62 files clean, ruff
+  check clean, 9 files already formatted.
+
+Status: done.
