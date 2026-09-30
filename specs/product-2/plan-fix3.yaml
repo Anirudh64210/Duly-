@@ -1,0 +1,95 @@
+branch: product-2
+spec: specs/product-2/resolutions.md
+merge: pr
+rounds:
+  - name: parts
+    checkpoint: false
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          specs/product-2/resolutions.md point 16, tests first, in tests/unit/acceptance/test_journeys.py
+          and hidden twins: the next STEM stage of J01, J02, J03, J05, J09, J11 and J20 carries no
+          report dates; J15's validations run to the STEM card's end through the gap between jobs;
+          J15's Job B gets its final evaluation from its end. Expected to fail until the build.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q --co -p no:cacheprovider >/dev/null'
+      - lane: L-content
+        agent: rulepack-drafter
+        mission: >
+          specs/product-2/resolutions.md point 16 in rulepacks/f1-us/v2026.09: validations only while
+          a STEM card exists, ending with the extension or F-1 status as the quote says, never with a
+          job's end; the STEM windows never look up the OPT card as if it were the STEM card; a final
+          evaluation for each practical training opportunity on the STEM card that ends. Existing
+          plain words are frozen.
+        done: >-
+          bash -c 'uv run python -m tools.sources.verify rulepacks
+          && uv run python -c "from engine.rulepack import load_all; load_all()"
+          && uv run python -m tools.sources.plain rulepacks --require f1'
+      - lane: L-web
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 16, web side: no preselected answer in Onboarding (the
+          withdrawal's program first); the engine samples under web/samples made by a script kept in
+          web/ from the engine's own output and rerun in the build, so they cannot drift. Tests beside
+          the code that press Continue through the withdrawal views with nothing chosen.
+        done: >-
+          bash -c 'npm run typecheck -w web && npm test -w web
+          && npx eslint web --max-warnings 0
+          && npx prettier --check "web/**/*.{ts,tsx,css,html,json}"
+          && uv run python -m tools.copy_lint.lint'
+      - lane: L-desktop
+        agent: builder
+        mission: >
+          specs/product-2/resolutions.md point 16: the shot run counts a screen as drawn only when it
+          holds that screen's landmark from tests/design/landmarks.json, never an error screen. Tests beside the code.
+        done: >-
+          bash -c 'npm run typecheck -w desktop && npm test -w desktop
+          && npx eslint desktop --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+  - name: integrate
+    checkpoint: false
+    lanes:
+      - lane: L-engine
+        agent: builder
+        mission: >
+          All parts are on this branch. Make every journey of tests/unit/acceptance/test_journeys.py
+          pass through POST /v1/compute, fixing engine/. A journey asserting what the saved words do
+          not support is a finding in your report.
+        done: >-
+          bash -c 'uv run pytest tests/unit/acceptance -q && uv run python -m tools.gates.engine_literals
+          && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - name: reconcile
+    lanes:
+      - lane: L-tests
+        agent: test-author
+        mission: >
+          Bring every test in tests/unit and tests/holdout in line with specs/product-2/resolutions.md
+          point 16; the builders' reports name collisions. Write the point beside each change; never
+          loosen an assertion; escalate any failure no point explains.
+        done: >-
+          bash -c 'uv run ruff check tests && uv run ruff format --check tests
+          && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+    checks:
+      - { name: "offline gates", run: "make test-offline BASE=product-2" }
+      - { name: "hidden tests", run: "uv run pytest tests/holdout -q" }
+  - name: review
+    lanes:
+      - lane: L-review
+        agent: reviewer
+        mission: >
+          Review product-2 against specs/product-2/resolutions.md, following your role file, in ONE
+          pass. Send all twenty journeys through POST /v1/compute and check every date against the
+          saved words. Walk Onboarding for J01, J08 and J16 by pressing Continue. Close or name every
+          finding of reviews/product-2-fix2.md. Write reviews/product-2-fix3.md and reviews/REVIEW.json.
+        done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/product-2-fix3.md && test -f reviews/REVIEW.json'
+  - name: audit
+    lanes:
+      - lane: L-audit
+        agent: auditor
+        mission: >
+          Audit the rows that specs/path-1/programs.md section 22 and specs/design-1/SPEC.md Covers
+          name. Update docs/requirements/audits/product-2.md and report the share met.
+        done: >-
+          bash -c 'test -f docs/requirements/audits/product-2.md
+          && uv run python -m tools.requirements.register check'
