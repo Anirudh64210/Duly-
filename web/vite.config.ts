@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // specs/desktop-1/SPEC.md: the build loads from duly://app/, so asset paths are relative.
+  base: "./",
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
