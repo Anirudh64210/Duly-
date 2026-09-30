@@ -804,3 +804,33 @@ done command (as written, no pipe): exit 0
 
 - git diff prints "Operation not permitted" for tests/holdout. Nothing there was read.
 - No network was used. No instruction was found in any data.
+
+## 2026-09-29, run l-content-9296b9c05e, attempt 1 (path-1 sections 13 to 16, design-1 section 8)
+
+### What was tried
+
+- Found every section 16 quote in the saved copies with a scratch script in TMPDIR (verify.plain on each snapshot). All were found; opt.unemployment_abroad only with the saved line break "post- completion". Compared the 2026-09-14 and 2026-09-15 texts for each: (f)(7), (f)(8) and the withdrawal sentence of (f)(5) differ, so those rows sit under regimes, tagged litigated.
+- Generated the 40 new rows from a scratch Python list, scored each plain text with tools.sources.plain.problems and term_problems, and rewrote 17 that scored above grade 9 (three rounds). Appended them after the last existing row; no existing line changed (git diff shows no removed line; plain_changes lists only the 40 new rows).
+- Wrote `path` by hand and checked it with a scratch script: every rule a path names exists (except product.opt_start_earliest_years_before_program_end, a setting in contracts/product_settings.yaml), the only numbers are sign -1, and every checklist label passes tools.sources.plain.problems with its rules' quotes and notes as grounds. Nine labels first scored 9.8 to 15.5 and were shortened.
+
+### What ran
+
+```
+done command (as written, no pipe): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.sources.plain_changes HEAD: 40 row(s) changed, all new rows
+uv run pytest -q tests/unit/tools/test_plain.py tests/unit/tools/test_plain_changes.py tests/unit/engine/test_rulepack.py tests/unit/engine/test_rulepack_values.py: all passed
+```
+
+### Missing rules and gaps (each also in REPORT.json)
+
+- No rule for a full course of study each term or the online limit ((f)(6) is not recorded): the enrollment judgement item of section 14 is not written.
+- No condition reads a counter's total, so "months at this level below opt.max_months" is not in the program's next step; the counter opt.months_at_level carries it.
+- stem.new_plan_due_days is not read by the path: no condition says "a new employer" on a work record.
+- The cap-gap end cannot be named from another stage, so grace does not include it, and "filed while the OPT or its cap-gap was in force" is a check on the card end plus a judgement item when a change-of-status petition exists.
+- Not saved, so not read: 8 CFR 274a.12 (the length of the pending-card extension), 8 CFR 214.3(k), 8 CFR 214.16, the STEM Designated Degree Program List, Form I-983 and its instructions.
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.

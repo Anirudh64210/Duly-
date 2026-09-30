@@ -1717,3 +1717,115 @@ api/main.py and a REF_FAULT switch; removed afterwards.
 ### Seen in data, not followed
 
 Nothing read in this run asked for an action.
+
+## Run l-tests-a576366692 (attempt 1): path over records, typed dates, POST /v1/compute, tests first
+
+### What I tried and what ran
+
+- Read specs/path-1/contracts-reconciled.md, SPEC.md, programs.md (sections 10 to 22, Part 2,
+  Part 3), design-1 section 11 (RQ-A1), documents-1 section 8 (D59), and the contracts on
+  this branch (case.schema.json, rulepack.schema.json path defs, engine_output.schema.json).
+- engine/path.py does not exist. The SPEC names no function, so the tests assume
+  engine.path.compute(case_dict, [Rulepack], clock); the module is imported inside one
+  helper (_compute) so collection passes before it exists (lesson on I001 and absent modules).
+- Wrote tests/unit/api/test_compute_generic.py (18 tests): category_not_covered:h1b for the
+  shipped h1b pack (no path), output contract, today from the injected clock in the zone
+  (Kiritimati gives 2026-09-30), scope.documents_count 0, documents_count refused, NOT_JSON,
+  NOT_A_NUMBER, NOT_YET, four first_problem refusals, no echo of a body value, /v1/compute/f1
+  refuses a records case. Run: 16 fail (route absent, 404/405), 2 pass (fixture guard, f1).
+- Wrote tests/unit/engine/test_path.py (about 60 tests) over a j1 pack made in the test
+  (kinds course, change, card, job; rules toy.*; placeholder quotes): for_each and instance
+  ids, entered_when, windows and done_when, links, record on items, next with bind and
+  only_if true/false/unknown, missing field asked, optional members, as_of before and after
+  a change, fiscal year both sides of 10-01, day_before/day_after over a month end, happened
+  after today, end before start, longest, declared conflict check (and yes gives talk_to_dso),
+  judgement check, sum_of_days overlap (15), count_of_records at and under limit,
+  sum_of_months by same_value, days_without_qualifying_period (5, 2, 29, 29), completeness
+  statements (absent, reopened by grows_with_time, made today, not growing), 
+  record.ends_before_today (raised, not raised, no gives talk_to_dso), no path and empty path,
+  undeclared kind and field refused, effective_from_basis both ways, three hypothesis
+  properties with an injected clock (never quiet while a used list has no statement, a
+  deciding condition is unknown, a check is open), and an AST scan of engine/path.py for pack
+  names, categories, dates and numbers other than 0 and 1. Every test pack and case is
+  validated against its contract inside the helpers. Run: every engine test fails with
+  ModuleNotFoundError engine.path, or "engine/path.py does not exist yet"; none fails on a
+  fixture assertion.
+- Wrote tests/unit/engine/test_typed_dates.py (12 tests) over the same pack: from_documents
+  asked with every typed date in about, no_documents while nothing checked, checked.<fact>
+  asked for each, unconfirmed:typed_dates while any is unchecked or "Doesn't match", both
+  reasons lifted when all match, checks without the yes do not count, a no is cannot_tell, a
+  yes for other values is not read, and a property never quiet with a strict subset checked.
+- Done command as written: exit 0 ("All checks passed!", "65 files already formatted").
+
+### Not done in this attempt (time limit)
+
+- The twenty journeys as pairs in tests/holdout, each date checked against the saved words:
+  not written. The F-1 path is not in the pack yet, and checking each date against the saved
+  sources did not fit in 45 minutes.
+- Parity with the differences of section 19 (p1.stem_list question, rule_copy_not_saved,
+  record.ends_before_today, outcome_on after a denial) through compute_f1: not written; they
+  need the real F-1 path. Existing tests already run every today case through compute_f1.
+- No reference engine, so no fault was planted against the new tests.
+
+### What change to the code would make each test fail
+
+- Windows and links: an engine that ignores `add` or its `sign`, or reads this.end instead of
+  this.course.end, gives another date. as_of: reading the newest end gives 2027-01-14 for the
+  early filing. Fiscal year: placing 04-01 in the calendar year of the date gives 2026-04-01
+  for 2025-01-06. day_before: subtracting from the day number alone fails on 03-01.
+- next: showing a step whose only_if is false, or hiding one whose condition is unknown.
+- Conflicts and checks: dropping the happened check, the end-before-start check, longest,
+  or a declared check; a judgement check that asks first instead of talk_to_dso.
+- Counters: summing overlapping spans (20, not 15); counting a job under the hours rule or
+  under another card as qualifying (not 29); grouping sum_of_months all together (the low
+  and high case then crosses the limit); count_of_records with > instead of >=.
+- Completeness: treating a statement for a grows_with_time kind as lasting (09-20 case).
+- ends_before_today, no path, undeclared kind or field, effective_from_basis: each test
+  fails if the engine omits the behaviour; the basis pair fails if it always uses one reason.
+- Literal scan: any F-1 kind, shipped rule id, category, ISO date or number other than 0
+  and 1 written as a constant in engine/path.py.
+- Typed dates: using a typed date after the yes alone, taking "Doesn't match" as checked,
+  or taking a yes whose about holds other values.
+- API: a route that is absent, returns 500 on a refusal, echoes a body value, or accepts
+  documents_count.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.
+
+## Run l-tests-4ba0df3312 (attempt 1): reconcile tests/unit and tests/holdout after path.py and /v1/compute
+
+### What I tried and what ran
+
+- Done command before any change, output to a file, no pipe: exit 1. Every test passed but
+  one: tests/unit/support/test_placeholders.py::test_every_api_test_posts_through_the_checked_client
+  (assert ['test_compute_generic.py:51'] == []). test_path.py (engine/path.py, commit 566879a),
+  test_typed_dates.py (D59) and the 16 other tests of test_compute_generic.py (POST /v1/compute,
+  commit fc96aad) already pass.
+- Read the builders' notes: engine/PROGRESS.md of l-engine-61ed2c8d55 and api/PROGRESS.md of
+  l-api-64e7959dbd (git show). Neither lists an open collision with tests/unit or tests/holdout;
+  the api note says its 14 failures in test_compute_generic.py were the missing route, which the
+  engine note confirms. The REPORT.json files of those two runs are not on disk (worktrees
+  removed; the files are gitignored). The REPORT.json files still on disk belong to older runs
+  whose disputes the current suite no longer shows as failures.
+- The engine note puts talk_to_dso ahead of the D59 reasons "because tests call for talk_to_dso
+  while typed dates are unchecked". Checked against specs/documents-1/SPEC.md lines 531 and 1030
+  (a typed value kept over a document gives talk_to_dso): the order the tests ask for is the
+  SPEC's. No dispute.
+- Change, tests/unit/api/test_compute_generic.py: the client fixture yields CheckedClient(app)
+  instead of TestClient(app); the docstring no longer says "expected to fail" and names the
+  guard. Point: SPEC-resolutions.md points 2, 3 and 7 (no placeholder answer reaches the api),
+  enforced for every api test by test_placeholders.py. No assertion changed.
+- Done command as written after the change: exit 0 ("All checks passed!", "65 files already
+  formatted", every test passed).
+
+### What change would make it fail
+
+- Back to TestClient(app) in the fixture: test_placeholders.py fails again, as it did at the
+  start of this run.
+- A test in test_compute_generic.py that posts a case holding ON_THE_DAY_IT_RUNS or an about
+  of {"question": id}: CheckedClient.post raises PlaceholderAnswerError before the request.
+
+### Seen in data, not followed
+
+Nothing read in this run asked for an action.

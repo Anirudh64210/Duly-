@@ -90,6 +90,74 @@ const alternatesSchema = z
   .optional();
 // The regime the value was computed under, and its legal status from the pack.
 const operativeSchema = z.strictObject({ regime: z.string(), legal_status: z.string() }).optional();
+// The record an entry belongs to, as the case named it (contracts/case.schema.json).
+const recordSchema = z
+  .string()
+  .regex(/^[a-z]{1,3}[0-9]{1,4}$/)
+  .optional();
+const STAGE_ID = /^[a-z0-9_.]+$/;
+const dayOrNull = z.string().regex(ISO_DAY).nullable();
+
+// design-1 RQ-E6: a window is kept from before it opens until the day after it closes.
+const windowSchema = z.strictObject({
+  id: z.string().regex(STAGE_ID),
+  label: z.string().optional(),
+  record: recordSchema,
+  opens: dayOrNull,
+  closes: dayOrNull,
+  opens_days_away: z.number().int().nullable(),
+  closes_days_away: z.number().int().nullable(),
+  rule_ids: z.array(z.string()).min(1),
+  status: z.enum(ITEM_STATUSES),
+  reading: z.boolean(),
+  alternates: alternatesSchema,
+  operative: operativeSchema,
+  inputs: z.record(z.string(), z.unknown()).optional(),
+});
+
+// design-1 RQ-P3: one entry for each stage entered and each stage that may come next.
+const stageSchema = z.strictObject({
+  id: z.string().regex(STAGE_ID),
+  stage: z.string().regex(STAGE_ID).optional(),
+  record: recordSchema,
+  category: z.string().regex(/^[a-z0-9]+$/),
+  label: z.string(),
+  own_name: z.string().nullable().optional(),
+  state: z.enum(["done", "current", "next", "later"]),
+  starts: dayOrNull.optional(),
+  ends: dayOrNull.optional(),
+  ends_days_away: z.number().int().nullable().optional(),
+  days_in: z.number().int().nullable().optional(),
+  days_total: z.number().int().nullable().optional(),
+  rule_ids: z.array(z.string()).min(1),
+  items: z.array(z.string()),
+  windows: z.array(windowSchema).optional(),
+  lists: z.array(z.string()).optional(),
+  checklist: z.string().nullable().optional(),
+  facts: z.record(z.string(), z.unknown()).optional(),
+  reasons: z.array(z.string()).optional(),
+});
+
+// design-1 RQ-P4: the steps an official source lists, with the person's own confirmations.
+const checklistSchema = z.strictObject({
+  id: z.string().regex(STAGE_ID),
+  stage: z.string().regex(STAGE_ID).optional(),
+  record: recordSchema,
+  label: z.string(),
+  reading: z.boolean(),
+  confirmed: z.number().int().nonnegative(),
+  total: z.number().int().nonnegative(),
+  steps: z.array(
+    z.strictObject({
+      id: z.string().regex(/^[a-z0-9_]+$/),
+      label: z.string(),
+      rule_ids: z.array(z.string()).min(1),
+      who: z.enum(["student", "employer", "school"]),
+      school: z.boolean().optional(),
+      confirmed_on: dayOrNull,
+    }),
+  ),
+});
 
 // Mirrors contracts/engine_output.schema.json.
 export const engineOutputSchema = z
@@ -114,6 +182,7 @@ export const engineOutputSchema = z
         operative: operativeSchema,
         // True when a rule the item used is Duly's reading of the source.
         reading: z.boolean(),
+        record: recordSchema,
       }),
     ),
     rulepacks: z.array(z.strictObject({ category: z.string(), version: z.string() })),
@@ -139,6 +208,7 @@ export const engineOutputSchema = z
         id: z.string().regex(/^[a-z0-9_.]+$/),
         because: z.array(z.string()).min(1),
         about: z.record(z.string(), z.unknown()).optional(),
+        record: recordSchema,
       }),
     ),
     today: z.strictObject({ date: z.string().regex(ISO_DAY), time_zone: z.string() }),
@@ -151,12 +221,17 @@ export const engineOutputSchema = z
         reading: z.boolean(),
         alternates: alternatesSchema,
         operative: operativeSchema,
+        record: recordSchema,
+        // design-1 RQ-E1: whole days in the person's zone, with the working in inputs.
+        days_away: z.number().int().optional(),
+        inputs: z.record(z.string(), z.unknown()).optional(),
       }),
     ),
     lists: z.array(
       z.strictObject({
         id: z.string().regex(/^[a-z0-9_.]+$/),
         rule_ids: z.array(z.string()).min(1),
+        record: recordSchema,
       }),
     ),
     // plain-1 section 3: every regime an item depends on, with its plain words and source.
@@ -175,13 +250,20 @@ export const engineOutputSchema = z
       .optional(),
     // SPEC-resolutions point 46: the questions whose answers the engine read.
     answers_read: z.array(z.string().regex(/^[a-z0-9_.:]+$/)).optional(),
+    stages: z.array(stageSchema).optional(),
+    checklists: z.array(checklistSchema).optional(),
   })
   // An item is never shown without the source of every rule it used.
   .refine(
     (output) =>
-      [...output.computed, ...output.upcoming, ...output.lists].every((entry) =>
-        entry.rule_ids.every((id) => Object.hasOwn(output.rules, id)),
-      ),
+      [
+        ...output.computed,
+        ...output.upcoming,
+        ...output.lists,
+        ...(output.stages ?? []),
+        ...(output.stages ?? []).flatMap((stage) => stage.windows ?? []),
+        ...(output.checklists ?? []).flatMap((list) => list.steps),
+      ].every((entry) => entry.rule_ids.every((id) => Object.hasOwn(output.rules, id))),
     { message: "an item, a date ahead, or a list names a rule that has no source" },
   )
   // A value beside alternates is never shown without the legal status the pack gives it.
@@ -214,6 +296,10 @@ export type Upcoming = EngineOutput["upcoming"][number];
 export type ListEntry = EngineOutput["lists"][number];
 export type Regimes = NonNullable<EngineOutput["regimes"]>;
 export type Regime = Regimes[string];
+export type Stage = NonNullable<EngineOutput["stages"]>[number];
+export type StageWindow = NonNullable<Stage["windows"]>[number];
+export type Checklist = NonNullable<EngineOutput["checklists"]>[number];
+export type Step = Checklist["steps"][number];
 
 const COMPUTE_PATH = "/v1/compute/f1" satisfies keyof paths;
 

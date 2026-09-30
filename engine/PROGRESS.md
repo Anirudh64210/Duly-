@@ -979,3 +979,67 @@ Status: done.
   for point 63); now exit 0, none fail. No older test collides.
 
 Status: done.
+
+## l-engine-61ed2c8d55 (attempt 1): engine/path.py over records
+
+### What was done
+
+- engine/rulepack.py: `Rulepack` gains `path` (default None), and `validate_pack` keeps the
+  pack's `path`. Nothing else in the loader changed.
+- engine/path.py, new: `compute(case, packs, clock)`, the signature tests/unit/engine/test_path.py
+  assumes. It reads the pack's path and names no kind, field, choice, stage, rule or category.
+  It holds no number but 0 and 1 and no date.
+  - Refuses a record whose kind or field the pack does not declare. The ValueError names the kind
+    or field, never a value.
+  - Stages: `for_each` over a selector, entered when every `entered_when` path is present. Id is
+    `<stage>.<record>`, with `stage` and `record` in the output. State: done, current, later, next.
+  - Dates (`when`): fact and paths through up to two links, `today`, `add` looked up with
+    `Rulepack.value(id, on)` on the event day, earliest_of and latest_of with `optional`, `as_of`
+    through a field's `history`, `in_year_of`, `in_fiscal_year_of` with `fiscal_year_rule`,
+    `day_before`, `day_after`, `first`. Units: days, business_days, months, years.
+  - A rule with no row on the event day gives `rule_not_in_force_on_event_day`, or
+    `rule_copy_not_saved_for_event_day` when the first later row is `earliest_saved_copy`.
+  - Windows: a computed item for opens and for closes, each with `record`. It goes into
+    `upcoming` with `days_away` and `inputs` unless a `done_when` path is entered.
+    Stage entries carry `windows` with days_away.
+  - Next: `only_if` gives three answers. False hides the step. Unknown shows it: an absent field
+    is asked as `<record>.<field>`, and not_sure gives `<record>.<field>.not_sure`. `bind` builds a
+    record that is not entered yet. No question is asked about that record.
+  - Conflicts: a happened date after today, a span that ends before it starts, a span longer than
+    `longest`, and declared checks (conflict or judgement). The question id is the conflict id. A
+    yes for the same `about` gives the judgement item.
+  - Counters: days_without_qualifying_period (hours_rule, qualifying, not_qualifying),
+    sum_of_days (each day once), sum_of_months, and count_of_records. Groups: record, chain,
+    same_value, all. At or over the limit gives `<counter>.at_or_over_limit.<group>`.
+  - Lists: every kind a selector or a history read uses needs `complete.<kind>`. For a kind that
+    grows with time, a statement holds only on its own day.
+  - `record.ends_before_today`, and D59 typed dates (`typed_dates.from_documents` with `about`,
+    then `typed_dates.checked.<record>.<field>`).
+  - Checklists from `path.checklists`, with confirmations `step.<checklist>.<step>`.
+  - `category_not_covered:<id>` for a category with no pack, no path, or no stages.
+- Verdict order: missing, conflict, list statements, stale or litigated rules, and category not
+  covered all give cannot_tell. Next, judgement items give talk_to_dso. Next, the D59 reasons and
+  record.ends_before_today give cannot_tell. Then open windows give needs_you. The two soft
+  reasons come after judgement items because tests call for talk_to_dso while typed dates are
+  unchecked (see REPORT disputes).
+
+### What ran
+
+- Done command as written, output to a file, no pipe: exit 0. 69 passed, "engine literals: every
+  number has a source", mypy "no issues found in 61 source files", ruff "All checks passed!",
+  "9 files already formatted".
+- tests/unit/engine and tests/unit/api now, against a git archive of HEAD: HEAD 81 failed (55
+  test_path, 12 test_typed_dates, 14 test_compute_generic). Now 14 fail, all in
+  test_compute_generic.py (POST /v1/compute gives 404: an L-api route). No failure is new.
+- By hand, the J01 case of programs.md with the shipped f1 pack on 2026-09-29: it computes,
+  cannot_tell. The first run asked `missing:associate`, because `level_above: associate` names a
+  choice and not a path. Fixed: a listed choice is taken as itself.
+
+### Not done in this attempt
+
+- compute_f1 as a translation (section 19): f1.py is unchanged. Parity over every older case is a
+  round of its own.
+- Regime alternates on path items, `ends_also`, `follows` or `gap_allowed`, periods outside a
+  span, stage `lists`, and window_opens or window_closes references (these give null).
+
+Status: done (done command). The translation is not done.

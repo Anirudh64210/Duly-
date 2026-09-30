@@ -1,0 +1,65 @@
+{
+  "categories": ["f1"],
+  "time_zone": "America/New_York",
+  "facts": {},
+  "records": [
+    {
+      "id": "p1",
+      "kind": "program",
+      "fields": {
+        "where": "us_on_f1",
+        "school_name": "State University",
+        "level": "master",
+        "field_name": "Computer Science",
+        "stem_list": "on_list",
+        "start_date": "2023-08-21",
+        "end_date": "2025-12-13",
+        "state": "completed",
+        "conferred_on": "2025-12-13"
+      }
+    },
+    {
+      "id": "a1",
+      "kind": "authorization",
+      "fields": {
+        "type": "cpt",
+        "program": "p1",
+        "time": "part_time",
+        "card_start": "2024-06-01",
+        "card_end": "2024-08-15"
+      }
+    },
+    {
+      "id": "a2",
+      "kind": "authorization",
+      "fields": {
+        "type": "opt_post_completion",
+        "program": "p1",
+        "dso_on": "2025-10-01",
+        "filed_on": "2025-10-10",
+        "decision": "approved",
+        "decided_on": "2025-12-20",
+        "card_start": "2026-02-10",
+        "card_end": "2027-02-09"
+      }
+    },
+    { "id": "e1", "kind": "employer", "fields": { "name": "Acme" } },
+    {
+      "id": "w1",
+      "kind": "work",
+      "fields": {
+        "employer": "e1",
+        "under": "a2",
+        "start": "2026-02-15",
+        "hours_per_week": 40,
+        "employer_reported": "yes"
+      }
+    },
+    {
+      "id": "t1",
+      "kind": "trip",
+      "fields": { "left_on": "2026-05-01", "returned_on": "2026-05-15" }
+    }
+  ],
+  "complete": {}
+}
