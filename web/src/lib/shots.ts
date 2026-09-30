@@ -1,5 +1,7 @@
 import type { AppCase } from "../app/caseStore";
+import type { EngineOutput } from "./compute";
 import type { DraftRecord, RecordKind, RecordsCase } from "./records";
+import type { Status } from "./status";
 
 // resolutions point 11: each built screen, and the routes the router is built from, drawn at the canvas size from an engine sample
 // (web/samples). desktop/src/shots.ts loads shots.html?screen=<route>&sample=<name> for
@@ -61,5 +63,23 @@ export function heldFromCase(body: RecordsCase): AppCase {
     confirmations: body.confirmations ?? {},
     flow: {},
     onboarded: true,
+  };
+}
+
+/**
+ * ui-1 point 4: the server status a shot draws with, from the sample, so Onboarding step 1
+ * lists the statuses as a student sees them. No server answers during the shots. The
+ * sample does not hold a parameter count, so none is claimed (0, as in lib/fixtures.ts).
+ */
+export function shotStatus(output: EngineOutput): Status {
+  return {
+    database: "ok",
+    rulepacks: output.rulepacks.map((pack) => ({
+      ...pack,
+      parameters: 0,
+      rules_checked_on: output.scope.rules_checked_on,
+    })),
+    verdict: output.verdict,
+    checked_at: `${output.today.date}T00:00:00+00:00`,
   };
 }

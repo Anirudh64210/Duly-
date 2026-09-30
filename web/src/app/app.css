@@ -131,6 +131,8 @@ p {
   flex-direction: column;
   width: 720px;
   max-width: 100%;
+  /* ui-1 point 2: a long citation or address breaks rather than widening the window. */
+  overflow-wrap: anywhere;
   min-height: 100vh;
   margin: 0 auto;
   padding: 52px 0 24px;
@@ -337,6 +339,19 @@ p {
   }
 }
 
+/* ui-1 point 1: the reasons one tap away, and the next move under the verdict. */
+.why {
+  margin-top: 2px;
+}
+
+.why .reason {
+  margin-top: 6px;
+}
+
+.next-move {
+  margin-top: 16px;
+}
+
 /* Metrics */
 .metrics {
   margin-top: 44px;
@@ -344,6 +359,8 @@ p {
 
 .metric-row {
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 24px;
 }
 
 .metric {

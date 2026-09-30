@@ -8,7 +8,7 @@ import { CaseProvider } from "./app/caseStore";
 import { createAppRouter } from "./app/Shell";
 import { engineOutputSchema } from "./lib/compute";
 import type { RecordsCase } from "./lib/records";
-import { SHOT_SIZE, heldFromCase, shotAsked } from "./lib/shots";
+import { SHOT_SIZE, heldFromCase, shotAsked, shotStatus } from "./lib/shots";
 import "./app/app.css";
 
 const files = import.meta.glob<{ default: unknown }>("../samples/*.json", { eager: true });
@@ -25,8 +25,11 @@ if (asked === null) throw new Error("no such screen or sample");
 const output = engineOutputSchema.parse(sample(asked.sample));
 const held = heldFromCase(sample(`${asked.sample}.case`) as RecordsCase);
 const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+client.setQueryData(["status"], shotStatus(output));
 const router = createAppRouter(createMemoryHistory({ initialEntries: [asked.screen] }));
 root.style.width = `${SHOT_SIZE.width}px`;
+// ui-1 point 2: a window whose scroll bar takes room is narrower than the frame.
+root.style.maxWidth = "100%";
 root.style.height = `${SHOT_SIZE.height}px`;
 
 createRoot(root).render(
