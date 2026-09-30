@@ -630,9 +630,9 @@ def _no_opt_yet(end: str) -> dict[str, Any]:
 def test_twin_j06_opt_is_not_next_once_its_filing_window_closed(client: TestClient) -> None:
     # resolutions point 15. p1 ends 2026-01-16. Minus 90: 12-17 (30), 11-17 (60), 10-18 (90).
     # Plus 60: 01-31 (15), 02-28 (43), 03-17 (60). 2026-03-17 is before 2026-09-29; only
-    # opt.complete_by (to 2027-03-16) is open, and nothing is filed in it.
+    # opt.complete_by (to 2027-03-16) is open, and nothing is filed in it. By the same point
+    # the stage and its window are not shown, so the window is not asked for.
     out = _send(client, _no_opt_yet("2026-01-16"))
-    assert window(out, "opt.apply_window.p1") == ("2025-10-18", "2026-03-17")
     assert all(s["state"] != "next" for s in out["stages"] if s["id"] == "opt_post.p1")
 
 
@@ -670,6 +670,36 @@ def test_twin_j15_first_validation_skips_thanksgiving(client: TestClient) -> Non
     )
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2025-11-20", "2025-12-05")
+
+
+# J19 twin: a STEM validation inside the card that crosses Juneteenth.
+
+
+def test_twin_j19_validation_skips_juneteenth(client: TestClient) -> None:
+    # J19's own Juneteenth case lay after its card (resolutions point 15), so this card holds
+    # one. STEM start 2025-12-12 plus 6 months: 2026-06-12, a Friday. Plus 10 business days:
+    # 15, 16, 17, 18, (19 Juneteenth skipped) 22, 23, 24, 25, 26, 29 -> 2026-06-29. The card
+    # ends 2027-12-11, after it.
+    body = case(
+        [
+            _masters("2024-11-15", stem_list="on_list"),
+            _opt("a1", "p1", "2024-12-12", "2025-12-11"),
+            rec(
+                "a2",
+                "authorization",
+                type="stem_extension",
+                program="p1",
+                extends="a1",
+                basis_program="p1",
+                decision="approved",
+                card_start="2025-12-12",
+                card_end="2027-12-11",
+            ),
+        ],
+        whole("program", "authorization:p1", "trip"),
+    )
+    out = _send(client, body)
+    assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
 
 
 # J16 pair: the earlier degree is a US degree on the list.
