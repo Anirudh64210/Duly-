@@ -1479,3 +1479,17 @@ Status: done.
 - No engine code changed.
 
 Status: done.
+
+## l-engine-2740fb95ee: every journey through POST /v1/compute (after point 18 tests)
+
+- Before any change: the done command as written, output to a file under TMPDIR, exit 0.
+  Acceptance all passed, none skipped; engine literals clean; mypy 62 files clean; ruff check
+  clean; 9 files already formatted.
+- Point 18 twins of J19 (old approved petition, petition filed during OPT for a later start,
+  start on the card's first day, denied, pending, no validity start, no outcome) all pass.
+  The engine reads the shipped pack's capgap rules generically; L-content's pack change for
+  point 18 needed no engine code.
+- The journeys assert what point 18 and the pack state; no finding.
+- No engine code changed.
+
+Status: done.
