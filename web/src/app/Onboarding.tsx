@@ -166,7 +166,10 @@ export function Onboarding() {
   const [zoneOpen, setZoneOpen] = useState(false);
   const output = store.output;
   const questions = held.status === "f1" && output !== undefined ? output.questions : [];
-  const views = onboardingSteps(held, questions.length);
+  // While an answer is computed the output is not in yet; the questions view stays and
+  // shows its busy line instead of the list falling back to the first view.
+  const waiting = viewId === "questions" && store.busy;
+  const views = onboardingSteps(held, waiting ? Math.max(1, questions.length) : questions.length);
   const at = Math.max(
     0,
     views.findIndex((view) => view.id === viewId),
