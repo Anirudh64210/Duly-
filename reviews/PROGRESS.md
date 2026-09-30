@@ -280,3 +280,17 @@
 - Failure: two lanes built the two halves of one contract, and each tested against its own spelling.
 - Fix: feed one side's exported values to the other side's check.
 - Evidence: reviews/product-2-fix5.md finding 1.
+
+## 2026-09-30, run l-review-9682244b00 (product round 2, fix 6)
+- Read resolutions.md points 19 to 21, reviews/product-2-fix5.md, plan-fix6 and plan-fix6b, and the diff 0dddf62..0c55967 (the pack's point 19 step back and capgap.petition_for_dso, web labels, drafts, Shell and shots, the desktop join test, the point 19 and 21 tests, and the samples). No L-engine commit landed; engine/ is unchanged.
+- Ran: unit and holdout suites (exit 0); verify, plain, load_all, copy lint, ruff, engine_literals and make.py --check (all 0); web tsc and vitest (554 passed) and desktop tsc and vitest (139 passed) on a HEAD copy.
+- TMPDIR/rv96/journeys.py: twenty journeys, all 200 and cannot_tell. Only J12, J13 and J14 differ from fix 5. Dates and J12/J14 filing-day boundaries checked by hand. probe6 to probe10 cover J19, J11, J06 and J15 with petitions of every kind.
+- 13 pack mutants: 8 caught, 1 equivalent (validation_4), 4 survive (job-end evaluation, program grace, the filing-day boundary, and the filed_while skip, which no test pins).
+- A scratch vitest sends the route output to stageEyebrow: J12, J13 and J14 give "F-1 · TIME AFTER THE PROGRAM ENDS, FROM THE DATES YOU ENTERED" from the nulled grace, which the engine marks current.
+- Walks J01, J08 and J16: same cases and counts as fix 5.
+- Wrote reviews/product-2-fix6.md (VETO), REVIEW.json and REPORT.json, both valid against their schemas.
+
+## Lesson
+- Failure: a step back nulled a stage's dates, and the stage's state fell to current, so Home named the stage the SPEC made unknowable.
+- Fix: send the route output of each step-back case through the web view functions and read the words.
+- Evidence: reviews/product-2-fix6.md finding 1.
