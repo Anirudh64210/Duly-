@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Duly API
   version: 0.1.0
-  description: Health, version, stack status, and the stateless F-1 computation.
+  description: Health, version, stack status, the stateless computations, and approved law updates.
 paths:
   /health:
     get:
@@ -56,6 +56,77 @@ paths:
                 type: object
         "422":
           description: The case does not match the contract.
+  /v1/compute:
+    post:
+      operationId: compute
+      description: >
+        Stateless. Computes dates and counts for a case of any category, from the facts and
+        records the person entered. Nothing is stored and nothing from the body is logged.
+        The request body follows contracts/case.schema.json and the response follows
+        contracts/engine_output.schema.json. It gives the same refusals as /v1/compute/f1
+        (NOT_A_NUMBER, NOT_JSON, NOT_YET, and first_problem for a case that does not match).
+        A category whose pack has no path gives cannot_tell with category_not_covered:<id>.
+        /v1/compute/f1 stays, and translates its case into this one.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: A case that follows contracts/case.schema.json.
+      responses:
+        "200":
+          description: Engine output, following contracts/engine_output.schema.json.
+          content:
+            application/json:
+              schema:
+                type: object
+        "422":
+          description: >
+            The case does not match the contract, or the pack refuses a record kind or field
+            it does not declare. The body names the first problem.
+  /v1/updates:
+    get:
+      operationId: getUpdates
+      description: >
+        Approved law updates only: those for which publish_blockers returns nothing. Each
+        follows contracts/update.schema.json. Matching reads the categories, stage ids and
+        field ids sent in the query, never a value the person entered.
+      parameters:
+        - name: categories
+          in: query
+          required: false
+          description: The categories of the case, such as f1. Absent means no update is matched.
+          schema:
+            type: array
+            items: { type: string, pattern: "^[a-z0-9]+$" }
+          style: form
+          explode: false
+        - name: stages
+          in: query
+          required: false
+          description: The stage ids in the case's engine output.
+          schema:
+            type: array
+            items: { type: string, pattern: "^[a-z0-9_.]+$" }
+          style: form
+          explode: false
+        - name: fields
+          in: query
+          required: false
+          description: The fact ids and record field ids the case holds a value for. Names only.
+          schema:
+            type: array
+            items: { type: string, pattern: "^[a-z0-9_.]+$" }
+          style: form
+          explode: false
+      responses:
+        "200":
+          description: The approved updates, and how many match the case.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Updates"
   /ops/v1/status:
     get:
       operationId: getOpsStatus
@@ -112,6 +183,34 @@ components:
             state: { type: string, enum: [no_open_items, needs_you, talk_to_dso, cannot_tell] }
             reasons: { type: array, items: { type: string } }
         checked_at: { type: string, format: date-time }
+    Updates:
+      type: object
+      additionalProperties: false
+      required: [matching, updates]
+      properties:
+        matching:
+          type: integer
+          minimum: 0
+          description: The number of updates that match the case.
+        updates:
+          type: array
+          items: { $ref: "#/components/schemas/ApprovedUpdate" }
+    ApprovedUpdate:
+      type: object
+      additionalProperties: false
+      required: [update, matched]
+      properties:
+        update:
+          type: object
+          description: An approved update, following contracts/update.schema.json.
+        matched:
+          type: object
+          additionalProperties: false
+          required: [stages, fields]
+          description: What in the case this update matched. Both empty when it matched none.
+          properties:
+            stages: { type: array, items: { type: string } }
+            fields: { type: array, items: { type: string } }
     OpsStatus:
       type: object
       additionalProperties: false
