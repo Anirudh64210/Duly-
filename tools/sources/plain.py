@@ -28,6 +28,9 @@ from tools.copy_lint.lint import _WORDS, DASHES, EMOJI
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GRADE = 9.0
 SENTENCES = {"rule": 3, "regime": 4}
+# The contract's limits (contracts/rulepack.schema.json, plain maxLength); a longer text
+# makes the pack fail to load.
+CHARACTERS = {"rule": 320, "regime": 480}
 SECOND_PERSON = re.compile(r"\b(?:you|your|yours|yourself|yourselves)\b", re.IGNORECASE)
 ALARM = re.compile(
     r"\b(?:urgent\w*|danger\w*|warning\w*|immediately|deport\w*|illegal\w*|unlawful\w*|"
@@ -52,6 +55,22 @@ SENTENCE = re.compile(r"[^.!?]+[.!?]?")
 VOWELS = re.compile(r"[aeiouy]+")
 
 
+# Abbreviations whose periods do not end a sentence. "U.S." once split one sentence into
+# three, so a text at a real reading grade of 24 was scored under 9 (review of fix 8).
+ABBREVIATIONS = re.compile(
+    r"\b(?:U\.S\.|e\.g\.|i\.e\.|etc\.|No\.|Dr\.|Mr\.|Ms\.|Mrs\.)", re.IGNORECASE
+)
+
+
+def _unabbreviated(text: str) -> str:
+    """The text with each abbreviation written as one word with no period, for counting."""
+    return ABBREVIATIONS.sub(lambda m: m.group(0).replace(".", ""), text)
+
+
+def _sentences(text: str) -> list[str]:
+    return [s for s in SENTENCE.findall(_unabbreviated(text)) if s.strip()]
+
+
 def _syllables(word: str) -> int:
     word = word.lower().strip("'")
     if not word:
@@ -65,8 +84,8 @@ def _syllables(word: str) -> int:
 def grade(text: str) -> float:
     """The Flesch-Kincaid grade of a text: 0.39 words per sentence plus 11.8 syllables per
     word, less 15.59."""
-    sentences = [s for s in SENTENCE.findall(text) if s.strip()]
-    words = re.findall(r"[A-Za-z']+", text)
+    sentences = _sentences(text)
+    words = re.findall(r"[A-Za-z']+", _unabbreviated(text))
     if not sentences or not words:
         return 0.0
     syllables = sum(_syllables(w) for w in words)
@@ -100,7 +119,9 @@ def problems(plain: str, kind: str, grounds: str) -> list[str]:
     new = sorted(_numbers(plain) - _numbers(grounds))
     if new:
         found.append(f"numbers not in the rule's own words: {', '.join(new)}")
-    count = len([s for s in SENTENCE.findall(plain) if s.strip()])
+    if len(plain) > CHARACTERS[kind]:
+        found.append(f"{len(plain)} characters; the contract allows {CHARACTERS[kind]}")
+    count = len(_sentences(plain))
     if count > SENTENCES[kind]:
         found.append(f"{count} sentences; at most {SENTENCES[kind]}")
     level = grade(plain)

@@ -134,3 +134,18 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - `capgap.end_month_day` (from 2025-01-17): "If the approved petition starts first, they end then" is now "If the approved petition starts first, they last on their own only until then." The text no longer says status and authorization end on that day; it says they stop being extended on their own. To stay within the reading grade (9.0), "This rule is for" is now "It is for" and "until April 1" is now "till April 1". Grade 8.98.
 - `stem.requires.previously_obtained_degree`: "when the DSO recommends it" is now "when the DSO recommends the student for the extension", so the text names whom the DSO recommends, as the quote does. "in a category on the STEM list" is now "in a field on the STEM list", and "have been granted" is now "granted", to stay within the reading grade. Grade 8.88. It is still one sentence: the plain check counts "U.S." as two extra sentence ends, so any text that keeps the term "U.S. educational institution" can hold only one real sentence under the three-sentence limit. The review's split into three sentences counts as five. Recorded as a dispute in rulepacks/REPORT.json.
 - No network was used.
+
+### 2026-09-29, lane L-content, run l-content-d6cfa8aad6 (SPEC-resolutions point 66)
+
+- The plain check now counts "U.S." as one word that ends no sentence. Measured truly, five plain texts were over reading grade 9 (16.3, 19.8, 23.9, 17.6 and 13.5). Only these five changed, each into at most three short sentences. Every other plain text, every plain_terms list, and every value, status, derivation, quote, note and date are unchanged.
+- `stem.min_hours_per_week`: the time off left out is now its own two sentences. Grade 7.0.
+- `stem.requires.accreditation`: split into three sentences; "at the time of application" now opens the sentence on accreditation and recognition, so it may still bound either or both, as the note says. The reading stays marked "As Duly reads it". Grade 8.6.
+- `stem.requires.previously_obtained_degree`: three sentences. It says "category", as its quote does, not "field", and says the DSO recommends the student for the 24-month OPT extension. The accreditation, SEVP certification and category hold at that time; the degree must have been granted in the 10 years up to then. Grade 8.98.
+- `stem.requires.duties_hours_and_compensation`: three sentences; "during the 24-month OPT extension" and "commensurate" kept. Grade 8.9.
+- `stem.requires.employer_attests_no_replacement`: two sentences; the first keeps "Duly reads this as one of the things the employer attests". Grade 7.6.
+- No network was used.
+
+### 2026-09-29, lane L-content, run l-content-b2845e5165 (SPEC-resolutions point 66)
+
+- The five texts from run l-content-d6cfa8aad6 stand. Only `stem.requires.previously_obtained_degree` changed again: it was 324 characters, over the contract's 320, so the pack did not load. "It must have been granted in the 10 years up to then." is now "It must have been granted in the 10 years prior." The text is 319 characters, grade 8.88, still three sentences, and still says "category" and that the DSO recommends the student for the 24-month OPT extension. "prior" means prior to that time, the DSO's recommendation, as the quote says ("within the 10 years preceding the date the DSO recommends the student").
+- Every other plain text, every plain_terms list, and every value, status, derivation, quote, note and date are unchanged. No network was used.

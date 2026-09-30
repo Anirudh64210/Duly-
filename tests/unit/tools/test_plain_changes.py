@@ -78,8 +78,10 @@ def test_a_change_no_review_named_fails_and_a_named_one_passes(tmp_path, monkeyp
     assert plain_changes.main(["base", "--allow", "grace.after_completion_days"]) == 1
     assert "no review named: opt.max_months" in capsys.readouterr().out
     assert plain_changes.main(["base", "--allow", "opt.max_months"]) == 0
-    assert "1 row(s) changed, all allowed" in capsys.readouterr().out
-    assert plain_changes.main(["base"]) == 0  # without --allow it lists and passes
+    assert "1 row(s) changed, each one allowed" in capsys.readouterr().out
+    assert plain_changes.main(["base"]) == 0  # without --allow it lists and says so
+    assert "no --allow given, so none was checked" in capsys.readouterr().out
+    assert plain_changes.main(["--allow", "opt.max_months", "base"]) == 2
 
 
 def test_a_base_that_cannot_be_read_fails(monkeypatch, capsys):

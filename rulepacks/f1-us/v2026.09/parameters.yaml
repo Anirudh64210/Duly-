@@ -287,7 +287,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml. Words checked in the 2026-09-14 text. The sentence is the second one of paragraph (f)(10)(ii)(C)(8), under (f)(10)(ii)(C), headed 24-month extension of post-completion OPT for a science, technology, engineering, or mathematics (STEM) degree; that heading is why the plain words name the extension. The time off left out is only time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment."
-    plain: "On a 24-month extension, practical training may not be less than 20 hours a week, not counting time off that follows the leave policies for the employer's similarly situated U.S. workers in the area of employment."
+    plain: "On a 24-month extension, practical training may not be less than 20 hours a week. Some time off is not counted. It is time off that follows the leave policies for the employer's similarly situated U.S. workers in the area of employment."
     plain_terms: ["similarly situated U.S. workers", "area of employment"]
   - id: stem.validation_interval_months
     value: 6
@@ -610,7 +610,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted sentence says the degree is from an accredited institution and does not itself use the word must or required; Duly reads it as a requirement because of the sentence before the list. The opening text of paragraph (f)(10)(ii)(C) ends with the words In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met, recorded as stem.requires.all_of_the_following. This paragraph is one of the numbered paragraphs that follow those words. The heading of the paragraph is Accreditation. The words at the time of application are the regulation's; the regulation does not say in this sentence which application. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person. The words at the time of application close the sentence; they may limit the accreditation, the recognition, or both, and the plain words keep that open."
-    plain: "As Duly reads it, this is one of the things on the list that must be met: the degree is from a U.S. educational institution that is accredited by an agency that the Department of Education has recognized at the time of application."
+    plain: "As Duly reads it, this is one of the things on the list that must be met. The degree is from a U.S. educational institution. At the time of application, the school is accredited by an agency that the Department of Education has recognized."
     plain_terms: ["U.S. educational institution", "recognized", "at the time of application"]
   - id: stem.requires.dhs_approved_degree
     value: true
@@ -658,7 +658,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted words are the second and third sentences of paragraph (f)(10)(ii)(C)(3), headed Previously obtained STEM degree(s). They begin with If: they state what is required where the application is based upon a degree obtained before the degree that was the basis for the period of post-completion OPT. The first sentence of the paragraph says the degree that is the basis for the extension may be, but is not required to be, the degree that is the basis for the post-completion OPT period. The number 10 in the quote is a count of years; it is not recorded as a value in this pack. 8 CFR 274a.12(c)(3)(i)(B), named in the quote, is not saved and was not read. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
-    plain: "If a 24-month OPT extension rests on an older degree than the one for post-completion OPT, that degree must be from a U.S. educational institution that is accredited and SEVP-certified when the DSO recommends the student for the extension, in a field on the STEM list then, and granted in the 10 years up to that day."
+    plain: "When the DSO recommends the student for a 24-month OPT extension, the degree it rests on may be older than that for post-completion OPT. If so, at that time it must be from an accredited and SEVP-certified U.S. educational institution and in a category on the STEM list. It must have been granted in the 10 years prior."
     plain_terms: ["U.S. educational institution", "SEVP-certified"]
   - id: stem.requires.eligible_practical_training_opportunity
     value: true
@@ -738,7 +738,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
     note: "The quoted sentence is the first one of paragraph (f)(10)(ii)(C)(8), headed Duties, hours, and compensation for training. The second sentence of the paragraph is the source of stem.min_hours_per_week. The paragraph goes on to say what similarly situated U.S. workers includes and when duties, hours, and compensation are commensurate, and that the student must disclose his or her compensation on the Form I-983 or successor form; those sentences are not recorded as rows. The words speak of the period of the 24-month OPT extension. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
-    plain: "During the 24-month OPT extension, the terms and conditions of the training, such as duties, hours and compensation, must be commensurate with those of the employer's similarly situated U.S. workers in the area of employment."
+    plain: "During the 24-month OPT extension, the training has terms and conditions. These include duties, hours and compensation. They must be commensurate with those of the employer's similarly situated U.S. workers in the area of employment."
     plain_terms: ["similarly situated U.S. workers", "commensurate", "compensation"]
   - id: stem.requires.self_evaluation
     value: true
@@ -802,7 +802,7 @@ parameters:
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: reading
     note: "Reading: the quoted words are the second of three things listed after the words A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that, recorded as stem.requires.employer_attestation. The quoted words alone do not say who attests or that the attestation is required; Duly reads them together with those opening words. The quote is the whole of paragraph (f)(10)(ii)(C)(10)(ii), with the word and that ends it in the source. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same words, so the rule sits under no regime. The flag records what the regulation lists. It says nothing about any one person."
-    plain: "Duly reads this as one of the things the employer attests: that the student on a STEM OPT extension will not replace a full- or part-time, temporary or permanent U.S. worker."
+    plain: "Duly reads this as one of the things the employer attests. The student on a STEM OPT extension will not replace a U.S. worker, whether full- or part-time, temporary or permanent."
     plain_terms: ["U.S. worker", "STEM OPT extension"]
   - id: stem.requires.employer_attests_training_goals
     value: true
