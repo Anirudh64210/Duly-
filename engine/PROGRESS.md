@@ -1418,3 +1418,16 @@ Status: done.
 
 - Stop hook: `ruff format --check engine` also formats Python code blocks in engine/PROGRESS.md
   and refused the test text above. `uv run ruff format engine` fixed it; done command exit 0.
+
+## l-engine-abe842589a: resolutions point 14 (translation completeness)
+
+- Before: tests/unit/engine/test_f1_translation.py had 8 failures; `_statements` turned a yes
+  to nothing_more_to_record into every kind whole and a no to opt.earlier_at_this_level into
+  authorization:p1 whole.
+- Change: `_statements` in engine/f1.py now states a kind whole only on a yes to the path's own
+  complete.<kind>, on the day given, for the kinds the pack's path lists. The two unasked answers
+  are still sent under confirmations but state nothing whole.
+- Ran: test_f1_translation.py, 37 passed. Done command as written, output to a file: exit 0;
+  diff coverage 98%; mypy clean on 62 files; ruff check clean; 9 files already formatted.
+
+Status: done.
