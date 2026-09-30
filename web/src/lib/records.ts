@@ -87,6 +87,12 @@ const DATE_FIELDS: Record<RecordKind, readonly string[]> = {
 // sent as its hours_changes period.
 const DRAFT_ONLY = new Set(["change_start", "change_hours"]);
 
+// SPEC-resolutions point 26: a petition's outcome left as not sure is not known, so it is
+// not sent. The marker is Onboarding's own (views/onboarding.ts NOT_SURE).
+const LEFT_WHEN_NOT_SURE: Partial<Record<RecordKind, ReadonlySet<string>>> = {
+  petition: new Set(["outcome"]),
+};
+
 // Fields the pack declares as numbers.
 const NUMBER_FIELDS = new Set(["hours_per_week"]);
 
@@ -111,6 +117,7 @@ function cleanField(
   if (Array.isArray(value)) return value.length === 0 ? undefined : value;
   const text = value.trim();
   if (text === "") return undefined;
+  if (text === "not_sure" && LEFT_WHEN_NOT_SURE[kind]?.has(name)) return undefined;
   if (NUMBER_FIELDS.has(name)) {
     const number = Number(text);
     return Number.isFinite(number) ? number : undefined;

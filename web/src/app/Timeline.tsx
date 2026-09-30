@@ -26,6 +26,7 @@ const EMPLOYER_REPORT_RULE = "opt.report_employer_within_days";
 
 function PhaseMark({ mark }: { mark: Mark }) {
   const name = MARK_NAMES[mark];
+  if (mark === "none") return null;
   if (mark === "now") {
     return (
       <span className="now-tag" role="img" aria-label={name}>

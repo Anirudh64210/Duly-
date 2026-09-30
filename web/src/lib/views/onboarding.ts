@@ -1074,13 +1074,14 @@ function petitionViews(held: AppCase): View[] {
         kind: "choice",
         section,
         title: "What has happened with it so far?",
-        why: "Each outcome leads to different dates.",
+        why: "If you are not sure, you may leave it. For now Duly points to your DSO for the dates a petition can change.",
         record: petition.id,
         field: "outcome",
         options: PETITION_OUTCOMES,
+        notSure: true,
       },
     );
-    if (outcome !== "" && outcome !== "pending") {
+    if (outcome !== "" && outcome !== "pending" && outcome !== NOT_SURE) {
       const fields: FieldSpec[] = [
         { record: petition.id, name: "outcome_on", label: "The day it happened", type: "date" },
       ];

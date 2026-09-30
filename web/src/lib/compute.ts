@@ -123,7 +123,7 @@ const stageSchema = z.strictObject({
   category: z.string().regex(/^[a-z0-9]+$/),
   label: z.string(),
   own_name: z.string().nullable().optional(),
-  state: z.enum(["done", "current", "next", "later"]),
+  state: z.enum(["done", "current", "next", "later", "unknown"]),
   starts: dayOrNull.optional(),
   ends: dayOrNull.optional(),
   ends_days_away: z.number().int().nullable().optional(),

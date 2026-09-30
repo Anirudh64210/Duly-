@@ -24,7 +24,8 @@ export const LIST_IN_CHECKLIST =
   "What the regulation lists for the extension is in the checklist, each with its citation.";
 export const SETTINGS_LINK = "Open Settings →";
 
-export type Mark = "done" | "now" | "next" | "later" | "dso";
+// SPEC-resolutions point 23a: an unknown stage's row carries no mark.
+export type Mark = "done" | "now" | "next" | "later" | "dso" | "none";
 
 export const MARK_NAMES: Record<Mark, string> = {
   done: "Done",
@@ -32,7 +33,12 @@ export const MARK_NAMES: Record<Mark, string> = {
   next: "Next",
   later: "Later",
   dso: "A question for your DSO",
+  none: "",
 };
+
+// SPEC-resolutions point 22: the words of a stage whose dates a petition makes null.
+export const DSO_DATES_LINE = "Your DSO can tell you these dates";
+export const STEP_BACK_REASON = "cap_gap.for_dso";
 
 export type TimelineRow = {
   key: string;
@@ -56,6 +62,7 @@ export type TimelineRow = {
 export type TimelineView = { rows: TimelineRow[] };
 
 function markOf(stage: Stage): Mark {
+  if (stage.state === "unknown") return "none";
   if (stage.state === "current") return (stage.reasons ?? []).length > 0 ? "dso" : "now";
   if (stage.state === "done") return "done";
   if (stage.state === "next") return "next";
@@ -128,7 +135,14 @@ function stageRow(output: EngineOutput, stage: Stage): TimelineRow {
     checklist: false,
     settings: false,
   };
-  if (stage.state === "done") {
+  if (stage.state === "unknown") {
+    row.meta = "";
+    row.items = [];
+    const stepBack = output.verdict.reasons.includes(STEP_BACK_REASON)
+      ? appReasonLine(STEP_BACK_REASON, output.computed)
+      : "";
+    row.lines = [`${DSO_DATES_LINE}.`, stepBack].filter(Boolean);
+  } else if (stage.state === "done") {
     row.lines = factLines(stage);
   } else if (stage.state === "current") {
     row.meta = currentMeta(stage);
