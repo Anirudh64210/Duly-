@@ -1558,8 +1558,8 @@ export function applyFlow(held: AppCase, key: string, answer: string, today: str
     case "withdrawals":
     case "withdrawal-more": {
       if (!opens) break;
-      const program = f1Programs(next)[0] ?? "";
-      const [withWithdrawal, id] = add(next, "withdrawal", { program });
+      // No program is chosen for the student: the view opens with nothing chosen.
+      const [withWithdrawal, id] = add(next, "withdrawal", { program: "" });
       next = withWithdrawal;
       ids = [id];
       break;

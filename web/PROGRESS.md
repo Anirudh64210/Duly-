@@ -985,3 +985,63 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - The walk's case was not sent to the real /v1/compute route in this run.
 - "Its dates hold the start" is a hint the student can ignore; the rule for when a card ends
   at a new level stays in the engine.
+
+## Run l-web-5211e9f9c2 (attempt 1): resolutions point 16, web side
+
+### Tried
+
+- Onboarding never preselects: a new withdrawal record opened with the first F-1 program as
+  its `program`, so "Which program did you withdraw from?" showed a choice already made. It
+  now opens with `program: ""` (web/src/lib/views/onboarding.ts, applyFlow `withdrawals`).
+- Test beside the code (web/src/app/OnboardingWalk.test.tsx, "Nothing preselected in the
+  withdrawal views"): walks to the withdrawal question and, on each view (the question, the
+  program, the day, the DSO's part, "Is that every withdrawal?", and a second withdrawal's
+  program), checks no radio is checked and no button pressed, presses Continue with nothing
+  chosen, and checks the view stays with a problem shown. The second withdrawal's posted
+  program is left out. With the old preselect put back the test fails ("expected [ …(1) ] to
+  deeply equal []"); restored.
+- web/samples/make.py: runs engine.path.compute on each `<name>.case.json` with load_all()
+  and a FixedClock at 16:00 UTC on the sample's day, writes `<name>.json` (sorted keys), or
+  with `--check` exits 1 naming each sample that differs. `npm run samples -w web` runs it
+  and prettier; `npm run build -w web` runs `samples` first. web/src/lib/samples.test.ts
+  runs `make.py --check` inside `npm test`, so the done command catches drift too. With one
+  date changed by hand in a sample, the test fails naming the file; restored.
+- The two committed samples had drifted: the engine now gives
+  `stem.validation_1.opens.a2` 2026-08-10 and `closes.a2` 2026-08-24 (status guidance)
+  where the old samples held null. Regenerated. Note: stage `stem.a2` is `next` (no STEM card
+  yet), so point 16's first bullet says these should carry no dates; that is the engine's
+  part and the samples will follow it when the engine changes.
+
+### Ran
+
+- Done command, as written, output to a file, exit code read: exit 0. 26 files, 524 tests
+  passed, lines 97.49 percent, eslint clean, prettier clean, "copy lint: clean".
+
+### Not done, not verified
+
+- web/src/lib/samples/*.json are hand-trimmed compute_f1 outputs from earlier rounds with no
+  case files kept; they are not made by make.py. The app no longer uses compute_f1.
+- The shot run's landmark check (point 16, last clause) is in desktop/src/shots.ts, outside
+  this lane.
+
+## l-web-6619018103: bring in point 16, keep web/package.json (resolutions point 17)
+
+### Tried
+
+- `git merge --no-edit lane/L-web/l-web-5211e9f9c2`: clean merge. Brought in the Onboarding
+  fix (the withdrawal opens with no program chosen), its tests in OnboardingWalk.test.tsx,
+  web/samples/make.py and web/src/lib/samples.test.ts.
+- `git checkout HEAD~1 -- web/package.json`: the scripts are back as on this branch (no
+  `samples` script, `build` does not run it). Point 17: the founder's `make samples` runs
+  make.py, and `make design-shots` runs `make samples` first.
+- samples/README.md, make.py's docstring and samples.test.ts's comment now name `make samples`
+  instead of the web build.
+
+### Ran
+
+- Done command, as written, output to a file: exit 1. samples.test.ts failed: both samples
+  differed from the engine's output (the engine changed on this branch with resolution 17).
+- Remade the samples with the command of `make samples` (cd web; uv run python
+  samples/make.py; npx prettier --write "samples/*.json"): exit 0.
+- Done command again: exit 0. 26 files, 524 tests passed, eslint clean, prettier clean,
+  "copy lint: clean".
