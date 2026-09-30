@@ -1,74 +1,60 @@
 {
-  "run_id": "l-review-9682244b00",
-  "reviewed_commit": "0c55967",
+  "run_id": "l-review-6676921233",
+  "reviewed_commit": "3d09f03c4cc5b101126587da5266e7cbb2c5586b",
   "scores": {
     "correct": {
       "score": 2,
-      "evidence": "Every date on the twenty journeys (all 200), the point 17 to 19 twins and the J12/J14 filing-day boundaries is right by hand. But on SPEC-named J12, J13 and J14 the nulled grace.p1 comes back state current with null span (engine/path.py:608-614), and Home's eyebrow reads 'F-1 · TIME AFTER THE PROGRAM ENDS, FROM THE DATES YOU ENTERED'."
+      "evidence": "Every date, item, question and reason of the twenty journeys is the same as the hand-checked fix 6 run, and the point 23 twins follow point 23a. But on J01, J03, J04, J07, J08, J10, J15 and J19, none with a petition, transfer and job-end rows turn unknown and lose their dates on the Timeline, while point 19 says those journeys stay unchanged."
     },
     "sourced": {
       "score": 4,
-      "evidence": "verify, plain and engine_literals exit 0; capgap.petition_for_dso quotes (f)(5)(vi)(A) verbatim and is marked a reading. The web words (labels.ts:395) name fewer taken-away dates than the pack's plain words."
+      "evidence": "verify, plain and engine_literals exit 0; the point 23 reading is in the capgap.petition_for_dso note and marked a reading; labels.ts and the pack plain words name the same kinds of date."
     },
     "never_assumes": {
       "score": 3,
-      "evidence": "Missing filed_on and change_of_status are asked and dates wait null. A 2020 petition hides conflict:stem.filed_while_opt_in_force.a2 on J19 with a2.filed_on 2026-07-20 and stops asking a2.filed_on (parameters.yaml:2161). The null grace is assumed current."
+      "evidence": "Missing starts, an o1 type and a missing filing day are asked, and old petitions keep a2.filed_on and the late-filing conflict. But the unknown row on J01's transfer says the DSO can tell a date that Duly asks the person for (mv1.contacted_new_dso_on)."
     },
     "inside_the_boundary": {
       "score": 3,
-      "evidence": "Home and Timeline state the person is in the time after the program ends, which the petition may have changed; the step-back words say 'An H-1B petition is entered' for a petition of type other."
+      "evidence": "On petition cases the cap_gap.for_dso words, 'can change these dates', go on rows the petition cannot change: J19's 2021 and 2023 transfers and J14's 2024 job report."
     },
     "secure": {
       "score": 4,
-      "evidence": "Twenty journeys, all twins, probes and three walked Onboarding cases gave 200; the route takes petition type 'o1', not a pack choice, in silence."
+      "evidence": "All journeys, 18 twins, probes and the three saved Onboarding cases return 200. An unknown choice value is asked, not taken in silence. No crash or stall found."
     },
     "tested": {
       "score": 3,
-      "evidence": "Mutants on validations 1-3, both evaluations, card grace, unemployment count and cap_gap.for_dso are caught; the desktop join test catches a planted web spelling. Survivors: stem_job_end evaluation petition member (:2041), program-end grace member (:1963/:1979), on_or_before to before on the filing day; the filed_while skip is unpinned."
+      "evidence": "14 of 17 mutants are caught, including all four that point 25 names. The job-card filter on the final evaluation, the unemployment filter and window-only stage placement survive, and no web test covers an unknown row with no petition."
     }
   },
   "findings": [
     {
       "severity": "blocking",
-      "title": "The grace point 19 nulls is still shown as the person's current stage",
-      "file": "engine/path.py:608",
-      "input": "J12, J13, J14 through POST /v1/compute (clock 2026-09-29); also J19 plus any change-of-status petition, J11 plus a petition filed 2026-03-02",
-      "what_happens": "grace.p1 state current, starts and ends null; stageEyebrow gives 'F-1 · TIME AFTER THE PROGRAM ENDS, FROM THE DATES YOU ENTERED' on Home and the Timeline marks it now. J19: grace.p2 goes from later to current beside stem.a2 running to 2028-06-08. J11: current while p1 runs to 2026-09-30."
+      "title": "unknown reaches stages no petition nulled; the Timeline drops their dates and adds the DSO line and petition words",
+      "file": "engine/path.py:653",
+      "input": "J01, J03, J04, J07, J08, J10, J15 and J19 through POST /v1/compute (clock 2026-09-29), none with a petition; J19 plus a petition with a start of 2026-06-09; J14",
+      "what_happens": "transfer.mv1/mv2 and opt_job_end.w1 go from current to unknown. web/src/lib/views/timeline.ts:138 then empties their items and meta and writes 'Your DSO can tell you these dates.' J01's transfer row loses 'from Jul 15, 2024' and its 2 items, while mv1.contacted_new_dso_on is asked of the person. With cap_gap.for_dso, the 2021 and 2023 transfers and J14's 2024 job report also carry 'Such a petition can change these dates'. This breaks point 19 ('every other journey is unchanged') and goes beyond point 22's scope."
     },
     {
       "severity": "should_fix",
-      "title": "A petition of any age hides the late STEM filing conflict and the a2.filed_on question",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2161",
-      "input": "J19 with a2.filed_on 2026-07-20 (a1 ended 2026-06-08), plus h9 h1b change_of_status yes filed 2020-04-01 approved validity_start 2020-10-01",
-      "what_happens": "Without h9: conflict:stem.filed_while_opt_in_force.a2. With h9: no conflict, only cap_gap.for_dso; plain J19 with any petition no longer asks a2.filed_on."
-    },
-    {
-      "severity": "should_fix",
-      "title": "The step-back words omit STEM reports and say H-1B for any petition",
-      "file": "web/src/lib/labels.ts:395",
-      "input": "J14 (final evaluation null); J19 plus a petition of type other with change_of_status yes",
-      "what_happens": "The words list the grace, the counts and any cap-gap period but not the validation and evaluation reports also left out; for type other they begin 'An H-1B petition is entered.'"
-    },
-    {
-      "severity": "should_fix",
-      "title": "Three point 19 pack mutants pass every acceptance and holdout test",
-      "file": "tests/unit/acceptance/test_journeys.py:1736",
-      "input": "Remove parameters.yaml:2041 (stem_job_end evaluation petition member); remove :1963 and :1979 (program-end grace member); on_or_before to before on every validation filing test",
-      "what_happens": "All acceptance and holdout pass. On HEAD, J15 plus a petition filed 2025-09-02 nulls Job B's evaluation and J06 plus a petition filed 2025-11-03 nulls the grace, but no test holds either."
-    },
-    {
-      "severity": "should_fix",
-      "title": "Onboarding still requires the petition outcome and says each outcome leads to different dates",
-      "file": "web/src/lib/views/onboarding.ts:1072",
-      "input": "Onboarding with a petition entered",
-      "what_happens": "'What has happened with it so far?' has no I'm not sure, and its why line 'Each outcome leads to different dates.' is untrue under points 19 and 21."
+      "title": "Three mutants survive: the job-card filter, the unemployment filter, and window-only placement",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2041",
+      "input": "J15 plus a petition filed 2020-04-01 with a start of 2020-10-01",
+      "what_happens": "HEAD dates Job B's final evaluation 2025-10-31 to 2025-11-10 and gives unemployment.total.a1 116. Making the :2041 filter true for any petition, or removing the filter at :2297, nulls them, and no acceptance, holdout or engine test fails. Turning off window placement at engine/path.py:663 turns J11 and J15 done job-end stages to unknown, and no test fails."
     },
     {
       "severity": "note",
-      "title": "Job-end reports dated for jobs ending after the card end",
+      "title": "The program-grace filter dates the program grace from the program's end even when OPT and STEM follow",
+      "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1963",
+      "input": "J19 plus a pending petition filed 2025-04-01 with a start of 2025-06-01",
+      "what_happens": "grace.p2 (2028-06-09 to 2028-08-07) is null and cap_gap.for_dso is given. This follows point 23a's words and states no wrong date. It is for the cap-gap round."
+    },
+    {
+      "severity": "note",
+      "title": "fix6 note 1 still open: job-end reports dated after the card end",
       "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
-      "input": "J13 (w1 ends 2026-08-14, card end 2026-06-30); J14 (w2 ends 2026-07-15, card end 2026-05-31)",
-      "what_happens": "opt_job_end.report.w1 2026-08-14 to 08-24 and stem_job_end.report.w2 2026-07-15 to 07-25 are dated, with or without the petition; older behaviour, a cap-gap question for the next round."
+      "input": "J13, J14",
+      "what_happens": "opt_job_end.report.w1 (J13) and stem_job_end.report.w2 (J14, 2026-07-15 to 07-25) are dated for jobs ending after the card, as in fix 6. This is for the cap-gap round."
     }
   ],
   "decision": "VETO"
