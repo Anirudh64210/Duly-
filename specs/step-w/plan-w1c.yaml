@@ -1,0 +1,15 @@
+branch: step-w
+spec: specs/step-w/SPEC-W1.md
+goal: 'Finish W1''s checks: the desktop engine entrypoint is fully measured, so the offline gates pass and the founder lane can package the installable app.'
+merge: local
+audited: false
+rounds:
+- name: cover
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'api/desktop_main.py is tested only through a subprocess, so its lines are not measured (diff coverage 38.7%: missing lines 49, 58 to 119). Add in-process tests in tests/unit/desktop_entry/test_desktop_main.py that call its functions directly (making the 0700 folder and the 0600 socket, reading the token from a stdin stream, the mode check, building the app and serving one request over the socket in a thread, refusing without the token) so every line runs, keeping the subprocess tests. Also cover api/local_routes.py lines 69 and 72. Never loosen an assertion.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/desktop_entry -q -p no:cacheprovider --cov=api.desktop_main --cov=api.local_routes --cov-fail-under=90'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
