@@ -2943,3 +2943,54 @@ nothing; an array fixed it.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-6036504430: SPEC-W1 points 1 to 15, tests first
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W1.md, specs/step-w/plan-w1.yaml, CLAUDE.md,
+PRINCIPLES.md, api/main.py, api/local_token.py, api/case.py, pyproject.toml (desktop group),
+tests/unit/acceptance/test_journeys.py (JOURNEYS), tests/support/records_case.py.
+
+Wrote tests/unit/desktop_entry/test_bundle_inputs.py (points 13, 14) and
+tests/unit/desktop_entry/test_desktop_main.py (points 1 to 5, 7, 9). No other test changed.
+
+Names the SPEC does not fix, chosen here: api.desktop_main.create_app(token) -> FastAPI for the
+in-process checks; the compute clock is get_clock, overridden under api.local_routes and
+api.main; the CLI is `python -m api.desktop_main --mode repo|packaged --socket <path>` with the
+token as stdin's first line (points 9, 16); bundle.json is a list of patterns or {"include": [...]}.
+
+Ran, in this worktree:
+- done command: "All checks passed!", "85 files already formatted", exit 0.
+- pytest tests/unit/desktop_entry --co: exit 0 (imports of the entrypoint are inside tests).
+- pytest tests/unit/desktop_entry: point 13 tests pass (uv export resolves fastapi, uvicorn,
+  pydantic, pyyaml, jsonschema, tzdata and their deps, none forbidden, no uvloop/httptools/
+  watchfiles/websockets). Every point 14 test fails (no desktop/python/bundle.json), every
+  point 1 to 9 test that imports or starts the entrypoint fails (no api/desktop_main.py).
+  The guards (point 3 sees api.main's imports, point 1 listing sees api.main's other routes,
+  the forbidden patterns) pass.
+
+Checked in scratch copies under TMPDIR, removed after, nothing outside tests/ touched:
+- Point 14 with a sample allowlist (TMPDIR plugin swapping BUNDLE_JSON): today's files only:
+  the copy test passes (engine loads 4 packs, J01 from the copy equals the repo's). Adding
+  "api/*.py": the forbidden-path test fails. Leaving out product_settings.yaml: the copy test
+  fails (FileNotFoundError), which it did not before J01 and load_settings were added.
+- Points 1 to 9 with a throwaway desktop_main/local_routes and api.main mounting the router:
+  77 passed, 11 failed, all 11 on PermissionError [Errno 1] from AF_UNIX bind (the sandbox
+  refuses a Unix socket bind anywhere: TMPDIR, /private/tmp/claude-501, tests/). Planted:
+  an extra /v1/status route fails point 1; `import api.settings` fails point 3; a desktop
+  copy of the compute function fails point 2 (identity and all 20 journeys); no DULY_ENV
+  check fails point 4; no parent-mode or length check fails point 7's refusals.
+
+What makes each new test fail (beyond the plants above): a socket left 0666 (point 7 mode); a
+stale socket not replaced, or a plain file removed (point 7 stale pair); a 103-byte path
+refused or a 104-byte one bound (boundary pair, working beside it: n = length - len(dir) - 1 -
+5); a route answering without X-Duly-Local or with a wrong one, or the token read from
+DULY_LOCAL_TOKEN (point 9); a socket made with empty stdin (point 9); an access log or a case
+logged (point 5 canary in a fact, a non-JSON body, a path and a query); a desktop group member
+added or uvicorn[standard] (point 13); a pattern that matches nothing, takes api/main.py,
+assistant/providers.py or a sources/ file, or leaves out a named file (point 14).
+
+FastAPI 0.141.1 (uv.lock) keeps an included router as one _IncludedRouter entry, so the route
+listing reads through it (original_router, include_context.prefix).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
