@@ -1,8 +1,11 @@
-import { join } from "node:path";
+import * as fs from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 
 import {
   app,
   BrowserWindow,
+  clipboard,
   ipcMain,
   protocol,
   safeStorage,
@@ -13,7 +16,7 @@ import {
 
 import { APP_ORIGIN, APP_SCHEME } from "./about";
 import { CASE_CHANNEL, createCaseBridge, loadChecker, mayUseCase } from "./casefile";
-import { repoRoot, startEngine, webDist } from "./engine";
+import { healthWaitMs, startEngine } from "./engine";
 import {
   WINDOW,
   decideFrameNavigation,
@@ -22,11 +25,16 @@ import {
   decidePermission,
   webPreferences,
 } from "./guard";
-import { createAppHandler, readInside } from "./protocol";
+import { LAUNCH_FILE, Milestones, launchedBefore, readLaunches, recordLaunch } from "./launch";
+import { checkRuntime } from "./manifest";
+import { GROUND } from "./pages";
+import { appPaths, engineCommand, repoOnly, repoRoot, verifyStart, webDist } from "./paths";
+import { createAppHandler, fetchOverSocket, readInside } from "./protocol";
 import { smokeFolder } from "./screen";
 import { runShots } from "./shotrun";
 import { NO_ENGINE, refusedInApp, shotsFolder, webSamples } from "./shots";
 import { runSmoke } from "./smoke";
+import { checkSocket, prepareFolder, socketPlace } from "./socket";
 
 const INDEX = `${APP_ORIGIN}/index.html`;
 
@@ -56,7 +64,8 @@ function guard(contents: WebContents): void {
   });
 }
 
-function launch(folder: string | null): void {
+function launch(folder: string | null, verify: boolean): void {
+  const marks = new Milestones();
   let window: BrowserWindow | null = null;
 
   app.on("second-instance", () => {
@@ -67,34 +76,80 @@ function launch(folder: string | null): void {
   app.on("web-contents-created", (_event, contents) => guard(contents));
 
   void app.whenReady().then(async () => {
+    marks.mark("app_ready");
     const refuse = session.defaultSession;
     refuse.setPermissionRequestHandler((_contents, permission, callback) =>
       callback(decidePermission(permission)),
     );
     refuse.setPermissionCheckHandler((_contents, permission) => decidePermission(permission));
 
-    const appPath = app.getAppPath();
-    const engine = startEngine({ appPath, env: process.env });
-    app.on("before-quit", () => engine.stop());
-    app.on("window-all-closed", () => {
+    const paths = appPaths({
+      packaged: app.isPackaged,
+      appPath: app.getAppPath(),
+      resourcesPath: process.resourcesPath,
+    });
+    const userData = app.getPath("userData");
+    const launches = join(userData, LAUNCH_FILE);
+    const version = app.getVersion();
+    const firstLaunch = !launchedBefore(await readLaunches(launches), version);
+    const place = socketPlace(userData, tmpdir());
+    const uid = process.getuid?.() ?? -1;
+    const manifest = paths.manifest;
+
+    const engine = startEngine({
+      command: engineCommand(paths, place.socket, process.env),
+      socket: place.socket,
+      check: () => checkSocket(fs.lstatSync(place.socket, { throwIfNoEntry: false }), uid),
+      preflight: async () => {
+        try {
+          fs.mkdirSync(dirname(place.folder), { recursive: true });
+          prepareFolder(fs, place, uid);
+        } catch (error) {
+          return String(error);
+        }
+        const refused = manifest === null ? null : await checkRuntime(manifest);
+        marks.mark("runtime_checked");
+        return refused;
+      },
+      timeoutMs: healthWaitMs(firstLaunch),
+      step: (name) => marks.mark(name),
+    });
+    const stop = () => {
       engine.stop();
+      if (place.temporary) fs.rmSync(place.folder, { recursive: true, force: true });
+    };
+    app.on("before-quit", stop);
+    app.on("window-all-closed", () => {
+      stop();
       app.quit();
     });
+
+    if (verify) {
+      const view = await engine.ready;
+      if (view.state !== "ready" && view.state !== "starting") {
+        process.stderr.write(`${view.lines.join("\n")}\n`);
+      }
+      stop();
+      app.exit(view.state === "ready" ? 0 : 1);
+      return;
+    }
 
     protocol.handle(
       APP_SCHEME,
       createAppHandler({
-        webDist: webDist(repoRoot(appPath)),
+        webDist: paths.web,
         engine: () => engine.view(),
-        fetch: (input, init) => fetch(input, init),
+        fetch: fetchOverSocket,
         readFile: readInside,
         refuse: refusedInApp,
+        retry: () => engine.restart(),
+        copy: (text) => clipboard.writeText(text),
       }),
     );
 
     const answer = createCaseBridge({
       folder: app.getPath("userData"),
-      checker: loadChecker(repoRoot(appPath)),
+      checker: loadChecker(paths.contracts),
       cipher: {
         available: () => safeStorage.isEncryptionAvailable(),
         encrypt: (text) => safeStorage.encryptString(text),
@@ -110,12 +165,13 @@ function launch(folder: string | null): void {
 
     const shown = new BrowserWindow({
       ...WINDOW,
-      webPreferences: webPreferences(join(__dirname, "preload.js"), app.getVersion()),
+      backgroundColor: GROUND,
+      webPreferences: webPreferences(join(__dirname, "preload.js"), version),
     });
     window = shown;
     shown.on("closed", () => {
       window = null;
-      engine.stop();
+      stop();
     });
 
     const show = async () => {
@@ -127,13 +183,20 @@ function launch(folder: string | null): void {
       }
     };
     await show();
+    marks.mark("window_shown");
     await engine.ready;
-    engine.onEnded(() => void show());
-    await show();
+    const reload = async () => {
+      await show();
+      if (engine.view().state === "ready") marks.mark("first_page_loaded");
+    };
+    engine.onChange(() => void reload());
+    await reload();
+    // One line per launch, with the milestones reached (point 24).
+    await recordLaunch(launches, marks.line(version)).catch(() => undefined);
 
     if (folder !== null) {
       const code = await runSmoke(shown, folder);
-      engine.stop();
+      stop();
       app.exit(code);
     }
   });
@@ -179,8 +242,9 @@ function fromArgs(read: (argv: readonly string[]) => string | null): string | nu
   }
 }
 
-const shots = fromArgs(shotsFolder);
-const folder = fromArgs(smokeFolder);
+// The repository's own modes are ignored in a packaged app (SPEC-W1 point 19).
+const shots = repoOnly(app.isPackaged, () => fromArgs(shotsFolder));
+const folder = repoOnly(app.isPackaged, () => fromArgs(smokeFolder));
 if (folder === "bad" || shots === "bad") {
   app.exit(2);
 } else if (shots !== null) {
@@ -189,5 +253,5 @@ if (folder === "bad" || shots === "bad") {
   if (folder !== null) process.stderr.write("smoke: Duly is already open\n");
   app.exit(folder === null ? 0 : 1);
 } else {
-  launch(folder);
+  launch(folder, verifyStart(process.argv));
 }

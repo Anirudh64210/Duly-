@@ -1,31 +1,27 @@
 import { spawn as nodeSpawn, type ChildProcess, type SpawnOptions } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { createServer } from "node:net";
-import { join, resolve } from "node:path";
 
 import type { EngineView } from "./pages";
-import { TOKEN_HEADER } from "./protocol";
+import type { EngineCommand } from "./paths";
+import { TOKEN_HEADER, fetchOverSocket, type SocketFetch } from "./protocol";
+import type { SocketCheck } from "./socket";
 
-/** The only address the engine ever binds. */
-export const ENGINE_HOST = "127.0.0.1";
-
-/** How long the window waits for the engine to answer /health. */
+/** How long the window waits for the engine to answer /health (SPEC-W1 point 23). */
 export const HEALTH_WAIT_MS = 30_000;
+/** The first launch after an install or an update: the runtime is new to this Mac. */
+export const FIRST_HEALTH_WAIT_MS = 60_000;
 export const HEALTH_POLL_MS = 250;
 
-/** How many of the engine's last printed lines the window shows when it could not start. */
+/** How many of the engine's last printed lines Copy details holds. */
 export const LAST_LINES = 20;
 
-/**
- * The repository root, from the app's own location. The app is the desktop folder,
- * and the root is the folder above it. Nothing is taken from the screen.
- */
-export function repoRoot(appPath: string): string {
-  return resolve(appPath, "..");
-}
+/** Point 11: no Windows code in W1. */
+export const NOT_ON_WINDOWS = "Duly's engine does not run on Windows yet.";
+export const SOCKET_REFUSED =
+  "The engine's socket is not this user's alone, so Duly did not use it.";
 
-export function webDist(root: string): string {
-  return join(root, "web", "dist");
+export function healthWaitMs(firstLaunch: boolean): number {
+  return firstLaunch ? FIRST_HEALTH_WAIT_MS : HEALTH_WAIT_MS;
 }
 
 /** A token of 32 random bytes for this launch. */
@@ -35,45 +31,7 @@ export function makeToken(random: (size: number) => Uint8Array = randomBytes): s
   return Buffer.from(bytes).toString("hex");
 }
 
-export interface EngineCommand {
-  command: string;
-  args: string[];
-  cwd: string;
-  env: Record<string, string | undefined>;
-}
-
-/** The command that starts the api on this machine, on the given port, with this token. */
-export function engineCommand(
-  root: string,
-  port: number,
-  token: string,
-  env: Readonly<Record<string, string | undefined>>,
-): EngineCommand {
-  return {
-    command: "uv",
-    args: ["run", "uvicorn", "api.main:app", "--host", ENGINE_HOST, "--port", String(port)],
-    cwd: root,
-    env: { ...env, DULY_ENV: "dev", DULY_LOCAL_TOKEN: token },
-  };
-}
-
-/** A free port on 127.0.0.1, found by binding port 0 there and letting it go. */
-export function pickFreePort(): Promise<number> {
-  return new Promise((done, fail) => {
-    const server = createServer();
-    server.unref();
-    server.once("error", fail);
-    server.listen({ port: 0, host: ENGINE_HOST, exclusive: true }, () => {
-      const address = server.address();
-      server.close(() => {
-        if (address !== null && typeof address === "object") done(address.port);
-        else fail(new Error("no port was given"));
-      });
-    });
-  });
-}
-
-/** Keeps the last lines the engine printed, for the page shown when it could not start. */
+/** Keeps the last lines the engine printed, for Copy details. */
 export class LastLines {
   private readonly kept: string[] = [];
   private partial = "";
@@ -97,57 +55,78 @@ export class LastLines {
 }
 
 export interface HealthWait {
-  port: number;
+  socket: string;
   token: string;
-  fetch: (input: string, init: RequestInit) => Promise<Response>;
+  fetch: SocketFetch;
+  /** lstat and the checks of point 8, before every request. */
+  check: () => SocketCheck;
   now: () => number;
   sleep: (ms: number) => Promise<void>;
   alive: () => boolean;
   timeoutMs?: number;
   pollMs?: number;
+  /** Called once, when the socket is first there and safe. */
+  onSocket?: () => void;
 }
 
-/** Waits until /health answers 200, for at most 30 seconds, or until the process ends. */
-export async function waitForHealth(wait: HealthWait): Promise<boolean> {
+export type Health = "ok" | "gave_up" | "refused";
+
+/** Waits until /health answers 200 over a socket that passes the checks, or gives up. */
+export async function waitForHealth(wait: HealthWait): Promise<Health> {
   const timeout = wait.timeoutMs ?? HEALTH_WAIT_MS;
   const poll = wait.pollMs ?? HEALTH_POLL_MS;
   const start = wait.now();
-  const address = `http://${ENGINE_HOST}:${wait.port}/health`;
+  let seen = false;
   while (wait.alive() && wait.now() - start < timeout) {
-    try {
-      const answer = await wait.fetch(address, {
-        headers: { [TOKEN_HEADER]: wait.token },
-        signal: AbortSignal.timeout(Math.max(1, Math.min(2_000, timeout))),
-      });
-      if (answer.status === 200) return true;
-    } catch {
-      // not listening yet
+    const check = wait.check();
+    if (check === "refused") return "refused";
+    if (check === "safe") {
+      if (!seen) wait.onSocket?.();
+      seen = true;
+      try {
+        const answer = await wait.fetch(wait.socket, "/health", {
+          headers: { [TOKEN_HEADER]: wait.token },
+          signal: AbortSignal.timeout(Math.max(1, Math.min(2_000, timeout))),
+        });
+        if (answer.status === 200) return "ok";
+      } catch {
+        // not listening yet
+      }
     }
     await wait.sleep(poll);
   }
-  return false;
+  return "gave_up";
 }
 
 export type Spawn = (command: string, args: string[], options: SpawnOptions) => ChildProcess;
 
+export type EngineStep = "engine_spawned" | "socket_ready" | "health_ok";
+
 export interface EngineDeps {
-  appPath: string;
-  env: Readonly<Record<string, string | undefined>>;
+  command: EngineCommand;
+  socket: string;
+  check: () => SocketCheck;
+  /** Checks the runtime before each start; a line refuses the start (point 17). */
+  preflight?: () => Promise<string | null>;
+  platform?: NodeJS.Platform;
   spawn?: Spawn;
-  fetch?: HealthWait["fetch"];
+  fetch?: SocketFetch;
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
-  port?: () => Promise<number>;
   token?: () => string;
   timeoutMs?: number;
+  /** The launch milestones the engine reaches (point 24). */
+  step?: (name: EngineStep) => void;
 }
 
 export interface Engine {
   view(): EngineView;
-  /** Resolves when the engine is ready or could not start. */
-  ready: Promise<EngineView>;
-  /** Called once if the process ends while nobody asked it to. */
-  onEnded(listener: () => void): void;
+  /** Resolves when the current start is ready or could not start. */
+  readonly ready: Promise<EngineView>;
+  /** Called each time the engine becomes ready, could not start, or ended on its own. */
+  onChange(listener: (view: EngineView) => void): void;
+  /** Try again: ends what is left of the last start and starts again. */
+  restart(): void;
   stop(): void;
 }
 
@@ -160,77 +139,109 @@ function endGroup(child: ChildProcess, signal: NodeJS.Signals): void {
   }
 }
 
-/** Starts the api on this machine and follows it until it ends. */
+/** Starts the engine on this machine and follows it until it ends. */
 export function startEngine(deps: EngineDeps): Engine {
   const spawn = deps.spawn ?? nodeSpawn;
-  const printed = new LastLines();
   let current: EngineView = { state: "starting" };
   let child: ChildProcess | null = null;
   let stopping = false;
-  let exited = false;
-  const listeners: (() => void)[] = [];
+  const listeners: ((view: EngineView) => void)[] = [];
 
-  const ready = (async (): Promise<EngineView> => {
-    const port = await (deps.port ?? pickFreePort)();
+  const settle = (view: EngineView): EngineView => {
+    current = view;
+    for (const listener of listeners) listener(view);
+    return view;
+  };
+
+  const attempt = async (): Promise<EngineView> => {
+    if ((deps.platform ?? process.platform) === "win32") {
+      return settle({ state: "failed", lines: [NOT_ON_WINDOWS] });
+    }
+    const refused = (await deps.preflight?.()) ?? null;
+    if (refused !== null) return settle({ state: "failed", lines: [refused] });
+    if (stopping) return current;
+
+    const printed = new LastLines();
     const token = (deps.token ?? makeToken)();
-    const run = engineCommand(repoRoot(deps.appPath), port, token, deps.env);
+    const run = deps.command;
+    let mine: ChildProcess;
     try {
-      child = spawn(run.command, run.args, {
+      mine = spawn(run.command, run.args, {
         cwd: run.cwd,
         env: run.env,
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: ["pipe", "pipe", "pipe"],
         detached: true,
       });
     } catch (error) {
-      current = { state: "failed", lines: [String(error)] };
-      return current;
+      return settle({ state: "failed", lines: [String(error)] });
     }
-    child.stdout?.setEncoding("utf8");
-    child.stderr?.setEncoding("utf8");
-    child.stdout?.on("data", (chunk: string) => printed.push(chunk));
-    child.stderr?.on("data", (chunk: string) => printed.push(chunk));
-    child.on("error", (error) => {
+    child = mine;
+    deps.step?.("engine_spawned");
+    let exited = false;
+    // Point 9: the token is the first line of stdin, never an argument or the environment.
+    mine.stdin?.on("error", () => undefined);
+    mine.stdin?.end(`${token}\n`);
+    mine.stdout?.setEncoding("utf8");
+    mine.stderr?.setEncoding("utf8");
+    mine.stdout?.on("data", (chunk: string) => printed.push(chunk));
+    mine.stderr?.on("data", (chunk: string) => printed.push(chunk));
+    mine.on("error", (error) => {
       printed.push(`${String(error)}\n`);
       exited = true;
     });
-    child.on("exit", () => {
+    mine.on("exit", () => {
       exited = true;
-      if (stopping) return;
-      if (current.state === "ready") {
-        current = { state: "ended", lines: printed.lines() };
-        for (const listener of listeners.splice(0)) listener();
-      }
+      if (stopping || child !== mine) return;
+      if (current.state === "ready") settle({ state: "ended", lines: printed.lines() });
     });
-    const healthy = await waitForHealth({
-      port,
+    const health = await waitForHealth({
+      socket: deps.socket,
       token,
-      fetch: deps.fetch ?? fetch,
+      fetch: deps.fetch ?? fetchOverSocket,
+      check: deps.check,
       now: deps.now ?? Date.now,
       sleep: deps.sleep ?? ((ms) => new Promise((done) => setTimeout(done, ms))),
-      alive: () => !exited && !stopping,
+      alive: () => !exited && !stopping && child === mine,
+      onSocket: () => deps.step?.("socket_ready"),
       ...(deps.timeoutMs === undefined ? {} : { timeoutMs: deps.timeoutMs }),
     });
-    if (healthy && !exited && !stopping) {
-      current = { state: "ready", port, token };
-    } else {
-      if (child !== null) endGroup(child, "SIGTERM");
-      current = { state: "failed", lines: printed.lines() };
+    if (child !== mine) return current;
+    if (health === "ok" && !exited && !stopping) {
+      deps.step?.("health_ok");
+      return settle({ state: "ready", socket: deps.socket, token });
     }
-    return current;
-  })();
+    endGroup(mine, "SIGTERM");
+    const lines = health === "refused" ? [...printed.lines(), SOCKET_REFUSED] : printed.lines();
+    return settle({ state: "failed", lines });
+  };
+
+  let ready = attempt();
+
+  const end = (): void => {
+    if (child === null) return;
+    const running = child;
+    endGroup(running, "SIGTERM");
+    setTimeout(() => endGroup(running, "SIGKILL"), 5_000).unref();
+  };
 
   return {
     view: () => current,
-    ready,
-    onEnded: (listener) => {
+    get ready() {
+      return ready;
+    },
+    onChange: (listener) => {
       listeners.push(listener);
+    },
+    restart: () => {
+      if (stopping || current.state === "starting" || current.state === "ready") return;
+      end();
+      child = null;
+      current = { state: "starting" };
+      ready = attempt();
     },
     stop: () => {
       stopping = true;
-      if (child === null) return;
-      const running = child;
-      endGroup(running, "SIGTERM");
-      setTimeout(() => endGroup(running, "SIGKILL"), 5_000).unref();
+      end();
     },
   };
 }

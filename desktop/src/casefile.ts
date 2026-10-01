@@ -84,9 +84,9 @@ export const nodeDisk: Disk = {
 };
 
 /** Reads the two contracts the bridge checks against, from the repository's contracts folder. */
-export function loadChecker(root: string): Checker {
-  const read = (name: string): unknown =>
-    JSON.parse(readFileSync(join(root, "contracts", name), "utf8"));
+/** The two schemas, from the contracts folder paths.ts gives. */
+export function loadChecker(contracts: string): Checker {
+  const read = (name: string): unknown => JSON.parse(readFileSync(join(contracts, name), "utf8"));
   return new Checker([read("case.schema.json"), read("desktop_case_bridge.schema.json")]);
 }
 

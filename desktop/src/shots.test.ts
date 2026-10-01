@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import * as web from "../../web/src/lib/shots";
-import { webDist } from "./engine";
+import { webDist } from "./paths";
 import { createAppHandler, readInside } from "./protocol";
 import {
   NO_ENGINE,
