@@ -576,6 +576,8 @@ SCEN-015 (travel checks), PLAN03-014 and PLAN03-096 (the bridge; the renderer ne
 stores), DEC-D54, DEC-D59 and DEC-D41. The register has no rows yet for D63 to D84, specs/duly-2 and
 specs/ui-2; W2-P0's audit step adds them, and every plan's audit round reports the share met.
 
+That is 5 of 2461 requirement rows named here; the audit round adds rows for D63 to D86 and recounts.
+
 ## Later
 
 Reading documents on the device (D55, documents-1 section 4); the documents-1 vault (Touch ID,

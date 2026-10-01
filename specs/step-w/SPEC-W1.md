@@ -362,6 +362,8 @@ one typed preload) are re-checked; DEC-D07 and DEC-D13 in part. The register (2,
 adds them first, then reports the share W1 meets. W1 alone moves little of the product share; its
 value is that W2 has a real window to land in.
 
+That is 2 of 2461 requirement rows named here; the audit round adds rows for D63 to D86 and recounts.
+
 ## Later (not W1)
 
 Developer ID signing and notarization (Apple account as the company); an update channel from
