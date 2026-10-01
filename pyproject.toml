@@ -29,6 +29,16 @@ dev = [
   "pip-audit>=2.7",
   "pip-licenses>=5.5.5",
 ]
+# The slim set bundled inside the desktop app (specs/step-w/SPEC-W1.md point 13): the engine and
+# its local routes only. No anthropic, langgraph, psycopg, sqlalchemy or pydantic-settings.
+desktop = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "pydantic>=2.8",
+  "pyyaml>=6.0",
+  "jsonschema>=4.23",
+  "tzdata>=2024.1",
+]
 
 [tool.uv]
 package = false
