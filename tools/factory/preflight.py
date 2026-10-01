@@ -160,6 +160,28 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
     return found
 
 
+# Quick gates only the founder lane can fix. When they already fail on the branch, every lane
+# that runs them fails for a reason it cannot change (step-w W1 stopped three times this way:
+# dashes in the founder's docs, build output being linted, a SPEC without its share).
+BASELINE: tuple[tuple[str, ...], ...] = (
+    ("uv", "run", "python", "-m", "tools.copy_lint.lint"),
+    ("uv", "run", "python", "-m", "tools.requirements.register", "check"),
+    ("uv", "run", "ruff", "check", ".", "-q"),
+)
+
+
+def baseline(repo: Path = REPO_ROOT, commands: tuple[tuple[str, ...], ...] = BASELINE) -> list[str]:
+    """The founder-owned gates that already fail before any agent runs."""
+    found: list[str] = []
+    for cmd in commands:
+        done = subprocess.run(list(cmd), cwd=repo, capture_output=True, text=True, check=False)
+        if done.returncode != 0:
+            tail = (done.stdout + done.stderr).strip().splitlines()
+            last = tail[-1] if tail else ""
+            found.append(f"baseline: {' '.join(cmd[-3:])} fails before any agent runs: {last}")
+    return found
+
+
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
     if not args:

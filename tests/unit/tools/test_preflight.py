@@ -1,6 +1,7 @@
 """A plan's own faults are found before any agent runs: each case is one that cost an agent
 attempt in product-2."""
 
+import sys
 from pathlib import Path
 
 import yaml
@@ -187,3 +188,12 @@ def test_a_lane_whose_mission_is_only_one_command_is_found(tmp_path):
     for mission in ("Run pytest and fix what fails.", "Run make samples, then read engine/x.py."):
         rounds = [{"name": "A", "lanes": [lane("L-engine", "builder", mission)]}]
         assert preflight.problems(plan(repo, rounds), repo) == [], mission
+
+
+def test_a_founder_gate_failing_before_any_agent_is_found(tmp_path):
+    ok = (sys.executable, "-c", "pass")
+    bad = (sys.executable, "-c", "import sys; print('copy lint: 7 problem(s)'); sys.exit(1)")
+    assert preflight.baseline(tmp_path, (ok,)) == []
+    found = preflight.baseline(tmp_path, (ok, bad))
+    assert len(found) == 1
+    assert "copy lint: 7 problem(s)" in found[0]
