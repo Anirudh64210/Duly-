@@ -533,7 +533,7 @@ window.DULY_SAMPLE = {
         ],
         next: { title: 'Nothing to do here', meta: 'Your card is valid until Feb 13, 2027.' },
         processing: 'i765-opt',
-        document: { label: 'I-797 approval notice', href: '#/documents/work' },
+        document: { label: 'I-797 approval notice', href: '#/documents/opt' },
         schoolSteps: [],
       },
       {
@@ -586,12 +586,12 @@ window.DULY_SAMPLE = {
     {
       key: 'arrival', state: 'done', title: 'Arrival', meta: 'F-1 visa · Aug 2023',
       text: 'You did this: arrived on your F-1 visa.',
-      link: { label: '3 documents: passport, visa, I-94', href: '#/documents/identity' },
+      link: { label: '3 documents: passport, visa, I-94', href: '#/documents/visa' },
     },
     {
       key: 'masters', state: 'done', title: "Master's in Computer Science", meta: 'Aug 21, 2023 to Dec 18, 2025 · degree awarded',
       text: "You did this: finished your Master's at State University. Degree awarded Dec 18, 2025.",
-      link: { label: '2 documents: degree certificate, transcripts', href: '#/documents/school' },
+      link: { label: '2 documents: degree certificate, transcripts', href: '#/documents/university' },
     },
     {
       key: 'cpt', state: 'done', title: 'CPT: two internships, done', meta: 'Acme Robotics · Lumen Labs',
@@ -609,7 +609,7 @@ window.DULY_SAMPLE = {
         { kind: 'value', label: 'Job reported to school', value: 'Software Engineer, Northwind Systems, since Feb 27, 2026' },
         { kind: 'value', label: 'USCIS', value: 'IOE0912345678 · approved Dec 20, 2025', href: '#/uscis/opt' },
       ],
-      link: { label: 'EAD card and approval notice', href: '#/documents/status' },
+      link: { label: 'EAD card and approval notice', href: '#/documents/opt' },
     },
     {
       key: 'stem', state: 'next', title: 'STEM OPT extension', meta: 'Window opens Nov 15, 2026',
@@ -782,8 +782,8 @@ window.DULY_SAMPLE = {
     /* The three asked for most, one tap from the top of Documents on a phone. */
     quick: [
       { title: 'I-20 · OPT recommendation', meta: 'Mar 2026', href: '#/documents/i20-opt' },
-      { title: 'EAD card', meta: 'Valid until Feb 13, 2027', href: '#/documents/work' },
-      { title: 'Passport', meta: 'Valid until Jul 9, 2031', href: '#/documents/identity' },
+      { title: 'EAD card', meta: 'Valid until Feb 13, 2027', href: '#/documents/opt' },
+      { title: 'Passport', meta: 'Valid until Jul 9, 2031', href: '#/documents/passport' },
     ],
     tabs: [
       { key: 'all', label: 'All' },
@@ -938,7 +938,7 @@ window.DULY_SAMPLE = {
       plain: 'Your work permission runs to the end date printed on your card.',
       quote: null,
       counted: ['Read from your EAD card: category C03B, valid until Feb 13, 2027. From today, that is 136 days.'],
-      link: { label: 'Your EAD card, in Documents', href: '#/documents/work' },
+      link: { label: 'Your EAD card, in Documents', href: '#/documents/opt' },
       checked: 'Checked Sep 30',
     },
     stemOpens: {

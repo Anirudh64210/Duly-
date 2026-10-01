@@ -1,8 +1,8 @@
 /* Documents: everything in one place, ready to open.
    Round 3 note 5: label chips filter in one click. All (every document,
    grouped, every row ready to open), Most used (the latest I-20, the
-   EAD card, the approval notice, the passport), then Status, Work,
-   School, Identity, and Other once a file of no known kind is saved.
+   EAD card, the approval notice, the passport), then CPT, OPT, STEM OPT,
+   University, Visa, Passport, Work, and Other once a file of no known kind is saved.
    Each chip carries its count. The chips stay on one line; on a narrow
    screen the strip scrolls sideways inside itself, never the page. Search looks inside the chosen chip; when
    nothing matches there but something matches elsewhere, one tap searches
@@ -20,7 +20,7 @@
    date, what changed and Open.
    Routes: #/documents (All), #/documents/<label> (most, status, employment,
    school, identity, other); #/documents/add opens the add sheet. The older
-   links #/documents/i20 and #/documents/work open Status.
+   links #/documents/i20, /status and /identity open OPT and Passport.
    A chip click updates the address in place (no redraw, no scroll jump).
    A file dropped anywhere, or Cmd O (Ctrl O off a Mac), arrives here through
    App.addDocument and opens the document sheet; on a phone the add sheet
@@ -34,13 +34,16 @@
 
   /* The groups, in the order a student looks for them. */
   const GROUPS = [
-    { key: 'status', title: 'Status', words: 'status permit permits immigration' },
-    { key: 'employment', title: 'Work', words: 'work job employment employer offer' },
-    { key: 'school', title: 'School', words: 'school university degree diploma' },
-    { key: 'identity', title: 'Identity', words: 'identity id travel' },
+    { key: 'cpt', title: 'CPT', words: 'cpt internship curricular practical training' },
+    { key: 'opt', title: 'OPT', words: 'opt ead work permit approval i797 i-797 optional practical training' },
+    { key: 'stem', title: 'STEM OPT', words: 'stem extension i983 i-983 training plan' },
+    { key: 'university', title: 'University', words: 'university school degree diploma transcript starting admission' },
+    { key: 'visa', title: 'Visa', words: 'visa i94 i-94 entry travel stamp' },
+    { key: 'passport', title: 'Passport', words: 'passport identity id' },
+    { key: 'work', title: 'Work', words: 'work job employment employer offer letter' },
     { key: 'other', title: 'Other', words: 'other' },
   ];
-  const ALIAS = { all: 'all', most: 'most', i20: 'status', work: 'status', status: 'status', employment: 'employment', job: 'employment', school: 'school', identity: 'identity', other: 'other' };
+  const ALIAS = { all: 'all', most: 'most', cpt: 'cpt', opt: 'opt', stem: 'stem', university: 'university', school: 'university', visa: 'visa', passport: 'passport', identity: 'passport', work: 'work', employment: 'work', job: 'work', status: 'opt', i20: 'opt', other: 'other' };
   /* The label chips, in order. 'all' and 'most' are views, the rest groups. */
   const LABELS = [{ key: 'all', title: 'All' }, { key: 'most', title: 'Most used' }]
     .concat(GROUPS.map((g) => ({ key: g.key, title: g.title })));
@@ -132,16 +135,16 @@
       const title = it.name || (g.key === 'cpt' ? 'I-20 · CPT at ' + it.title : 'I-20 · ' + it.title);
       const meta = it.current ? 'Latest, ' + it.meta : it.meta;
       push(Object.assign({}, it, { title: title, meta: meta }), {
-        group: 'status', type: 'i20', phase: g.key, employer: g.key === 'cpt' ? it.title : null,
+        group: g.key === 'cpt' ? 'cpt' : (g.key === 'opt' ? 'opt' : (g.key === 'stem' ? 'stem' : 'university')), type: 'i20', phase: g.key, employer: g.key === 'cpt' ? it.title : null,
         rank: it.current ? RANK.current : (RANK[g.key] != null ? RANK[g.key] : RANK.cpt),
       });
     }));
     d.work.forEach((it) => {
       const type = /^EAD/.test(it.title) ? 'ead' : (/^I-797/.test(it.title) ? 'i797' : 'letter');
-      push(it, { type: type, group: type === 'letter' ? 'employment' : 'status', rank: RANK[type] != null ? RANK[type] : 0 });
+      push(it, { type: type, group: type === 'letter' ? 'work' : 'opt', rank: RANK[type] != null ? RANK[type] : 0 });
     });
-    d.identity.forEach((it) => push(it, { type: 'identity', group: 'identity', rank: 0 }));
-    d.school.forEach((it) => push(it, { type: 'school', group: 'school', rank: 0 }));
+    d.identity.forEach((it) => push(it, { type: 'identity', group: /passport/i.test(it.title) ? 'passport' : 'visa', rank: 0 }));
+    d.school.forEach((it) => push(it, { type: 'school', group: 'university', rank: 0 }));
     S.ready = true;
   }
   function nextId() { S.seq += 1; return 'doc-' + S.seq; }
@@ -159,19 +162,19 @@
     const st = data.student, opt = data.opt, today = shortToday(data), read = data.documents.sampleRead;
     return {
       ead: {
-        name: 'EAD card', group: 'status', rank: RANK.ead,
+        name: 'EAD card', group: 'opt', rank: RANK.ead,
         fields: () => data.onboarding.eadFound,
         title: () => 'EAD card',
         meta: (f) => f['Valid from'] + ' to ' + f['Valid until'],
       },
       i20: {
-        name: 'I-20', group: 'status', rank: RANK.cpt, phase: 'cpt', many: true,
+        name: 'I-20', group: 'cpt', rank: RANK.cpt, phase: 'cpt', many: true,
         fields: () => [['Name', st.name], ['School', st.school], ['Program', data.program.degree], ['Issued for', 'CPT'], ['Employer', read.employer], ['Dates', read.dates]],
         title: (f) => (isBlank(f.Employer) ? 'I-20 · CPT' : 'I-20 · CPT at ' + f.Employer),
         meta: (f) => (isBlank(f.Dates) ? 'Added ' + today : f.Dates),
       },
       i797: {
-        name: 'I-797', group: 'status', rank: RANK.i797,
+        name: 'I-797', group: 'opt', rank: RANK.i797,
         fields: () => [['Name', st.name], ['Notice', 'Approval'], ['Receipt number', opt.receipt], ['Date', opt.approved]],
         title: () => 'I-797 approval notice',
         meta: (f) => f.Date,
@@ -424,8 +427,6 @@
 
   /* ---------------- views ---------------- */
 
-  const addAnother = '<button type="button" class="link doc-add-another" data-doc-add="i20">Add another CPT I-20</button>';
-
   /* All: every document, under its group, each ready to open. The ones
      asked for most have their own chip, Most used, so they are not
      repeated here. */
@@ -435,7 +436,7 @@
       if (!docs.length) return '';
       return C.section({
         eyebrow: g.title,
-        content: C.list(docRows(docs), { accordion: false, label: g.title }) + (g.key === 'status' ? addAnother : ''),
+        content: C.list(docRows(docs), { accordion: false, label: g.title }),
       });
     }).join('');
   }
@@ -444,8 +445,7 @@
     const docs = docsFor(label);
     const most = label === 'most';
     return C.section({
-      content: C.list(docRows(docs, { keyOf: most ? (d) => 'most:' + d.id : null }), { accordion: false, label: labelOf(label).title }) +
-        (label === 'status' ? addAnother : ''),
+      content: C.list(docRows(docs, { keyOf: most ? (d) => 'most:' + d.id : null }), { accordion: false, label: labelOf(label).title }),
     });
   }
 
