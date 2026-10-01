@@ -37,14 +37,17 @@ A refused request is 403, as specs/desktop-1/SPEC.md "The api (L-api)" set for t
 import ast
 import http.client
 import importlib
+import io
 import json
 import os
+import runpy
 import secrets
 import socket
 import stat
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -199,7 +202,7 @@ def _both_apps() -> Iterator[tuple[CheckedClient, CheckedClient]]:
     """api.main's app and the desktop app, at the same FixedClock."""
     local_routes = _local_routes()
     desktop = _desktop_main().create_app(TOKEN)
-    keys = {local_routes.get_clock, api.main.get_clock}
+    keys = {local_routes.get_clock, api.main.get_clock}  # type: ignore[attr-defined]
     for app in (api.main.app, desktop):
         for key in keys:
             app.dependency_overrides[key] = lambda: CLOCK
@@ -663,3 +666,312 @@ def test_point_5_no_request_path_or_body_is_written(run_dir: Path, tmp_path: Pat
     assert canary not in written
     assert TOKEN not in written
     assert "/v1/compute" not in written
+
+
+# In process: the same points, with api/desktop_main.py's functions called directly, so the
+# lines the subprocess runs are measured too (plan-w1c). The subprocess tests above stay.
+
+
+def test_point_4_check_mode_in_process() -> None:
+    # "In packaged mode it refuses to start when DULY_ENV is set to anything but desktop ...
+    # In repo mode dev is allowed." Unset counts as "anything but desktop". Fails if the check
+    # is dropped, or if it refuses packaged with desktop or repo with dev.
+    desktop_main = _desktop_main()
+    for duly_env in ("dev", "production", None):
+        with pytest.raises(desktop_main.RefusedError):
+            desktop_main.check_mode("packaged", duly_env)
+    desktop_main.check_mode("packaged", "desktop")
+    desktop_main.check_mode("repo", "dev")
+
+
+def test_point_9_the_token_is_the_first_line_of_stdin(monkeypatch: pytest.MonkeyPatch) -> None:
+    # "It is written to the engine's stdin as the first line". The second line is not part of
+    # it. Fails if the token is read from anywhere else, or takes more than the first line.
+    monkeypatch.setattr(sys, "stdin", io.StringIO(TOKEN + "\nsecond line\n"))
+    assert _desktop_main().read_token() == TOKEN
+
+
+@pytest.mark.parametrize("stdin", ["", "\n", "   \n" + TOKEN + "\n"], ids=["empty", "blank", "sp"])
+def test_point_9_no_token_on_the_first_line_is_refused(
+    monkeypatch: pytest.MonkeyPatch, stdin: str
+) -> None:
+    # A closed empty stdin, or a first line with nothing in it, gives no token. Fails if the
+    # engine goes on with an empty token (which no header could match under point 9), or reads
+    # past the first line for one.
+    monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+    with pytest.raises(_desktop_main().RefusedError):
+        _desktop_main().read_token()
+
+
+def test_point_7_bind_socket_in_process_makes_a_0600_socket(run_dir: Path) -> None:
+    # "bind under umask 0o177, chmod 0o600, check with lstat", in a 0700 folder. Also the
+    # umask is given back. Fails if the mode is not 0600, the file is not this user's socket,
+    # or the process is left with umask 0o177.
+    before = os.umask(0o022)
+    os.umask(before)
+    sock = _desktop_main().bind_socket(str(run_dir / "engine.sock"))
+    try:
+        st = (run_dir / "engine.sock").lstat()
+        assert stat.S_ISSOCK(st.st_mode)
+        assert stat.S_IMODE(st.st_mode) == 0o600
+        assert st.st_uid == os.getuid()
+        assert sock.family == socket.AF_UNIX
+        now = os.umask(before)
+        assert now == before
+    finally:
+        sock.close()
+
+
+def test_point_7_bind_socket_in_process_replaces_a_stale_socket(run_dir: Path) -> None:
+    # "A stale socket file is removed first only if lstat shows a socket owned by this user."
+    # Fails if the engine refuses its own stale socket, or binds without removing it (EADDRINUSE).
+    path = run_dir / "engine.sock"
+    stale = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    stale.bind(str(path))
+    stale.close()
+    sock = _desktop_main().bind_socket(str(path))
+    try:
+        assert stat.S_ISSOCK(path.lstat().st_mode)
+        assert stat.S_IMODE(path.lstat().st_mode) == 0o600
+    finally:
+        sock.close()
+
+
+def test_point_7_bind_socket_in_process_refuses_what_lstat_does_not_show_as_0600(
+    run_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # "check with lstat": a socket that did not end up 0600 (here chmod is made to give 0644)
+    # is refused and closed. Fails if the engine trusts its chmod without looking.
+    desktop_main = _desktop_main()
+    real_chmod = os.chmod
+    monkeypatch.setattr(desktop_main.os, "chmod", lambda path, _mode: real_chmod(path, 0o644))
+    closed: list[socket.socket] = []
+    real_close = socket.socket.close
+
+    def close(self: socket.socket) -> None:
+        closed.append(self)
+        real_close(self)
+
+    monkeypatch.setattr(socket.socket, "close", close)
+    with pytest.raises(desktop_main.RefusedError):
+        desktop_main.bind_socket(str(run_dir / "engine.sock"))
+    assert len(closed) == 1
+
+
+@pytest.mark.parametrize("mode", [0o720, 0o702], ids=["group-writable", "world-writable"])
+def test_point_7_bind_socket_in_process_refuses_a_parent_others_can_write(
+    run_dir: Path, mode: int
+) -> None:
+    # "refuses a parent that is group or world writable". Fails if bind_socket binds there.
+    run_dir.chmod(mode)
+    try:
+        with pytest.raises(_desktop_main().RefusedError):
+            _desktop_main().bind_socket(str(run_dir / "engine.sock"))
+        assert not os.path.lexists(run_dir / "engine.sock")
+    finally:
+        run_dir.chmod(0o700)
+
+
+def test_point_7_bind_socket_in_process_refuses_104_bytes(run_dir: Path) -> None:
+    # "a path over 103 bytes": 104 is the first length over. Fails if the length rule goes.
+    path = _socket_path_of_length(run_dir, LONGEST_SOCKET_PATH + 1)
+    with pytest.raises(_desktop_main().RefusedError):
+        _desktop_main().bind_socket(str(path))
+    assert not os.path.lexists(path)
+
+
+def test_point_7_bind_socket_in_process_leaves_a_symlink_and_a_file_alone(
+    run_dir: Path, tmp_path: Path
+) -> None:
+    # "refuses a symlinked path"; only a socket of this user's is removed. Fails if
+    # bind_socket follows or removes the link, or removes the plain file.
+    target = tmp_path / "elsewhere"
+    target.write_text("not the engine's")
+    link = run_dir / "link.sock"
+    link.symlink_to(target)
+    plain = run_dir / "plain.sock"
+    plain.write_text("a plain file")
+    for path in (link, plain):
+        with pytest.raises(_desktop_main().RefusedError):
+            _desktop_main().bind_socket(str(path))
+    assert link.is_symlink()
+    assert target.read_text() == "not the engine's"
+    assert plain.read_text() == "a plain file"
+
+
+def test_point_4_main_in_process_refuses_packaged_dev_with_a_plain_line(
+    run_dir: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # "exits non-zero with a plain line", before the token is read and before any bind.
+    # Fails if main starts, binds, or says nothing on stderr.
+    monkeypatch.setenv("DULY_ENV", "dev")
+    monkeypatch.setattr(sys, "stdin", io.StringIO(TOKEN + "\n"))
+    path = run_dir / "engine.sock"
+    code = _desktop_main().main(["--mode", "packaged", "--socket", str(path)])
+    said = capsys.readouterr()
+    assert code == 1
+    assert said.err.strip()
+    assert len(said.err.strip().splitlines()) == 1
+    assert TOKEN not in said.out + said.err
+    assert not os.path.lexists(path)
+
+
+def test_point_9_main_in_process_makes_no_socket_without_a_token(
+    run_dir: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # "desktop_main reads it before binding". Fails if main binds with no token.
+    monkeypatch.setenv("DULY_ENV", "dev")
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    path = run_dir / "engine.sock"
+    assert _desktop_main().main(["--mode", "repo", "--socket", str(path)]) == 1
+    assert capsys.readouterr().err.strip()
+    assert not os.path.lexists(path)
+
+
+def test_point_4_run_as_a_module_exits_with_mains_code(
+    run_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # `python -m api.desktop_main` (point 16) exits with what main returns: 1 for a packaged
+    # engine under dev. run_path, so the file's own `__main__` block runs in this process.
+    monkeypatch.setenv("DULY_ENV", "dev")
+    monkeypatch.setattr(sys, "stdin", io.StringIO(TOKEN + "\n"))
+    path = run_dir / "engine.sock"
+    monkeypatch.setattr(
+        sys, "argv", ["api.desktop_main", "--mode", "packaged", "--socket", str(path)]
+    )
+    with pytest.raises(SystemExit) as ended:
+        runpy.run_path(str(REPO_ROOT / "api" / "desktop_main.py"), run_name="__main__")
+    assert ended.value.code == 1
+    assert not os.path.lexists(path)
+
+
+@pytest.mark.usefixtures("no_server_token")
+def test_points_5_7_9_main_in_process_serves_over_the_socket_with_the_token_only(
+    run_dir: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
+    # main as main starts it, in a thread: token on stdin, socket made 0600, the shared routes
+    # served on it, every one refused without the token (point 9), and nothing about the
+    # request written (point 5). uvicorn.Server is wrapped only to keep a handle to stop it.
+    # Fails if main serves without the token, on another socket, at another mode, or logs the
+    # request path.
+    desktop_main = _desktop_main()
+    servers: list[Any] = []
+    real_server = desktop_main.uvicorn.Server
+
+    class Kept(real_server):  # type: ignore[misc, valid-type]
+        def __init__(self, config: Any) -> None:
+            super().__init__(config)
+            servers.append(self)
+
+    monkeypatch.setattr(desktop_main.uvicorn, "Server", Kept)
+    monkeypatch.setenv("DULY_ENV", "dev")
+    monkeypatch.setattr(sys, "stdin", io.StringIO(TOKEN + "\n"))
+    path = run_dir / "engine.sock"
+    returned: list[int] = []
+    thread = threading.Thread(
+        target=lambda: returned.append(desktop_main.main(["--mode", "repo", "--socket", str(path)]))
+    )
+    thread.start()
+    try:
+        deadline = time.monotonic() + START_WITHIN
+        while not _answers(path):
+            assert thread.is_alive(), f"main ended with {returned}"
+            assert time.monotonic() < deadline, "no health in time"
+            time.sleep(0.05)
+        assert stat.S_IMODE(path.lstat().st_mode) == 0o600
+        assert _request(path, "GET", "/health", token=None)[0] == 403
+        status, content = _request(path, "POST", "/v1/compute", token=None, body=H1B_CASE)
+        assert status == 403
+        assert json.loads(content) == {"detail": desktop_main.NOT_FROM_THE_APP}
+        status, content = _request(path, "POST", "/v1/compute", body=H1B_CASE)
+        assert status == 200
+        assert json.loads(content)["verdict"]["state"] == "cannot_tell"
+    finally:
+        for server in servers:
+            server.should_exit = True
+        thread.join(timeout=15)
+    assert not thread.is_alive()
+    assert returned == [0]
+    assert len(servers) == 1
+    written = capfd.readouterr()
+    assert "/v1/compute" not in written.out + written.err
+    assert TOKEN not in written.out + written.err
+
+
+# api/local_routes.py's refusals, through the desktop app in process (point 2: the same words as
+# the server app, specs/path-1 RQ-A1).
+
+
+@contextmanager
+def _desktop_client() -> Iterator[CheckedClient]:
+    desktop = _desktop_main().create_app(TOKEN)
+    desktop.dependency_overrides[_local_routes().get_clock] = lambda: CLOCK
+    yield CheckedClient(desktop, headers={HEADER: TOKEN})
+
+
+@pytest.mark.parametrize(
+    ("method", "path"), [("GET", "/health"), ("GET", "/version"), ("POST", "/v1/compute")]
+)
+def test_point_9_create_app_in_process_refuses_without_the_right_token(
+    method: str, path: str
+) -> None:
+    # "Every route, /health included, requires the X-Duly-Local header", compared on bytes.
+    # Wrong: none, a byte short, one outside ASCII. The refusal is 403 with NOT_FROM_THE_APP
+    # (specs/desktop-1/SPEC.md). Fails if any route answers a wrong token, or a non-ASCII
+    # header is an error and not a refusal.
+    desktop_main = _desktop_main()
+    client = CheckedClient(desktop_main.create_app(TOKEN))
+    wrongs: list[dict[str, Any]] = [
+        {},
+        {HEADER: TOKEN[:-1]},
+        {HEADER: TOKEN[:-1].encode() + b"\xe9"},
+    ]
+    for headers in wrongs:
+        res = client.request(method, path, headers=headers, json=H1B_CASE)
+        assert res.status_code == 403
+        assert res.json() == {"detail": desktop_main.NOT_FROM_THE_APP}
+
+
+def test_point_2_a_record_the_pack_does_not_declare_is_refused_without_its_words() -> None:
+    # case.schema.json: a record whose kind the pack does not declare is refused; api/case.py
+    # shows NOT_IN_THE_PACK, not the engine's words, which name what was sent. "vessel" is no
+    # kind of the f1 pack (tests/unit/engine/test_path.py refuses the same kind). Fails if the
+    # route answers 200, or a 500, or echoes the kind.
+    from api.case import NOT_IN_THE_PACK
+
+    body = {
+        **H1B_CASE,
+        "categories": ["f1"],
+        "records": [{"id": "x1", "kind": "vessel", "fields": {}}],
+    }
+    with _desktop_client() as client:
+        res = client.post("/v1/compute", json=body)
+    assert res.status_code == 422
+    assert res.json() == {"detail": NOT_IN_THE_PACK}
+    assert "vessel" not in res.text
+
+
+def test_point_2_the_shared_route_refuses_in_the_words_of_compute_f1() -> None:
+    # The same refusals as /v1/compute/f1 (RQ-A1). A body that is not JSON, one with NaN, one
+    # outside case.schema.json (no category: minItems 1), and an answer dated 2026-09-30, the
+    # day after CLOCK's 2026-09-29 in UTC (16:00 UTC on 2026-09-29). Fails if any is
+    # answered, or refused in other words.
+    from api.case_f1 import NOT_A_NUMBER, NOT_JSON, NOT_YET
+
+    headers = {"content-type": "application/json"}
+    nan = json.dumps(H1B_CASE).replace('"facts": {}', '"facts": {"x": NaN}')
+    after = {
+        **H1B_CASE,
+        "confirmations": {"record.ends_before_today": {"answer": True, "on": "2026-09-30"}},
+    }
+    with _desktop_client() as client:
+        not_json = client.post("/v1/compute", content=b"{not json", headers=headers)
+        not_a_number = client.post("/v1/compute", content=nan, headers=headers)
+        no_category = client.post("/v1/compute", json={**H1B_CASE, "categories": []})
+        not_yet = client.post("/v1/compute", json=after)
+    assert (not_json.status_code, not_json.json()["detail"]) == (422, NOT_JSON)
+    assert (not_a_number.status_code, not_a_number.json()["detail"]) == (422, NOT_A_NUMBER)
+    assert no_category.status_code == 422
+    assert isinstance(no_category.json()["detail"], str)
+    assert no_category.json()["detail"].strip()
+    assert (not_yet.status_code, not_yet.json()["detail"]) == (422, NOT_YET)

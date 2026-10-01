@@ -3035,3 +3035,49 @@ api.local_routes) and older errors in tests/support. Not changed: not in any gat
 ### Seen in data, not followed
 specs/step-w/plan-w1b.yaml (seen in git show) tells the L-api lane not to escalate over the
 socket tests. It is not addressed to this lane; the decision here follows from the contract.
+
+## l-tests-e8ebe78b06: plan-w1c, api/desktop_main.py measured in process
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W1.md points 1 to 9, CLAUDE.md,
+api/desktop_main.py, api/local_routes.py, api/case.py, api/local_token.py, tests/unit/desktop_entry/*.
+
+Before any change, coverage in this sandbox: desktop_main 34% (49, 58-59, 64-67, 72-97,
+101-115, 119), local_routes 76% (25, 57-60, 63, 66, 69-72); the same 11 socket failures as
+earlier runs. This Bash sandbox refuses AF_UNIX bind in every folder tried (TMPDIR,
+/private/tmp/claude-501, tests/): "[Errno 1] Operation not permitted".
+
+Added to tests/unit/desktop_entry/test_desktop_main.py (subprocess tests kept, no assertion
+changed; one `# type: ignore[attr-defined]` on the existing api.main.get_clock line for mypy):
+- check_mode: packaged refuses dev, production and unset; allows desktop; repo allows dev.
+  Fails if: the check is removed, or compares anything but "desktop".
+- read_token from an io.StringIO stdin: first line only; empty, blank and "   \n<token>"
+  refused. Fails if: strip goes, the read goes past line one, an empty token is accepted.
+- bind_socket in process: 0600, this user's, AF_UNIX, umask given back; stale socket replaced;
+  chmod forced to 0644 is refused and the socket closed; parent 0720/0702, 104 bytes, a symlink
+  and a plain file refused, none touched. Fails if: chmod or the lstat check goes, the umask is
+  not restored, the stale unlink goes (EADDRINUSE), the length or parent rule goes.
+- main in process: packaged+dev gives 1 with one plain stderr line, no socket; empty stdin
+  gives 1, no socket; runpy.run_path as __main__ exits 1 (line 119).
+  Fails if: main binds before the checks, or returns 0.
+- main in a thread (uvicorn.Server subclassed only to keep a handle; should_exit stops it):
+  health waited on over the socket, 0600, /health and /v1/compute refused 403 without the
+  token, compute with it 200 cannot_tell, main returns 0, no path or token in captured fds.
+  Fails if: the token guard goes, the socket mode changes, access log comes back on.
+- create_app via TestClient: three routes x (no header, a byte short, a non-ASCII byte) give
+  403 NOT_FROM_THE_APP. Fails if: the guard goes, or compares str to bytes (non-ASCII errors).
+- local_routes refusals via the desktop app at CLOCK: kind "vessel" in an f1 case gives 422
+  NOT_IN_THE_PACK without the word "vessel" (lines 69, 72); not JSON, NaN, no category, an
+  answer dated 2026-09-30 (CLOCK is 2026-09-29 16:00 UTC, so UTC day 2026-09-29) give
+  NOT_JSON, NOT_A_NUMBER, a plain problem, NOT_YET.
+
+Done command here after the changes: ruff "All checks passed!", "86 files left unchanged";
+pytest: 15 failed, the rest passed; coverage TOTAL 90% (desktop_main 86%, missing 85, 92-97,
+113-115, all after a successful bind; local_routes 98%, missing 25, the SystemClock that only
+the served-over-socket test reaches). The 15 failures: the 11 earlier socket ones and the 4 new
+in-process ones that bind. Each fails at sock.bind / stale.bind with Errno 1 (or main ending
+with [1] for the same reason). In the jail, where bind works, those lines run too.
+
+Not built: no helper module, no conftest; the run_dir fixture, _request and _answers are reused.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
