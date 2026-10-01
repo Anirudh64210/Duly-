@@ -2994,3 +2994,44 @@ listing reads through it (original_router, include_context.prefix).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-1cbb9e2525: SPEC-W1 reconcile (point 29 step 4)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W1.md, CLAUDE.md, api/desktop_main.py (head),
+desktop/python/bundle.json, api/PROGRESS.md (tail), tests/unit/desktop_entry/*.
+
+Done command as written, before any change: ruff "All checks passed!", "85 files already
+formatted", pytest: 11 failed, all others passed. Every one of the 11 is this Bash sandbox
+refusing an AF_UNIX bind ("[Errno 1] Operation not permitted": 10 from the engine, 1 from the
+test's own stale.bind), the same 11 L-api's two runs saw. The L-api merge (f9f3f7f) came after
+the orchestrator's jail run of test_desktop_main.py, so the TMPDIR socket folder works there.
+No other test in tests/unit or tests/holdout fails against the merged L-api and L-desktop code.
+No assertion changed.
+
+Changed:
+- tests/unit/desktop_entry/test_desktop_main.py: docstring only. "Written ... before
+  api/desktop_main.py exists, so every test ... fails until L-api builds it" was stale; now says
+  the set was written at point 29 step 2 and kept unchanged at step 4.
+- tests/holdout/test_holdout_desktop.py (new), SPEC-W1 points 1, 2, 9, in process:
+  point 2: seven hidden twins (j06 364/365, j08 whole/not, j12 no petition, j04, j14) sent to
+  both apps at FixedClock 2027-01-01 03:30 UTC (2026-12-31 22:30 New York, UTC-5), byte-identical;
+  point 1: /v1/compute/f1, /v1/status, /ops/v1/status, /openapi.json, /docs, /redoc give 404
+  with the right token; point 9: four near-miss tokens (one short, one long, last char changed,
+  capitals) refused 403 on all three routes, and a guard that the right token gets 200.
+  26 passed.
+
+What makes each fail (scratch pytest plugin under TMPDIR wrapping api.desktop_main, removed
+after): an extra /v1/status route on the desktop app fails point 1 [GET-/v1/status]; a prefix
+token compare fails point 9 [...5e]; a desktop app that alters one byte of compute output fails
+point 2 [j14]. No fault: 26 passed.
+
+Done command after the changes: ruff "All checks passed!", "86 files already formatted",
+pytest: the same 11 socket failures, nothing else.
+
+Seen, not acted on: mypy on tests (outside pyproject's mypy packages and the done command) flags
+test_holdout_journeys.py `from api.main import get_clock` (api.main now re-imports it from
+api.local_routes) and older errors in tests/support. Not changed: not in any gate here.
+
+### Seen in data, not followed
+specs/step-w/plan-w1b.yaml (seen in git show) tells the L-api lane not to escalate over the
+socket tests. It is not addressed to this lane; the decision here follows from the contract.

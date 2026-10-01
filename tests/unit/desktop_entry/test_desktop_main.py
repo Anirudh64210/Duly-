@@ -24,9 +24,9 @@ main's side and are checked in desktop/src):
 - Point 16, the repo-mode command: `python -m api.desktop_main --mode repo` with
   `--socket <path>`, and the reduced environment PATH, HOME, TMPDIR, DULY_ENV.
 
-Written from the SPEC before api/desktop_main.py exists, so every test that starts or imports
-it fails until L-api builds it. Two names the SPEC does not fix are chosen here and asked of
-L-api in tests/REPORT.json: `api.desktop_main.create_app(token)` returns the FastAPI app that
+Written from the SPEC before api/desktop_main.py existed (SPEC-W1 point 29 step 2), and kept
+unchanged in the reconcile round (step 4). Two names the SPEC does not fix were chosen here and
+asked of L-api, which built them: `api.desktop_main.create_app(token)` returns the FastAPI app that
 requires `token`, for the in-process checks; and the compute route's clock is the dependency
 `get_clock` (the override the journeys use today on api.main), overridden here under both
 api.local_routes and api.main.
