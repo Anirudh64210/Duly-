@@ -798,9 +798,9 @@ window.DULY_SAMPLE = {
        what the newest version changed; versions run newest first. */
     i20Groups: [
       { key: 'opt', title: 'OPT', items: [
-        { id: 'i20-opt', name: 'I-20 · OPT', title: 'OPT', meta: 'OPT Feb 14, 2026 to Feb 13, 2027', current: true,
-          about: "Your OPT I-20, with your school's recommendation on page 2. Carry it with your EAD card.",
-          dates: [['OPT start', 'Feb 14, 2026'], ['OPT end', 'Feb 13, 2027'], ['School recommended OPT', 'Oct 3, 2025'], ['You filed your I-765', 'Oct 10, 2025'], ['This version', 'Mar 2, 2026']],
+        { id: 'i20-opt', name: 'I-20 · OPT', title: 'OPT', meta: 'OPT Feb 14, 2026 to Feb 13, 2027 · at Northwind Systems', current: true,
+          about: "Your OPT I-20, with your school's recommendation on page 2. OPT is not tied to one employer, so no company is printed on it; the employer below is the one you reported. Carry it with your EAD card.",
+          dates: [['OPT start', 'Feb 14, 2026'], ['OPT end', 'Feb 13, 2027'], ['Employer you reported', 'Northwind Systems, since Feb 27, 2026'], ['School recommended OPT', 'Oct 3, 2025'], ['You filed your I-765', 'Oct 10, 2025'], ['This version', 'Mar 2, 2026']],
           latest: { date: 'Mar 2, 2026', change: 'Travel signature added' },
           versions: [
             { date: 'Oct 24, 2025', change: 'End date corrected' },
