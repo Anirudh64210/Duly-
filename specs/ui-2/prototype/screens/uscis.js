@@ -8,7 +8,14 @@
    tracker does not show (Card valid), the tracker, then Recheck and an
    in-place Update status (a status choice, saved with today's date).
    Case not filed yet: one place to add the receipt number. Its preparation
-   dates live on Next steps only. */
+   dates live on Next steps only. Add your I-797C opens the add sheet
+   (#/documents/add); once the notice is saved, the receipt number read from
+   it waits in the field for one tap. Typing stays the fallback.
+   Processing time (Round 4, analysis move 7.7): USCIS's own published figure
+   for the case's form and category, quoted with its source and as-of date,
+   for a filed application only: a receipt number and no decision. Never on
+   a case not filed yet, never on a decided case. USCIS's figure, never a
+   date for her case. */
 (function () {
   'use strict';
 
@@ -23,6 +30,8 @@
     '.screen-uscis .us-update .btn-row { margin-top: 0; }' +
     '.screen-uscis .us-receipt { margin-top: var(--s-24); display: flex; flex-direction: column; gap: var(--s-12); }' +
     '.screen-uscis .us-receipt .btn-row { margin-top: 0; }' +
+    '.screen-uscis .us-pt { margin-top: var(--s-24); }' +
+    '.screen-uscis .us-pt-line .mark { margin-left: var(--s-4); }' +
     '</style>';
 
   /* The statuses a student can record after rechecking, and the tracker
@@ -58,12 +67,37 @@
     return C.button({ label: tr.recheck.label, kind: 'pill', href: tr.recheck.href });
   }
 
+  /* USCIS's processing time for this case's form and category, only while
+     it is filed and undecided (App.processingFor). Null before a receipt
+     number and once decided. */
+  function processingOf(a) {
+    return App.processingFor(a);
+  }
+
+  /* The quoted figure under a case row: USCIS's words, its date, Sample. */
+  function processingLine(pt) {
+    if (!pt) return '';
+    return '<span class="row-meta us-pt-line">' +
+      C.esc(pt.line.replace(/\.$/, '') + ' · as of ' + pt.asOf.replace(/ /g, ' ')) +
+      (pt.sample ? ' ' + C.sampleMark() : '') + '</span>';
+  }
+
+  /* The full fact on a case: the figure, form, category, office and as-of
+     date, and the source mark (which says it is not a date for her case). */
+  function processingFact(pt) {
+    if (!pt) return '';
+    return '<div class="us-pt">' + C.list([
+      C.processingTime(pt),
+    ], { accordion: false, label: pt.label }) + '</div>';
+  }
+
   function caseRow(a) {
     const when = a.receipt ? statusDate(a) : null;
     return C.row({
       key: a.id,
       title: a.title,
       meta: a.receipt ? a.receipt + (when ? ' · ' + when.replace(/ /g, ' ') : '') : null,
+      below: processingLine(processingOf(a)),
       value: a.status,
       href: '#/uscis/' + a.id,
     });
@@ -104,6 +138,7 @@
       facts.push(C.valueRow({ label: d.label, value: d.date, editable: false, num: true, source: d.source }));
     });
     return C.list(facts, { accordion: false, label: 'Case' }) +
+      processingFact(processingOf(a)) +
       C.tracker({ steps: apps.steps, current: a.current }) +
       '<div class="us-foot" data-us-foot>' +
         C.btnGroup([recheck(tr), C.button({ label: 'Update status', kind: 'pill', attrs: { 'data-us-open': '' } })]) +
@@ -112,11 +147,29 @@
       updatePanel(a);
   }
 
+  /* Another case that already has this receipt number, if any. */
+  function caseWith(receipt, id) {
+    return App.data.applications.items.filter((x) => x.id !== id && x.receipt === receipt)[0] || null;
+  }
+
+  /* Not filed yet: the receipt number, read from the I-797C when one was
+     added (waiting in the field for one tap), else typed. */
   function receiptView(a, apps) {
+    const read = App.state['us-notice:' + a.id] || null;
+    const other = read ? caseWith(read, a.id) : null;
+    const filled = read && !other;
     return '<div class="us-receipt">' +
-      C.field({ label: 'Receipt number', key: 'us-receipt:' + a.id, placeholder: apps.receiptPlaceholder, autocomplete: 'off' }) +
-      C.buttonRow({ primary: C.button({ label: 'Add receipt number', kind: 'pill', attrs: { 'data-us-receipt': a.id } }) }) +
-      '</div>';
+      C.field({
+        label: 'Receipt number', key: 'us-receipt:' + a.id, value: filled ? read : null,
+        placeholder: apps.receiptPlaceholder, autocomplete: 'off',
+        help: filled ? 'From your I-797C' : (other ? 'That notice is for your ' + other.title : null),
+      }) +
+      C.buttonRow({
+        back: filled ? '' : C.button({ label: 'Add your I-797C', kind: 'back', href: '#/documents/add', attrs: { 'data-us-notice': a.id } }),
+        primary: C.button({ label: 'Add receipt number', kind: 'pill', attrs: { 'data-us-receipt': a.id } }),
+      }) +
+      '</div>' +
+      processingFact(processingOf(a));
   }
 
   function caseView(a, apps) {
@@ -164,6 +217,9 @@
     if (!a || !input) return;
     const v = input.value.replace(/[\s-]/g, '').toUpperCase();
     if (!RECEIPT.test(v)) { input.focus(); App.toast('Three letters and ten digits'); return; }
+    const other = caseWith(v, id);
+    if (other) { input.focus(); App.toast('That number is on your ' + other.title); return; }
+    delete App.state['us-notice:' + id];
     a.receipt = v;
     a.status = 'Received';
     a.current = App.data.applications.steps.indexOf('Received');
@@ -173,6 +229,37 @@
     App.rerender();
     App.toast('Receipt number added');
   }
+
+  /* ---------------- the I-797C, read on the device ---------------- */
+
+  /* Add your I-797C leaves for the add sheet. When that sheet saves an I-797
+     with "Looks right", the receipt number it shows (or the one fixed there)
+     is kept for this case, to confirm in one tap back here. */
+  let awaiting = null;
+  function readReceipt(layer) {
+    const title = layer.querySelector('#doc-sheet-title');
+    if (!title || !/I-797/.test(title.textContent)) return null;
+    let v = null;
+    layer.querySelectorAll('.found .vrow').forEach((row) => {
+      const label = row.querySelector('.v-label');
+      if (!label || label.textContent.trim() !== 'Receipt number') return;
+      const input = row.querySelector('.v-edit input');
+      const shown = row.querySelector('.v-value');
+      v = String(input ? input.value : (shown ? shown.textContent : '')).replace(/[\s-]/g, '').toUpperCase();
+    });
+    return v && RECEIPT.test(v) ? v : null;
+  }
+  document.addEventListener('click', (e) => {
+    if (!awaiting || !e.target.closest) return;
+    const save = e.target.closest('.doc-layer [data-doc-save]');
+    if (!save) return;
+    const v = readReceipt(save.closest('.doc-layer'));
+    if (v) App.state['us-notice:' + awaiting] = v;
+    awaiting = null;
+  }, true);
+  window.addEventListener('hashchange', () => {
+    if (!/^#\/documents(\/|$)/.test(location.hash)) awaiting = null;
+  });
 
   window.SCREENS.uscis = {
     title: 'USCIS status',
@@ -190,6 +277,8 @@
       root.classList.add('screen-uscis');
       root.addEventListener('click', (e) => {
         const t = e.target;
+        const notice = t.closest('[data-us-notice]');
+        if (notice) { awaiting = notice.dataset.usNotice; return; }
         if (t.closest('[data-us-open]')) { showPanel(root, true); return; }
         if (t.closest('[data-us-cancel]')) { showPanel(root, false); return; }
         const save = t.closest('[data-us-save]');

@@ -1050,6 +1050,53 @@ a.mark.is-updated:hover { color: var(--accent-hover); }
 .news-dek { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); }
 
 /* ------------------------------------------------------------------ */
+/* 11c. Round 4: promise, pillars, facts, employer, reminders, share    */
+/* ------------------------------------------------------------------ */
+
+/* "As of Sep 30" under a metric's value and bar. */
+.metric-asof { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
+
+/* "Sample" beside a figure the prototype makes up: the quiet mark, in the
+   caution ink so it never reads as a real figure. */
+.mark.is-sample { color: var(--caution); }
+
+/* The promise: one line and its subline, said once. */
+.promise { display: flex; flex-direction: column; gap: var(--s-4); }
+.promise-line { color: var(--ink-2); }
+.hero + .promise { margin-top: var(--s-12); }
+.page-header + .promise { margin-top: calc(var(--s-12) - var(--gap-header)); margin-bottom: var(--gap-header); }
+
+/* Three pillars: three columns, stacked on a phone. Hairline above, no boxes. */
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-32); padding-top: var(--s-24); border-top: 1px solid var(--hairline); }
+.pillar { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
+.pillar .t-row { display: flex; align-items: center; gap: var(--s-8); }
+.pillar .t-row .inline-src { margin-left: 0; }
+@media (max-width: 640px) {
+  .pillars { grid-template-columns: 1fr; gap: var(--s-16); }
+}
+
+/* Facts (C.fact): a row with its source and date in the meta. The value
+   on the right keeps one line. */
+.fact .row-value { white-space: nowrap; }
+.fact > .row { align-items: flex-start; }
+.fact .row-trail { min-height: var(--lh-small); }
+@media (max-width: 640px) {
+  .fact .row-value { white-space: normal; }
+}
+
+/* Employer check page: the one quiet line after the facts, then the offer line. */
+.employer-next { margin-top: var(--s-12); }
+.employer-offer { margin-top: var(--s-32); }
+
+/* Share on a document row: the glyph and the word. Always shown on touch
+   screens (.row-reveal), so one tap reaches the share sheet. */
+.share-btn { display: inline-flex; align-items: center; gap: var(--s-4); }
+.share-btn .icon { flex: none; }
+@media (max-width: 640px) {
+  .share-btn { min-height: 44px; }
+}
+
+/* ------------------------------------------------------------------ */
 /* 12. Toast                                                            */
 /* ------------------------------------------------------------------ */
 

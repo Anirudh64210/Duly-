@@ -7,16 +7,24 @@
    screen the strip scrolls sideways inside itself, never the page. Search looks inside the chosen chip; when
    nothing matches there but something matches elsewhere, one tap searches
    all. Enter opens the first match; Escape clears the search.
-   A tap on a row opens the document; Share sits on the row (on hover or
-   focus with a mouse, always visible on touch). Earlier versions fold under
-   a document ("3 earlier versions").
+   Round 4 (web, phone and desktop): one tap opens a document, one tap
+   shares it. A tap on a row opens the document in the sheet: the page, what
+   was read from it, Save a copy and Share. Share (C.shareButton, on hover
+   or focus with a mouse, always visible on touch, the glyph alone on a
+   phone) hands the file straight to the device's own share sheet, in one
+   tap, wherever the browser can share files (phones and most browsers).
+   Where it cannot, a small sheet offers Save a copy. Both work for real on
+   a small sample PDF made in the page.
+   Earlier versions fold under a document ("3 earlier versions"), and each
+   opens and shares the same way.
    Routes: #/documents (All), #/documents/<label> (most, status, employment,
    school, identity, other); #/documents/add opens the add sheet. The older
    links #/documents/i20 and #/documents/work open Status.
    A chip click updates the address in place (no redraw, no scroll jump).
-   A file dropped anywhere, or Cmd O, arrives here through App.addDocument and
-   opens the document sheet. Reading is simulated: the file shows "Reading on
-   this Mac", then the found fields with one "Looks right".
+   A file dropped anywhere, or Cmd O (Ctrl O off a Mac), arrives here through
+   App.addDocument and opens the document sheet; on a phone the add sheet
+   also offers Take a photo. Reading is simulated: the file shows "Reading on
+   this device", then the found fields with one "Looks right".
    Round 2 note 1: an add that came through #/documents/add from another page
    returns there when the sheet closes, with its scroll, and the toast shows
    there. A saved EAD card also lifts that page's no-EAD view. */
@@ -83,7 +91,20 @@
     '.doc-layer .doc-reading { display: flex; flex-direction: column; gap: var(--s-12); }' +
     '.doc-layer .doc-reading .bar > i { width: 40%; animation: doc-scan 1.2s ease-in-out infinite; }' +
     '@keyframes doc-scan { from { transform: translateX(-100%); } to { transform: translateX(250%); } }' +
+    /* round 4: the open document, the share sheet, phone and pointer parts */
+    '.doc-layer .doc-paper { display: flex; flex-direction: column; gap: var(--s-8); width: 136px; aspect-ratio: 8.5 / 11; padding: var(--s-16) var(--s-12); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-tag); box-shadow: var(--shadow-pop); }' +
+    '.doc-layer .doc-paper.is-card { width: 216px; aspect-ratio: 1.586; border-radius: var(--r-card); }' +
+    '.doc-layer .doc-paper-title { font-size: var(--t-small); line-height: var(--lh-meta); font-weight: 600; color: var(--ink-2); overflow-wrap: anywhere; }' +
+    '.doc-layer .doc-paper i { display: block; height: 4px; border-radius: 2px; background: var(--hairline); }' +
+    '.doc-layer .doc-paper i.is-short { width: 60%; }' +
+    '.doc-layer .doc-fields { margin-top: var(--s-24); }' +
+    '.doc-layer .doc-file .row-lead { color: var(--ink-2); }' +
+    '.doc-layer .doc-photo { margin-top: var(--s-12); }' +
+    '@media (hover: none) { .doc-layer .doc-pointer { display: none; } }' +
+    '@media (hover: hover) { .doc-layer .doc-touch { display: none; } }' +
     '@media (max-width: 640px) {' +
+    '  .screen-documents .doc-row .share-btn { min-width: 44px; justify-content: center; }' +
+    '  .screen-documents .doc-row .share-btn > span { display: none; }' +
     '  .doc-layer .doc-sheet { top: auto; left: 0; width: auto; max-height: 85vh; border-left: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--s-16) var(--s-24) calc(var(--s-24) + env(safe-area-inset-bottom)); animation: sheet .28s var(--ease-rise); }' +
     '}' +
     '</style>';
@@ -163,16 +184,103 @@
     return hint || null;
   }
 
+  /* What an opened document shows as read from it (illustrative sample
+     values). A saved document keeps the fields confirmed when it was added. */
+  function fieldsOf(doc) {
+    if (doc.fields) return doc.fields;
+    const data = App.data, st = data.student, pr = data.program, name = ['Name', st.name];
+    if (doc.type === 'i20') {
+      if (doc.phase === 'cpt') return [name, ['Issued for', 'CPT'], ['Employer', doc.title.replace(/^CPT I-20, /, '')], ['Dates', doc.meta]];
+      if (doc.phase === 'start') return [name, ['SEVIS ID', st.sevisId], ['School', st.school], ['Program', pr.degree], ['Program start', pr.start]];
+      return [name, ['SEVIS ID', st.sevisId], ['School', st.school], ['Program', pr.degree], ['Issued for', 'OPT']];
+    }
+    if (doc.type === 'ead') return data.onboarding.eadFound;
+    if (doc.type === 'i797') return kinds(data).i797.fields();
+    if (doc.type === 'letter') {
+      const job = data.job || {};
+      return doc.title.indexOf(job.employer) !== -1 ? [name, ['Employer', job.employer], ['Job title', job.title], ['Dated', doc.meta]] : [name, ['Dated', doc.meta]];
+    }
+    if (doc.type === 'identity' && /^passport/i.test(doc.title)) return [name, ['Valid until', doc.meta.replace(/^Valid until /, '')]];
+    if (doc.type === 'school' && /degree/i.test(doc.title)) return [name, ['Degree', pr.degree], ['Awarded', pr.awarded]];
+    if (doc.type === 'school') return [name, ['School', st.school]];
+    return [name, ['Dated', doc.meta]];
+  }
+
+  /* ---------------- files ---------------- */
+
+  /* The prototype holds no real files: Save a copy and Share use a one
+     page sample PDF made here, so both work end to end. */
+  function fileName(r) { return r.title.replace(/[^\w ,.()-]/g, '').replace(/\s+/g, ' ').trim() + '.pdf'; }
+  function samplePdf(r) {
+    const ascii = (s) => String(s).replace(/[^\x20-\x7E]/g, ' ').replace(/([\\()])/g, '\\$1');
+    const lines = ['Sample copy made by the prototype, not the real document.', ' ']
+      .concat((r.fields || [['Dated', r.meta]]).map((f) => f[0] + ': ' + f[1]));
+    const text = ['BT', '/F1 18 Tf', '72 720 Td', '(' + ascii(r.title) + ') Tj', '/F1 11 Tf']
+      .concat(lines.map((l) => '0 -22 Td (' + ascii(l) + ') Tj'), ['ET']).join('\n');
+    const objs = [
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+      '<< /Length ' + text.length + ' >>\nstream\n' + text + '\nendstream',
+    ];
+    let out = '%PDF-1.4\n';
+    const at = [];
+    objs.forEach((o, i) => { at.push(out.length); out += (i + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+    const xref = out.length;
+    out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' +
+      at.map((n) => String(n).padStart(10, '0') + ' 00000 n \n').join('') +
+      'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+    return new Blob([out], { type: 'application/pdf' });
+  }
+  function saveCopy(r) {
+    const url = URL.createObjectURL(samplePdf(r));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName(r);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    App.toast('Saved ' + fileName(r));
+  }
+  /* The device's own share sheet with the file, in the same tap, where the
+     browser can share files. False when it cannot. */
+  function shareNative(r) {
+    let file = null;
+    try { file = new File([samplePdf(r)], fileName(r), { type: 'application/pdf' }); } catch (err) { file = null; }
+    if (!file || !navigator.share || !navigator.canShare || !navigator.canShare({ files: [file] })) return false;
+    navigator.share({ files: [file], title: r.title }).catch(() => { /* closed */ });
+    return true;
+  }
+
   /* ---------------- rows ---------------- */
 
+  /* A ref names one file: 'doc-3' (the document) or 'doc-3~1' (its second
+     earlier version). */
+  function refOf(doc, i) { return i == null ? doc.id : doc.id + '~' + i; }
+  function resolve(ref) {
+    const parts = String(ref || '').split('~');
+    const doc = S.docs.filter((d) => d.id === parts[0])[0];
+    if (!doc) return null;
+    if (parts.length > 1) {
+      const e = doc.earlier[Number(parts[1])];
+      return e ? { ref: ref, doc: doc, earlier: true, title: doc.title + ', ' + e.title, meta: e.meta, fields: null } : null;
+    }
+    return { ref: ref, doc: doc, earlier: false, title: doc.title, meta: doc.meta, fields: fieldsOf(doc) };
+  }
+
   /* The title is the open button, stretched over the row. */
-  function openTitle(label, title) {
-    return C.raw('<button type="button" class="doc-open" data-doc-open="' + C.esc(title) + '">' + C.esc(label) + '</button>');
+  function openTitle(label, ref) {
+    return C.raw('<button type="button" class="doc-open" data-doc-open="' + C.esc(ref) + '">' + C.esc(label) + '</button>');
   }
-  function shareBtn(title) {
-    return '<button type="button" class="btn btn-text is-small row-reveal" data-doc-share="' + C.esc(title) + '" aria-label="' + C.esc('Share ' + title) + '">Share</button>';
+  /* The shared Share button, tied to this file so the click opens the share
+     sheet here (the page catches it before App.share). */
+  function shareBtn(ref, title, reveal) {
+    return C.shareButton({ title: title, label: (App.data.documents.share || {}).label, reveal: reveal !== false })
+      .replace('<button ', '<button data-doc-ref="' + C.esc(ref) + '" ');
   }
-  /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, versions = true }) */
+  /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, versions = true, reveal = true }) */
   function docRows(list, o) {
     const opt = o || {};
     const out = [];
@@ -187,16 +295,16 @@
       const key = opt.keyOf ? opt.keyOf(doc) : doc.id;
       out.push(C.row({
         key: key,
-        title: openTitle(doc.title, doc.title),
+        title: openTitle(doc.title, refOf(doc)),
         meta: C.raw(C.esc((prefix ? prefix + ', ' : '') + doc.meta) + versions),
-        trailing: shareBtn(doc.title),
+        trailing: shareBtn(refOf(doc), doc.title, opt.reveal),
         cls: C.cls('doc-row', S.newId === doc.id && 'doc-new'),
       }));
       if (open) {
-        doc.earlier.forEach((e) => out.push(C.row({
-          title: openTitle(e.title, 'the earlier ' + doc.title),
+        doc.earlier.forEach((e, i) => out.push(C.row({
+          title: openTitle(e.title, refOf(doc, i)),
           meta: e.meta,
-          trailing: shareBtn('the earlier ' + doc.title),
+          trailing: shareBtn(refOf(doc, i), doc.title + ', ' + e.title, opt.reveal),
           cls: 'doc-row doc-earlier',
         })));
       }
@@ -297,7 +405,9 @@
 
   const addAnother = '<button type="button" class="link doc-add-another" data-doc-add="i20">Add another CPT I-20</button>';
 
-  /* All: every document, under its group, each ready to open. */
+  /* All: every document, under its group, each ready to open. The ones
+     asked for most have their own chip, Most used, so they are not
+     repeated here. */
   function allView() {
     return GROUPS.map((g) => {
       const docs = inGroup(g.key);
@@ -392,17 +502,52 @@
     const head = (title, meta) => '<h2 class="t-medium" id="doc-sheet-title" tabindex="-1">' + C.esc(title) + '</h2>' +
       (meta ? '<p class="t-meta doc-sheet-meta">' + C.esc(meta) + '</p>' : '');
 
+    const dev = data.device || { here: 'this device' };
+
+    if (sh.stage === 'view') {
+      const r = resolve(sh.ref);
+      if (!r) return head('This document was removed');
+      const card = r.doc.type === 'ead';
+      const paper = '<div class="' + C.cls('doc-paper', card && 'is-card') + '" aria-hidden="true">' +
+        '<span class="doc-paper-title">' + C.esc(r.doc.title) + '</span><i></i><i></i><i></i><i class="is-short"></i></div>';
+      return head(r.title, r.meta) +
+        '<div class="doc-sheet-body">' + paper +
+        (r.fields ? '<div class="doc-fields">' + C.found(r.fields) + '</div>' : '') +
+        C.buttonRow({
+          back: '<button type="button" class="btn btn-text is-quiet" data-doc-copy>Save a copy</button>',
+          primary: C.button({ label: 'Share', kind: 'primary', attrs: { 'data-doc-sharesheet': '' } }),
+        }) +
+        '</div>';
+    }
+
+    if (sh.stage === 'share') {
+      const r = resolve(sh.ref);
+      if (!r) return head('This document was removed');
+      /* Only where the browser cannot share files: save it, then attach it. */
+      return head('Share ' + r.title, 'Save a copy, then attach it') +
+        '<div class="doc-sheet-body">' +
+        '<div class="list doc-file">' + C.row({ title: fileName(r), meta: 'PDF', lead: C.icon('file') }) + '</div>' +
+        C.buttonRow({
+          back: sh.fromView ? '<button type="button" class="btn btn-text is-quiet" data-doc-backview>Back</button>' : '',
+          primary: C.button({ label: 'Save a copy', kind: 'primary', attrs: { 'data-doc-copy': '' } }),
+        }) +
+        '</div>';
+    }
+
     if (sh.stage === 'pick') {
       const samples = [
         ['An EAD card', 'ead-card.pdf'],
         ['A CPT I-20', 'i20-cpt.pdf'],
         ['A photo of a document', 'IMG_2041.jpg'],
       ];
-      return head(sh.hint === 'i20' ? 'Add a CPT I-20' : 'Add a document', 'Read on this Mac, never uploaded') +
+      const mac = /mac|iphone|ipad/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
+      return head(sh.hint === 'i20' ? 'Add a CPT I-20' : 'Add a document', 'Read on ' + dev.here) +
         '<div class="doc-sheet-body">' +
         '<input type="file" accept=".pdf,image/*" hidden data-doc-file>' +
+        '<input type="file" accept="image/*" capture="environment" hidden data-doc-camera>' +
         C.button({ label: 'Choose a file', kind: 'primary', full: true, attrs: { 'data-doc-choose': '' } }) +
-        '<p class="t-meta doc-or">Or drop it anywhere · ⌘O</p>' +
+        '<div class="doc-touch doc-photo">' + C.button({ label: 'Take a photo', kind: 'pill', full: true, attrs: { 'data-doc-photo': '' } }) + '</div>' +
+        '<p class="t-meta doc-or doc-pointer">Or drop it anywhere · ' + (mac ? '⌘O' : 'Ctrl O') + '</p>' +
         '<div class="doc-samples"><p class="t-eyebrow">Try a sample file</p><div class="list">' +
         samples.map((s) => '<div class="item has-lead"><button type="button" class="row" data-doc-sample="' + C.esc(s[1]) + '">' +
           '<span class="row-lead">' + C.icon('file') + '</span>' +
@@ -412,7 +557,7 @@
     }
 
     if (sh.stage === 'reading') {
-      return head('Reading on this Mac', sh.file) +
+      return head('Reading on ' + dev.here, sh.file) +
         '<div class="doc-sheet-body"><div class="doc-reading" role="status" aria-live="polite">' +
         '<div class="bar" aria-hidden="true"><i></i></div></div></div>';
     }
@@ -491,6 +636,35 @@
     S.backTo = null;
     S.sheet = { stage: 'pick', hint: o.hint || null };
     if (o.file) startReading(o.file, false);
+    createLayer();
+  }
+
+  /* One tap on a row: the document opens in the sheet. */
+  function openDoc(ref) {
+    if (!resolve(ref)) return;
+    S.returnFocus = document.activeElement;
+    clearTimeout(S.timer);
+    S.backTo = null;
+    S.sheet = { stage: 'view', ref: ref };
+    createLayer();
+  }
+  /* One tap on Share (or Share inside the open document): the device's own
+     share sheet with the file. Only where the browser cannot share files,
+     a small sheet with Save a copy. */
+  function openShare(ref, fromView) {
+    const r = resolve(ref);
+    if (!r) return;
+    App.emit('share', r.title, true, null);
+    if (shareNative(r)) return;
+    if (fromView && S.sheet) {
+      S.sheet = { stage: 'share', ref: ref, fromView: true };
+      updateSheet();
+      return;
+    }
+    S.returnFocus = document.activeElement;
+    clearTimeout(S.timer);
+    S.backTo = null;
+    S.sheet = { stage: 'share', ref: ref, fromView: false };
     createLayer();
   }
 
@@ -574,6 +748,7 @@
       const existing = S.docs.filter((x) => x.type === kind)[0];
       existing.earlier.unshift({ title: existing.meta, meta: 'Earlier version, replaced ' + shortToday(data) });
       existing.meta = k.meta(f);
+      existing.fields = fields.map((r) => r.slice());
       S.newId = existing.id;
       message = 'Saved as the newer version. The earlier one is kept.';
     } else {
@@ -587,6 +762,7 @@
         meta: k.meta(f),
         current: false,
         earlier: [],
+        fields: fields.map((r) => r.slice()),
       };
       S.docs.unshift(doc);
       S.newId = doc.id;
@@ -612,6 +788,16 @@
     const t = e.target;
     if (t.closest('[data-doc-close]')) { closeSheet(true); return; }
     if (t.closest('[data-doc-choose]')) { const input = layerEl().querySelector('[data-doc-file]'); if (input) input.click(); return; }
+    if (t.closest('[data-doc-photo]')) { const cam = layerEl().querySelector('[data-doc-camera]'); if (cam) cam.click(); return; }
+    if (t.closest('[data-doc-sharesheet]')) { openShare(S.sheet.ref, true); return; }
+    if (t.closest('[data-doc-copy]')) {
+      const r = resolve(S.sheet.ref);
+      if (!r) return;
+      if (S.sheet.stage === 'share') closeSheet(true);
+      saveCopy(r);
+      return;
+    }
+    if (t.closest('[data-doc-backview]')) { S.sheet = { stage: 'view', ref: S.sheet.ref }; updateSheet(); return; }
     const sample = t.closest('[data-doc-sample]');
     if (sample) { startReading(sample.dataset.docSample); return; }
     if (t.closest('[data-doc-fix]')) { S.sheet.fixing = true; updateSheet(); return; }
@@ -624,7 +810,7 @@
     if (t.closest('[data-doc-unsure]')) { saveDocument(true); }
   }
   function onLayerChange(e) {
-    const input = e.target.closest('[data-doc-file]');
+    const input = e.target.closest('[data-doc-file], [data-doc-camera]');
     if (input && input.files && input.files[0]) startReading(input.files[0].name);
   }
   function onLayerKey(e) {
@@ -632,12 +818,15 @@
     if (e.key === 'Escape') {
       if (layer.querySelector('.vrow.is-editing')) return;
       e.preventDefault();
+      /* From the share sheet opened inside a document: back to it. */
+      if (S.sheet && S.sheet.stage === 'share' && S.sheet.fromView) { S.sheet = { stage: 'view', ref: S.sheet.ref }; updateSheet(); return; }
       closeSheet(true);
       return;
     }
     if (e.key === 'Tab') {
       const sheet = layer.querySelector('.doc-sheet');
-      const f = Array.from(sheet.querySelectorAll('button:not([disabled]):not([tabindex="-1"]), input:not([hidden]), a[href], [role="radio"][tabindex="0"]'));
+      const f = Array.from(sheet.querySelectorAll('button:not([disabled]):not([tabindex="-1"]), input:not([hidden]), a[href], [role="radio"][tabindex="0"]'))
+        .filter((el) => el.offsetParent !== null || el.getClientRects().length > 0);
       if (!f.length) return;
       const first = f[0], last = f[f.length - 1];
       if (e.shiftKey && (document.activeElement === first || !sheet.contains(document.activeElement) || document.activeElement === sheet)) { e.preventDefault(); last.focus(); }
@@ -697,7 +886,7 @@
       /* No hero and no subline: the chips carry the counts. */
       const header = C.pageHeader({
         title: 'Documents',
-        info: 'Every version is kept, encrypted on this Mac. Files are read here and never uploaded.',
+        info: 'Every version is kept and encrypted. Files are read on ' + ((data.device && data.device.yours) || 'your device') + ', with no outside AI.',
         aside: C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }),
       });
       return STYLE +
@@ -742,10 +931,12 @@
           if (again) again.focus({ preventScroll: true });
           return;
         }
+        /* Share is caught here, before App.share, so it opens this page's
+           share sheet for the very file on the row. */
+        const share = e.target.closest('[data-doc-ref]');
+        if (share) { e.preventDefault(); e.stopPropagation(); openShare(share.dataset.docRef, false); return; }
         const open = e.target.closest('[data-doc-open]');
-        if (open) { App.toast('Opening ' + open.dataset.docOpen + ' in Preview'); return; }
-        const share = e.target.closest('[data-doc-share]');
-        if (share) { App.toast('Share ' + share.dataset.docShare + ' to Messages, Mail or any app'); }
+        if (open) { openDoc(open.dataset.docOpen); }
       });
       /* Enter opens the first match; Escape clears the search. */
       root.addEventListener('keydown', (e) => {

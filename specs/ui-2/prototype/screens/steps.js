@@ -13,6 +13,9 @@
      Steps: federal and "Your school" steps together, in order (App.steps).
        Title only; the detail sits behind the row's one mark. The count at
        the right of the heading moves in place (app.js updateProgress).
+       The E-Verify step carries the Employer check's fact as its meta
+       ("E-Verify: takes part, checked Sep 30") and opens #/employer. The
+       field code stays behind the title's ⓘ only.
      "Add your school's page": one control. It opens to a link or a PDF,
        shows the steps found, and they are confirmed once (C.schoolImport).
      The DSO email opens only on request, from the school step that needs it.
@@ -72,7 +75,7 @@
     App.setSchoolImport('stem', demo === 'school' ? 'found' : 'confirmed',
       { href: App.data.schoolImport.href, label: App.data.schoolImport.label });
   }
-  window.addEventListener('hashchange', () => { if (!/^#\/steps\/.*school/.test(location.hash)) demoApplied = null; });
+  window.addEventListener('hashchange', () => { if (location.hash !== demoApplied) demoApplied = null; });
 
   function answerBtn(label, value, cls) {
     return '<button type="button" class="' + cls + '" data-answer="stemIntent" data-value="' + e(value) + '">' + e(label) + '</button>';
@@ -93,11 +96,23 @@
 
   function sentence(t) { return t ? String(t).replace(/\.?$/, '.') : null; }
 
+  /* The E-Verify step: the Employer check's fact as its meta, so the page
+     never says it twice. Never a verdict, only what the search shows. */
+  function everifyMeta() {
+    const emp = App.employer ? App.employer() : null;
+    const ev = emp && emp.everify;
+    if (!ev || !ev.value) return null;
+    return ev.label + ': ' + String(ev.value).toLowerCase() + (ev.checked ? ', checked ' + ev.checked : '');
+  }
+
   function fedRow(entry) {
     const s = entry.step;
     const m = mark(s);
+    const isEv = entry.key === 'everify';
     return C.task({
       key: entry.key, title: s.title, done: entry.done,
+      meta: isEv ? everifyMeta() : null,
+      open: isEv && s.open ? s.open : null,
       source: m.source, info: m.info, updated: s.updated || null,
       onDone: s.onDone ? C.unknown(s.onDone) : null,
     });

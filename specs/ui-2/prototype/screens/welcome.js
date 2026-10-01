@@ -1,13 +1,27 @@
-/* Onboarding: a start screen, six short steps and a warm finish. No sidebar.
+/* Onboarding: a start screen, short steps and a warm finish. No sidebar.
    Routes: #/welcome (start), #/welcome/<step>, #/welcome/done.
-   Steps: status, school, degree, dates, now, ead (ead only when on OPT or STEM OPT).
-   Answers live in App.state.onb for the prototype. Every "I'm not sure" is saved
-   and listed on the final screen as a question asked again later.
-   Onboarding asks the six-part skeleton only. Degree conferral is never asked
-   here: it is read from a degree certificate or I-20 when one is added, or
-   asked once in Your profile (App.awardedWaiting).
+   Steps: status, school, degree, dates, now, ead, job (ead and job only when
+   on OPT or STEM OPT).
+   Answers live in App.state.onb for the prototype. Every "I'm not sure" and
+   every "Add it later" is saved and listed on the final screen as a question
+   asked again later.
+   Degree conferral is never asked here: it is read from a degree certificate
+   or I-20 when one is added, or asked once in Your profile (App.awardedWaiting).
    Round 3: each question stands alone. Why it is asked sits behind the ⓘ
    beside it (C.titleWith), never as a line under it.
+   Round 4 (VALUE.md):
+   - the start screen carries the promise, its subline and the three pillars;
+   - STEM is never guessed from the major's name, and the degree step never
+     asks for a field code. When the I-20 is added on the dates step, the
+     code it lists is shown there for one tap ("That matches"), and only then
+     is it shown against the STEM list, as a fact with its source. With no
+     I-20 the question waits on the finish screen. App.state.stemField
+     follows the answer;
+   - the job step offers "No job yet" plainly. That answer completes the job
+     list (App.state.jobsComplete = 'none'), so the count can start; the
+     count itself is shown on Home, never on this celebration screen;
+   - copy says "this device", never a computer brand: Duly is web, phone and
+     desktop.
    Copy rule (Round 2 note 12): the wordmark is the one "Duly" on every
    onboarding page. Screen text never names the product and never makes it a
    character ("Every later date is counted from these", not "Duly counts"). */
@@ -15,8 +29,9 @@
   'use strict';
 
   const D = window.DULY_SAMPLE;
-  const ORDER = ['status', 'school', 'degree', 'dates', 'now', 'ead'];
-  const LABEL = {};
+  const DEVICE = (D.device && D.device.here) || 'this device';
+  const ORDER = ['status', 'school', 'degree', 'dates', 'now', 'ead', 'job'];
+  const LABEL = { job: 'Job' };
   D.onboarding.steps.forEach((s) => { LABEL[s.key] = s.label; });
 
   const STATUS = [
@@ -40,19 +55,22 @@
      studying under that I-20, before it nobody is on post-completion OPT yet */
   const NOW_AFTER = ['opt', 'stem', 'other'];
   const NOW_BEFORE = ['studying', 'cpt', 'other'];
-  const STEM_FIELDS = ['Computer Science', 'Computer Engineering', 'Data Science', 'Electrical Engineering',
-    'Mechanical Engineering', 'Civil Engineering', 'Biomedical Engineering', 'Information Technology',
-    'Mathematics', 'Statistics', 'Physics', 'Chemistry'];
-  const OTHER_FIELDS = ['Business Administration', 'Economics', 'Finance', 'Journalism', 'Public Policy'];
-  const ALL_FIELDS = STEM_FIELDS.concat(OTHER_FIELDS).sort();
+  /* Major names for typing ahead only. Whether a field is STEM is never read
+     from this list: it comes from the field code on the I-20. */
+  const MAJORS = ['Biomedical Engineering', 'Business Administration', 'Chemistry', 'Civil Engineering',
+    'Computer Engineering', 'Computer Science', 'Data Science', 'Economics', 'Electrical Engineering',
+    'Finance', 'Information Technology', 'Journalism', 'Mathematics', 'Mechanical Engineering',
+    'Physics', 'Public Policy', 'Statistics'];
 
   const QUESTION = {
     status: 'What visa are you here on?',
     school: 'Which school issued your I-20?',
     degree: 'What are you studying?',
+    field: 'Is your field on the STEM list?',
     dates: 'When does your program start and end?',
     awarded: 'Was your degree awarded?', /* asked in Your profile, listed on the finish screen */
     now: 'What are you doing now?',
+    job: 'Do you have a job on OPT?',
   };
   const HINT = {
     status: "It's printed on your visa stamp and at the top of your I-20. You can add it later.",
@@ -61,6 +79,7 @@
     dates: 'Your I-20 has both dates. You can add them later.',
     now: 'You can answer this later on Home.',
   };
+  const FIELD_INFO = 'Your I-20 prints a field code beside your major, such as 11.0701. The STEM list goes by that code, not by the name of the major.';
   /* a choice clears the "I'm not sure" of the step it answers */
   const UNSURE_OF = { status: 'status', level: 'degree', now: 'now', eadMode: 'ead' };
 
@@ -72,14 +91,17 @@
     '.screen-welcome .w-gap-12 { margin-top: var(--s-12); }' +
     '.screen-welcome .w-gap-16 { margin-top: var(--s-16); }' +
     '.screen-welcome .w-gap-24 { margin-top: var(--s-24); }' +
-    '.screen-welcome .w-follow { margin-top: var(--s-24); display: flex; flex-direction: column; }' +
-    '.screen-welcome .w-follow > .t-row { margin-bottom: var(--s-12); }' +
-    '.screen-welcome .w-choice-row { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-16); }' +
+    '.screen-welcome .w-gap-32 { margin-top: var(--s-32); }' +
+    '.screen-welcome .w-head { display: flex; align-items: center; gap: var(--s-8); }' +
+    '.screen-welcome .w-head + * { margin-top: var(--s-12); }' +
+    '.screen-welcome .w-code { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-12); margin-top: var(--s-16); }' +
+    '.screen-welcome .w-code > .field { flex: 1 1 calc(var(--s-64) * 3); min-width: 0; }' +
     '.screen-welcome .w-quiet { display: flex; flex-direction: column; align-items: flex-start; }' +
     '.screen-welcome .w-quiet > .btn-text { margin: calc(-1 * var(--s-12)) 0; }' +
     '.screen-welcome .w-hint { margin-top: var(--s-8); }' +
     '.screen-welcome .w-reading { display: flex; flex-direction: column; gap: var(--s-8); }' +
     '.screen-welcome .w-lines { display: flex; flex-direction: column; gap: var(--s-8); }' +
+    '.screen-welcome .w-job { display: flex; flex-direction: column; gap: var(--s-16); margin-top: var(--s-24); }' +
     '.screen-welcome .onb-unsure:has(> [data-onb-area]:empty) { display: none; }' +
     '.screen-welcome .suggest { max-height: calc(var(--s-64) * 4); overflow-y: auto; }' +
     '.is-entering > .screen-welcome { animation: none; }' +
@@ -101,9 +123,11 @@
   function root() { return document.getElementById('main'); }
   function reduced() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 
+  /* the EAD card and the job are asked only on OPT or STEM OPT (or before
+     that is known) */
+  function onWork(s) { return !s.now || s.now === 'opt' || s.now === 'stem' || !!s.unsure.now; }
   function stepKeys(s) {
-    const withEad = !s.now || s.now === 'opt' || s.now === 'stem' || s.unsure.now;
-    return ORDER.filter((k) => k !== 'ead' || withEad);
+    return ORDER.filter((k) => (k !== 'ead' && k !== 'job') || onWork(s));
   }
 
   function parseDate(v) {
@@ -148,7 +172,26 @@
     if (lvl && major) return lvl + ' in ' + major;
     return lvl || major;
   }
-  function isStem(m) { return STEM_FIELDS.some((f) => f.toLowerCase() === trim(m).toLowerCase()); }
+
+  /* ---------------- the STEM field code ---------------- */
+
+  /* s.field: null | { state: 'found' | 'confirmed' | 'saved', code, name?, from: 'i20' | 'typed' }
+       found      read from the I-20, waiting for "That matches"
+       confirmed  confirmed, and the code is on the STEM list
+       saved      a typed code the prototype's list does not hold; it is
+                  checked against the saved list in Your profile */
+  function askField(s) { return s.status !== 'other'; }
+  /* "110701", "11.0701" and "11 0701" all read as 11.0701 */
+  function normCode(v) {
+    const digits = String(v || '').replace(/\D/g, '');
+    return digits.length === 6 ? digits.slice(0, 2) + '.' + digits.slice(2) : '';
+  }
+  function onList(code) { return !!D.stemField && D.stemField.onList && code === D.stemField.cip; }
+  function setAppField(state) {
+    App.state.stemField = state;
+    App.emit('stem-field', 'stemField', state, null);
+  }
+  function fieldConfirmed(s) { return !!s.field && s.field.state === 'confirmed'; }
 
   function valid(key, s) {
     if (s.unsure[key]) return true;
@@ -159,12 +202,13 @@
       case 'dates': return !!trim(s.start) && !!trim(s.end);
       case 'now': return !!s.now;
       case 'ead': return s.eadMode === 'type' && !!trim(s.eadFrom) && !!trim(s.eadUntil);
+      case 'job': return s.job === 'none' || (s.job === 'yes' && !!trim(s.employer) && !!trim(s.jobStart));
       default: return false;
     }
   }
 
-  /* answered: valid, or the EAD card was added, typed or left for later */
-  function answered(k, s) { return valid(k, s) || (k === 'ead' && !!s.ead); }
+  /* answered: valid, or the EAD card or the job was added or left for later */
+  function answered(k, s) { return valid(k, s) || (k === 'ead' && !!s.ead) || (k === 'job' && !!s.jobLater); }
 
   function answerFor(k, s) {
     if (s.unsure[k]) return 'Not sure yet';
@@ -175,6 +219,10 @@
       case 'dates': return s.start && s.end ? trim(s.start) + ' to ' + trim(s.end) : '';
       case 'now': return titleOf(NOW, s.now);
       case 'ead': return ({ added: 'Added', typed: 'Typed in', later: 'Later' })[s.ead] || '';
+      case 'job':
+        if (s.jobLater && !valid('job', s)) return 'Later';
+        if (s.job === 'none') return 'No job yet';
+        return s.job === 'yes' ? trim(s.employer) : '';
       default: return '';
     }
   }
@@ -197,14 +245,18 @@
   }
   function reading(name) {
     return '<div class="w-reading"><p class="t-row">' + C.esc(name) + '</p>' +
-      C.progress({ pct: 100, label: 'Reading on this Mac' }) + '</div>';
+      C.progress({ pct: 100, label: 'Reading on ' + DEVICE }) + '</div>';
+  }
+  /* a small question inside a step, with its ⓘ */
+  function head(text, infoText) {
+    return '<div class="w-head"><p class="t-row">' + C.esc(text) + '</p>' + C.info(infoText) + '</div>';
   }
 
   /* areas are small parts of a step that update in place, so typing never loses focus */
   const AREAS = {
-    stem: {
-      sig: (s) => [s.changing, s.majorChosen, s.stem].join('|'),
-      html: stemArea,
+    field: {
+      sig: (s) => [s.status, s.fieldMode, s.field ? s.field.state + ':' + s.field.code : ''].join('|'),
+      html: fieldArea,
     },
     i20: {
       sig: (s) => String(!!s.datesFrom),
@@ -224,23 +276,50 @@
     el.innerHTML = AREAS[name].html(s);
   }
 
-  function stemArea(s) {
-    if (s.changing) {
-      return '<div class="w-gap-16">' + C.field({ label: 'Pick the field printed on your I-20', key: 'onb.majorSearch', placeholder: 'Search fields', suggest: true }) + '</div>';
+  /* The STEM field, from the I-20's field code. Shown on the dates step once
+     the I-20 is read: one tap to confirm, or type the right code. A fact once
+     confirmed, never a guess from the major and never a verdict about the
+     student. With no I-20 it is empty, and the question waits on the finish
+     screen. */
+  function fieldArea(s) {
+    if (!askField(s)) return '';
+    const f = s.field;
+    const change = '<button type="button" class="btn btn-text is-small" data-onb="field-change">Change</button>';
+    let body;
+    if (f && f.state === 'found') {
+      body = C.list(['<div class="item ask stem-field" data-key="onb-field"><div class="row is-static"><span class="row-text">' +
+        '<span class="row-title">' + C.escText('Your I-20 lists field code ' + f.code + (f.name ? ', ' + f.name : '') + '.') + '</span>' +
+        '<span class="row-meta">Read from your I-20</span>' +
+        '<span class="ask-actions">' +
+        '<button type="button" class="btn btn-pill" data-onb="field-confirm">' + C.esc((D.stemField && D.stemField.confirmLabel) || 'That matches') + '</button>' +
+        '<button type="button" class="btn btn-text" data-onb="field-fix">Not right? Type it</button>' +
+        '</span></span></div></div>'], { accordion: false, label: 'Your field code' });
+    } else if (f && f.state === 'confirmed') {
+      const sf = D.stemField || {};
+      body = C.list([C.fact({
+        key: 'onb-field',
+        title: f.from === 'i20' ? sf.line : 'Field code ' + f.code + ' is on the STEM list.',
+        meta: [f.from === 'i20' ? 'From your I-20' : 'You typed it', sf.listDate ? 'list dated ' + sf.listDate : '', sf.checked ? 'checked ' + sf.checked : ''].filter(Boolean).join(' · '),
+        source: 'stemList',
+        trailing: change,
+      })], { accordion: false, label: 'Your field code' });
+    } else if (f && f.state === 'saved') {
+      body = C.list([C.fact({
+        key: 'onb-field',
+        title: 'Field code ' + f.code,
+        meta: 'Checked against the STEM list in Your profile',
+        trailing: change,
+      })], { accordion: false, label: 'Your field code' });
+    } else if (s.fieldMode === 'type') {
+      const ok = !!normCode(s.cip);
+      body = '<div class="w-code">' +
+        C.field({ label: 'Field code', key: 'onb.cip', value: s.cip, placeholder: 'Such as 11.0701', inputmode: 'decimal' }) +
+        '<button type="button" class="btn btn-pill" data-onb="field-check"' + (ok ? '' : ' disabled') + '>Check it</button>' +
+        '</div>';
+    } else {
+      return '';
     }
-    const m = s.majorChosen;
-    if (!m || !isStem(m)) return '';
-    /* The list goes by the field code on the I-20, not the major's name, so the
-       note stays a likely match. Continue is the confirmation; Change corrects it. */
-    const rule = Object.assign({}, D.sources.stemList, {
-      plain: m + ' fields are on the list of STEM fields. Your I-20 shows the exact field.',
-      counted: ['You said your major is ' + m + '.'],
-    });
-    return '<div class="w-gap-16">' + C.note({
-      title: 'This looks like a STEM degree.',
-      source: rule,
-      actions: '<button type="button" class="link" data-onb="change">Not right? Change</button>',
-    }) + '</div>';
+    return '<div class="w-gap-32">' + head('Your field code', FIELD_INFO) + body + '</div>';
   }
 
   function i20Area(s) {
@@ -274,8 +353,7 @@
         why: 'Some next steps depend on your field.',
         content: C.choices({ key: 'onb.level', options: LEVELS, selected: s.level, layout: 'row', cols: 4, label: 'Degree level' }) +
           '<div class="w-gap-24">' + C.field({ label: 'Your major', key: 'onb.major', value: s.major, placeholder: 'Start typing your major', suggest: true }) + '</div>' +
-          '<div class="w-gap-8">' + unsure('degree', s) + '</div>' +
-          area('stem', s),
+          '<div class="w-gap-8">' + unsure('degree', s) + '</div>',
       };
     },
 
@@ -292,7 +370,7 @@
         more = '<div class="w-gap-24">' + C.dateRange({
           from: { label: 'Start', key: 'onb.start', value: s.start, placeholder: 'Month day, year' },
           to: { label: 'End', key: 'onb.end', value: s.end, placeholder: 'Month day, year' },
-        }) + '</div>' + area('i20', s);
+        }) + '</div>' + area('i20', s) + area('field', s);
       }
       return {
         title: QUESTION.dates,
@@ -317,7 +395,7 @@
     ead(s) {
       const base = {
         title: 'Add your EAD card.',
-        why: 'Your work dates come from this card. It is read on this Mac and never uploaded.',
+        why: 'Your work dates come from this card. It is read on ' + DEVICE + '.',
       };
       const read = s.read && s.read.kind === 'ead' ? s.read : null;
       if (read && read.state === 'reading') {
@@ -348,6 +426,27 @@
         notSure: quiet('Add it later', 'later'),
       });
     },
+
+    /* "No job yet" is a plain answer, as easy as naming the job. Either one
+       lets the days without work be counted; the count shows on Home. */
+    job(s) {
+      let more = '';
+      if (s.job === 'yes') {
+        more = '<div class="w-job">' +
+          C.field({ label: 'Employer', key: 'onb.employer', value: s.employer, placeholder: 'Company name', autocomplete: 'organization' }) +
+          C.dateField({ label: 'Start date', key: 'onb.jobStart', value: s.jobStart, placeholder: 'Month day, year' }) +
+          '</div>';
+      }
+      return {
+        title: s.now === 'stem' ? 'Do you have a job on STEM OPT?' : QUESTION.job,
+        why: 'Days without work are counted from your card and your job dates.',
+        content: C.choices({ key: 'onb.job', layout: 'pair', selected: s.job, label: 'Your job', options: [
+          { value: 'yes', title: 'Yes' },
+          { value: 'none', title: 'No job yet' },
+        ] }) + more,
+        notSure: quiet('Add it later', 'job-later'),
+      };
+    },
   };
 
   function renderStep(key, s) {
@@ -371,6 +470,8 @@
     return html.replace(/<h1 class="t-big" tabindex="-1">[\s\S]*?<\/h1>/, (h1) => C.titleWith(h1, text));
   }
 
+  /* The promise once, its subline, and the three pillars with each line
+     behind an ⓘ. */
   function renderStart(s) {
     /* coming back to the start after answering: pick up at the first open step */
     let primary = C.button({ kind: 'primary', label: 'Start', href: '#/welcome/status' });
@@ -379,10 +480,12 @@
       const open = keys.find((k) => !answered(k, s));
       primary = C.button({ kind: 'primary', label: open ? 'Pick up where you left off' : 'See your answers', href: '#/welcome/' + (open || 'done') });
     }
+    const pr = D.promise || {};
     return C.onboarding({
-      title: 'Your student visa records, in one private place.',
-      why: 'Where you stand, when to start your next step, and what changes when the rules do.',
-      back: '<span class="t-meta">About two minutes. Kept on this Mac.</span>',
+      title: pr.line,
+      why: pr.subline,
+      content: C.pillars(null, { lines: false }),
+      back: '<span class="t-meta">About two minutes.</span>',
       primary: primary,
     });
   }
@@ -393,7 +496,9 @@
       Object.assign(s, {
         status: 'f1', school: D.student.school, level: 'master', major: D.program.major,
         start: D.program.start, end: D.program.end, awarded: 'end', now: 'opt',
-        ead: 'added', eadUntil: D.opt.cardUntil, stem: 'confirmed', majorChosen: D.program.major, reached: ORDER.length - 1,
+        ead: 'added', eadUntil: D.opt.cardUntil, reached: ORDER.length - 1,
+        field: { state: 'confirmed', code: D.stemField.cip, name: D.stemField.field, from: 'i20' },
+        job: 'yes', employer: D.job.employer, jobStart: D.job.started,
         read: { kind: 'ead', name: 'EAD card', state: 'found' },
       });
     }
@@ -401,25 +506,38 @@
     const status = (STATUS.find((x) => x.value === s.status) || {}).short;
     const study = [degreeText(s), trim(s.school)].filter(Boolean).join(', ');
     if (status || study) lines.push([status, study].filter(Boolean));
+    if (fieldConfirmed(s)) lines.push(['STEM field', s.field.code + ', on the STEM list']);
+    else if (s.field && s.field.state === 'saved') lines.push(['Field code', s.field.code]);
+    const working = s.now === 'opt' || s.now === 'stem';
     if (s.now) {
-      const onWork = s.now === 'opt' || s.now === 'stem';
       const card = s.ead === 'added' || s.ead === 'typed'
         ? (trim(s.eadUntil) ? 'card valid until ' + trim(s.eadUntil) : '')
         : '';
-      lines.push([titleOf(NOW, s.now)].concat(onWork && card ? [card] : []));
-      /* the STEM OPT dates hold only for the sample case: on OPT, a confirmed
-         STEM major and the sample card end date. Anyone else is pointed to Home. */
-      const sampleStem = s.now === 'opt' && s.stem === 'confirmed' && trim(s.eadUntil) === D.opt.cardUntil;
+      lines.push([titleOf(NOW, s.now)].concat(working && card ? [card] : []));
+    }
+    if (working && s.job === 'none') lines.push(['No job yet']);
+    else if (working && s.job === 'yes' && trim(s.employer)) lines.push([trim(s.employer)].concat(trim(s.jobStart) ? ['since ' + trim(s.jobStart)] : []));
+    if (working) {
+      /* the STEM OPT dates hold only for the sample case: on OPT with a job,
+         the field code confirmed on the list and the sample card end date.
+         Anyone else is pointed to Home. */
+      const sampleStem = s.now === 'opt' && fieldConfirmed(s) && s.job !== 'none' && trim(s.eadUntil) === D.opt.cardUntil;
       if (sampleStem) lines.push(D.onboarding.summary[2].split(' · '));
-      else if (onWork) lines.push(['Next', 'Your next step is on Home']);
+      else lines.push(['Next', 'Your next step is on Home']);
     }
 
     const waiting = ['status', 'school', 'degree', 'dates', 'now']
       .filter((k) => s.unsure[k])
       .map((k) => ({ title: QUESTION[k], meta: k === 'now' ? 'Waiting on Home' : 'Waiting in Your profile', key: 'wait-' + k }));
+    if (askField(s) && s.field && s.field.state === 'found') {
+      waiting.push({ title: 'Is field code ' + s.field.code + ' right?', meta: 'Waiting in Your profile', key: 'wait-field' });
+    } else if (askField(s) && !s.field) {
+      waiting.push({ title: QUESTION.field, meta: 'Add your I-20 in Documents', key: 'wait-field' });
+    }
     /* Conferral is not asked in onboarding; it waits in Your profile when no document shows it. */
     if (endPassed(s) && !s.awarded) waiting.push({ title: QUESTION.awarded, meta: 'Waiting in Your profile', key: 'wait-awarded' });
-    if (s.ead === 'later') waiting.push({ title: 'Add your EAD card', meta: 'Waiting on Home', key: 'wait-ead' });
+    if (working && s.ead === 'later') waiting.push({ title: 'Add your EAD card', meta: 'Waiting on Home', key: 'wait-ead' });
+    if (working && s.jobLater && !valid('job', s)) waiting.push({ title: s.now === 'stem' ? 'Do you have a job on STEM OPT?' : QUESTION.job, meta: 'Waiting on Home', key: 'wait-job' });
 
     const content =
       (lines.length ? '<div class="w-lines">' + lines.map((parts) =>
@@ -432,11 +550,13 @@
     const list = C.steps({ steps: keys.map((k) => ({ key: k, label: LABEL[k], answer: answerFor(k, s) })), current: -1, reached: keys.length - 1 })
       .replace(/<span class="sr-only">[^<]*<\/span>/, '<span class="sr-only">All steps answered. Open one to change it.</span>');
 
+    /* No job yet: Home opens on its no-job view, where the count starts */
+    const home = working && s.job === 'none' ? '#/home/no-job' : '#/home';
     return withInfo(C.onboarding({
       steps: list,
       title: readName(s) ? "You're all set, " + readName(s) + '.' : "You're all set.",
       content: content,
-      primary: C.button({ kind: 'primary', label: 'Open Home', href: '#/home' }),
+      primary: C.button({ kind: 'primary', label: 'Open Home', href: home }),
     }), 'Anything else is asked when it matters. When a rule changes, your steps update and you see what changed.');
   }
 
@@ -468,8 +588,19 @@
   function next(key) {
     const s = S();
     if (key === 'ead' && s.eadMode === 'type' && !s.read) s.ead = 'typed';
-    /* Continue past the STEM note is the confirmation; Change is the way to correct it */
-    if (key === 'degree') s.stem = !s.changing && s.majorChosen && isStem(s.majorChosen) ? 'confirmed' : null;
+    /* a field code read but not confirmed waits in Your profile */
+    if (key === 'dates' && s.field && s.field.state === 'found') setAppField('found');
+    if (key === 'job') {
+      if (valid('job', s)) s.jobLater = false;
+      /* "No job yet" completes the job list, so the count can start */
+      if (s.job === 'none') {
+        App.state.jobsComplete = 'none';
+        App.emit('answer', 'jobsComplete', 'none', null);
+      } else if (App.state.jobsComplete === 'none') {
+        App.state.jobsComplete = null;
+        App.emit('answer', 'jobsComplete', null, null);
+      }
+    }
     const keys = stepKeys(s);
     const i = keys.indexOf(key);
     s.reached = Math.max(s.reached, i);
@@ -503,32 +634,48 @@
     if (input) { input.value = ''; input.click(); }
   }
 
+  /* what the sample I-20 shows, read on the device: the program dates and the
+     field code, plus the level and major when they are still empty */
+  function fillFromI20(s) {
+    s.start = D.program.start;
+    s.end = D.program.end;
+    s.datesFrom = true;
+    s.i20Read = true;
+    s.datesMode = 'i20';
+    delete s.unsure.dates;
+    if (!s.level) s.level = 'master';
+    if (!trim(s.major)) { s.major = D.program.major; delete s.unsure.degree; }
+    if (D.stemField && (!s.field || s.field.state !== 'confirmed')) {
+      s.field = { state: 'found', code: D.stemField.cip, name: D.stemField.field, from: 'i20' };
+      s.fieldMode = null;
+    }
+  }
+
   function startRead(kind, file) {
     const s = S();
     const name = file && file.name ? file.name : (kind === 'ead' ? 'EAD card' : 'I-20');
+    const at = stepKey();
     s.read = { kind: kind, name: name, state: 'reading' };
-    if (kind === 'ead') { s.eadMode = 'photo'; s.fix = false; } else { s.datesMode = 'i20'; }
+    if (kind === 'ead') { s.eadMode = 'photo'; s.fix = false; } else if (at === 'dates') { s.datesMode = 'i20'; }
     refresh();
     clearTimeout(readTimer);
     readTimer = setTimeout(() => {
       const cur = S().read;
       if (!cur || cur.name !== name || cur.kind !== kind) return;
       if (kind === 'i20') {
-        s.start = D.program.start;
-        s.end = D.program.end;
-        s.datesFrom = true;
-        s.i20Read = true;
-        s.datesMode = 'i20';
+        fillFromI20(s);
         s.read = null;
-        delete s.unsure.dates;
       } else {
         cur.state = 'found';
         s.eadRows = D.onboarding.eadFound.map((r) => r.slice());
         delete s.unsure.ead;
       }
-      if (App.route === 'welcome' && stepKey() === (kind === 'ead' ? 'ead' : 'dates')) {
-        refresh(kind === 'ead' ? '[data-onb="confirm-ead"]' : '[data-onb="next"]');
-        if (kind === 'i20') App.toast('Dates filled in from your I-20');
+      if (App.route !== 'welcome') return;
+      const here = stepKey();
+      if (kind === 'ead' && here === 'ead') refresh('[data-onb="confirm-ead"]');
+      if (kind === 'i20' && here === 'dates') {
+        refresh(s.field && s.field.state === 'found' ? '[data-onb="field-confirm"]' : '[data-onb="next"]');
+        App.toast('Dates filled in from your I-20');
       }
     }, reduced() ? 600 : 1600);
   }
@@ -545,6 +692,40 @@
     next('ead');
   }
 
+  /* the field code, in place: confirm, check a typed one, or type it again */
+  function confirmField(r) {
+    const s = S();
+    if (!s.field) return;
+    s.field.state = onList(s.field.code) ? 'confirmed' : 'saved';
+    if (s.field.state === 'confirmed') setAppField('confirmed');
+    updateArea(r, 'field', true);
+    App.toast('Field code confirmed');
+    focusSel('[data-onb="next"]');
+  }
+  function checkField(r) {
+    const s = S();
+    const code = normCode(s.cip);
+    if (!code) return;
+    s.cip = code;
+    s.field = { state: onList(code) ? 'confirmed' : 'saved', code: code, from: 'typed' };
+    if (s.field.state === 'confirmed') setAppField('confirmed');
+    updateArea(r, 'field', true);
+    focusSel('[data-onb="next"]');
+  }
+  function resetField(r) {
+    const s = S();
+    const code = s.field ? s.field.code : '';
+    s.field = null;
+    s.fieldMode = 'type';
+    if (code) s.cip = code;
+    if (App.state.stemField === 'confirmed' || App.state.stemField === 'found') {
+      delete App.state.stemField;
+      App.emit('stem-field', 'stemField', null, null);
+    }
+    updateArea(r, 'field', true);
+    focusSel('[data-field="onb.cip"]');
+  }
+
   /* ---------------- suggestions ---------------- */
 
   function suggest(r, field, list, q, showAll) {
@@ -559,35 +740,19 @@
     box.hidden = !items.length;
   }
 
-  function chooseMajor(r, v) {
-    const s = S();
-    s.major = v;
-    s.majorChosen = trim(v) ? v : null;
-    s.stem = null;
-    s.changing = false;
-    if (trim(v)) clearUnsure(r, 'degree');
-    const main = r.querySelector('[data-field="onb.major"]');
-    if (main && main.value !== v) main.value = v;
-    updateArea(r, 'stem', true);
-    syncNext(r);
-    (r.querySelector('[data-onb="next"]') || main).focus({ preventScroll: true });
-  }
-
   function choose(r, field, value) {
     const box = r.querySelector('[data-suggest="' + field + '"]');
     if (box) box.hidden = true;
-    if (field === 'onb.school') {
-      const s = S();
-      s.school = value;
-      const input = r.querySelector('[data-field="onb.school"]');
-      if (input) input.value = value;
-      clearUnsure(r, 'school');
-      syncNext(r);
-      const nb = r.querySelector('[data-onb="next"]');
-      if (nb) nb.focus({ preventScroll: true });
-      return;
-    }
-    chooseMajor(r, value);
+    const s = S();
+    const key = field.slice(4);
+    s[key] = value;
+    const input = r.querySelector('[data-field="' + field + '"]');
+    if (input) input.value = value;
+    clearUnsure(r, key === 'major' ? 'degree' : key);
+    syncNext(r);
+    const nb = r.querySelector('[data-onb="next"]');
+    if (nb && !nb.disabled) nb.focus({ preventScroll: true });
+    else if (input) input.focus({ preventScroll: true });
   }
 
   /* ---------------- events ---------------- */
@@ -606,17 +771,19 @@
       case 'next': if (valid(key, s)) next(key); break;
       case 'back': back(key); break;
       case 'unsure': markUnsure(r, b.dataset.for); break;
-      case 'change': {
-        s.changing = true;
-        updateArea(r, 'stem', true);
-        const input = r.querySelector('[data-field="onb.majorSearch"]');
-        if (input) { input.focus(); suggest(r, 'onb.majorSearch', ALL_FIELDS, '', true); }
-        break;
-      }
+      case 'field-confirm': confirmField(r); break;
+      case 'field-check': checkField(r); break;
+      case 'field-fix':
+      case 'field-change': resetField(r); break;
       case 'later':
         s.ead = 'later';
         s.eadMode = null;
         next('ead');
+        break;
+      case 'job-later':
+        s.jobLater = true;
+        s.job = null;
+        next('job');
         break;
       case 'fix':
         s.fix = true;
@@ -645,20 +812,11 @@
     const box = r.querySelector('[data-suggest="' + f + '"]');
     const open = box && !box.hidden && box.querySelector('button');
     if (e.key === 'ArrowDown' && open) { e.preventDefault(); open.focus(); return; }
-    if (e.key === 'Escape') {
-      if (open) { box.hidden = true; return; }
-      if (f === 'onb.majorSearch') {
-        s.changing = false;
-        updateArea(r, 'stem', true);
-        const m = r.querySelector('[data-field="onb.major"]');
-        if (m) m.focus();
-      }
-      return;
-    }
+    if (e.key === 'Escape') { if (open) box.hidden = true; return; }
     if (e.key !== 'Enter') return;
     e.preventDefault();
     if (open) { choose(r, f, open.dataset.value); return; }
-    if (f === 'onb.major' && trim(t.value) && t.value !== s.majorChosen) { chooseMajor(r, t.value); return; }
+    if (f === 'onb.cip') { checkField(r); return; }
     if (valid(stepKey(), s)) next(stepKey());
   }
 
@@ -667,27 +825,7 @@
     if (t.matches('[data-onb-file]')) {
       const f = t.files && t.files[0];
       if (f) startRead(stepKey() === 'ead' ? 'ead' : 'i20', f);
-      return;
     }
-    if (t.matches('[data-field="onb.major"]')) {
-      const v = t.value;
-      /* a typed major counts as chosen when the field is left, unless a suggestion was picked */
-      setTimeout(() => {
-        const s = S();
-        const r = root();
-        if (!r || App.route !== 'welcome' || stepKey() !== 'degree' || s.changing) return;
-        if (trim(v) && s.majorChosen !== v && trim(s.major) === trim(v)) chooseMajorQuiet(r, v);
-      }, 200);
-    }
-  }
-  function chooseMajorQuiet(r, v) {
-    const s = S();
-    s.major = v;
-    s.majorChosen = v;
-    s.stem = null;
-    clearUnsure(r, 'degree');
-    updateArea(r, 'stem', true);
-    syncNext(r);
   }
 
   function onDrop(e) {
@@ -722,6 +860,11 @@
       s[k] = d.value;
       const u = UNSURE_OF[k];
       if (u) delete s.unsure[u];
+      if (k === 'job') {
+        if (d.value === 'yes') s.jobLater = false;
+        refresh(d.value === 'yes' ? '[data-field="onb.employer"]' : '[data-onb="next"]');
+        return;
+      }
       refresh('[data-choices="' + d.key + '"] [aria-checked="true"]');
       if ((k === 'eadMode' && d.value === 'photo') || (k === 'datesMode' && d.value === 'i20')) openPicker();
       return;
@@ -736,24 +879,18 @@
           break;
         case 'major':
           if (trim(d.value)) clearUnsure(r, 'degree');
-          if (s.majorChosen && d.value !== s.majorChosen) {
-            s.majorChosen = null;
-            s.stem = null;
-            updateArea(r, 'stem');
-          }
-          suggest(r, 'onb.major', ALL_FIELDS, d.value);
+          suggest(r, 'onb.major', MAJORS, d.value);
           break;
-        case 'majorSearch':
-          suggest(r, 'onb.majorSearch', ALL_FIELDS, d.value, true);
+        case 'cip': {
+          const btn = r && r.querySelector('[data-onb="field-check"]');
+          if (btn) btn.disabled = !normCode(d.value);
           break;
+        }
         case 'start':
         case 'end':
           if (trim(s.start) && trim(s.end)) clearUnsure(r, 'dates');
           s.datesFrom = false;
           updateArea(r, 'i20');
-          break;
-        case 'eadFrom':
-        case 'eadUntil':
           break;
         default: break;
       }

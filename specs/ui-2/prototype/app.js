@@ -30,6 +30,16 @@
      detail = { kind, key, value, el }
      kind: 'task' | 'choice' | 'answer' | 'toggle' | 'edit' | 'field' | 'confirm'
            | 'step' | 'draft' | 'school-import' | 'document'
+           | 'share' | 'calendar' | 'stem-field'            (round 4)
+
+   Round 4 (VALUE.md) adds, for every screen:
+     App.unemployment({ noJob? })  the count, its state and a C.metrics cell
+     App.setJobs(v)                answer "Is that every job?" ('every'|'none'|null)
+     App.stemField()               the I-20 field code fact ('found'|'confirmed')
+     App.employer()                Employer check data; route #/employer is built in
+     App.processingFor(app, o?)    USCIS processing time, filed and undecided only
+     App.share(doc)                the phone's share sheet for a document
+     App.calendarFile(), App.addToCalendar()   every reminder date as one .ics
 
    Old routes redirect in place (Round 3, note 7): #/next and #/checklists
    go to #/steps, #/applications to #/uscis, keeping their params. */
@@ -177,6 +187,113 @@ window.SCREENS = window.SCREENS || {};
   /* Seed: a state set in the data starts with its steps in place. */
   if (data.schoolImport && data.schoolImport.state === 'confirmed') setSchoolImport('stem', 'confirmed');
 
+  /* ---------------- round 4: the value a student gets (VALUE.md) ---------------- */
+
+  /* App.unemployment({ noJob? }) : the unemployment count as every screen
+     shows it, so Home, Timeline and Your profile never disagree.
+       { state: 'ask' | 'every' | 'none', hasJob, used, left, limit, pct, asOf,
+         line, metric, counted, ask, everyLine, noneLine }
+     state comes from App.state.jobsComplete ('every' | 'none'), else the data.
+     noJob: true (the #/home/no-job demo) means no job on file: 'every' is not
+     a possible answer, so it reads as 'ask'.
+     metric is a cell for C.metrics: the count with "As of Sep 30" once the job
+     list is complete, otherwise the one line that asks for it. used, left and
+     line are null until then: a number with a missing fact is not shown. */
+  function unemployment(opts) {
+    const o = opts || {};
+    const u = data.unemployment || {};
+    const hasJob = !o.noJob && !!(data.job && data.job.employer);
+    let state = App.state.jobsComplete || u.state || 'ask';
+    if (state === 'every' && !hasJob) state = 'ask';
+    if (state === 'none' && hasJob) state = 'every';
+    const n = state === 'every' ? u.every : (state === 'none' ? u.none : null);
+    const asOf = u.asOf ? 'As of ' + u.asOf : null;
+    const base = ((data.home && data.home.metrics) || [])[0] || { eyebrow: 'Unemployment days' };
+    const metric = n
+      ? { eyebrow: base.eyebrow, value: String(n.used), unit: n.left > 0 ? 'used · ' + n.left + ' left' : 'of ' + u.limit, bar: n.pct, source: 'unemployment', asOf: asOf }
+      : { eyebrow: base.eyebrow, add: hasJob ? u.confirm : u.add };
+    return {
+      state: state, hasJob: hasJob,
+      used: n ? n.used : null, left: n ? n.left : null, limit: u.limit, pct: n ? n.pct : null,
+      asOf: u.asOf, asOfLong: u.asOfLong,
+      line: n ? (n.left > 0 ? n.used + ' of ' + u.limit + ' used, as of ' + u.asOf : n.used + ' days without work, as of ' + u.asOf) : null,
+      counted: n ? n.counted : null,
+      metric: metric, ask: u.ask, everyLine: u.everyLine, noneLine: u.noneLine,
+    };
+  }
+  App.unemployment = unemployment;
+  /* App.setJobs('every' | 'none' | null) : answer (or clear) "Is that every
+     job?", then redraw the column in place. */
+  App.setJobs = (v) => { App.state.jobsComplete = v || null; emit('answer', 'jobsComplete', v || null, null); render('inplace'); };
+
+  /* App.stemField() : DULY_SAMPLE.stemField with App.state.stemField
+     ('found' | 'confirmed') as its state. */
+  App.stemField = () => Object.assign({}, data.stemField || {}, App.state.stemField ? { state: App.state.stemField } : {});
+
+  /* App.employer() : the Employer check for the student's own job. */
+  App.employer = () => data.employer || null;
+
+  /* App.processingFor(appOrId, { force? }) : USCIS's processing time for an
+     application, only while it is filed and not decided (a receipt number,
+     and a status that is not Approved, Denied or Not filed yet). force: true
+     returns it anyway, for a review link. Null otherwise. */
+  App.processingFor = (a, o) => {
+    const app = typeof a === 'string' ? App.findApplication(a) : a;
+    if (!app || !app.processing) return null;
+    const pt = (data.processingTimes || {})[app.processing] || null;
+    if (o && o.force) return pt;
+    const receipt = App.state['receipt:' + app.id] || app.receipt;
+    const status = App.state['status:' + app.id] || app.status || '';
+    const open = !!receipt && !/^(approved|denied|not filed)/i.test(status) && !/card mailed/i.test(status);
+    return open ? pt : null;
+  };
+
+  /* App.share({ title, text?, url? }) : one tap to the phone's share sheet
+     where the browser has one; otherwise a quiet toast (the prototype has no
+     real files). Emits 'share'. */
+  function share(doc) {
+    const d = typeof doc === 'string' ? { title: doc } : (doc || {});
+    emit('share', d.title || '', true, null);
+    if (navigator.share && isPhone()) {
+      navigator.share({ title: d.title, text: d.text || d.title, url: d.url }).catch(() => { /* closed */ });
+      return;
+    }
+    toast('Share ' + (d.title || 'this document') + ' to Mail, Messages or any app');
+  }
+  App.share = share;
+
+  /* App.calendarFile() : every reminder date as an .ics text (all-day events).
+     App.addToCalendar() saves it once; the calendar app takes it from there. */
+  function calendarFile() {
+    const r = data.reminders || {};
+    const stamp = (data.today.iso || '').replace(/-/g, '') + 'T060000Z';
+    const next = (iso) => { const t = new Date(iso + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + 1); return t.toISOString().slice(0, 10).replace(/-/g, ''); };
+    const ev = (r.dates || []).map((d, i) => [
+      'BEGIN:VEVENT',
+      'UID:duly-' + d.iso + '-' + i + '@duly.local',
+      'DTSTAMP:' + stamp,
+      'DTSTART;VALUE=DATE:' + d.iso.replace(/-/g, ''),
+      'DTEND;VALUE=DATE:' + next(d.iso),
+      'SUMMARY:' + String(d.title).replace(/([,;])/g, '\\$1'),
+      'END:VEVENT',
+    ].join('\r\n'));
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Duly//Dates//EN', 'CALSCALE:GREGORIAN'].concat(ev, ['END:VCALENDAR']).join('\r\n') + '\r\n';
+  }
+  App.calendarFile = calendarFile;
+  App.addToCalendar = () => {
+    const r = data.reminders || {};
+    try {
+      const url = URL.createObjectURL(new Blob([calendarFile()], { type: 'text/calendar' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = r.file || 'dates.ics';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { /* blocked download: the toast still says what happened */ }
+    App.state['remind:calendar'] = true;
+    emit('calendar', 'remind:calendar', true, null);
+    toast((r.dates || []).length + ' dates ready for your calendar');
+  };
+
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isPhone = () => window.matchMedia('(max-width: 640px)').matches;
   const cssEsc = (v) => (window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, '\\$&'));
@@ -268,7 +385,7 @@ window.SCREENS = window.SCREENS || {};
   function render(mode, restore) {
     const r = parse();
     let screen = window.SCREENS[r.name];
-    if (!screen) { r.name = 'home'; screen = window.SCREENS.home; }
+    if (!screen) { history.replaceState(history.state, '', '#/home'); r.name = 'home'; screen = window.SCREENS.home; }
     const old = document.getElementById('main');
     const keep = mode === 'inplace' && old ? snapshot(old) : null;
 
@@ -464,6 +581,21 @@ window.SCREENS = window.SCREENS || {};
     if (back && !e.metaKey && !e.ctrlKey && App.from && back.getAttribute('href') === App.from.hash) {
       e.preventDefault(); history.back(); return;
     }
+
+    /* round 4: share a document, add dates to a calendar, confirm the STEM
+       field, change the job-list answer */
+    const sh = t.closest('[data-share]');
+    if (sh) { e.preventDefault(); share({ title: sh.dataset.share }); return; }
+    if (t.closest('[data-calendar]')) { e.preventDefault(); App.addToCalendar(); return; }
+    const sf = t.closest('[data-stem-field]');
+    if (sf) {
+      App.state.stemField = sf.dataset.stemField === 'confirm' ? 'confirmed' : 'found';
+      emit('stem-field', 'stemField', App.state.stemField, sf);
+      render('inplace');
+      if (App.state.stemField === 'confirmed') toast('Field code confirmed');
+      return;
+    }
+    if (t.closest('[data-jobs="change"]')) { App.setJobs(null); return; }
 
     /* disclosure rows: one open per list */
     const head = t.closest('[data-disclosure]');
@@ -712,6 +844,9 @@ window.SCREENS = window.SCREENS || {};
       }
     }
     emit('answer', key, value, btn);
+    /* The job-list answer starts the count: every number on the page changes,
+       so the column redraws in place once the ask has faded. */
+    if (key === 'jobsComplete' && value !== 'unsure') setTimeout(() => render('inplace'), reduced() ? 0 : 300);
   }
 
   /* ---------------- the email draft (C.emailDraft) ---------------- */
@@ -1038,9 +1173,39 @@ window.SCREENS = window.SCREENS || {};
     addDocument(f || null);
   });
 
+  /* ---------------- built-in screens ---------------- */
+
+  /* #/employer : Employer check (VALUE.md section 3). Two public facts about
+     the student's own employer, each with its source and date, never a
+     verdict. Reached from the STEM OPT step "Check that Northwind Systems
+     uses E-Verify" and from Your profile's Job section (C.employerRow).
+     The H-1B years open as a plain list. */
+  const BUILTIN = {
+    employer: {
+      title: 'Employer check',
+      render(d) {
+        const emp = d.employer;
+        const back = { label: 'Your profile', href: '#/case' };
+        if (!emp) {
+          return C.pageHeader({ title: 'Employer check', back: back }) +
+            C.empty({ text: 'Add your job to see this.', action: C.button({ label: 'Add your job', href: '#/case/jobs' }) });
+        }
+        return C.pageHeader({
+          eyebrow: emp.title, title: emp.name, info: emp.info, back: back,
+          subline: emp.role + ', since ' + emp.since,
+        }) +
+          C.employerCheck(emp, { next: true }) +
+          (emp.offer ? '<p class="employer-offer">' + C.unknown(emp.offer) + '</p>' : '') +
+          C.footer(emp.footer);
+      },
+    },
+  };
+  App.BUILTIN = BUILTIN;
+
   /* ---------------- boot ---------------- */
   window.addEventListener('hashchange', onNavigate);
   window.addEventListener('DOMContentLoaded', () => {
+    Object.keys(BUILTIN).forEach((k) => { if (!window.SCREENS[k]) window.SCREENS[k] = BUILTIN[k]; });
     if (!location.hash) history.replaceState(null, '', '#/home');
     stamp(true);
     render('launch');

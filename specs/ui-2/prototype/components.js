@@ -60,6 +60,7 @@
     file: [16, '<path d="M4.5 2h5l3 3v8.5a.5.5 0 0 1-.5.5H4.5a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 2v3h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'],
     close: [16, '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'],
     source: [16, '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="5.1" r=".85" fill="currentColor"/>'],
+    share: [16, '<path d="M8 10V2.5M5.2 5.1 8 2.3l2.8 2.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 7H4.5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'],
   };
   function icon(name, opts) {
     const def = ICONS[name];
@@ -203,9 +204,10 @@
     return '<span class="shield" aria-hidden="true">' + (o && o.halo ? '<span class="halo"></span>' : '') + icon('shield') + '</span>';
   }
 
-  /* metrics([{ eyebrow, value?, unit?, bar? (0..100), source?, info?, add? {action, rest, href} }])
+  /* metrics([{ eyebrow, value?, unit?, bar? (0..100), source?, info?, asOf?, add? {action, rest, href} }])
      Every value, a count or a date, is set at the one metric figure size.
-     info: a short explanation behind an ⓘ, used when there is no source. */
+     info: a short explanation behind an ⓘ, used when there is no source.
+     asOf: a quiet line under the value (and its bar), e.g. 'As of Sep 30'. */
   function metrics(cells) {
     const out = [];
     cells.forEach((m, i) => {
@@ -218,7 +220,8 @@
           '<span class="metric-value">' + esc(m.value) + '</span>' +
           (m.unit ? '<span class="metric-unit">' + esc(m.unit) + '</span>' : '') +
           (m.source ? source(m.source, { inline: true }) : (m.info ? info(m.info) : '')) + '</div>' +
-          (m.bar != null ? bar(m.bar) : '');
+          (m.bar != null ? bar(m.bar) : '') +
+          (m.asOf ? '<p class="metric-asof num">' + esc(m.asOf) + '</p>' : '');
       }
       out.push('<div class="metric"><p class="t-eyebrow">' + esc(m.eyebrow) + '</p>' + body + '</div>');
     });
@@ -927,6 +930,186 @@
       '</div></div>';
   }
 
+  /* ---------------------------------------------------------------- */
+  /* Round 4: the value a student gets (VALUE.md)                       */
+  /* ---------------------------------------------------------------- */
+
+  const SAMPLE = () => window.DULY_SAMPLE || {};
+  const APP = () => window.App || {};
+
+  /* sampleMark() : a quiet "Sample" beside a figure the prototype makes up
+     (H-1B counts, processing times). Small caps, like "Your school". */
+  function sampleMark() { return '<span class="mark is-sample">Sample</span>'; }
+
+  /* promise(p = DULY_SAMPLE.promise, { subline = true, cls? }) : the one-line
+     promise and its subline. Once on Welcome, once under the Home title,
+     nowhere else. On Home it can also go in as C.hero({ subline: promise.line }). */
+  function promise(p, o) {
+    const pr = p || SAMPLE().promise || {};
+    const opt = o || {};
+    return '<div class="' + cls('promise', opt.cls) + '"><p class="promise-line t-lead">' + escText(pr.line) + '</p>' +
+      (opt.subline !== false && pr.subline ? '<p class="promise-sub t-meta">' + escText(pr.subline) + '</p>' : '') + '</div>';
+  }
+
+  /* pillars(items = DULY_SAMPLE.pillars, { lines = true }) : the three pillars,
+     three columns on a wide window, stacked on a phone. lines: false keeps
+     titles only and puts each line behind an ⓘ. */
+  function pillars(items, o) {
+    const list = items || SAMPLE().pillars || [];
+    const opt = o || {};
+    return '<ul class="pillars">' + list.map((p) => '<li class="pillar">' +
+      '<p class="t-row">' + escText(p.title) + (opt.lines === false ? info(p.line) : '') + '</p>' +
+      (opt.lines === false ? '' : '<p class="t-meta">' + escText(p.line) + '</p>') + '</li>').join('') + '</ul>';
+  }
+
+  /* fact({ key?, title, value?, meta?, source?, info?, sample?, content? (html), href?, trailing? (html), cls? })
+     One public or computed fact with where it came from: a row whose meta
+     names the source and its date ("E-Verify Employer Search · checked Sep 30"),
+     the value on the right, the source mark after it. sample: true adds the
+     "Sample" mark after the title. content makes it a disclosure (e.g. the
+     H-1B years). Wrap facts in C.list([...], { accordion: false }). */
+  function fact(p) {
+    const marks = p.sample ? ' <span class="marks">' + sampleMark() + '</span>' : '';
+    return row({
+      key: p.key, cls: cls('fact', p.cls),
+      title: raw(escText(p.title) + marks),
+      meta: p.meta, value: p.value, source: p.source, info: p.info,
+      content: p.content, href: p.href, trailing: p.trailing,
+    });
+  }
+
+  /* stemField(sf = App.stemField(), { key? }) : the STEM field from the I-20's
+     field code (CIP). One item; wrap it in C.list.
+       found      "Your I-20 lists field code 11.0701, Computer Science." with
+                  That matches (confirms, in place) and Fix it (opens the I-20)
+       confirmed  "Your I-20's field code, 11.0701, is on the STEM list." with
+                  the list's date and the source mark
+     A fact, never a verdict about the student. */
+  function stemField(s, o) {
+    const sf = s || (APP().stemField ? APP().stemField() : SAMPLE().stemField) || {};
+    const key = (o && o.key) || 'stem-field';
+    if (sf.state === 'found') {
+      return '<div class="item ask stem-field" data-key="' + esc(key) + '" data-stem-field-wrap><div class="row is-static"><span class="row-text">' +
+        '<span class="row-title">' + escText(sf.foundTitle) + '</span>' +
+        '<span class="row-meta">' + escText('Read from your I-20') + '</span>' +
+        '<span class="ask-actions">' +
+        '<button type="button" class="btn btn-pill" data-stem-field="confirm">' + esc(sf.confirmLabel || 'That matches') + '</button>' +
+        '<a class="btn btn-text" href="#/documents/i20">' + esc(sf.changeLabel || 'Fix it') + '</a>' +
+        '</span></span><span class="row-trail">' + info(sf.info, { inline: false }) + '</span></div></div>';
+    }
+    return fact({
+      key: key, title: sf.line,
+      meta: [sf.from ? 'From your I-20' : '', sf.listDate ? 'list dated ' + sf.listDate : '', sf.checked ? 'checked ' + sf.checked : ''].filter(Boolean).join(' · '),
+      source: 'stemList',
+      sample: !sf.saved,
+    });
+  }
+
+  /* jobsAsk(u = App.unemployment(), { key? }) : the one place to start the
+     unemployment count (analysis move 7.2). One item; wrap it in C.list.
+       ask, a job on file   "Northwind Systems, since Feb 27, 2026. Is that every
+                            job on your OPT?"  Yes, that's every job · Add another job
+       ask, no job on file  "Have you had a job on your OPT yet?"
+                            I haven't had a job yet · Add your job
+       every / none         one quiet line, "That's every job, as of Sep 30.", Change
+     The answer is App.state.jobsComplete ('every' | 'none'); app.js redraws
+     the column in place once it is given, so every count on the page updates. */
+  function jobsAsk(uu, o) {
+    const u = uu || (APP().unemployment ? APP().unemployment() : null) || {};
+    const a = u.ask || {};
+    const key = (o && o.key) || 'jobs-complete';
+    if (u.state === 'every' || u.state === 'none') {
+      return '<div class="item jobs-line" data-key="' + esc(key) + '"><div class="row is-static"><span class="row-text">' +
+        '<span class="row-title">' + escText(u.state === 'none' ? u.noneLine : u.everyLine) + '</span></span>' +
+        '<span class="row-trail"><button type="button" class="btn btn-text is-small" data-jobs="change">Change</button></span></div></div>';
+    }
+    const withJob = !!u.hasJob;
+    const primary = '<button type="button" class="btn btn-pill" data-answer="jobsComplete" data-value="' + (withJob ? 'every' : 'none') + '">' +
+      esc(withJob ? a.every : a.none) + '</button>';
+    const other = '<a class="btn btn-text" href="' + esc(a.href || '#/case/jobs') + '">' + esc(withJob ? a.another : a.addJob) + '</a>';
+    return '<div class="item ask jobs-ask" data-key="' + esc(key) + '"><div class="row is-static"><span class="row-text">' +
+      '<span class="row-title">' + escText(withJob ? a.jobTitle : a.noJobTitle) + '</span>' +
+      '<span class="ask-actions">' + primary + other + '</span>' +
+      '</span><span class="row-trail">' + info(a.info, { inline: false }) + '</span></div></div>';
+  }
+
+  /* employerCheck(emp = DULY_SAMPLE.employer, { next? }) : the two public facts
+     about the student's own employer, as one list:
+       E-Verify                takes part · source and checked date · source mark
+       H-1B petitions approved the latest year on the right, Sample mark; opens
+                               to the yearly counts and the data lag
+     next: true adds the one quiet line after it ("Ask HR for the E-Verify
+     company ID. It goes on your I-983."). Never a verdict on the employer. */
+  function employerCheck(e, o) {
+    const emp = e || SAMPLE().employer;
+    if (!emp) return '';
+    const opt = o || {};
+    const ev = emp.everify || {};
+    const h = emp.h1b || {};
+    const years = (h.years || []).map((y) => valueRow({ label: y.fy, value: y.count + (h.unit ? ' ' + h.unit : ''), editable: false, num: true })).join('');
+    const rows = [
+      fact({ key: 'employer-everify', title: ev.label, value: ev.value, meta: ev.meta, sample: !ev.saved, source: ev.rule }),
+      fact({
+        key: 'employer-h1b', title: h.label, value: h.latest, meta: h.meta, sample: h.sample, source: h.rule,
+        content: '<div class="list">' + years + '</div>' + (h.lag ? '<p class="t-meta">' + escText(h.lag) + '</p>' : ''),
+      }),
+    ];
+    return list(rows, { accordion: false, label: emp.title || 'Employer check' }) +
+      (opt.next && ev.next ? '<p class="employer-next t-meta">' + escText(ev.next) + '</p>' : '');
+  }
+
+  /* employerRow(emp = DULY_SAMPLE.employer) : one link row to #/employer, for
+     Your profile's Job section or a STEM OPT step. */
+  function employerRow(e) {
+    const emp = e || SAMPLE().employer;
+    if (!emp) return '';
+    const bits = [emp.everify ? emp.everify.label + ': ' + String(emp.everify.value || '').toLowerCase() : '', emp.h1b ? 'H-1B: ' + emp.h1b.latest : ''];
+    return row({ key: 'employer', title: emp.title || 'Employer check', meta: bits.filter(Boolean).join(' · '), href: '#/employer' });
+  }
+
+  /* processingTime(pt) : USCIS's published processing time for a filed
+     application, from App.processingFor(app). The line is USCIS's figure,
+     never a prediction: "USCIS says 80% of these cases are decided within
+     3 months." with form, office and as-of date under it, the Sample mark in
+     the prototype, and the source mark. One item; wrap it in C.list. */
+  function processingTime(pt) {
+    if (!pt) return '';
+    return fact({ key: 'processing-' + pt.key, title: pt.line, meta: pt.meta, sample: pt.sample, source: pt.rule });
+  }
+
+  /* reminders(r = DULY_SAMPLE.reminders) : the channels, as setting rows. Email
+     and phone are switches (App.state['remind:email'], 'remind:phone');
+     Calendar is one button that saves every date as a calendar file
+     (App.addToCalendar). All free; say so once, behind the section's ⓘ. */
+  function reminders(r) {
+    const rr = r || SAMPLE().reminders;
+    if (!rr) return '';
+    const st = APP().state || {};
+    const rows = (rr.channels || []).map((ch) => {
+      const k = 'remind:' + ch.key;
+      const on = st[k] != null ? !!st[k] : !!ch.on;
+      const control = ch.action
+        ? '<button type="button" class="btn btn-pill" data-calendar>' + esc(ch.action) + '</button>'
+        : toggle({ key: k, on: on, label: ch.label });
+      return '<div class="item srow" data-key="' + esc(k) + '"><div class="row is-static">' +
+        '<span class="row-text"><span class="row-title">' + esc(ch.label) + '</span>' +
+        (ch.meta ? '<span class="row-meta">' + esc(ch.meta) + '</span>' : '') + '</span>' +
+        '<span class="s-control">' + (ch.info ? info(ch.info, { inline: false }) : '') + control + '</span>' +
+        '</div></div>';
+    });
+    return list(rows, { accordion: false, label: 'Reminder channels' });
+  }
+
+  /* shareButton({ title, label = 'Share', reveal = true }) : Share on a document
+     row. One tap opens the phone's own share sheet (App.share; navigator.share
+     where the browser has it). On a wide window it shows on hover or focus;
+     on a touch screen it always shows. */
+  function shareButton(p) {
+    const o = p || {};
+    return '<button type="button" class="' + cls('btn btn-text is-small share-btn', o.reveal !== false && 'row-reveal') + '" data-share="' + esc(o.title || '') + '" aria-label="' + esc('Share ' + (o.title || 'document')) + '">' +
+      icon('share') + '<span>' + esc(o.label || 'Share') + '</span></button>';
+  }
+
   window.C = {
     esc, raw, cls, attrs, uid, icon,
     NAV, NAV_SECONDARY,
@@ -942,5 +1125,6 @@
     escText, affectsFor, todoShort, updateRow, applicationRow, statusLine,
     note, caution, dates, tracker, found, footer,
     steps, onboarding,
+    sampleMark, promise, pillars, fact, stemField, jobsAsk, employerCheck, employerRow, processingTime, reminders, shareButton,
   };
 })();

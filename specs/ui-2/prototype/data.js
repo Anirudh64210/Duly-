@@ -24,6 +24,27 @@ window.DULY_SAMPLE = {
   checked: { today: 'Checked today, 6:00 AM', rules: 'Rules checked today, 6:00 AM', offline: 'Rules last checked Sep 29. They are checked again once you are online.' },
   version: 'Version 0.2 prototype',
 
+  /* Round 4 (VALUE.md). Duly is web, phone and desktop, one account. Copy
+     never says "this Mac": it says "your device" (or "this device" where the
+     student is looking at it). device.name is the one currently in use. */
+  device: { here: 'this device', yours: 'your device', name: "Priya's phone", platforms: ['Web', 'Phone', 'Desktop'] },
+
+  /* The promise (VALUE.md section 1). Shown once on Welcome and once under
+     the Home title, nowhere else. "F-1 record" becomes "immigration record"
+     when the H-1B, O-1 and EB-1A packs are filled (BACKLOG B5). */
+  promise: {
+    line: 'A private place for your F-1 record, right to the day.',
+    subline: 'Your documents, dates and next steps in one place, counted from your own papers, with every rule one tap away.',
+  },
+
+  /* Three pillars, for Welcome (VALUE.md section 2). Title plus one line each;
+     the line may go behind an ⓘ on a small screen. */
+  pillars: [
+    { key: 'day', title: 'Right to the day', line: 'Every date is counted from your own documents, in your time zone, with the rule one tap away.' },
+    { key: 'private', title: 'Private by design', line: 'Documents are read on your device and stored encrypted. No ads, no partner deals, no selling data.' },
+    { key: 'ahead', title: 'Ahead of what comes next', line: 'Your next move with its date, free reminders, and rule changes explained for you.' },
+  ],
+
   student: {
     first: 'Priya',
     name: 'Priya Raman',
@@ -70,6 +91,187 @@ window.DULY_SAMPLE = {
     reported: true,
   },
 
+  /* Unemployment days (VALUE.md section 3, analysis move 7.2). The count is
+     shown only once the student has said the job list is complete: "Yes,
+     that's every job" or "I haven't had a job yet". Before that, the one
+     line "Add your job to count these days" (no job on file) or the choice
+     card (a job on file). Always with its as-of date.
+       state   'ask' | 'every' | 'none'. App.state.jobsComplete wins.
+               Read it through App.unemployment(), never here.
+       every   the count with Northwind Systems as the only job: Feb 14 to
+               Feb 26, 2026, the card's first 13 days before the job began.
+       none    the count with no job: every day from the card start (Feb 14,
+               2026) to today (Sep 30, 2026), 229 days. Shown as a fact
+               with its source; no verdict, the DSO step is on the page. */
+  unemployment: {
+    state: 'every',
+    asOf: 'Sep 30',
+    asOfLong: 'Sep 30, 2026',
+    limit: 90,
+    cardFrom: 'Feb 14, 2026',
+    every: { used: 13, left: 77, pct: 14, counted: 'Your card started Feb 14, 2026. Your job started Feb 27, 2026. Feb 14 to Feb 26 are 13 days without work.' },
+    none: { used: 229, left: 0, pct: 100, counted: 'Your card started Feb 14, 2026, and no job is on file. Feb 14 to Sep 30 are 229 days without work.' },
+    ask: {
+      /* With a job on file. */
+      jobTitle: 'Northwind Systems, since Feb 27, 2026. Is that every job on your OPT?',
+      every: "Yes, that's every job",
+      another: 'Add another job',
+      /* With no job on file. */
+      noJobTitle: 'Have you had a job on your OPT yet?',
+      none: "I haven't had a job yet",
+      addJob: 'Add your job',
+      href: '#/case/jobs',
+      info: 'Days without work are counted only once your job list is complete, so the number is never a guess.',
+    },
+    everyLine: "That's every job, as of Sep 30.",
+    noneLine: 'No job yet, as of Sep 30.',
+    add: { action: 'Add your job', rest: 'to count these days.', href: '#/case/jobs' },
+    confirm: { action: 'Confirm your jobs', rest: 'to count these days.', href: '#/case/jobs' },
+  },
+
+  /* STEM field from the I-20 (VALUE.md section 3, analysis move 7.4). The
+     field code (CIP) printed on the I-20 is read on the device and confirmed
+     once, then checked against the DHS STEM Designated Degree Program List.
+     A fact with its source and date, never a verdict about the student.
+       state  'found' (read, not confirmed yet) | 'confirmed'.
+              App.state.stemField wins. Read it through App.stemField().
+     The list is not yet saved in rulepacks/f1-us (decision 10.6): until it
+     is, the product keeps "This looks like a STEM degree" as a question. */
+  stemField: {
+    state: 'confirmed',
+    cip: '11.0701',
+    field: 'Computer Science',
+    from: 'Your I-20',
+    onList: true,
+    listName: 'DHS STEM Designated Degree Program List',
+    listDate: 'Jul 2024',
+    checked: 'Sep 30',
+    line: "Your I-20's field code, 11.0701, is on the STEM list.",
+    short: '11.0701, on the STEM list',
+    foundTitle: 'Your I-20 lists field code 11.0701, Computer Science.',
+    confirmLabel: 'That matches',
+    changeLabel: 'Fix it',
+    info: 'The field code on your I-20, checked against the government list of STEM fields. The list is one of the STEM OPT requirements; your DSO confirms the rest.',
+  },
+
+  /* Employer check (VALUE.md section 3). Two public facts about the
+     student's own employer (or an offer they hold), each with its source and
+     checked date. Never a verdict on the employer, and not a search tool.
+     The E-Verify fact feeds the STEM OPT step "Check that Northwind Systems
+     uses E-Verify"; the student still confirms the company ID on the I-983.
+     H-1B figures are sample data in the prototype (sample: true shows a
+     "Sample" mark). Where the data allows, the name is matched on the
+     device against downloaded public data. Route: #/employer. */
+  employer: {
+    name: 'Northwind Systems',
+    role: 'Software Engineer',
+    since: 'Feb 27, 2026',
+    relation: 'Your job',
+    title: 'Employer check',
+    info: 'Public records about your employer, each with its source. Not a judgement of the employer.',
+    everify: {
+      key: 'everify',
+      label: 'E-Verify',
+      state: 'participates',
+      value: 'Takes part',
+      line: 'Northwind Systems takes part in E-Verify.',
+      meta: 'E-Verify Employer Search · checked Sep 30',
+      checked: 'Sep 30',
+      source: { name: 'E-Verify Employer Search', publisher: 'E-Verify (DHS and USCIS)', href: 'https://www.e-verify.gov/about-e-verify/e-verify-data/e-verify-employer-search' },
+      next: 'Ask HR for the E-Verify company ID. It goes on your I-983.',
+      rule: 'everify',
+    },
+    h1b: {
+      key: 'h1b',
+      label: 'H-1B petitions approved',
+      sample: true,
+      unit: 'approved',
+      years: [
+        { fy: 'FY 2025', count: 14 },
+        { fy: 'FY 2024', count: 11 },
+        { fy: 'FY 2023', count: 9 },
+      ],
+      latest: '14 in FY 2025',
+      meta: 'USCIS H-1B Employer Data Hub · checked Sep 30',
+      checked: 'Sep 30',
+      lag: 'The latest year USCIS has published is FY 2025.',
+      info: 'New and continuing H-1B approvals USCIS recorded for this employer, by federal fiscal year. Past filings, not a promise about yours.',
+      source: { name: 'H-1B Employer Data Hub', publisher: 'USCIS', href: 'https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub' },
+      rule: 'h1bHub',
+    },
+    offer: { action: 'Add an offer letter', rest: 'to check that employer too.', href: '#/documents/add' },
+    footer: 'From public government records, not legal advice.',
+  },
+
+  /* USCIS processing times (VALUE.md section 3, analysis move 7.7). Shown on
+     USCIS status for a filed application only: USCIS's own published figure,
+     quoted with form, category, office, source and date. USCIS's figure, not
+     a prediction for the student. Sample figures in the prototype
+     (decision 10.5; the page is not yet saved as a source). Keyed by an
+     application's `processing`. Read through App.processingFor(app). */
+  processingTimes: {
+    'i765-stem': {
+      key: 'i765-stem',
+      label: 'USCIS processing time',
+      form: 'Form I-765',
+      category: 'STEM OPT extension',
+      office: 'Potomac Service Center',
+      figure: '3 months',
+      basis: 'USCIS says 80% of these cases are decided within',
+      line: 'USCIS says 80% of these cases are decided within 3 months.',
+      meta: 'Form I-765, STEM OPT · Potomac Service Center · as of Sep 24, 2026',
+      asOf: 'Sep 24, 2026',
+      checked: 'Sep 30',
+      sample: true,
+      info: "USCIS's published figure for this form and office. Not a date for your case.",
+      source: { name: 'Case Processing Times', publisher: 'USCIS', href: 'https://egov.uscis.gov/processing-times/' },
+      rule: 'processing',
+    },
+    'i765-opt': {
+      key: 'i765-opt',
+      label: 'USCIS processing time',
+      form: 'Form I-765',
+      category: 'Post-completion OPT',
+      office: 'Potomac Service Center',
+      figure: '2.5 months',
+      basis: 'USCIS says 80% of these cases are decided within',
+      line: 'USCIS says 80% of these cases are decided within 2.5 months.',
+      meta: 'Form I-765, OPT · Potomac Service Center · as of Sep 24, 2026',
+      asOf: 'Sep 24, 2026',
+      checked: 'Sep 30',
+      sample: true,
+      info: "USCIS's published figure for this form and office. Not a date for your case.",
+      source: { name: 'Case Processing Times', publisher: 'USCIS', href: 'https://egov.uscis.gov/processing-times/' },
+      rule: 'processing',
+    },
+  },
+
+  /* Reminders (VALUE.md section 3 and 4). Free for good, on by default, at
+     the student's local morning, one message for every date due. Every
+     channel is free. An email carries only the date and a title, never a
+     SEVIS ID, name or document. Calendar is a file added once (.ics),
+     built by App.calendarFile() from `dates`. Channel on/off lives in
+     App.state['remind:<key>'] (C.reminders wires it). */
+  reminders: {
+    on: true,
+    when: 'Two weeks before, and again two days before',
+    time: 'At 8:00 AM, your time',
+    bundle: 'One message for every date due',
+    info: 'Reminders are free on every channel.',
+    channels: [
+      { key: 'email', label: 'Email', on: true, meta: 'Only the date and a title', info: 'An email carries the date and a title, never your SEVIS ID, your name or a document.' },
+      { key: 'phone', label: 'Phone notification', on: true, meta: 'On your phone' },
+      { key: 'calendar', label: 'Calendar', meta: 'Every date, added to your calendar once', action: 'Add to calendar' },
+    ],
+    example: 'Nov 15: STEM OPT window opens',
+    dates: [
+      { iso: '2026-10-15', title: 'Start preparing for STEM OPT' },
+      { iso: '2026-11-15', title: 'STEM OPT window opens' },
+      { iso: '2027-02-13', title: 'EAD card ends. Last day to file for STEM OPT' },
+    ],
+    file: 'duly-dates.ics',
+  },
+
   /* Onboarding: the six skeleton steps */
   onboarding: {
     steps: [
@@ -104,7 +306,7 @@ window.DULY_SAMPLE = {
     /* Subline once the student has said no to STEM OPT, or has nothing left this week. */
     sublineQuiet: 'Nothing else needs you this week.',
     metrics: [
-      { eyebrow: 'Unemployment days', value: '13', unit: 'used · 77 left', bar: 14, source: 'unemployment' },
+      { eyebrow: 'Unemployment days', value: '13', unit: 'used · 77 left', bar: 14, source: 'unemployment', asOf: 'As of Sep 30' },
       { eyebrow: 'EAD valid until', value: 'Feb 13, 2027', date: true, unit: '136 days left', source: 'eadEnds' },
       { eyebrow: 'Next date', value: 'Nov 15', date: true, unit: 'STEM OPT window opens · in 46 days', source: 'stemOpens' },
     ],
@@ -148,7 +350,7 @@ window.DULY_SAMPLE = {
     eyebrow: 'STEM OPT extension',
     askTitle: 'Planning to apply for STEM OPT?',
     askLine: 'Window opens Nov 15, 2026.',
-    askInfo: 'Computer Science is on the STEM list, and your card ends Feb 13, 2027.',
+    askInfo: "Your I-20's field code, 11.0701, is on the STEM list, and your card ends Feb 13, 2027.",
     unsureLine: 'Here are the dates. Decide any time.',
     yesTitle: 'Start preparing by Oct 15.',
     yesLine: 'File between Nov 15, 2026 and Feb 13, 2027.',
@@ -171,7 +373,8 @@ window.DULY_SAMPLE = {
          updated { date, href, what }: set only when an approved rule change
                 touched the step. None today. */
     tasks: [
-      { key: 'everify', title: 'Check that Northwind Systems uses E-Verify', meta: null, info: "Ask HR for the company's E-Verify number.", source: 'stemEmployer' },
+      { key: 'everify', title: 'Check that Northwind Systems uses E-Verify', meta: 'Listed in E-Verify, checked Sep 30', info: 'Ask HR for the E-Verify company ID. It goes on your I-983.', source: 'stemEmployer',
+        open: { label: 'See', href: '#/employer' } },
       { key: 'i983', title: 'Fill out your training plan with your manager', meta: 'Form I-983', info: 'You and your manager both sign it.', source: 'stemPlan' },
       { key: 'i20', title: 'Get your new I-20 from your school', meta: null, info: "It carries your school's STEM OPT recommendation.", source: 'within60',
         onDone: { action: 'Add the date your school recommends you', rest: 'to see your exact last day to file.', href: '#/case/recommended', source: 'within60' } },
@@ -253,6 +456,7 @@ window.DULY_SAMPLE = {
           { label: 'Card valid', date: 'Feb 14, 2026 to Feb 13, 2027' },
         ],
         next: { title: 'Nothing to do here', meta: 'Your card is valid until Feb 13, 2027.' },
+        processing: 'i765-opt',
         document: { label: 'I-797 approval notice', href: '#/documents/work' },
         schoolSteps: [],
       },
@@ -272,6 +476,8 @@ window.DULY_SAMPLE = {
           { label: 'Last day to file', date: 'Feb 13, 2027', source: 'stemCloses' },
         ],
         next: { title: 'Start preparing by Oct 15', href: '#/steps' },
+        /* Shown once filed (a receipt number and no decision): App.processingFor(). */
+        processing: 'i765-stem',
         schoolSteps: [],
       },
     ],
@@ -493,7 +699,16 @@ window.DULY_SAMPLE = {
   documents: {
     count: 12,
     headline: '12 documents, one record.',
-    meta: 'Every version kept, encrypted on this Mac.',
+    meta: 'Every version kept, encrypted on your device.',
+    /* One tap opens, one tap shares through the phone's own share sheet
+       (C.shareButton, App.share). No more sending an I-20 to your own chat. */
+    share: { label: 'Share', info: 'Opens your phone\'s share sheet: Mail, Messages or any app.' },
+    /* The three asked for most, one tap from the top of Documents on a phone. */
+    quick: [
+      { title: 'I-20, OPT recommendation', meta: 'Oct 2025', href: '#/documents/i20' },
+      { title: 'EAD card', meta: 'Valid until Feb 13, 2027', href: '#/documents/work' },
+      { title: 'Passport', meta: 'Valid until Jul 9, 2031', href: '#/documents/identity' },
+    ],
     tabs: [
       { key: 'all', label: 'All' },
       { key: 'i20', label: 'I-20s', count: 4 },
@@ -544,7 +759,7 @@ window.DULY_SAMPLE = {
       ] },
       { key: 'study', eyebrow: 'Study', rows: [
         { key: 'degree', label: 'Degree', value: "Master's in Computer Science" },
-        { key: 'stem', label: 'STEM field', value: 'Yes, on the STEM list', source: 'stemList' },
+        { key: 'stem', label: 'STEM field', value: 'Field code 11.0701, on the STEM list', source: 'stemList', readonly: true },
         { key: 'dates', label: 'Program dates', value: 'Aug 21, 2023 to Dec 18, 2025' },
         { key: 'awarded', label: 'Degree awarded', value: 'Dec 18, 2025' },
         { key: 'earlier', label: 'Earlier degree', value: "Bachelor's, Anna University, India, 2023" },
@@ -573,15 +788,23 @@ window.DULY_SAMPLE = {
 
   /* Settings */
   settings: {
-    storage: { title: 'Stored on this Mac', meta: 'Your records and documents are encrypted here. 12 documents.' },
+    storage: { title: 'Stored encrypted', meta: 'Your records and documents are encrypted on your device. 12 documents.' },
+    /* One short privacy line, true to what is built (analysis move 7.8). */
+    privacy: 'No ads. No partner deals. No selling data. Documents are read on your device.',
+    /* Where Duly runs. One account on each. */
+    devices: [
+      { title: 'This phone', meta: "Priya's phone · now" },
+      { title: 'MacBook', meta: "Priya's MacBook · Sep 29" },
+      { title: 'Web', meta: 'Chrome · Sep 28' },
+    ],
     backup: { title: 'Back up to a file', meta: 'An encrypted copy you keep. Last backup: Sep 12, 2026.' },
     restoreFrom: "From Priya's MacBook, Sep 12, 2026",
     lockAfter: '5 minutes',
     lockOptions: ['1 minute', '5 minutes', '15 minutes', '1 hour'],
     remind: 'Two weeks before, and again two days before.',
-    timeZone: 'New York, set from this Mac',
+    timeZone: 'New York, set from this device',
     theme: 'system',
-    deleteMeta: 'Removes your records and documents from this Mac. Backups you saved stay where you put them.',
+    deleteMeta: 'Removes your records and documents from your account and your devices. Backups you saved stay where you put them.',
   },
 
   /* Where the waiting dot shows in the nav. app.js adds 'steps' while the
@@ -658,9 +881,9 @@ window.DULY_SAMPLE = {
     },
     stemEmployer: {
       name: 'STEM OPT employers',
-      plain: 'Your employer takes part in E-Verify.',
-      quote: null,
-      counted: [],
+      plain: 'For STEM OPT, your employer is enrolled in E-Verify and has a tax ID number (EIN).',
+      quote: "The student's employer is enrolled in E-Verify, as evidenced by either a valid E-Verify Company Identification number or, if the employer is using an employer agent to create its E-Verify cases, a valid E-Verify Client Company Identification number, and the employer remains a participant in good standing with E-Verify, as determined by USCIS. An employer must also have an employer identification number (EIN) used for tax purposes.",
+      counted: ['Northwind Systems is listed in the E-Verify Employer Search, checked Sep 30. The company ID for your I-983 comes from HR.'],
       link: { label: '8 CFR 214.2(f)(10)(ii)(C) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
       checked: 'Checked Sep 30',
     },
@@ -674,10 +897,35 @@ window.DULY_SAMPLE = {
     },
     stemList: {
       name: 'STEM degree list',
-      plain: 'Computer Science is on the list of STEM fields.',
+      plain: 'For STEM OPT, the degree is in a category on the government list of STEM fields when your school recommends you.',
+      quote: 'At the time the DSO recommends a 24-month OPT extension under this paragraph (f)(10)(ii)(C) in SEVIS, the degree that is the basis for the application for the OPT extension must be contained within a category on the STEM Designated Degree Program List.',
+      counted: ["Your I-20's field code is 11.0701, Computer Science. Code 11.0701 is on the list dated Jul 2024."],
+      link: { label: 'DHS STEM Designated Degree Program List', href: 'https://www.ice.gov/doclib/sevis/pdf/stemList2024.pdf' },
+      checked: 'Checked Sep 30',
+    },
+    /* Round 4: public records, each with its source and checked date. */
+    everify: {
+      name: 'E-Verify participation',
+      plain: 'Whether an employer is listed as taking part in E-Verify, from the government search.',
       quote: null,
-      counted: ['Your I-20 lists Computer Science.'],
-      link: { label: 'STEM Designated Degree Program List', href: 'https://www.ice.gov/' },
+      counted: ['Northwind Systems is listed as taking part, checked Sep 30.', 'Your I-983 still needs the E-Verify company ID from HR.'],
+      link: { label: 'E-Verify Employer Search on e-verify.gov', href: 'https://www.e-verify.gov/about-e-verify/e-verify-data/e-verify-employer-search' },
+      checked: 'Checked Sep 30',
+    },
+    h1bHub: {
+      name: 'H-1B Employer Data Hub',
+      plain: 'H-1B petitions USCIS approved for an employer, by fiscal year. Sample figures in this prototype.',
+      quote: null,
+      counted: ['FY 2025: 14. FY 2024: 11. FY 2023: 9.', 'The latest year USCIS has published is FY 2025.'],
+      link: { label: 'H-1B Employer Data Hub on uscis.gov', href: 'https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub' },
+      checked: 'Checked Sep 30',
+    },
+    processing: {
+      name: 'USCIS processing times',
+      plain: "USCIS's own published figure for a form, category and office. It describes past cases, not a date for yours. Sample figure in this prototype.",
+      quote: null,
+      counted: ['Form I-765, STEM OPT extension, Potomac Service Center: 80% of cases decided within 3 months, as of Sep 24, 2026.'],
+      link: { label: 'Case Processing Times on uscis.gov', href: 'https://egov.uscis.gov/processing-times/' },
       checked: 'Checked Sep 30',
     },
   },

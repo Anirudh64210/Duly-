@@ -10,7 +10,7 @@
    data-edit; values live in App.state['edit:case-<key>']). The only open
    question, "Was your degree awarded?", sits once at the top in C.waiting,
    asked when no document shows it (#/case/no-degree forces it for review).
-   Internships are added from a CPT I-20 (read on this Mac,
+   Internships are added from a CPT I-20 (read on the device,
    simulated) or typed. The product name is not used in this screen's text. */
 (function () {
   'use strict';
@@ -93,23 +93,35 @@
     return { key: 'stem-recommended', label: "School's STEM OPT recommendation", value: 'Tap to add the date', source: 'within60', num: true };
   }
 
+  /* The unemployment row reads App.unemployment(), as Home and Timeline do,
+     so the count and its as-of date never disagree. Until the job list is
+     confirmed it shows the add line instead of a number. */
+  function unemploymentRow(by) {
+    if (!by.unemployment) return null;
+    const u = App.unemployment();
+    const add = (u.metric && u.metric.add) || {};
+    const value = u.line || [add.action, add.rest].filter(Boolean).join(' ');
+    return Object.assign({}, by.unemployment, { value: value, num: !!u.line, readonly: true });
+  }
+
   /* 2. Work on OPT. The job reads as a job: its title and its employer are
-     two answers, each changed on its own. */
+     two answers, each changed on its own. Under them, "Is that every job?"
+     (the one place the count starts) and the employer check link. */
   function workGroup(data, by) {
     const job = String((by.job && by.job.value) || '');
     const cut = job.indexOf(', ');
     const title = cut === -1 ? job : job.slice(0, cut);
     const employer = cut === -1 ? '' : job.slice(cut + 2);
-    const rows = [
+    const jobRows = [
       by.permit && Object.assign({}, by.permit, { num: true }),
       { key: 'job-title', label: 'Job title', value: title || 'Tap to add' },
       { key: 'job-employer', label: 'Employer', value: employer || 'Tap to add' },
       by.started && Object.assign({}, by.started, { num: true }),
       by.reported,
-      by.unemployment && Object.assign({}, by.unemployment, { num: true }),
-      recommendedRow(),
-    ].filter(Boolean);
-    return C.section({ id: 'case-work', eyebrow: 'Work on OPT', content: list(rows.map(vrow)) });
+    ].filter(Boolean).map(vrow);
+    const after = [unemploymentRow(by), recommendedRow()].filter(Boolean).map(vrow);
+    const items = jobRows.concat([C.jobsAsk(), C.employerRow()].filter(Boolean), after);
+    return C.section({ id: 'case-work', eyebrow: 'Work on OPT', content: list(items) });
   }
 
   /* 3. Internships (CPT): the employer beside its dates. */
@@ -152,14 +164,16 @@
       primary: primary || '',
     });
   }
+  /* "this device": Duly runs on web, phone and desktop. */
+  function here() { const d = window.DULY_SAMPLE || {}; return (d.device && d.device.here) || 'this device'; }
   function pickStage() {
     return '<div class="case-stage-head"><p class="t-row">Choose a photo or PDF of the I-20' +
-      C.info('It is read on this Mac. Nothing is uploaded anywhere.') + '</p></div>' +
+      C.info('It is read on ' + here() + '.') + '</p></div>' +
       actions(C.button({ label: 'Choose a file', kind: 'pill', attrs: { 'data-case-pick': '' } }));
   }
   function readingStage(name) {
     return '<div class="case-stage-head" role="status"><p class="t-row">' + C.esc(name || 'Your I-20') + '</p>' +
-      '<p class="t-meta">Reading on this Mac</p></div>';
+      '<p class="t-meta">Reading on ' + C.esc(here()) + '</p></div>';
   }
   function foundStage(f) {
     return '<div class="case-stage-head" role="status"><p class="t-row">Found in your CPT I-20</p></div>' +
@@ -219,6 +233,14 @@
           const b = row.querySelector('[data-edit]');
           if (b) b.focus({ preventScroll: true });
         }
+      }
+      /* #/case/jobs: sent from "Add your job" or "Confirm your jobs". Land on
+         the job, with "Is that every job?" in view. */
+      if ((params || [])[0] === 'jobs') {
+        const ask = root.querySelector('[data-key="jobs-complete"]');
+        const jobBtn = root.querySelector('.vrow[data-key="case-job-employer"] [data-edit]');
+        if (ask) ask.scrollIntoView({ block: 'center' });
+        if (jobBtn) jobBtn.focus({ preventScroll: true });
       }
       const panel = root.querySelector('[data-case-panel]');
       const addBtn = root.querySelector('[data-case-add]');
