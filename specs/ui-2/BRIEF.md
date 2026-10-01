@@ -210,3 +210,24 @@ explanation goes behind an ⓘ, only when it is needed, and is minimal. The rest
    from the legal notes on the 2026 regime. An item with no saved source is removed, never
    invented.
 7. **Navigation labels** are human, intentional and distinct from each other.
+
+## Round 5: the founder's notes (2026-09-30)
+
+Updates, USCIS status and Documents "look great". To change:
+
+1. **Home's next move is answered in place.** "Decide on STEM OPT" opens on Home with Yes, No and
+   Not sure. A yes shows the three key dates in a small strip and an optional "See all steps". It
+   never jumps to another page unasked.
+2. **USCIS status: track another case.** Add any receipt number with its form type (for example an
+   H-1B petition, a green card form or a travel document); it joins the list with its status and
+   checked date. Remove anything on the page that does nothing.
+3. **Next steps comes alive:**
+   - a "today" marker on the date strip shows where the student is between now and the last day;
+   - the current step is highlighted, and steps expand in place;
+   - the progress fills as steps are ticked, and the next step moves up to current.
+4. **Light motion and haptics for a calm feeling of progress:**
+   - a check that draws itself, a soft fill, a gentle settle when a step completes;
+   - a light tap through the Vibration API on phones that support it;
+   - nothing loud, nothing that blocks;
+   - everything off under prefers-reduced-motion, and the screen is complete without motion.
+5. **The value proposition is refined after this round** ("is this all it does").
