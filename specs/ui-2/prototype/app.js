@@ -29,7 +29,10 @@
    is announced as a 'duly:change' event on document:
      detail = { kind, key, value, el }
      kind: 'task' | 'choice' | 'answer' | 'toggle' | 'edit' | 'field' | 'confirm'
-           | 'step' | 'draft' | 'school-step' | 'document' */
+           | 'step' | 'draft' | 'school-import' | 'document'
+
+   Old routes redirect in place (Round 3, note 7): #/next and #/checklists
+   go to #/steps, #/applications to #/uscis, keeping their params. */
 
 window.SCREENS = window.SCREENS || {};
 
@@ -80,9 +83,9 @@ window.SCREENS = window.SCREENS || {};
 
   /* Nav dots: where something is waiting for the student. */
   function waitingIn() {
-    const out = (data.waitingIn || []).filter((k) => k !== 'next' && k !== 'case');
+    const out = (data.waitingIn || []).filter((k) => k !== 'steps' && k !== 'case');
     const intent = stemIntent();
-    if (intent === null || intent === 'unsure') out.push('next');
+    if (intent === null || intent === 'unsure') out.push('steps');
     if (awardedWaiting()) out.push('case');
     return out;
   }
@@ -140,6 +143,40 @@ window.SCREENS = window.SCREENS || {};
   }
   App.steps = steps;
 
+  /* App.schoolImport(path) : where the school's steps stand for a path.
+       { state: 'empty' | 'found' | 'confirmed', href, label, steps }
+     state lives in App.state['schoolImport:<path>'] (falls back to
+     data.schoolImport.state). App.setSchoolImport(path, state) forces one,
+     for a review link such as #/steps/school. Confirming copies the found
+     steps into data.schoolSteps, where App.steps() places them. */
+  function schoolImportOf(path) {
+    const d = data.schoolImport || {};
+    const st = App.state['schoolImport:' + path] || d.state || 'empty';
+    const src = App.state['schoolImportSrc:' + path] || null;
+    return {
+      state: st,
+      href: src ? src.href : (st === 'empty' ? null : d.href),
+      label: src ? src.label : d.label,
+      steps: (d.found || []).filter((s) => (s.path || 'stem') === path),
+    };
+  }
+  App.schoolImport = schoolImportOf;
+  function setSchoolImport(path, state, src) {
+    const imp = schoolImportOf(path);
+    data.schoolSteps = (data.schoolSteps || []).filter((s) => !(s.from === 'school-page' && s.path === path));
+    if (state === 'confirmed') {
+      imp.steps.forEach((s) => data.schoolSteps.push(Object.assign({}, s, {
+        path: path, from: 'school-page', done: isDone('school:' + s.id, s.done),
+        link: s.link || (imp.href ? { label: 'Open', href: imp.href } : null),
+      })));
+    }
+    if (src !== undefined) App.state['schoolImportSrc:' + path] = src;
+    App.state['schoolImport:' + path] = state;
+  }
+  App.setSchoolImport = setSchoolImport;
+  /* Seed: a state set in the data starts with its steps in place. */
+  if (data.schoolImport && data.schoolImport.state === 'confirmed') setSchoolImport('stem', 'confirmed');
+
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isPhone = () => window.matchMedia('(max-width: 640px)').matches;
   const cssEsc = (v) => (window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, '\\$&'));
@@ -156,7 +193,19 @@ window.SCREENS = window.SCREENS || {};
   applyTheme(readTheme());
 
   /* ---------------- router ---------------- */
+  const ALIASES = { next: 'steps', checklists: 'steps', applications: 'uscis' };
+  App.ALIASES = ALIASES;
+  /* An old hash is swapped for its new one in place, keeping history.state. */
+  function redirect() {
+    const h = (location.hash || '').replace(/^#\/?/, '');
+    const parts = h.split('/');
+    const to = ALIASES[parts[0]];
+    if (!to) return;
+    parts[0] = to;
+    try { history.replaceState(history.state, '', '#/' + parts.join('/')); } catch (e) { location.replace('#/' + parts.join('/')); }
+  }
   function parse() {
+    redirect();
     const h = (location.hash || '').replace(/^#\/?/, '');
     const parts = h.split('/').filter(Boolean).map(decodeURIComponent);
     return { name: parts[0] || 'home', params: parts.slice(1) };
@@ -324,7 +373,7 @@ window.SCREENS = window.SCREENS || {};
     });
     if (still) root.querySelectorAll('.bar > i').forEach((i) => { i.style.animation = 'none'; });
   }
-  const FOCUS_ATTRS = ['data-task', 'data-field', 'data-draft-act', 'data-school-add', 'data-edit', 'data-next', 'data-action', 'data-toggle', 'data-copy'];
+  const FOCUS_ATTRS = ['data-task', 'data-field', 'data-draft-act', 'data-school-import', 'data-edit', 'data-next', 'data-action', 'data-toggle', 'data-copy'];
   function describeFocus(root) {
     const el = document.activeElement;
     if (!el || el === document.body || !root.contains(el)) return null;
@@ -428,13 +477,9 @@ window.SCREENS = window.SCREENS || {};
     const dact = t.closest('[data-draft-act]');
     if (dact) { draftAction(dact); return; }
 
-    /* your school's steps */
-    const sa = t.closest('[data-school-add]');
-    if (sa) { schoolAdd(sa); return; }
-    const sl = t.closest('[data-school-link]');
-    if (sl) { schoolLinkOpen(sl); return; }
-    const sls = t.closest('[data-school-link-save]');
-    if (sls) { schoolLinkSave(sls); return; }
+    /* your school's steps, from its page */
+    const si = t.closest('[data-school-import]');
+    if (si) { schoolImportAct(si); return; }
 
     /* radios: choice cards and chips */
     const radio = t.closest('[role="radiogroup"] [role="radio"]');
@@ -512,8 +557,8 @@ window.SCREENS = window.SCREENS || {};
     if (e.key === 'Enter' && t.closest && t.closest('.vrow.is-editing') && t.matches('input')) {
       e.preventDefault(); finishEdit(t.closest('.vrow'), true); return;
     }
-    if (e.key === 'Enter' && t.closest && t.closest('[data-school-link-form]') && t.matches('input')) {
-      e.preventDefault(); schoolLinkSave(t.closest('[data-school-link-form]').querySelector('[data-school-link-save]')); return;
+    if (e.key === 'Enter' && t.matches && t.matches('[data-school-import-url]')) {
+      e.preventDefault(); schoolImportAct(t.closest('.school-import').querySelector('[data-school-import="fetch"]')); return;
     }
     /* arrow keys inside a radiogroup */
     if (/^Arrow(Up|Down|Left|Right)$/.test(e.key) && t.matches && t.matches('[role="radio"]')) {
@@ -533,6 +578,11 @@ window.SCREENS = window.SCREENS || {};
 
   function onInput(e) {
     const el = e.target;
+    if (e.type === 'change' && el.matches && el.matches('[data-school-import-pdf]')) {
+      const f = el.files && el.files[0];
+      if (f) schoolImportFound(el.closest('.school-import'), { label: f.name, href: null });
+      return;
+    }
     const body = el.closest && el.closest('.draft .email-body');
     if (body) { App.state['draftHtml:' + body.closest('[data-draft]').dataset.draft] = body.innerHTML; return; }
     if (!el.dataset || !el.dataset.field) return;
@@ -580,6 +630,7 @@ window.SCREENS = window.SCREENS || {};
       if (meta) {
         const doneMeta = meta.dataset.doneMeta || ('Done ' + shortToday());
         meta.textContent = on ? doneMeta : meta.dataset.meta;
+        meta.hidden = !meta.textContent;
       }
       const onDone = item.querySelector('[data-on-done]');
       if (onDone) onDone.hidden = !on;
@@ -640,7 +691,6 @@ window.SCREENS = window.SCREENS || {};
     const key = group.dataset.choices;
     App.state[key] = radio.dataset.value;
     if (key === 'theme') applyTheme(radio.dataset.value);
-    if (key === 'schoolStep:kind') prefillSchoolTitle(radio);
     emit('choice', key, radio.dataset.value, radio);
   }
 
@@ -708,83 +758,45 @@ window.SCREENS = window.SCREENS || {};
     }
   }
 
-  /* ---------------- your school's steps (C.addSchoolStep, C.schoolStep) ---------------- */
-  function schoolAdd(btn) {
-    const wrap = btn.closest('[data-school-add-wrap]');
+  /* ---------------- your school's steps, from its page (C.schoolImport) ---------------- */
+  function schoolImportFound(wrap, src) {
     if (!wrap) return;
-    const form = wrap.querySelector('.school-form');
-    const opener = wrap.querySelector('[data-school-add="open"]');
-    const what = btn.dataset.schoolAdd;
-    if (what === 'open') {
-      form.hidden = false; opener.hidden = true; opener.setAttribute('aria-expanded', 'true');
-      const first = form.querySelector('[role="radio"]'); if (first) first.focus();
-      return;
-    }
-    if (what === 'cancel') {
-      form.hidden = true; opener.hidden = false; opener.setAttribute('aria-expanded', 'false'); opener.focus();
-      return;
-    }
-    if (what === 'save') {
-      const val = (sel) => { const el = form.querySelector(sel); return el ? String(el.value || '').trim() : ''; };
-      const title = val('[data-field="schoolStep:title"]');
-      if (!title) {
-        const input = form.querySelector('[data-field="schoolStep:title"]');
-        if (input) { input.setAttribute('aria-invalid', 'true'); input.focus(); }
-        toast('Name the step first');
-        return;
-      }
-      const kind = form.querySelector('[data-choices="schoolStep:kind"] [aria-checked="true"]');
-      const place = form.querySelector('[data-choices="schoolStep:placement"] [aria-checked="true"]');
-      const link = val('[data-field="schoolStep:link"]');
-      const step = {
-        id: 'mine-' + ((data.schoolSteps || []).length + 1) + '-' + Date.now().toString(36),
-        path: wrap.dataset.schoolAddWrap || 'stem',
-        title: title,
-        kind: kind ? kind.dataset.value : 'other',
-        meta: kind ? (data.schoolStepKinds.filter((k) => k.key === kind.dataset.value)[0] || {}).label || '' : '',
-        link: link ? { label: 'Open', href: /^https?:/.test(link) ? link : 'https://' + link } : null,
-        placement: place ? place.dataset.value : 'before',
-        federal: val('[data-field="schoolStep:federal"]'),
-        done: false, addedBy: 'you', added: shortToday(), saved: true,
-      };
-      if (step.meta === 'Something else') step.meta = '';
-      data.schoolSteps = data.schoolSteps || [];
-      data.schoolSteps.push(step);
-      ['schoolStep:title', 'schoolStep:link', 'schoolStep:kind', 'schoolStep:placement', 'schoolStep:federal'].forEach((k) => { delete App.state[k]; });
-      emit('school-step', 'add', step, btn);
-      render('inplace');
-      toast('Step added');
-    }
-  }
-  function prefillSchoolTitle(radio) {
-    const form = radio.closest('.school-form');
-    const input = form && form.querySelector('[data-field="schoolStep:title"]');
-    if (!input) return;
-    if (input.value.trim() && input.dataset.auto !== '1') return;
-    const kind = radio.dataset.value;
-    input.value = kind === 'other' ? '' : radio.textContent.trim();
-    input.dataset.auto = kind === 'other' ? '' : '1';
-    App.state['schoolStep:title'] = input.value;
-  }
-  function schoolLinkOpen(btn) {
-    const id = btn.dataset.schoolLink;
-    const form = document.querySelector('[data-school-link-form="' + cssEsc(id) + '"]');
-    if (!form) return;
-    btn.closest('.unknown').hidden = true;
-    form.hidden = false;
-    const input = form.querySelector('input'); if (input) input.focus();
-  }
-  function schoolLinkSave(btn) {
-    if (!btn) return;
-    const id = btn.dataset.schoolLinkSave;
-    const form = btn.closest('[data-school-link-form]');
-    const v = form ? form.querySelector('input').value.trim() : '';
-    if (!v) { toast('Paste the link first'); return; }
-    const s = findSchoolStep(id);
-    if (s) s.link = { label: 'Open', href: /^https?:/.test(v) ? v : 'https://' + v };
-    emit('school-step', 'link', s, btn);
+    const path = wrap.dataset.schoolImportWrap || 'stem';
+    setSchoolImport(path, 'found', src);
+    emit('school-import', path, 'found', wrap);
     render('inplace');
-    toast('Link saved');
+    const btn = document.querySelector('[data-school-import="confirm"]');
+    if (btn) btn.focus({ preventScroll: true });
+  }
+  function schoolImportAct(btn) {
+    if (!btn) return;
+    const wrap = btn.closest('.school-import');
+    const path = (wrap && wrap.dataset.schoolImportWrap) || 'stem';
+    const act = btn.dataset.schoolImport;
+    if (act === 'fetch') {
+      const input = wrap.querySelector('[data-school-import-url]');
+      const v = input ? input.value.trim() : '';
+      if (!v) { if (input) input.focus(); toast('Paste the link first'); return; }
+      const href = /^https?:/.test(v) ? v : 'https://' + v;
+      const d = data.schoolImport || {};
+      schoolImportFound(wrap, { href: href, label: d.label || href.replace(/^https?:\/\//, '').split('/')[0] });
+      return;
+    }
+    if (act === 'confirm') {
+      const n = schoolImportOf(path).steps.length;
+      setSchoolImport(path, 'confirmed');
+      emit('school-import', path, 'confirmed', btn);
+      render('inplace');
+      toast(n + ' steps added');
+      return;
+    }
+    if (act === 'dismiss' || act === 'reset') {
+      setSchoolImport(path, 'empty', null);
+      emit('school-import', path, 'empty', btn);
+      render('inplace');
+      const input = document.querySelector('[data-school-import-url]');
+      if (input) input.focus({ preventScroll: true });
+    }
   }
 
   /* ---------------- edit in place ---------------- */
@@ -1020,6 +1032,9 @@ window.SCREENS = window.SCREENS || {};
   window.addEventListener('drop', (e) => {
     e.preventDefault();
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    /* A school PDF dropped on the school box gives steps, not a document. */
+    const zone = e.target && e.target.closest && e.target.closest('[data-school-import-zone]');
+    if (zone && f) { schoolImportFound(zone.closest('.school-import'), { label: f.name, href: null }); return; }
     addDocument(f || null);
   });
 

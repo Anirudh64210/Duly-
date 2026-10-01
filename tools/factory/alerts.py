@@ -22,6 +22,7 @@ KINDS = (
     "escalated",
     "stopped",
     "model",
+    "factory",
 )
 
 

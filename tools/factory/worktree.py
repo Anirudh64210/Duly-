@@ -4,8 +4,12 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from tools.factory import ledger
+from tools.factory.efficiency import CHECK_TASKS
 from tools.factory.paths import main_repo, worktrees_dir
 
+# What a health probe writes: the proof file, its report, and the file it must fail to write.
+PROBE_FILES = ("HEALTH.txt", "REPORT.json", "probe.txt", ".lane")
 GIT_ID = [
     "-c",
     "user.name=Duly factory",
@@ -99,9 +103,64 @@ def changed_files(tree: Tree) -> list[str]:
     return sorted(line for line in out.splitlines() if line)
 
 
-def remove(tree: Tree, delete_branch: bool, cwd: Path | None = None) -> None:
+def only_here(branch: str, cwd: Path) -> list[str]:
+    """The commits of branch that no other branch holds."""
+    out = git(
+        ["rev-list", branch, "--not", f"--exclude={branch}", "--branches"],
+        cwd,
+        check=False,
+    )
+    return out.split()
+
+
+def remove(tree: Tree, delete_branch: bool, cwd: Path | None = None) -> bool:
+    """Remove the worktree, and its branch when asked (see drop_branch). True when the branch
+    was deleted."""
     repo = main_repo(cwd)
     git(["worktree", "remove", "--force", str(tree.path)], repo, check=False)
     git(["worktree", "prune"], repo, check=False)
-    if delete_branch:
-        git(["branch", "-D", tree.branch], repo, check=False)
+    return delete_branch and drop_branch(tree.branch, repo)
+
+
+def _probe_only(commit: str, repo: Path) -> bool:
+    """Whether a commit changes nothing but the files a health probe writes. A commit that
+    lists no file (a merge, an empty commit) is not, so it is kept."""
+    files = git(["diff-tree", "--no-commit-id", "--name-only", "-r", "--root", commit], repo)
+    return bool(files.split()) and all(Path(f).name in PROBE_FILES for f in files.split())
+
+
+def drop_branch(branch: str, cwd: Path | None = None, probes: bool = False) -> bool:
+    """Delete a branch unless it holds commits no other branch holds: work kept from a failed
+    run is never thrown away by a cleanup. With probes, commits that only touch a health
+    probe's files do not count as work. A branch a worktree has checked out stays. True when
+    the branch was deleted."""
+    repo = main_repo(cwd)
+    unique = only_here(branch, repo)
+    if any(not (probes and _probe_only(c, repo)) for c in unique):
+        return False
+    try:
+        git(["branch", "-D", branch], repo)
+    except WorktreeError:
+        return False
+    return True
+
+
+def prune(cwd: Path | None = None) -> list[str]:
+    """Delete the branches of the factory's own checks (health probes, golden tasks, drift
+    reviews, and golden's throwaway bases) that hold no unique work. Runs at every factory
+    start and in make factory-clean. Returns the branches deleted."""
+    repo = main_repo(cwd)
+    runs = {
+        str(r["run_id"])
+        for r in ledger.read(repo)
+        if r.get("kind") == "start" and str(r.get("task", "")).startswith(CHECK_TASKS)
+    }
+    heads = git(["for-each-ref", "--format=%(refname:short)", "refs/heads/"], repo).split()
+    checks = [
+        b
+        for b in heads
+        if b.startswith("golden/")
+        or (b.startswith("lane/") and b.rsplit("/", 1)[-1] in runs)
+        or b.startswith("lane/founder/golden-setup-")
+    ]
+    return [b for b in checks if drop_branch(b, repo, probes=True)]

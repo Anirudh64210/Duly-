@@ -6,7 +6,8 @@ the agent runs. This module writes the settings for one run:
 - writes: only inside the agent's own worktree, and inside it only the paths its lane owns
 - reads: no keys, tokens or credentials of the person whose machine this is
 - network: denied, except the hosts in the agent's contract
-- tools: no sub-agents, no web tools; file tools only on the lane's paths
+- tools: no sub-agents, no web tools; file tools only on the lane's paths, and Edit beside
+  every Write, since file writes are checked against the Edit rules
 """
 
 import json
@@ -130,9 +131,13 @@ def settings_for(
     if "Bash" in contract.tools:
         allow.append("Bash")
     if contract.may_write:
-        for tool in ("Edit", "Write"):
-            if tool in contract.tools:
-                allow += [f"{tool}({rule})" for rule in file_rules]
+        # Claude Code checks a file write against the Edit rules, so a Write grant alone
+        # grants nothing: in the Write only lanes (auditor, reviewer) Write calls succeeded
+        # 0 of 9 times. Every Write grant carries an Edit grant beside it.
+        tools = {"Edit", "Write"} & set(contract.tools)
+        if "Write" in tools:
+            tools.add("Edit")
+        allow += [f"{tool}({rule})" for tool in sorted(tools) for rule in file_rules]
     return {
         "sandbox": {
             "enabled": True,

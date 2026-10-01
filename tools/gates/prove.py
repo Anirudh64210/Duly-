@@ -139,7 +139,7 @@ VIOLATIONS: tuple[Violation, ...] = (
         lambda r: _replace(
             r,
             "engine/verdict.py",
-            "return Verdict(VerdictState.CANNOT_TELL, tuple(blockers))",
+            "return Verdict(VerdictState.CANNOT_TELL, (*blockers, *inputs.judgement_items))",
             "return Verdict(VerdictState.NO_OPEN_ITEMS, ())",
         ),
     ),

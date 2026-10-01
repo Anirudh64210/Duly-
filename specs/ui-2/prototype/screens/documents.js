@@ -1,52 +1,50 @@
-/* Documents: everything in one place, sorted by what the student looks for.
-   Note 7 (BRIEF.md Round 2): four high-level groups, the most important
-   first: Status and permits (I-20s, EAD card, approval notices), Work,
-   School, Identity. Other appears once a file of no known kind is saved.
-   Any file is two clicks away (the group, then the file) or one search.
-   The bar: faster than a WhatsApp self chat or the school's approval email.
-   "Asked for most" keeps the latest I-20 and the EAD card one tap away.
+/* Documents: everything in one place, ready to open.
+   Round 3 note 5: label chips filter in one click. All (every document,
+   grouped, every row ready to open), Most used (the latest I-20, the
+   EAD card, the approval notice, the passport), then Status, Work,
+   School, Identity, and Other once a file of no known kind is saved.
+   Each chip carries its count. The chips stay on one line; on a narrow
+   screen the strip scrolls sideways inside itself, never the page. Search looks inside the chosen chip; when
+   nothing matches there but something matches elsewhere, one tap searches
+   all. Enter opens the first match; Escape clears the search.
    A tap on a row opens the document; Share sits on the row (on hover or
    focus with a mouse, always visible on touch). Earlier versions fold under
    a document ("3 earlier versions").
-   Search sits under the title and looks across every group by name, kind,
-   group and phase ('I-20', 'EAD', 'Lumen', 'passport', 'OPT'). Enter opens
-   the first match; Escape clears the search.
-   Routes: #/documents, #/documents/<group> (status, employment, school,
-   identity, other) opens that group; #/documents/add opens the add sheet.
-   The older links #/documents/i20 and #/documents/work point at the I-20s,
-   the EAD card and the approval notice, so both open Status and permits.
+   Routes: #/documents (All), #/documents/<label> (most, status, employment,
+   school, identity, other); #/documents/add opens the add sheet. The older
+   links #/documents/i20 and #/documents/work open Status.
+   A chip click updates the address in place (no redraw, no scroll jump).
    A file dropped anywhere, or Cmd O, arrives here through App.addDocument and
    opens the document sheet. Reading is simulated: the file shows "Reading on
    this Mac", then the found fields with one "Looks right".
-   Note 1: an add that came through #/documents/add from another page (Home's
-   "Add your EAD card to see this date", Timeline, a file dropped elsewhere)
+   Round 2 note 1: an add that came through #/documents/add from another page
    returns there when the sheet closes, with its scroll, and the toast shows
-   there. A saved EAD card also lifts that page's no-EAD view, so the promised
-   date is in front of the student. An add started on Documents stays here. */
+   there. A saved EAD card also lifts that page's no-EAD view. */
 (function () {
   'use strict';
 
   /* The groups, in the order a student looks for them. */
   const GROUPS = [
-    { key: 'status', title: 'Status and permits', words: 'status permit permits immigration' },
+    { key: 'status', title: 'Status', words: 'status permit permits immigration' },
     { key: 'employment', title: 'Work', words: 'work job employment employer offer' },
     { key: 'school', title: 'School', words: 'school university degree diploma' },
     { key: 'identity', title: 'Identity', words: 'identity id travel' },
     { key: 'other', title: 'Other', words: 'other' },
   ];
-  const ALIAS = { i20: 'status', work: 'status', status: 'status', employment: 'employment', job: 'employment', school: 'school', identity: 'identity', other: 'other' };
+  const ALIAS = { all: 'all', most: 'most', i20: 'status', work: 'status', status: 'status', employment: 'employment', job: 'employment', school: 'school', identity: 'identity', other: 'other' };
+  /* The label chips, in order. 'all' and 'most' are views, the rest groups. */
+  const LABELS = [{ key: 'all', title: 'All' }, { key: 'most', title: 'Most used' }]
+    .concat(GROUPS.map((g) => ({ key: g.key, title: g.title })));
   /* Order inside a group: the latest I-20, the EAD card, the approval
      notice, then the CPT I-20s and the first I-20. */
   const RANK = { current: 0, ead: 1, i797: 2, cpt: 3, start: 4 };
   const I20_PHASE = { opt: 'OPT', cpt: 'CPT', start: 'Starting school' };
 
-  const S = { ready: false, docs: [], group: null, query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, expanded: {}, backTo: null };
+  const S = { ready: false, docs: [], group: 'all', query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, expanded: {}, backTo: null };
 
   /* Layout only: type sizes come from system.css. */
   const STYLE = '<style>' +
     '.screen-documents .page-header .ph-top { align-items: center; flex-wrap: wrap; row-gap: var(--s-16); }' +
-    '.screen-documents .doc-view > .section:first-child { margin-top: var(--s-32); }' +
-    '.screen-documents .doc-none { margin-top: var(--s-24); }' +
     /* the whole row opens the document: the title button stretches over the row */
     '.screen-documents .doc-open { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }' +
     '.screen-documents .doc-open::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-field); }' +
@@ -56,15 +54,13 @@
     '.screen-documents .doc-row .row-trail, .screen-documents .doc-versions { position: relative; z-index: 1; }' +
     '.screen-documents .doc-earlier > .row { padding-left: calc(var(--s-12) + var(--s-16)); }' +
     '.screen-documents .doc-earlier .row-title { color: var(--ink-2); }' +
-    /* a group: its files sit one step in, under the group title */
-    '.screen-documents .doc-group { scroll-margin-top: var(--s-64); }' +
-    '.screen-documents .doc-group > .disc { padding: 0 0 var(--s-8); gap: 0; }' +
-    '.screen-documents .doc-group > .disc .list { margin-top: 0; }' +
-    '.screen-documents .doc-group > .disc .item:first-child { border-top-color: var(--hairline-inner); }' +
-    '.screen-documents .doc-group > .disc .item:last-child { border-bottom: 0; }' +
-    '.screen-documents .doc-group > .disc .item > .row { padding-left: calc(var(--s-12) + var(--s-16)); padding-right: var(--s-12); }' +
-    '.screen-documents .doc-group > .disc .doc-earlier > .row { padding-left: calc(var(--s-12) + var(--s-32)); }' +
-    '.screen-documents .doc-group > .disc .doc-add-another { align-self: flex-start; margin-left: calc(var(--s-12) + var(--s-16)); padding: var(--s-12) 0; }' +
+    '.screen-documents .doc-search { margin-bottom: var(--s-16); }' +
+    '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: var(--s-4); margin: calc(-1 * var(--s-4)); scroll-padding-inline: var(--s-16); }' +
+    '.screen-documents .doc-labels::-webkit-scrollbar { display: none; }' +
+    '.screen-documents .doc-view > .section:first-child { margin-top: var(--s-32); }' +
+    '.screen-documents .doc-view > .section + .section { margin-top: var(--s-32); }' +
+    '.screen-documents .doc-add-another { align-self: flex-start; margin-top: var(--s-12); }' +
+    '.screen-documents .doc-none { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-8); }' +
     '.screen-documents .doc-new > .row { animation: doc-flash 1.8s ease-out; }' +
     '@keyframes doc-flash { from { background: var(--accent-tint); } to { background: transparent; } }' +
     /* the document sheet, appended to body while open */
@@ -82,7 +78,6 @@
     '.doc-layer .doc-or { margin-top: var(--s-12); }' +
     '.doc-layer .doc-samples { margin-top: var(--s-48); }' +
     '.doc-layer .doc-samples .t-eyebrow { margin-bottom: var(--s-12); }' +
-    '.doc-layer .doc-fix-hint { margin-bottom: var(--s-12); }' +
     '.doc-layer .doc-dup { margin-top: var(--s-24); display: flex; flex-direction: column; gap: var(--s-12); }' +
     '.doc-layer .doc-unsure { align-self: flex-start; margin-top: var(--s-24); }' +
     '.doc-layer .doc-reading { display: flex; flex-direction: column; gap: var(--s-12); }' +
@@ -129,24 +124,6 @@
   function shortToday(data) { return data.today.short.replace(/, \d{4}$/, ''); }
   function plural(n, one) { return n + ' ' + one + (n === 1 ? '' : 's'); }
   function isBlank(v) { return !v || /^\[/.test(v); }
-
-  /* What sits in a group, in a few words: "I-20s, EAD card, approval notice". */
-  function shortName(doc) {
-    if (doc.type === 'i20') return 'I-20';
-    if (doc.type === 'ead') return 'EAD card';
-    if (doc.type === 'i797') return 'approval notice';
-    if (doc.type === 'letter') return 'offer letter';
-    if (doc.type === 'other') return 'other files';
-    return /^[A-Z]-?\d/.test(doc.title) ? doc.title : doc.title.charAt(0).toLowerCase() + doc.title.slice(1);
-  }
-  function groupHint(key) {
-    const docs = inGroup(key);
-    const names = [];
-    docs.forEach((d) => { const n = shortName(d); if (names.indexOf(n) === -1) names.push(n); });
-    const i20s = docs.filter((d) => d.type === 'i20').length;
-    const text = names.map((n) => (n === 'I-20' && i20s > 1 ? 'I-20s' : n)).join(', ');
-    return text.charAt(0).toUpperCase() + text.slice(1);
-  }
 
   /* What is read from each kind of document (illustrative sample values). */
   function kinds(data) {
@@ -260,15 +237,53 @@
     return hasAll(haystack(doc), toks) || earlierMatch(doc, toks);
   }
   function searching() { return tokens(S.query).length > 0; }
-  /* Every match, in the order of the groups. */
-  function results() {
+
+  /* ---------------- labels ---------------- */
+
+  /* Every document, in the order of the groups. */
+  function allDocs() { return GROUPS.reduce((all, g) => all.concat(inGroup(g.key)), []); }
+  /* Most used: the latest I-20, the EAD card, the approval notice and
+     the passport, the ones an employer or a DSO asks for. */
+  function mostDocs() {
+    const first = (fn) => S.docs.filter(fn)[0];
+    return [
+      first((d) => d.type === 'i20' && d.current) || first((d) => d.type === 'i20'),
+      first((d) => d.type === 'ead'),
+      first((d) => d.type === 'i797'),
+      first((d) => d.type === 'identity' && /^passport/i.test(d.title)),
+    ].filter(Boolean);
+  }
+  function docsFor(label) {
+    if (label === 'all') return allDocs();
+    if (label === 'most') return mostDocs();
+    return inGroup(label);
+  }
+  /* A label with nothing in it is hidden, except All. */
+  function labels() { return LABELS.filter((l) => l.key === 'all' || docsFor(l.key).length > 0); }
+  function labelOf(key) { return LABELS.filter((l) => l.key === key)[0] || LABELS[0]; }
+  function current() {
+    const k = ALIAS[S.group] || 'all';
+    return (k === 'all' || docsFor(k).length) ? k : 'all';
+  }
+  /* Matches inside the chosen label. */
+  function results(label) {
     const toks = tokens(S.query);
-    return GROUPS.reduce((all, g) => all.concat(inGroup(g.key).filter((d) => matches(d, toks))), []);
+    return docsFor(label || current()).filter((d) => matches(d, toks));
+  }
+
+  function labelsHtml() {
+    const cur = current();
+    return C.chips({
+      key: 'docLabel', label: 'Show documents',
+      items: labels().map((l) => ({ value: l.key, label: l.title, count: docsFor(l.key).length, selected: l.key === cur })),
+    }).replace('class="chips', 'class="chips doc-labels')
+      /* one tab stop for the group; the arrow keys move between chips */
+      .replace(/aria-checked="(true|false)"/g, (m, on) => m + ' tabindex="' + (on === 'true' ? '0' : '-1') + '"');
   }
 
   function searchHtml() {
     return '<div class="doc-search" role="search">' +
-      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search, like I-20, passport or Lumen', ariaLabel: 'Search documents' }) +
+      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search, like I-20 or passport', ariaLabel: 'Search documents' }) +
       '<p class="sr-only" role="status" aria-live="polite" data-doc-status></p>' +
       '</div>';
   }
@@ -280,47 +295,50 @@
 
   /* ---------------- views ---------------- */
 
-  function resultsView() {
-    const list = results();
-    if (!list.length) return '<p class="t-meta doc-none">No documents match. Try a kind, like EAD, or a name, like Lumen.</p>';
-    return C.section({
-      eyebrow: plural(list.length, 'match').replace('matchs', 'matches'),
-      content: C.list(docRows(list, { prefix: (d) => groupOf(d.group).title }), { accordion: false, label: 'Matching documents' }),
-    });
-  }
+  const addAnother = '<button type="button" class="link doc-add-another" data-doc-add="i20">Add another CPT I-20</button>';
 
-  /* The latest I-20 and the EAD card: asked for most, one tap away. */
-  function quickView() {
-    const i20 = S.docs.filter((d) => d.type === 'i20' && d.current)[0];
-    const ead = S.docs.filter((d) => d.type === 'ead')[0];
-    const list = [i20, ead].filter(Boolean);
-    if (!list.length) return '';
-    return C.section({
-      eyebrow: 'Asked for most',
-      content: C.list(docRows(list, { keyOf: (d) => 'quick:' + d.id, versions: false }), { accordion: false }),
-    });
-  }
-
-  function groupsView() {
-    const rows = GROUPS.map((g) => {
+  /* All: every document, under its group, each ready to open. */
+  function allView() {
+    return GROUPS.map((g) => {
       const docs = inGroup(g.key);
       if (!docs.length) return '';
-      const add = g.key === 'status' ? '<button type="button" class="link doc-add-another" data-doc-add="i20">Add another CPT I-20</button>' : '';
-      return C.row({
-        key: 'group:' + g.key,
-        title: g.title,
-        meta: groupHint(g.key),
-        value: String(docs.length),
-        open: S.group === g.key,
-        cls: 'doc-group',
-        content: C.list(docRows(docs), { accordion: false, label: g.title }) + add,
+      return C.section({
+        eyebrow: g.title,
+        content: C.list(docRows(docs), { accordion: false, label: g.title }) + (g.key === 'status' ? addAnother : ''),
       });
+    }).join('');
+  }
+
+  function labelView(label) {
+    const docs = docsFor(label);
+    const most = label === 'most';
+    return C.section({
+      content: C.list(docRows(docs, { keyOf: most ? (d) => 'most:' + d.id : null, versions: !most }), { accordion: false, label: labelOf(label).title }) +
+        (label === 'status' ? addAnother : ''),
     });
-    return C.section({ eyebrow: 'All documents', content: C.list(rows, { label: 'Documents by group' }) });
+  }
+
+  function resultsView() {
+    const cur = current();
+    const list = results(cur);
+    if (!list.length) {
+      const elsewhere = cur !== 'all' ? results('all').length : 0;
+      return C.section({
+        content: '<p class="t-meta doc-none"><span>No match' + (cur !== 'all' ? ' in ' + C.esc(labelOf(cur).title) : '') + '.</span>' +
+          (elsewhere ? '<button type="button" class="link" data-doc-label="all">' + C.esc(plural(elsewhere, 'match').replace('matchs', 'matches')) + ' in All</button>' : '') +
+          '</p>',
+      });
+    }
+    const prefix = cur === 'all' || cur === 'most' ? (d) => groupOf(d.group).title : null;
+    return C.section({
+      content: C.list(docRows(list, { prefix: prefix }), { accordion: false, label: 'Matching documents' }),
+    });
   }
 
   function viewHtml() {
-    return searching() ? resultsView() : quickView() + groupsView();
+    if (searching()) return resultsView();
+    const cur = current();
+    return cur === 'all' ? allView() : labelView(cur);
   }
 
   /* Redraw the list only, so the search field keeps focus while typing. */
@@ -330,19 +348,40 @@
     const status = document.querySelector('[data-doc-status]');
     if (status) status.textContent = statusText();
   }
+  /* Redraw the chips too (a count changed, or the label was set in code). */
+  function refreshLabels() {
+    const el = document.querySelector('#main .doc-labels');
+    if (!el) return;
+    const x = el.scrollLeft;
+    el.outerHTML = labelsHtml();
+    const strip = document.querySelector('#main .doc-labels');
+    if (strip) { strip.scrollLeft = x; revealChip(); }
+  }
+  /* Bring the chosen chip into view inside the strip; the page never moves. */
+  function revealChip() {
+    const strip = document.querySelector('#main .doc-labels');
+    const chip = strip && strip.querySelector('[aria-checked="true"]');
+    if (!chip || strip.scrollWidth <= strip.clientWidth) return;
+    const s = strip.getBoundingClientRect(), c = chip.getBoundingClientRect(), pad = 16;
+    if (c.left < s.left + pad) strip.scrollLeft -= (s.left + pad - c.left);
+    else if (c.right > s.right - pad) strip.scrollLeft += (c.right - (s.right - pad));
+  }
 
-  /* The address follows the open group, so Back, a reload and a shared link
-     land on the same group. The history entry keeps its state. */
-  function setHash(group) {
-    const h = '#/documents' + (group ? '/' + group : '');
+  /* The address follows the chosen label, so Back, a reload and a shared
+     link land on the same view. The history entry keeps its state. */
+  function setHash(label) {
+    const h = '#/documents' + (label && label !== 'all' ? '/' + label : '');
     if (location.hash !== h) {
       try { history.replaceState(history.state, '', h); } catch (err) { /* file:// */ }
     }
   }
-  function syncGroup() {
-    const open = document.querySelector('#main .doc-group.is-open');
-    S.group = open ? open.dataset.key.replace(/^group:/, '') : null;
-    if (!S.sheet) setHash(S.group);
+  function setLabel(label, o) {
+    S.group = ALIAS[label] || 'all';
+    if (!S.sheet) setHash(current());
+    if (o && o.chips) refreshLabels();
+    const y = window.scrollY;
+    refreshView();
+    window.scrollTo(0, y);
   }
 
   /* ---------------- sheet ---------------- */
@@ -359,11 +398,11 @@
         ['A CPT I-20', 'i20-cpt.pdf'],
         ['A photo of a document', 'IMG_2041.jpg'],
       ];
-      return head(sh.hint === 'i20' ? 'Add a CPT I-20' : 'Add a document', 'Read on this Mac. Nothing is uploaded anywhere.') +
+      return head(sh.hint === 'i20' ? 'Add a CPT I-20' : 'Add a document', 'Read on this Mac, never uploaded') +
         '<div class="doc-sheet-body">' +
         '<input type="file" accept=".pdf,image/*" hidden data-doc-file>' +
         C.button({ label: 'Choose a file', kind: 'primary', full: true, attrs: { 'data-doc-choose': '' } }) +
-        '<p class="t-meta doc-or">Or drop a file anywhere, or press ⌘O.</p>' +
+        '<p class="t-meta doc-or">Or drop it anywhere · ⌘O</p>' +
         '<div class="doc-samples"><p class="t-eyebrow">Try a sample file</p><div class="list">' +
         samples.map((s) => '<div class="item has-lead"><button type="button" class="row" data-doc-sample="' + C.esc(s[1]) + '">' +
           '<span class="row-lead">' + C.icon('file') + '</span>' +
@@ -375,12 +414,11 @@
     if (sh.stage === 'reading') {
       return head('Reading on this Mac', sh.file) +
         '<div class="doc-sheet-body"><div class="doc-reading" role="status" aria-live="polite">' +
-        '<div class="bar" aria-hidden="true"><i></i></div>' +
-        '<p class="t-meta">Nothing leaves this Mac while it is read.</p></div></div>';
+        '<div class="bar" aria-hidden="true"><i></i></div></div></div>';
     }
 
     if (sh.stage === 'kind') {
-      return head('What is this document?', sh.file + ', read on this Mac') +
+      return head('What is this document?', sh.file) +
         '<div class="doc-sheet-body">' +
         C.choices({
           key: 'docKind', layout: 'row', cols: 2, label: 'Kind of document',
@@ -393,7 +431,7 @@
     /* found */
     const k = K[sh.kind];
     const rows = sh.fixing
-      ? '<p class="t-meta doc-fix-hint">Tap a value to change it.</p><div class="list found">' +
+      ? '<div class="list found">' +
         sh.fields.map((f, i) => C.valueRow({ label: f[0], value: f[1], key: 'docf:' + i })).join('') + '</div>'
       : C.found(sh.fields);
     const dup = sh.dup
@@ -401,13 +439,13 @@
         C.choices({
           key: 'docVersion', selected: sh.version, label: 'Save this one as',
           options: [
-            { value: 'version', title: 'The newer version', meta: 'The one you have is kept for the record' },
-            { value: 'separate', title: 'A separate document', meta: 'Kept next to the one you have' },
+            { value: 'version', title: 'The newer version' },
+            { value: 'separate', title: 'A separate document' },
           ],
         }) + '</div>'
       : '';
     const title = sh.kind === 'other' ? 'Here is your file' : 'Here is what your ' + k.name + ' says';
-    return head(title, 'Read on this Mac. Nothing left it.') +
+    return head(title, sh.file) +
       '<div class="doc-sheet-body">' + rows + dup +
       /* The one placement rule: Fix one on the left, Looks right on the right. */
       C.buttonRow({
@@ -460,7 +498,7 @@
     clearTimeout(S.timer);
     S.sheet = null;
     removeLayer();
-    setHash(S.group);
+    setHash(current());
     /* Dismissed after arriving from another page: back to that page. */
     if (S.backTo) { S.backTo = null; goBack('', false); return; }
     if (returnFocus) {
@@ -554,7 +592,7 @@
       S.newId = doc.id;
       message = 'Saved to ' + groupOf(k.group).title + '. ' + plural(S.docs.length, 'document') + ' now.';
     }
-    /* The new document is always in view: its group opens, the search clears. */
+    /* The new document is always in view: its label is chosen, the search clears. */
     S.group = k.group;
     S.query = '';
     App.state.docSearch = '';
@@ -619,6 +657,7 @@
       refreshView();
       return;
     }
+    if (d.kind === 'choice' && d.key === 'docLabel') { setLabel(d.value); revealChip(); return; }
     if (!S.sheet) return;
     if (d.kind === 'choice' && d.key === 'docKind') { toFound(d.value); updateSheet(); return; }
     if (d.kind === 'choice' && d.key === 'docVersion') { S.sheet.version = d.value; return; }
@@ -642,7 +681,7 @@
     render(data, params) {
       init(data);
       const p = params && params[0];
-      S.group = ALIAS[p] || null;
+      S.group = ALIAS[p] || 'all';
 
       if (p === 'add' || S.requested) {
         const file = App.state.pendingDocument;
@@ -655,16 +694,15 @@
         if (file) startReading(file, false);
       }
 
-      /* No hero here: the count is a plain line under the title. */
+      /* No hero and no subline: the chips carry the counts. */
       const header = C.pageHeader({
         title: 'Documents',
-        subline: 'Every document in one place, ready to open or share in one tap. ' +
-          plural(S.docs.length, 'document') + ', every version kept, encrypted on this Mac.',
+        info: 'Every version is kept, encrypted on this Mac. Files are read here and never uploaded.',
         aside: C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }),
       });
       return STYLE +
         '<div class="screen-documents">' +
-        header + searchHtml() +
+        header + searchHtml() + labelsHtml() +
         '<div class="doc-view" data-doc-view>' + viewHtml() + '</div>' +
         '</div>' +
         C.footer();
@@ -672,23 +710,27 @@
     mount(root) {
       removeLayer();
       if (S.sheet) createLayer();
-      /* A legacy link (#/documents/work) settles on its group's address. */
-      if (!S.sheet) setHash(S.group);
-      /* Scroll only for a new document, or for a group linked from elsewhere
-         (a fresh page at the top), never over a restored scroll. */
+      /* A legacy link (#/documents/work) settles on its label's address. */
+      if (!S.sheet) setHash(current());
+      revealChip();
+      /* Scroll only for a new document out of view, never over a restored scroll. */
       if (S.newId) {
-        const el = root.querySelector('.doc-group [data-key="' + S.newId + '"]');
+        const el = root.querySelector('[data-doc-view] [data-key="' + S.newId + '"]');
         const r = el && el.getBoundingClientRect();
         if (r && (r.top < 0 || r.bottom > window.innerHeight)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      } else if (S.group && App.params[0] && window.scrollY === 0) {
-        /* the group's title near the top, its files in view below it */
-        const el = root.querySelector('[data-key="group:' + S.group + '"]');
-        if (el && el.getBoundingClientRect().top > window.innerHeight / 2) el.scrollIntoView({ block: 'start' });
       }
       S.newId = null;
       root.addEventListener('click', (e) => {
         const add = e.target.closest('[data-doc-add]');
         if (add) { e.preventDefault(); openSheet({ hint: add.dataset.docAdd || null }); return; }
+        /* "N matches in All": search every document instead. */
+        const lab = e.target.closest('[data-doc-label]');
+        if (lab) {
+          setLabel(lab.dataset.docLabel, { chips: true });
+          const chip = root.querySelector('.doc-labels [data-value="' + lab.dataset.docLabel + '"]');
+          if (chip) chip.focus({ preventScroll: true });
+          return;
+        }
         const ver = e.target.closest('[data-doc-versions]');
         if (ver) {
           const id = ver.dataset.docVersions;
@@ -703,16 +745,10 @@
         const open = e.target.closest('[data-doc-open]');
         if (open) { App.toast('Opening ' + open.dataset.docOpen + ' in Preview'); return; }
         const share = e.target.closest('[data-doc-share]');
-        if (share) { App.toast('Share ' + share.dataset.docShare + ' to Messages, Mail or any app'); return; }
-        /* A group opened or closed: app.js toggles it, then the state follows. */
-        if (e.target.closest('.doc-group > [data-disclosure]')) setTimeout(syncGroup, 0);
+        if (share) { App.toast('Share ' + share.dataset.docShare + ' to Messages, Mail or any app'); }
       });
       /* Enter opens the first match; Escape clears the search. */
       root.addEventListener('keydown', (e) => {
-        if (e.target.matches && e.target.matches('.doc-group > [data-disclosure]') && (e.key === 'Enter' || e.key === ' ')) {
-          setTimeout(syncGroup, 0);
-          return;
-        }
         if (!e.target.matches || !e.target.matches('[data-field="docSearch"]')) return;
         if (e.key === 'Enter') {
           e.preventDefault();

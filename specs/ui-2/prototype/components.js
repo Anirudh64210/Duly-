@@ -54,6 +54,9 @@
     next: [24, '<circle cx="12" cy="12" r="8.25" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 8.5 14 12l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'],
     timeline: [24, '<path d="M7 4v16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="7" cy="8" r="2" fill="var(--ground)" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="16" r="2" fill="var(--ground)" stroke="currentColor" stroke-width="1.6"/><path d="M12 8h7M12 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'],
     documents: [24, '<path d="M7 3.5h6.5l4 4v12.5a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 3.5v4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'],
+    uscis: [24, '<path d="M12 3.5 19 6.5v5c0 4.2-2.9 7.4-7 8.9-4.1-1.5-7-4.7-7-8.9v-5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12l2.2 2.2L15.2 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'],
+    news: [24, '<rect x="3.5" y="5" width="13" height="14.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16.5 9h3a1 1 0 0 1 1 1v8a1.5 1.5 0 0 1-3 0V9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9h6M7 12.5h6M7 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'],
+    link: [16, '<path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'],
     file: [16, '<path d="M4.5 2h5l3 3v8.5a.5.5 0 0 1-.5.5H4.5a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 2v3h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'],
     close: [16, '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'],
     source: [16, '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="5.1" r=".85" fill="currentColor"/>'],
@@ -72,17 +75,20 @@
   /* Shell                                                              */
   /* ---------------------------------------------------------------- */
 
+  /* Navigation (Round 3, note 7): human labels, each distinct from the rest.
+     Old routes redirect (App.ALIASES in app.js): next and checklists go to
+     steps, applications to uscis. Tab and sidebar use the same label;
+     Timeline lives in Menu on a phone. */
   const NAV = [
-    { name: 'home', label: 'Home', tab: 'Home', icon: 'home' },
-    { name: 'next', label: "What's next", tab: 'Next', icon: 'next' },
-    { name: 'applications', label: 'Applications' },
-    { name: 'timeline', label: 'Timeline', tab: 'Timeline', icon: 'timeline' },
-    { name: 'checklists', label: 'Checklists' },
-    { name: 'documents', label: 'Documents', tab: 'Documents', icon: 'documents' },
-    { name: 'updates', label: 'Updates' },
+    { name: 'home', label: 'Home', tab: true, icon: 'home' },
+    { name: 'steps', label: 'Next steps', tab: true, icon: 'next' },
+    { name: 'uscis', label: 'USCIS status', tab: true, icon: 'uscis' },
+    { name: 'documents', label: 'Documents', tab: true, icon: 'documents' },
+    { name: 'updates', label: 'News', tab: true, icon: 'news' },
+    { name: 'timeline', label: 'Timeline' },
   ];
   const NAV_SECONDARY = [
-    { name: 'case', label: 'Your case' },
+    { name: 'case', label: 'Your profile' },
     { name: 'settings', label: 'Settings' },
     { name: 'feedback', label: 'Feedback' },
   ];
@@ -127,7 +133,7 @@
   function tabbar(p) {
     return '<nav class="tabbar" aria-label="Main">' + NAV.filter((n) => n.tab).map((n) =>
       '<a class="tab" href="#/' + n.name + '"' + (n.name === p.route ? ' aria-current="page"' : '') + '>' +
-      icon(n.icon) + '<span>' + esc(n.tab) + '</span></a>').join('') + '</nav>';
+      icon(n.icon) + '<span>' + esc(n.label) + '</span></a>').join('') + '</nav>';
   }
 
   /* ---------------------------------------------------------------- */
@@ -148,16 +154,23 @@
     return '<a class="back-link" href="' + esc(href) + '" data-back>' + icon('chevron', { cls: 'back-chev' }) + '<span>' + esc(label) + '</span></a>';
   }
 
-  /* pageHeader({ title, subline?, meta?, eyebrow?, aside? (html), progress? {pct, label},
+  /* titleWith(h1Html, infoText) : the h1 with its ⓘ beside it, outside the
+     heading so the heading's name stays the title alone. */
+  function titleWith(h1, text) {
+    return text ? '<div class="title-row">' + h1 + info(text) + '</div>' : h1;
+  }
+
+  /* pageHeader({ title, info?, subline?, meta?, eyebrow?, aside? (html), progress? {pct, label},
                   back? (true or backLink props) })
-     subline: the one line saying what the page does for the student. */
+     info: what the page does, behind an ⓘ beside the title (Round 3). Prefer it
+     to subline; keep subline for a fact the student must see (a date). */
   function pageHeader(p) {
     const hasMeta = !!p.meta;
     return (p.back ? backLink(p.back === true ? null : p.back) : '') +
       '<header class="page-header">' +
       (p.eyebrow ? '<p class="ph-eyebrow t-eyebrow-hero">' + escText(p.eyebrow) + '</p>' : '') +
       '<div class="' + cls('ph-top', hasMeta && 'has-meta') + '">' +
-      '<h1 class="t-big" tabindex="-1">' + escText(p.title) + '</h1>' +
+      titleWith('<h1 class="t-big" tabindex="-1">' + escText(p.title) + '</h1>', p.info) +
       (hasMeta ? '<span class="ph-meta">' + esc(p.meta) + '</span>' : '') +
       (p.aside ? '<div class="ph-aside">' + p.aside + '</div>' : '') +
       '</div>' +
@@ -168,17 +181,18 @@
 
   function dateLine(text) { return '<p class="date-line num">' + esc(text) + '</p>'; }
 
-  /* hero({ eyebrow, title, subline?, meta?, icon: 'shield'|null, halo?, source?, date?, actions? (html) })
+  /* hero({ eyebrow, title, info?, subline?, meta?, icon: 'shield'|null, halo?, source?, date?, actions? (html) })
      The one hero per screen. Where a screen has a hero, the hero is its h1
-     and the screen has no pageHeader. meta is a quiet line under the subline,
-     e.g. 'Checked today, 6:00 AM'. */
+     and the screen has no pageHeader. info: the explanation, behind an ⓘ
+     beside the title. meta is a quiet line under the subline, e.g.
+     'Rules checked Sep 30'. */
   function hero(p) {
     const iconHtml = p.icon === null ? '' : shield({ halo: p.halo });
     return (p.back ? backLink(p.back === true ? null : p.back) : '') +
       (p.date ? dateLine(p.date) : '') +
       '<section class="hero" aria-labelledby="hero-title">' +
       (p.eyebrow ? '<p class="hero-eyebrow">' + iconHtml + '<span class="t-eyebrow-hero">' + esc(p.eyebrow) + '</span></p>' : '') +
-      '<h1 class="hero-title t-big" id="hero-title" tabindex="-1">' + escText(p.title) + '</h1>' +
+      titleWith('<h1 class="hero-title t-big" id="hero-title" tabindex="-1">' + escText(p.title) + '</h1>', p.info) +
       (p.subline ? '<p class="hero-sub t-lead"><span>' + escText(p.subline) + '</span>' + (p.source ? source(p.source, { inline: true }) : '') + '</p>' : '') +
       (p.meta ? '<p class="hero-meta">' + esc(p.meta) + '</p>' : '') +
       (p.actions ? '<div class="hero-actions">' + p.actions + '</div>' : '') +
@@ -189,8 +203,9 @@
     return '<span class="shield" aria-hidden="true">' + (o && o.halo ? '<span class="halo"></span>' : '') + icon('shield') + '</span>';
   }
 
-  /* metrics([{ eyebrow, value?, unit?, bar? (0..100), source?, add? {action, rest, href} }])
-     Every value, a count or a date, is set at the one metric figure size. */
+  /* metrics([{ eyebrow, value?, unit?, bar? (0..100), source?, info?, add? {action, rest, href} }])
+     Every value, a count or a date, is set at the one metric figure size.
+     info: a short explanation behind an ⓘ, used when there is no source. */
   function metrics(cells) {
     const out = [];
     cells.forEach((m, i) => {
@@ -202,7 +217,7 @@
         body = '<div class="metric-value-row">' +
           '<span class="metric-value">' + esc(m.value) + '</span>' +
           (m.unit ? '<span class="metric-unit">' + esc(m.unit) + '</span>' : '') +
-          (m.source ? source(m.source, { inline: true }) : '') + '</div>' +
+          (m.source ? source(m.source, { inline: true }) : (m.info ? info(m.info) : '')) + '</div>' +
           (m.bar != null ? bar(m.bar) : '');
       }
       out.push('<div class="metric"><p class="t-eyebrow">' + esc(m.eyebrow) + '</p>' + body + '</div>');
@@ -226,13 +241,15 @@
   /* Sections, lists, rows                                              */
   /* ---------------------------------------------------------------- */
 
-  /* section({ eyebrow, content (html), link? {label, href}, waiting?, id?, label? }) */
+  /* section({ eyebrow, info?, content (html), link? {label, href}, waiting?, id?, label? })
+     info: a short explanation behind an ⓘ beside the eyebrow. */
   function section(p) {
     const headId = uid('sh');
+    const h2 = '<h2 class="sh-label t-eyebrow" id="' + headId + '">' +
+      (p.waiting ? '<span class="wait-dot" aria-hidden="true"></span>' : '') + esc(p.eyebrow) + '</h2>';
     return '<section class="' + cls('section', p.waiting && 'waiting', p.cls) + '"' + (p.id ? ' id="' + esc(p.id) + '"' : '') +
       (p.eyebrow ? ' aria-labelledby="' + headId + '"' : '') + '>' +
-      (p.eyebrow ? '<div class="section-head"><h2 class="sh-label t-eyebrow" id="' + headId + '">' +
-        (p.waiting ? '<span class="wait-dot" aria-hidden="true"></span>' : '') + esc(p.eyebrow) + '</h2>' +
+      (p.eyebrow ? '<div class="section-head">' + (p.info ? '<div class="sh-start">' + h2 + info(p.info) + '</div>' : h2) +
         (p.link ? link(p.link) : '') + '</div>' : '') +
       (p.content || '') + '</section>';
   }
@@ -244,8 +261,10 @@
     return '<div class="list"' + acc + (opt.label ? ' aria-label="' + esc(opt.label) + '"' : '') + '>' + items.join('') + '</div>';
   }
 
-  /* row({ title, meta?, metaAct?, value?, source?, lead? (html), content? (html, makes a disclosure),
+  /* row({ title, meta?, metaAct?, value?, source?, info?, lead? (html), content? (html, makes a disclosure),
            open?, href?, trailing? (html), key?, cls?, nowTag? })
+     info: a short explanation behind an ⓘ in the trailing column. Not on a
+     link row (the whole row is the link); put it on the page it opens.
      With content: the whole row is the button, chevron right, one open per list.
      With href: the row is a link with a chevron.
      Otherwise: a static row. */
@@ -258,6 +277,7 @@
       p.value ? '<span class="row-value">' + esc(p.value) + '</span>' : '',
       p.trailing || '',
       p.source ? source(p.source) : '',
+      p.info && !isLink ? info(p.info, { inline: false }) : '',
       chevron,
     ].join('');
     const inner = (p.lead ? '<span class="row-lead">' + p.lead + '</span>' : '') +
@@ -323,8 +343,9 @@
       ' aria-label="' + esc(p.label || 'Done') + '">' + icon('tick', { size: 12 }) + '</button>';
   }
 
-  /* task({ key, title, meta?, done?, doneMeta?, source?, open? {label, href}, caution?, cautionSource?,
+  /* task({ key, title, meta?, info?, done?, doneMeta?, source?, open? {label, href}, caution?, cautionSource?,
              below? (html), action? (html), onDone? (html) })
+     meta: a date or a fact, short. info: any explanation, behind an ⓘ.
      caution: a quiet line under the meta (e.g. a fee change), with its own
      source mark when cautionSource is given. below: extra html under the
      meta (e.g. C.unknown). onDone: html shown only while the task is
@@ -347,22 +368,26 @@
       (p.action ? '<span class="task-action">' + p.action + '</span>' : '');
     const marks = (p.school ? schoolMark() : '') + (p.updated ? updatedMark(p.updated) : '');
     const after = p.afterOf ? ' data-after="' + esc(p.afterOf.key) + '"' + (p.afterOf.done ? '' : ' hidden') : '';
+    const metaText = p.done && p.doneMeta ? p.doneMeta : p.meta;
+    const trail = openLink + (p.source ? source(p.source) : '') + (p.info ? info(p.info, { inline: false }) : '');
     return '<div class="' + cls('item task', p.done && 'is-done', p.school && 'is-school') + '" data-key="' + esc(p.key || '') + '"' + after + '><div class="row is-static">' +
       checkbox({ checked: p.done, key: p.key, label: p.title }) +
       '<span class="row-text"><span class="row-title">' + escText(p.title) + (marks ? ' <span class="marks">' + marks + '</span>' : '') + '</span>' +
-      '<span class="row-meta" data-meta="' + escText(p.meta || '') + '"' + (p.doneMeta ? ' data-done-meta="' + escText(p.doneMeta) + '"' : '') + '>' +
-      escText(p.done && p.doneMeta ? p.doneMeta : p.meta) + '</span>' + below + '</span>' +
-      ((openLink || p.source) ? '<span class="row-trail">' + openLink + (p.source ? source(p.source) : '') + '</span>' : '') +
+      '<span class="row-meta" data-meta="' + escText(p.meta || '') + '"' + (p.doneMeta ? ' data-done-meta="' + escText(p.doneMeta) + '"' : '') +
+      (metaText ? '' : ' hidden') + '>' +
+      escText(metaText) + '</span>' + below + '</span>' +
+      (trail ? '<span class="row-trail">' + trail + '</span>' : '') +
       '</div></div>';
   }
 
-  /* ongoing({ key?, title, meta?, source? }) : a standing rule, e.g. "Report any job change
+  /* ongoing({ key?, title, meta?, source?, info? }) : a standing rule, e.g. "Report any job change
      within 10 days". A plain row with no checkbox, since it is never done. */
   function ongoing(p) {
+    const trail = (p.source ? source(p.source) : '') + (p.info ? info(p.info, { inline: false }) : '');
     return '<div class="item ongoing"' + (p.key ? ' data-key="' + esc(p.key) + '"' : '') + '><div class="row is-static">' +
       '<span class="row-text"><span class="row-title">' + escText(p.title) + '</span>' +
       (p.meta ? '<span class="row-meta">' + escText(p.meta) + '</span>' : '') + '</span>' +
-      (p.source ? '<span class="row-trail">' + source(p.source) + '</span>' : '') +
+      (trail ? '<span class="row-trail">' + trail + '</span>' : '') +
       '</div></div>';
   }
 
@@ -529,7 +554,7 @@
   /* choices({ key, options: [{ value, title, meta? }], selected?, notSure? (true or meta text), layout: 'stack'|'pair'|'row', cols?, label? }) */
   function choices(p) {
     const opts = (p.options || []).slice();
-    if (p.notSure) opts.push({ value: 'unsure', title: "I'm not sure", meta: typeof p.notSure === 'string' ? p.notSure : "You'll be asked again later" });
+    if (p.notSure) opts.push({ value: 'unsure', title: "I'm not sure", meta: typeof p.notSure === 'string' ? p.notSure : null });
     const layout = p.layout || 'stack';
     const style = layout === 'row' ? ' style="--cols:' + (p.cols || opts.length) + '"' : '';
     return '<div class="' + cls('choices', layout === 'pair' && 'is-pair', layout === 'row' && 'is-row') + '" role="radiogroup" data-choices="' + esc(p.key) + '"' +
@@ -592,8 +617,38 @@
   function getRule(key) {
     return registry[key] || ((window.DULY_SAMPLE && window.DULY_SAMPLE.sources) || {})[key] || null;
   }
-  /* popover(rule, id) : rule { name, plain?, quote?, counted?: string[], link {label, href}, checked } */
+
+  /* info(text, { label?, link? {label, href}, inline = true }) : the ⓘ for an
+     explanation (Round 3). The same 16px glyph as the source mark; a tap opens
+     a small popover (a sheet on a phone) with the text alone, and the link if
+     given. Use it wherever a line would otherwise explain something: the
+     screen stays self-explanatory and the why is one tap away. Keep text to
+     one or two short sentences. inline: false for a trailing column. */
+  const infoKeys = {};
+  function info(text, o) {
+    if (!text) return '';
+    const opt = o || {};
+    const sig = String(text) + '|' + (opt.link ? opt.link.href : '');
+    let key = infoKeys[sig];
+    if (!key) {
+      key = uid('info');
+      infoKeys[sig] = key;
+      registry[key] = { info: true, plain: String(text), link: opt.link || null };
+    }
+    const name = opt.label || 'More about this';
+    return '<button type="button" class="' + cls('src is-info', opt.inline !== false && 'inline-src') + '" data-source="' + esc(key) + '" aria-haspopup="dialog" aria-expanded="false" aria-label="' + esc(name) + '" title="' + esc(name) + '">' +
+      icon('source') + '</button>';
+  }
+
+  /* popover(rule, id) : rule { name, plain?, quote?, counted?: string[], link {label, href}, checked }
+     or an info entry { info: true, plain, link? } drawn as the text alone. */
   function popover(rule, id) {
+    if (rule.info) {
+      return '<div class="pop is-info" id="' + id + '" role="dialog" aria-label="More about this" tabindex="-1">' +
+        '<p class="pop-plain">' + escText(rule.plain) + '</p>' +
+        (rule.link ? '<div class="pop-foot"><a' + attrs(hrefAttrs(rule.link.href)) + '>' + esc(rule.link.label) + '</a></div>' : '') +
+        '</div>';
+    }
     const nameId = id + '-name';
     const counted = rule.counted && rule.counted.length
       ? '<div class="pop-counted"><h3>How it was counted</h3>' + rule.counted.map((c) => '<p>' + esc(c) + '</p>').join('') + '</div>' : '';
@@ -619,8 +674,7 @@
      head: false drops the panel's own header row (use it when the section
      eyebrow already names the email). copyBelow: true puts Copy (plus any
      extra buttons) in a group under the panel instead of in the header.
-     Use the same options on What's next and Checklists so the email looks
-     the same in both places. */
+     foot: the note on the email, behind an ⓘ beside the fields. */
   function email(p) {
     const id = uid('email');
     const below = !!p.copyBelow;
@@ -631,10 +685,10 @@
       (p.signoff && p.signoff.length ? '<p>' + p.signoff.filter(Boolean).map(esc).join('<br>') + '</p>' : '');
     const panel = '<section class="email"' + (showHead ? ' aria-labelledby="' + id + '-h"' : ' aria-label="Email to your DSO"') + '>' +
       (showHead ? '<div class="email-head"><h2 class="t-eyebrow" id="' + id + '-h">Email to your DSO</h2>' + copyBtn + '</div>' : '') +
-      '<dl class="email-fields" style="margin:0"><div><dt>To</dt><dd>' + esc(p.to) + '</dd></div>' +
+      '<div class="email-top"><dl class="email-fields" style="margin:0"><div><dt>To</dt><dd>' + esc(p.to) + '</dd></div>' +
       '<div><dt>Subject</dt><dd data-subject>' + esc(p.subject) + '</dd></div></dl>' +
-      '<div class="email-body" id="' + id + '" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Email text">' + body + '</div>' +
-      '<p class="email-foot">' + esc(p.foot || 'Edit anything before you send it. You send it yourself.') + '</p>' +
+      info(p.foot || 'Edit anything before you send it. You send it yourself.', { inline: false }) + '</div>' +
+      '<div class="email-body" id="' + id + '" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Email text">' + body + '</div><!--/email-body-->' +
       '</section>';
     /* Under the panel the buttons follow the one placement rule: the quiet
        extra (Open in Mail) on the left, Copy on the right. */
@@ -660,7 +714,7 @@
     const saved = st['draftHtml:' + key];
     const today = p.today || (window.DULY_SAMPLE ? window.DULY_SAMPLE.today.short.replace(/, \d{4}$/, '') : '');
     let panel = email(Object.assign({}, p, { head: false, copyBelow: false, extra: null }));
-    if (saved) panel = panel.replace(/(<div class="email-body"[^>]*>)[\s\S]*?(<\/div><p class="email-foot">)/, '$1' + saved + '$2');
+    if (saved) panel = panel.replace(/(<div class="email-body"[^>]*>)[\s\S]*?(<\/div><!--\/email-body-->)/, function (m, a, b) { return a + saved + b; });
     const act = (a, label, kind, extra) => '<button type="button" class="' + cls('btn', kind) + '" data-draft-act="' + a + '"' + (extra || '') + '>' + esc(label) + '</button>';
     return '<div class="draft" data-draft="' + esc(key) + '" data-state="' + esc(state) + '"' + (p.step ? ' data-draft-step="' + esc(p.step) + '"' : '') + '>' +
       '<div class="draft-part" data-part="closed">' + act('open', p.openLabel || 'Write the email to your DSO', 'btn-pill', ' aria-expanded="false"') + '</div>' +
@@ -686,78 +740,86 @@
       : '<span class="mark is-updated">' + esc(text) + '</span>';
   }
 
-  /* rulesLine(rules = DULY_SAMPLE.rules) : one visible quiet line on every
-     screen that shows federal steps (What's next, Checklists, Timeline):
-     "Worked out from the current rules · Rules checked Sep 30". The steps are
-     live, not a saved draft (Note 11): they are recomputed from the rule pack
-     whenever an approved change lands. The date links to Updates, where each
-     change is explained. No tooltip: it has to read the same on a phone. */
+  /* rulesLine(rules = DULY_SAMPLE.rules) : "Rules checked Sep 30" with an ⓘ,
+     on every screen that shows federal steps or dates. The why (the steps are
+     worked out from the current rules and change when a rule changes) sits
+     behind the ⓘ (Round 3). The date links to News. */
   function rulesLine(r) {
     const rules = r || (window.DULY_SAMPLE && window.DULY_SAMPLE.rules) || {};
-    return '<p class="rules-line t-meta"><span>' + esc(rules.short || 'Worked out from the current rules') + '</span> · ' +
-      '<a class="link is-quiet" href="' + esc(rules.href || '#/updates') + '">' + esc(rules.checked || 'Rules checked') + '</a></p>';
+    return '<p class="rules-line t-meta"><a class="link is-quiet" href="' + esc(rules.href || '#/updates') + '">' + esc(rules.checked || 'Rules checked') + '</a>' +
+      info(rules.info) + '</p>';
   }
 
-  /* schoolStep(entry) : one school step, from an App.steps() entry of type 'school'
-     (or a DULY_SAMPLE.schoolSteps item). A task with the "Your school" mark; its
-     link opens the school's page, a missing link is one tap to add, and a step with
-     draft: 'dso' carries the DSO email draft (pass email: DULY_SAMPLE.email). */
+  /* schoolStep(entry, { email?, primary?, action? }) : one school step, from an
+     App.steps() entry of type 'school' (or a DULY_SAMPLE.schoolSteps item). A
+     task with the "Your school" mark and Open, to the school page it came from.
+     A step with draft: 'dso' carries the DSO email draft (pass email:
+     DULY_SAMPLE.email). */
   function schoolStep(entry, o) {
     const opt = o || {};
     const s = entry.step || entry;
     const key = entry.key || ('school:' + s.id);
-    const needLink = !s.link && s.addLink;
     return task({
-      key: key, title: s.title, meta: s.meta, done: entry.done != null ? entry.done : !!s.done,
+      key: key, title: s.title, meta: s.meta, info: s.info, done: entry.done != null ? entry.done : !!s.done,
       school: true,
       open: s.link ? { label: s.link.label || 'Open', href: s.link.href } : null,
-      below: needLink ? '<span class="unknown"><button type="button" class="link" data-school-link="' + esc(s.id) + '">' + esc(s.addLink.action) + '</button> ' + esc(s.addLink.rest || '') + '</span>' +
-        '<span class="school-link-form" data-school-link-form="' + esc(s.id) + '" hidden>' +
-        '<input class="input" type="url" inputmode="url" placeholder="Paste the link to your school\'s form" aria-label="Link to your school\'s form">' +
-        '<button type="button" class="btn btn-pill" data-school-link-save="' + esc(s.id) + '">Save link</button></span>' : null,
       afterOf: entry.afterOf || null,
       action: s.draft && opt.email ? emailDraft(Object.assign({}, opt.email, { step: key, primary: opt.primary })) : (opt.action || null),
     });
   }
 
-  /* addSchoolStep({ path, federal: [{ key, title }], kinds = DULY_SAMPLE.schoolStepKinds })
-     "Add your school's step" under any checklist. Opens in place: a title, quick-add
-     kinds, an optional link, and where it goes (Before, Alongside or After one of
-     the federal steps). app.js saves it to DULY_SAMPLE.schoolSteps, emits
-     duly:change { kind: 'school-step', key: 'add', value: step } and redraws the
-     page in place. */
-  function addSchoolStep(p) {
-    const kinds = p.kinds || (window.DULY_SAMPLE && window.DULY_SAMPLE.schoolStepKinds) || [];
-    const fed = p.federal || [];
-    const id = uid('sa');
-    return '<div class="school-add" data-school-add-wrap="' + esc(p.path || '') + '">' +
-      '<button type="button" class="btn btn-text" data-school-add="open" aria-expanded="false" aria-controls="' + id + '">Add your school\'s step</button>' +
-      '<div class="school-form" id="' + id + '" hidden>' +
-      '<p class="t-meta">Your school may ask for its own steps. Add one and it stays with this checklist.</p>' +
-      chips({ key: 'schoolStep:kind', label: 'Kind of step', items: kinds.map((k) => ({ value: k.key, label: k.label })) }) +
-      '<div class="fields">' +
-      field({ label: 'Step', key: 'schoolStep:title', placeholder: 'Send the STEM OPT request form' }) +
-      field({ label: 'Link, if there is one', key: 'schoolStep:link', type: 'url', inputmode: 'url', placeholder: 'https://' }) +
-      '<div class="field"><p class="field-label">Where it goes</p>' +
-      choices({ key: 'schoolStep:placement', layout: 'row', cols: 3, label: 'Where it goes', selected: 'before', options: [
-        { value: 'before', title: 'Before' }, { value: 'alongside', title: 'Alongside' }, { value: 'after', title: 'After' },
-      ] }) + '</div>' +
-      '<div class="field"><label class="field-label" for="' + id + '-f">Which step</label>' +
-      '<select class="select" id="' + id + '-f" data-field="schoolStep:federal">' +
-      fed.map((f) => '<option value="' + esc(f.key) + '">' + esc(f.title) + '</option>').join('') + '</select></div>' +
-      '</div>' +
-      buttonRow({
-        back: '<button type="button" class="btn btn-text is-quiet" data-school-add="cancel">Cancel</button>',
-        primary: '<button type="button" class="btn btn-pill" data-school-add="save">Add step</button>',
-      }) +
-      '</div></div>';
+  /* schoolImport({ path = 'stem' }) : school steps come from the school's own
+     page, never typed in (Round 3, note 4). Three states, from
+     App.schoolImport(path).state, switched in place by app.js:
+       empty      paste the school's OPT or STEM OPT page link, or drop its PDF
+       found      the steps read from it, each marked "Your school" with where
+                  it goes, and one "Add to my steps"
+       confirmed  one quiet line: where the steps came from, with Change
+     Confirming adds the steps to DULY_SAMPLE.schoolSteps, so App.steps(path)
+     places them among the federal steps. In the prototype any link or PDF
+     yields DULY_SAMPLE.schoolImport.found. */
+  function schoolImport(p) {
+    const o = p || {};
+    const path = o.path || 'stem';
+    const imp = (window.App && window.App.schoolImport) ? window.App.schoolImport(path) : { state: 'empty' };
+    const d = (window.DULY_SAMPLE && window.DULY_SAMPLE.schoolImport) || {};
+    const fed = path === 'stem' && window.DULY_SAMPLE ? window.DULY_SAMPLE.stem.tasks : [];
+    const fedTitle = (k) => ((fed.filter((f) => f.key === k)[0]) || {}).title || '';
+    const where = { before: 'Before', alongside: 'With', after: 'After' };
+    let body;
+    if (imp.state === 'confirmed') {
+      body = '<p class="school-src t-meta">' + icon('link') +
+        '<span>Your school steps from ' + (imp.href ? '<a class="link is-quiet"' + attrs(hrefAttrs(imp.href)) + '>' + esc(imp.label) + '</a>' : esc(imp.label)) + '</span>' +
+        '<button type="button" class="link is-quiet" data-school-import="reset">Change</button></p>';
+    } else if (imp.state === 'found') {
+      const rows = (imp.steps || []).map((s) => '<div class="item"><div class="row is-static"><span class="row-text">' +
+        '<span class="row-title">' + escText(s.title) + ' <span class="marks">' + schoolMark() + '</span></span>' +
+        '<span class="row-meta">' + esc(where[s.placement] || '') + (fedTitle(s.federal) ? ': ' + escText(fedTitle(s.federal)) : '') + '</span>' +
+        '</span></div></div>').join('');
+      body = '<div class="school-found">' +
+        '<p class="t-row">' + esc((imp.steps || []).length + ' steps from ' + imp.label) + '</p>' +
+        '<div class="list">' + rows + '</div>' +
+        buttonRow({
+          back: '<button type="button" class="btn btn-text is-quiet" data-school-import="dismiss">Not now</button>',
+          primary: '<button type="button" class="btn btn-pill" data-school-import="confirm">Add to my steps</button>',
+        }) + '</div>';
+    } else {
+      body = '<div class="school-paste" data-school-import-zone>' +
+        '<div class="school-paste-row">' +
+        '<input class="input" type="url" inputmode="url" autocomplete="off" data-school-import-url placeholder="' + esc(d.placeholder || "Paste your school's STEM OPT page link") + '" aria-label="Link to your school\'s STEM OPT page">' +
+        '<button type="button" class="btn btn-pill" data-school-import="fetch">Get my school\'s steps</button>' +
+        '</div>' +
+        '<p class="t-meta school-or"><label class="link is-quiet">Or add the school\'s PDF<input type="file" accept="application/pdf" data-school-import-pdf hidden></label>' +
+        info(d.info) + '</p>' +
+        '</div>';
+    }
+    return '<div class="school-import" data-school-import-wrap="' + esc(path) + '" data-state="' + esc(imp.state) + '">' + body + '</div>';
   }
 
-  /* affectsFor(item, intent = App.stemIntent()) : the "does this affect you"
-     answer for this student, { short, line, todo }. The one place for Home,
-     Updates and the update's own page, so the three never disagree. The fee
-     answer follows the STEM OPT choice: after a No, it is a plain No with
-     nothing to do. */
+  /* affectsFor(item, intent = App.stemIntent()) : the "for you" answer for this
+     student, { short, line, todo }. The one place for Home, News and the
+     article page, so they never disagree. byIntent overrides by the STEM OPT
+     choice. */
   function affectsFor(item, intent) {
     const a = item && item.affects && typeof item.affects === 'object' ? item.affects : { short: item && item.affects, line: '' };
     const want = intent !== undefined ? intent : (window.App && window.App.stemIntent ? window.App.stemIntent() : null);
@@ -769,38 +831,30 @@
     if (!t) return '';
     return String(t).split(/\.\s/)[0].replace(/\.$/, '');
   }
-  /* updateRow(item, { meta? }) : an update or news row for Home and Updates.
-     item is a DULY_SAMPLE.updates.items entry. It opens the item's own page
-     and says inline, in one formatter for both screens:
-       Affects you: Not yet · Nothing now
-       Your Form I-765 step was updated Sep 30   (when the change touched a step)
-     The second line is the moment that shows the steps move with the rules:
-     the student sees it where she already looks, without opening anything.
-     The "Affects you:" prefix is dropped when the answer already says "you". */
+  /* updateRow(item, { meta?, line?, headline? }) : a News row for Home and News,
+     like a news app: the headline (medium size with headline: true), then
+     "Sep 14, 2026 · U.S. District Court", then one short line (item.dek, or the
+     "for you" answer). No jump links. Opens the article at #/updates/<id>. */
   function updateRow(item, o) {
+    const opt = o || {};
     const id = item.id || item.key;
-    const ans = affectsFor(item);
-    const short = ans.short;
-    const affects = short ? (/\byou\b/i.test(short) ? short : 'Affects you: ' + short) : '';
-    const line = [affects, todoShort(ans.todo)].filter(Boolean).join(' · ');
-    const changed = item.changed || [];
-    const changedLine = changed.length === 1
-      ? (changed[0].short || '1 step in your checklist') + ' was updated ' + (changed[0].date || '')
-      : changed.length ? changed.length + ' steps in your checklist were updated ' + (changed[0].date || '') : '';
-    return row({
-      key: id, title: item.title, meta: (o && o.meta != null) ? o.meta : item.meta, href: item.href || ('#/updates/' + id),
-      below: (line ? '<span class="row-affects">' + escText(line) + '</span>' : '') +
-        (changedLine ? '<span class="row-affects is-changed">' + escText(changedLine) + '</span>' : ''),
-    });
+    const meta = opt.meta != null ? opt.meta : [item.date, item.source && item.source.name].filter(Boolean).join(' · ');
+    const line = opt.line !== undefined ? opt.line : (item.dek || affectsFor(item).short);
+    return '<div class="' + cls('item news-row', opt.headline && 'is-headline') + '" data-key="' + esc(id) + '">' +
+      '<a class="row" href="' + esc(item.href || ('#/updates/' + id)) + '"><span class="row-text">' +
+      '<span class="' + (opt.headline ? 'news-title t-medium' : 'row-title') + '">' + escText(item.title) + '</span>' +
+      (meta ? '<span class="row-meta num">' + escText(meta) + '</span>' : '') +
+      (line ? '<span class="news-dek">' + escText(line) + '</span>' : '') +
+      '</span><span class="row-trail">' + icon('chevron', { cls: 'chev' }) + '</span></a></div>';
   }
 
   /* applicationRow(app) : one application, from DULY_SAMPLE.applications.items.
-     Opens #/applications/<id>. Status is always shown with its "as of" date. */
+     Opens #/uscis/<id>. Status is always shown with its "as of" date. */
   function applicationRow(a) {
     return row({
       key: a.id, title: a.title,
       meta: (a.receipt ? a.receipt + ' · ' : '') + statusLine(a),
-      href: '#/applications/' + a.id,
+      href: '#/uscis/' + a.id,
     });
   }
   /* statusLine(app) : "Approved, as of Dec 20, 2025" */
@@ -877,14 +931,14 @@
     esc, raw, cls, attrs, uid, icon,
     NAV, NAV_SECONDARY,
     wordmark, navItem, sidebar, topbar, menuSheet, tabbar,
-    backLink, pageHeader, dateLine, hero, shield, metrics, bar, progress,
+    backLink, titleWith, pageHeader, dateLine, hero, shield, metrics, bar, progress,
     section, list, row, disclosure, valueRow, settingRow,
     checkbox, task, ongoing, doneGroup, phaseMark, nowTag,
     ask, waiting, unknown, empty,
     button, buttonRow, btnGroup, link, danger,
     field, textarea, dateField, dateRange, choices, chips, segment, toggle, select,
     source, getRule, popover,
-    email, emailDraft, schoolMark, updatedMark, rulesLine, schoolStep, addSchoolStep,
+    email, emailDraft, schoolMark, updatedMark, rulesLine, schoolStep, schoolImport, info,
     escText, affectsFor, todoShort, updateRow, applicationRow, statusLine,
     note, caution, dates, tracker, found, footer,
     steps, onboarding,

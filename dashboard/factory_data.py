@@ -3,6 +3,7 @@
 Sources, all plain files:
 - <repo>/.factory/events.jsonl   one line per agent action, written by the lane runner
 - <repo>/.factory/gates.json     results of the last checks
+- <repo>/.factory/scorecards/*.json   each plan's scorecard, saved at plan close
 - ~/.claude/projects/<slug>/*.jsonl   the full session log Claude Code keeps for each agent
 - git, for commits and changed files in each lane's worktree
 """
@@ -568,6 +569,37 @@ def agent_metrics(runs: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
     return out
 
 
+SCORECARD_FIELDS = ("label", "read_by", "value", "last_three", "target", "met")
+
+
+def read_scorecards(repo: Path, limit: int = 6) -> list[dict[str, Any]]:
+    """The plans' scorecards, the latest closed first. The runner saves one at plan close
+    (make efficiency can save one by hand): the plan's totals, and each measure with its
+    value, the median of the last three plans, its target and whether that is met."""
+    cards = []
+    for path in (repo / ".factory" / "scorecards").glob("*.json"):
+        try:
+            card = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(card, dict) and isinstance(card.get("measures"), dict):
+            cards.append(card)
+    cards.sort(key=lambda c: str(c.get("closed_at", "")), reverse=True)
+    return [
+        {
+            "plan": str(card.get("plan", "")),
+            "closed_at": str(card.get("closed_at", "")),
+            "totals": card.get("efficiency") if isinstance(card.get("efficiency"), dict) else {},
+            "measures": [
+                {"id": key, **{name: measure.get(name) for name in SCORECARD_FIELDS}}
+                for key, measure in card["measures"].items()
+                if isinstance(measure, dict)
+            ],
+        }
+        for card in cards[:limit]
+    ]
+
+
 def _out(cmd: list[str], cwd: Path) -> str:
     try:
         done = subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True, timeout=10)
@@ -856,6 +888,7 @@ def snapshot_json(
             for e in reversed(snap.alerts)
         ],
         "metrics": snap.metrics,
+        "scorecards": read_scorecards(repo),
         "reviews": snap.reviews,
         "ledger": {"intact": not snap.ledger_problems, "problems": snap.ledger_problems[:5]},
         "health": health_rows(repo, snap.health),

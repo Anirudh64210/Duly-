@@ -98,6 +98,8 @@ window.DULY_SAMPLE = {
   home: {
     eyebrow: 'On OPT',
     headline: "You're working on OPT at Northwind Systems.",
+    /* The why behind the hero, for an ⓘ beside it (C.hero({ info })). */
+    info: 'Counted from your EAD card and your job start date.',
     subline: 'Your STEM OPT window opens Nov 15. Start preparing by Oct 15.',
     /* Subline once the student has said no to STEM OPT, or has nothing left this week. */
     sublineQuiet: 'Nothing else needs you this week.',
@@ -110,139 +112,130 @@ window.DULY_SAMPLE = {
     metricNoStem: { eyebrow: 'Next date', value: 'Feb 13, 2027', date: true, unit: 'Your card ends · in 136 days', source: 'eadEnds' },
     /* Third metric with no EAD card on file. */
     metricNoEad: { eyebrow: 'Next date', add: { action: 'Add your EAD card', rest: 'to see this date.', href: '#/documents/add' } },
-    /* Your next move holds moves only: things the student does, with a date.
-       Rule changes and news live under whatsNew.
-       'stemIntent' is not asked here: the question is owned by What's next,
-       and this row links to it.
-       'changes' is the standing rule to report a change within 10 days. It
-       has no date and is owned by Checklists > OPT; Home shows it only when
-       there is no dated move, as a link to its owner. There is no fixed
-       six-month check on post-completion OPT. */
+    /* Your next move: one line, a date and one action (Round 3, note 1).
+       'stemIntent' opens Next steps, where the question is asked.
+       'changes' is the standing rule to report a change within 10 days; it
+       has no date and shows only when there is no dated move. */
     nextMoves: [
       {
         key: 'stemIntent',
         title: 'Decide on STEM OPT',
+        date: 'Oct 15',
         meta: 'Start preparing by Oct 15',
-        text: 'Your STEM OPT window opens Nov 15, 2026. If you plan to apply, start preparing by Oct 15.',
-        primary: { label: "Decide in What's next", href: '#/next' },
+        primary: { label: 'Decide', href: '#/steps' },
         source: 'startPreparing',
       },
       {
         key: 'changes',
         title: 'Changed your address or job?',
         meta: 'Report it within 10 days',
-        href: '#/checklists/opt',
+        href: '#/steps',
+        source: 'reportChanges',
       },
     ],
-    /* What's new for your status: the rule change first, then the news. */
-    /* Each row opens its own page and shows the "affects you?" answer
-       inline (affects). The full items live in updates.items. */
+    /* What's new: headlines only, each opening its article in News.
+       key is an updates.items id (App.findUpdate). */
     whatsNew: [
-      { key: 'fee', kind: 'rule', title: 'The fee for Form I-765 is changing', meta: 'Rule change · USCIS · Sep 30, 2026', affects: 'Not yet', href: '#/updates/fee' },
-      { key: 'court', kind: 'news', title: 'A court paused a change to an F-1 rule', meta: 'In the news · U.S. District Court, Massachusetts · Sep 14, 2026', affects: 'No change for you', href: '#/updates/court' },
+      { key: 'court' },
     ],
   },
 
-  /* What's next: STEM OPT */
+  /* Next steps: STEM OPT. One page (#/steps) holds the path, its dates and
+     its steps (Round 3, note 2). Lines named *Info are explanations for an ⓘ,
+     never printed as subtext. */
   stem: {
     intent: null, /* null, 'yes', 'no' or 'unsure' */
     eyebrow: 'STEM OPT extension',
     askTitle: 'Planning to apply for STEM OPT?',
-    askLine: 'Computer Science is on the STEM list and your card ends Feb 13, 2027. Say yes to see your dates and steps.',
-    unsureLine: "That's fine. Here are the dates anyway, and you can decide later.",
+    askLine: 'Window opens Nov 15, 2026.',
+    askInfo: 'Computer Science is on the STEM list, and your card ends Feb 13, 2027.',
+    unsureLine: 'Here are the dates. Decide any time.',
     yesTitle: 'Start preparing by Oct 15.',
-    yesLine: 'Your window to file opens Nov 15, 2026 and closes Feb 13, 2027.',
+    yesLine: 'File between Nov 15, 2026 and Feb 13, 2027.',
     noTitle: 'Your card ends Feb 13, 2027.',
-    noLine: "You'll see what comes after OPT closer to that date.",
+    noLine: null,
+    noInfo: "You'll see what comes after OPT closer to that date.",
     today: { label: 'Today', pct: 0 },
     dates: [
       { date: 'Oct 15, 2026', label: 'Start preparing', source: 'startPreparing' },
       { date: 'Nov 15, 2026', label: 'Window opens', source: 'stemOpens' },
-      { date: 'Feb 13, 2027', label: 'Latest day to file · your card ends', source: 'stemCloses', end: true },
+      { date: 'Feb 13, 2027', label: 'Last day to file', source: 'stemCloses', end: true },
     ],
-    /* The federal STEM OPT steps. They are not a saved draft: in the product
-       they are computed from the sourced rule pack for this student, and
-       recomputed whenever an approved rule change lands (see rules and
-       updates.items). What's next and Checklists both render them
-       (checklists.stem.steps is this same array), merged with the student's
-       own school steps by App.steps('stem'). The receipt number is not a
-       step: Applications covers it.
-       onDone shows inside a step once it is checked: the recommendation date
-       cannot be known before the new I-20 arrives.
-       updated: set when an approved rule change touched this step; the step
-       shows "Updated Sep 30" and links to the update. */
+    /* The federal STEM OPT steps, computed from the sourced rule pack for this
+       student and recomputed when an approved rule change lands. App.steps('stem')
+       merges them with the school's steps. The receipt number is not a step:
+       USCIS status covers it.
+         meta   a date or a short fact, or null
+         info   the explanation, behind an ⓘ (C.task({ info }))
+         onDone shown inside a step once it is checked
+         updated { date, href, what }: set only when an approved rule change
+                touched the step. None today. */
     tasks: [
-      { key: 'everify', title: 'Check that Northwind Systems uses E-Verify', meta: "Ask HR for the company's E-Verify number.", source: 'stemEmployer' },
-      { key: 'i983', title: 'Fill out your training plan with your manager', meta: 'Form I-983. Your manager signs it.', source: 'stemPlan' },
-      { key: 'i20', title: 'Get your new I-20 from your school', meta: "It carries your school's STEM OPT recommendation.", source: 'within60',
+      { key: 'everify', title: 'Check that Northwind Systems uses E-Verify', meta: null, info: "Ask HR for the company's E-Verify number.", source: 'stemEmployer' },
+      { key: 'i983', title: 'Fill out your training plan with your manager', meta: 'Form I-983', info: 'You and your manager both sign it.', source: 'stemPlan' },
+      { key: 'i20', title: 'Get your new I-20 from your school', meta: null, info: "It carries your school's STEM OPT recommendation.", source: 'within60',
         onDone: { action: 'Add the date your school recommends you', rest: 'to see your exact last day to file.', href: '#/case/recommended', source: 'within60' } },
-      { key: 'i765', title: 'File Form I-765 with USCIS', meta: "Between Nov 15, 2026 and Feb 13, 2027, within 60 days of your school's recommendation.", source: 'stemOpens',
-        caution: 'The fee is changing. The USCIS notice has the new amount.', cautionSource: 'feeChange',
-        updated: { date: 'Sep 30', href: '#/updates/fee', what: 'Fee note added' } },
+      { key: 'i765', title: 'File Form I-765 with USCIS', meta: 'Nov 15, 2026 to Feb 13, 2027', info: "Within 60 days of your school's recommendation.", source: 'stemOpens' },
     ],
   },
 
   /* The rule pack behind every federal step and date. Shown as one quiet
-     line on Checklists ("Rules checked Sep 30"); never a version number. */
+     line, "Rules checked Sep 30", with the why behind an ⓘ (C.rulesLine). */
   rules: {
     checked: 'Rules checked Sep 30',
     checkedLong: 'Rules checked today, 6:00 AM',
-    line: 'Your steps and dates are worked out from the current rules, and they update when a rule changes.',
-    /* The visible half of C.rulesLine: "Updated for you when a rule changes · Rules checked Sep 30".
-       The same words on Home, What's next, Checklists and Timeline, so every
-       screen that shows federal steps says they are live, not a saved draft. */
-    short: 'Updated for you when a rule changes',
+    info: 'Your steps and dates are worked out from the current rules. When a rule changes, they update and the change shows in News.',
     href: '#/updates',
   },
 
-  /* Your school's steps (Note 10). Generic, added by the student, never a
-     per-school integration. Each is placed against a federal step:
-       before     a prerequisite: the federal step shows "Waiting on: <title>"
-                  until this is done, while its dates keep counting
-       alongside  shown next to the federal step
-       after      shown only once the federal step is done
-     kind is one of schoolStepKinds. done may be overridden at runtime by
-     App.state['task:school:<id>']. saved: kept for reuse on the next path.
-     draft: 'dso' means the step's action opens the DSO email draft. */
-  schoolStepKinds: [
-    { key: 'portal', label: 'Request form in the school portal' },
-    { key: 'upload', label: 'Upload the I-983 to the school' },
-    { key: 'workshop', label: 'OPT or STEM workshop' },
-    { key: 'fee', label: 'School fee' },
-    { key: 'meeting', label: 'DSO meeting' },
-    { key: 'other', label: 'Something else' },
-  ],
-  schoolSteps: [
-    {
-      id: 'su-stem-request',
-      path: 'stem',
-      title: "Send State University's STEM OPT request",
-      kind: 'portal',
-      meta: 'In the school portal. Include your signed I-983.',
-      link: null, /* the student has not added the portal link yet */
-      addLink: { action: "Add your school's form link", rest: 'to keep it here.' },
-      document: 'Signed I-983',
-      placement: 'before',
-      federal: 'i20',
-      done: false,
-      addedBy: 'you',
-      added: 'Sep 30',
-      saved: true,
-      draft: 'dso',
-    },
-  ],
+  /* Your school's steps (Round 3, note 4). Never typed in by hand: the
+     student pastes the school's OPT or STEM OPT page link, or adds the
+     school's PDF (C.schoolImport). The steps are read from it, marked
+     "Your school", placed against the federal steps, and confirmed once.
+     Public school information, not the student's documents.
+       state      'empty' | 'found' | 'confirmed' at launch
+       found      what the demo link yields. Any link or PDF gives these in
+                  the prototype. Each is placed against a federal step:
+                    before     the federal step shows "Waiting on: <title>"
+                    alongside  shown next to the federal step
+                    after      shown once the federal step is done
+       draft      'dso' means the step carries the DSO email draft.
+     schoolSteps holds the confirmed ones; App.setSchoolImport fills it. */
+  schoolImport: {
+    state: 'empty',
+    placeholder: "Paste your school's STEM OPT page link",
+    info: "Public information from your school's site, not your documents. The steps go into your list and you confirm them once.",
+    demo: 'https://www.example.edu/international/stem-opt',
+    href: 'https://www.example.edu/international/stem-opt',
+    label: "State University's STEM OPT page",
+    found: [
+      { id: 'su-workshop', path: 'stem', title: 'Watch the STEM OPT workshop', meta: 'On the school site', placement: 'before', federal: 'i983', done: false },
+      { id: 'su-stem-request', path: 'stem', title: 'Send the STEM OPT request in the school portal', meta: 'With your signed I-983', placement: 'before', federal: 'i20', done: false, draft: 'dso' },
+      { id: 'su-receipt', path: 'stem', title: 'Send your USCIS receipt to the school', meta: 'In the school portal', placement: 'alongside', federal: 'i765', done: false },
+    ],
+  },
+  schoolSteps: [],
 
   /* Things the student has already completed. Confetti fires only the first
      time a key is completed, and never for a key listed here. App.complete()
      adds to this list at runtime. */
-  completions: ['timeline:arrival', 'timeline:masters', 'timeline:cpt', 'checklists:cpt', 'checklists:opt', 'application:opt'],
+  completions: ['timeline:arrival', 'timeline:masters', 'timeline:cpt', 'checklists:cpt', 'checklists:opt', 'steps:cpt', 'steps:opt', 'application:opt'],
 
-  /* Applications (Note 9). Status is updated by the student for now, always
-     with the date it was true ("as of"). USCIS case status is parked
-     (BACKLOG B8). */
+  /* USCIS status (#/uscis, Round 3, note 3). Status is entered by the
+     student for now, always with the date it was true ("as of"). Live
+     tracking from USCIS is parked (BACKLOG B8); until then the page offers a
+     recheck on USCIS itself. */
   applications: {
     steps: ['Filed', 'Received', 'Biometrics', 'Decision', 'Card mailed'],
     receiptPlaceholder: 'Three letters and ten digits, from your USCIS notice',
+    tracking: {
+      live: false,
+      label: 'Live tracking',
+      state: 'Once connected to USCIS',
+      info: 'Live tracking reads your case status from USCIS once that connection is approved. Until then, status is what you last saw on USCIS.',
+      recheck: { label: 'Recheck in your USCIS account', href: 'https://myaccount.uscis.gov/' },
+      caseStatus: { label: 'Check case status on USCIS', href: 'https://egov.uscis.gov/' },
+    },
     items: [
       {
         id: 'opt',
@@ -251,7 +244,7 @@ window.DULY_SAMPLE = {
         category: 'Post-completion OPT',
         receipt: 'IOE0912345678',
         status: 'Approved',
-        current: 3,
+        current: 4,
         asOf: 'Dec 20, 2025',
         manual: true,
         dates: [
@@ -276,10 +269,10 @@ window.DULY_SAMPLE = {
         dates: [
           { label: 'Start preparing', date: 'Oct 15, 2026', source: 'startPreparing' },
           { label: 'Window opens', date: 'Nov 15, 2026', source: 'stemOpens' },
-          { label: 'Latest day to file · your card ends', date: 'Feb 13, 2027', source: 'stemCloses' },
+          { label: 'Last day to file', date: 'Feb 13, 2027', source: 'stemCloses' },
         ],
-        next: { title: "Send State University's STEM OPT request", meta: 'Your school step, before your new I-20', href: '#/checklists/stem' },
-        schoolSteps: ['su-stem-request'],
+        next: { title: 'Start preparing by Oct 15', href: '#/steps' },
+        schoolSteps: [],
       },
     ],
   },
@@ -303,20 +296,7 @@ window.DULY_SAMPLE = {
       'Is there anything in my record I should update first?',
     ],
     signoff: ['Thank you,', 'Priya Raman', 'SEVIS ID N0012345678'],
-    foot: 'Written from your records. Change anything before you send it.',
-  },
-
-  /* Kept for the current What's next tracker; Applications uses
-     applications.items. */
-  application: {
-    steps: ['Filed', 'Received', 'Biometrics', 'Decision', 'Card mailed'],
-    current: null, /* index of the current step once a receipt is added */
-    receiptPlaceholder: 'Three letters and ten digits, from your USCIS notice',
-    past: {
-      title: 'OPT work permit',
-      receipt: 'IOE0912345678',
-      meta: 'Filed Oct 10, 2025 · Approved Dec 20, 2025 · Card valid from Feb 14, 2026',
-    },
+    foot: 'Written from your records. Change anything before you send it.', /* behind an ⓘ */
   },
 
   /* Timeline */
@@ -345,16 +325,16 @@ window.DULY_SAMPLE = {
       now: [
         { kind: 'value', label: 'Unemployment days', value: '13 of 90 used', source: 'unemployment' },
         { kind: 'value', label: 'Job reported to school', value: 'Software Engineer, Northwind Systems, since Feb 27, 2026' },
-        { kind: 'value', label: 'Application', value: 'IOE0912345678 · approved Dec 20, 2025' },
+        { kind: 'value', label: 'USCIS', value: 'IOE0912345678 · approved Dec 20, 2025', href: '#/uscis/opt' },
       ],
       link: { label: 'EAD card and approval notice', href: '#/documents/status' },
     },
     {
       key: 'stem', state: 'next', title: 'STEM OPT extension', meta: 'Window opens Nov 15, 2026',
-      /* Intent is asked only on What's next. Here it is one quiet line with a link. */
-      undecided: { text: 'STEM OPT: not decided yet.', link: { label: "Decide in What's next", href: '#/next' } },
-      after: { text: 'Start preparing by Oct 15.', link: { label: 'See the plan', href: '#/next' } },
-      declined: { text: 'Not this time.', link: { label: "Change in What's next", href: '#/next' } },
+      /* Intent is asked only on Next steps. Here it is one quiet line with a link. */
+      undecided: { text: 'STEM OPT: not decided yet.', link: { label: 'Decide', href: '#/steps' } },
+      after: { text: 'Start preparing by Oct 15.', link: { label: 'See your steps', href: '#/steps' } },
+      declined: { text: 'Not this time.', link: { label: 'Change', href: '#/steps' } },
     },
     {
       key: 'after', state: 'next', title: 'After OPT', meta: 'H-1B and other paths',
@@ -362,7 +342,8 @@ window.DULY_SAMPLE = {
     },
   ],
 
-  /* Checklists */
+  /* The paths on Next steps. Applications are not steps: USCIS status
+     covers them. */
   checklists: {
     paths: [
       { key: 'cpt', label: 'CPT', done: true },
@@ -375,118 +356,138 @@ window.DULY_SAMPLE = {
       eyebrow: 'Window opens Nov 15',
       title: 'STEM OPT extension',
       progressMeta: 'start by Oct 15',
-      steps: null, /* set below to stem.tasks: one list of steps for both screens */
-      doneLine: 'Every step done. Add your receipt number to track it.',
+      steps: null, /* set below to stem.tasks: one list of steps */
+      doneLine: 'Every step done.',
     },
     opt: {
-      applied: 'Filed Oct 10, 2025, approved Dec 20, 2025, card valid from Feb 14, 2026.',
       steps: [
         { key: 'reported', title: 'Job reported to your school', meta: 'Northwind Systems, Feb 27, 2026', done: true, doneMeta: 'Done Feb 27, 2026' },
         /* A standing rule, never done: render with C.ongoing (no checkbox). */
         { key: 'changes', title: 'Report a change of address or job within 10 days', meta: 'Ongoing', ongoing: true, source: 'reportChanges' },
       ],
     },
-    h1b: { eyebrow: 'Later', title: 'H-1B starts with your employer.', line: 'The dates appear here when USCIS announces the next registration.' },
+    h1b: { eyebrow: 'Later', title: 'H-1B starts with your employer.', line: null, info: 'The dates appear here when USCIS announces the next registration.' },
   },
 
-  /* Updates */
+  /* ===== NEWS ===== (owned by screens/updates.js; route stays #/updates)
+     Each item is an article with its own page at #/updates/<id>
+     (App.findUpdate(id)), written only from a source saved in
+     rulepacks/f1-us/v2026.09/sources (see its SOURCES.md) or the notes on the
+     2026 regime. An item with no saved source is removed, never invented
+     (Round 3, note 6). Newest first.
+       title     the headline
+       dek       one short line under it, for rows and under the headline
+       label     a word or two above the headline on the article page
+       date      the day it happened; source { name, label, href, file }
+       article   four to six short paragraphs: what happened, the
+                 background, what it changes and does not, what comes next
+       forYou    the "For you" box: affects.short is its first line, forYou
+                 the one line after it (what to do)
+       affects   { short, line, byIntent? } and todo, kept for C.affectsFor
+       changed   steps a rule change touched: [{ path, step, title, change }]
+       info      for the ⓘ beside "For you" */
   updates: {
-    status: {
-      meta: 'Rule change · USCIS',
-      title: 'The fee for Form I-765 is changing.',
-      body: 'Form I-765 is the form you file for STEM OPT. The new fee and the date it starts are in the USCIS notice. Your I-765 step now carries a note about it.',
-      /* Label while STEM OPT intent is unanswered, and once it is yes. */
-      link: { label: 'See what STEM OPT needs', href: '#/next' },
-      linkPlanned: { label: 'See your STEM OPT steps', href: '#/next' },
-      notice: { label: 'Read the USCIS notice', href: 'https://www.uscis.gov/i-765' },
-      source: 'feeChange',
-    },
-    news: [
-      {
-        key: 'court',
-        title: 'A court paused a change to an F-1 rule',
-        meta: 'News · U.S. District Court, Massachusetts · Sep 14, 2026',
-        text: 'The rule would have given F-1 students a fixed end date instead of a stay tied to their studies. It is paused while the case goes on. Your dates are counted under the rules in effect today, and you will get an update if that changes.',
-        link: { label: 'Read the court order', href: '[court order link]' },
-      },
-    ],
-    /* Every update and news item, each with its own page at #/updates/<id>
-       (App.findUpdate(id)). In plain words, for this student:
-         what      what is happening (paragraphs)
-         affects   { short, line }: short for rows ("Not yet"), line for the page
-         todo      anything to do
-         source    tucked away: { name, label, href, rule? (key into sources) }
-         changed   what changed in your checklist: [{ path, step, title, change, date }]
-                   The step shows "Updated <date>" in its checklist.
-         checked   how it reached you, one quiet line
-       The product pipeline (updates-1): watch the primary sources and the
-       news, draft the change from the source with its quote, run the checks,
-       get human approval in Ops (D22), bump the rule pack and recompute
-       every case. Each affected student gets this page, unasked. */
+    pageInfo: 'Court rulings and rule changes for F-1 students, each written from the order or the rule itself. When one changes your dates, your steps update too.',
     items: [
-      {
-        id: 'fee',
-        kind: 'rule',
-        label: 'For your status',
-        title: 'The fee for Form I-765 is changing',
-        meta: 'Rule change · USCIS · Sep 30, 2026',
-        date: 'Sep 30, 2026',
-        /* notice: the new amount and the day it starts, with the quote, read
-           from the saved USCIS notice in the rule pack. Not filled in: the
-           notice is not saved in rulepacks/f1-us yet, and a value is never
-           typed in from memory. Once it is, what[1] and affects.line compare
-           the start date to her window, for example "Yes, when you file. The
-           new fee starts <date>, before your window opens Nov 15." */
-        notice: { amount: null, starts: null, quote: null },
-        what: [
-          'USCIS is changing the fee for Form I-765, the form you file for STEM OPT.',
-          'Your Form I-765 step was updated on Sep 30, without you asking. It keeps the fee that applies on the day you file.',
-        ],
-        /* byIntent: the answer once she has said Yes or No to STEM OPT
-           (C.affectsFor). The row, the Home row and this page all read it
-           from here, so they never disagree. A No is a plain No. */
-        affects: {
-          short: 'Not yet',
-          line: 'Not yet. Your next Form I-765 is for STEM OPT, filed from Nov 15.',
-          byIntent: {
-            no: { short: 'No', line: 'No. You are not filing for STEM OPT, so this fee does not reach you.', todo: 'Nothing to do.' },
-          },
-        },
-        todo: 'Nothing now. The fee on your I-765 step is kept current until you file.',
-        source: { name: 'USCIS', label: 'Read the USCIS notice', href: 'https://www.uscis.gov/i-765', rule: 'feeChange' },
-        /* short: how the rows on Home and Updates name the step that changed. */
-        changed: [
-          { path: 'stem', step: 'i765', title: 'File Form I-765 with USCIS', short: 'Your Form I-765 step', change: 'A note that the fee is changing, with a link to the notice.', date: 'Sep 30' },
-        ],
-        checked: 'Taken from the USCIS notice, checked against it and approved before it reached your checklist.',
-        link: { label: 'See your STEM OPT steps', href: '#/checklists/stem' },
-      },
       {
         id: 'court',
         kind: 'news',
-        label: 'In the news',
-        title: 'A court paused a change to an F-1 rule',
-        meta: 'In the news · U.S. District Court, Massachusetts · Sep 14, 2026',
+        label: 'Court ruling',
+        title: 'Court puts the rule ending duration of status on hold',
+        dek: 'A federal judge in Boston paused the fixed admission period for F-1 students, nationwide.',
         date: 'Sep 14, 2026',
-        what: [
-          'A new rule would have given F-1 students a fixed end date instead of a stay tied to their studies.',
-          'A federal court in Massachusetts paused it on Sep 14, 2026, for the whole country, while the case goes on.',
+        meta: 'Sep 14, 2026 · U.S. District Court, Massachusetts',
+        article: [
+          'On September 14, a federal judge in Boston put on hold a Department of Homeland Security rule that would have ended "duration of status" for F-1 students. The rule was due to take effect the next day. Judge F. Dennis Saylor IV postponed its effective date and barred the government from taking any further step to carry it out.',
+          'Since 1978, with limited exceptions, F-1 students have been admitted for duration of status: they may stay while studying full time, or while on authorized practical training after their studies, rather than until a date set on arrival.',
+          'The rule, published July 17, 2026, would have replaced that with a fixed period of up to four years. Anyone who needed longer, such as many Ph.D. students, would have had to ask for an extension on Form I-539.',
+          'The case was brought by groups representing colleges, universities and educators, among them the Presidents\' Alliance on Higher Education and Immigration and NAFSA, along with several unions. The judge found they were likely to win, and that the harm would be immediate.',
+          'The pause covers everyone, not only the schools in the case: the judge said separate rules for different schools would cause "chaos and confusion." It postpones the rule; it does not strike it down. The request to set the rule aside for good was denied for now, and can be raised again.',
+          'The order lasts until the court says otherwise or decides the case. A status conference is set for October 2 in Boston. As of September 28, the court record showed no later order.',
         ],
+        forYou: "Your dates are counted under the rules in effect today, which this order keeps in place. Nothing to do; if the order changes, you'll see it here.",
         affects: {
           short: 'No change for you',
-          line: 'No change for you now. Your dates are counted under the rules in effect today.',
+          line: 'No change for you. Your dates are counted under the rules in effect today.',
         },
-        todo: "Nothing to do. You'll get an update if the court's decision changes.",
-        source: { name: 'U.S. District Court, Massachusetts', label: 'Read the court order', href: null },
+        todo: "Nothing to do. You'll get an update if the court's order changes.",
+        source: {
+          name: 'U.S. District Court, Massachusetts',
+          label: 'Read the order',
+          href: 'https://www.courtlistener.com/docket/74661796/51/presidents-alliance-on-higher-education-and-immigration-v-united-states/',
+          file: 'mad-1-26-cv-13799-doc51-order',
+        },
         changed: [],
-        checked: 'News, not a rule change. Your checklist stays as it is.',
+        info: 'News, not a rule change. Your steps and dates stay as they are.',
+      },
+      {
+        id: 'dc-ruling',
+        kind: 'news',
+        label: 'Court ruling',
+        title: "A second court turns down one J-1 visitor's request",
+        dek: 'The ruling covers one case. The nationwide pause stays in place.',
+        date: 'Sep 14, 2026',
+        meta: 'Sep 14, 2026 · U.S. District Court, District of Columbia',
+        article: [
+          'Also on September 14, a federal judge in Washington, D.C. denied a request from a J-1 exchange visitor and her U.S. citizen husband to keep the same rule from applying to her while their lawsuit goes on.',
+          'Their lawsuit is about a waiver of the J-1 requirement to return home for two years. They said the new rule would start her "unlawful presence" clock as early as September 15, and that time can later bar a person from coming back to the United States.',
+          'Judge Jia M. Cobb found they had not shown they could get the order they asked for. Their lawsuit challenges how the waiver was handled, not the rule itself, and winning it would not stop the clock.',
+          'The ruling covers only that case. It does not undo the Boston order issued the same day, which postpones the rule for everyone.',
+          'Only the request for a quick order was denied. Their lawsuit over the waiver continues.',
+        ],
+        forYou: 'This case concerns one J-1 visitor. The rule stays on hold for everyone under the Boston order. Nothing to do.',
+        affects: {
+          short: 'No change for you',
+          line: 'No change for you. The rule stays on hold under the Boston order.',
+        },
+        todo: 'Nothing to do.',
+        source: {
+          name: 'U.S. District Court, District of Columbia',
+          label: 'Read the opinion',
+          href: 'https://www.courtlistener.com/docket/73578893/14/trilleras-gomez-v-mullin/',
+          file: 'dcd-1-26-cv-02364-doc14-opinion',
+        },
+        changed: [],
+        info: 'News, not a rule change. Your steps and dates stay as they are.',
+      },
+      {
+        id: 'fixed-admission-rule',
+        kind: 'news',
+        label: 'Federal rule',
+        title: 'What the paused rule would change for students on OPT',
+        dek: 'Fixed end dates, and 30 days instead of 60 after your program ends.',
+        date: 'Jul 17, 2026',
+        meta: 'Jul 17, 2026 · Federal Register',
+        article: [
+          'On July 17, 2026, the Department of Homeland Security published a final rule setting a fixed period of admission for F-1 students, exchange visitors and foreign journalists. It was due to take effect September 15, 2026. A court has postponed it, so none of it applies today.',
+          'Under the rule, students arriving after it took effect would get an I-94 with a set end date: the program end date on their I-20, up to four years, plus 30 days to leave.',
+          'Three counts that matter on OPT would shrink from 60 days to 30: the time to leave or change status after finishing, the time to apply for OPT after the program ends, and the latest OPT start date a student can ask for.',
+          'Most comments on the proposal opposed cutting the 60 days to 30. The final rule kept the cut.',
+          'The STEM OPT requirements read the same, word for word, in the old and the new text.',
+          'The rule stays on paper, postponed, until the court in Boston says otherwise or decides the case.',
+        ],
+        forYou: 'Nothing changes while the rule is on hold, and your STEM OPT steps read the same under it. Nothing to do.',
+        affects: {
+          short: 'Not in effect',
+          line: 'Not in effect. Your dates are counted under the rules in effect today.',
+        },
+        todo: 'Nothing to do.',
+        source: {
+          name: 'Federal Register',
+          label: 'Read the rule',
+          href: 'https://www.federalregister.gov/documents/2026/07/17/2026-14439/establishing-a-fixed-time-period-of-admission-and-an-extension-of-stay-procedure-for-nonimmigrant',
+          file: 'fr-2026-14439',
+        },
+        changed: [],
+        info: 'Your steps and dates follow the rules in effect today. If this rule takes effect, they update and you see it here.',
       },
     ],
+    empty: 'No news yet.',
     emptyStatus: 'Nothing new for your status this week.',
     emptyNews: 'No news this week.',
-    /* 'Checked today, 6:00 AM' sits in the hero meta, not here. */
-    footer: 'Records and dates from your documents, not legal advice.',
+    footer: 'Written from the court orders and the rule. Not legal advice.',
   },
+  /* ===== END NEWS ===== */
 
   /* Documents */
   documents: {
@@ -564,8 +565,8 @@ window.DULY_SAMPLE = {
         { key: 'reported', label: 'Reported to school', value: 'Yes' },
       ] },
       { key: 'plans', eyebrow: 'Plans',
-        /* Intent is asked only on What's next. Here it is one quiet line with a link. */
-        undecided: { text: 'STEM OPT: not decided yet.', link: { label: "Decide in What's next", href: '#/next' } },
+        /* Intent is asked only on Next steps. Here it is one quiet line with a link. */
+        undecided: { text: 'STEM OPT: not decided yet.', link: { label: 'Decide', href: '#/steps' } },
         rows: [] },
     ],
   },
@@ -583,7 +584,7 @@ window.DULY_SAMPLE = {
     deleteMeta: 'Removes your records and documents from this Mac. Backups you saved stay where you put them.',
   },
 
-  /* Where the waiting dot shows in the nav. app.js adds 'next' while the
+  /* Where the waiting dot shows in the nav. app.js adds 'steps' while the
      STEM OPT intent is unanswered and 'case' while a Your case question waits. */
   waitingIn: [],
 
@@ -679,16 +680,8 @@ window.DULY_SAMPLE = {
       link: { label: 'STEM Designated Degree Program List', href: 'https://www.ice.gov/' },
       checked: 'Checked Sep 30',
     },
-    feeChange: {
-      name: 'Form I-765 fee',
-      plain: 'The fee for Form I-765 is changing. The new amount and the date it starts are in the USCIS notice.',
-      quote: null,
-      counted: [],
-      link: { label: 'USCIS, Form I-765 instructions', href: 'https://www.uscis.gov/i-765' },
-      checked: 'Checked Sep 30',
-    },
   },
 };
 
-/* One list of STEM OPT steps for What's next and Checklists. */
+/* One list of STEM OPT steps. */
 window.DULY_SAMPLE.checklists.stem.steps = window.DULY_SAMPLE.stem.tasks;

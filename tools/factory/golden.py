@@ -2,19 +2,23 @@
 
 A change to the factory, a contract, a role file, a skill or the model is measured by
 running these before and after. The result is a number, compared with the threshold in
-factory/config.yaml. Usage: make golden
+factory/config.yaml. Each task is tried once more when it fails, as a health probe is, and a
+pass on the retry is recorded as a flake. When the pinned model changed since the last drift
+check, the drift check runs after the tasks (drift.py). Usage: make golden
 """
 
 import fnmatch
 import json
+import os
 import sys
+from functools import partial
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from engine.clocks import SystemClock
-from tools.factory import agent_run, alerts, jail, ledger, sandbox, worktree
+from engine.clocks import Clock, SystemClock
+from tools.factory import agent_run, alerts, drift, health, jail, ledger, sandbox, worktree
 from tools.factory.config import load_config, review_problems
 from tools.factory.paths import main_repo, state_dir
 
@@ -56,12 +60,52 @@ def judge(
     return problems
 
 
-def main() -> int:
-    repo = main_repo(Path.cwd())
+def attempt(
+    task: dict[str, Any], branch: str, clock: Clock, repo: Path, tries: list[dict[str, Any]]
+) -> tuple[bool, str]:
+    """Run a golden task once and judge it. The result is added to tries."""
+    out = agent_run.run(
+        agent_run.Task(
+            task["lane"],
+            task["agent"],
+            f"golden/{task['id']}",
+            "CLAUDE.md",
+            " ".join(task["mission"].split()),
+            task["done"],
+            branch,
+        ),
+        clock,
+        repo,
+    )
+    env = sandbox.environment(
+        dict(os.environ), repo, Path(out.worktree or repo), task["lane"], out.run_id, task["done"]
+    )
+    problems = judge(task, out, repo, env)
+    if out.worktree:
+        worktree.remove(
+            worktree.Tree(out.run_id, Path(out.worktree), out.branch, out.base_commit), True, repo
+        )
+    tries.append(
+        {
+            "id": task["id"],
+            "passed": not problems,
+            "problems": problems,
+            "run_id": out.run_id,
+            "attempts": out.attempts,
+            "cost_usd": out.cost_usd,
+            "seconds": out.seconds,
+        }
+    )
+    return not problems, "; ".join(problems)
+
+
+def main(only: str = "", cwd: Path | None = None) -> int:
+    """Run every golden task, or only the one named, each once more when it fails, as a health
+    probe is (health.retry_once). Then, when the pinned model changed, the drift check."""
+    repo = main_repo(cwd or Path.cwd())
     config = load_config(repo)
     clock = SystemClock()
     tasks = yaml.safe_load((repo / "evals" / "factory" / "golden.yaml").read_text())["tasks"]
-    only = sys.argv[1] if len(sys.argv) > 1 else ""
     stamp = clock.now().strftime("%Y%m%d-%H%M%S")
     results = []
     for task in tasks:
@@ -89,51 +133,27 @@ def main() -> int:
             if not commit:
                 results.append({"id": task["id"], "passed": False, "problems": ["setup failed"]})
                 continue
-        out = agent_run.run(
-            agent_run.Task(
-                task["lane"],
-                task["agent"],
-                f"golden/{task['id']}",
-                "CLAUDE.md",
-                " ".join(task["mission"].split()),
-                task["done"],
-                branch,
-            ),
-            clock,
+        tries: list[dict[str, Any]] = []
+        tried = health.retry_once(
+            partial(attempt, task, branch, clock, repo, tries),
+            f"golden.{task['id']}",
             repo,
-        )
-        env = sandbox.environment(
-            dict(__import__("os").environ),
-            repo,
-            Path(out.worktree or repo),
             task["lane"],
-            out.run_id,
-            task["done"],
         )
-        problems = judge(task, out, repo, env)
-        results.append(
-            {
-                "id": task["id"],
-                "passed": not problems,
-                "problems": problems,
-                "run_id": out.run_id,
-                "attempts": out.attempts,
-                "cost_usd": out.cost_usd,
-                "seconds": out.seconds,
-            }
-        )
+        result = {
+            **tries[-1],
+            "cost_usd": round(sum(t["cost_usd"] for t in tries), 4),
+            "tries": len(tries),
+            "flaked": tried.flaked,
+        }
+        results.append(result)
         print(
-            f"{'pass' if not problems else 'FAIL'}  {task['id']}  "
-            f"{out.attempts} attempts, {out.cost_usd:.2f} USD"
-            + "".join(f"\n      {p}" for p in problems)
+            f"{'pass' if result['passed'] else 'FAIL'}  {task['id']}  "
+            f"{len(tries)} tries, {result['cost_usd']:.2f} USD"
+            + (" (passed on its retry, recorded as a flake)" if tried.flaked else "")
+            + "".join(f"\n      {p}" for p in result["problems"])
         )
-        if out.worktree:
-            worktree.remove(
-                worktree.Tree(out.run_id, Path(out.worktree), out.branch, out.base_commit),
-                True,
-                repo,
-            )
-        worktree.git(["branch", "-D", branch], repo, check=False)
+        worktree.drop_branch(branch, repo)
     rate = sum(r["passed"] for r in results) / max(1, len(results))
     need = float(config["gates"]["golden_pass_rate"])
     row = {
@@ -163,11 +183,11 @@ def main() -> int:
                     repo,
                     handles=row["hash"],
                 )
-    if rate < need:
+    else:
         alerts.notify("eval_drop", f"golden tasks: {rate:.0%} passed, {need:.0%} needed", cwd=repo)
-        return 1
-    return 0
+    judged = drift.main(repo) if drift.due(repo) else 0
+    return 0 if rate >= need and judged == 0 else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else ""))

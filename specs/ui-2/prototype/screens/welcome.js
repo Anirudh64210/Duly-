@@ -5,7 +5,9 @@
    and listed on the final screen as a question asked again later.
    Onboarding asks the six-part skeleton only. Degree conferral is never asked
    here: it is read from a degree certificate or I-20 when one is added, or
-   asked once in Your case > Study (App.awardedWaiting).
+   asked once in Your profile (App.awardedWaiting).
+   Round 3: each question stands alone. Why it is asked sits behind the ⓘ
+   beside it (C.titleWith), never as a line under it.
    Copy rule (Round 2 note 12): the wordmark is the one "Duly" on every
    onboarding page. Screen text never names the product and never makes it a
    character ("Every later date is counted from these", not "Duly counts"). */
@@ -49,7 +51,7 @@
     school: 'Which school issued your I-20?',
     degree: 'What are you studying?',
     dates: 'When does your program start and end?',
-    awarded: 'Was your degree awarded?', /* asked in Your case, listed on the finish screen */
+    awarded: 'Was your degree awarded?', /* asked in Your profile, listed on the finish screen */
     now: 'What are you doing now?',
   };
   const HINT = {
@@ -236,14 +238,13 @@
     });
     return '<div class="w-gap-16">' + C.note({
       title: 'This looks like a STEM degree.',
-      text: m + " fields are on the government's STEM list. Your I-20 shows the exact field.",
       source: rule,
       actions: '<button type="button" class="link" data-onb="change">Not right? Change</button>',
     }) + '</div>';
   }
 
   function i20Area(s) {
-    return s.datesFrom ? '<p class="t-meta w-gap-12">Filled in from your I-20. Tap a date to change it.</p>' : '';
+    return s.datesFrom ? '<p class="t-meta w-gap-12">From your I-20</p>' : '';
   }
 
   /* ---------------- steps ---------------- */
@@ -261,7 +262,7 @@
     school(s) {
       return {
         title: QUESTION.school,
-        why: "Your dates follow your school's record, and you can add your school's own steps to any checklist.",
+        why: "Your dates follow your school's record. Your school's own OPT steps can be added later from its web page.",
         content: C.field({ key: 'onb.school', value: s.school, placeholder: 'Start typing your school', ariaLabel: 'Your school', suggest: true }),
         notSure: unsure('school', s),
       };
@@ -280,8 +281,8 @@
 
     dates(s) {
       const pick = C.choices({ key: 'onb.datesMode', layout: 'pair', selected: s.datesMode, label: 'How to add your dates', options: [
-        { value: 'i20', title: 'Add your I-20', meta: 'Fastest, both dates are read for you' },
-        { value: 'type', title: 'Type the dates', meta: 'Start and end, from your I-20' },
+        { value: 'i20', title: 'Add your I-20' },
+        { value: 'type', title: 'Type the dates' },
       ] });
       let more = '';
       if (s.read && s.read.kind === 'i20') {
@@ -292,8 +293,6 @@
           from: { label: 'Start', key: 'onb.start', value: s.start, placeholder: 'Month day, year' },
           to: { label: 'End', key: 'onb.end', value: s.end, placeholder: 'Month day, year' },
         }) + '</div>' + area('i20', s);
-      } else if (s.datesMode === 'i20') {
-        more = '<p class="t-meta w-gap-12">Or drop the file anywhere on this page.</p>';
       }
       return {
         title: QUESTION.dates,
@@ -328,7 +327,7 @@
         const rows = (s.eadRows || D.onboarding.eadFound).map((r, i) =>
           C.valueRow({ label: r[0], value: r[1], key: 'onb-ead-' + i, editable: !!s.fix })).join('');
         return Object.assign(base, {
-          content: '<p class="t-meta">From ' + C.esc(read.name) + '. Read on this Mac.</p>' +
+          content: '<p class="t-meta">From ' + C.esc(read.name) + '</p>' +
             '<div class="list found w-gap-12">' + rows + '</div>' + fileInput(),
           notSure: s.fix ? '<p class="t-meta">Tap a value to change it.</p>' : quiet('Fix one', 'fix'),
           primary: C.button({ kind: 'primary', label: 'These are right', attrs: { 'data-onb': 'confirm-ead' } }),
@@ -340,13 +339,11 @@
           from: { label: 'Valid from', key: 'onb.eadFrom', value: s.eadFrom, placeholder: 'Month day, year' },
           to: { label: 'Valid until', key: 'onb.eadUntil', value: s.eadUntil, placeholder: 'Month day, year' },
         }) + '</div>';
-      } else if (s.eadMode === 'photo') {
-        more = '<p class="t-meta w-gap-12">Or drop the file anywhere on this page.</p>';
       }
       return Object.assign(base, {
         content: C.choices({ key: 'onb.eadMode', layout: 'pair', selected: s.eadMode, label: 'How to add your card', options: [
-          { value: 'photo', title: 'Add a photo or PDF', meta: 'Fastest' },
-          { value: 'type', title: 'Type the dates', meta: 'Two dates from the card' },
+          { value: 'photo', title: 'Add a photo or PDF' },
+          { value: 'type', title: 'Type the dates' },
         ] }) + more + fileInput(),
         notSure: quiet('Add it later', 'later'),
       });
@@ -358,15 +355,20 @@
     if (keys.indexOf(key) === -1) keys = ORDER.slice();
     const idx = keys.indexOf(key);
     const b = BUILD[key](s);
-    return C.onboarding({
+    return withInfo(C.onboarding({
       steps: C.steps({ steps: keys.map((k) => ({ key: k, label: LABEL[k], answer: answerFor(k, s) })), current: idx, reached: s.reached }),
       title: b.title,
-      why: b.why,
       content: b.content,
       notSure: b.notSure,
       back: C.button({ kind: 'back', label: 'Back', attrs: { 'data-onb': 'back' } }),
       primary: b.primary || C.button({ kind: 'primary', label: 'Continue', disabled: !valid(key, s), attrs: { 'data-onb': 'next' } }),
-    });
+    }), b.why);
+  }
+
+  /* The ⓘ beside the step's h1, holding why the question is asked. */
+  function withInfo(html, text) {
+    if (!text) return html;
+    return html.replace(/<h1 class="t-big" tabindex="-1">[\s\S]*?<\/h1>/, (h1) => C.titleWith(h1, text));
   }
 
   function renderStart(s) {
@@ -379,7 +381,7 @@
     }
     return C.onboarding({
       title: 'Your student visa records, in one private place.',
-      why: 'Add your documents once, then see where you stand, when to start your next step, and what changes for you when the rules do.',
+      why: 'Where you stand, when to start your next step, and what changes when the rules do.',
       back: '<span class="t-meta">About two minutes. Kept on this Mac.</span>',
       primary: primary,
     });
@@ -414,15 +416,14 @@
 
     const waiting = ['status', 'school', 'degree', 'dates', 'now']
       .filter((k) => s.unsure[k])
-      .map((k) => ({ title: QUESTION[k], meta: k === 'now' ? 'Waiting on Home' : 'Waiting in Your case', key: 'wait-' + k }));
-    /* Conferral is not asked in onboarding; it waits in Your case when no document shows it. */
-    if (endPassed(s) && !s.awarded) waiting.push({ title: QUESTION.awarded, meta: 'Waiting in Your case', key: 'wait-awarded' });
-    if (s.ead === 'later') waiting.push({ title: 'Add your EAD card', meta: 'Waiting on Home, whenever you are ready', key: 'wait-ead' });
+      .map((k) => ({ title: QUESTION[k], meta: k === 'now' ? 'Waiting on Home' : 'Waiting in Your profile', key: 'wait-' + k }));
+    /* Conferral is not asked in onboarding; it waits in Your profile when no document shows it. */
+    if (endPassed(s) && !s.awarded) waiting.push({ title: QUESTION.awarded, meta: 'Waiting in Your profile', key: 'wait-awarded' });
+    if (s.ead === 'later') waiting.push({ title: 'Add your EAD card', meta: 'Waiting on Home', key: 'wait-ead' });
 
     const content =
       (lines.length ? '<div class="w-lines">' + lines.map((parts) =>
         '<p class="t-lead"><span class="t-row">' + C.escText(parts[0]) + '</span>' + (parts.length > 1 ? ' · ' + C.escText(parts.slice(1).join(' · ')) : '') + '</p>').join('') + '</div>' : '') +
-      '<p class="t-lead' + (lines.length ? ' w-gap-24' : '') + '">Anything else is asked when it matters, one short question at a time. When a rule changes, your steps update and you see what changed.</p>' +
       (waiting.length ? C.waiting({ items: waiting, max: waiting.length }) : '');
 
     s.finished = true;
@@ -431,12 +432,12 @@
     const list = C.steps({ steps: keys.map((k) => ({ key: k, label: LABEL[k], answer: answerFor(k, s) })), current: -1, reached: keys.length - 1 })
       .replace(/<span class="sr-only">[^<]*<\/span>/, '<span class="sr-only">All steps answered. Open one to change it.</span>');
 
-    return C.onboarding({
+    return withInfo(C.onboarding({
       steps: list,
       title: readName(s) ? "You're all set, " + readName(s) + '.' : "You're all set.",
       content: content,
       primary: C.button({ kind: 'primary', label: 'Open Home', href: '#/home' }),
-    });
+    }), 'Anything else is asked when it matters. When a rule changes, your steps update and you see what changed.');
   }
 
   /* ---------------- actions ---------------- */

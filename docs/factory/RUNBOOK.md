@@ -96,7 +96,7 @@ The memory handed to agents is `.factory/failures.jsonl`. Only the orchestrator 
 
 ## Every week
 
-`make weekly` writes docs/factory/reviews/<year>-W<week>.md: every run that failed or escalated, and a sample of those that passed, with five questions for each. The founder reads the traces, answers, and writes what changes. Then `make drift` has the reviewer score an earlier review again, to check the judge against itself.
+`make weekly` prints the newest three scorecards. Each ends with the plan's runs to read: every run that did not finish, and a fixed sample of those that did, with the path to each trace and five questions for each. The founder reads the traces, answers, and writes what changes. The judge is checked against itself (the reviewer scores an earlier review again) inside `make golden`, and only when the pinned model changed since the last check.
 
 ## Checks scale with the risk of the change
 

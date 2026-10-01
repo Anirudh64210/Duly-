@@ -188,7 +188,9 @@ def test_a_failed_lane_stops_the_round_and_the_rest_still_lands(tmp_path):
     assert not (repo / "engine" / "new.py").exists()
     assert "check engine fails" not in done.stdout  # no checks after a failed round
     stops = [r for r in ledger.read(repo) if r["kind"] == "blocked" and r["lane"] == "founder"]
-    assert [(row["plan"], row["cause"]) for row in stops] == [("phase-x", "unknown")]
+    assert [(row["plan"], row["cause"], row["stage"]) for row in stops] == [
+        ("phase-x", "unknown", "lane")
+    ]
 
     # The founder fixes the plan and commits it. Run again: only L-engine runs, since L-tests
     # landed after the plan's first round started, and it has no attempts left here.
@@ -242,6 +244,10 @@ def test_a_failing_check_stops_the_plan(tmp_path):
     }
     again = orchestrate(repo, env, "--from-round", "A", "--checks-only", "A")
     assert "check never fails" in again.stdout
+    stops = [r for r in ledger.read(repo) if r["kind"] == "blocked" and r["lane"] == "founder"]
+    assert [(r["stage"], r["round"], r["plan_file"]) for r in stops] == [
+        ("checks", "A", "plan.yaml")
+    ] * 2
 
 
 def test_a_veto_stops_the_plan(tmp_path):
@@ -294,6 +300,44 @@ def test_a_veto_stops_the_plan(tmp_path):
     assert found[0]["plan"] == "phase-x"
     review = json.loads((repo / ".factory" / "reviews.jsonl").read_text())
     assert (review["decision"], review["plan"]) == ("VETO", "phase-x")
+    assert rows[-1]["stage"] == "review"
+
+
+def test_a_sandbox_denial_names_its_cause_at_the_stop(tmp_path):
+    repo = mini.build(tmp_path)
+    env = mini.scenario(tmp_path, {"L-engine": [mini.good(["engine/new.py"])] * 3})
+    denied = "echo 'mkdtemp: /tmp/x: Operation not permitted' >&2; false"
+    plan_file(repo, [{"name": "A", "lanes": [job("L-engine", "builder", denied)]}])
+    done = orchestrate(repo, env)
+    assert done.returncode == 1
+    stop = [r for r in ledger.read(repo) if r["kind"] == "blocked" and r["lane"] == "founder"]
+    assert [(r["cause"], r["cause_source"], r["signature"], r["stage"]) for r in stop] == [
+        ("plan", "auto", "sandbox.mkdtemp", "lane")
+    ]
+
+
+def test_a_resumed_plan_reuses_the_review_of_the_code_as_it_is(tmp_path):
+    repo = mini.build(tmp_path)
+    gate = tmp_path / "gate-open"
+    rounds = [
+        {
+            "name": "R",
+            "lanes": [job("L-review", "reviewer", "test -f reviews/REVIEW.json")],
+            "checks": [{"name": "gate", "run": f"test -f {gate}"}],
+        }
+    ]
+    plan_file(repo, rounds)
+    review = {**REVIEW, "reviewed_commit": mini.git(repo, "rev-parse", "HEAD")}
+    env = mini.scenario(tmp_path, {"L-review": [reviewer(review)]})
+    done = orchestrate(repo, env)
+    assert done.returncode == 1
+    assert phase.parked(ledger.read(repo)) == ("plan.yaml", "R")
+    gate.write_text("")
+    env = mini.scenario(tmp_path, {"L-review": []})  # a second review would fail
+    again = orchestrate(repo, env, "--from-round", "R")
+    assert again.returncode == 0, again.stdout + again.stderr
+    assert f"review of {review['reviewed_commit']} reused: APPROVE" in again.stdout
+    assert phase.parked(ledger.read(repo)) is None
 
 
 def test_a_blocking_finding_with_no_spec_point_is_refused_and_still_kept(tmp_path):
@@ -905,3 +949,15 @@ def test_the_plan_runs_under_caffeinate_on_a_mac(monkeypatch):
     monkeypatch.setattr(phase.shutil, "which", lambda name: None)
     phase.stay_awake([])
     assert len(calls) == 1
+
+
+def test_a_closed_plan_leaves_its_scorecard(tmp_path):
+    repo = mini.build(tmp_path)
+    env = mini.scenario(tmp_path, {"L-engine": [mini.good(["engine/new.py"])]})
+    plan_file(repo, [{"name": "A", "lanes": [job("L-engine", "builder", "test -f engine/new.py")]}])
+    done = orchestrate(repo, env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    card = json.loads((repo / ".factory" / "scorecards" / "phase-x.json").read_text())
+    assert card["plan"] == "phase-x"
+    closed = [r for r in ledger.read(repo) if r.get("closed")]
+    assert [(r["kind"], r["plan_file"]) for r in closed] == [("done", "plan.yaml")]

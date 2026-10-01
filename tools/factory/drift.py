@@ -3,7 +3,9 @@
 Takes a review that was accepted earlier, has the reviewer score the same commit again
 with no memory of the first time, and compares. If the scores moved by more than the
 threshold in factory/config.yaml, the judge has drifted and the founder is told.
-Usage: make drift
+
+It runs only when the pinned model changed since the last drift check, after the golden
+tasks: make golden calls it when due says so. By hand: python -m tools.factory.drift
 """
 
 import json
@@ -40,12 +42,25 @@ def pick(reviews: list[dict[str, Any]]) -> dict[str, Any] | None:
     return None
 
 
-def main() -> int:
-    repo = main_repo(Path.cwd())
+def _reviews(path: Path) -> list[dict[str, Any]]:
+    return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+def due(repo: Path) -> bool:
+    """Whether the pinned model differs from the one the last drift check ran on. The judge
+    moves with the model, so a check on an unchanged model costs a review and finds nothing."""
+    pinned = load_config(repo)["model"]["pinned"]
+    rows = _reviews(state_dir(repo) / "reviews.jsonl")
+    last = next((r for r in reversed(rows) if r.get("rescored")), None)
+    return last is None or last.get("model") != pinned
+
+
+def main(cwd: Path | None = None) -> int:
+    repo = main_repo(cwd or Path.cwd())
     config = load_config(repo)
     clock = SystemClock()
     path = state_dir(repo) / "reviews.jsonl"
-    reviews = [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+    reviews = _reviews(path)
     old = pick(reviews)
     if old is None:
         print("drift: no earlier review to score again")
@@ -89,6 +104,7 @@ def main() -> int:
                     "task": f"drift/{old['run_id']}",
                     "rescored": old["run_id"],
                     "moved": change,
+                    "model": config["model"]["pinned"],
                 }
             )
             + "\n"

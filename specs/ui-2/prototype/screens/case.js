@@ -1,15 +1,16 @@
-/* Your case: the facts the student's dates are counted from, in four plain
-   groups (Round 2, note 8):
+/* Your profile (route #/case): the facts the student's dates are counted
+   from, in three plain groups:
      1. You and your degree
      2. Work on OPT (the job has its own title and employer rows)
      3. Internships (CPT), with "Add another internship"
-     4. Applications and plans (opens Applications; the STEM OPT answer)
+   The OPT application lives in USCIS status and the STEM OPT choice on Next
+   steps, so neither is repeated here.
+   Round 3: no subtext. What the page is for sits behind the ⓘ by the title.
    Each answer sits beside its question and is edited in place (app.js wires
    data-edit; values live in App.state['edit:case-<key>']). The only open
    question, "Was your degree awarded?", sits once at the top in C.waiting,
    asked when no document shows it (#/case/no-degree forces it for review).
-   The STEM OPT question is owned by What's next; here it is the answer with
-   a link. Internships are added from a CPT I-20 (read on this Mac,
+   Internships are added from a CPT I-20 (read on this Mac,
    simulated) or typed. The product name is not used in this screen's text. */
 (function () {
   'use strict';
@@ -83,6 +84,15 @@
     return C.section({ id: 'case-you', eyebrow: 'You and your degree', content: list(rows.map(vrow)) });
   }
 
+  /* The new I-20 step (Next steps) sends the student to #/case/recommended to
+     add this date once the I-20 is in hand; the 60 day filing limit counts
+     from it. So the row shows whenever that step can send her: she plans to
+     apply, or she has ticked the I-20 step. */
+  function recommendedRow() {
+    if (App.stemIntent() !== 'yes' && !App.isDone('i20')) return null;
+    return { key: 'stem-recommended', label: "School's STEM OPT recommendation", value: 'Tap to add the date', source: 'within60', num: true };
+  }
+
   /* 2. Work on OPT. The job reads as a job: its title and its employer are
      two answers, each changed on its own. */
   function workGroup(data, by) {
@@ -97,6 +107,7 @@
       by.started && Object.assign({}, by.started, { num: true }),
       by.reported,
       by.unemployment && Object.assign({}, by.unemployment, { num: true }),
+      recommendedRow(),
     ].filter(Boolean);
     return C.section({ id: 'case-work', eyebrow: 'Work on OPT', content: list(rows.map(vrow)) });
   }
@@ -115,7 +126,7 @@
         C.choices({
           key: 'case-cpt-how', layout: 'pair', label: 'How to add the internship',
           options: [
-            { value: 'file', title: 'Add its I-20', meta: 'Fastest. Read on this Mac.' },
+            { value: 'file', title: 'Add its I-20' },
             { value: 'type', title: 'Type the dates' },
           ],
         }) +
@@ -125,44 +136,10 @@
     });
   }
 
-  /* 4. Applications and plans. Filed applications open their own page; the
-     STEM OPT answer, never the question (that lives on What's next). */
-  function plansGroup(data) {
-    const apps = ((data.applications && data.applications.items) || [])
-      .filter((a) => a.receipt || a.current != null)
-      .map((a) => C.applicationRow(a));
-    const intent = App.stemIntent();
-    const plans = sectionOf(data, 'plans');
-    let plan = '';
-    let recommended = '';
-    /* The new I-20 step (What's next, Checklists, Timeline) sends the student
-       here to add this date once the I-20 is in hand; the 60 day filing limit
-       counts from it. So the row is here whenever that step can send her:
-       she plans to apply, or she has ticked the I-20 step. */
-    if (intent === 'yes' || App.isDone('i20')) {
-      recommended = vrow({ key: 'stem-recommended', label: "School's STEM OPT recommendation", value: 'Tap to add the date', source: 'within60', num: true });
-    }
-    if (intent === 'yes') {
-      plan = C.row({ title: 'STEM OPT extension', meta: 'Planning to apply · start preparing by Oct 15, 2026', href: '#/next' });
-    } else if (intent === 'no') {
-      plan = C.row({ title: 'STEM OPT extension', meta: "Not this time · change in What's next", href: '#/next' });
-    }
-    const undecided = !plan && plans.undecided
-      ? '<p class="t-meta case-line">' + C.esc(plans.undecided.text) + ' ' + C.link(plans.undecided.link) + '</p>'
-      : '';
-    const items = apps.concat(plan ? [plan] : [], recommended ? [recommended] : []);
-    return C.section({
-      id: 'case-plans',
-      eyebrow: 'Applications and plans',
-      link: { label: 'All applications', href: '#/applications' },
-      content: (items.length ? list(items) : '') + undecided,
-    });
-  }
-
   function waitingHtml(data) {
     if (!App.awardedWaiting()) return '';
-    /* The default note under an unsure answer reads "You'll be asked again later." */
-    return C.waiting({ items: [Object.assign({}, data.awardedAsk)] });
+    /* The question and its answers say enough: no line under it. */
+    return C.waiting({ items: [Object.assign({}, data.awardedAsk, { meta: null })] });
   }
 
   /* ---------------- add-internship stages ---------------- */
@@ -176,8 +153,8 @@
     });
   }
   function pickStage() {
-    return '<div class="case-stage-head"><p class="t-row">Choose a photo or PDF of the I-20</p>' +
-      '<p class="t-meta">It is read on this Mac. Nothing is uploaded anywhere.</p></div>' +
+    return '<div class="case-stage-head"><p class="t-row">Choose a photo or PDF of the I-20' +
+      C.info('It is read on this Mac. Nothing is uploaded anywhere.') + '</p></div>' +
       actions(C.button({ label: 'Choose a file', kind: 'pill', attrs: { 'data-case-pick': '' } }));
   }
   function readingStage(name) {
@@ -185,8 +162,7 @@
       '<p class="t-meta">Reading on this Mac</p></div>';
   }
   function foundStage(f) {
-    return '<div class="case-stage-head" role="status"><p class="t-row">Found in your CPT I-20</p>' +
-      '<p class="t-meta">Read on this Mac. Nothing left it.</p></div>' +
+    return '<div class="case-stage-head" role="status"><p class="t-row">Found in your CPT I-20</p></div>' +
       C.found([['Kind', 'CPT I-20'], ['Employer', f.employer], ['Dates', fmtRange(f.start, f.end)]]) +
       actions(C.button({ label: 'Add internship', kind: 'primary', attrs: { 'data-case-confirm': '' } }),
         C.button({ label: 'Fix one', kind: 'back', attrs: { 'data-case-fix': '' } }));
@@ -218,18 +194,17 @@
   }
 
   window.SCREENS['case'] = {
-    title: 'Your case',
+    title: 'Your profile',
 
     render(data, params) {
       App.state.caseAwardedDemo = (params || [])[0] === 'no-degree';
       const by = rowsByKey(data);
       return '<div class="screen-case">' + STYLE +
-        C.pageHeader({ title: 'Your case', subline: 'The facts your dates are counted from. Tap any answer to change it.' }) +
+        C.pageHeader({ title: 'Your profile', info: 'The facts your dates are counted from. Tap any answer to change it.' }) +
         waitingHtml(data) +
         youGroup(data, by) +
         workGroup(data, by) +
         cptGroup(data) +
-        plansGroup(data) +
         C.footer('Records and dates from your documents, not legal advice.') +
         '</div>';
     },
