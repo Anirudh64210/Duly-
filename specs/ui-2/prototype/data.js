@@ -781,7 +781,7 @@ window.DULY_SAMPLE = {
     share: { label: 'Share', info: 'Opens your phone\'s share sheet: Mail, Messages or any app.' },
     /* The three asked for most, one tap from the top of Documents on a phone. */
     quick: [
-      { title: 'I-20 · OPT recommendation', meta: 'Mar 2026', href: '#/documents/i20-opt' },
+      { title: 'I-20 · OPT', meta: 'Mar 2026', href: '#/documents/i20-opt' },
       { title: 'EAD card', meta: 'Valid until Feb 13, 2027', href: '#/documents/opt' },
       { title: 'Passport', meta: 'Valid until Jul 9, 2031', href: '#/documents/passport' },
     ],
@@ -798,8 +798,8 @@ window.DULY_SAMPLE = {
        what the newest version changed; versions run newest first. */
     i20Groups: [
       { key: 'opt', title: 'OPT', items: [
-        { id: 'i20-opt', name: 'I-20 · OPT recommendation', title: 'OPT recommendation', meta: 'Mar 2026', current: true,
-          about: "Your school's recommendation for OPT. Show it with your EAD card.",
+        { id: 'i20-opt', name: 'I-20 · OPT', title: 'OPT', meta: 'Mar 2026', current: true,
+          about: "Your OPT I-20, with your school's recommendation on page 2. Carry it with your EAD card.",
           dates: [['This version', 'Mar 2, 2026'], ['Program end', 'Dec 18, 2025'], ['Sent with your I-765', 'Oct 10, 2025']],
           latest: { date: 'Mar 2, 2026', change: 'Travel signature added' },
           versions: [
