@@ -266,3 +266,34 @@ These are rules for every screen from now on.
    CBP site), and marks the old one lost. The word "paper" is gone everywhere.
 8. **Record and the journey PDF are removed from v1.** The history stays stored underneath and
    returns later as an export for H-1B and green card forms that ask for status and work history.
+
+## Round 8: the founder's notes (2026-10-01)
+
+Settings is better and Updates is "amazing". To change:
+
+1. **Ask is a real advisor.**
+   - **Answer the general rules directly.** Self-employment on post-completion OPT, STEM OPT
+     employer requirements (E-Verify, an I-983 with a supervisor who is not the student), and O-1
+     (no lottery; a petitioner, an employer or an agent; evidence of extraordinary ability) are
+     answered with sources such as Study in the States and uscis.gov.
+   - **Use facts the student states in the conversation** as given, and offer "Save to my record".
+   - **Answer in a set shape:** what applies to you; a plan for now, at STEM OPT, and after; what to
+     watch; and only the personal judgement for the DSO, with a draft.
+   - **Location:** at the bottom of Home. The conversation persists across pages and reloads.
+   - **Testing:** checked against a scored set of hard questions before it ships.
+2. **Documents spacing is comfortable, even and minimal.**
+3. **"Try an outcome" is removed** from USCIS status.
+4. **Work is its own page:** the student's jobs (more than one is normal: part time at Northwind
+   Systems and full time at their own company), hours, start dates and reports.
+5. **Plan is built from the record and the student's goals.**
+   - A goal ("Start my own company", "O-1 later") can be added from Plan or from an Ask answer.
+   - Its steps appear beside STEM OPT.
+6. **No jumps.** A Home item is answered in place in a sheet. The Home card is named Plan, like the
+   page it opens.
+7. **Every loop closes itself, as a full UI loop:**
+   - the action;
+   - a self-drawing check and a light haptic tap;
+   - a one-line receipt with the follow-up ("Confirmed. Next check-in Oct 30");
+   - then it leaves the list on its own.
+
+   Nothing waits to be folded by hand. Minimal motion, off under reduced motion.
