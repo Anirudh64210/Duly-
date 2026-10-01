@@ -73,6 +73,14 @@
     '.doc-page .doc-page-actions .btn { height: 44px; padding: 0 var(--s-24); }' +
     '.doc-page > .section { margin-top: var(--s-32); }' +
     '.screen-documents .doc-search { margin-bottom: var(--s-16); }' +
+    /* Round 6: Share a pack beside Add a document; Next to run out; one expiry line per row */
+    '.screen-documents .doc-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); }' +
+    '.screen-documents .doc-head-actions .btn { height: 44px; }' +
+    /* the expiry line wraps rather than hide its date on a phone */
+    '.screen-documents .doc-row .row-meta.doc-expiry { white-space: normal; }' +
+    '.screen-documents .doc-next { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-8); row-gap: 0; margin: 0 0 var(--s-24); }' +
+    '.screen-documents .doc-next .t-eyebrow { margin: 0; }' +
+    '.screen-documents .doc-next .link.is-close, .screen-documents .doc-expiry.is-close { color: var(--caution); }' +
     /* Every filter is always visible: the chips wrap to a second line, never hide in a scroll. */
     '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: wrap; row-gap: var(--s-8); max-width: 100%; }' +
     '.screen-documents .doc-view > .section:first-child { margin-top: var(--s-32); }' +
@@ -289,17 +297,82 @@
     return C.shareButton({ title: title, label: (App.data.documents.share || {}).label, reveal: reveal !== false })
       .replace('<button ', '<button data-doc-ref="' + C.esc(ref) + '" ');
   }
+  /* ---------------- document watch (VALUE-2 feature 6) ---------------- */
+
+  /* App.documentWatch() works every date out from DULY_SAMPLE.records; this
+     page only places them. For Priya, today 2026-09-30 (checked in python3):
+       EAD card     records.opt.until 2027-02-13, 136 days on, past the
+                    30-day close setting, so not in the caution ink: the next
+                    to run out
+       I-20 · OPT   travel signature 2026-03-02 + 6 months = 2026-09-02,
+                    before today: "covered returns until Sep 2, 2026"
+       F-1 visa     2028-08-01, 671 days on (sample)
+       Passport     2031-07-09, 1743 days on (sample)
+       I-20 · Starting school   program end 2025-12-18, before today */
+  function watch() {
+    let w = null;
+    try { w = typeof App.documentWatch === 'function' ? App.documentWatch() : null; } catch (err) { w = null; }
+    if (!w) return { next: null, byDoc: {}, items: [] };
+    /* One line per document: the first item for it that has not passed,
+       else the latest passed one (items come not passed first, soonest
+       first, then passed, latest first). */
+    const byDoc = {};
+    (w.items || []).forEach((i) => { if (i.doc && !byDoc[i.doc]) byDoc[i.doc] = i; });
+    return { next: w.next, title: w.title, byDoc: byDoc, items: w.items || [] };
+  }
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  /* '2027-02-13' -> 'Feb 13, 2027', read from the string, never through a time zone */
+  function fmtIso(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    return m ? MONTHS[Number(m[2]) - 1] + ' ' + Number(m[3]) + ', ' + m[1] : '';
+  }
+  /* The expiry line for a row: the watch line, named when the date belongs
+     to part of the paper ("Travel signature covered returns until Sep 2,
+     2026"), with the Sample mark when the date is sample. */
+  function expiryOf(doc, W) {
+    const i = W.byDoc[doc.id];
+    if (!i || !i.line) return null;
+    const own = i.title === doc.title || doc.title.indexOf(i.title) === 0;
+    const text = own ? i.line : i.title + ' ' + i.line.charAt(0).toLowerCase() + i.line.slice(1);
+    return { text: text, date: fmtIso(i.iso), close: !!i.close, passed: !!i.passed, sample: !!i.sample };
+  }
+  /* "Next to run out: EAD card, Feb 13, 2027", one line at the top. The
+     paper's name opens it; the source mark shows the rule and the field it
+     was read from. */
+  function nextHtml(W) {
+    const n = W.next;
+    if (!n) return '';
+    const it = W.items.filter((i) => i.key === n.key)[0] || {};
+    const doc = it.doc ? docById(it.doc) : null;
+    const text = n.title + ', ' + fmtIso(n.iso);
+    const what = doc
+      ? '<a class="' + C.cls('link', n.close && 'is-close') + '" href="#/documents/' + C.esc(doc.id) + '">' + C.esc(text) + '</a>'
+      : '<span class="' + C.cls('row-title', n.close && 'is-close') + '">' + C.esc(text) + '</span>';
+    const mark = n.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '';
+    const why = it.source ? C.source(it.source) : C.info('Each paper runs out on its own date. This is the soonest; every document that runs out shows its date in the list.');
+    return '<p class="doc-next"><span class="t-eyebrow">' + C.esc(W.title || 'Next to run out') + '</span>' + what + mark + why + '</p>';
+  }
+
   /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, reveal = true })
      One line of title, one line of meta. A tap opens the document's own
-     page, where its earlier versions are. */
+     page, where its earlier versions are. A document that runs out has one
+     more line, its expiry; when its meta already says the same date, the
+     expiry line takes the meta's place, so nothing is said twice. */
   function docRows(list, o) {
     const opt = o || {};
+    const W = watch();
     return list.map((doc) => {
       const prefix = opt.prefix ? opt.prefix(doc) : '';
+      const ex = expiryOf(doc, W);
+      const same = !!(ex && ex.date && String(doc.meta || '').indexOf(ex.date) !== -1);
+      const meta = same ? prefix : (prefix ? prefix + ', ' : '') + doc.meta;
+      const below = ex ? '<span class="' + C.cls('row-meta num doc-expiry', ex.close && 'is-close') + '">' + C.esc(ex.text) +
+        (ex.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '') + '</span>' : '';
       return C.row({
         key: opt.keyOf ? opt.keyOf(doc) : doc.id,
         title: C.raw('<a class="doc-open" href="#/documents/' + C.esc(doc.id) + '">' + C.esc(doc.title) + '</a>'),
-        meta: (prefix ? prefix + ', ' : '') + doc.meta,
+        meta: meta,
+        below: below,
         trailing: shareBtn(refOf(doc), doc.title, opt.reveal),
         cls: 'doc-row',
       });
@@ -432,8 +505,60 @@
   /* All: every document, under its group, each ready to open. The ones
      asked for most have their own chip, Most used, so they are not
      repeated here. */
+  /* ---------------- Carry these (VALUE-2 feature 3) ---------------- */
+
+  /* The newest papers for a trip, the same list Your profile > Check a trip
+     shows (carryList in case.js): passport, visa, the OPT I-20 with the
+     travel signature, the EAD card, and the offer letter of the job open
+     today. Read from App.record(), never written here. For Priya, today
+     2026-09-30 (checked in python3):
+       passport         records.passport.doc 'passport' (sample)
+       F-1 visa         records.visa.doc 'f1-visa' (sample)
+       I-20 · OPT       records.travelSignature.doc 'i20-opt'
+       EAD card         records.opt.doc 'ead-card'
+       Offer letter     records.jobs[0] Northwind, start 2026-02-27 <= 2026-09-30,
+                        no end, so open today: doc 'offer-northwind'
+     5 papers. Each row's own expiry line comes from the document watch. */
+  function carryDocs() {
+    let rec = null;
+    try { rec = typeof App.record === 'function' ? App.record() : null; } catch (err) { rec = null; }
+    if (!rec) return [];
+    const t = ((window.DULY_SAMPLE || App.data || {}).today || {}).iso || '';
+    const job = (rec.jobs || []).filter((j) => j.start <= t && (!j.end || t <= j.end))[0] || null;
+    const ids = [rec.passport && rec.passport.doc, rec.visa && rec.visa.doc,
+      rec.travelSignature && rec.travelSignature.doc, rec.opt && rec.opt.doc, job && job.doc];
+    const seen = {};
+    return ids.filter((id) => id && !seen[id] && (seen[id] = true)).map(docById).filter(Boolean);
+  }
+  function carryHtml() {
+    const docs = carryDocs();
+    if (!docs.length) return '';
+    const btn = C.button({ label: 'Share all', kind: 'text', small: true, attrs: { 'data-doc-carry': '', 'aria-label': 'Share all ' + docs.length + ' papers to carry' } });
+    const sec = C.section({
+      eyebrow: 'Carry these',
+      info: 'The newest papers to have with you when you travel. They are kept on this device, so they open without a connection. Share all sends them together in one tap.',
+      content: C.list(docRows(docs, { keyOf: (d) => 'carry:' + d.id }), { accordion: false, label: 'Carry these' }),
+    });
+    /* Share all sits at the end of the section head, where a section's link goes. */
+    return sec.replace(/<\/div>(<div class="list")/, btn + '</div>$1');
+  }
+  /* One tap: every paper to the device's own share sheet, as files where the
+     browser can share files; otherwise the names, through App.share. */
+  function shareCarry() {
+    const rs = carryDocs().map((d) => resolve(refOf(d))).filter(Boolean);
+    if (!rs.length) return;
+    let files = [];
+    try { files = rs.map((r) => new File([samplePdf(r)], fileName(r), { type: 'application/pdf' })); } catch (err) { files = []; }
+    if (files.length && navigator.share && navigator.canShare && navigator.canShare({ files: files })) {
+      App.emit('share', 'Carry these', true, null);
+      navigator.share({ files: files, title: 'Carry these' }).catch(() => { /* closed */ });
+      return;
+    }
+    App.share({ title: 'Carry these', text: 'Papers: ' + rs.map((r) => r.title).join(', ') });
+  }
+
   function allView() {
-    return GROUPS.map((g) => {
+    return carryHtml() + GROUPS.map((g) => {
       const docs = inGroup(g.key, true);
       if (!docs.length) return '';
       return C.section({
@@ -937,11 +1062,15 @@
       const header = C.pageHeader({
         title: 'Documents',
         info: 'Every version is kept and encrypted. Files are read on ' + ((data.device && data.device.yours) || 'your device') + ', with no outside AI.',
-        aside: C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }),
+        /* VALUE-2 feature 7: Share a pack opens the shared sheet (App.openSharePack,
+           caught by app/sheets.js); Add a document stays the primary, on the right. */
+        aside: '<div class="doc-head-actions">' +
+          C.sharePackButton({ label: 'Share a pack' }) +
+          C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }) + '</div>',
       });
       return STYLE +
         '<div class="screen-documents">' +
-        header + searchHtml() + labelsHtml() +
+        header + nextHtml(watch()) + searchHtml() + labelsHtml() +
         '<div class="doc-view" data-doc-view>' + viewHtml() + '</div>' +
         '</div>' +
         C.footer();
@@ -982,6 +1111,8 @@
           if (chip) chip.focus({ preventScroll: true });
           return;
         }
+        /* Carry these: Share all, every paper in one tap. */
+        if (e.target.closest('[data-doc-carry]')) { e.preventDefault(); shareCarry(); return; }
         /* Share is caught here, before App.share, so it opens this page's
            share sheet for the very file on the row. */
         const share = e.target.closest('[data-doc-ref]');

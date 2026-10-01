@@ -27,6 +27,10 @@
     '.screen-updates .fy-head p { margin: 0; }' +
     '.screen-updates .fy-answer { margin: var(--s-4) 0 0; }' +
     '.screen-updates .fy-todo { margin: 0; }' +
+    '.screen-updates .fy-dates { margin-top: var(--s-8); border-top: 1px solid var(--hairline); }' +
+    '.screen-updates .fy-dates .item { margin: 0; border: 0; }' +
+    '.screen-updates .fy-dates .vrow > .row { padding-left: 0; padding-right: 0; padding-bottom: 0; }' +
+    '@media (max-width: 640px) { .screen-updates .fy-dates .vrow .v-label { flex-basis: 50%; } }' +
     '.screen-updates .fy-changed { margin: var(--s-8) 0 0; padding-left: var(--s-16); }' +
     '.screen-updates .art-source { margin-top: var(--s-24); display: flex; flex-wrap: wrap; column-gap: var(--s-8); }' +
     '.screen-updates .art-source a { white-space: nowrap; }' +
@@ -61,6 +65,28 @@
     return '<p class="t-meta art-source"><span>Source: ' + e(src.name) + '</span>' + a + '</p>';
   }
 
+  /* D74: articles about a rule a court has paused. For you shows only the
+     date counted under the rule in force, never the paused alternative.
+     The three articles below are all about the fixed admission rule, whose
+     30-day count after the program end is paused; the 60-day row stays in
+     force (pack opt.apply_after_days). An item may also carry paused: true. */
+  const PAUSED = { court: true, 'dc-ruling': true, 'fixed-admission-rule': true };
+
+  /* The date in force, worked out by App.fileBy from Priya's record, never
+     typed here. Program end 2025-12-18 (I-20 · OPT) + 60 days = 2026-02-16,
+     shown "Feb 16, 2026" (checked with python3). Its source mark opens the
+     source sheet, where "From your paper" shows the I-20 program end date
+     beside the date it fed (App.fromPaper('optFileBy')). */
+  function inForce(u) {
+    if (!(u.paused || PAUSED[u.id]) || !App.fileBy) return '';
+    const f = App.fileBy('opt');
+    const c = f && f.candidates.filter((x) => x.key === 'program')[0];
+    if (!c || !c.text) return '';
+    return '<div class="fy-dates">' +
+      C.valueRow({ label: c.label, value: c.text, source: c.source, editable: false, num: true }) +
+      '</div>';
+  }
+
   /* The one box for this student: does it affect you, then what to do. The
      answer follows the STEM OPT plan she gave (C.affectsFor), so it matches
      Home. A step a rule change touched is named in plain words, no link. */
@@ -72,6 +98,7 @@
       '<div class="fy-head"><p class="t-eyebrow">For you</p>' + C.info(u.info) + '</div>' +
       (ans.short ? '<p class="t-medium fy-answer">' + C.escText(ans.short) + '</p>' : '') +
       (todo ? '<p class="t-body fy-todo">' + C.escText(todo) + '</p>' : '') +
+      inForce(u) +
       (changed.length ? '<ul class="t-body fy-changed">' + changed.map((c) =>
         '<li>' + C.escText(c.title) + (c.change ? ': ' + C.escText(c.change) : '') + '</li>').join('') + '</ul>' : '') +
       '</section>';

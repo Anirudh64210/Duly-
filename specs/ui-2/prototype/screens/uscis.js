@@ -39,6 +39,8 @@
     '.screen-uscis .track-case { margin-top: var(--s-12); }' +
     '.screen-uscis .track-case.is-open { margin-top: var(--s-24); }' +
     '.screen-uscis .track-case.is-open + .us-foot { margin-top: var(--s-32); }' +
+    '.screen-uscis .us-petition .list + .list { margin-top: var(--s-24); }' +
+    '.screen-uscis .us-outcome { margin-top: var(--s-12); }' +
     '</style>';
 
   /* The statuses a student can record after rechecking, and the tracker
@@ -125,7 +127,81 @@
     return C.pageHeader({ title: 'USCIS status' }) +
       C.list(apps.items.map(caseRow), { accordion: false, label: 'Your cases' }) +
       C.trackCase() +
-      '<div class="us-foot">' + recheck(apps.tracking) + '</div>';
+      '<div class="us-foot">' + recheck(apps.tracking) + '</div>' +
+      petitionSection();
+  }
+
+  /* ---------------- H-1B petition: cap-gap (VALUE-2 feature 8) ---------------- */
+  /* Every date here comes from App.capGap over the record; nothing is worked
+     out on this page. Priya's record has no petition (data.js records.petitions
+     is empty), so the section first says where the cap-gap end will show,
+     with the rule behind an ⓘ, and offers Try an outcome (feature 2, the
+     petition preset only). "This happened" in that sheet puts the petition on
+     the record and the rows below appear.
+     With the sheet's sample inputs (data.js change.presets petition), checked
+     with python3 on 2026-09-30:
+       filed 2027-04-01, start 2027-10-01: a start on or after Oct 1 is in the
+         next fiscal year, so fiscal year 2028; filed on or after 2025-01-17,
+         so the end is April 1 of it, 2028-04-01.
+       pending   end 2028-04-01, "or the H-1B start if earlier"
+       approved  end min(2028-04-01, 2027-10-01) = 2027-10-01; F-1 ends 2027-10-01
+       denied    end the day of the outcome, 2027-07-15; no later date
+       EAD card ends 2027-02-13, before the filing day 2027-04-01: the
+         cover question goes to the DSO (asked in the sheet, with Copy). */
+  const fmtY = (iso) => App.dates.fmt(iso, { year: true });
+  function outcomeLabel(v) {
+    const o = (((App.data.change || {}).outcomes) || []).filter((x) => x.value === v)[0];
+    return o ? o.label : v;
+  }
+  function petitionRows(p) {
+    const g = App.capGap(p);
+    if (!g) return [];
+    const rows = [
+      C.valueRow({ label: 'Filed', value: fmtY(p.filed), editable: false, num: true }),
+      C.valueRow({ label: 'H-1B start asked for', value: fmtY(p.start), editable: false, num: true }),
+      C.valueRow({ label: 'Outcome', value: outcomeLabel(g.outcome) + (g.outcome !== 'pending' && App.dates.okIso(p.decided) ? ', ' + fmtY(p.decided) : ''), editable: false }),
+      C.valueRow({ label: 'Cap-gap end', key: 'capgap:' + p.id, value: g.endText, editable: false, num: true, source: g.outcome === 'denied' ? 'capGapOutcome' : 'capGap' }),
+    ];
+    if (g.f1Ends) rows.push(C.valueRow({ label: 'F-1 status ends', value: fmtY(g.f1Ends), editable: false, num: true, source: 'capGapStart' }));
+    if (g.outcome !== 'denied') rows.push(C.row({ title: 'Days without work keep counting through cap-gap.', source: 'capGapUnemployment' }));
+    if (g.cardEndsBeforeFiling) {
+      rows.push(C.row({
+        title: 'Your EAD card ends ' + fmtY(g.cardEnd) + ', before the filing day.',
+        source: 'eadEnds',
+      }));
+    }
+    return rows;
+  }
+  /* The cover question, with Copy, as Next steps asks it (App.capGap). */
+  const petitionAsk = (p) => { const g = App.capGap(p); return g && g.question ? C.askDso([g.question]) : ''; };
+  function petitionSection() {
+    const ps = (App.record().petitions || []).filter((p) => App.capGap(p));
+    const empty = C.row({
+      key: 'capgap-empty',
+      title: 'Cap-gap end',
+      meta: 'Shows here once your petition is on your record',
+      info: 'April 1 of the fiscal year your H-1B would start in, or the H-1B start if earlier, for a petition filed on or after Jan 17, 2025. A fiscal year starts October 1. Try an outcome, then This happened to add it.',
+    });
+    const body = ps.length
+      ? ps.map((p) => C.list(petitionRows(p), { accordion: false, label: 'H-1B petition' }) + petitionAsk(p)).join('')
+      : C.list([empty], { accordion: false, label: 'H-1B petition' });
+    const last = ps.length ? ps[ps.length - 1] : null;
+    const btn = '<button type="button" class="btn btn-text is-small try-change" data-us-outcome="' + C.esc(last ? last.id : '') + '">Try an outcome</button>';
+    return C.section({
+      eyebrow: 'H-1B petition',
+      info: 'With an H-1B petition that asks for a change of status, your F-1 status and OPT work permission can run on while it is decided. That span is cap-gap. Whether it covers you is a question for your DSO.',
+      cls: 'us-petition',
+      content: body + '<div class="us-outcome">' + btn + '</div>',
+    });
+  }
+
+  /* Try an outcome: Try a change on the petition preset only. From a
+     petition already on the record, the sheet opens on its dates, Now reads
+     that petition, and "This happened" replaces it (the old one comes back
+     with Undo). App.openChange and App.whatIf do the replacing. */
+  function tryOutcome(id) {
+    const p = id ? (App.record().petitions || []).filter((x) => x.id === id)[0] : null;
+    App.openChange('petition', { presets: ['petition'], replaces: p ? p.id : null });
   }
 
   /* The Update status panel, hidden until asked for. */
@@ -166,7 +242,9 @@
         C.btnGroup(actions) +
         (a.tracked ? '<button type="button" class="btn btn-text is-quiet" data-us-remove="' + C.esc(a.id) + '">Stop tracking</button>' : '') +
       '</div>' +
-      updatePanel(a);
+      updatePanel(a) +
+      /* A petition case: its cap-gap end, or where it will show. */
+      (a.formType === 'i129' ? petitionSection() : '');
   }
 
   /* Another case that already has this receipt number, if any. */
@@ -358,6 +436,8 @@
         if (save) { saveStatus(root, save.dataset.usSave); return; }
         const add = t.closest('[data-us-receipt]');
         if (add) { saveReceipt(root, add.dataset.usReceipt); return; }
+        const oc = t.closest('[data-us-outcome]');
+        if (oc) { tryOutcome(oc.dataset.usOutcome || null); return; }
         const rm = t.closest('[data-us-remove]');
         if (rm) removeCase(rm.dataset.usRemove);
       });

@@ -30,9 +30,27 @@
        shows the steps found, and they are confirmed once (C.schoolImport).
      The DSO email opens only on request, from the school step that needs it.
 
+   VALUE-2 on this page (every date from app/record.js, nothing worked out here):
+     Feature 1, file-by date: once the school's recommendation date is known,
+       the timeline's one line reads the file-by date (App.fileBy('stem')),
+       the "Last day to file" point moves to it, and its source mark lists
+       each limit with the one that sets the day. The I-765 step's dates
+       follow. Until then the line and points are as before.
+     Feature 4, Reports you owe: the next one or two open reports, each with
+       to whom and by when, and Mark made (wired in app/sheets.js). A report
+       marked today stays in place with Undo. More than two: "Show n more",
+       in place. Nothing open: the standing 10-day rule, one quiet row.
+     Feature 8, cap-gap: for each petition on the record, its cap-gap end
+       row; when the card ends before the filing day, the DSO question with
+       Copy. Nothing when no petition is entered.
+
    Review links: #/steps/school (steps found, waiting to confirm),
    #/steps/school-added (confirmed), #/steps/2026-12-01 (the timeline as it
-   reads on that day: inside the window, the last day emphasized). */
+   reads on that day: inside the window, the last day emphasized),
+   #/steps/rec-2026-12-01 (a recommendation date, shown, never saved),
+   #/steps/reports-sample (reports on the sample STEM card),
+   #/steps/petition-sample (the sample petition's cap-gap row, never saved).
+   They combine: #/steps/rec-2026-12-01/reports-sample/petition-sample. */
 (function () {
   'use strict';
 
@@ -63,6 +81,10 @@
     '.screen-steps .st-complete { margin-top: var(--s-16); color: var(--ink-2); }' +
     '.screen-steps .st-steps .rules-line { margin-top: var(--s-24); }' +
     '.screen-steps .st-done-list .row-lead { height: var(--lh-small); }' +
+    /* VALUE-2: Reports you owe and the cap-gap rows, quiet, under the steps. */
+    '.screen-steps .st-more { padding-top: var(--s-12); }' +
+    '.screen-steps .st-more .btn { padding: 0; }' +
+    '.screen-steps .st-ask-dso { margin-top: var(--s-16); }' +
     '</style>';
 
   const OPEN = 'steps:schoolOpen';
@@ -82,12 +104,15 @@
   window.addEventListener('hashchange', toTimeline, true);
 
   function parse(params) {
-    let demo = null, today = null;
+    let demo = null, today = null, rec = null, sampleCard = false, petition = false;
     (params || []).forEach((x) => {
       if (x === 'school' || x === 'school-added') demo = x;
+      else if (x === 'reports-sample') sampleCard = true;
+      else if (x === 'petition-sample') petition = true;
+      else if (/^rec-/.test(x) && ISO.test(x.slice(4)) && !isNaN(Date.parse(x.slice(4)))) rec = x.slice(4);
       else if (ISO.test(x) && !isNaN(Date.parse(x))) today = x;
     });
-    return { demo: demo, today: today };
+    return { demo: demo, today: today, rec: rec, sampleCard: sampleCard, petition: petition };
   }
 
   /* A review link forces the school import state once per visit, so the
@@ -183,11 +208,156 @@
 
   /* The real timeline. Its own key, so the draw-in plays here once even
      after Home has shown its small strip. */
-  function timelineFor(today) {
-    const props = App.stemTimeline(today ? { today: today } : undefined);
+  function timelineFor(r, f) {
+    const props = App.stemTimeline(r.today ? { today: r.today } : undefined);
+    if (f) withFileBy(props, f);
     return '<section class="st-when" aria-label="' + e(props.label || 'Key dates') + '">' +
       C.timeline(Object.assign({}, props, { key: 'steps:stem' })) + '</section>';
   }
+
+  /* ---------------- feature 1: the file-by date ---------------- */
+
+  /* App.fileBy('stem') once the recommendation date is known: on the record,
+     or from a review link (shown only, never saved). Null until then.
+       Priya today: no recommendation date, so null and the timeline is as
+       before (last day Feb 13, 2027, the card end).
+       rec-2026-12-01: 2026-12-01 + 60 = 2027-01-30, earlier than 2027-02-13,
+       so it sets the day. Opens 2027-02-13 - 90 = 2026-11-15.
+       (python3, engine/dates.py, 2026-09-30) */
+  function fileByFor(r) {
+    if (!App.fileBy) return null;
+    const f = App.fileBy('stem', r.rec ? { recommended: r.rec } : undefined);
+    return f && !f.needs ? f : null;
+  }
+
+  const stemDate = (key) => (((App.data.stem || {}).dates) || []).filter((d) => d.key === key)[0] || null;
+
+  /* The timeline's one line, read against the timeline's own today.
+       today 2026-09-30, before 2026-11-15:
+         "File your I-765 between Nov 15, 2026 and Jan 30, 2027"
+       inside the window: "File your I-765 by Jan 30, 2027"
+       on the last day, or after it: the date only, never a verdict.
+       A receipt stops the clock: "You filed Dec 5, 2026". */
+  function fileByCaption(f, today) {
+    const caps = (((App.data.stem || {}).timeline) || {}).captions || {};
+    if (f.stopped) return 'You filed ' + f.filedText;
+    if (today < f.opens) return 'File your I-765 between ' + f.opensText + ' and ' + f.lastText;
+    if (today < f.last) return f.line;
+    if (today === f.last) return caps.last || 'Today is the last day to file';
+    return String(caps.after || 'The last day to file was {date}').replace('{date}', f.lastText);
+  }
+
+  /* The "Last day to file" point moves to the file-by date; its source mark
+     carries each limit, the one that sets the day marked (f.info). Only the
+     date that matters now is emphasized: the opening until it opens, then
+     the last day until it passes. */
+  function withFileBy(props, f) {
+    const opens = stemDate('opens'), closes = stemDate('closes');
+    const today = props.today;
+    const setter = f.candidates.filter((x) => x.sets)[0] || f.candidates[0];
+    const emph = today < f.opens ? 'opens' : (today <= f.last && !f.stopped ? 'closes' : null);
+    props.marks = (props.marks || []).map((m) => {
+      if (opens && m.label === opens.label && m.date === opens.iso) return Object.assign({}, m, { emphasis: emph === 'opens' });
+      if (closes && m.label === closes.label && m.date === closes.iso) {
+        return Object.assign({}, m, { date: f.last, display: null, emphasis: emph === 'closes',
+          source: App.ruleWith ? App.ruleWith(setter.source, [f.info]) : setter.source });
+      }
+      return m;
+    });
+    props.caption = fileByCaption(f, today);
+    return props;
+  }
+
+  /* ---------------- feature 4: Reports you owe ---------------- */
+
+  const REPORTS_ALL = 'steps:reportsAll';
+  const byDue = (a, b) => (a.due < b.due ? -1 : (a.due > b.due ? 1 : 0));
+
+  /* Priya, today 2026-09-30: her job start (made Feb 27) and address (made
+     Mar 4) are marked made and nothing else is owed, so the one row is the
+     standing rule: "Report a change of name, address or job", within 10
+     days. With the sample STEM card (from 2027-02-14), the next two are:
+       6-month validation  2027-08-14 + 10 business days = 2027-08-27
+       12-month evaluation 2028-02-14 + 10 days          = 2028-02-24
+     then the 12-month validation, 2028-02-14 + 10 business days =
+     2028-02-29 (Washington's Birthday, 2028-02-21, left out), behind
+     "Show 3 more". (python3, engine/dates.py, 2026-09-30) */
+  function reportsSection(r) {
+    if (!App.reportsOwed || !C.reports) return '';
+    const sample = (window.DULY_SAMPLE.records || {}).sampleStemCard;
+    const all = App.reportsOwed(r.sampleCard && sample ? { stemCard: sample } : undefined);
+    if (!all) return '';
+    const t = App.data.today.iso;
+    const many = !!App.state[REPORTS_ALL];
+    const open = all.open || [];
+    const shownOpen = many ? open : open.slice(0, 2);
+    /* Marked made today: stays where it was, with Undo, until she leaves. */
+    const justMade = (all.done || []).filter((x) => x.made === t);
+    let rows = shownOpen.concat(justMade).sort(byDue);
+    if (!rows.length) rows = (all.rows || []).filter((x) => x.standing);
+    const rest = open.length - 2;
+    const more = rest > 0
+      ? '<p class="st-more"><button type="button" class="btn btn-text is-small" data-steps-reports="' + (many ? 'fewer' : 'more') + '" aria-expanded="' + many + '">' +
+        e(many ? 'Show fewer' : 'Show ' + rest + ' more') + '</button></p>'
+      : '';
+    return C.section({ cls: 'st-reports', eyebrow: all.title || 'Reports you owe', info: all.info,
+      content: C.reports(Object.assign({}, all, { rows: rows })) + more });
+  }
+
+  /* ---------------- feature 8: cap-gap ---------------- */
+
+  /* Each petition on the record; a review link adds the sample one (the Try
+     a change defaults), shown only. Sample petition, filed 2027-04-01 for a
+     start of 2027-10-01: a start on or after Oct 1 is in fiscal year 2028,
+     so April 1 of it is 2028-04-01 (filed on or after 2025-01-17, so the
+     April 1 row). Pending: "Apr 1, 2028, or the H-1B start if earlier".
+     Her card ends 2027-02-13, before 2027-04-01, so whether cap-gap covers
+     her goes to the DSO. (python3, 2026-09-30) */
+  function petitionsFor(r) {
+    const rec = App.record ? App.record() : {};
+    const list = (rec.petitions || []).map((p) => ({ p: p, sample: false }));
+    if (r.petition) {
+      const pre = (((App.data.change || {}).presets) || []).filter((x) => x.key === 'petition')[0];
+      const d = (pre && pre.defaults) || null;
+      if (d) list.push({ p: { id: 'sample', filed: d.filed, start: d.start, outcome: 'pending' }, sample: true });
+    }
+    return list;
+  }
+
+  function capGapSection(r) {
+    if (!App.capGap) return '';
+    const F = App.dates.fmtY;
+    const rows = [];
+    const questions = [];
+    petitionsFor(r).forEach((x) => {
+      const p = x.p;
+      const g = App.capGap(p);
+      if (!g) return;
+      const mark = x.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '';
+      const key = g.outcome === 'denied' ? 'capGapOutcome' : 'capGap';
+      const base = C.getRule(key) || {};
+      const counted = g.outcome === 'denied' ? (base.counted || [])
+        : ['Filed ' + F(p.filed) + ' for an H-1B start of ' + F(p.start) + ', in fiscal year ' + g.fiscalYear + '. April 1 of it is ' + F(g.limit) + '.'].concat(base.counted || []);
+      const row = (title, meta, src) => '<div class="item" data-key="capgap:' + e(p.id) + ':' + e(title) + '"><div class="row is-static"><span class="row-text">' +
+        '<span class="row-title">' + C.escText(title) + mark + '</span><span class="row-meta num">' + C.escText(meta) + '</span></span>' +
+        '<span class="row-trail">' + C.source(src) + '</span></div></div>';
+      rows.push(row('Cap-gap end', g.endText, App.ruleWith ? App.ruleWith(key, counted) : key));
+      if (g.f1Ends) rows.push(row('F-1 status ends', F(g.f1Ends) + ', the day H-1B starts', 'capGapStart'));
+      if (g.cardEndsBeforeFiling) {
+        questions.push('My H-1B petition was filed ' + F(p.filed) + ' for a start of ' + F(p.start) + ', and my EAD card ends ' + F(g.cardEnd) + '. Does cap-gap cover me?');
+      }
+    });
+    if (!rows.length) return '';
+    const ask = questions.length
+      ? '<div class="change-ask st-ask-dso"><div class="change-ask-head"><p class="t-eyebrow">Ask your DSO</p>' +
+        '<button type="button" class="btn btn-text is-small" data-steps-copy="' + e(questions.join('\n')) + '">Copy</button></div>' +
+        '<ul>' + questions.map((q) => '<li>' + C.escText(q) + '</li>').join('') + '</ul></div>'
+      : '';
+    return C.section({ cls: 'st-capgap', eyebrow: 'H-1B petition', content: C.list(rows, { accordion: false, label: 'Cap-gap' }) + ask });
+  }
+
+  /* The quiet sections under the steps, on either answer. */
+  function recordSections(r) { return reportsSection(r) + capGapSection(r); }
 
   function stemView(data, r) {
     const stem = data.stem;
@@ -198,7 +368,7 @@
     if (intent === 'no') {
       return head('<p class="st-intent t-meta"><span>Not applying this time</span>' + answerBtn('Change', '', 'btn btn-text is-small') + '</p>') +
         '<p class="st-big t-medium"><span>' + C.escText(stem.noTitle) + '</span>' + C.source(withPlain('eadEnds', stem.noInfo), { inline: true }) + '</p>' +
-        C.footer();
+        recordSections(r) + C.footer();
     }
 
     let ask;
@@ -216,7 +386,12 @@
 
     const entries = App.steps('stem');
     const now = App.currentStep('stem');
-    const rows = entries.map((en) => (en.type === 'school' ? schoolRow(en, data, en.key === now) : fedRow(en, en.key === now)));
+    const f = fileByFor(r);
+    /* With a file-by date, the I-765 step reads the window to it:
+       rec-2026-12-01 gives "Nov 15, 2026 to Jan 30, 2027". */
+    const fileStep = (en) => (f && !f.stopped && en.key === 'i765'
+      ? Object.assign({}, en, { step: Object.assign({}, en.step, { meta: f.opensText + ' to ' + f.lastText }) }) : en);
+    const rows = entries.map((en) => (en.type === 'school' ? schoolRow(en, data, en.key === now) : fedRow(fileStep(en), en.key === now)));
     const visible = entries.filter((en) => !(en.afterOf && !en.afterOf.done));
     const done = visible.filter((en) => en.done).length;
     const total = visible.length;
@@ -237,7 +412,7 @@
       C.rulesLine(data.rules) +
       '</section>';
 
-    return head(ask) + timelineFor(r.today) + steps + C.footer();
+    return head(ask) + timelineFor(r, f) + steps + recordSections(r) + C.footer();
   }
 
   window.SCREENS.steps = {
@@ -254,6 +429,21 @@
     mount(root) {
       root.classList.add('screen-steps');
       root.addEventListener('click', (ev) => {
+        const more = ev.target.closest('[data-steps-reports]');
+        if (more) {
+          App.state[REPORTS_ALL] = more.dataset.stepsReports === 'more';
+          App.rerender();
+          const again = document.querySelector('main#main [data-steps-reports]');
+          if (again) again.focus({ preventScroll: true });
+          return;
+        }
+        const cp = ev.target.closest('[data-steps-copy]');
+        if (cp) {
+          const text = cp.dataset.stepsCopy || '';
+          const done = () => App.toast('Questions copied');
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done); else done();
+          return;
+        }
         const b = ev.target.closest('[data-steps-school="open"]');
         if (!b) return;
         App.state[OPEN] = true;

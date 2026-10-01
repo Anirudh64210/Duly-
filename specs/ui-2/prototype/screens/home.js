@@ -28,6 +28,26 @@
    height eases between states, so nothing below jumps, and nothing leaves
    Home unless the student taps See all steps. Change reopens the choices
    without clearing the answer; Escape or Decide folds them away again.
+   VALUE-2, feature 1: the next move carries the file-by date, the earliest
+   of the recommendation limit and the card or program limit, from
+   App.fileBy('stem'), with the ⓘ listing each limit and marking the one
+   that sets the day. For Priya (today 2026-09-30, checked with python3):
+     card ends 2027-02-13                        sets the day
+     window opens 2027-02-13 - 90 = 2026-11-15   never a candidate
+     recommendation + 60: no date yet
+   With no recommendation date the card end is only one limit, and the 60-day
+   limit will almost always come first (recommended 2026-12-01 + 60 =
+   2027-01-30), so no file-by date shows yet: the line reads "Add the date
+   your school recommends you to see your exact last day to file", as Next
+   steps does. The move row carries one date only. A receipt stops the
+   clock (no line); a passed day shows the date only, and the ⓘ sends the
+   question to the DSO.
+   VALUE-2, feature 5: at most one check-in, under the next move, only while
+   the job count runs and the job list is answered (never on the ask, no-job
+   or no-EAD demos, so the job is asked in one place). For Priya: Northwind
+   last confirmed 2026-08-28; 2026-09-30 - 2026-08-28 = 33 days, at least
+   the 30-day setting, so "Still at Northwind Systems, about 40 hours a
+   week?" shows, and the count reads "As of Aug 28" until it is answered.
    The word Duly does not appear in this screen's text. */
 (function () {
   'use strict';
@@ -51,6 +71,7 @@
     '.screen-home .move.has-draft > .row { padding-bottom: var(--s-8); }' +
     '.screen-home .move .draft { padding: 0 var(--s-12) var(--s-16); }' +
     '.screen-home .home-news .rules-line { margin-top: var(--s-16); }' +
+    '.screen-home .move .row-meta .inline-src { vertical-align: middle; }' +
     '.screen-home .stem-move > .row .row-text { gap: 0; }' +
     '.screen-home .stem-move .sm-chev { flex: none; opacity: .72; transform: rotate(90deg); transition: transform .22s ease; }' +
     '.screen-home .stem-move .sm-toggle[aria-expanded="true"] .sm-chev { transform: rotate(-90deg); }' +
@@ -114,6 +135,28 @@
     };
   }
 
+  /* Feature 1: the file-by line for the STEM OPT move, or null.
+     Priya: no recommendation date yet (f.needs), so the card end
+     2027-02-13 is not the last day to file: the 60-day limit will likely
+     come first (2026-12-01 + 60 = 2027-01-30). The line asks for the date
+     instead of claiming one, as fileByFor() on Next steps does. Filed: the
+     receipt stopped the clock, so no line. Passed: the date only, never
+     "still in time", and the ⓘ ends with the DSO question.
+     { needs } carries no date; { text } carries the one file-by date. */
+  function fileByLine() {
+    const f = App.fileBy ? App.fileBy('stem') : null;
+    if (!f || f.stopped || !f.last) return null;
+    if (f.needs) return { needs: f.needs, info: f.info };
+    if (f.passed) {
+      return { text: 'Last day to file: ' + f.lastText, info: f.info + ' Ask your DSO what this means for you.' };
+    }
+    return { text: f.line, info: f.info };
+  }
+  function fileByMeta(fb, lead) {
+    if (!fb) return lead ? e(lead) : '';
+    return (lead ? e(lead) + ' · ' : '') + (fb.needs ? C.unknown(fb.needs) : e(fb.text)) + C.info(fb.info, { label: 'How this date is set' });
+  }
+
   /* Two answers in place: a pill that answers, a text link that adds. */
   function choiceHtml(c) {
     return '<button type="button" class="btn btn-pill" data-answer="' + e(c.answer) + '" data-value="' + e(c.value) + '">' + e(c.label) + '</button>' +
@@ -129,7 +172,8 @@
     const action = m.draft ? '' : (m.choice ? choiceHtml(m.choice) : C.button({ label: m.action, kind: 'primary', href: m.href }));
     return '<div class="item move' + (m.draft ? ' has-draft' : '') + '" data-key="' + e(m.key) + '">' +
       '<div class="row is-static">' +
-      '<span class="row-text"><span class="row-title">' + C.escText(m.title) + mark + src + '</span></span>' +
+      '<span class="row-text"><span class="row-title">' + C.escText(m.title) + mark + src + '</span>' +
+      (m.fileBy ? '<span class="row-meta">' + fileByMeta(m.fileBy) + '</span>' : '') + '</span>' +
       '<span class="row-trail">' +
       (m.date ? '<span class="row-value num">' + e(m.date) + '</span>' : '') +
       action +
@@ -168,13 +212,18 @@
     const move = (data.home.nextMoves || []).filter((x) => x.key === 'stemIntent')[0] || {};
     const decideLabel = (move.primary && move.primary.label) || 'Decide';
     const src = prep.source || move.source;
+    /* Feature 1: the file-by line with its ⓘ, or the ask for the
+       recommendation date while there is none. Not after a no. */
+    const fb = v.intent === 'no' ? null : fileByLine();
+    /* One date in the row: a file-by date, once known, replaces "By Oct 15". */
+    const prepDate = prep.iso && !(fb && fb.text);
 
     if (v.state !== 'ask') {
       const change = '<button type="button" class="btn btn-text is-small sm-change" data-stem-home="change" aria-label="' +
         e(d.change + ' your STEM OPT answer') + '">' + e(d.change) + '</button>';
       const row = '<div class="row is-static">' +
         '<span class="row-text"><span class="row-title">' + e(topic) + '</span>' +
-        '<span class="row-meta is-act">' + e(v.state === 'yes' ? d.yes : d.no) + '</span></span>' +
+        '<span class="row-meta is-act">' + (v.state === 'yes' ? fileByMeta(fb, d.yes) : e(d.no)) + '</span></span>' +
         '<span class="row-trail">' + change + '</span></div>';
       if (v.state === 'no') return row;
       /* No caption here: the Next date tile above already gives the count,
@@ -190,9 +239,9 @@
       (v.intent === c.value ? ' aria-pressed="true"' : '') + '>' + e(c.label) + '</button>').join('');
     return '<div class="row is-static">' +
       '<span class="row-text"><span class="row-title">' + e(d.title || move.title) + (src ? C.source(src, { inline: true }) : '') + '</span>' +
-      (quiet ? '<span class="row-meta">' + e(d.unsure) + '</span>' : '') + '</span>' +
+      ((quiet || fb) ? '<span class="row-meta">' + fileByMeta(fb, quiet ? d.unsure : null) + '</span>' : '') + '</span>' +
       '<span class="row-trail">' +
-      (prep.iso ? '<span class="row-value num">By ' + e(C.fmtDate(prep.iso, { ref: plan.today })) + '</span>' : '') +
+      (prepDate ? '<span class="row-value num">By ' + e(C.fmtDate(prep.iso, { ref: plan.today })) + '</span>' : '') +
       '<button type="button" class="' + C.cls('btn', v.intent === 'unsure' ? 'btn-pill' : 'btn-primary', 'sm-toggle') + '" data-stem-home="toggle"' +
       ' aria-expanded="' + (v.open ? 'true' : 'false') + '"' + (v.open ? ' aria-controls="sm-choices"' : '') + '>' +
       e(decideLabel) + C.icon('chevron', { cls: 'sm-chev', size: 12 }) + '</button>' +
@@ -235,9 +284,11 @@
     }
     const d = find('stemIntent');
     if (d.inPlace) return { key: 'stemIntent', inPlace: true, data: data };
+    const fb = App.stemIntent() === 'no' ? null : fileByLine();
     return {
-      key: 'stemIntent', title: d.title, date: d.date ? 'By ' + d.date : null,
+      key: 'stemIntent', title: d.title, date: d.date && !(fb && fb.text) ? 'By ' + d.date : null,
       action: (d.primary && d.primary.label) || 'Decide', href: (d.primary && d.primary.href) || '#/steps', source: d.source,
+      fileBy: fb,
     };
   }
 
@@ -254,6 +305,28 @@
       choiceHtml({ answer: 'jobsComplete', value: withJob ? 'every' : 'none', label: withJob ? a.every : a.none,
         other: withJob ? a.another : a.addJob, href: a.href || '#/case/jobs' }) +
       '</div></div>';
+  }
+
+  /* The card dates on the second and third tiles, from App.record(), never
+     fixed strings. Priya, today 2026-09-30 (checked with python3):
+       card ends 2027-02-13: daysBetween(2026-09-30, 2027-02-13) = 136
+       window opens 2027-02-13 - 90 = 2026-11-15:
+         daysBetween(2026-09-30, 2026-11-15) = 46 */
+  function cardDates(data) {
+    const D = App.dates;
+    const t = data.today.iso;
+    const until = (App.record().opt || {}).until;
+    if (!until || !D.okIso(until)) return null;
+    const opens = D.addDays(until, -App.RULE.stemBefore);
+    const n = (k) => k + (k === 1 ? ' day' : ' days');
+    const left = D.daysBetween(t, until);
+    const toOpen = D.daysBetween(t, opens);
+    return {
+      untilText: C.fmtDate(until, { ref: t }),
+      opensText: C.fmtDate(opens, { ref: t }),
+      left: n(left),
+      toOpen: toOpen > 0 ? 'in ' + n(toOpen) : null,
+    };
   }
 
   /* The three numbers. C.metrics draws them; the unemployment tile's body is
@@ -277,10 +350,18 @@
         first.source = Object.assign({}, data.sources.unemployment, { counted: [u.counted] });
       }
     }
-    const third = intent === 'no' ? h.metricNoStem : m[2];
+    const cd = noEad ? null : cardDates(data);
+    let second = m[1];
+    let third = intent === 'no' ? h.metricNoStem : m[2];
+    if (cd) {
+      second = Object.assign({}, m[1], { value: cd.untilText, unit: cd.left + ' left' });
+      third = intent === 'no'
+        ? Object.assign({}, h.metricNoStem, { value: cd.untilText, unit: 'Your card ends · in ' + cd.left })
+        : Object.assign({}, m[2], { value: cd.opensText, unit: 'STEM OPT window opens' + (cd.toOpen ? ' · ' + cd.toOpen : '') });
+    }
     const cells = [
       first,
-      noEad ? { eyebrow: m[1].eyebrow, add: { action: 'Add your EAD card', rest: 'to see this date.', href: ADD_EAD } } : m[1],
+      noEad ? { eyebrow: m[1].eyebrow, add: { action: 'Add your EAD card', rest: 'to see this date.', href: ADD_EAD } } : second,
       noEad ? h.metricNoEad : Object.assign({}, third, { unit: lines.apply(null, third.unit.split(' · ')) }),
     ];
     const html = C.metrics(cells);
@@ -292,6 +373,19 @@
     const row = tile && tile.querySelector('.metric-value-row');
     if (row) row.outerHTML = askBody(u);
     return box.innerHTML;
+  }
+
+  /* Feature 5: at most one check-in (C.checkin draws App.checkin()[0], or
+     the "Confirmed Sep 30" line with Undo just after a Yes). Only while the
+     job count runs and the job list is answered: never on the ask, no-job or
+     no-EAD demos, where the job is already asked in the tile or the move.
+     Priya: 2026-09-30 - 2026-08-28 = 33 days >= 30, so it shows. */
+  function checkinHtml(mode, u) {
+    if (mode === 'no-ead' || mode === 'no-job' || !C.checkin) return '';
+    if (!u.hasJob || u.state !== 'every') return '';
+    const card = C.checkin();
+    if (!card) return '';
+    return C.section({ eyebrow: 'Check in', cls: 'home-checkin', content: '<div class="list" aria-label="Check in">' + card + '</div>' });
   }
 
   /* ---- in place: open, answer, fold ---- */
@@ -382,12 +476,18 @@
       const u = unemploymentFor(mode);
       ctx = { data: data, mode: mode, u: u };
 
-      /* ---- hero: where you stand; the why is behind the ⓘ ---- */
+      /* ---- hero: where you stand, from App.record(); the why is behind the ⓘ ----
+         A job is open on today when start <= 2026-09-30 and it has no end
+         or ends on or after today. Northwind 2026-02-27, no end: open, so
+         "You're working on OPT at Northwind Systems." After "This happened"
+         saves an end of 2026-09-01, none is open: "You're on OPT." */
+      const t = data.today.iso;
+      const job = noJob ? null : (App.record().jobs || []).filter((j) => j.start <= t && (!j.end || t <= j.end))[0] || null;
       const heroHtml = C.hero({
         date: data.today.long,
         eyebrow: h.eyebrow,
-        title: noJob ? "You're on OPT." : h.headline,
-        info: noEad ? 'Add your EAD card and your dates are counted from it.' : (noJob ? 'Counted from your EAD card.' : h.info),
+        title: job ? "You're working on OPT at " + job.employer + '.' : "You're on OPT.",
+        info: noEad ? 'Add your EAD card and your dates are counted from it.' : (job ? h.info : 'Counted from your EAD card.'),
         halo: true,
       });
       /* ---- the promise: one quiet line, said once on this page ---- */
@@ -411,7 +511,7 @@
           C.rulesLine(data.rules),
       });
 
-      return STYLE + heroHtml + promiseHtml + metricsHtml(data, mode, u) + nextHtml + newsHtml + C.footer();
+      return STYLE + heroHtml + promiseHtml + metricsHtml(data, mode, u) + nextHtml + checkinHtml(mode, u) + newsHtml + C.footer();
     },
 
     mount(root) {

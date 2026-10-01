@@ -150,8 +150,22 @@
     let state = App.state.jobsComplete || u.state || 'ask';
     if (state === 'every' && !hasJob) state = 'ask';
     if (state === 'none' && hasJob) state = 'every';
-    const n = state === 'every' ? u.every : (state === 'none' ? u.none : null);
-    const asOf = u.asOf ? 'As of ' + u.asOf : null;
+    let n = state === 'every' ? u.every : (state === 'none' ? u.none : null);
+    /* VALUE-2: the count comes from the record (app/record.js), as of the
+       last day a running job was confirmed while its check-in waits, else
+       today. Never carried past its last confirmed day. With Northwind on
+       file it is 13 (2026-02-14 to 2026-02-26); with no job it is 229. */
+    let asOfShort = u.asOf, asOfLong = u.asOfLong;
+    if (n && state === 'every' && App.compute) {
+      const it = App.compute()['unemployment.used'];
+      if (it && it.n != null) {
+        const lim = u.limit || 90;
+        n = Object.assign({}, n, { used: it.n, left: Math.max(0, lim - it.n), pct: Math.round((it.n / lim) * 100) });
+        asOfShort = App.dates.fmt(it.asOf);
+        asOfLong = App.dates.fmtY(it.asOf);
+      }
+    }
+    const asOf = asOfShort ? 'As of ' + asOfShort : null;
     const base = ((data.home && data.home.metrics) || [])[0] || { eyebrow: 'Unemployment days' };
     const metric = n
       ? { eyebrow: base.eyebrow, value: String(n.used), unit: n.left > 0 ? 'used · ' + n.left + ' left' : 'of ' + u.limit, bar: n.pct, source: 'unemployment', asOf: asOf }
@@ -159,8 +173,8 @@
     return {
       state: state, hasJob: hasJob,
       used: n ? n.used : null, left: n ? n.left : null, limit: u.limit, pct: n ? n.pct : null,
-      asOf: u.asOf, asOfLong: u.asOfLong,
-      line: n ? (n.left > 0 ? n.used + ' of ' + u.limit + ' used, as of ' + u.asOf : n.used + ' days without work, as of ' + u.asOf) : null,
+      asOf: asOfShort, asOfLong: asOfLong, checkin: App.checkin ? App.checkin() : null,
+      line: n ? (n.left > 0 ? n.used + ' of ' + u.limit + ' used, as of ' + asOfShort : n.used + ' days without work, as of ' + asOfShort) : null,
       counted: n ? n.counted : null,
       metric: metric, ask: u.ask, everyLine: u.everyLine, noneLine: u.noneLine,
     };

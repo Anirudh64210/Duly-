@@ -1343,3 +1343,131 @@ span.is-complete { display: inline-block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ------------------------------------------------------------------ */
+/* 13. VALUE-2: the small sheet, Try a change, check-in, Share,          */
+/*     Reports you owe, Document watch, From your paper                  */
+/* ------------------------------------------------------------------ */
+
+/* The small sheet: a panel on the right on a wide window, from the bottom
+   on a phone. It scrolls as one column; its buttons stay in reach. */
+html.has-sheet, html.has-sheet body { overflow: hidden; }
+.sheet-layer { position: fixed; inset: 0; z-index: 44; }
+.sheet-layer > .scrim { z-index: 0; }
+.sheet {
+  position: absolute; z-index: 1; top: 0; right: 0; bottom: 0;
+  width: 440px; max-width: 100%;
+  display: flex; flex-direction: column;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--ground);
+  border-left: 1px solid var(--hairline);
+  box-shadow: var(--shadow-pop);
+  animation: drop .28s ease-out;
+}
+.sheet:focus-visible { box-shadow: var(--shadow-pop); border-radius: 0; }
+.sheet-top {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center; gap: var(--s-16);
+  padding: var(--s-16) var(--s-24); background: var(--ground);
+}
+.sheet-top h2:focus-visible { box-shadow: none; }
+.sheet-x {
+  position: relative; flex: none;
+  display: grid; place-items: center;
+  width: 32px; height: 32px; margin-right: calc(-1 * var(--s-8));
+  padding: 0; border: 0; border-radius: 50%;
+  background: none; color: var(--ink-3);
+}
+.sheet-x::after { content: ""; position: absolute; inset: -6px; }
+.sheet-x:hover { color: var(--ink); background: var(--row-hover); }
+.sheet-body { flex: 1 0 auto; display: flex; flex-direction: column; gap: var(--s-24); padding: var(--s-8) var(--s-24) var(--s-24); }
+.sheet-foot {
+  position: sticky; bottom: 0; z-index: 2;
+  padding: var(--s-16) var(--s-24) calc(var(--s-16) + env(safe-area-inset-bottom));
+  background: var(--ground); border-top: 1px solid var(--hairline);
+}
+.sheet-foot .btn-row { margin-top: 0; }
+.sheet .chips { margin-bottom: 0; }
+@media (max-width: 640px) {
+  .sheet {
+    top: auto; left: 0; width: auto; max-height: 90vh;
+    border-left: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    animation: sheet .28s var(--ease-rise);
+  }
+  .sheet-top { padding-top: var(--s-24); }
+  .sheet-top::before {
+    content: ""; position: absolute; top: var(--s-8); left: 50%; transform: translateX(-50%);
+    width: 36px; height: 4px; border-radius: 2px; background: var(--pip-empty);
+  }
+}
+
+/* Try a change */
+.change-inputs { display: flex; flex-direction: column; gap: var(--s-16); }
+.change-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-16); }
+@media (max-width: 360px) { .change-pair { grid-template-columns: 1fr; } }
+.change-inputs input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; }
+.change-result { display: flex; flex-direction: column; gap: var(--s-16); padding-top: var(--s-16); border-top: 1px solid var(--hairline); }
+.change-empty { color: var(--ink-3); }
+/* Each moved item: its name, then Now and With this change side by side. */
+.ba { display: flex; flex-direction: column; }
+.ba-head { display: none; }
+.ba-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--s-16); row-gap: var(--s-4);
+  padding: var(--s-12) 0; border-bottom: 1px solid var(--hairline-inner);
+}
+.ba-row:first-of-type { padding-top: 0; }
+.ba-label { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4); }
+.ba-label .inline-src { margin-left: var(--s-4); }
+.ba-before, .ba-after { display: flex; flex-direction: column; font-size: var(--t-small); line-height: var(--lh-meta); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ba-before { color: var(--ink-3); }
+.ba-after { color: var(--ink); font-weight: 500; }
+.ba-tag { font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta); letter-spacing: .06em; font-variant-caps: all-small-caps; color: var(--ink-3); }
+.change-facts { display: flex; flex-direction: column; gap: var(--s-8); }
+.change-facts li { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }
+.change-ask {
+  padding: var(--s-16); background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: var(--r-card);
+}
+.change-ask-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-16); }
+.change-ask-head .btn { padding: 0; }
+.change-ask ul { display: flex; flex-direction: column; gap: var(--s-8); margin-top: var(--s-8); }
+.change-ask li { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }
+.try-change { padding: 0; }
+
+/* The check-in */
+.checkin.is-done .row-title { color: var(--ink-2); font-weight: 400; }
+
+/* Share, with a summary */
+.share-pack .share-block .t-eyebrow { margin-bottom: var(--s-4); }
+.share-doc > .row { align-items: flex-start; }
+.share-doc .check { margin-top: 2px; }
+.summary-page {
+  display: flex; flex-direction: column; gap: var(--s-4);
+  padding: var(--s-24); background: var(--surface);
+  border: 1px solid var(--hairline); border-radius: var(--r-card);
+}
+.summary-title { font-size: var(--t-small); font-weight: 600; line-height: var(--lh-small); color: var(--ink); }
+.summary-part { margin-top: var(--s-12); }
+.summary-part .t-eyebrow { color: var(--ink-3); }
+.summary-part p:not(.t-eyebrow) { font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); overflow-wrap: anywhere; }
+.summary-foot { margin-top: var(--s-16); }
+.share-holds { margin-top: calc(-1 * var(--s-12)); }
+
+/* Reports you owe */
+.report.is-made .row-title { color: var(--ink-2); }
+.report .row-trail .btn { padding: 0; }
+.reports-more { padding-top: var(--s-12); }
+
+/* Document watch: dates only, no red. A date close by takes the caution ink. */
+.doc-watch .watch-next { display: flex; flex-direction: column; gap: var(--s-4); margin-bottom: var(--s-12); }
+.is-close { color: var(--caution); }
+.watch.is-passed .row-title { color: var(--ink-2); }
+
+/* From your paper, in the source sheet */
+.from-paper { display: flex; flex-direction: column; gap: var(--s-8); }
+.from-paper h3 { font-size: var(--t-small); font-weight: 600; line-height: var(--lh-meta); letter-spacing: .06em; font-variant-caps: all-small-caps; color: var(--ink-3); }
+.fp-row { display: flex; align-items: center; gap: var(--s-8); }
+.fp-cell { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.fp-name { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }
+.fp-value { font-size: var(--t-small); line-height: var(--lh-small); font-weight: 500; color: var(--ink); }
+.fp-arrow { flex: none; color: var(--ink-4); }

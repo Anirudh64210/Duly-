@@ -923,6 +923,150 @@ window.DULY_SAMPLE = {
     notSure: "I'm not sure",
   },
 
+  /* ===== THE RECORD (VALUE-2, D72 to D74) =====
+     The facts every computed date and count in VALUE-2 is worked out from,
+     as ISO dates. App.record() copies this once; "This happened" in Try a
+     change writes to that copy, never here. Nothing below is a date Duly
+     worked out: app/record.js computes every derived date and count from
+     these facts, with the arithmetic beside each one.
+     Passport, visa and address are the new record kinds of D74, with
+     sample values (sample: true shows the "Sample" mark where they appear).
+     No passport or visa number is kept in the prototype: ids never show. */
+  records: {
+    program: { level: "Master's", major: 'Computer Science', school: 'State University', start: '2023-08-21', end: '2025-12-18', doc: 'i20-start' },
+    opt: {
+      category: 'Post-completion OPT', code: 'C03B',
+      from: '2026-02-14', until: '2027-02-13', doc: 'ead-card',
+      /* From page 2 of the OPT I-20: the day the DSO entered the
+         recommendation in SEVIS. Fed the OPT file-by date. */
+      recommended: '2025-10-03', recommendedDoc: 'i20-opt',
+      filed: '2025-10-10', receipt: 'IOE0912345678',
+    },
+    /* No STEM card yet: STEM reports have no dates until one is added
+       (engine: a STEM stage with no card has no report dates). */
+    stem: { card: null, recommended: null, filed: null },
+    /* A sample STEM card, for review only (#/steps/reports-sample and the
+       like): one day after the OPT card ends, 24 months. Never the record. */
+    sampleStemCard: { from: '2027-02-14', until: '2029-02-13', sample: true },
+    jobs: [
+      { id: 'northwind', title: 'Software Engineer', employer: 'Northwind Systems', start: '2026-02-27', end: null,
+        hours: 40, hoursChanges: [], confirmedOn: '2026-08-28', doc: 'offer-northwind' },
+    ],
+    cpt: [
+      { id: 'acme', employer: 'Acme Robotics', start: '2024-06-01', end: '2024-08-15', fullTime: true, doc: 'i20-cpt-acme' },
+      { id: 'lumen', employer: 'Lumen Labs', start: '2025-01-13', end: '2025-05-02', fullTime: false, doc: 'i20-cpt-lumen' },
+    ],
+    passport: { kind: 'passport', title: 'Passport', country: 'India', issued: '2021-07-10', expires: '2031-07-09', doc: 'passport', sample: true },
+    visa: { kind: 'visa', title: 'F-1 visa', issued: '2023-08-02', expires: '2028-08-01', entries: 'Multiple', doc: 'f1-visa', sample: true },
+    address: { lines: ['120 Pine Street, Apt 4B', 'Springfield, IL 62704'], since: '2026-03-01', sample: true },
+    /* The newest travel signature, on page 2 of the OPT I-20. */
+    travelSignature: { signed: '2026-03-02', doc: 'i20-opt' },
+    trips: [],
+    petitions: [],
+    /* Reports the student marked made, by report id: "You marked this made
+       on Mar 4." Never "submitted", never "late". */
+    made: {
+      'report:job-start:northwind': '2026-02-27',
+      'report:address:2026-03-01': '2026-03-04',
+    },
+  },
+
+  /* Reports you owe (VALUE-2 feature 4). Copy only; the rows and dates come
+     from App.reportsOwed(). Business days skip the federal holidays of
+     5 U.S.C. 6103(a), on the days the law lists. */
+  reports: {
+    title: 'Reports you owe',
+    info: 'What you report, to whom and by when, worked out from your record. Mark one made when you send it.',
+    to: 'Your DSO',
+    standing: { title: 'Report a change of name, address or job', meta: 'Within 10 days of the change' },
+    made: 'You marked this made on {date}',
+    markDone: 'Mark made',
+    undo: 'Undo',
+    noCard: { action: 'Add your STEM OPT card', rest: 'to see your STEM report dates.', href: '#/documents/add' },
+    holidayLine: 'Counted in business days. Weekends and {list} are left out.',
+    holidaysLine: 'Counted in business days. Weekends, {list} are left out.',
+    weekendLine: 'Counted in business days, weekends left out.',
+  },
+
+  /* The check-in (VALUE-2 feature 5, D73: computed on the device). One card
+     when a fact a running clock reads has gone stale. jobDays is a product
+     setting, not a rule; petitionDays is D66. */
+  checkin: {
+    jobDays: 30,
+    petitionDays: 30,
+    job: { title: 'Still at {employer}, about {hours} hours a week?', yes: 'Yes, same', update: 'Update' },
+    petition: { title: 'Is your H-1B petition still pending?', yes: 'Yes, still pending', update: 'Update' },
+    meta: 'Last confirmed {date}. Your count is as of that day.',
+    done: 'Confirmed {date}. Your count is as of today.',
+    info: 'A count is only right while your record is. You are asked when a fact has not been confirmed for a while; quiet weeks stay quiet.',
+    undo: 'Undo',
+  },
+
+  /* Try a change (VALUE-2 feature 2, D72). The presets in build order; the
+     dates below are the sample inputs the sheet opens with. Nothing is
+     saved until "This happened". */
+  change: {
+    title: 'Try a change',
+    info: 'See what a change would move on your record, worked out from your papers and the rule. Nothing is saved unless you tap This happened.',
+    save: 'This happened',
+    cancel: 'Cancel',
+    saved: 'Saved to your record',
+    nothing: 'Nothing on your record moves.',
+    incomplete: 'Add the date to see what moves.',
+    ask: 'Ask your DSO',
+    before: 'Now',
+    after: 'With this change',
+    presets: [
+      { key: 'jobEnd', label: 'My job ends', dateLabel: 'Last day at work', defaults: { on: '2026-10-31' } },
+      { key: 'newEmployer', label: 'New employer', dateLabel: 'First day', defaults: { start: '2026-11-16', hours: 40, instead: 'instead', employer: '' } },
+      { key: 'fewerHours', label: 'Fewer hours', dateLabel: 'From', defaults: { on: '2026-11-01', hours: 15 } },
+      { key: 'cpt', label: 'CPT internship', dateLabel: 'Start', defaults: { start: '2027-01-11', end: '2027-05-07', fullTime: 'full' } },
+      { key: 'trip', label: 'A trip', dateLabel: 'Leave', defaults: { leave: '2026-12-19', back: '2027-01-09', purpose: 'leave' } },
+      { key: 'petition', label: 'H-1B petition', dateLabel: 'Filed', defaults: { filed: '2027-04-01', start: '2027-10-01', outcome: 'pending', decided: '2027-07-15' } },
+    ],
+    purposes: [
+      { value: 'leave', label: 'Leave my employer approved' },
+      { value: 'work', label: 'Travel for my job' },
+      { value: 'other', label: 'Other' },
+      { value: 'unsure', label: "I'm not sure" },
+    ],
+    outcomes: [
+      { value: 'pending', label: 'Pending' },
+      { value: 'approved', label: 'Approved' },
+      { value: 'denied', label: 'Denied or withdrawn' },
+    ],
+  },
+
+  /* Share, with a one-page summary (VALUE-2 feature 7). Papers are
+     preselected by who it is for; the summary is a fixed template over the
+     record and computed items. No model writes it. Names and numbers are
+     hidden until the student shows them. The employer list makes no I-9
+     claim (M-274 is not saved). */
+  sharePack: {
+    title: 'Share your papers',
+    info: 'Pick who it is for. The newest papers are picked for you, and the summary is filled in from your record.',
+    for: [
+      { value: 'employer', label: 'Employer', docs: ['ead-card', 'i20-opt'], parts: ['status', 'card', 'job'] },
+      { value: 'dso', label: 'DSO', docs: ['i20-opt', 'ead-card', 'i797', 'offer-northwind'], parts: ['status', 'program', 'card', 'job', 'reports', 'counts', 'questions'] },
+      { value: 'attorney', label: 'Attorney', docs: ['passport', 'f1-visa', 'i94', 'i20-opt', 'i20-cpt-lumen', 'i20-cpt-acme', 'i20-start', 'ead-card', 'i797', 'offer-northwind', 'degree', 'transcripts'],
+        parts: ['status', 'program', 'cpt', 'card', 'job', 'travel', 'trips', 'petitions', 'counts', 'questions'] },
+    ],
+    summaryLabel: 'One-page summary',
+    showLabel: 'Show names and numbers',
+    hidden: 'Hidden',
+    share: 'Share',
+    pdf: 'Save as PDF',
+    cancel: 'Cancel',
+    footer: 'From my records. Not legal advice.',
+    holds: 'The text holds {parts}. {names}',
+    namesHidden: 'Names and numbers are hidden.',
+    namesShown: 'Names and numbers are shown.',
+  },
+
+  /* Document watch (VALUE-2 feature 6). Days before an end that count as
+     close: a product setting. No red unless a date is close. */
+  watch: { closeDays: 30, title: 'Next to run out' },
+
   /* Source marks. Quotes are verbatim from the saved rule text. */
   sources: {
     unemployment: {
@@ -1030,7 +1174,159 @@ window.DULY_SAMPLE = {
       link: { label: 'Case Processing Times on uscis.gov', href: 'https://egov.uscis.gov/processing-times/' },
       checked: 'Checked Sep 30',
     },
+
+    /* ===== VALUE-2 rules. Quotes verbatim from rulepacks/f1-us/v2026.09/parameters.yaml.
+       counted lines that hold a date are worked out from DULY_SAMPLE.records;
+       the arithmetic is in the comment beside each and was checked with python3
+       against engine/dates.py. A line with no number is the method only. ===== */
+    optFileBy: {
+      name: 'Filing after your school recommends you',
+      plain: 'You file your OPT application within 30 days of the day your school enters its recommendation, and within the dates set by your program end.',
+      quote: 'The student must also file his or her Form I-765 or successor form with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record.',
+      /* 2025-10-03 + 30 days = 2025-11-02; 2025-12-18 + 60 days = 2026-02-16;
+         the earlier is 2025-11-02. Filed 2025-10-10, so the clock stopped. */
+      counted: ['Recommended Oct 3, 2025, plus 30 days, is Nov 2, 2025.', 'Program end Dec 18, 2025, plus 60 days, is Feb 16, 2026.', 'The earlier, Nov 2, 2025, set the day. You filed Oct 10, 2025.'],
+      link: { label: '8 CFR 214.2(f)(11)(i)(B)(2) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 28',
+    },
+    stemValidation: {
+      name: 'STEM OPT validation reports',
+      plain: 'Every six months on STEM OPT you confirm your name, address and employer to your DSO, within 10 business days of each reporting date.',
+      quote: 'The student must complete a validation report, confirming that the information required by paragraph (f)(12)(ii)(A) of this section has not changed, every six months. The validation report is due to the student\'s DSO within 10 business days of each reporting date.',
+      counted: ['Each reporting date is your STEM OPT card start plus six months, then twelve, then eighteen. Ten business days follow it, with weekends and federal holidays left out.'],
+      link: { label: '8 CFR 214.2(f)(12)(ii)(B) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 30',
+    },
+    holidays: {
+      name: 'Federal holidays',
+      plain: 'Business days leave out weekends and the federal holidays the law lists, on the days it lists them.',
+      quote: "The following are legal public holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Juneteenth National Independence Day, June 19. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25.",
+      counted: [],
+      link: { label: '5 U.S.C. 6103(a) on uscode.house.gov', href: 'https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim' },
+      checked: 'Checked Sep 30',
+    },
+    stemEvaluation: {
+      name: 'STEM OPT evaluations',
+      plain: 'Your DSO gets your 12-month evaluation and your final evaluation no later than 10 days after each period ends.',
+      quote: 'The student is responsible for ensuring the DSO receives his or her 12-month evaluation and final evaluation no later than 10 days following the conclusion of the reporting period or conclusion of his or her practical training opportunity, respectively.',
+      counted: ['The 12-month evaluation: your STEM OPT card start plus 12 months, plus 10 days. The final evaluation: the day the job or the card ends, plus 10 days.'],
+      link: { label: '8 CFR 214.2(f)(10)(ii)(C)(9)(i) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 30',
+    },
+    stemNewPlan: {
+      name: 'A new training plan for a new employer',
+      plain: 'On STEM OPT, a new employer means a new Form I-983 to your DSO within 10 days of starting.',
+      quote: 'If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student\'s DSO, and subsequently obtain a new DSO recommendation.',
+      counted: ['The first day at the new employer, plus 10 days.'],
+      link: { label: '8 CFR 214.2(f)(10)(ii)(C)(7)(iv) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 30',
+    },
+    stemReportChange: {
+      name: 'Reporting changes on STEM OPT',
+      plain: 'On STEM OPT you report a change of name, address or employer, or the loss of a job, within 10 days.',
+      quote: "Within 10 days of the change, the student must report to the student's DSO a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment.",
+      counted: ['The day of the change, plus 10 days.'],
+      link: { label: '8 CFR 214.2(f)(12)(ii)(A) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 30',
+    },
+    optHours: {
+      name: 'Hours on OPT',
+      plain: 'SEVP guidance says OPT after your program is at least 20 hours a week. Agency guidance, not a regulation.',
+      quote: "Post-Completion OPT: Any portion of OPT used after the student's Program End Date. It must be at least 20 hours per week or full-time.",
+      counted: ['A day on a job under 20 hours a week is counted as a day without work.'],
+      link: { label: 'Study in the States, F-1 OPT', href: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt' },
+      checked: 'Checked Sep 30',
+    },
+    cptDays: {
+      name: 'Full-time CPT and OPT',
+      plain: 'One year or more of full-time CPT closes post-completion OPT. Read here two ways: as 365 days, and as 12 months. Part-time CPT is not counted.',
+      quote: 'Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training.',
+      /* Acme Robotics 2024-06-01 to 2024-08-15, full time, both days counted:
+         30 + 31 + 15 = 76 days; months: Jun 1 to Aug 1 is 2 months, Aug 1 to
+         Aug 16 is 15 days. Lumen Labs was part time. */
+      counted: ['Acme Robotics, Jun 1 to Aug 15, 2024, full time: 76 days, or 2 months and 15 days.', 'Lumen Labs was part time and is not counted.'],
+      link: { label: '8 CFR 214.2(f)(10)(i) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 30',
+    },
+    travelSignature: {
+      name: 'Travel signature on OPT',
+      plain: 'To come back on OPT you carry your EAD card and an I-20 your DSO signed for travel within the last six months.',
+      quote: 'endorsed for reentry by the DSO within the last six months',
+      /* 2026-03-02 + 6 months = 2026-09-02 (engine add_months). */
+      counted: ['Signed Mar 2, 2026, plus six months, is Sep 2, 2026.'],
+      link: { label: '8 CFR 214.2(f)(13)(ii) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 29',
+    },
+    travelAbsence: {
+      name: 'Five months away',
+      plain: 'A student back from a trip of five months or less may be readmitted, with the papers the rule lists.',
+      quote: 'An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution',
+      counted: ['The day you leave, plus five months.'],
+      link: { label: '8 CFR 214.2(f)(4) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 29',
+    },
+    unemploymentAbroad: {
+      name: 'Days abroad on OPT',
+      plain: 'SEVP guidance says days outside the US on OPT count as days without work, unless you are on leave your employer allowed or travelling for the job. Agency guidance, not a regulation.',
+      quote: 'Time spent outside the United States during an approved period of post- completion OPT counts as unemployment against the 90/120-day limits',
+      counted: ['Days away are counted from the day you leave up to the day before you return. This is a reading, not the words of the guidance.'],
+      link: { label: 'SEVP Policy Guidance 1004-03 on ice.gov', href: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf' },
+      checked: 'Checked Sep 29',
+    },
+    capGap: {
+      name: 'Cap-gap',
+      plain: 'With an H-1B petition under the cap that asks for a change of status, your status and OPT work permission can run on until April 1 of the H-1B fiscal year, or the H-1B start if earlier.',
+      quote: 'The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier, where such petition:',
+      counted: ['A fiscal year starts October 1, so an H-1B start of Oct 1, 2027 is in fiscal year 2028, and April 1 of that year is Apr 1, 2028.', 'For a petition filed on or after Jan 17, 2025. Before that day the end was October 1.'],
+      link: { label: '8 CFR 214.2(f)(5)(vi)(A) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 30',
+    },
+    capGapOutcome: {
+      name: 'When cap-gap ends early',
+      plain: 'Cap-gap ends on its own if the petition is rejected, denied, revoked or withdrawn, or the change of status is denied or withdrawn.',
+      quote: "shall automatically terminate upon the rejection, denial, revocation, or withdrawal of the H-1B petition filed on such F-1 student's behalf or upon the denial or withdrawal of the request for change of nonimmigrant status",
+      counted: ['No later date is worked out after a denial. That question goes to your DSO.'],
+      link: { label: '8 CFR 214.2(f)(5)(vi)(B) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+      checked: 'Checked Sep 29',
+    },
+    capGapStart: {
+      name: 'When H-1B starts',
+      plain: 'Agency words from 2016: once a change-of-status petition is approved, F-1 status ends the day H-1B status begins. Guidance, not a regulation.',
+      quote: 'If an H-1B change-of-status petition requesting a start date of October 1 has been approved, the F-1 status will expire on the same day as the H-1B status begins.',
+      counted: [],
+      link: { label: '81 FR 13040 on federalregister.gov', href: 'https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml' },
+      checked: 'Checked Sep 30',
+    },
+    capGapUnemployment: {
+      name: 'Days without work in cap-gap',
+      plain: 'SEVP guidance says the 90-day limit keeps running during cap-gap. Agency guidance, not a regulation.',
+      quote: 'Yes, the 90 day limitation on unemployment continues during the cap gap extension.',
+      counted: [],
+      link: { label: 'SEVP Policy Guidance 1004-03 on ice.gov', href: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf' },
+      checked: 'Checked Sep 29',
+    },
   },
+};
+
+/* "From your paper" (D74): the field on a paper beside the date it fed, for
+   the source sheet. path is where the value sits in DULY_SAMPLE.records;
+   fed is the computed item it gave (App.fedValue(key)). Read through
+   App.fromPaper(sourceKey). */
+window.DULY_SAMPLE.paperFields = {
+  eadEnds: [{ paper: 'EAD card', field: 'Card expires', path: 'opt.until', doc: 'ead-card', fed: 'eadEnds' }],
+  stemOpens: [{ paper: 'EAD card', field: 'Card expires', path: 'opt.until', doc: 'ead-card', fed: 'stemOpens' }],
+  stemCloses: [{ paper: 'EAD card', field: 'Card expires', path: 'opt.until', doc: 'ead-card', fed: 'stemCloses' }],
+  startPreparing: [{ paper: 'EAD card', field: 'Card expires', path: 'opt.until', doc: 'ead-card', fed: 'startPreparing' }],
+  unemployment: [
+    { paper: 'EAD card', field: 'Valid from', path: 'opt.from', doc: 'ead-card', fed: 'unemployment' },
+    { paper: 'Offer letter', field: 'Start date', path: 'jobs.0.start', doc: 'offer-northwind', fed: 'unemployment' },
+  ],
+  optFileBy: [
+    { paper: 'I-20 · OPT', field: 'Recommended by your DSO', path: 'opt.recommended', doc: 'i20-opt', fed: 'optFileBy' },
+    { paper: 'I-20 · OPT', field: 'Program end date', path: 'program.end', doc: 'i20-opt', fed: 'optFileByLatest' },
+  ],
+  travelSignature: [{ paper: 'I-20 · OPT', field: 'Travel signature', path: 'travelSignature.signed', doc: 'i20-opt', fed: 'travelSignature' }],
+  cptDays: [{ paper: 'I-20 · CPT at Acme Robotics', field: 'CPT dates, full time', path: 'cpt.0.start', pathEnd: 'cpt.0.end', doc: 'i20-cpt-acme', fed: 'cptDays' }],
 };
 
 /* One list of STEM OPT steps. */

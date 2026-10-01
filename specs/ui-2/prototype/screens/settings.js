@@ -47,8 +47,9 @@
   function timeMeta(t) { return t + ', your time'; }
   function remindMeta(data, on) { return on ? String(rem(data).when || '').replace(/\.$/, '') : 'Off'; }
   function calendarMeta(data) {
-    const n = (rem(data).dates || []).length;
-    return st('remind:calendar', false) ? 'Added today' : n + ' dates, added once';
+    /* App.calendarEvents(): the dates the file holds, worked out from the record. */
+    const n = App.calendarEvents ? App.calendarEvents().length : (rem(data).dates || []).length;
+    return st('remind:calendar', false) ? 'Added today' : n + (n === 1 ? ' date' : ' dates') + ', added once';
   }
   /* "Last backup Sep 12, 2026", or "Last backup today" once one is made here. */
   function backupMeta(data) {

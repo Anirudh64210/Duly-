@@ -62,13 +62,18 @@
     const counted = rule.counted && rule.counted.length
       ? '<div class="pop-counted"><h3>How it was counted</h3>' + rule.counted.map((c) => '<p>' + esc(c) + '</p>').join('') + '</div>' : '';
     const quoteLong = rule.quote && rule.quote.length > 220;
+    /* D74: "From your paper", the field read off a paper beside the date it
+       fed, under How it was counted. */
+    const all = (window.DULY_SAMPLE && window.DULY_SAMPLE.sources) || {};
+    const key = Object.keys(all).filter((k) => all[k] === rule)[0];
+    const paper = key && window.App && App.fromPaper && C.fromPaper ? C.fromPaper(App.fromPaper(key)) : '';
     return '<div class="pop" id="' + id + '" role="dialog" aria-labelledby="' + nameId + '" tabindex="-1">' +
       '<p class="t-eyebrow">The rule</p>' +
       '<p class="pop-name" id="' + nameId + '">' + esc(rule.name) + '</p>' +
       (rule.plain ? '<p class="pop-plain">' + esc(rule.plain) + '</p>' : '') +
       (rule.quote ? '<blockquote class="pop-quote" style="margin:0">“' + esc(rule.quote) + '”</blockquote>' +
         (quoteLong ? '<button type="button" class="link pop-more" data-show-all>Show all</button>' : '') : '') +
-      counted +
+      counted + paper +
       '<div class="pop-foot">' + (rule.link ? '<a' + attrs(hrefAttrs(rule.link.href)) + '>' + esc(rule.link.label) + '</a>' : '<span></span>') +
       '<span class="t-micro">' + esc(rule.checked || '') + '</span></div>' +
       '</div>';
