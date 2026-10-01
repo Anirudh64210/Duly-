@@ -8,7 +8,7 @@ rounds:
   lanes:
   - lane: L-api
     agent: builder
-    mission: 'SPEC-W1 section 1 and the engine side of section 2: api/desktop_main.py, api/local_routes.py, and api/main.py mounting local_routes with nothing else changed. The jail now allows a Unix socket inside the folders you may write, so the socket tests can run.'
+    mission: 'SPEC-W1 section 1 and the engine side of section 2: api/desktop_main.py, api/local_routes.py, and api/main.py mounting local_routes with nothing else changed. Your work is on lane/L-api/l-api-8e3626eddf: bring it in (git merge lane/L-api/l-api-8e3626eddf). Your own Bash sandbox refuses Unix sockets by design (allowing them there would expose system sockets), so the 11 socket tests cannot run for you; the orchestrator runs the done command in its jail, which allows a socket inside the worktree. Do not escalate for that: finish, report done, and fix whatever the jail run reports.'
     done: bash -c 'uv run pytest tests/unit/desktop_entry/test_desktop_main.py tests/unit/api/test_compute_generic.py tests/unit/acceptance/test_journeys.py -q -p no:cacheprovider && uv run mypy && uv run ruff check api && uv run ruff format --check api'
 - name: desktop
   lanes:
