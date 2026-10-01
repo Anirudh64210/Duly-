@@ -315,3 +315,16 @@ vitest 19 files, 242 tests passed; eslint clean; copy lint clean; bash -n on bot
 tests/unit/desktop_entry/test_bundle_inputs.py 12 passed. git printed "tests/holdout: Operation not
 permitted" during the merge (sandbox denies reads there, as the contract says).
 Not run: Electron itself, a real build-python.sh or sign-adhoc.sh run.
+
+## 2026-10-01, run l-desktop-56cd986569, attempt 1
+
+Merged lane/L-desktop/l-desktop-241886e510 (SPEC-W1 sections 2 to 6, with the manifest order fix:
+sign-adhoc.sh writes the manifest again after the runtime is signed). One conflict, in this file only:
+this branch already carried the run l-desktop-4bc5e10815 entry; kept both sides. No desktop code changed
+beyond the merge. api/desktop_main.py and api/local_routes.py are on this branch; runtime.json pins the
+stripped asset (point 12).
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0. typecheck clean;
+vitest 19 files, 242 passed; eslint clean; copy lint clean; bash -n on both scripts clean;
+test_bundle_inputs.py 12 passed. git printed "tests/holdout: Operation not permitted" during the merge
+(the sandbox denies reads there). Not run: Electron itself, a real build-python.sh or sign-adhoc.sh run.
