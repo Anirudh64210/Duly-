@@ -349,3 +349,155 @@ for m in ['opus48','sonnet']:
   for n in S:
     y,p,s,sch=CASES4['base']; a=ask4(m,n); h=y+2*p+0.25*s; sc=sch[n]
     print('ask',m,n,round(n*((1-h-sc)*FREE_Q+h*PAY_Q+sc*SCHOOL_Q)*a))
+
+# =====================================================================================
+# ==== ATTORNEY NETWORK LINE (BACKLOG B10), added 2026-10-01. ALL INPUTS ARE ESTIMATES.
+# Legal basis: business/attorney-legal.md and attorney-market.md. Write-up: ATTORNEYS.md.
+# Sits on top of the v4 recommended plan (base case, $12 school seats). Not legal advice.
+#  A  flat firm listing, sold as advertising: every firm pays the same flat monthly fee,
+#     students search and choose, no cut, no matching to the student's case.
+#  B  student legal service plan: students pay Duly a higher Plus tier; Duly pays panel
+#     firms a flat amount per consult; firms set a member discount on further work.
+#  C  Arizona ABS: Duly owns an immigration law firm and keeps its profit (C), or holds a
+#     licensed share of a partner's ABS and takes a share of fees (C2, structure unverified).
+# The percentage cut of independent firms' fees is NOT modelled as an option: not allowed.
+# =====================================================================================
+print("\n==== ATTORNEY NETWORK LINE (B10)")
+ATT_START=10000                 # firms will not pay before about 10k students (attorney-market.md 9)
+HIRE={'low':0.005,'base':0.015,'good':0.03}   # share of students hiring a lawyer via Duly a year
+CAC=749                         # First Page Sage 2026 blended legal client acquisition cost
+AVG_FEE=4000                    # average fee per retained student matter (attorney-market.md 9)
+# --- A: flat listing
+A_CAPTURE=0.5                   # firms pay half of what a client costs them elsewhere
+A_REGIONS={10000:5,100000:10}   # regions = states or metros shown as separate lists
+A_PER_REGION={10000:5,100000:8} # firms listed per region (Florida needs at least 4 firms)
+A_FIRM_OPS=60                   # per firm-month: licence and discipline re-checks, complaints, account support
+A_COUNSEL={10000:1000,100000:2000}  # ethics counsel, FL qualifying-provider filings, CA joint-ad agreements, IL ICS letters
+A_INS={10000:150,100000:400}    # added media and advertising liability cover
+A_ONE_TIME=(20000,50000)        # multistate ethics opinion and agreements, before launch
+# --- B: legal service plan
+B_PRICE=99.0                    # a year, includes Plus, one 30-minute consult with a panel firm
+B_HOLD={'low':0.0025,'base':0.005,'good':0.01}   # share of students holding the plan
+B_USE=0.5                       # share of members who use the consult in a year
+B_PAY_CONSULT=100.0             # Duly pays the firm per consult (retail 30 min is about $200)
+B_CANNIBAL=0.4                  # share of plan members who would have held Plus at $39 anyway
+B_PLUS_CONTRIB=30.0             # what one such Plus payer would have contributed a year
+B_PANEL={10000:10,100000:30}    # panel firms
+B_ADMIN={10000:1000,100000:3000}   # panel management, consult booking, plan filings
+B_COUNSEL=2000                  # plan counsel; NJ registration, NY annual report, insurance-law states
+B_INS={10000:300,100000:600}
+B_ONE_TIME=(40000,100000)
+# --- C: Arizona ABS owned by Duly
+C_CHOOSE=0.4                    # share of hiring students who pick the Duly-owned firm (others listed beside it)
+C_DISCOUNT=0.10                 # student price below the firm's list fee
+C_CAP=90                        # matters per attorney a year, with one paralegal each
+C_MIN_ATT=2                     # cover, conflicts and leave
+C_ATT=14000; C_PARA=5400; C_MALP=700; C_SOFT=300   # per attorney-month, loaded
+C_FIXED=500+2000+1500           # ABS annual fee /12, AZ counsel and compliance, billing and trust accounting
+C_CARD=0.03
+C_ONE_TIME=(150000,300000)      # $9k application, AZ counsel, 7 to 9 months of staff before revenue
+C2_SHARE=0.15; C2_FIXED=2500    # C2: licensed share of a partner ABS, 15% of fees on Duly-chosen matters
+
+def interp(d,n):
+    if n<=10000: return d[10000]
+    return d[10000]+(d[100000]-d[10000])*min(1.0,(n-10000)/90000) if n<=100000 else d[100000]
+
+def att_line(opt,case,n):
+    """Monthly (revenue, cost, net, detail) for one attorney option at n students."""
+    if n<ATT_START: return 0.0,0.0,0.0,{}
+    h=HIRE[case]; matters=n*h   # a year
+    if opt=='A':
+        firms=max(4,round(interp(A_REGIONS,n)*interp(A_PER_REGION,n)))
+        rev=matters*CAC*A_CAPTURE/12
+        fee=rev/firms
+        cost=firms*(A_FIRM_OPS+stripe_fee(fee))+interp(A_COUNSEL,n)+interp(A_INS,n)
+        return rev,cost,rev-cost,{'firms':firms,'fee/firm/mo':round(fee),'matters/yr':round(matters),
+                                  'clients/firm/yr':round(matters/firms,1)}
+    if opt=='B':
+        members=n*B_HOLD[case]
+        rev=members*B_PRICE/12
+        fees=members*(stripe_fee(B_PRICE)+REFUND*B_PRICE)/12
+        consults=members*B_USE*B_PAY_CONSULT/12
+        serve=members*12*(PAY_Q*0.03+STORE)/12   # Ask, blended model, per member month
+        lost=members*B_CANNIBAL*B_PLUS_CONTRIB/12
+        fixedc=interp(B_ADMIN,n)+B_COUNSEL+interp(B_INS,n)
+        cost=fees+consults+serve+lost+fixedc
+        panel=round(interp(B_PANEL,n))
+        return rev,cost,rev-cost,{'members':round(members),'panel firms':panel,
+                                  'paid to each firm/yr':round(consults*12/panel)}
+    if opt=='C':
+        m=matters*C_CHOOSE
+        price=AVG_FEE*(1-C_DISCOUNT)
+        rev=m*price/12
+        att=max(C_MIN_ATT,math.ceil(m/C_CAP))
+        cost=att*(C_ATT+C_PARA+C_MALP+C_SOFT)+C_FIXED+rev*C_CARD
+        return rev,cost,rev-cost,{'matters/yr':round(m),'attorneys':att,'rev/attorney/yr':round(rev*12/att)}
+    if opt=='C2':
+        m=matters*C_CHOOSE
+        rev=m*AVG_FEE*(1-C_DISCOUNT)*C2_SHARE/12
+        return rev,C2_FIXED,rev-C2_FIXED,{'matters/yr':round(m)}
+
+def sub_net(model,view,n,launch=None,case='base',sp=12.0):
+    y,p,s,sch=CASES4[case]
+    if launch is None: launch=n<100000
+    return scen4(model,view,n,y,p,s,sch[n] if n in sch else (sch[100000] if n>=50000 else 0),launch,school_price=sp)
+
+print("\nper option and hire case: monthly rev / cost / net at 10k and 100k; revenue per student a year")
+for opt in ['A','B','C','C2']:
+    for case in HIRE:
+        cells=[]
+        for n in [10000,100000]:
+            r,c,nt,d=att_line(opt,case,n)
+            cells.append(f"{n}: rev {r:,.0f} cost {c:,.0f} net {nt:,.0f} rev/stu/yr {r*12/n:.2f} {d}")
+        print(opt,case,' | '.join(cells))
+print("one-time before launch: A",A_ONE_TIME,"B",B_ONE_TIME,"C",C_ONE_TIME)
+
+print("\ncombined net a month: v4 base plan ($12 seats) + attorney option; Opus / Sonnet")
+for opt in [None,'A','B','C','C2']:
+    for case in (['base'] if opt is None else HIRE):
+        row=[]
+        for n in [10000,100000]:
+            for v in 'ABC':
+                vals=[]
+                for m in ['opus48','sonnet']:
+                    a=att_line(opt,case,n)[2] if opt else 0
+                    vals.append(sub_net(m,v,n)[2]+a)
+                row.append(f"{n}{v}: {vals[0]:,.0f}/{vals[1]:,.0f}")
+        rev=[round(sub_net('sonnet','A',n)[0]+(att_line(opt,case,n)[0] if opt else 0)) for n in [10000,100000]]
+        print(opt or 'none',case,'rev 10k/100k',rev,' | '.join(row))
+
+def be_att(model,view,opt,case,sub='base'):
+    y,p,s,sch=CASES4[sub]; school=sch[100000]
+    N=1000
+    while N<3_000_000:
+        nt=scen4(model,view,N,y,p,s,school if N>=50000 else 0,False,school_price=12.0)[2]
+        if opt: nt+=att_line(opt,case,N)[2]
+        if nt>=0: return N
+        N=int(N*1.01)+1
+    return None
+print("\nbreak-even students, list prices, schools from 50k, $12 seats: [A,B,C views] Opus / Sonnet")
+for opt in [None,'A','B','C','C2']:
+    for case in (['base'] if opt is None else HIRE):
+        print(opt or 'none',case,[be_att('opus48',v,opt,case) for v in 'ABC'],'/',[be_att('sonnet',v,opt,case) for v in 'ABC'])
+print("\nsensitivity: A with firms paying the full $749 per client (market ceiling), base hire")
+A_CAPTURE=1.0
+print('A full',[round(att_line('A','base',n)[2]) for n in [10000,100000]],[att_line('A','base',n)[3] for n in [10000,100000]])
+A_CAPTURE=0.25
+print('A quarter',[round(att_line('A','base',n)[2]) for n in [10000,100000]],[att_line('A','base',n)[3] for n in [10000,100000]])
+A_CAPTURE=0.5
+print("sensitivity: B at $149 a year (TrackMyOPT Dedicated level), base hold")
+B_PRICE=149.0
+print('B 149',[round(att_line('B','base',n)[2]) for n in [10000,100000]])
+B_PRICE=99.0
+print("sensitivity: C at 60 matters per attorney",end=' ')
+C_CAP=60
+print([round(att_line('C','base',n)[2]) for n in [10000,100000]]); C_CAP=90
+def c_needed(n):
+    for k in range(1,400):
+        h=k/10000
+        m=n*h*C_CHOOSE; r=m*AVG_FEE*(1-C_DISCOUNT)/12
+        c=max(C_MIN_ATT,math.ceil(m/C_CAP))*(C_ATT+C_PARA+C_MALP+C_SOFT)+C_FIXED+r*C_CARD
+        if r>=c: return h
+    return None
+print("C: share of students hiring through Duly needed for the owned firm to cover itself:",
+      {n:f"{c_needed(n):.2%}" if c_needed(n) else 'over 4%' for n in [10000,30000,50000,100000]})
