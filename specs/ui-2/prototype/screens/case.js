@@ -252,7 +252,7 @@
     const purposes = (data0().change || {}).purposes || [];
     const pick = openJob() && purposes.length ? '<div class="field"><p class="field-label">While you are away from ' + C.esc(openJob().employer) + '</p>' +
       C.chips({ key: 'case-trip:purpose', label: 'While you are away', inline: true, items: purposes.map((p) => ({ value: p.value, label: p.label, selected: p.value === t.purpose })) }) + '</div>' : '';
-    return '<div class="case-stage-head"><p class="t-row">Check a trip' + C.info('Pick the days you leave and return. You see the dates your papers cover and what the trip adds to your count. Nothing is saved unless you add the trip.') + '</p></div>' +
+    return '<div class="case-stage-head"><p class="t-row">Check a trip' + C.info('Pick the days you leave and return. You see the dates your documents cover and what the trip adds to your count. Nothing is saved unless you add the trip.') + '</p></div>' +
       '<div class="change-inputs"><div class="change-pair">' + dateIn('Leave', 'leave', t.leave) + dateIn('Return', 'back', t.back) + '</div>' + pick + '</div>' +
       '<div class="trip-result" data-trip-result aria-live="polite">' + tripResult(t) + '</div>' +
       C.buttonRow({

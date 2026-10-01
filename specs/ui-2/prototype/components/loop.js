@@ -5,10 +5,12 @@
                report the end of your job on or before Nov 10", "Waiting on
                your DSO until Oct 7", "Done Nov 4"). A button; it unfolds.
      unfolded  the receipt of the last action (role="status", with Undo and
-               Fold), the current step: its title, its lines with their source
-               marks, Can't tell yet with the one fact that settles it, its
-               fields, its helpers (the DSO draft, links, the rule), and its
-               exits as buttons that name the outcome. An exit that drops the
+               Fold), the current step: its title, a lead action (the saved
+               copy) first, its lines, quiet notes, Can't tell yet with the
+               one fact that settles it, its fields, its helpers (the DSO
+               draft, links, the rule), its exits as buttons that name the
+               outcome, then one "How this was counted" listing every source
+               of the step (Round 7: no ⓘ on a line). An exit that drops the
                loop asks first, with Cancel.
      closed    the receipt in full and Reopen with a stated reason.
    C.loops(list, { more? }) draws several, with the overflow line.
@@ -21,7 +23,6 @@
   const C = window.C;
   const { esc, escText, cls, uid, icon } = C;
   /* Defined in files loaded earlier or later; looked up when called. */
-  const source = (...a) => C.source(...a);
   const emailDraft = (...a) => C.emailDraft(...a);
 
   function field(f) {
@@ -49,7 +50,11 @@
       const ext = /^https?:/.test(a.href);
       return '<a class="link loop-link" href="' + esc(a.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + escText(a.label) + '</a>';
     }
-    if (a.kind === 'rule') return '<span class="loop-rule">' + escText(a.label) + ' ' + source(a.source, { inline: true }) + '</span>';
+    /* The saved copy, opened in one tap (screens/documents.js wires
+       data-doc-open on every page). */
+    if (a.kind === 'copy') return '<button type="button" class="btn btn-primary loop-copy" data-doc-open="' + esc(a.doc) + '">' + escText(a.label) + '</button>';
+    /* The rule's name only: its source is in "How this was counted". */
+    if (a.kind === 'rule') return '<span class="loop-rule">' + escText(a.label) + '</span>';
     if (a.kind === 'calendar') return '<button type="button" class="link loop-link" data-loop-calendar>' + escText(a.label) + '</button>';
     if (a.kind === 'start') return '<button type="button" class="btn btn-pill" data-loop-start="' + esc(a.loop) + '">' + escText(a.label) + '</button>';
     return '';
@@ -102,21 +107,39 @@
           '<button type="button" class="btn btn-text is-quiet" data-loop-reopen="' + esc(r.key) + '">' + escText(r.label) + '</button>').join('') + '</div>' : '');
     }
     const s = v.step;
-    const lines = s.lines.map((l) => '<li class="' + cls('loop-li', l.threat && 'is-threat') + '"><span>' + escText(l.text) + '</span>' +
-      (l.tag ? ' <span class="mark">' + esc(l.tag === 'guidance' ? 'Guidance' : l.tag) + '</span>' : '') +
-      (l.source ? ' ' + source(l.source, { inline: true }) : '') + '</li>').join('');
-    const exits = s.exits.filter((x) => !x.quiet);
+    /* Round 7, rule 2: no ⓘ on a line. Every source of the step (its lines
+       and its rule) is listed once, behind "How this was counted" at the
+       bottom. A field marked reveal (and any exit that needs it) stays
+       hidden until its quiet line's link is tapped, or it has a value. */
+    const shown = App.state['loopReveal:' + v.id] || {};
+    const hiddenField = (f) => !!(f.reveal && !shown[f.key] && (f.value == null || f.value === ''));
+    const hidden = s.fields.filter(hiddenField).map((f) => f.key);
+    const lines = s.lines.filter((l) => !l.quiet).map((l) => '<li class="' + cls('loop-li', l.threat && 'is-threat') + '"><span>' + escText(l.text) + '</span>' +
+      (l.tag ? ' <span class="mark">' + esc(l.tag === 'guidance' ? 'Guidance' : l.tag) + '</span>' : '') + '</li>').join('');
+    const quietLines = s.lines.filter((l) => l.quiet).map((l) => '<p class="loop-note">' + escText(l.text) +
+      (l.reveal && hidden.indexOf(l.reveal) >= 0 ? ' <button type="button" class="link loop-reveal" data-loop-reveal="' + esc(l.reveal) + '">' + escText(l.revealLabel || 'Add it') + '</button>' : '') + '</p>').join('');
+    const refs = [];
+    s.lines.forEach((l) => { if (l.source) refs.push(l.source); (l.sources || []).forEach((x) => refs.push(x)); });
+    s.actions.forEach((a) => { if (a.kind === 'rule' && a.source) refs.push(a.source); });
+    const lead = s.actions.filter((a) => a.lead);
+    const rest = s.actions.filter((a) => !a.lead);
+    const hideExit = (x) => (x.needs || []).some((k) => hidden.indexOf(k) >= 0);
+    /* An exit the step takes by itself once answered (step.advance) has
+       no button. */
+    const exits = s.exits.filter((x) => !x.quiet && !x.auto);
     const quiet = s.exits.filter((x) => x.quiet);
+    const exitHtml = (x) => (hideExit(x) ? exitButton(x).replace(/^<button /, '<button hidden data-loop-needs-reveal ') : exitButton(x));
     return (v.receipt ? receipt(v) : foldedReceipt(lp)) +
       (s.title ? '<h3 class="loop-step">' + escText(s.title) + '</h3>' : '') +
+      (lead.length ? '<div class="loop-lead">' + lead.map((a) => action(a, v)).join('') + '</div>' : '') +
       (s.cantTell ? '<p class="loop-unknown">' + escText(s.cantTell) + '</p>' : '') +
-      (lines ? '<ul class="loop-lines">' + lines + '</ul>' : '') +
-      (s.fields.length ? '<div class="loop-fields">' + s.fields.map(field).join('') + '</div>' : '') +
-      (s.actions.length ? '<div class="loop-actions">' + s.actions.map((a) => action(a, v)).join('') + '</div>' : '') +
+      (lines ? '<ul class="loop-lines">' + lines + '</ul>' : '') + quietLines +
+      (s.fields.length ? '<div class="loop-fields">' + s.fields.map((f) => (hiddenField(f) ? field(f).replace(/^<div class="field loop-field"/, '<div class="field loop-field" hidden data-loop-revealed="' + esc(f.key) + '"') : field(f))).join('') + '</div>' : '') +
+      (rest.length ? '<div class="loop-actions">' + rest.map((a) => action(a, v)).join('') + '</div>' : '') +
       '<div class="loop-exits">' +
-      (exits.length ? '<div class="btn-group">' + exits.map(exitButton).join('') + '</div>' : '') +
-      (quiet.length ? '<div class="btn-group loop-quiet">' + quiet.map(exitButton).join('') + '</div>' : '') +
-      '</div>';
+      (exits.length ? '<div class="btn-group">' + exits.map(exitHtml).join('') + '</div>' : '') +
+      (quiet.length ? '<div class="btn-group loop-quiet">' + quiet.map(exitHtml).join('') + '</div>' : '') +
+      '</div>' + (refs.length ? C.how(refs) : '');
   }
 
   /* loop(loop, { open? }) */
@@ -176,6 +199,10 @@
       '.loop-actions { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-12); }',
       '.loop-draft { align-self: stretch; }',
       '.loop-rule { display: inline-flex; align-items: center; gap: var(--s-4); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); }',
+      '.loop-lead { display: flex; flex-wrap: wrap; gap: var(--s-8); }',
+      '.loop-note { margin: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); overflow-wrap: anywhere; }',
+      '.loop-note .loop-reveal { font-weight: 600; }',
+      '.loop-body > .how-btn { margin-top: calc(-1 * var(--s-4)); }',
       '.loop-exits { display: flex; flex-direction: column; gap: var(--s-12); }',
       '.loop-exits .btn { white-space: normal; text-align: left; }',
       '.loop-confirm { display: flex; flex-direction: column; gap: var(--s-8); padding-top: var(--s-8); border-top: 1px solid var(--hairline-inner); flex-basis: 100%; }',

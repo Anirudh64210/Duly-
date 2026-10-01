@@ -1,15 +1,18 @@
-/* Settings. Round 7 (founder: compact, fewer elements): three short groups,
-   each row one line, its title on the left and its value and control on the
-   right. No ⓘ, no second lines.
-     Reminders                on or off (free), time, email, phone,
-                              calendar, rule changes and news
-     This device and backup   signed in, lock, face or fingerprint, time
-                              zone, theme, back up, restore
-     Your data                export, delete everything (last on the page)
-   One quiet privacy line, then "Rules checked Sep 30" (worked out from
-   DULY_SAMPLE.today) and the version close the page. Copy says "your
-   device" or "this device", never a platform. Every change happens in
-   place: no redraw, no scroll jump.
+/* Settings. Round 7, rule 5 (the founder's notes, Oct 1): grouped panels,
+   like a phone's settings. Each group is a small title over one rounded
+   panel; rows inside are separated by inset dividers, never full-width
+   rules. Each row is its label, an optional one-line description in quiet
+   text, and its control on the right.
+     Reminders     on or off (free), time of day, time zone, email, phone,
+                   calendar, rule changes and news
+     Security      signed in, lock after, face or fingerprint
+     Backup        back up to a file, restore from a backup
+     Appearance    theme
+     Your data     export, delete everything (last on the page), and the
+                   privacy line under the panel
+   "Rules checked Sep 30" (worked out from DULY_SAMPLE.today) is the quiet
+   line at the very bottom. Copy says "your device" or "this device", never
+   a platform. Every change happens in place: no redraw, no scroll jump.
    Routes:
      #/settings           the sample settings
      #/settings/offline   the offline line in place of Rules checked
@@ -79,11 +82,14 @@
     { accordion: false, label: 'Signed in' });
   }
 
-  /* line(key, title, control, value?, panel?) : one row, one line. */
-  function line(key, title, control, value, panelHtml) {
+  /* line(key, title, control, desc?, panel?) : one row: the label, its
+     one-line description in quiet text under it (data-sx-val, set in place
+     by setMeta; empty hides it), and the control on the right. */
+  function line(key, title, control, desc, panelHtml) {
     return '<div class="item srow sx-line" data-key="' + C.esc(key) + '"><div class="row is-static">' +
-      '<span class="row-text"><span class="row-title">' + C.esc(title) + '</span></span>' +
-      '<span class="s-control">' + (value != null && value !== '' ? '<span class="sx-val" data-sx-val>' + C.esc(value) + '</span>' : '<span class="sx-val" data-sx-val hidden></span>') + (control || '') + '</span>' +
+      '<span class="row-text"><span class="row-title">' + C.esc(title) + '</span>' +
+      '<span class="sx-desc" data-sx-val' + (desc ? '' : ' hidden') + '>' + C.esc(desc || '') + '</span></span>' +
+      '<span class="s-control">' + (control || '') + '</span>' +
       '</div>' + (panelHtml || '') + '</div>';
   }
   function panel(id, inner) {
@@ -96,31 +102,47 @@
     return '<select class="select" data-field="' + C.esc(key) + '" aria-label="' + C.esc(label) + '">' +
       options.map((o) => '<option' + (o === selected ? ' selected' : '') + '>' + C.esc(o) + '</option>').join('') + '</select>';
   }
-  function group(eyebrow, rows) {
-    return C.section({ eyebrow: eyebrow, content: C.list(rows, { accordion: false, label: eyebrow }) });
+  let gid = 0;
+  /* group(title, rows, note?) : the small title, the rounded panel, and an
+     optional quiet note under the panel. */
+  function group(title, rows, note) {
+    gid += 1;
+    const id = 'sxg-' + gid;
+    return '<section class="sx-group" aria-labelledby="' + id + '">' +
+      '<h2 class="sx-group-title" id="' + id + '">' + C.esc(title) + '</h2>' +
+      '<div class="sx-box" role="list">' + rows.map((r) => r.replace('<div class="item srow sx-line"', '<div role="listitem" class="item srow sx-line"').replace('<div hidden class="item srow sx-line"', '<div hidden role="listitem" class="item srow sx-line"')).join('') + '</div>' +
+      (note ? '<p class="sx-note">' + C.esc(note) + '</p>' : '') +
+      '</section>';
   }
 
-  /* Layout only. Type sizes come from system.css. Round 7 rhythm: label to
-     rows 4, row padding 12, 32 between groups. */
+  /* Layout only. Type sizes come from system.css. Panels: surface, a
+     hairline border, 16px radius; rows 12 by 16, dividers inset 16 from the
+     left; 24 between groups, 8 from a group's title to its panel. */
   const STYLE = '<style>' +
     '.screen-settings { flex: 1; display: flex; flex-direction: column; min-width: 0; }' +
     '.col.is-entering > .screen-settings { animation: none; }' +
     '.col.is-entering > .screen-settings > * { animation: rise .55s var(--ease-rise) backwards; }' +
-    '.screen-settings .page-header { margin-bottom: var(--s-24); }' +
-    '.screen-settings > .section { margin-top: var(--s-32); }' +
-    '.screen-settings > .page-header + .section { margin-top: 0; }' +
-    '.screen-settings .section-head { padding-bottom: var(--s-4); }' +
-    '.screen-settings .sx-line > .row { min-height: 0; padding-top: var(--s-12); padding-bottom: var(--s-12); gap: var(--s-12); }' +
-    '.screen-settings .sx-line .row-title { white-space: nowrap; }' +
+    '.screen-settings .page-header { margin-bottom: var(--s-8); }' +
+    '.screen-settings .sx-group { margin-top: var(--s-24); }' +
+    '.screen-settings .sx-group-title { margin: 0 0 var(--s-8) var(--s-16); font-size: var(--t-small); line-height: var(--lh-meta); font-weight: 500; color: var(--ink-3); }' +
+    '.screen-settings .sx-box { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; }' +
+    '.screen-settings .sx-box > .item { margin: 0; border: 0; }' +
+    '.screen-settings .sx-box > .item::before { content: ""; position: absolute; top: 0; left: var(--s-16); right: 0; height: 1px; background: var(--hairline); }' +
+    '.screen-settings .sx-box > .item:first-child::before { display: none; }' +
+    '.screen-settings .sx-line > .row { min-height: 52px; padding: var(--s-12) var(--s-16); gap: var(--s-16); border-radius: 0; }' +
+    '.screen-settings .sx-line .row-text { gap: 0; }' +
+    '.screen-settings .sx-desc { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }' +
     '.screen-settings .sx-line .s-control { min-width: 0; gap: var(--s-12); }' +
-    '.screen-settings .sx-val { font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }' +
     '.screen-settings .sx-line .btn-pill { height: 32px; padding: 0 var(--s-12); }' +
     '.screen-settings .sx-line .select { height: 32px; }' +
     '.screen-settings .sx-line .chip { height: 32px; padding-top: 0; padding-bottom: 0; }' +
-    '.screen-settings .sx-panel { gap: var(--s-8); padding-bottom: var(--s-12); }' +
+    '.screen-settings .sx-panel { gap: var(--s-8); padding: 0 var(--s-16) var(--s-12); }' +
     '.screen-settings .sx-panel .btn-row { margin-top: var(--s-8); }' +
-    '.screen-settings .sx-panel .item > .row { min-height: 0; padding-top: var(--s-8); padding-bottom: var(--s-8); }' +
-    '.screen-settings .sx-quiet { margin-top: var(--s-24); }' +
+    '.screen-settings .sx-panel .item { margin: 0; }' +
+    '.screen-settings .sx-panel .item > .row { min-height: 0; padding: var(--s-8) 0; }' +
+    '.screen-settings .sx-note { margin: var(--s-8) var(--s-16) 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }' +
+    '.screen-settings .sx-foot { margin: var(--s-32) 0 0 var(--s-16); display: flex; flex-direction: column; gap: var(--s-4); }' +
+    '.screen-settings .sx-foot p { margin: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }' +
     '.screen-settings .sx-dialog { width: 360px; max-width: calc(100vw - var(--s-32)); padding: var(--s-24); margin: auto;' +
       ' background: var(--surface); color: var(--ink); border: 1px solid var(--hairline); border-radius: var(--r-card); box-shadow: var(--shadow-pop); }' +
     '.screen-settings .sx-dialog[open] { animation: drop .28s ease-out; }' +
@@ -129,7 +151,7 @@
     '.screen-settings .sx-dialog { box-sizing: border-box; overflow: visible; }' +
     '.screen-settings .sx-dialog-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--s-12); margin-top: var(--s-24); }' +
     '.screen-settings .sx-dialog-actions .btn { flex: 0 0 auto; height: 44px; padding: 0 var(--s-24); white-space: nowrap; }' +
-    '@media (max-width: 640px) { .screen-settings .sx-val { max-width: 40vw; } .screen-settings .sx-line .row-title { white-space: normal; } }' +
+    '@media (max-width: 640px) { .screen-settings .sx-line > .row { padding-left: var(--s-12); padding-right: var(--s-12); } .screen-settings .sx-box > .item::before { left: var(--s-12); } .screen-settings .sx-desc { white-space: normal; } }' +
     '</style>';
 
   window.SCREENS['settings'] = {
@@ -150,36 +172,45 @@
 
       const header = C.pageHeader({ title: 'Settings' });
 
-      /* 1. Reminders: free, on by default. The four rows under the switch
-         hide while it is off. */
+      /* 1. Reminders: free, on by default. The rows that only matter while
+         reminders are on hide while the switch is off. */
       const reminders = group('Reminders', [
         line('remind', 'Remind me before dates', C.toggle({ key: 'remind', on: remind, label: 'Remind me before dates' }), remind ? (s.remindShort || r.when) : 'Off'),
         sub(line('remindTime', 'Time of day', select('remindTime', 'Time of day', TIME_OPTIONS, time))),
-        sub(line('remind:email', email.label || 'Email', C.toggle({ key: 'remind:email', on: st('remind:email', !!email.on), label: 'Email reminders' }))),
+        line('tz', 'Time zone', select('tz', 'Time zone', TZ_OPTIONS, tz), "Your reminders and today's date use it"),
+        sub(line('remind:email', email.label || 'Email', C.toggle({ key: 'remind:email', on: st('remind:email', !!email.on), label: 'Email reminders' }), email.meta || '')),
         sub(line('remind:phone', phone.label || 'Phone notification', C.toggle({ key: 'remind:phone', on: st('remind:phone', !!phone.on), label: 'Phone notifications' }))),
         sub(line('remind:calendar', cal.label || 'Calendar', pill(cal.action || 'Add to calendar', { 'data-calendar': true }), calendarVal())),
-        line('statusUpdates', 'Rule changes and news', C.toggle({ key: 'statusUpdates', on: st('statusUpdates', true), label: 'Rule changes and news' })),
+        line('statusUpdates', 'Rule changes and news', C.toggle({ key: 'statusUpdates', on: st('statusUpdates', true), label: 'Rule changes and news' }), 'When a court or a rule changes your dates'),
       ]);
 
-      /* 2. This device and backup. */
-      const deviceGroup = group('This device and backup', [
+      /* 2. Security. */
+      const security = group('Security', [
         line('devices', 'Signed in', pill('Manage', { 'data-sx-open': 'sx-devices', 'aria-expanded': 'false', 'aria-controls': 'sx-devices', 'aria-label': 'Manage signed in devices' }),
           devicesVal(data), panel('sx-devices', deviceRows(data))),
         line('lock', 'Lock after', select('lockChoice', 'Lock after', ['Off'].concat(s.lockOptions), lockChoice)),
         line('touchId', 'Unlock with face or fingerprint', C.toggle({ key: 'touchId', on: st('touchId', false), label: 'Unlock with face or fingerprint' })),
-        line('tz', 'Time zone', select('tz', 'Time zone', TZ_OPTIONS, tz)),
-        line('theme', 'Theme', C.segment({ key: 'theme', label: 'Theme', selected: App.state.theme || s.theme,
-          options: [{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] })),
+      ]);
+
+      /* 3. Backup. */
+      const backup = group('Backup', [
         line('backup', 'Back up to a file', pill('Back up now', { 'data-sx': 'backup' }), backupVal(data)),
         line('restore', 'Restore from a backup', pill('Choose a file', { 'data-sx': 'restore', 'aria-controls': 'sx-restore' }) +
           '<input type="file" hidden data-sx-file accept=".duly,application/octet-stream" aria-label="Choose a backup file">', '', panel('sx-restore')),
       ]);
 
-      /* 3. Your data: a copy out, then delete, last on the page. */
-      const records = group('Your data', [
-        line('export', 'Export everything', pill('Export', { 'data-sx': 'export' })),
-        line('delete', 'Delete everything', pill('Delete', { 'data-sx': 'delete', 'aria-haspopup': 'dialog' })),
+      /* 4. Appearance. */
+      const appearance = group('Appearance', [
+        line('theme', 'Theme', C.segment({ key: 'theme', label: 'Theme', selected: App.state.theme || s.theme,
+          options: [{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] })),
       ]);
+
+      /* 5. Your data: a copy out, then delete, last on the page. The
+         privacy line sits quietly under the panel. */
+      const records = group('Your data', [
+        line('export', 'Export everything', pill('Export', { 'data-sx': 'export' }), 'Your records and documents, in one folder'),
+        line('delete', 'Delete everything', pill('Delete', { 'data-sx': 'delete', 'aria-haspopup': 'dialog' }), 'From your account and every device'),
+      ], s.privacy || '');
 
       const dialog = '<dialog class="sx-dialog" aria-labelledby="sx-del-title">' +
         '<h2 class="t-medium" id="sx-del-title">Delete everything?</h2>' +
@@ -192,13 +223,13 @@
         '</div>' +
         '</dialog>';
 
-      /* The quiet close: privacy, then when the rules were checked. */
+      /* The quiet close: the footer, then when the rules were checked, the
+         very last line. */
       const checked = offline ? data.checked.offline : 'Rules checked ' + shortDate(data.today.iso);
-      const quiet = '<p class="t-meta sx-quiet">' + (s.privacy ? C.esc(s.privacy) + '<br>' : '') + C.esc(checked) + '</p>';
-      const footer = C.footer(data.version);
+      const footer = '<div class="col-spacer"></div><footer class="sx-foot"><p>' + C.esc(data.version) + '</p><p>' + C.esc(checked) + '</p></footer>';
 
-      return '<div class="screen-settings">' + STYLE + header + reminders + deviceGroup + records +
-        quiet + footer + dialog + '</div>';
+      return '<div class="screen-settings">' + STYLE + header + reminders + security + backup + appearance + records +
+        footer + dialog + '</div>';
     },
 
     mount(root, data) {

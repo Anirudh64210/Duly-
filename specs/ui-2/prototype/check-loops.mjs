@@ -162,6 +162,9 @@ for (const kind of kinds) {
     (st.lines || []).forEach((l, i) => {
       voice(l.text, S + ' line ' + i);
       if (l.source) ok(l.source === '@report' || !!D.sources[l.source], S, 'source "' + l.source + '" is not saved');
+      /* Round 7: a line may name several sources, listed under "How this
+         was counted"; each must be saved like a single one. */
+      (l.sources || []).forEach((k) => ok(!!D.sources[k], S, 'source "' + k + '" is not saved'));
     });
     (st.fields || []).forEach((f) => {
       ok(['date', 'choice', 'text', 'number', 'receipt'].indexOf(f.kind) >= 0, S, 'field ' + f.key + ' has an unknown kind');
@@ -432,7 +435,7 @@ run('budget', () => {
   const loops = [];
   for (let i = 0; i < 6; i += 1) {
     const lp = Loops.start('lost-paper', { n: i });
-    take(lp, 'save', { paper: 'passport', where: 'in' }, W);
+    take(lp, 'show', { paper: 'passport' }, W);
     loops.push(lp);
   }
   const a = Loops.start('address', {});
@@ -524,20 +527,35 @@ run('address', () => {
   ok(lp.state === 'closed' && /^Done\. New address saved from Oct 5\. School told Sep 30\./.test(r.receipt), W, 'receipt: ' + r.receipt);
 });
 
-/* E. Lost document. */
+/* E. Lost document (Round 7, rule 6): picking the document opens its copy
+   at once, the replacement steps follow for that kind, and "Mark the old
+   one lost" closes with a receipt. The old path (the new document's date
+   typed in, then closed) is gone from the playbook, so this follows the
+   new one. */
 run('lost-paper', () => {
   reset();
   const W = 'runtime lost-paper';
   const lp = Loops.start('lost-paper', {});
-  take(lp, 'save', { paper: 'i20', where: 'out' }, W);
+  Loops.answer(lp.id, 'paper', 'i20');
+  ok(Loops.advance(lp.id) && lp.step === 'copy', W, 'picking the document opens the copy at once: ' + lp.step);
   const v = Loops.view(lp);
-  ok(v.step.lines[0].text.indexOf('A copy saved Mar 2, 2026') === 0, W, 'names the saved copy: ' + v.step.lines[0].text);
-  ok(v.step.actions.some((a) => a.kind === 'link' && a.href === '#/documents/i20-opt'), W, 'opens the copy');
+  ok(v.step.actions[0] && v.step.actions[0].kind === 'copy' && v.step.actions[0].doc === 'i20-opt' && v.step.actions[0].lead, W, 'Open your copy comes first');
+  ok(v.step.lines[0].text.indexOf('Your copy, saved Mar 2, 2026') === 0, W, 'names the saved copy: ' + v.step.lines[0].text);
+  ok(v.step.lines.some((l) => /reissue/.test(l.text)) && v.step.actions.some((a) => a.kind === 'draft'), W, 'an I-20 goes to the DSO, with the draft');
   noHoleLeft(v, W + ' copy view');
-  take(lp, 'arrived', null, W);
-  const r = take(lp, 'save', { newUntil: '2027-02-13' }, W);
-  ok(lp.state === 'closed' && /New I-20 saved, valid until Feb 13, 2027/.test(r.receipt), W, 'receipt: ' + r.receipt);
-  ok(App.record().lost['i20-opt'] === '2026-09-30', W, 'the old paper stays marked lost');
+  const kinds = { ead: /Form I-765/, passport: /consulate/, i94: /CBP I-94 website/ };
+  Object.keys(kinds).forEach((k) => {
+    const x = Loops.start('lost-paper', { n: k });
+    Loops.answer(x.id, 'paper', k);
+    Loops.advance(x.id);
+    const xv = Loops.view(x);
+    ok(xv.step.lines.some((l) => kinds[k].test(l.text)), W, k + ': its replacement step is shown');
+    ok(!xv.step.lines.some((l) => /reissue|No replacement steps/.test(l.text)), W, k + ': no DSO line beside its own step');
+    noHoleLeft(xv, W + ' ' + k);
+  });
+  const r = take(lp, 'lost', null, W);
+  ok(lp.state === 'closed' && /^Saved: I-20 marked lost Sep 30\./.test(r.receipt), W, 'receipt: ' + r.receipt);
+  ok(App.record().lost['i20-opt'] === '2026-09-30', W, 'the old document is marked lost');
 });
 
 /* Crisis and notice. */
@@ -594,7 +612,7 @@ const SAMPLE = {
   travel: { values: { leave: '2026-12-19', back: '2027-01-09', purpose: 'other', returned: '2027-01-10', question: 'Is my signature enough?' } },
   'stem-filing': { values: { recommended: '2026-12-01', receipt: 'IOE0912345679', newCardFrom: '2027-02-14', newCardUntil: '2029-02-13', question: 'When do I send the I-983?' }, record: { stem: { filed: '2026-12-10' } } },
   address: { values: { address: '200 Oak Street', moved: '2026-10-05', question: 'Is the portal enough?' } },
-  'lost-paper': { values: { paper: 'passport', where: 'in', newUntil: '2036-08-01', question: 'Who do I contact?' } },
+  'lost-paper': { values: { paper: 'passport', question: 'Who do I contact?' } },
   crisis: { context: { notice: true } },
   notice: { values: { kind: 'visa', arrived: '2026-09-29' } },
   checkin: { context: { jobId: 'northwind' }, values: { newHours: '30', hoursFrom: '2026-10-05' } },

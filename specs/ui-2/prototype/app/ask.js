@@ -1,6 +1,6 @@
 /* app/ask.js: Ask (BLUEPRINT 3.3; D76, D77).
 
-   The field at the top of every page asks the helper (ask_server.py on
+   The field on Home asks the helper (ask_server.py on
    127.0.0.1:8767), which answers from the dates Duly's engine computed for
    this student and follows BOUNDARY.md. The answer panel shows the
    question, a quiet "Thinking", the answer and at most two buttons; a
@@ -210,7 +210,8 @@
   }
 
   /* A button under an answer starts its flow in place, under that answer.
-     A paper named in the words fills the lost paper flow's first answer. */
+     A document named in the words fills the lost document flow's first
+     answer. */
   const LOST = { passport: 'passport', ead: 'ead', 'work permit': 'ead', card: 'ead', i20: 'i20', visa: 'visa', i94: 'i94', i797: 'i797' };
   function startFlow(kind, turnId) {
     if (!S || !App.loops) return;
@@ -220,7 +221,8 @@
     if (!lp) return;
     if (kind === 'lost-paper' && lp.step === 'which' && !(lp.values || {}).paper) {
       const k = Object.keys(LOST).filter((w) => has(norm(t.q), w))[0];
-      if (k) App.loops.answer(lp.id, 'paper', LOST[k]);
+      /* The document is named in the words: its copy opens at once. */
+      if (k) { App.loops.answer(lp.id, 'paper', LOST[k]); if (App.loops.advance) App.loops.advance(lp.id); }
     }
     App.state['loopOpen:' + lp.id] = true;
     App.loops.markSeen(lp.id);
@@ -300,18 +302,20 @@
     }
   });
 
-  /* Cmd K or Ctrl K: the cursor goes to the field at the top (or to the
-     follow-up field while the panel is open). Escape leaves the top field. */
+  /* Cmd K or Ctrl K: the cursor goes to the field on Home (or to the
+     follow-up field while the panel is open). On any other page the keys
+     do nothing here. Escape leaves the field. */
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && e.target && e.target.matches && e.target.matches('[data-askbar-q]')) { e.target.value = ''; e.target.blur(); return; }
     if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
     if (e.key !== 'k' && e.key !== 'K') return;
     if (App.state && App.state.deleted) return;
     if (document.querySelector('main#main.bare')) return;
+    const bar = document.querySelector('main#main [data-askbar-q]');
+    if (!S && !bar) return;
     e.preventDefault();
     if (S) { S.input.focus(); return; }
-    const bar = document.querySelector('[data-askbar-q]');
-    if (bar) { bar.focus(); bar.select(); }
+    bar.focus(); bar.select();
   });
 
   /* A flow that moved while the panel shows it: a flow it opened joins. */

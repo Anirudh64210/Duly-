@@ -49,9 +49,48 @@
       icon('source') + '</button>';
   }
 
+  /* how(refs, { label? }) : Round 7, rule 2. The one ⓘ an opened item
+     carries, at its bottom: the glyph and "How this was counted" as one
+     quiet button. Its popover lists every source behind the item, each
+     with its name, its plain line, how it was counted and its link. refs
+     are source keys or rule objects; repeats are dropped. */
+  function how(refs, o) {
+    const seen = [];
+    const rules = [];
+    (refs || []).forEach((ref) => {
+      if (!ref) return;
+      const rule = typeof ref === 'object' ? ref : getRule(ref);
+      if (!rule || seen.indexOf(rule) >= 0 || (typeof ref === 'string' && seen.indexOf(ref) >= 0)) return;
+      seen.push(rule);
+      if (typeof ref === 'string') seen.push(ref);
+      rules.push(rule);
+    });
+    if (!rules.length) return '';
+    const label = (o && o.label) || 'How this was counted';
+    const key = uid('how');
+    registry[key] = { multi: true, title: label, rules: rules };
+    return '<button type="button" class="how-btn" data-source="' + esc(key) + '" aria-haspopup="dialog" aria-expanded="false">' +
+      '<span class="src is-info" aria-hidden="true">' + icon('source') + '</span><span>' + esc(label) + '</span></button>';
+  }
+
+  function oneSource(rule) {
+    const counted = rule.counted && rule.counted.length ? rule.counted.map((c) => '<p class="pop-plain">' + esc(c) + '</p>').join('') : '';
+    return '<div class="pop-src">' +
+      '<p class="pop-name">' + esc(rule.name || '') + '</p>' +
+      (rule.plain ? '<p class="pop-plain">' + esc(rule.plain) + '</p>' : '') + counted +
+      ((rule.link || rule.checked) ? '<div class="pop-foot">' + (rule.link ? '<a' + attrs(hrefAttrs(rule.link.href)) + '>' + esc(rule.link.label) + '</a>' : '<span></span>') +
+        '<span class="t-micro">' + esc(rule.checked || '') + '</span></div>' : '') +
+      '</div>';
+  }
+
   /* popover(rule, id) : rule { name, plain?, quote?, counted?: string[], link {label, href}, checked }
-     or an info entry { info: true, plain, link? } drawn as the text alone. */
+     or an info entry { info: true, plain, link? } drawn as the text alone,
+     or a list from how() { multi: true, title, rules }. */
   function popover(rule, id) {
+    if (rule.multi) {
+      return '<div class="pop is-multi" id="' + id + '" role="dialog" aria-label="' + esc(rule.title) + '" tabindex="-1">' +
+        '<p class="t-eyebrow">' + esc(rule.title) + '</p>' + rule.rules.map(oneSource).join('') + '</div>';
+    }
     if (rule.info) {
       return '<div class="pop is-info" id="' + id + '" role="dialog" aria-label="More about this" tabindex="-1">' +
         '<p class="pop-plain">' + escText(rule.plain) + '</p>' +
@@ -79,5 +118,24 @@
       '</div>';
   }
 
-  Object.assign(C, { source, getRule, popover, info });
+  Object.assign(C, { source, getRule, popover, info, how });
+
+  if (typeof document !== 'undefined' && !document.getElementById('how-style')) {
+    const el = document.createElement('style');
+    el.id = 'how-style';
+    el.textContent = [
+      '.how-btn { display: inline-flex; align-items: center; gap: var(--s-8); align-self: flex-start; padding: var(--s-4) 0; min-height: 32px; background: none; border: 0; font: inherit; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); cursor: pointer; }',
+      '.how-btn:hover, .how-btn:focus-visible { color: var(--ink-2); }',
+      '.how-btn:hover .src, .how-btn:focus-visible .src { color: var(--ink-2); }',
+      '.how-btn[aria-expanded="true"], .how-btn[aria-expanded="true"] .src { color: var(--accent); }',
+      '.how-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-nav); }',
+      '.how-btn .src::after { display: none; }',
+      '.pop.is-multi { gap: var(--s-12); max-height: 60vh; overflow-y: auto; }',
+      '.pop.is-multi .pop-src { display: flex; flex-direction: column; gap: var(--s-4); }',
+      '.pop.is-multi .pop-src + .pop-src { padding-top: var(--s-12); border-top: 1px solid var(--hairline-inner); }',
+      '.pop.is-multi .pop-plain { margin-top: 0; }',
+      '.pop.is-multi .pop-foot { padding-top: 0; }',
+    ].join('\n');
+    (document.head || document.documentElement).appendChild(el);
+  }
 })();

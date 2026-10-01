@@ -118,7 +118,8 @@
 
     const main = document.createElement('main');
     main.id = 'main';
-    main.className = screen.bare ? 'bare' : 'col';
+    /* A wide screen (Home, Round 7) uses the content width, about 1040px. */
+    main.className = screen.bare ? 'bare' : (screen.wide ? 'col is-wide' : 'col');
     main.innerHTML = screen.render(data, r.params);
 
     const motion = !reduced();

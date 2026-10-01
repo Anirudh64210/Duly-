@@ -34,7 +34,7 @@ window.DULY_SAMPLE = {
      when the H-1B, O-1 and EB-1A packs are filled (BACKLOG B5). */
   promise: {
     line: 'A private place for your F-1 record, right to the day.',
-    subline: 'Your documents, dates and next steps in one place, counted from your own papers, with every rule one tap away.',
+    subline: 'Your documents, dates and next steps in one place, counted from your own documents, with every rule one tap away.',
   },
 
   /* Three pillars, for Welcome (VALUE.md section 2). Title plus one line each;
@@ -747,7 +747,7 @@ window.DULY_SAMPLE = {
           'Three counts that matter on OPT would shrink from 60 days to 30: the time to leave or change status after finishing, the time to apply for OPT after the program ends, and the latest OPT start date a student can ask for.',
           'Most comments on the proposal opposed cutting the 60 days to 30. The final rule kept the cut.',
           'The STEM OPT requirements read the same, word for word, in the old and the new text.',
-          'The rule stays on paper, postponed, until the court in Boston says otherwise or decides the case.',
+          'The rule stays postponed until the court in Boston says otherwise or decides the case.',
         ],
         forYou: 'Nothing changes while the rule is on hold, and your STEM OPT steps read the same under it. Nothing to do.',
         affects: {
@@ -989,7 +989,7 @@ window.DULY_SAMPLE = {
     job: 'Job at {employer}',
     petition: 'H-1B petition',
     now: 'Now',
-    empty: 'Nothing here yet. Papers you add show here, with their dates.',
+    empty: 'Nothing here yet. Documents you add show here, with their dates.',
   },
 
   /* Reports you owe (VALUE-2 feature 4). Copy only; the rows and dates come
@@ -1031,7 +1031,7 @@ window.DULY_SAMPLE = {
      saved until "This happened". */
   change: {
     title: 'Try a change',
-    info: 'See what a change would move on your record, worked out from your papers and the rule. Nothing is saved unless you tap This happened.',
+    info: 'See what a change would move on your record, worked out from your documents and the rule. Nothing is saved unless you tap This happened.',
     save: 'This happened',
     cancel: 'Cancel',
     saved: 'Saved to your record',
@@ -1267,7 +1267,7 @@ window.DULY_SAMPLE = {
     },
     travelAbsence: {
       name: 'Five months away',
-      plain: 'A student back from a trip of five months or less may be readmitted, with the papers the rule lists.',
+      plain: 'A student back from a trip of five months or less may be readmitted, with the documents the rule lists.',
       quote: 'An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution',
       counted: ['The day you leave, plus five months.'],
       link: { label: '8 CFR 214.2(f)(4) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
@@ -1866,7 +1866,7 @@ window.DULY_SAMPLE.loops = {
           title: 'Carry these on this phone?',
           lines: [{ text: 'I-20, EAD card, passport and visa, ready without a connection.' }],
           exits: [
-            { key: 'save', label: 'Save the folder to this phone', to: 'away', saves: 'carryFolder', receipt: 'Folder saved to this phone: {folderCount} papers.' },
+            { key: 'save', label: 'Save the folder to this phone', to: 'away', saves: 'carryFolder', receipt: 'Folder saved to this phone: {folderCount} documents.' },
             { key: 'skip', label: 'Skip the folder', to: 'away', quiet: true },
           ],
           timer: { kind: 'checkin', at: { fact: 'back' }, then: 'confirm-return', ask: 'Back in the US? Confirm your return date.' },
@@ -1909,7 +1909,8 @@ window.DULY_SAMPLE.loops = {
       title: 'STEM OPT extension',
       situation: 'Apply for STEM OPT',
       cantTell: 'the filing',
-      lastBy: { card: 'Your EAD card end', recommendation: 'Your recommendation plus {withinDays} days' },
+      /* Round 7: "Last day Feb 13, 2027, set by your EAD card." */
+      lastBy: { card: 'set by your EAD card', recommendation: 'set by your recommendation plus {withinDays} days' },
       start: 'facts',
       uses: ['stepback'],
       dismiss: false,
@@ -1922,7 +1923,7 @@ window.DULY_SAMPLE.loops = {
         { key: 'employer', label: 'Reopen: I changed employer', after: ['approved', 'denied'] },
         { key: 'rfe', label: 'Reopen: a notice asking for evidence arrived', after: ['approved', 'denied'] },
       ],
-      holes: ['withinDays', 'opens', 'last', 'lastBy', 'prepare', 'cip', 'employer', 'everifyChecked', 'cardUntil', 'recommended', 'receipt', 'cardFrom', 'newCardFrom', 'newCardUntil',
+      holes: ['withinDays', 'opens', 'last', 'lastBy', 'prepare', 'cip', 'field', 'employer', 'everifyChecked', 'everifyEmployer', 'cardUntil', 'recommended', 'receipt', 'cardFrom', 'newCardFrom', 'newCardUntil',
         'name', 'sevisId', 'school', 'question', 'filed', 'filedOn', 'lastLead'],
       /* Holes and flags the filing steps read (app/loops.js
          BIND['stem-filing']):
@@ -1973,13 +1974,16 @@ window.DULY_SAMPLE.loops = {
         facts: {
           state: 'asking', tag: 'A',
           title: 'File your I-765 on or before {last}',
+          /* Round 7, rule 2: plain lines, no ⓘ on any of them; their
+             sources are listed once under "How this was counted". The
+             recommendation note is one quiet line; "Add the date" shows
+             the field and its save. */
           lines: [
-            { text: 'Window opens {opens}. {lastBy} sets the last day.', source: 'stemOpens' },
-            { text: 'Field code {cip}, on the STEM list. From your I-20.', source: 'stemList' },
-            { text: '{employer} takes part in E-Verify, checked {everifyChecked}.', source: 'stemEmployer' },
-            { text: 'The day your school recommends you can move the last day earlier.', source: 'within60' },
+            { text: 'Window opens {opens}. Last day {last}, {lastBy}.', sources: ['stemOpens', 'stemCloses'] },
+            { text: ['{field} ({cip}) is on the STEM list. {everifyEmployer} uses E-Verify.', '{field} ({cip}) is on the STEM list.', '{everifyEmployer} uses E-Verify.'], sources: ['stemList', 'stemEmployer'] },
+            { text: "Your school's recommendation date can move the last day earlier.", source: 'within60', quiet: true, reveal: 'recommended', revealLabel: 'Add the date' },
           ],
-          fields: [{ key: 'recommended', kind: 'date', label: 'Day your school recommended you' }],
+          fields: [{ key: 'recommended', kind: 'date', label: 'Day your school recommended you', reveal: true }],
           /* Receipts carry the file-by date in their own words, so the
              engine adds no second "Next" line. Opens 2026-11-15 - 1 month =
              2026-10-15, the training plan's start-by day. */
@@ -2044,7 +2048,7 @@ window.DULY_SAMPLE.loops = {
           state: 'planned', tag: 'A',
           title: 'File your I-765 on or before {last}',
           lines: [
-            { text: 'Window opens {opens}. {lastBy} sets the last day.', source: 'within60' },
+            { text: 'Window opens {opens}. Last day {last}, {lastBy}.', sources: ['stemOpens', 'within60'] },
             { text: 'Filed {filedOn}, before the window opens on {opens}. This is a question for your DSO.', when: 'filedEarly', threat: true },
             { text: 'Add the filing day and the receipt number from your USCIS notice once you file.' },
           ],
@@ -2132,7 +2136,7 @@ window.DULY_SAMPLE.loops = {
           ],
           actions: [
             { kind: 'link', label: 'Check case status on USCIS', href: 'https://egov.uscis.gov/' },
-            { kind: 'link', label: 'Add the approval notice and the new card to Papers', href: '#/documents/add' },
+            { kind: 'link', label: 'Add the approval notice and the new card to Documents', href: '#/documents/add' },
           ],
           exits: [
             /* Closed when the approval arrives and the dates on the new card
@@ -2271,108 +2275,93 @@ window.DULY_SAMPLE.loops = {
       },
     },
 
-    /* E. Lost document. No replacement procedure is saved in the F-1 pack,
-       so none is invented: the copy, then the DSO. */
+    /* E. Lost document (Round 7, rule 6). The saved copy opens at once
+       ("Open your copy" first), then who replaces that kind of document,
+       then "Mark the old one lost", which closes with a receipt.
+         I-20      your DSO reissues it (the school issues every I-20)
+         EAD card  a replacement through Form I-765, filed with USCIS
+         passport  your country's consulate
+         I-94      download it from the CBP I-94 website
+       Any other document: no replacement steps are saved, so the DSO
+       question, with the draft. The kind key (lost-paper) and the hole names
+       stay as they were: they are never shown. */
     'lost-paper': {
-      version: '2026.09.2',
-      title: ['Lost {paperLower}', 'A lost paper'],
-      situation: 'I lost a paper',
+      version: '2026.10.1',
+      title: ['Lost {paperLower}', 'A lost document'],
+      situation: 'I lost a document',
       cantTell: 'the replacement',
-      whereLines: { in: 'I am in the US now.', out: 'I am outside the US now.' },
       start: 'which',
+      reopenTo: 'copy',
       dismiss: true,
-      triggers: [{ from: 'papers', action: 'I lost a paper' }, { from: 'ask', phrases: ['lost my passport', 'lost my i-20', 'lost my ead', 'lost my card', 'lost my visa', 'lost a paper', 'stolen'] }],
-      reopenOn: [{ key: 'again', label: 'Reopen: the new paper has a problem' }],
-      holes: ['paper', 'paperLower', 'copySaved', 'copyHref', 'whereLine', 'newUntil', 'today', 'name', 'sevisId', 'school'],
+      triggers: [{ from: 'papers', action: 'I lost a document' }, { from: 'ask', phrases: ['lost my passport', 'lost my i-20', 'lost my ead', 'lost my card', 'lost my visa', 'lost my i-94', 'lost a document', 'stolen'] }],
+      reopenOn: [{ key: 'again', label: 'Reopen: show the replacement steps again' }],
+      holes: ['paper', 'paperLower', 'copySaved', 'copyHref', 'copyDoc', 'today', 'name', 'sevisId', 'school'],
       papers: [
-        { value: 'passport', label: 'Passport', doc: 'passport' },
-        { value: 'ead', label: 'EAD card', doc: 'ead-card' },
-        { value: 'i20', label: 'I-20', doc: 'i20-opt' },
+        { value: 'passport', label: 'Passport', doc: 'passport', replace: 'consulate' },
+        { value: 'ead', label: 'EAD card', doc: 'ead-card', replace: 'i765' },
+        { value: 'i20', label: 'I-20', doc: 'i20-opt', replace: 'dso' },
         { value: 'visa', label: 'F-1 visa', doc: 'f1-visa' },
-        { value: 'i94', label: 'I-94', doc: 'i94' },
-        /* Papers adds an "I lost this" entry on each immigration paper it
-           keeps; these four are the rest of Priya's. The degree, transcripts
-           and offer letter come from the school or employer, not the DSO, so
-           this guide does not cover them. */
+        { value: 'i94', label: 'I-94', doc: 'i94', replace: 'cbp' },
+        /* Documents adds an "I lost this" entry on each immigration
+           document it keeps; these four are the rest of Priya's. The
+           degree, transcripts and offer letter come from the school or
+           employer, so this guide does not cover them. */
         { value: 'i797', label: 'I-797 approval notice', doc: 'i797' },
-        { value: 'i20-cpt-lumen', label: 'I-20 for CPT at Lumen Labs', doc: 'i20-cpt-lumen' },
-        { value: 'i20-cpt-acme', label: 'I-20 for CPT at Acme Robotics', doc: 'i20-cpt-acme' },
-        { value: 'i20-start', label: 'Initial I-20', doc: 'i20-start' },
+        { value: 'i20-cpt-lumen', label: 'I-20 for CPT at Lumen Labs', doc: 'i20-cpt-lumen', replace: 'dso' },
+        { value: 'i20-cpt-acme', label: 'I-20 for CPT at Acme Robotics', doc: 'i20-cpt-acme', replace: 'dso' },
+        { value: 'i20-start', label: 'Initial I-20', doc: 'i20-start', replace: 'dso' },
       ],
       drafts: {
         reissue: {
-          openLabel: 'Ask your DSO about a replacement',
+          openLabel: 'Write to your DSO',
           to: 'Your DSO at {school}',
           subject: 'Lost {paperLower}, {name}',
-          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I lost my {paperLower}. {whereLine}"],
-          questions: ['How do I get a replacement?', 'Is there anything you need from me in the meantime?'],
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I lost my {paperLower}."],
+          questions: ['Could you reissue it?', 'Is there anything you need from me in the meantime?'],
           signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
         },
       },
       steps: {
+        /* Picking the document opens its copy at once (advance). From a
+           document's own page the document is known, so the copy opens
+           with no question at all. */
         which: {
           state: 'asking', tag: 'A',
-          title: 'Which paper, and where are you?',
-          fields: [
-            { key: 'paper', kind: 'choice', label: 'Paper', optionsFrom: 'papers' },
-            { key: 'where', kind: 'choice', label: 'You are', options: [{ value: 'in', label: 'Inside the US' }, { value: 'out', label: 'Outside the US' }] },
-          ],
+          title: 'Which document did you lose?',
+          fields: [{ key: 'paper', kind: 'choice', label: 'Document', optionsFrom: 'papers' }],
+          advance: 'show',
           exits: [
-            { key: 'save', label: ['Save to my record: {paperLower} reported lost {today}', 'Pick the paper and where you are'], needs: ['paper', 'where'], to: 'copy', saves: 'lost',
-              receipt: 'Saved: {paperLower} reported lost {today}. Its dates keep their reminders until a new one is added.' },
+            { key: 'show', label: ['Open the {paperLower} steps', 'Pick the document'], needs: ['paper'], to: 'copy' },
             { key: 'found', label: 'Found it: nothing to save', to: 'dismissed', quiet: true, confirm: 'Drop this? Nothing is saved.', cancel: 'Cancel' },
           ],
-          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'which', ask: 'Which paper did you lose?' },
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'which', ask: 'Which document did you lose?' },
         },
-        /* The copy's saved date is the paper's "This version" date in
-           Papers (I-20 for OPT: Mar 2, 2026; passport: Mar 3, 2026). */
+        /* The copy's saved date is the document's "This version" date in
+           Documents (I-20 for OPT: Mar 2, 2026; passport: Mar 3, 2026). */
         copy: {
           state: 'planned', tag: 'A',
-          title: 'Your copy of the {paperLower} is here',
+          title: 'Your copy, then a new {paperLower}',
           lines: [
-            { text: ['A copy saved {copySaved}, with its number and dates. It opens on this phone without a connection.', 'A copy is in Papers, with its number and dates. It opens on this phone without a connection.'] },
-            { text: 'No replacement steps are saved for this paper yet, so the next step is a question for your DSO.' },
+            { text: ['Your copy, saved {copySaved}, has its number and dates. It opens without a connection.', 'Your copy has its number and dates. It opens without a connection.'] },
+            { text: 'Ask your DSO to reissue it. Only your school can issue a new I-20.', when: 'by-dso' },
+            { text: 'A lost EAD card is replaced through Form I-765, filed with USCIS.', when: 'by-i765' },
+            { text: "Your country's consulate replaces a lost passport.", when: 'by-consulate' },
+            { text: 'Download your I-94 from the CBP I-94 website.', when: 'by-cbp' },
+            { text: 'No replacement steps are saved for this document yet, so the next step is a question for your DSO.', when: 'by-none' },
           ],
-          actions: [{ kind: 'link', label: 'Open the copy', fact: 'copyHref' }, { kind: 'draft', draft: 'reissue' }],
+          actions: [
+            { kind: 'copy', label: 'Open your copy', fact: 'copyDoc', lead: true },
+            { kind: 'draft', draft: 'reissue', when: 'byDsoDraft' },
+            { kind: 'link', label: 'Form I-765 on uscis.gov', href: 'https://www.uscis.gov/i-765', when: 'by-i765' },
+            { kind: 'link', label: 'Find your consulate', href: 'https://www.state.gov/foreign-consular-offices/', when: 'by-consulate' },
+            { kind: 'link', label: 'Get your I-94 on the CBP website', href: 'https://i94.cbp.dhs.gov/', when: 'by-cbp' },
+          ],
           exits: [
-            { key: 'asked', label: 'Save to my record: asked my DSO {today}', to: 'wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
-            { key: 'arrived', label: 'Add the new {paperLower}', to: 'confirm-new' },
-            { key: 'found', label: 'Found the old one', to: 'closed', by: 'student', outcome: 'found', quiet: true, saves: 'foundPaper', receipt: 'Saved: {paperLower} found {today}. The lost mark is off.' },
+            { key: 'lost', label: 'Mark the old one lost', to: 'closed', by: 'student', outcome: 'lost', saves: 'lost',
+              receipt: 'Saved: {paperLower} marked lost {today}. Your copy stays in Documents. Add the new one there when it arrives.' },
+            { key: 'found', label: 'Found it: nothing to save', to: 'dismissed', quiet: true, confirm: 'Drop this? Nothing is saved.', cancel: 'Cancel' },
           ],
-          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'arrived', ask: 'Replacement arrived?' },
-        },
-        wait: {
-          state: 'waiting', who: 'event', person: 'the new {paperLower}', tag: 'A',
-          title: 'Waiting on the new {paperLower}',
-          exits: [
-            { key: 'arrived', label: 'Add the new {paperLower}', to: 'confirm-new' },
-            { key: 'found', label: 'Found the old one', to: 'closed', by: 'student', outcome: 'found', quiet: true, saves: 'foundPaper', receipt: 'Saved: {paperLower} found {today}. The lost mark is off.' },
-          ],
-          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'arrived', ask: 'Replacement arrived?' },
-        },
-        arrived: {
-          state: 'confirming', tag: 'A',
-          title: 'Replacement arrived?',
-          exits: [
-            { key: 'yes', label: 'Add the new {paperLower}', to: 'confirm-new' },
-            { key: 'notYet', label: 'Not yet: ask again {nextCheck}', to: 'wait' },
-          ],
-          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'arrived', ask: 'Replacement arrived?' },
-        },
-        /* Closed when the new paper is added and confirmed (BLUEPRINT 2.6
-           E5): its date typed from the paper and saved. The receipt lists
-           what moved; the old paper stays marked lost. */
-        'confirm-new': {
-          state: 'confirming', tag: 'A',
-          title: 'The new {paperLower}',
-          fields: [{ key: 'newUntil', kind: 'date', label: 'Valid until, on the new paper' }],
-          actions: [{ kind: 'link', label: 'Add the paper to Papers', href: '#/documents/add' }],
-          exits: [
-            { key: 'save', label: ['Save to my record: new {paperLower}, valid until {newUntil}', 'Add the date on the new paper to save it'], needs: ['newUntil'], to: 'closed', by: 'fact', outcome: 'replaced', saves: 'replaced',
-              receipt: 'Done. New {paperLower} saved, valid until {newUntil}. The old one stays marked lost.' },
-            { key: 'back', label: 'Back', to: '@back', quiet: true },
-          ],
-          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'confirm-new', ask: 'Add the new {paperLower}?' },
+          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'copy', ask: 'Mark the {paperLower} lost?' },
         },
       },
     },
@@ -2493,7 +2482,7 @@ window.DULY_SAMPLE.loops = {
             { key: 'kind', kind: 'choice', label: 'The notice', optionsFrom: 'kinds' },
             { key: 'arrived', kind: 'date', label: 'The day it arrived' },
           ],
-          actions: [{ kind: 'link', label: 'Add the notice to Papers', href: '#/documents/add' }],
+          actions: [{ kind: 'link', label: 'Add the notice to Documents', href: '#/documents/add' }],
           exits: [
             { key: 'save', label: ['Save to my record: {kindLabel}, arrived {arrived}', 'Pick the notice and the day it arrived'], needs: ['kind', 'arrived'], to: 'handoff', saves: 'notice',
               receipt: 'Saved: {kindLabel}, arrived {arrived}.' },

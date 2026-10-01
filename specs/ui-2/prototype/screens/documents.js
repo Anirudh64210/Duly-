@@ -428,13 +428,15 @@
     if (!lp) lp = App.loops.start('lost-paper', paper ? { from: 'papers', paper: paper } : { from: 'papers' });
     if (!lp) return;
     if (paper && !lp.values.paper) App.loops.answer(lp.id, 'paper', paper);
+    /* The document is known: its copy opens at once (Round 7, rule 6). */
+    if (App.loops.advance) App.loops.advance(lp.id);
     App.state['loopOpen:' + lp.id] = true;
     App.loops.markSeen(lp.id);
     if (App.haptic) App.haptic('select');
     App.rerender();
     const box = document.querySelector('#main [data-loop="' + lp.id + '"]');
     if (!box) return;
-    const target = box.querySelector(lp.values.paper ? '[data-loop-choice="where"]' : '[data-loop-choice]') || box.querySelector('.loop-head');
+    const target = box.querySelector('[data-doc-open]') || box.querySelector('[data-loop-choice]') || box.querySelector('.loop-head');
     const r = box.getBoundingClientRect();
     if (r.top < 0 || r.bottom > window.innerHeight) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     if (target) target.focus({ preventScroll: true });
@@ -492,10 +494,11 @@
     const ref = refOf(doc);
     const g = groupOf(doc.group);
     const dates = (doc.dates || (fieldsOf(doc) || []).filter((f) => f[0] !== 'Name')).concat(lostFacts(doc));
-    /* I lost this: only on a paper the guide covers, and only while no
-       loop for it is open (the open one is drawn below instead). */
+    /* I lost this: only on a document the guide covers, and only while no
+       loop for it shows (an open one, or a closed one with its receipt, is
+       drawn below instead). */
     const lp = lostPaperOf(doc);
-    const lostBtn = lp && !openLost(lp.value)
+    const lostBtn = lp && !lostLoops(lp.value).length
       ? '<button type="button" class="btn btn-text is-quiet" data-doc-lost="' + C.esc(lp.value) + '">I lost this</button>' : '';
     const header = C.pageHeader({
       title: doc.title,
@@ -1192,6 +1195,18 @@
       if (status) status.textContent = statusText();
     },
   };
+  /* One tap opens a document's saved copy from any page (Home's Documents
+     card, the Lost a document guide): App.openDocument(id), and any
+     [data-doc-open="<id>"] button. */
+  App.openDocument = (id) => { if (App.data) init(App.data); openDoc(id); };
+  App.mostUsedDocuments = () => { if (App.data) init(App.data); return mostDocs(); };
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('[data-doc-open]');
+    if (!b) return;
+    e.preventDefault();
+    App.openDocument(b.dataset.docOpen);
+  });
+
   /* #/documents; #/papers redirects here (App.ALIASES, above). */
   window.SCREENS['documents'] = SCREEN;
 

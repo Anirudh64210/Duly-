@@ -2,17 +2,18 @@
      Plan, the path and the answer in one quiet line, the stepper, then one
      list of everything to do in date order (screens/steps.js draws it: the
      loops that need her now, the steps, the STEM OPT filing loop, reports
-     owed), "Add your school's steps", and at the bottom two folded rows:
-       USCIS status   the cases (screens/uscis.js), opened in place
+     owed), "Add your school's steps", and at the bottom one folded row:
        Work           the jobs on the record, My job ended, My hours changed
      No view chips, no section titles, no ⓘ beside a title.
+     Round 7, rule 1: every loop lives in full here and nowhere else; Home
+     shows one line for it that opens it here (App.state['plan:focus']).
+     Rule 5: USCIS status is its own page again (#/uscis).
 
      #/plan                the page
-     #/plan/status         the page with USCIS status open
-     #/plan/status/<id>    one case (a drilled page with its back link)
      #/plan/workbook       the page with Work open
    Old routes redirect here, keeping their params: #/steps, #/next and
-   #/checklists to #/plan; #/uscis and #/applications to #/plan/status.
+   #/checklists to #/plan. #/plan/status and #/plan/status/<id> go to
+   #/uscis and #/uscis/<id>.
 
    The STEM OPT loop and the page agree (every date from app/record.js through
    App.loops; nothing is worked out here):
@@ -39,7 +40,6 @@
     '.screen-plan .row { padding-top: var(--s-12); padding-bottom: var(--s-12); min-height: 48px; }' +
     '.screen-plan .pl-folds { margin-top: var(--s-32); }' +
     '.screen-plan .pl-folds > .list > .item > .disc { padding: 0 var(--s-12) var(--s-16); gap: 0; }' +
-    '.screen-plan .pl-folds .track-case:not(.is-open), .screen-plan .pl-folds .track-case:not(.is-open) + .us-foot { display: inline-flex; vertical-align: middle; margin: var(--s-12) var(--s-16) 0 0; }' +
     '.screen-plan .pl-folds .disc .section { margin-top: var(--s-16); }' +
     '.screen-plan .pl-folds .src.is-info { display: none; }' +
     '.screen-plan .wb-actions { margin-top: var(--s-12); }' +
@@ -47,15 +47,24 @@
 
   const e = (s) => C.esc(s);
   /* Old routes. The router swaps the first part and keeps the rest:
-     #/uscis/opt becomes #/plan/status/opt. */
-  Object.assign(App.ALIASES, { steps: 'plan', next: 'plan', checklists: 'plan', uscis: 'plan/status', applications: 'plan/status' });
+     #/applications/opt becomes #/uscis/opt. */
+  Object.assign(App.ALIASES, { steps: 'plan', next: 'plan', checklists: 'plan', applications: 'uscis' });
+  delete App.ALIASES.uscis;
+  /* #/plan/status(/<id>) from before: USCIS status is its own page. Swapped
+     before the router reads the hash, at load and on each hashchange. */
+  function toUscis() {
+    const m = /^#\/?plan\/status(\/[^/]+)?\/?$/.exec(location.hash || '');
+    if (!m) return false;
+    try { history.replaceState(history.state, '', '#/uscis' + (m[1] || '')); } catch (err) { location.replace('#/uscis' + (m[1] || '')); }
+    return true;
+  }
+  toUscis();
+  window.addEventListener('hashchange', toUscis, true);
 
-  /* Which view a hash asks for. A bare case id (#/plan/opt) is a case. */
+  /* Which view a hash asks for. */
   function route(params) {
     const p = (params || []).slice();
-    if (p[0] === 'status') return { view: 'status', id: p[1] && App.findApplication(p[1]) ? p[1] : null, params: [] };
     if (p[0] === 'workbook') return { view: 'workbook', id: null, params: [] };
-    if (p[0] && App.findApplication && App.findApplication(p[0])) return { view: 'status', id: p[0], params: [] };
     return { view: 'steps', id: null, params: p };
   }
   const placeOf = (params) => { const r = route(params); return r.view + ':' + (r.id || ''); };
@@ -230,11 +239,6 @@
     return S.view(data, params, { embedded: true, loop: lp, others: otherLoops() });
   }
 
-  function statusView(data) {
-    const U = window.SCREENS.uscis;
-    return U && U.view ? U.view(data, [], { embedded: true }) : '';
-  }
-
   /* ---------------- WorkBook ---------------- */
 
   /* Hours on a day: the newest change on or before it, else the hours saved
@@ -293,18 +297,14 @@
       (actions ? '<div class="wb-actions">' + actions + '</div>' : '');
   }
 
-  /* The two folded rows at the bottom. #/plan/status and #/plan/workbook
-     open theirs. */
+  /* The folded row at the bottom: Work. #/plan/workbook opens it. */
   function folds(data, view) {
-    const apps = (data.applications && data.applications.items) || [];
     const r = App.record();
     const today = L() ? L().now() : data.today.iso;
     const job = (r.jobs || []).filter((j) => !j.end || j.end >= today)[0];
-    const n = apps.length;
     return '<div class="pl-folds">' + C.list([
-      C.row({ key: 'plan:status', title: 'USCIS status', value: n === 1 ? '1 case' : n + ' cases', content: statusView(data), open: view === 'status' }),
       C.row({ key: 'plan:work', title: 'Work', value: job ? job.employer : 'No job saved', content: workbookView(data), open: view === 'workbook' }),
-    ], { accordion: false, label: 'Cases and work' }) + '</div>';
+    ], { accordion: false, label: 'Work' }) + '</div>';
   }
 
   /* Start a change at work and open it in place. */
@@ -337,32 +337,37 @@
   window.SCREENS.plan = {
     title: 'Plan',
     paramsInPlace(params, prev) { return placeOf(params) === placeOf(prev); },
-    titleFor(params) {
-      const r = route(params);
-      if (r.view === 'status' && r.id) { const a = App.findApplication(r.id); return a ? a.title : 'USCIS status'; }
-      return 'Plan';
-    },
+    titleFor() { return 'Plan'; },
     render(data, params) {
       const r = route(params);
-      /* One case: a drilled page, with its back link. */
-      if (r.view === 'status' && r.id) {
-        const one = window.SCREENS.uscis.view(data, [r.id]);
-        return STYLE + one + (one.indexOf('class="footer"') >= 0 ? '' : C.footer());
-      }
       return STYLE + stepsView(data, r.params) + folds(data, r.view) + C.footer();
     },
     mount(root, data, params) {
       root.classList.add('screen-plan');
       const r = route(params);
       if (window.SCREENS.steps) window.SCREENS.steps.mount(root);
-      if (window.SCREENS.uscis) window.SCREENS.uscis.mount(root);
       root.addEventListener('click', (ev) => {
         const b = ev.target.closest('[data-plan-start]');
         if (b) startWork(b.dataset.planStart);
       });
-      if (r.view !== 'steps' && !r.id) {
-        const row = root.querySelector('[data-key="plan:' + (r.view === 'status' ? 'status' : 'work') + '"]');
+      if (r.view === 'workbook') {
+        const row = root.querySelector('[data-key="plan:work"]');
         if (row) setTimeout(() => row.scrollIntoView({ block: 'start' }), 0);
+      }
+      /* A line on Home opened this loop: it is unfolded here; bring it into
+         view and put focus on it. */
+      const focusId = App.state['plan:focus'];
+      if (focusId) {
+        delete App.state['plan:focus'];
+        const box = root.querySelector('[data-loop="' + CSS.escape(focusId) + '"]');
+        if (box) {
+          setTimeout(() => {
+            box.scrollIntoView({ block: 'center' });
+            const head = box.querySelector('.loop-head');
+            if (head) head.focus({ preventScroll: true });
+            if (App.play) App.play(box, 'is-arriving');
+          }, 0);
+        }
       }
     },
   };

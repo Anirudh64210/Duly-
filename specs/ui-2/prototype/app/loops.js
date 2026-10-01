@@ -262,11 +262,13 @@
       }
       if (okIso(recd)) b.text.recommended = fmt(recd);
       const sf = App.stemField ? App.stemField() : (data.stemField || {});
-      if (sf && sf.state === 'confirmed' && sf.onList) b.text.cip = sf.cip;
+      if (sf && sf.state === 'confirmed' && sf.onList) { b.text.cip = sf.cip; if (sf.field) b.text.field = sf.field; }
       const emp = App.employer ? App.employer() : data.employer;
       if (emp) {
         b.text.employer = emp.name;
-        if (emp.everify && emp.everify.state === 'participates') b.text.everifyChecked = emp.everify.checked;
+        /* The employer's name for "uses E-Verify", only when the public
+           search says it takes part. */
+        if (emp.everify && emp.everify.state === 'participates') { b.text.everifyChecked = emp.everify.checked; b.text.everifyEmployer = emp.name; }
       }
       b.text.cardUntil = fmt((r.opt || {}).until);
       const rc = v.receipt || (r.stem || {}).receipt;
@@ -312,6 +314,12 @@
       if (p) {
         b.text.paper = p.label; b.text.paperLower = lowerName(p.label);
         b.text.copyHref = '#/documents/' + p.doc;
+        b.text.copyDoc = p.doc;
+        /* Who replaces it (data.js papers[].replace): the DSO, USCIS through
+           Form I-765, the consulate, the CBP I-94 website; none saved: the
+           DSO question. */
+        b.flags['by-' + (p.replace || 'none')] = true;
+        b.flags.byDsoDraft = !p.replace || p.replace === 'dso';
         const doc = docTitle(p.doc);
         /* The saved copy's date, as the paper shows it ("This version"). */
         const ver = doc && ((doc.dates || []).filter((x) => x[0] === 'This version')[0] || null);
@@ -785,6 +793,20 @@
     return lp;
   }
 
+  /* advance(id) : a step that names an advance exit (data.js, step.advance)
+     takes it as soon as its answers are in, so nothing waits on one more
+     tap (Lost a document: picking the document opens its copy at once).
+     True when the loop moved. */
+  function advance(id) {
+    const lp = get(id);
+    if (!isOpen(lp)) return false;
+    const st = curStep(lp);
+    if (!st || !st.advance) return false;
+    const e = exitsOf(lp).filter((x) => x.key === st.advance)[0];
+    if (!e || !needsMet(lp, e)) return false;
+    return !!(take(lp.id, e.key) || {}).ok;
+  }
+
   /* Children: a new job's report, a new hours report, STEM OPT reports. */
   function spawn(lp, list) {
     const out = [];
@@ -953,12 +975,13 @@
       lines: (st.lines || []).filter((l) => whenOk(l.when, b)).map((l) => ({
         text: pick(l.text, b.text), tag: l.tag || null, threat: !!l.threat,
         source: l.source === '@report' ? ((b.report && b.report.rule) || (b.report || {}).source || null) : (l.source || null),
+        sources: l.sources || null, quiet: !!l.quiet, reveal: l.reveal || null, revealLabel: l.revealLabel || null,
       })).filter((l) => l.text),
       cantTell: lp.cantTell ? pick((L.seen || {}).cantTell, { fact: d.cantTell || 'this', asOf: fmt(lp.cantTell.asOf) }) : null,
       fields: (st.fields || []).map((f) => ({
         key: f.key, kind: f.kind, label: pick(f.label, b.text) || f.label, placeholder: f.placeholder || null,
         value: lp.values[f.key] == null ? '' : lp.values[f.key], options: f.kind === 'choice' ? opts(f) : null,
-        error: (b.invalid || {})[f.key] || null,
+        error: (b.invalid || {})[f.key] || null, reveal: !!f.reveal,
       })),
       actions: (st.actions || []).filter((a) => whenOk(a.when, b)).map((a) => {
         if (a.kind === 'draft') {
@@ -979,19 +1002,22 @@
           return href ? { kind: 'link', label: pick(a.label, b.text) || a.label, href: href } : null;
         }
         if (a.kind === 'rule') return { kind: 'rule', label: a.label, source: a.source };
+        if (a.kind === 'copy') { const doc = a.fact ? b.text[a.fact] : a.doc; return doc ? { kind: 'copy', label: pick(a.label, b.text) || a.label, doc: doc, lead: !!a.lead } : null; }
         if (a.kind === 'calendar') return { kind: 'calendar', label: a.label };
         if (a.kind === 'start') return { kind: 'start', label: a.label, loop: a.loop };
         return null;
       }).filter(Boolean),
       exits: [],
     };
-    let primaryGiven = false;
+    /* A step that leads with an action (Open your copy) keeps the one
+       filled button for it: its exits are outlined. */
+    let primaryGiven = out.step.actions.some((a) => a.lead);
     out.step.exits = exitsOf(lp, b).map((e) => {
       const ok = needsMet(lp, e, b);
       const label = pick(e.label, b.text) || '';
       const primary = !e.quiet && !primaryGiven;
       if (primary) primaryGiven = true;
-      return { key: e.key, label: label, disabled: !ok, primary: primary, quiet: !!e.quiet,
+      return { key: e.key, label: label, disabled: !ok, primary: primary, quiet: !!e.quiet, needs: e.needs || [], auto: st.advance === e.key,
         confirm: e.confirm || null, cancel: e.cancel || null, closes: e.to === 'closed' };
     });
     return out;
@@ -1191,7 +1217,7 @@
 
   App.loops = {
     calendarFile, calendarReceipt, loopDates,
-    start, answer, take, plan, wait, confirm, close, dismiss, reopen, undo,
+    start, answer, advance, take, plan, wait, confirm, close, dismiss, reopen, undo,
     get, list, def, defs, bind, view, seen, schedule, runTimers, whatsNext, match, situations, footprint,
     setClock(iso) { clock = iso || null; },
     now,
@@ -1229,7 +1255,7 @@
     redraw(id, '.loop-receipt');
   }
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-loop-act],[data-loop-toggle],[data-loop-ask],[data-loop-cancel],[data-loop-choice],[data-loop-reopen],[data-loop-undo],[data-loop-fold],[data-loop-start],[data-loop-calendar]');
+    const t = e.target.closest('[data-loop-act],[data-loop-toggle],[data-loop-ask],[data-loop-cancel],[data-loop-choice],[data-loop-reopen],[data-loop-undo],[data-loop-fold],[data-loop-start],[data-loop-calendar],[data-loop-reveal]');
     if (!t) return;
     const box = t.closest('[data-loop]');
     const id = box && box.dataset.loop;
@@ -1254,9 +1280,25 @@
       if (c) { c.hidden = true; const a = box.querySelector('[data-loop-ask="' + cssEsc(c.dataset.loopConfirm) + '"]'); if (a) { a.hidden = false; a.focus(); } }
       return;
     }
+    /* A quiet line's link ("Add the date"): its field and the exit that
+       needs it appear in place, and the cursor goes to the field. */
+    if (t.hasAttribute('data-loop-reveal')) {
+      const key = t.dataset.loopReveal;
+      const r = App.state['loopReveal:' + id] = Object.assign({}, App.state['loopReveal:' + id]);
+      r[key] = true;
+      redraw(id, '[data-loop-field="' + cssEsc(key) + '"]');
+      return;
+    }
     if (t.hasAttribute('data-loop-choice')) {
       const key = t.dataset.loopChoice;
       answer(id, key, t.dataset.value);
+      if (advance(id)) {
+        App.state['loopOpen:' + id] = true;
+        if (App.haptic) App.haptic('select');
+        if (typeof _.render === 'function') _.render('inplace');
+        redraw(id, '[data-doc-open], .loop-head');
+        return;
+      }
       redraw(id, '[data-loop-choice="' + cssEsc(key) + '"][aria-checked="true"]');
       if (App.haptic) App.haptic('select');
       return;

@@ -990,7 +990,7 @@
         'Receipt number: ' + (show ? rec.opt.receipt : hidden),
       ] : [] },
       job: { label: 'Job', lines: (rec.jobs || []).map((j) => [j.title, j.employer].filter(Boolean).join(', ') + ', ' + (j.end ? fmtY(j.start) + ' to ' + fmtY(j.end) : 'since ' + fmtY(j.start)) + (hoursText(j, t) ? ', ' + hoursText(j, t) : '')) },
-      travel: { label: 'Travel papers', lines: [
+      travel: { label: 'Travel documents', lines: [
         /* Sample values say so on the shared page too. */
         rec.passport ? 'Passport valid until ' + fmtY(rec.passport.expires) + (rec.passport.sample ? ' (sample)' : '') : null,
         rec.visa ? (rec.visa.title || 'Visa') + ' valid until ' + fmtY(rec.visa.expires) + (rec.visa.sample ? ' (sample)' : '') : null,

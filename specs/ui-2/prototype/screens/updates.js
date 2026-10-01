@@ -77,13 +77,16 @@
      shown "Feb 16, 2026" (checked with python3). Its source mark opens the
      source sheet, where "From your paper" shows the I-20 program end date
      beside the date it fed (App.fromPaper('optFileBy')). */
-  function inForce(u) {
-    if (!(u.paused || PAUSED[u.id]) || !App.fileBy) return '';
+  function inForceOf(u) {
+    if (!(u.paused || PAUSED[u.id]) || !App.fileBy) return null;
     const f = App.fileBy('opt');
     const c = f && f.candidates.filter((x) => x.key === 'program')[0];
-    if (!c || !c.text) return '';
+    return c && c.text ? c : null;
+  }
+  function inForce(c) {
+    if (!c) return '';
     return '<div class="fy-dates">' +
-      C.valueRow({ label: c.label, value: c.text, source: c.source, editable: false, num: true }) +
+      C.valueRow({ label: c.label, value: c.text, editable: false, num: true }) +
       '</div>';
   }
 
@@ -94,13 +97,17 @@
     const ans = C.affectsFor(u);
     const todo = u.forYou || ans.todo;
     const changed = (u.changed || []).filter((c) => c && c.title);
+    /* One ⓘ in the box (Round 7, rule 2): with a date in force, "How this
+       was counted" at the bottom lists its source; else the box's own ⓘ. */
+    const c = inForceOf(u);
     return '<section class="for-you" aria-label="For you">' +
-      '<div class="fy-head"><p class="t-eyebrow">For you</p>' + C.info(u.info) + '</div>' +
+      '<div class="fy-head"><p class="t-eyebrow">For you</p>' + (c ? '' : C.info(u.info)) + '</div>' +
       (ans.short ? '<p class="t-medium fy-answer">' + C.escText(ans.short) + '</p>' : '') +
       (todo ? '<p class="t-body fy-todo">' + C.escText(todo) + '</p>' : '') +
-      inForce(u) +
-      (changed.length ? '<ul class="t-body fy-changed">' + changed.map((c) =>
-        '<li>' + C.escText(c.title) + (c.change ? ': ' + C.escText(c.change) : '') + '</li>').join('') + '</ul>' : '') +
+      inForce(c) +
+      (changed.length ? '<ul class="t-body fy-changed">' + changed.map((x) =>
+        '<li>' + C.escText(x.title) + (x.change ? ': ' + C.escText(x.change) : '') + '</li>').join('') + '</ul>' : '') +
+      (c && c.source ? C.how([c.source]) : '') +
       '</section>';
   }
 

@@ -131,16 +131,17 @@
     return '<button type="button" class="' + cls + '" data-answer="stemIntent" data-value="' + e(value) + '">' + e(label) + '</button>';
   }
 
-  /* A row's detail, opened in place: one plain line with the source mark of
-     the rule behind it (the rule's own line when the step has none), then
-     any link or action. */
+  /* A row's detail, opened in place: one plain line (the rule's own line
+     when the step has none), then any link or action, then at its bottom
+     the one ⓘ, "How this was counted", with the rule behind it (Round 7,
+     rule 2: no ⓘ on a line). */
   function detailOf(line, ruleKey, more) {
     const rule = ruleKey ? C.getRule(ruleKey) : null;
-    const mark = rule ? ' ' + C.source(ruleKey, { inline: true }) : '';
     const text = line || (rule ? rule.plain || rule.name : '');
     const parts = [];
-    if (text) parts.push('<p>' + C.escText(text) + mark + '</p>');
+    if (text) parts.push('<p>' + C.escText(text) + '</p>');
     if (more) parts.push(more);
+    if (rule) parts.push(C.how([ruleKey]));
     return parts.length ? parts.join('') : null;
   }
 
@@ -296,8 +297,8 @@
       ? '<button type="button" class="btn btn-text is-small is-quiet" data-report-act="undo" data-report="' + e(x.id) + '">' + e(cfg.undo || 'Undo') + '</button>'
       : '<button type="button" class="btn btn-pill is-small" data-report-act="done" data-report="' + e(x.id) + '">' + e(cfg.markDone || 'Mark made') + '</button>') + '</div>';
     const src = x.rule || x.source;
-    const detail = '<p>To ' + e(lower1(x.to || 'Your DSO')) + '.' + (x.info ? ' ' + C.escText(x.info) : '') +
-      (src ? ' ' + C.source(src, { inline: true }) : '') + '</p>' + act;
+    const detail = '<p>To ' + e(lower1(x.to || 'Your DSO')) + '.' + (x.info ? ' ' + C.escText(x.info) : '') + '</p>' + act +
+      (src ? C.how([src]) : '');
     return C.row({
       key: x.id, cls: 'report' + (x.made ? ' is-made' : ''), lead: '<span aria-hidden="true"></span>',
       title: C.raw(C.escText(x.title) + (x.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '')),
@@ -371,7 +372,7 @@
   const COMPLETE_LINE = 'All steps done. Your receipt number goes in ';
   function completeLine(allDone) {
     return '<p class="st-complete t-meta" data-steps-complete' + (allDone ? '' : ' hidden') + '>' +
-      e(COMPLETE_LINE) + '<a class="link" href="#/plan/status">USCIS status</a>.</p>';
+      e(COMPLETE_LINE) + '<a class="link" href="#/uscis">USCIS status</a>.</p>';
   }
 
   /* stemView(data, r, o)

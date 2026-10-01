@@ -282,6 +282,8 @@ a.wordmark:hover { color: var(--ink); }
   min-height: 100vh;
 }
 .col > * { min-width: 0; }
+/* Home (Round 7): the content width, no narrow centre column. */
+.col.is-wide { width: 1040px; }
 .col-spacer { flex: 1; }
 
 .footer {
@@ -355,6 +357,7 @@ a.wordmark:hover { color: var(--ink); }
 @media (max-width: 640px) {
   .topbar { padding: 0 var(--s-24); }
   .col { width: 100%; max-width: none; padding: var(--s-16) var(--s-24) var(--tabbar-clear); }
+  .col.is-wide { width: 100%; }
   .tabbar { display: flex; }
   .proto-note { display: none; }
   .menu { padding: var(--s-16) var(--s-24) var(--s-24); }

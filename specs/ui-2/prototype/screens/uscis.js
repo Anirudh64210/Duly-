@@ -57,10 +57,10 @@
   const NO_CARD = ['i129', 'i140', 'i539'];
   const RECEIPT = /^[A-Z]{3}\d{10}$/;
   const NBSP = ' ';
-  /* USCIS status lives in Plan now (BLUEPRINT 3.1): #/plan/status lists the
-     cases, #/plan/status/<id> opens one. #/uscis and #/applications redirect
-     there (screens/plan.js). */
-  const BASE = '#/plan/status';
+  /* USCIS status is its own page again (Round 7, rule 5): #/uscis lists
+     the cases, #/uscis/<id> opens one. #/applications and #/plan/status
+     redirect here. */
+  const BASE = '#/uscis';
 
   /* The next check (BLUEPRINT 3.1, Status: receipt, last checked, next
      check). There is no USCIS connection in v1 (decision 14), so the next
@@ -84,7 +84,7 @@
      {asOf} · next check {date}". asOf is the day the status was last seen
      on USCIS (saved with each status, data.js applications.items).
        OPT, Approved, asOf Dec 20, 2025, no waiting loop:
-         "Checked Dec 20, 2025 · decided, no next check"
+         "Checked Dec 20, 2025"
        STEM OPT once its receipt is saved Sep 30, 2026 (asOf today), loop
          waiting on USCIS, timer 2026-09-30 + 30 = 2026-10-30 (python3):
          "Checked Sep 30, 2026 · next check Oct 30, 2026"
@@ -98,8 +98,9 @@
     if (isUnknown(a) || !a.asOf) {
       return (a.added ? 'Added ' + a.added + ' · ' : '') + 'not checked yet' + (next ? ' · next check ' + next : '');
     }
-    const tail = next ? 'next check ' + next : (DECIDED.indexOf(a.status) >= 0 ? 'decided, no next check' : 'no next check set');
-    return 'Checked ' + a.asOf + ' · ' + tail;
+    /* A decided case needs no next check: the date alone says it. */
+    if (!next && DECIDED.indexOf(a.status) >= 0) return 'Checked ' + a.asOf;
+    return 'Checked ' + a.asOf + ' · ' + (next ? 'next check ' + next : 'no next check set');
   }
   const keepDates = (s) => s.replace(/(\w{3}) (\d)/g, '$1' + NBSP + '$2').replace(/(\d), (\d{4})/g, '$1,' + NBSP + '$2');
 
@@ -206,17 +207,24 @@
       C.valueRow({ label: 'Filed', value: fmtY(p.filed), editable: false, num: true }),
       C.valueRow({ label: 'H-1B start asked for', value: fmtY(p.start), editable: false, num: true }),
       C.valueRow({ label: 'Outcome', value: outcomeLabel(g.outcome) + (g.outcome !== 'pending' && App.dates.okIso(p.decided) ? ', ' + fmtY(p.decided) : ''), editable: false }),
-      C.valueRow({ label: 'Cap-gap end', key: 'capgap:' + p.id, value: g.endText, editable: false, num: true, source: g.outcome === 'denied' ? 'capGapOutcome' : 'capGap' }),
+      C.valueRow({ label: 'Cap-gap end', key: 'capgap:' + p.id, value: g.endText, editable: false, num: true }),
     ];
-    if (g.f1Ends) rows.push(C.valueRow({ label: 'F-1 status ends', value: fmtY(g.f1Ends), editable: false, num: true, source: 'capGapStart' }));
-    if (g.outcome !== 'denied') rows.push(C.row({ title: 'Days without work keep counting through cap-gap.', source: 'capGapUnemployment' }));
+    if (g.f1Ends) rows.push(C.valueRow({ label: 'F-1 status ends', value: fmtY(g.f1Ends), editable: false, num: true }));
+    if (g.outcome !== 'denied') rows.push(C.row({ title: 'Days without work keep counting through cap-gap.' }));
     if (g.cardEndsBeforeFiling) {
       rows.push(C.row({
         title: 'Your EAD card ends ' + fmtY(g.cardEnd) + ', before the filing day.',
-        source: 'eadEnds',
       }));
     }
     return rows;
+  }
+  /* Round 7, rule 2: no ⓘ on a row. The petition's sources, listed once
+     under it. */
+  function petitionHow(p) {
+    const g = App.capGap(p);
+    if (!g) return '';
+    return C.how([g.outcome === 'denied' ? 'capGapOutcome' : 'capGap', g.f1Ends ? 'capGapStart' : null,
+      g.outcome !== 'denied' ? 'capGapUnemployment' : null, g.cardEndsBeforeFiling ? 'eadEnds' : null]);
   }
   /* The cover question, with Copy, as Next steps asks it (App.capGap). */
   const petitionAsk = (p) => { const g = App.capGap(p); return g && g.question ? C.askDso([g.question]) : ''; };
@@ -226,16 +234,16 @@
       key: 'capgap-empty',
       title: 'Cap-gap end',
       meta: 'Shows here once your petition is on your record',
-      info: 'April 1 of the fiscal year your H-1B would start in, or the H-1B start if earlier, for a petition filed on or after Jan 17, 2025. A fiscal year starts October 1. Try an outcome, then save the petition to your record from there.',
+      info: 'With an H-1B petition that asks for a change of status, your F-1 status and OPT work permission can run on while it is decided. That span is cap-gap. It ends April 1 of the fiscal year your H-1B would start in, or the H-1B start if earlier, for a petition filed on or after Jan 17, 2025. Whether it covers you is a question for your DSO.',
     });
     const body = ps.length
-      ? ps.map((p) => C.list(petitionRows(p), { accordion: false, label: 'H-1B petition' }) + petitionAsk(p)).join('')
+      ? ps.map((p) => C.list(petitionRows(p), { accordion: false, label: 'H-1B petition' }) + petitionHow(p) + petitionAsk(p)).join('')
       : C.list([empty], { accordion: false, label: 'H-1B petition' });
     const last = ps.length ? ps[ps.length - 1] : null;
     const btn = '<button type="button" class="btn btn-text is-small try-change" data-us-outcome="' + C.esc(last ? last.id : '') + '">Try an outcome</button>';
+    /* One ⓘ for the section (Round 7, rule 2): on its row, not its title. */
     return C.section({
       eyebrow: 'H-1B petition',
-      info: 'With an H-1B petition that asks for a change of status, your F-1 status and OPT work permission can run on while it is decided. That span is cap-gap. Whether it covers you is a question for your DSO.',
       cls: 'us-petition',
       content: body + '<div class="us-outcome">' + btn + '</div>',
     });

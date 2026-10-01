@@ -63,8 +63,9 @@
 
   /* The nav is never redrawn: the current item and the waiting dots move in
      place. Each item is a place (data-place: home, plan, documents,
-     updates, record, settings, feedback) that holds several routes (C.placeOf), so #/uscis
-     shows Plan as current and a dot waiting in steps shows on Plan. */
+     uscis, updates, settings, feedback) that holds several routes
+     (C.placeOf), so #/steps shows Plan as current and a dot waiting in
+     steps shows on Plan. */
   function updateNav() {
     const waiting = waitingIn();
     const placeOf = (r) => (C.placeOf ? C.placeOf(r) : r);
@@ -100,6 +101,9 @@
     if (A.home === 'today') delete A.home;
     A.today = 'home';
     A.papers = 'documents';
+    /* Round 7, rule 8: Record is gone from v1; its history stays stored
+       (app/record.js, data.js journey) and returns later as an export. */
+    A.record = 'home';
   }
   settleAliases();
   window.addEventListener('DOMContentLoaded', settleAliases);

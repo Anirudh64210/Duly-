@@ -1,7 +1,8 @@
 /* components/ask.js: Ask, drawn (BLUEPRINT 3.3; D76, D77).
 
-   Ask is one field at the top of every page, in the same place always
-   (Cmd K or Ctrl K puts the cursor in it). A question opens the answer
+   Ask is one field on Home, below the three numbers (Round 7, rules 3
+   and 4: Ask appears only on Home for now; Cmd K or Ctrl K puts the cursor
+   in it there). A question opens the answer
    panel on the right (from the bottom on a phone): the question, a quiet
    "Thinking", then the answer in plain words and at most two buttons that
    start a guided flow in place. A follow-up field sits at the foot.
@@ -9,7 +10,7 @@
    dates Duly's engine computed; app/ask.js does the talking.
 
    Public (every function returns an HTML string):
-     C.askBar()                 the field at the top of the content
+     C.askBar({ placeholder? })  the field, drawn by Home
      C.askAbout({ text, label })  "Ask about this" on a card
      C.askPanel()               the panel's frame
      C.askTurn(turn, loopsHtml) one question and what came back
@@ -44,12 +45,13 @@
     aboutThis: 'Ask about this',
   };
 
-  function askBar() {
+  function askBar(o) {
+    const opt = o || {};
     const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
     return '<form class="askbar" role="search" data-askbar>' +
       '<label class="sr-only" for="askbar-q">' + esc(W.label) + '</label>' +
       '<input class="askbar-input" id="askbar-q" type="text" data-askbar-q autocomplete="off" autocapitalize="sentences" spellcheck="true" enterkeyhint="send"' +
-      ' placeholder="' + esc(W.placeholder) + '" aria-keyshortcuts="' + (mac ? 'Meta+K' : 'Control+K') + '">' +
+      ' placeholder="' + esc(opt.placeholder || W.placeholder) + '" aria-keyshortcuts="' + (mac ? 'Meta+K' : 'Control+K') + '">' +
       '<kbd class="askbar-key" aria-hidden="true">' + (mac ? '⌘K' : 'Ctrl K') + '</kbd>' +
       '</form>';
   }

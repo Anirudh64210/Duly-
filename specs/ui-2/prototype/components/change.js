@@ -352,7 +352,7 @@
      expires, Feb 13, 2027" then "Window opens, Nov 15, 2026". */
   function fromPaper(rows) {
     if (!rows || !rows.length) return '';
-    return '<div class="from-paper"><h3>From your paper</h3>' + rows.map((r) =>
+    return '<div class="from-paper"><h3>From your document</h3>' + rows.map((r) =>
       '<div class="fp-row">' +
       '<span class="fp-cell"><span class="fp-name">' + escText(r.paper + ' · ' + r.field) + '</span><span class="fp-value num">' + escText(r.value) + '</span></span>' +
       icon('chevron', { cls: 'fp-arrow' }) +
