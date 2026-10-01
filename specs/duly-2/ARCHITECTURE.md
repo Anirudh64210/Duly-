@@ -271,7 +271,10 @@ The full audit set before the first stranger was plausibly $150k to $300k (unver
 
 ---
 
-## 8. Ask service on Bedrock (backend.md 11, infra.md 3.2 and 5.2, security.md 8, ML review)
+## 8. Ask service on Bedrock
+
+> Founder decision D80 (2026-10-01): Ask reasons and writes answers with Claude through Bedrock (D79), with this section's privacy measures kept: a separate Ask address with logs off, requests not linkable to the account, and crisis and enforcement questions never leave the device. Where this section says the model only picks a guide, D80 overrides it.
+ (backend.md 11, infra.md 3.2 and 5.2, security.md 8, ML review)
 
 **Decision: Ask is a classifier, not a writer.** The model picks which reviewed guide a question is about. Templates write every sentence; the engine supplies every number; the device fills values.
 
