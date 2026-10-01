@@ -57,8 +57,8 @@ ok(FORBIDDEN.length > 20, 'tools/copy_lint/lint.py', 'could not read the forbidd
 /* BLUEPRINT 6, copy_lint additions. */
 const EXTRA = ['this happened', 'yes, same', 'on track', 'all set', 'late', 'violation', "you're fine", 'congratulations', 'great job', 'well done', 'streak'];
 const GENERIC_LABELS = ['ok', 'okay', 'yes', 'no', 'done', 'continue', 'next', 'submit', 'save', 'confirm', 'close', 'got it', 'this happened', 'yes, same', 'not now'];
-const DASHES = /[‒-―]/;
-const EMOJI = /[\u{1F000}-\u{1FAFF}☀-➿️]/u;
+const DASHES = /[\u2012-\u2015]/;
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
 const FIRST_PERSON = /(?<![\w-])(I|I'm|I'll|I've|we|We|we're|We're|our|Our|us)(?![\w-])/;
 const SPELLED = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|sixty|ninety|hundred)\b/i;
 const FORMS = /\b(?:[A-Z]{1,3}-\d+[A-Z]?|SEVIS|\d+(?=-month))\b/g;
