@@ -10,17 +10,23 @@
           the EAD card valid until, with the days left;
           the next date the engine holds (App.nextDates), what it is and how
           far away.
-     3. Ask (Home only, rule 4), the full width, below the numbers.
-     4. A two-column grid of four cards (one column on a phone):
-          Next          at most three lines, each a title and a date, that
-                        open the item in Plan, where it lives in full
-                        (rule 1); "See plan"
+     3. A two-column grid of four cards (one column on a phone):
+          Plan          named like the page it opens (Round 8, rule 6): at
+                        most three lines, each a title and a date. A line
+                        that needs the student opens that item in place, in
+                        a sheet on Home, at the same step it has in Plan; no
+                        jump. When the item closes, the check, the receipt
+                        and the tap play in the sheet, the sheet closes and
+                        the line folds away (app/motion.js). A date line is
+                        only a date, so it is not a button. "Open plan"
           Documents     the three most used, each one tap to its saved copy;
                         "All documents"
           USCIS status  each case, its status and as-of date, to its page
           Updates       the latest two headlines, date and the For you line
-     5. Only when something cannot be told now: one quiet line (offline,
+     4. Only when something cannot be told now: one quiet line (offline,
         reminders off on this device, a loop that cannot tell yet).
+     5. Ask, at the bottom of Home (Round 8, rule 1): C.askDock where it
+        exists, mounted in div#ask-dock; until then the Ask field there.
    No loop is drawn in full here: one place per item.
 
    Sample, Priya, today 2026-09-30 (each checked with python3):
@@ -30,8 +36,9 @@
      card        ends 2027-02-13: 2027-02-13 - 2026-09-30 = 136 days left
      next date   start preparing for STEM OPT: 2027-02-13 - 90 = 2026-11-15,
                  less 1 month = 2026-10-15, in 15 days
-     Next        the check-in ("Still at Northwind Systems, about 40 hours a
-                 week?", today), then "STEM OPT: start preparing · Oct 15"
+     Plan        the check-in ("Still at Northwind Systems?", today), then
+                 the next engine date not already a number above: the STEM
+                 OPT window opens 2027-02-13 - 90 = 2026-11-15, "Nov 15"
      Documents   I-20 · OPT, EAD card, I-797 approval notice
      USCIS       OPT work permit, Approved, Dec 20, 2025; STEM OPT work
                  permit, Not filed yet
@@ -66,9 +73,10 @@
     nextNoneLabel: 'Next date',
     inDays: 'In {n}',
     ask: 'Ask about your situation',
-    next: 'Next',
-    seePlan: 'See plan',
+    plan: 'Plan',
+    openPlan: 'Open plan',
     nextEmpty: 'Nothing open right now.',
+    checkinNext: 'Check-in: {employer}',
     today: 'Today',
     stemPrepare: 'STEM OPT: start preparing',
     docs: 'Documents',
@@ -231,12 +239,13 @@
     return '<section class="home-figures" aria-label="Your numbers">' + out.join('') + '</section>';
   }
 
-  /* ---------------- 3. Ask ---------------- */
+  /* ---------------- 5. Ask, at the bottom ---------------- */
   function askBox() {
-    return '<div class="home-ask">' + C.askBar({ placeholder: COPY.ask }) + '</div>';
+    const inner = typeof C.askDock === 'function' ? C.askDock({ placeholder: COPY.ask }) : C.askBar({ placeholder: COPY.ask });
+    return '<div class="home-ask" id="ask-dock">' + (inner || '') + '</div>';
   }
 
-  /* ---------------- 4. the four cards ---------------- */
+  /* ---------------- 3. the four cards ---------------- */
   function card(key, title, link, body) {
     return '<section class="home-card hc" aria-labelledby="hc-' + key + '">' +
       '<div class="hc-head"><h2 class="hc-title" id="hc-' + key + '">' + e(title) + '</h2>' +
@@ -245,18 +254,22 @@
   }
   /* One row: a title and, on the right, its date or status, on one line. */
   function rowHtml(p) {
-    const inner = '<span class="hc-row-title">' + e(p.title) + '</span>' +
+    const inner = (p.dot ? '<span class="hc-dot" aria-hidden="true"></span>' : '') + '<span class="hc-row-title">' + e(p.title) + '</span>' +
       (p.meta ? '<span class="hc-row-meta num">' + e(p.meta) + '</span>' : '') +
       (p.sub ? '<span class="hc-row-sub">' + e(p.sub) + '</span>' : '');
-    const cls = C.cls('hc-row', p.sub && 'has-sub');
+    const cls = C.cls('hc-row', p.sub && 'has-sub', p.still && 'is-still');
+    if (p.still) return '<li><div class="' + cls + '">' + inner + '</div></li>';
     if (p.button) return '<li><button type="button" class="' + cls + '"' + C.attrs(p.attrs || {}) + '>' + inner + '</button></li>';
     return '<li><a class="' + cls + '" href="' + e(p.href) + '"' + C.attrs(p.attrs || {}) + '>' + inner + '</a></li>';
   }
   const rows = (list) => '<ul class="hc-rows">' + list.join('') + '</ul>';
   const empty = (text) => '<p class="hc-empty">' + e(text) + '</p>';
 
-  /* Next. The loops open in Plan, earliest engine date first
-     (App.loops.whatsNext), at most three. Each opens in Plan, unfolded. */
+  /* Plan. The loops that need the student now, earliest engine date first
+     (App.loops.whatsNext), at most three; each opens in a sheet here. A
+     loop that is waiting or planned has nothing to answer, so it is not a
+     line here (its date is in Plan). A loop settling after its closing
+     action keeps its line until app/motion.js folds it away. */
   function nextIsoOf(lp) {
     const s = L().schedule({ only: lp.id }).reminders[0];
     return (s && s.iso) || lp.timerAt || null;
@@ -284,28 +297,53 @@
       if (v.seen.kind === 'needs' && !v.seen.next) date = COPY.today;
       else { const iso = nextIsoOf(lp); date = iso ? fmt(iso) : null; }
     }
-    return rowHtml({ title: title, meta: date, href: '#/plan', attrs: { 'data-home-loop': lp.id } });
+    return rowHtml({ title: title, meta: date, button: true, dot: true, attrs: { 'data-home-loop': lp.id, 'aria-haspopup': 'dialog' } });
   }
   /* Then, while there is room, the next dates the engine holds that no line
      above already says (App.nextDates): Sep 30, the STEM OPT window opens
      2027-02-13 - 90 = 2026-11-15. The card's end is already a number above,
      so it is not said again. */
+  /* The dates the engine holds (App.nextDates), and each running job's
+     next check-in, the follow-up a confirmed check-in names: the day it was
+     last confirmed plus checkin.jobDays. Confirmed 2026-09-30, so
+     2026-09-30 + 30 = 2026-10-30, "Check-in: Northwind Systems, Oct 30".
+     While a check-in is due its loop is the line above, so a date that is
+     not after today is not repeated. Earliest first. */
+  function dateLines() {
+    const out = (App.nextDates ? App.nextDates() : []).slice();
+    const r = App.record();
+    const t = today();
+    const every = (App.data.checkin || {}).jobDays || 30;
+    (r.jobs || []).filter((j) => j.start <= t && (!j.end || t <= j.end) && D().okIso(j.confirmedOn)).forEach((j) => {
+      const due = D().addDays(j.confirmedOn, every);
+      if (due > t) out.push({ iso: due, title: fill(COPY.checkinNext, { employer: j.employer }), days: D().daysBetween(t, due) });
+    });
+    return out.sort((x, y) => (x.iso < y.iso ? -1 : (x.iso > y.iso ? 1 : 0)));
+  }
+  let shownRows = []; /* the loop lines last drawn: [{ id, html }] */
   function nextCard(ctx) {
-    const loops = L() ? L().whatsNext({ max: 99 }).loops.filter((lp) => !(L().def(lp.kind) || {}).private && !(ctx.noCard && lp.kind === 'stem-filing')).slice(0, 3) : [];
+    const loops = L() ? L().whatsNext({ max: 99 }).loops.filter((lp) => !(L().def(lp.kind) || {}).private && !(ctx.noCard && lp.kind === 'stem-filing') && L().seen(lp).kind === 'needs') : [];
     const card0 = cardNow(App.record());
     const fig = (App.nextDates ? App.nextDates() : [])[0];
     /* One place per item (Round 7 rule 1): a line whose date is already the
        big "next date" number above is not said again here. */
-    const list = loops.map(nextRow).filter((html) => !(fig && html.indexOf('>' + fmt(fig.iso) + '<') >= 0));
-    const said = list.join('');
-    (App.nextDates ? App.nextDates() : []).forEach((d) => {
-      /* Next holds what is due soon. Document expiry dates live in the
-         Documents watch, and anything more than 120 days out is not next. */
-      if (/visa|passport|ends \(sample/i.test(d.title) || d.days > 120) return;
-      if (list.length >= 3 || (card0 && d.iso === card0.until) || (fig && d.iso === fig.iso && list.length) || said.indexOf('>' + fmt(d.iso) + '<') >= 0) return;
-      list.push(rowHtml({ title: d.title.replace(/\.$/, ''), meta: fmt(d.iso), href: '#/plan' }));
+    const items = loops.map((lp) => ({ id: lp.id, html: nextRow(lp) })).filter((x) => !(fig && x.html.indexOf('>' + fmt(fig.iso) + '<') >= 0));
+    /* A line whose item is settling (its check and receipt are showing)
+       stays where it stood, as it was, until app/motion.js folds it away. */
+    shownRows.forEach((x, i) => {
+      if (App.settleLine && App.settleLine(x.id) && !items.some((y) => y.id === x.id)) items.splice(Math.min(i, items.length), 0, x);
     });
-    return card('next', COPY.next, { label: COPY.seePlan, href: '#/plan' }, list.length ? rows(list) : empty(COPY.nextEmpty));
+    shownRows = items.slice(0, 3);
+    const list = shownRows.map((x) => x.html);
+    const said = list.join('');
+    dateLines().forEach((d) => {
+      /* Plan holds what is due soon. Document expiry dates live in the
+         Documents watch, and anything more than 120 days out is not here. */
+      if (/visa|passport|ends \(sample/i.test(d.title) || d.days > 120) return;
+      if (list.length >= 3 || (card0 && d.iso === card0.until) || (fig && d.iso === fig.iso) || said.indexOf('>' + fmt(d.iso) + '<') >= 0) return;
+      list.push(rowHtml({ title: d.title.replace(/\.$/, ''), meta: fmt(d.iso), still: true }));
+    });
+    return card('plan', COPY.plan, { label: COPY.openPlan, href: '#/plan' }, list.length ? rows(list) : empty(COPY.nextEmpty));
   }
 
   /* Documents: the three most used, each one tap to its saved copy. */
@@ -362,7 +400,7 @@
     '.screen-home .home-greet:focus-visible { outline: none; }' +
     '.screen-home .home-status { margin: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); white-space: nowrap; }' +
     '.screen-home .home-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; padding: var(--card-pad); min-width: 0; }' +
-    '.screen-home .home-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-16); }' +
+    '.screen-home .home-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-16); margin-bottom: var(--s-16); }' +
     '.screen-home .fig-card { display: flex; flex-direction: column; gap: var(--s-4); }' +
     '.screen-home .fig-card .figure-value { margin: 0 0 var(--s-4); }' +
     '.screen-home .fig-card .figure-value small { font-size: var(--t-medium); }' +
@@ -371,7 +409,7 @@
     '.screen-home .fig-card .figure-label .inline-src { margin-left: var(--s-8); vertical-align: -2px; }' +
     '.screen-home .fig-card .figure-meta { margin: 0; }' +
     '.screen-home .fig-card.is-add { justify-content: space-between; gap: var(--s-12); }' +
-    '.screen-home .home-ask { margin: var(--s-16) 0; }' +
+    '.screen-home .home-ask { margin: var(--s-24) 0 0; }' +
     '.screen-home .home-ask .askbar { width: 100%; max-width: none; margin: 0; }' +
     '.screen-home .home-ask .askbar-input { height: 48px; border-radius: 16px; padding-left: var(--card-pad); background: var(--surface); border-color: var(--hairline); }' +
     '.screen-home .home-ask .askbar-input:hover { border-color: var(--control-border); }' +
@@ -387,6 +425,10 @@
     '.screen-home .hc-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: var(--s-16); width: 100%; min-height: 44px;' +
       ' padding: var(--s-12); background: none; border: 0; border-radius: var(--r-field); font: inherit; text-align: left; color: var(--ink); text-decoration: none; cursor: pointer; }' +
     '.screen-home .hc-row:hover { background: var(--row-hover); }' +
+    '.screen-home .hc-row.is-still { cursor: default; }' +
+    '.screen-home .hc-row.is-still:hover { background: none; }' +
+    '.screen-home .hc-row.is-still .hc-row-title { font-weight: 400; color: var(--ink-2); }' +
+    '.screen-home .hc-dot { flex: none; align-self: center; width: 6px; height: 6px; margin-right: calc(-1 * var(--s-8)); border-radius: 50%; background: var(--accent); }' +
     '.screen-home button.hc-row .hc-row-meta { color: var(--accent); font-weight: 500; }' +
     '.screen-home .hc-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }' +
     '.screen-home .hc-row-title { flex: 1 1 0; min-width: 0; font-size: var(--t-small); line-height: var(--lh-small); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
@@ -397,15 +439,17 @@
     '.screen-home .hc-empty { margin: var(--s-8) 0; font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-3); }' +
     '.screen-home .home-notes { margin-top: var(--s-16); display: flex; flex-direction: column; gap: var(--s-4); }' +
     '.screen-home .home-notes p { margin: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); }' +
+    '.home-item-top { justify-content: flex-end; padding-bottom: 0; }' +
+    '.sheet-body.home-item { padding-top: 0; }' +
     '@media (max-width: 960px) { .screen-home .home-date { display: none; } }' +
     '@media (max-width: 760px) { .screen-home .home-grid { grid-template-columns: minmax(0, 1fr); } }' +
     '@media (max-width: 640px) {' +
     '  .screen-home { --card-pad: 16px; }' +
-    '  .screen-home .home-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-12); }' +
+    '  .screen-home .home-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-12); margin-bottom: var(--s-12); }' +
     /* The card date is the widest figure: it takes the full row under the
        two short ones. */
     '  .screen-home .home-figures > .fig-card-date { grid-column: 1 / -1; order: 2; }' +
-    '  .screen-home .home-ask { margin: var(--s-12) 0; }' +
+    '  .screen-home .home-ask { margin: var(--s-16) 0 0; }' +
     '  .screen-home .home-grid { gap: var(--s-12); }' +
     '  .screen-home .fig-card .figure-value small { font-size: var(--t-small); }' +
     '}' +
@@ -424,24 +468,42 @@
         /* 2026-09-30 - 1 = 2026-09-29, the last run in the offline demo. */
         lastRun: D().addDays(today(), -1),
       };
-      return STYLE + hello(App.record()) + figures(ctx) + askBox() +
+      return STYLE + hello(App.record()) + figures(ctx) +
         '<div class="home-grid">' + nextCard(ctx) + docsCard() + uscisCard() + updatesCard() + '</div>' +
-        notes(ctx) + C.footer();
+        notes(ctx) + askBox() + C.footer();
     },
     mount(root) {
       root.classList.add('screen-home');
       root.addEventListener('click', (ev) => {
-        /* A Next line opens its item in Plan, unfolded, in view. */
+        /* A Plan line opens its item here, in a sheet: no jump. */
         const nx = ev.target.closest('[data-home-loop]');
-        if (nx) {
-          const id = nx.dataset.homeLoop;
-          App.state['loopOpen:' + id] = true;
-          if (L()) L().markSeen(id);
-          App.state['plan:focus'] = id;
-        }
+        if (nx) { ev.preventDefault(); openItem(nx.dataset.homeLoop); }
       });
     },
   };
+
+  /* The item in a sheet on Home: its name on top, then the same loop step
+     Plan shows (C.loop, flat), answered in place. The loop wiring
+     (app/loops.js) redraws it in the sheet; app/motion.js closes the sheet
+     when the item is done. Escape, the scrim and the close mark close it. */
+  function openItem(id) {
+    const lp = L() && L().get(id);
+    if (!lp || !App._.openSheet || !C.loop) return;
+    L().markSeen(id);
+    App.state['loopOpen:' + id] = true;
+    App.homeSheetLoop = id;
+    App._.openSheet('home-item', () => {
+      const cur = L().get(id);
+      if (!cur) return '';
+      const v = L().view(cur);
+      /* The item's name is the dialog's name; the step's own question is
+         the first thing seen, so it is not said twice. */
+      return '<div class="sheet-top home-item-top"><h2 class="sr-only" id="sheet-title" tabindex="-1">' + e(v.title) + '</h2>' +
+        '<button type="button" class="sheet-x" data-sheet-close aria-label="Close">' + C.icon('close') + '</button></div>' +
+        '<div class="sheet-body home-item">' + C.loop(cur, { open: true, flat: true }) + '</div>';
+    });
+  }
+  App.openHomeItem = openItem;
   window.SCREENS.today = HOME;
   window.SCREENS.home = HOME;
 })();

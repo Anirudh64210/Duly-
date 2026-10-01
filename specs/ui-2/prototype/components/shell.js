@@ -10,9 +10,10 @@
   /* Shell                                                              */
   /* ---------------------------------------------------------------- */
 
-  /* Navigation (Round 7, rule 4): five places, the same five in the
-     sidebar and the phone's tab bar, then Settings and Feedback quietly at
-     the bottom. Ask is the field on Home only (C.askBar, drawn by Home).
+  /* Navigation (Round 7, rule 4; Round 8, note 4): six places, the same six
+     in the sidebar and the phone's tab bar (Work is its own page: the jobs,
+     their hours and reports), then Settings and Feedback quietly at the
+     bottom. Ask is the field on Home only (C.askBar, drawn by Home).
        name      the place's own route
        routes    every route that belongs to the place: the nav item shows
                  as current on each, and a waiting dot on any of them shows
@@ -23,9 +24,10 @@
      #/documents and #/record to #/home (App.ALIASES, set in app/nav.js). */
   const NAV = [
     { name: 'home', label: 'Home', tab: true, icon: 'home', routes: ['home', 'today'] },
-    { name: 'plan', label: 'Plan', tab: true, icon: 'next', routes: ['plan', 'steps', 'timeline', 'employer', 'next', 'checklists'], fallback: 'steps' },
+    { name: 'plan', label: 'Plan', tab: true, icon: 'next', routes: ['plan', 'steps', 'timeline', 'next', 'checklists'], fallback: 'steps' },
+    { name: 'work', label: 'Work', tab: true, icon: 'work', routes: ['work', 'employer'] },
     { name: 'documents', label: 'Documents', tab: true, icon: 'documents', routes: ['documents', 'papers'], fallback: 'papers' },
-    { name: 'uscis', label: 'USCIS status', tab: true, icon: 'uscis', routes: ['uscis', 'applications'] },
+    { name: 'uscis', label: 'USCIS status', tabLabel: 'USCIS', tab: true, icon: 'uscis', routes: ['uscis', 'applications'] },
     { name: 'updates', label: 'Updates', tab: true, icon: 'news', routes: ['updates', 'news'] },
   ];
   const NAV_SECONDARY = [
@@ -50,6 +52,11 @@
   /* waiting: route names with something waiting (App.waitingIn()); a dot
      shows on the place that holds any of them. */
   function waitsIn(n, waiting) {
+    /* Work carries its own dot: a job loop that needs her (screens/work.js). */
+    if (n.name === 'work') {
+      const W = (window.SCREENS || {}).work;
+      try { if (W && W.needsYou && W.needsYou()) return true; } catch (e) { /* not ready yet */ }
+    }
     return (waiting || []).some((w) => (n.routes || [n.name]).indexOf(w) !== -1);
   }
 
@@ -95,11 +102,19 @@
     return '<div class="menu" id="menu" role="dialog" aria-label="Menu">' +
       navList(NAV, p.route, p.waiting) + navList(NAV_SECONDARY, p.route, p.waiting, 'nav-quiet') + '</div>';
   }
+  /* Work's tab icon, a briefcase, drawn here: the shared icon set has none.
+     Six tabs share a phone's width, so a long name has a short tab label
+     (tabLabel); the sidebar and the menu keep the full name. */
+  const OWN_ICONS = {
+    work: '<svg class="icon icon-work" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      '<rect x="3.5" y="7.5" width="17" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M9 7.5V5.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3.5 12.5h17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  };
   function tabbar(p) {
     const here = placeOf(p.route);
     return '<nav class="tabbar" aria-label="Main">' + NAV.filter((n) => n.tab).map((n) =>
       '<a class="tab" href="' + esc(hrefOf(n)) + '" data-place="' + esc(n.name) + '"' + (n.name === here ? ' aria-current="page"' : '') + '>' +
-      icon(n.icon) + '<span>' + esc(n.label) + '</span></a>').join('') + '</nav>';
+      (icon(n.icon) || OWN_ICONS[n.icon] || '') + '<span>' + esc(n.tabLabel || n.label) + '</span></a>').join('') + '</nav>';
   }
 
   Object.assign(C, { NAV, NAV_SECONDARY, placeOf, wordmark, navItem, sidebar, topbar, menuSheet, tabbar });

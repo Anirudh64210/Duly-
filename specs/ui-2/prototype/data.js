@@ -2635,3 +2635,169 @@ window.DULY_SAMPLE.loops = {
   },
 };
 /* ===== END LOOPS ===== */
+
+/* ===== WORK (BRIEF Round 8, note 4) =====
+   Copy for Work (#/work, screens/work.js): the student's jobs, more than one
+   at a time is normal (part time at one employer and full time at her own
+   company). Every date and count on the page comes from records.jobs, the
+   reports (App.reportsOwed) and the check-in setting above (checkin.jobDays);
+   nothing here is a date. {holes} are filled by screens/work.js. */
+window.DULY_SAMPLE.work = {
+  title: 'Work',
+  sub: 'Your jobs, their hours and what you reported. More than one job at a time is normal.',
+  add: 'Add a job',
+  kinds: { employer: 'An employer', own: 'My own company' },
+  fields: { employer: 'Employer', company: 'Company name', title: 'Your title', hours: 'Hours a week', start: 'First day' },
+  save: 'Add this job',
+  cancel: 'Cancel',
+  ownMark: 'Your company',
+  hours: '{hours} hours a week',
+  noHours: 'Hours not saved yet',
+  since: 'Since {date}',
+  between: '{from} to {to}',
+  reportedLabel: 'Reported to your DSO',
+  reported: 'Marked {date}',
+  reportBy: 'By {date}',
+  reportLater: 'Within {days} days of the first day',
+  markReported: 'Mark reported',
+  checkinLabel: 'Last confirmed',
+  checkin: '{date} · next check-in {next}',
+  changeHours: 'Change hours',
+  jobEnded: 'My job ended',
+  hoursFrom: 'From',
+  saveHours: 'Save the new hours',
+  earlier: 'Earlier jobs',
+  empty: 'No job on your record yet.',
+  errors: {
+    employer: 'Add the employer.',
+    company: 'Add the company name.',
+    hours: 'Add the hours a week.',
+    start: 'Add the first day.',
+  },
+  receipts: {
+    added: 'Added {employer}. Report it to your DSO by {due}.',
+    addedLater: 'Added {employer}. Report it to your DSO within {days} days of the first day.',
+    addedOwn: ' Its steps are in Plan.',
+    reported: 'Marked reported {today}.',
+    hours: 'Saved: {hours} hours a week at {employer} from {from}. Report it by {due}.',
+    hoursBelow: ' Fewer than {minHours} hours a week: those days count as days without work.',
+  },
+  undo: 'Undo',
+};
+/* ===== END WORK ===== */
+
+/* ===== GOALS (BRIEF Round 8, note 5) =====
+   Plan is built from the record and the student's goals. STEM OPT is drawn
+   from the record (screens/steps.js); each goal below is a short ordered list
+   of steps, added from Plan ("Add a goal") or from an Ask answer
+   (App.addGoal(kind)). A step's date comes from the record, never from here:
+     date 'report'     the job report for her own company, from
+                       App.reportsOwed: first day + 10 days (a company started
+                       2026-10-01 is due 2026-10-11, python3).
+     date 'stemStart'  the first STEM OPT day: the OPT card's last day + 1,
+                       2027-02-13 + 1 = 2027-02-14 (python3); a saved STEM
+                       card's own first day wins.
+     date 'cardEnd'    the last day of the work permission she has now: the
+                       OPT card, 2027-02-13; a saved STEM card's last day wins.
+   Each step opens to one plain line and, at its bottom, the one ⓘ with its
+   source. Holes: {major} from records.program, {minHours} from App.RULE,
+   {days} the report window (App.RULE.reportWithin). */
+window.DULY_SAMPLE.goals = {
+  add: 'Add a goal',
+  addTitle: 'Which goal?',
+  cancel: 'Cancel',
+  remove: 'Remove',
+  added: 'Added to your plan: {title}.',
+  removed: 'Removed from your plan: {title}.',
+  undo: 'Undo',
+  order: ['company', 'o1'],
+  kinds: {
+    company: {
+      title: 'Start my own company',
+      sub: 'Self-employment on OPT, and what changes at STEM OPT',
+      steps: [
+        { key: 'license', title: 'Register the business and get its licenses',
+          line: 'Keep the registration and licenses with your documents: they show the business is real and running.', source: 'selfEmployed' },
+        { key: 'related', title: 'Keep the work related to your {major} degree',
+          line: 'The business is in the field you studied.', source: 'selfEmployed' },
+        { key: 'hours', title: 'Work at least {minHours} hours a week in it',
+          line: 'Fewer hours a week: those days count as days without work.', source: 'optHours' },
+        { key: 'report', title: 'Report it to your DSO as self-employed', date: 'report',
+          line: 'Report it as a self-employed business owner, with the day you went into business, within {days} days.', source: 'reportChanges' },
+        { key: 'stem', title: 'At STEM OPT, work for an employer who signs your I-983', date: 'stemStart',
+          line: 'STEM OPT needs a real employer and employee relationship: an employer in E-Verify, with a tax ID, and a supervisor who is not you. You cannot sign the employer part for your own company.', source: 'stemOwnCompany' },
+        { key: 'dso', title: 'Ask your DSO whether your setup fits',
+          line: 'Whether your company and your role fit these rules is a question for your DSO.' },
+      ],
+    },
+    o1: {
+      title: 'O-1 later',
+      sub: 'No lottery: an employer or an agent files for you, with evidence of your work',
+      steps: [
+        { key: 'evidence', title: 'Build evidence in at least three of eight kinds',
+          line: 'Prizes or awards, memberships that judge achievement, articles about your work, judging the work of others, original contributions, articles you wrote, a leading role at a known organization, and high pay.', source: 'o1Evidence' },
+        { key: 'petitioner', title: 'Find a petitioner: a US employer or a US agent',
+          line: 'You cannot file the petition for yourself. An agent can file for work with more than one employer.', source: 'o1Petitioner' },
+        { key: 'advisory', title: 'Get a written opinion from a peer group in your field',
+          line: 'The petition includes a written advisory opinion from a group in your field.', source: 'o1Advisory' },
+        { key: 'timing', title: 'Plan the filing before your work permission ends', date: 'cardEnd',
+          line: 'There is no lottery and no yearly cap, so the filing follows your own timing. When to file is a question for your petitioner.', source: 'o1Cap' },
+      ],
+    },
+  },
+};
+
+/* Sources the goals cite (each quote read from the saved source in
+   rulepacks/f1-us/v2026.09/sources, or a public page where the law gives
+   no quote). */
+Object.assign(window.DULY_SAMPLE.sources, {
+  selfEmployed: {
+    name: 'Self-employment on OPT',
+    plain: 'On post-completion OPT you may start a business and be self-employed, with the licenses it needs, in a business related to your degree.',
+    quote: 'Self-employed business owner. A student on OPT may start a business and be self-employed. The student must be able to prove that he or she has the proper business licenses and is actively engaged in a business related to the student’s degree program.',
+    counted: [],
+    link: { label: 'SEVP Policy Guidance 1004-03 on ice.gov', href: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf' },
+    checked: 'Checked Sep 30',
+  },
+  stemOwnCompany: {
+    name: 'STEM OPT and your own company',
+    plain: 'STEM OPT needs a real employer and employee relationship. A start-up can be the employer when every requirement is met, but you cannot sign the employer part for yourself.',
+    quote: 'In response to comments received, DHS clarifies that students may be employed by start-up businesses, but all regulatory requirements must be met and the student may not provide employer attestations on his or her own behalf.',
+    counted: [],
+    link: { label: '81 FR 13040 (2016) on federalregister.gov', href: 'https://www.federalregister.gov/d/2016-04828' },
+    checked: 'Checked Sep 30',
+  },
+  o1Evidence: {
+    name: 'O-1 evidence',
+    plain: 'For science, education, business or athletics: a major award, or documents of at least three of eight kinds.',
+    quote: 'An alien of extraordinary ability in the fields of science, education, business, or athletics must demonstrate sustained national or international acclaim and recognition for achievements in the field of expertise by providing evidence of: (A) Receipt of a major, internationally recognized award, such as the Nobel Prize; or (B) At least three of the following forms of documentation',
+    counted: [],
+    link: { label: '8 CFR 214.2(o)(3)(iii) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+    checked: 'Checked Sep 30',
+  },
+  o1Petitioner: {
+    name: 'Who files an O-1',
+    plain: 'A US employer or a US agent files the petition. You cannot file it for yourself.',
+    quote: 'An O alien may not petition for himself or herself.',
+    counted: [],
+    link: { label: '8 CFR 214.2(o)(2)(i) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+    checked: 'Checked Sep 30',
+  },
+  o1Advisory: {
+    name: 'The advisory opinion',
+    plain: 'An O-1 petition comes with a written advisory opinion from a group in your field.',
+    quote: '(D) A written advisory opinion(s) from the appropriate consulting entity or entities.',
+    counted: [],
+    link: { label: '8 CFR 214.2(o)(2)(ii) on ecfr.gov', href: 'https://www.ecfr.gov/current/title-8/section-214.2' },
+    checked: 'Checked Sep 30',
+  },
+  o1Cap: {
+    name: 'O-1 on uscis.gov',
+    plain: 'The O-1 has no yearly cap and no lottery. Your current work permission runs to the end date on your card.',
+    quote: null,
+    counted: [],
+    link: { label: 'O-1 visa on uscis.gov', href: 'https://www.uscis.gov/working-in-the-united-states/temporary-workers/o-1-visa-individuals-with-extraordinary-ability-or-achievement' },
+    checked: 'Checked Sep 30',
+  },
+});
+/* ===== END GOALS ===== */

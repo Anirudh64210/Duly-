@@ -13,6 +13,15 @@
                of the step (Round 7: no ⓘ on a line). An exit that drops the
                loop asks first, with Cancel.
      closed    the receipt in full and Reopen with a stated reason.
+     settling  Round 8, rule 7: right after an action that leaves nothing
+               for the student to do now, a self-drawing check and the
+               receipt as one line ("Confirmed Sep 30. Next check-in Oct
+               30"). app/motion.js holds it 1.6 s, then the item leaves on
+               its own and Undo moves to a toast. Nothing is folded by hand,
+               so a receipt has no Fold button.
+     flat      { flat: true }, or the loop Home's sheet holds
+               (App.homeSheetLoop): no folded line, only the step, since the
+               sheet's own title names the item.
    C.loops(list, { more? }) draws several, with the overflow line.
    Behaviour is wired once in app/loops.js by data-loop-* attributes.
    Spacing only from the scale; hairlines, not boxes; no red, no alarms. */
@@ -78,7 +87,6 @@
     return '<div class="loop-receipt" role="status" tabindex="-1"><p>' + escText(v.receipt) + '</p>' +
       '<div class="btn-group">' +
       (v.canUndo ? '<button type="button" class="btn btn-text is-quiet" data-loop-undo>' + esc(rc().undo || 'Undo') + '</button>' : '') +
-      '<button type="button" class="btn btn-text is-quiet" data-loop-fold>' + esc(rc().fold || 'Fold') + '</button>' +
       '</div></div>';
   }
   const rc = () => ((window.DULY_SAMPLE && DULY_SAMPLE.loops && DULY_SAMPLE.loops.receipts) || {});
@@ -100,7 +108,7 @@
     return line ? '<p class="loop-receipt-line">' + escText(line) + '</p>' : '';
   }
 
-  function body(v, lp) {
+  function body(v, lp, flat) {
     if (v.closed) {
       return (v.receipt ? receipt(v) : (v.closed.text ? '<p class="loop-closed">' + escText(v.closed.text) + '</p>' : foldedReceipt(lp))) +
         (v.closed.reopen.length ? '<div class="btn-group loop-reopen">' + v.closed.reopen.map((r) =>
@@ -130,7 +138,7 @@
     const quiet = s.exits.filter((x) => x.quiet);
     const exitHtml = (x) => (hideExit(x) ? exitButton(x).replace(/^<button /, '<button hidden data-loop-needs-reveal ') : exitButton(x));
     return (v.receipt ? receipt(v) : foldedReceipt(lp)) +
-      (s.title ? '<h3 class="loop-step">' + escText(s.title) + '</h3>' : '') +
+      (s.title ? '<h3 class="' + cls('loop-step', flat && 'is-lead') + '">' + escText(s.title) + '</h3>' : '') +
       (lead.length ? '<div class="loop-lead">' + lead.map((a) => action(a, v)).join('') + '</div>' : '') +
       (s.cantTell ? '<p class="loop-unknown">' + escText(s.cantTell) + '</p>' : '') +
       (lines ? '<ul class="loop-lines">' + lines + '</ul>' : '') + quietLines +
@@ -142,14 +150,33 @@
       '</div>' + (refs.length ? C.how(refs) : '');
   }
 
-  /* loop(loop, { open? }) */
+  /* The check that draws itself: a ring, then the tick. Under reduced
+     motion it is simply there. */
+  const CHECK = '<svg class="settle-check" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
+    '<circle cx="12" cy="12" r="10.25" pathLength="1"/><path d="M7.6 12.3l3 3.1 5.8-6.3" pathLength="1"/></svg>';
+
+  /* loop(loop, { open?, flat? }) */
   function loop(lp, o) {
     if (!lp || !window.App || !App.loops) return '';
     const v = App.loops.view(lp);
-    if (v.state === 'dismissed' && !(o && o.record)) return '';
+    const settle = App.settleLine ? App.settleLine(v.id) : null;
+    if (v.state === 'dismissed' && !settle && !(o && o.record)) return '';
+    const flat = !!((o && o.flat) || (App.homeSheetLoop === v.id && typeof document !== 'undefined' && document.querySelector('.sheet-layer')));
+    const tone = v.seen.kind === 'done' ? 'is-done' : (v.seen.kind === 'waiting' ? 'is-waiting' : 'is-needs');
+    if (settle) {
+      /* In a list the check takes the dot's place and the receipt is the
+         line under the title; in the sheet, the check and the line alone. */
+      const head = '<section class="' + cls('loop is-settled', flat && 'is-flat') + '" data-loop="' + esc(v.id) + '" aria-label="' + esc(v.title) + '">';
+      if (flat) return head + '<div class="loop-receipt loop-settle" role="status" tabindex="-1">' + CHECK + '<p>' + escText(settle) + '</p></div></section>';
+      return head + '<div class="loop-head is-still"><span class="loop-dot is-check" aria-hidden="true">' + CHECK + '</span><span class="loop-head-text"><span class="loop-title">' + escText(v.title) + '</span>' +
+        '<span class="loop-receipt loop-settle-line" role="status" tabindex="-1">' + escText(settle) + '</span></span></div></section>';
+    }
+    if (flat) {
+      return '<section class="' + cls('loop is-flat', tone) + '" data-loop="' + esc(v.id) + '" aria-label="' + esc(v.title) + '">' +
+        '<div class="loop-body">' + body(v, lp, true) + '</div></section>';
+    }
     const open = !!((o && o.open) || App.state['loopOpen:' + v.id]);
     const bodyId = uid('loopb');
-    const tone = v.seen.kind === 'done' ? 'is-done' : (v.seen.kind === 'waiting' ? 'is-waiting' : 'is-needs');
     return '<section class="' + cls('loop', tone) + '" data-loop="' + esc(v.id) + '" aria-label="' + esc(v.title) + '">' +
       '<button type="button" class="loop-head" data-loop-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-controls="' + bodyId + '">' +
       '<span class="loop-dot" aria-hidden="true"></span>' +
@@ -212,7 +239,23 @@
       '.loop-receipt-line { margin: 0; padding: 0 0 var(--s-12); border-bottom: 1px solid var(--hairline-inner); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); overflow-wrap: anywhere; }',
       '.loop-more { margin: var(--s-12) 0 0; }',
       '@media (max-width: 640px) { .loop-body { padding-left: 0; } .loop-exits .btn-group > .btn-primary { width: 100%; justify-content: center; } }',
-      '@media (prefers-reduced-motion: reduce) { .loop-head .chev { transition: none; } }',
+      /* Flat, in Home's sheet: the step alone, no line above it. */
+      '.loop.is-flat { border: 0; }',
+      '.loop.is-flat > .loop-body { padding: 0; gap: var(--s-16); }',
+      '.loop-step.is-lead { font-size: var(--t-medium); line-height: var(--lh-medium); letter-spacing: -.01em; }',
+      /* Settling: the check and the one-line receipt. */
+      '.loop.is-settled > .loop-head.is-still { cursor: default; }',
+      /* The check sits centred on the dot's own slot, so nothing shifts. */
+      '.loop.is-settled .loop-dot.is-check { position: relative; background: transparent; border: 0; }',
+      '.loop-dot.is-check > .settle-check { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; transform: translate(-50%, -50%); }',
+      '.loop-receipt.loop-settle-line { display: block; padding: 0; border: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink); overflow-wrap: anywhere; }',
+      '.loop-receipt.loop-settle { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: var(--s-12); padding: var(--s-8) 0; border: 0; }',
+      '.loop-settle p { margin: 0; flex: 1 1 auto; font-size: var(--t-small); line-height: var(--lh-small); font-weight: 500; color: var(--ink); overflow-wrap: anywhere; }',
+      '.settle-check { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }',
+      '.settle-check path { stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 0; animation: settle-tick .32s .2s cubic-bezier(.4,0,.2,1) backwards; }',
+      '.settle-check circle { stroke-dasharray: 1; stroke-dashoffset: 0; transform: rotate(-90deg); transform-origin: 12px 12px; animation: settle-tick .36s cubic-bezier(.4,0,.2,1) backwards; }',
+      '@keyframes settle-tick { from { stroke-dashoffset: 1; } }',
+      '@media (prefers-reduced-motion: reduce) { .loop-head .chev { transition: none; } .settle-check path, .settle-check circle { animation: none; } }',
     ].join('\n');
     const el = document.createElement('style');
     el.id = 'loop-style';

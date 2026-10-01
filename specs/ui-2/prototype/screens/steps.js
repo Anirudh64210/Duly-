@@ -4,6 +4,8 @@
 
    One page, one list (founder review, Oct 1):
      Plan, with one quiet line under it: the path and the answer (Change).
+       Inside Plan (o.embedded, Round 8) the title is "STEM OPT", one section
+       beside the goals; job reports are left to Work (screens/work.js).
        Unanswered, the question sits there instead: Yes, No, Not sure.
      The stepper: Today and the key dates. Only the date that matters now
        keeps its source mark, so the stepper carries one mark, not three.
@@ -38,6 +40,9 @@
 
   const STYLE = '<style>' +
     '.screen-steps .pl-head { margin-bottom: var(--s-24); }' +
+    '.screen-steps .pl-sec-head { margin: 0 0 var(--s-16); }' +
+    '.screen-steps .pl-sec-title { margin: 0; font-size: var(--t-body); line-height: var(--lh-body); font-weight: 600; color: var(--ink); }' +
+    '.screen-steps .pl-sec-head .pl-sub { margin-top: 2px; }' +
     '.screen-steps .pl-sub { margin: var(--s-4) 0 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-12); }' +
     '.screen-steps .pl-sub .btn { padding: 0; min-height: 0; }' +
     '.screen-steps .st-ask { margin: 0 0 var(--s-24); display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-12); }' +
@@ -346,12 +351,19 @@
     const all = App.reportsOwed ? App.reportsOwed(r.sampleCard && sample ? { stemCard: sample } : undefined) : null;
     if (all) {
       const t = App.data.today.iso;
-      const owedLoops = App.loops ? App.loops.list({ all: true }).filter((lp) => lp.kind === 'report-owed' &&
-        (lp.state !== 'closed' && lp.state !== 'dismissed' ? true : lp.state === 'closed' && lp.closedOn === App.loops.now())) : [];
+      /* Job reports live on Work with their job (Round 7, rule 1). A
+         closed loop stays only while it settles or its receipt is unread
+         (Round 8, rule 7: it then leaves on its own). */
+      const W = window.SCREENS.work;
+      const onWork = (lp) => !!(W && W.isWorkLoop && W.isWorkLoop(lp));
+      const owedLoops = App.loops ? App.loops.list({ all: true }).filter((lp) => lp.kind === 'report-owed' && !onWork(lp) &&
+        (lp.state !== 'closed' && lp.state !== 'dismissed' ? true : lp.state === 'closed' && lp.closedOn === App.loops.now() &&
+          ((App.settleLine && App.settleLine(lp.id)) || (lp.receipt && !lp.receipt.folded)))) : [];
+      const jobReport = (x) => /^report:(job-|new-plan:)/.test(String(x.id));
       const byLoop = owedLoops.map((lp) => (lp.context || {}).reportId);
       const dueOf = (id) => ((all.rows || []).filter((x) => x.id === id)[0] || {}).due || NOW;
       owedLoops.forEach((lp) => push(dueOf((lp.context || {}).reportId), loopItem(lp)));
-      const plain = (x) => byLoop.indexOf(x.id) < 0;
+      const plain = (x) => byLoop.indexOf(x.id) < 0 && !jobReport(x);
       const rows = (all.open || []).filter(plain).concat((all.done || []).filter((x) => x.made === t).filter(plain));
       rows.forEach((x) => push(x.due, reportRow(x)));
       if (!rows.length && !owedLoops.length) (all.rows || []).filter((x) => x.standing).forEach((x) => push(LAST, reportRow(x)));
@@ -403,8 +415,17 @@
         (intent === 'unsure' ? '' : answerBtn('Not sure yet', 'unsure', 'btn btn-text is-quiet')) +
         '</div></div>';
     }
-    const head = '<header class="page-header pl-head"><h1 class="t-big" tabindex="-1">Plan</h1>' +
-      (sub ? '<p class="pl-sub t-meta">' + sub + '</p>' : '') + '</header>';
+    /* Inside Plan (Round 8, note 5) STEM OPT is one section beside the
+       goals: its own title, the answer under it. */
+    if (opt.embedded) {
+      if (card) sub = '<span>Card ' + e(fmtY(card.from)) + ' to ' + e(fmtY(card.until)) + '</span>';
+      else if (intent === 'no') sub = '<span>Not applying this time</span>' + change;
+      else if (intent === 'yes') sub = '<span>You plan to apply</span>' + (loopOpen ? '' : change);
+    }
+    const head = opt.embedded
+      ? '<header class="pl-sec-head"><h2 class="pl-sec-title">STEM OPT</h2>' + (sub ? '<p class="pl-sub t-meta">' + sub + '</p>' : '') + '</header>'
+      : '<header class="page-header pl-head"><h1 class="t-big" tabindex="-1">Plan</h1>' +
+        (sub ? '<p class="pl-sub t-meta">' + sub + '</p>' : '') + '</header>';
 
     const showSteps = !(intent === 'no' && !card);
     const when = showSteps

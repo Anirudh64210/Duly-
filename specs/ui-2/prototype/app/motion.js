@@ -12,15 +12,20 @@
   /* ---------------- round 5: motion and haptics (note 4) ---------------- */
 
   /* Light, never loud: one short tap for a tick, a softer double for a
-     completion. Phones without the Vibration API (iPhone Safari) and every
-     desktop simply do nothing. */
-  const HAPTICS = { tick: 10, select: 6, complete: [8, 70, 8] };
+     completion, one light tap when a loop closes (success). Phones without
+     the Vibration API (iPhone Safari) and every desktop simply do nothing.
+     A success tap holds off any other tap for 300 ms, so the tap the loop
+     wiring sends right after it is not a second buzz. */
+  const HAPTICS = { tick: 10, select: 6, complete: [8, 70, 8], success: 12 };
   let lastHaptic = 0;
+  let quietUntil = 0;
   function haptic(kind) {
     if (reduced() || App.state.haptics === false) return false;
     if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false;
     const now = Date.now();
-    if (kind !== 'complete' && now - lastHaptic < 60) return false;
+    if (kind !== 'success' && now < quietUntil) return false;
+    if (kind !== 'complete' && kind !== 'success' && now - lastHaptic < 60) return false;
+    if (kind === 'success') quietUntil = now + 300;
     lastHaptic = now;
     try { return navigator.vibrate(HAPTICS[kind] || HAPTICS.tick); } catch (e) { return false; }
   }
@@ -115,5 +120,183 @@
     }
   }
 
+  /* ---------------- Round 8, rule 7: every loop closes itself ----------------
+
+     The full UI loop, on any page and in Home's sheet. When an action
+     leaves a loop with nothing more for the student to do now (it is done,
+     dropped, waiting or planned), and the action wrote a receipt:
+       1. the loop is drawn as a self-drawing check and a one-line receipt
+          with the follow-up ("Confirmed Sep 30. Next check-in: Oct 30"),
+          and one light haptic tap;
+       2. the receipt is held for 1.6 s;
+       3. then the item leaves: Home's sheet fades and closes and the Home
+          row folds away (height and opacity); in a list, the item folds
+          away the same way;
+       4. Undo stays in a small toast for 5 s.
+     Under reduced motion nothing moves: the same receipt, the same hold,
+     then the item is simply gone and the same toast shows. The receipt
+     states what was saved and what comes next; it never praises.
+     An action that leads to a step that still needs the student keeps the
+     loop open on that step, with its receipt on top. */
+  const HOLD = 1600;
+  const UNDO_FOR = 5000;
+  const OUT = 240;
+  const settling = {};            /* loop id -> { line, from, timer } */
+  const seenReceipts = new WeakSet();
+  const seenDrops = {};
+
+  /* The receipt as one line: the first sentence ("Confirmed Sep 30"; "Done"
+     takes the next sentence with it), then the follow-up sentence that
+     starts "Next" or "Nothing else", without a question after its date
+     ("Next check-in Oct 7: Do you know ...?" reads "Next check-in Oct 7").
+     A sentence ends at a period after a lowercase letter, a digit or a
+     bracket and before a capital, so "U.S." does not split. */
+  function sentences(t) {
+    return String(t || '').trim().split(/(?<=[a-z0-9)]\.)\s+(?=[A-Z])/).map((s) => s.trim().replace(/\.$/, '')).filter(Boolean);
+  }
+  function receiptLine(text) {
+    const s = sentences(text);
+    if (!s.length) return '';
+    const out = [s[0]];
+    if (/^(Done|Saved)$/.test(s[0]) && s[1]) out.push(s[1]);
+    const follow = s.slice(out.length).filter((x) => /^(Next|Nothing else|Still open|Reminder set|Waiting)/.test(x))[0];
+    /* "Next check-in: Oct 30" reads "Next check-in Oct 30". */
+    if (follow) out.push(follow.replace(/^(Next[^:]*\b\w{3} \d{1,2}(, \d{4})?):\s.*$/, '$1').replace(/^(Next [^:]+): (?=[A-Z][a-z]{2} \d)/, '$1 '));
+    /* A date never breaks across lines: "Oct 30" stays together. */
+    return out.join('. ').replace(/\b([A-Z][a-z]{2}) (\d{1,2})\b/g, '$1\u00a0$2');
+  }
+  App.receiptLine = receiptLine;
+  /* Read by components/loop.js: the line while a loop is settling, or null. */
+  App.settleLine = (id) => (settling[id] ? settling[id].line : null);
+
+  const L = () => App.loops;
+  const cssq = (v) => (_.cssEsc ? _.cssEsc(v) : String(v).replace(/["\\]/g, '\\$&'));
+  const nodes = (sel) => Array.from(document.querySelectorAll(sel));
+
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('duly:change', (ev) => {
+      const d = ev.detail || {};
+      if (d.kind !== 'loop' || !L()) return;
+      const lp = L().get(d.key);
+      if (!lp || settling[lp.id]) return;
+      let line = '';
+      if (lp.state === 'dismissed') {
+        /* A dropped loop has no receipt; one plain line says where it went. */
+        const k = String((lp.history || []).length);
+        if (seenDrops[lp.id] === k) return;
+        seenDrops[lp.id] = k;
+        line = 'Removed from your plan';
+      } else {
+        const rc = lp.receipt;
+        if (!rc || rc.folded || !rc.text || seenReceipts.has(rc)) return;
+        seenReceipts.add(rc);
+        if (rc.exit === 'reopen' || rc.exit === 'calendar') return;
+        if (lp.state !== 'closed' && L().seen(lp).kind === 'needs') return;
+        line = receiptLine(rc.text);
+      }
+      if (!line) return;
+      /* Drawn as the check and the line by every redraw that follows this
+         event (components/loop.js reads App.settleLine). */
+      settling[lp.id] = { line: line, from: null, timer: null };
+      haptic('success');
+      setTimeout(() => begin(lp.id), 0);
+    });
+  }
+
+  function begin(id) {
+    const s = settling[id];
+    if (!s) return;
+    const els = nodes('[data-loop="' + cssq(id) + '"]');
+    /* Nothing on screen shows this loop: no hold, no toast. */
+    if (!els.length) { finish(id); return; }
+    s.from = els.some((el) => el.closest('.sheet-layer')) ? 'sheet' : 'list';
+    s.timer = setTimeout(() => leave(id), HOLD);
+  }
+
+  /* Back to the plain loop: the receipt folds to its one line and the loop
+     is no longer held open. */
+  function finish(id) {
+    delete settling[id];
+    if (L() && L().foldReceipt) L().foldReceipt(id);
+    App.state['loopOpen:' + id] = false;
+  }
+
+  /* collapse(el, done): height, padding and opacity to nothing; then done.
+     Under reduced motion, done at once. */
+  function collapse(list, done) {
+    const els = list.filter(Boolean);
+    if (!els.length || reduced() || !Element.prototype.animate) { done(); return; }
+    let left = els.length;
+    els.forEach((el) => {
+      const cs = getComputedStyle(el);
+      el.style.overflow = 'hidden';
+      const a = el.animate([
+        { height: el.offsetHeight + 'px', opacity: 1, paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, marginTop: cs.marginTop, marginBottom: cs.marginBottom },
+        { height: '0px', opacity: 0, paddingTop: '0px', paddingBottom: '0px', marginTop: '0px', marginBottom: '0px' },
+      ], { duration: OUT, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+      a.onfinish = () => { left -= 1; if (!left) done(); };
+    });
+  }
+  function fadeOut(el, done) {
+    if (!el || reduced() || !Element.prototype.animate) { done(); return; }
+    el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out', fill: 'forwards' }).onfinish = done;
+  }
+
+  function leave(id) {
+    const s = settling[id];
+    if (!s) return;
+    const line = s.line;
+    const from = s.from;
+    const els = nodes('[data-loop="' + cssq(id) + '"]');
+    const layer = els.map((el) => el.closest('.sheet-layer')).filter(Boolean)[0] || null;
+    const inList = els.filter((el) => !el.closest('.sheet-layer'));
+    const rows = () => nodes('[data-home-loop="' + cssq(id) + '"]').map((r) => r.closest('li') || r);
+    const done = () => {
+      finish(id);
+      if (typeof _.render === 'function') _.render('inplace');
+      const again = nodes('[data-loop="' + cssq(id) + '"]');
+      /* A page that keeps the loop as a quiet line (Plan keeps a waiting
+         loop) shows it folded, fading in where it stood. */
+      again.forEach((el) => play(el, 'is-arriving'));
+      offerUndo(id, line, from);
+    };
+    if (layer) {
+      fadeOut(layer, () => {
+        if (_.closeSheet) _.closeSheet(false);
+        App.homeSheetLoop = null;
+        collapse(rows(), done);
+      });
+    } else {
+      collapse(inList.concat(rows()), done);
+    }
+  }
+
+  /* The toast: the receipt line and Undo, for 5 s. Undo puts the record and
+     the loop back, and an item answered in Home's sheet opens there again. */
+  function offerUndo(id, line, from) {
+    const lp = L() && L().get(id);
+    const canUndo = !!(lp && lp.undo && lp.undo.length);
+    if (!_.toast) return;
+    _.toast(line, canUndo ? { action: 'Undo', onAction: () => {
+      const res = L().undo(id);
+      if (!res || !res.ok) return;
+      haptic('select');
+      App.state['loopOpen:' + id] = true;
+      if (typeof _.render === 'function') _.render('inplace');
+      if (from === 'sheet' && typeof App.openHomeItem === 'function') App.openHomeItem(id);
+    } } : {});
+    const el = document.querySelector('.toast');
+    if (el) setTimeout(() => { if (el.isConnected) el.remove(); }, UNDO_FOR);
+  }
+
+  /* Leaving the page ends any hold at once: the loop is folded, no toast. */
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('hashchange', () => {
+      Object.keys(settling).forEach((id) => { clearTimeout(settling[id].timer); finish(id); });
+      App.homeSheetLoop = null;
+    });
+  }
+
+  App.settle = { line: receiptLine, HOLD: HOLD, UNDO_FOR: UNDO_FOR };
   Object.assign(App._, { haptic, play, advanceCurrent, burst });
 })();

@@ -73,8 +73,11 @@
 
   const S = { ready: false, docs: [], group: 'all', query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, backTo: null, page: null };
 
-  /* Layout only: type sizes come from system.css. Round 7 rhythm: label to
-     value 4, row padding 12, between groups 24, between sections 32. */
+  /* Layout only: type sizes come from system.css. Rhythm: label to value 4,
+     between groups 24, between sections 32. Round 8, note 2 (comfortable,
+     even, minimal): every document row is 14 + title 24 + detail 20 + 14 =
+     72 tall, one row like the next; the date on the right is quiet ink and
+     carries no mark. Sample lives on the document's own page. */
   const STYLE = '<style>' +
     '.screen-documents .page-header { margin-bottom: 0; }' +
     '.screen-documents .page-header .ph-top { align-items: center; flex-wrap: wrap; row-gap: var(--s-12); }' +
@@ -92,13 +95,13 @@
     '.screen-documents .doc-open::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-field); }' +
     '.screen-documents .doc-open:focus-visible { box-shadow: none; }' +
     '.screen-documents .doc-open:focus-visible::after { box-shadow: var(--focus-ring); }' +
-    '.screen-documents .doc-row > .row { min-height: 0; padding-top: var(--s-12); padding-bottom: var(--s-12); }' +
+    '.screen-documents .doc-row > .row { min-height: 72px; padding-top: 14px; padding-bottom: 14px; }' +
     '.screen-documents .doc-row > .row:hover { background: var(--row-hover); }' +
     '.screen-documents .doc-row .row-trail { position: relative; z-index: 1; }' +
     '.screen-documents .doc-row .row-title, .screen-documents .doc-row .row-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
     '.screen-documents .doc-row .row-text { min-width: 0; }' +
     /* the date it runs out, on the right, in one column */
-    '.screen-documents .doc-when { position: relative; z-index: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); text-align: right; max-width: 280px; font-variant-numeric: tabular-nums; }' +
+    '.screen-documents .doc-when { position: relative; z-index: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); text-align: right; max-width: 280px; font-variant-numeric: tabular-nums; }' +
     '.screen-documents .doc-when.is-close { color: var(--caution); }' +
     '.screen-documents .doc-when.is-passed { color: var(--ink-3); }' +
     '.screen-documents .doc-when { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
@@ -115,6 +118,7 @@
     '.doc-page .doc-page-actions .btn { height: 40px; padding: 0 var(--s-16); }' +
     '.doc-page > .section { margin-top: var(--s-24); }' +
     '.doc-page > .section + .section { margin-top: var(--s-32); }' +
+    '.doc-page .doc-sample { margin-top: var(--s-12); }' +
     '.doc-page .section-head { padding-bottom: var(--s-4); }' +
     /* the document sheet, appended to body while open */
     '.screen-documents.doc-layer { position: fixed; inset: 0; z-index: 45; }' +
@@ -380,8 +384,8 @@
     const what = doc
       ? '<a class="' + C.cls('link', n.close && 'is-close') + '" href="' + BASE + '/' + C.esc(doc.id) + '">' + C.esc(text) + '</a>'
       : '<span class="' + C.cls(n.close && 'is-close') + '">' + C.esc(text) + '</span>';
-    const mark = n.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '';
-    return '<p class="doc-sub num">' + C.esc(count) + ' · ' + C.esc(W.title || 'Next to run out') + ': ' + what + mark + '</p>';
+    /* No Sample mark here (Round 8, note 2): it shows on the document's page. */
+    return '<p class="doc-sub num">' + C.esc(count) + ' · ' + C.esc(W.title || 'Next to run out') + ': ' + what + '</p>';
   }
 
   /* ---------------- a lost paper (BLUEPRINT 2.6 E) ---------------- */
@@ -461,11 +465,12 @@
       const same = !!(ex && ex.date && String(doc.meta || '').indexOf(ex.date) !== -1);
       /* A date already past and already in the line needs no second say. */
       if (same && ex.passed) ex = null;
-      const meta = same && ex ? shortAbout(doc) : (prefix ? prefix + ' · ' : '') + doc.meta;
+      /* Every row has its one detail line: the short about line, else the
+         date of this version, else the group. */
+      const meta = same && ex ? (shortAbout(doc) || versionLine(doc)) : (prefix ? prefix + ' · ' : '') + doc.meta;
       const lost = lostFacts(doc).map((f) => f[0] + ' ' + f[1]).join(' · ');
       const whenText = lost || (ex ? ex.text : '');
-      const when = whenText ? '<span class="' + C.cls('doc-when', !lost && ex && ex.close && 'is-close', !lost && ex && ex.passed && 'is-passed') + '">' + C.esc(whenText) +
-        (!lost && ex && ex.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '') + '</span>' : '';
+      const when = whenText ? '<span class="' + C.cls('doc-when', !lost && ex && ex.close && 'is-close', !lost && ex && ex.passed && 'is-passed') + '">' + C.esc(whenText) + '</span>' : '';
       return C.row({
         key: opt.keyOf ? opt.keyOf(doc) : doc.id,
         title: C.raw('<a class="doc-open" href="' + BASE + '/' + C.esc(doc.id) + '">' + C.esc(doc.title) + '</a>'),
@@ -482,6 +487,15 @@
     const a = String(doc.about || '').replace(/\.$/, '');
     if (!a || a.length > 40 || /\./.test(a)) return '';
     return norm(a.replace(/^your /i, '')) === norm(doc.title) ? '' : a;
+  }
+
+  /* "This version Mar 3, 2026" (data.js documents, the dated row of that
+     name), else the group's name. */
+  function versionLine(doc) {
+    const v = (doc.dates || []).filter((d) => d[0] === 'This version')[0];
+    if (v && v[1]) return 'This version ' + v[1];
+    const g = groupOf(doc.group);
+    return g && norm(g.title) !== norm(doc.title) ? g.title : '';
   }
 
   /* ---------------- a document's own page ---------------- */
@@ -510,7 +524,12 @@
       shareBtn(ref, doc.title, false).replace('btn btn-text is-small share-btn', 'btn btn-pill share-btn') + lostBtn + '</div>' +
       (lp ? lostHtml(lp.value) : '');
     /* The dates speak for themselves: no title over them. */
-    const keyDates = dates.length ? C.section({ content: C.found(dates) }) : '';
+    /* A made up date says so here, once, under the dates (Round 8, note 2),
+       never beside a row on the list. */
+    const wi = watch().byDoc[doc.id];
+    const sample = wi && wi.sample && wi.iso
+      ? '<p class="t-meta num doc-sample">' + C.esc(fmtIso(wi.iso)) + ' is a sample date.</p>' : '';
+    const keyDates = dates.length ? C.section({ content: C.found(dates) + sample }) : '';
     const earlier = doc.earlier.length ? C.section({
       eyebrow: 'Earlier versions',
       content: C.list(doc.earlier.map((e, i) => C.row({

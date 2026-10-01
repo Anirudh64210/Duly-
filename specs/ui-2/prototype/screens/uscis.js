@@ -40,7 +40,6 @@
     '.screen-uscis .track-case.is-open { margin-top: var(--s-24); }' +
     '.screen-uscis .track-case.is-open + .us-foot { margin-top: var(--s-32); }' +
     '.screen-uscis .us-petition .list + .list { margin-top: var(--s-24); }' +
-    '.screen-uscis .us-outcome { margin-top: var(--s-12); }' +
     '.screen-uscis .us-checked { margin-top: var(--s-12); }' +
     '</style>';
 
@@ -180,13 +179,13 @@
 
   /* ---------------- H-1B petition: cap-gap (VALUE-2 feature 8) ---------------- */
   /* Every date here comes from App.capGap over the record; nothing is worked
-     out on this page. Priya's record has no petition (data.js records.petitions
-     is empty), so the section first says where the cap-gap end will show,
-     with the rule behind an ⓘ, and offers Try an outcome (feature 2, the
-     petition preset only). The sheet's save button puts the petition on
-     the record and the rows below appear.
-     With the sheet's sample inputs (data.js change.presets petition), checked
-     with python3 on 2026-09-30:
+     out on this page. Try an outcome is gone (Round 8, note 3): the section
+     shows the cap-gap facts of a petition on the record, and nothing else.
+     Priya's record has no petition (data.js records.petitions is empty), so
+     the list shows no petition section; an H-1B case opened before its
+     petition is saved says where the cap-gap end will show.
+     A petition, for the arithmetic App.capGap does (checked with python3 on
+     2026-09-30):
        filed 2027-04-01, start 2027-10-01: a start on or after Oct 1 is in the
          next fiscal year, so fiscal year 2028; filed on or after 2025-01-17,
          so the end is April 1 of it, 2028-04-01.
@@ -194,7 +193,7 @@
        approved  end min(2028-04-01, 2027-10-01) = 2027-10-01; F-1 ends 2027-10-01
        denied    end the day of the outcome, 2027-07-15; no later date
        EAD card ends 2027-02-13, before the filing day 2027-04-01: the
-         cover question goes to the DSO (asked in the sheet, with Copy). */
+         cover question goes to the DSO (with Copy). */
   const fmtY = (iso) => App.dates.fmt(iso, { year: true });
   function outcomeLabel(v) {
     const o = (((App.data.change || {}).outcomes) || []).filter((x) => x.value === v)[0];
@@ -228,8 +227,12 @@
   }
   /* The cover question, with Copy, as Next steps asks it (App.capGap). */
   const petitionAsk = (p) => { const g = App.capGap(p); return g && g.question ? C.askDso([g.question]) : ''; };
-  function petitionSection() {
+  /* o.empty: on an H-1B case with no petition saved yet, say where the
+     cap-gap end will show. The list shows the section only once a petition
+     is on the record. */
+  function petitionSection(o) {
     const ps = (App.record().petitions || []).filter((p) => App.capGap(p));
+    if (!ps.length && !(o && o.empty)) return '';
     const empty = C.row({
       key: 'capgap-empty',
       title: 'Cap-gap end',
@@ -239,23 +242,7 @@
     const body = ps.length
       ? ps.map((p) => C.list(petitionRows(p), { accordion: false, label: 'H-1B petition' }) + petitionHow(p) + petitionAsk(p)).join('')
       : C.list([empty], { accordion: false, label: 'H-1B petition' });
-    const last = ps.length ? ps[ps.length - 1] : null;
-    const btn = '<button type="button" class="btn btn-text is-small try-change" data-us-outcome="' + C.esc(last ? last.id : '') + '">Try an outcome</button>';
-    /* One ⓘ for the section (Round 7, rule 2): on its row, not its title. */
-    return C.section({
-      eyebrow: 'H-1B petition',
-      cls: 'us-petition',
-      content: body + '<div class="us-outcome">' + btn + '</div>',
-    });
-  }
-
-  /* Try an outcome: Try a change on the petition preset only. From a
-     petition already on the record, the sheet opens on its dates, Now reads
-     that petition, and its save button replaces it (the old one comes back
-     with Undo). App.openChange and App.whatIf do the replacing. */
-  function tryOutcome(id) {
-    const p = id ? (App.record().petitions || []).filter((x) => x.id === id)[0] : null;
-    App.openChange('petition', { presets: ['petition'], replaces: p ? p.id : null });
+    return C.section({ eyebrow: 'H-1B petition', cls: 'us-petition', content: body });
   }
 
   /* The Update status panel, hidden until asked for. */
@@ -299,7 +286,7 @@
       '</div>' +
       updatePanel(a) +
       /* A petition case: its cap-gap end, or where it will show. */
-      (a.formType === 'i129' ? petitionSection() : '');
+      (a.formType === 'i129' ? petitionSection({ empty: true }) : '');
   }
 
   /* Another case that already has this receipt number, if any. */
@@ -499,8 +486,6 @@
         if (save) { saveStatus(root, save.dataset.usSave); return; }
         const add = t.closest('[data-us-receipt]');
         if (add) { saveReceipt(root, add.dataset.usReceipt); return; }
-        const oc = t.closest('[data-us-outcome]');
-        if (oc) { tryOutcome(oc.dataset.usOutcome || null); return; }
         const rm = t.closest('[data-us-remove]');
         if (rm) removeCase(rm.dataset.usRemove);
       });

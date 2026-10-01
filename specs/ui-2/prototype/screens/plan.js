@@ -1,19 +1,52 @@
-/* Plan (#/plan): one page, one list (founder review, Oct 1). From the top:
-     Plan, the path and the answer in one quiet line, the stepper, then one
-     list of everything to do in date order (screens/steps.js draws it: the
-     loops that need her now, the steps, the STEM OPT filing loop, reports
-     owed), "Add your school's steps", and at the bottom one folded row:
-       Work           the jobs on the record, My job ended, My hours changed
-     No view chips, no section titles, no ⓘ beside a title.
-     Round 7, rule 1: every loop lives in full here and nowhere else; Home
-     shows one line for it that opens it here (App.state['plan:focus']).
-     Rule 5: USCIS status is its own page again (#/uscis).
+/* Plan (#/plan): built from the record and the student's goals (BRIEF
+   Round 8, note 5). From the top:
+     Plan
+     any loop that needs her now and is not about STEM OPT or a job (a trip,
+       an address, a lost document), one line each
+     STEM OPT: the answer, the stepper, then one list of everything to do in
+       date order (screens/steps.js draws it: the steps, the STEM OPT filing
+       loop, reports owed), "Add your school's steps"
+     each goal added ("Start my own company", "O-1 later"): its title, one
+       quiet line, and a short ordered list of steps, each with its date where
+       the record gives one; opened, a step has one plain line and at its
+       bottom the one ⓘ (Round 7, rule 2)
+     Add a goal
+   Work is its own page now (#/work, screens/work.js): the jobs, their
+   check-in and their reports live there and nowhere here (Round 7, rule 1).
+   Round 7, rule 5: USCIS status is its own page (#/uscis).
 
      #/plan                the page
-     #/plan/workbook       the page with Work open
+     #/plan/workbook       old link: goes to #/work
    Old routes redirect here, keeping their params: #/steps, #/next and
    #/checklists to #/plan. #/plan/status and #/plan/status/<id> go to
    #/uscis and #/uscis/<id>.
+
+   For the Ask answers (app/ask.js):
+     App.addGoal(kind, { quiet? })  'company' | 'o1' (and their spellings)
+                                    -> { ok, kind, title, added, text, undo }
+     App.removeGoal(kind, { quiet? })
+     App.goals()                    the goals on the plan, in order
+     App.saveFact(fact, { quiet? }) a fact the student stated, saved to the
+                                    record:
+                                      { kind: 'job', employer, title?, hours,
+                                        start, own? }
+                                      { kind: 'hours', employer? | jobId?,
+                                        hours, from? (today) }
+                                      { kind: 'goal', goal }
+                                      { kind: 'stemIntent', value }
+                                    -> { ok, text, undo }
+                                     | { ok: false, errors?, needs? }
+   Each closes itself (Round 8, rule 7): on Plan or Work the check and the
+   line settle where the change landed; elsewhere one toast with Undo.
+
+   Goal step dates (data.js GOALS):
+     the first STEM OPT day  the OPT card's last day + 1: 2027-02-13 + 1 =
+                             2027-02-14 (python3); a saved STEM card's first
+                             day wins
+     the card's end          2027-02-13, the OPT card; a saved STEM card's
+                             last day wins
+     her company's report    its first day + 10 days, from App.reportsOwed
+                             (a company started 2026-10-01: 2026-10-11)
 
    The STEM OPT loop and the page agree (every date from app/record.js through
    App.loops; nothing is worked out here):
@@ -35,14 +68,27 @@
   'use strict';
 
   const STYLE = '<style>' +
-    /* Tighter rhythm on this page: 12px rows, 32px between groups. */
-    '.screen-plan { --gap-section: var(--s-32); }' +
-    '.screen-plan .row { padding-top: var(--s-12); padding-bottom: var(--s-12); min-height: 48px; }' +
-    '.screen-plan .pl-folds { margin-top: var(--s-32); }' +
-    '.screen-plan .pl-folds > .list > .item > .disc { padding: 0 var(--s-12) var(--s-16); gap: 0; }' +
-    '.screen-plan .pl-folds .disc .section { margin-top: var(--s-16); }' +
-    '.screen-plan .pl-folds .src.is-info { display: none; }' +
-    '.screen-plan .wb-actions { margin-top: var(--s-12); }' +
+    /* Sections 40 apart; a goal's title 8 above its list. */
+    '.screen-plan .page-header { margin-bottom: var(--s-24); }' +
+    '.screen-plan .pl-sec + .pl-sec { margin-top: 40px; }' +
+    '.screen-plan .pl-now { margin-bottom: var(--s-32); }' +
+    '.screen-plan .pl-goal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-16); margin: 0 0 var(--s-8); }' +
+    '.screen-plan .pl-goal-head .pl-sub { margin: 2px 0 0; }' +
+    '.screen-plan .pl-goal-head .btn { flex: none; min-height: 32px; padding: 0; color: var(--ink-3); }' +
+    '.screen-plan .pl-goal-head .btn:hover { color: var(--ink-2); }' +
+    '.screen-plan .pl-add { margin-top: 40px; }' +
+    '.screen-plan .pl-add > .btn { padding-left: 0; }' +
+    '.screen-plan .pl-pick { margin-top: 40px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; }' +
+    '.screen-plan .pl-pick-title { margin: 0; padding: var(--s-16) var(--s-16) var(--s-8); font-size: var(--t-small); font-weight: 500; color: var(--ink-3); }' +
+    '.screen-plan .pl-pick-opt { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: var(--s-12) var(--s-16); min-height: 56px; text-align: left; background: none; border: 0; color: var(--ink); font: inherit; cursor: pointer; }' +
+    '.screen-plan .pl-pick-opt::before { content: ""; position: absolute; top: 0; left: var(--s-16); right: 0; height: 1px; background: var(--hairline); }' +
+    '.screen-plan .pl-pick-opt:hover { background: var(--row-hover); }' +
+    '.screen-plan .pl-pick-opt span:first-child { font-weight: 500; }' +
+    '.screen-plan .pl-pick-opt span + span { font-size: var(--t-small); color: var(--ink-2); }' +
+    '.screen-plan .pl-pick-foot { position: relative; padding: var(--s-8) var(--s-16); }' +
+    '.screen-plan .pl-pick-foot::before { content: ""; position: absolute; top: 0; left: var(--s-16); right: 0; height: 1px; background: var(--hairline); }' +
+    '.screen-plan .pl-pick-foot .btn { padding-left: 0; }' +
+    '.screen-plan .pl-goal .wk-settle { padding: var(--s-8) 0 var(--s-12); }' +
     '</style>';
 
   const e = (s) => C.esc(s);
@@ -53,6 +99,11 @@
   /* #/plan/status(/<id>) from before: USCIS status is its own page. Swapped
      before the router reads the hash, at load and on each hashchange. */
   function toUscis() {
+    /* #/plan/workbook from before: Work is its own page. */
+    if (/^#\/?plan\/workbook\/?$/.test(location.hash || '')) {
+      try { history.replaceState(history.state, '', '#/work'); } catch (err) { location.replace('#/work'); }
+      return true;
+    }
     const m = /^#\/?plan\/status(\/[^/]+)?\/?$/.exec(location.hash || '');
     if (!m) return false;
     try { history.replaceState(history.state, '', '#/uscis' + (m[1] || '')); } catch (err) { location.replace('#/uscis' + (m[1] || '')); }
@@ -63,9 +114,7 @@
 
   /* Which view a hash asks for. */
   function route(params) {
-    const p = (params || []).slice();
-    if (p[0] === 'workbook') return { view: 'workbook', id: null, params: [] };
-    return { view: 'steps', id: null, params: p };
+    return { view: 'steps', id: null, params: (params || []).slice() };
   }
   const placeOf = (params) => { const r = route(params); return r.view + ':' + (r.id || ''); };
 
@@ -219,120 +268,237 @@
 
   /* ---------------- views ---------------- */
 
+  const W = () => window.SCREENS.work || null;
+  const onWork = (lp) => !!(W() && W().isWorkLoop && W().isWorkLoop(lp));
+  /* A closed loop stays only while it settles or its receipt is unread;
+     then it leaves on its own (Round 8, rule 7; app/motion.js). */
+  const stillShown = (lp) => closedToday(lp) && ((App.settleLine && App.settleLine(lp.id)) || (lp.receipt && !lp.receipt.folded));
+
   /* Every other loop open in her plan, earliest engine date first
-     (App.loops.whatsNext), and any closed today with its receipt. The STEM
-     OPT loop sits in the I-765 row's place; reports sit by their due date;
-     the crisis screen keeps nothing. */
+     (App.loops.whatsNext), and any still settling. Not STEM OPT (it sits in
+     the I-765 row's place), not a report (by its due date), not a job loop
+     (Work), not the crisis screen's. */
   function otherLoops() {
     if (!L()) return [];
-    const skip = (lp) => lp.kind === 'stem-filing' || lp.kind === 'report-owed' || (L().def(lp.kind) || {}).private;
+    const skip = (lp) => lp.kind === 'stem-filing' || lp.kind === 'report-owed' || onWork(lp) || (L().def(lp.kind) || {}).private;
     const open = L().whatsNext({ max: 50 }).loops.filter((lp) => !skip(lp));
-    const done = L().list({ all: true }).filter((lp) => closedToday(lp) && !skip(lp));
+    const done = L().list({ all: true }).filter((lp) => stillShown(lp) && !skip(lp));
     return open.concat(done);
+  }
+
+  function nowView() {
+    const others = otherLoops();
+    if (!others.length) return '';
+    return '<section class="pl-now" aria-label="Needs you now"><div class="list pl-list">' +
+      others.map((lp) => '<div class="item pl-loop" data-key="loop:' + C.esc(lp.id) + '">' + C.loop(lp) + '</div>').join('') +
+      '</div></section>';
   }
 
   function stepsView(data, params) {
     const S = window.SCREENS.steps;
     if (!S || !S.view) return '';
-    const lp = stemLoop();
+    let lp = stemLoop();
     if (lp) syncStem(lp);
-    return S.view(data, params, { embedded: true, loop: lp, others: otherLoops() });
+    if (lp && lp.state === 'closed' && closedToday(lp) && lp.outcome !== 'approved' && !stillShown(lp)) lp = null;
+    return '<section class="pl-sec pl-stem" data-goal="stem">' + S.view(data, params, { embedded: true, loop: lp, others: [] }) + '</section>';
   }
 
-  /* ---------------- WorkBook ---------------- */
+  /* ---------------- goals ---------------- */
 
-  /* Hours on a day: the newest change on or before it, else the hours saved
-     with the job. Northwind on 2026-09-30: no changes, 40. */
-  function hoursOn(j, iso) {
-    const ch = (j.hoursChanges || []).filter((c) => c.on <= iso).sort((a, b) => (a.on < b.on ? -1 : 1));
-    if (ch.length) return ch[ch.length - 1].hours;
-    return j.hours;
+  const G = () => App.data.goals || { kinds: {}, order: [] };
+  const fill = (t, v) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m));
+  const KIND = { company: 'company', 'own-company': 'company', ownCompany: 'company', startCompany: 'company', 'start-company': 'company', self: 'company', 'self-employment': 'company', business: 'company',
+    o1: 'o1', 'o-1': 'o1', 'O-1': 'o1', O1: 'o1', 'o1-later': 'o1' };
+  const kindOf = (k) => KIND[k] || KIND[String(k || '').toLowerCase()] || null;
+  const goalList = () => (App.state.goals = App.state.goals || []);
+  App.goals = () => goalList().slice();
+
+  /* Her own company on the record: a job she marked as hers, now. */
+  function ownJob() {
+    const t = L() ? L().now() : App.data.today.iso;
+    return (App.record().jobs || []).filter((j) => j.own && (!j.end || j.end >= t))[0] || null;
   }
-
-  function jobRow(j, today) {
-    const F = (iso) => App.dates.fmt(iso, { year: true });
-    const ended = j.end && j.end < today;
-    const h = hoursOn(j, today);
-    const meta = [j.title || null,
-      ended ? null : (h != null ? h + ' hours a week' : 'Hours not saved yet'),
-      ended ? F(j.start) + ' to ' + F(j.end) : 'Since ' + F(j.start)].filter(Boolean).join(' · ');
-    return C.row({
-      key: 'wb:' + j.id,
-      title: j.employer,
-      meta: meta,
-      value: ended ? 'Ended' : (j.confirmedOn ? 'Confirmed ' + App.dates.fmt(j.confirmedOn) : null),
-    });
-  }
-
-  /* The employer's public fact, as Next steps shows it, with See. */
-  function employerRow() {
-    const emp = App.employer ? App.employer() : null;
-    const ev = emp && emp.everify;
-    if (!emp || !ev || !ev.value) return '';
-    return C.row({
-      key: 'wb:employer',
-      title: 'Employer details: ' + emp.name,
-      meta: ev.label + ': ' + String(ev.value).toLowerCase() + (ev.checked ? ', checked ' + ev.checked : ''),
-      href: '#/employer',
-    });
-  }
-
-  /* Work, opened in place: the jobs, the employer's public fact, and the
-     two changes. A change opens its loop in the list above. */
-  function workbookView(data) {
+  /* The work permission she has now: the saved STEM card, else the OPT card. */
+  function cardNow() {
     const r = App.record();
-    const today = L() ? L().now() : data.today.iso;
-    const jobs = (r.jobs || []).slice().sort((a, b) => (a.start < b.start ? 1 : -1));
-    const current = jobs.filter((j) => !j.end || j.end >= today);
-    const rows = jobs.map((j) => jobRow(j, today));
-    const emp = employerRow();
-    if (emp) rows.push(emp);
-    const actions = current.length
-      ? C.btnGroup([
-        C.button({ label: 'My job ended', kind: 'pill', attrs: { 'data-plan-start': 'job-ends' } }),
-        C.button({ label: 'My hours changed', kind: 'text', attrs: { 'data-plan-start': 'hours' } }),
-      ])
-      : '';
-    return (rows.length ? C.list(rows, { accordion: false, label: 'Your jobs' }) : '<p class="t-meta">No job on your record yet.</p>') +
-      (actions ? '<div class="wb-actions">' + actions + '</div>' : '');
+    const s = (r.stem || {}).card;
+    if (s && App.dates.okIso(s.from) && App.dates.okIso(s.until) && !s.sample) return { from: s.from, until: s.until, stem: true };
+    return r.opt && App.dates.okIso(r.opt.until) ? { until: r.opt.until, stem: false } : null;
   }
+  const holes = () => ({
+    major: (App.record().program || {}).major || 'your',
+    minHours: (App.RULE || {}).minHours || 20,
+    days: (App.RULE || {}).reportWithin || 10,
+  });
 
-  /* The folded row at the bottom: Work. #/plan/workbook opens it. */
-  function folds(data, view) {
-    const r = App.record();
-    const today = L() ? L().now() : data.today.iso;
-    const job = (r.jobs || []).filter((j) => !j.end || j.end >= today)[0];
-    return '<div class="pl-folds">' + C.list([
-      C.row({ key: 'plan:work', title: 'Work', value: job ? job.employer : 'No job saved', content: workbookView(data), open: view === 'workbook' }),
-    ], { accordion: false, label: 'Work' }) + '</div>';
-  }
-
-  /* Start a change at work and open it in place. */
-  function startWork(what) {
-    if (!L()) return;
-    const r = App.record();
-    const today = L().now();
-    const job = (r.jobs || []).filter((j) => !j.end || j.end >= today)[0];
-    if (!job) return;
-    let lp = null;
-    if (what === 'job-ends') {
-      lp = openOf('job-ends') || L().start('job-ends', { jobId: job.id });
-    } else if (what === 'hours') {
-      lp = L().list().filter((x) => x.kind === 'checkin' && (x.context || {}).jobId === job.id)[0] || L().start('checkin', { jobId: job.id });
-      if (lp && lp.step === 'ask' && exitOpen(lp, 'hours')) L().take(lp.id, 'hours');
+  /* A step's date, done state and how it was counted (data.js GOALS). */
+  function stepFacts(kind, st) {
+    const fmtY = App.dates.fmtY;
+    const out = { meta: null, done: !!App.state['task:goal:' + kind + ':' + st.key], doneMeta: null, counted: null, extra: [] };
+    if (st.date === 'report') {
+      const j = ownJob();
+      const rep = j && W() ? W().jobReports(j).filter((x) => x.id === 'report:job-start:' + j.id)[0] : null;
+      if (rep) {
+        out.done = !!rep.made;
+        out.meta = 'By ' + App.dates.fmt(rep.due);
+        out.doneMeta = rep.made ? 'Marked ' + App.dates.fmt(rep.made) : null;
+        out.reportId = rep.id;
+        out.counted = fmtY(rep.from) + ', plus ' + holes().days + ' days, is ' + fmtY(rep.due) + '.';
+      }
+    } else if (st.date === 'stemStart') {
+      const c = cardNow();
+      if (c && c.stem) out.meta = 'From ' + App.dates.fmt(c.from);
+      else if (c) {
+        /* The OPT card's last day + 1: 2027-02-13 + 1 = 2027-02-14. */
+        const first = App.dates.addDays(c.until, 1);
+        out.meta = 'From ' + App.dates.fmt(first);
+        out.counted = 'Your OPT card ends ' + fmtY(c.until) + '. STEM OPT would start the day after, ' + fmtY(first) + '.';
+        out.extra.push('eadEnds');
+      }
+    } else if (st.date === 'cardEnd') {
+      const c = cardNow();
+      if (c) {
+        out.meta = 'By ' + App.dates.fmt(c.until);
+        out.counted = 'Your ' + (c.stem ? 'STEM OPT' : 'OPT') + ' card ends ' + fmtY(c.until) + '.';
+        out.extra.push('eadEnds');
+      }
     }
-    if (!lp) return;
-    App.state['loopOpen:' + lp.id] = true;
-    if (App.haptic) App.haptic('select');
+    return out;
+  }
+
+  function goalStep(kind, st) {
+    const h = holes();
+    const f = stepFacts(kind, st);
+    const refs = [];
+    if (st.source) refs.push(App.ruleWith && f.counted ? App.ruleWith(st.source, [f.counted]) : st.source);
+    f.extra.forEach((x) => refs.push(x));
+    const detail = '<p>' + C.escText(fill(st.line, h)) + '</p>' + (refs.length ? C.how(refs) : '');
+    return C.task({
+      key: 'goal:' + kind + ':' + st.key, title: fill(st.title, h), done: f.done,
+      meta: f.meta, doneMeta: f.doneMeta, detail: detail,
+    });
+  }
+
+  function goalSection(kind) {
+    const g = G().kinds[kind];
+    if (!g) return '';
+    return '<section class="pl-sec pl-goal" data-goal="' + C.esc(kind) + '" aria-label="' + C.esc(g.title) + '">' +
+      '<header class="pl-goal-head"><div><h2 class="pl-sec-title">' + C.escText(g.title) + '</h2>' +
+      (g.sub ? '<p class="pl-sub t-meta">' + C.escText(g.sub) + '</p>' : '') + '</div>' +
+      '<button type="button" class="btn btn-text is-small" data-goal-remove="' + C.esc(kind) + '" aria-label="' + C.esc(G().remove + ': ' + g.title) + '">' + C.esc(G().remove) + '</button>' +
+      '</header>' +
+      '<div class="list pl-list" aria-label="' + C.esc(g.title) + '">' + g.steps.map((st) => goalStep(kind, st)).join('') + '</div>' +
+      '</section>';
+  }
+
+  function addView() {
+    const all = (G().order || Object.keys(G().kinds)).filter((k) => G().kinds[k] && goalList().indexOf(k) < 0);
+    if (!all.length) return '';
+    if (!App.state['plan:adding']) {
+      return '<div class="pl-add">' + C.button({ label: G().add, kind: 'text', attrs: { 'data-goal-add': '' } }) + '</div>';
+    }
+    return '<div class="pl-pick" role="group" aria-label="' + C.esc(G().addTitle) + '"><p class="pl-pick-title">' + C.esc(G().addTitle) + '</p>' +
+      all.map((k) => '<button type="button" class="pl-pick-opt" data-goal-pick="' + C.esc(k) + '"><span>' + C.escText(G().kinds[k].title) + '</span>' +
+        (G().kinds[k].sub ? '<span>' + C.escText(G().kinds[k].sub) + '</span>' : '') + '</button>').join('') +
+      '<div class="pl-pick-foot">' + C.button({ label: G().cancel, kind: 'text', attrs: { 'data-goal-cancel': '' } }) + '</div></div>';
+  }
+
+  const onPlan = () => !!document.querySelector('main#main.screen-plan');
+  /* The check and the line where the change landed, or one toast. */
+  function receipt(sel, text, undo) {
+    const S = W();
+    if (S && S.settle && document.querySelector('main#main.screen-plan, main#main.screen-work')) { S.settle(sel, text, undo); return; }
     App.rerender();
-    const box = document.querySelector('main#main [data-loop="' + CSS.escape(lp.id) + '"]');
-    if (box) {
-      const first = box.querySelector('.loop-body input, .loop-body [role="radio"], .loop-body .btn');
-      (first || box.querySelector('.loop-head')).focus({ preventScroll: true });
-      if (App.play) App.play(box, 'is-arriving');
-      box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
+    App.toast(text, undo ? { action: G().undo || 'Undo', onAction: undo } : {});
   }
+
+  App.addGoal = (k, o) => {
+    const kind = kindOf(k);
+    const g = kind && G().kinds[kind];
+    if (!g) return { ok: false, error: 'unknown goal' };
+    const list = goalList();
+    const added = list.indexOf(kind) < 0;
+    if (added) list.push(kind);
+    if (kind === 'company') delete App.state['goal:company:removed'];
+    delete App.state['plan:adding'];
+    const text = fill(G().added, { title: g.title });
+    const undo = added ? () => { App.removeGoal(kind, { quiet: true }); App.rerender(); } : null;
+    if (added) App.emit('goal', kind, true, null);
+    if (!(o && o.quiet)) receipt('.pl-goal[data-goal="' + kind + '"]', text, undo);
+    return { ok: true, kind: kind, title: g.title, added: added, text: text, undo: undo };
+  };
+  App.removeGoal = (k, o) => {
+    const kind = kindOf(k);
+    const list = goalList();
+    const i = list.indexOf(kind);
+    if (i < 0) return { ok: false };
+    list.splice(i, 1);
+    App.emit('goal', kind, false, null);
+    const g = G().kinds[kind];
+    const text = fill(G().removed, { title: g ? g.title : kind });
+    const undo = () => { if (goalList().indexOf(kind) < 0) goalList().splice(i, 0, kind); App.emit('goal', kind, true, null); App.rerender(); };
+    if (!(o && o.quiet)) {
+      App.rerender();
+      if (App.haptic) App.haptic('select');
+      App.toast(text, { action: G().undo || 'Undo', onAction: undo });
+    }
+    return { ok: true, kind: kind, text: text, undo: undo };
+  };
+
+  /* App.saveFact(fact, { quiet? }) : a fact the student stated in Ask, saved
+     to her record with Undo. Nothing is assumed: a job needs its first day. */
+  App.saveFact = (fact, o) => {
+    const f = fact || {};
+    const quiet = !!(o && o.quiet);
+    const S = W();
+    let res = null;
+    if (f.kind === 'goal') return App.addGoal(f.goal || f.value, o);
+    if (f.kind === 'stemIntent') {
+      if (['yes', 'no', 'unsure'].indexOf(f.value) < 0 || !App.setStemIntent) return { ok: false, error: 'unknown answer' };
+      const was = App.stemIntent();
+      App.setStemIntent(f.value);
+      res = { ok: true, text: f.value === 'yes' ? 'Saved: you plan to apply for STEM OPT.' : f.value === 'no' ? 'Saved: not applying for STEM OPT this time.' : 'Saved: not sure yet about STEM OPT.',
+        undo: () => { App.setStemIntent(was || null); } };
+      if (!quiet) App.toast(res.text, { action: G().undo || 'Undo', onAction: res.undo });
+      return res;
+    }
+    if (!S) return { ok: false, error: 'work page not loaded' };
+    if (f.kind === 'job') {
+      res = S.addJob({ employer: f.employer, title: f.title, hours: f.hours, start: f.start, own: !!f.own });
+      if (!res.ok) return { ok: false, errors: res.errors, needs: Object.keys(res.errors) };
+      if (!quiet) receipt('.wk-job[data-job="' + (window.CSS && CSS.escape ? CSS.escape(res.job.id) : res.job.id) + '"]', res.text, res.undo);
+      return res;
+    }
+    if (f.kind === 'hours') {
+      const name = String(f.employer || '').toLowerCase();
+      const job = S.jobsNow().filter((j) => j.id === f.jobId || (name && j.employer.toLowerCase() === name))[0] || (S.jobsNow().length === 1 ? S.jobsNow()[0] : null);
+      if (!job) return { ok: false, needs: ['employer'] };
+      res = S.setHours(job.id, f.hours, f.from || (L() ? L().now() : App.data.today.iso));
+      if (!res.ok) return { ok: false, errors: res.errors, needs: Object.keys(res.errors) };
+      /* On Work the check-in loop settles in its panel; elsewhere one toast. */
+      App.rerender();
+      if (!quiet && !document.querySelector('main#main [data-loop="' + res.loopId + '"]')) App.toast(res.text, { action: G().undo || 'Undo', onAction: res.undo });
+      return res;
+    }
+    return { ok: false, error: 'unknown fact' };
+  };
+
+  /* Her own company on the record brings its goal with it. */
+  function goalsShown() {
+    const list = goalList();
+    if (ownJob() && list.indexOf('company') < 0 && !App.state['goal:company:removed']) list.push('company');
+    return list.filter((k) => G().kinds[k]);
+  }
+
+  /* A goal step ticked: the report step of her company is Mark reported. */
+  document.addEventListener('duly:change', (ev) => {
+    const d = ev.detail || {};
+    if (d.kind === 'task' && d.key === 'goal:company:report') {
+      const j = ownJob();
+      const rep = j && W() ? W().jobReports(j).filter((x) => x.id === 'report:job-start:' + j.id)[0] : null;
+      if (rep && App.markReport) App.markReport(rep.id, !!d.value);
+    }
+  });
 
   window.SCREENS.plan = {
     title: 'Plan',
@@ -340,25 +506,55 @@
     titleFor() { return 'Plan'; },
     render(data, params) {
       const r = route(params);
-      return STYLE + stepsView(data, r.params) + folds(data, r.view) + C.footer();
+      return STYLE + '<header class="page-header"><h1 class="t-big" tabindex="-1">Plan</h1></header>' +
+        nowView() + stepsView(data, r.params) + goalsShown().map(goalSection).join('') + addView() + C.footer();
     },
-    mount(root, data, params) {
+    mount(root) {
       root.classList.add('screen-plan');
-      const r = route(params);
       if (window.SCREENS.steps) window.SCREENS.steps.mount(root);
       root.addEventListener('click', (ev) => {
-        const b = ev.target.closest('[data-plan-start]');
-        if (b) startWork(b.dataset.planStart);
+        const t = ev.target;
+        if (t.closest('[data-goal-add]')) {
+          App.state['plan:adding'] = true;
+          if (App.haptic) App.haptic('select');
+          App.rerender();
+          const pick = document.querySelector('main#main .pl-pick');
+          if (pick) {
+            if (App.play) App.play(pick, 'is-arriving');
+            pick.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            const first = pick.querySelector('[data-goal-pick]');
+            if (first) first.focus({ preventScroll: true });
+          }
+          return;
+        }
+        if (t.closest('[data-goal-cancel]')) { delete App.state['plan:adding']; App.rerender(); return; }
+        const pick = t.closest('[data-goal-pick]');
+        if (pick) { App.addGoal(pick.dataset.goalPick); return; }
+        const rm = t.closest('[data-goal-remove]');
+        if (rm) {
+          const kind = rm.dataset.goalRemove;
+          if (kind === 'company') App.state['goal:company:removed'] = true;
+          const res = App.removeGoal(kind, { quiet: true });
+          if (!res.ok && kind === 'company') res.ok = true;
+          App.rerender();
+          App.toast(fill(G().removed, { title: (G().kinds[kind] || {}).title || kind }), { action: G().undo || 'Undo', onAction: () => {
+            delete App.state['goal:company:removed'];
+            if (res.undo) res.undo(); else App.rerender();
+          } });
+        }
       });
-      if (r.view === 'workbook') {
-        const row = root.querySelector('[data-key="plan:work"]');
-        if (row) setTimeout(() => row.scrollIntoView({ block: 'start' }), 0);
-      }
       /* A line on Home opened this loop: it is unfolded here; bring it into
-         view and put focus on it. */
+         view and put focus on it. A job's loop opens on Work. */
       const focusId = App.state['plan:focus'];
       if (focusId) {
         delete App.state['plan:focus'];
+        const lp = L() ? L().get(focusId) : null;
+        if (lp && onWork(lp)) {
+          App.state['work:focus'] = focusId;
+          App.state['loopOpen:' + focusId] = true;
+          setTimeout(() => App.go('work', { replace: true }), 0);
+          return;
+        }
         const box = root.querySelector('[data-loop="' + CSS.escape(focusId) + '"]');
         if (box) {
           setTimeout(() => {
@@ -371,4 +567,5 @@
       }
     },
   };
+
 })();

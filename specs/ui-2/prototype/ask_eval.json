@@ -1,0 +1,56 @@
+{
+  "about": "Round 8, note 1: the scored set of hard questions Ask is checked against before it ships. Each question has a one-line note of the ideal answer. Run: python3 ask_server.py --eval (writes ask_eval_results.json). Sample student only.",
+  "score": "Per question, 0 to 2 each: rules right and sourced; uses her record and what she said; the answer shape (lead, applies, plan, watch, DSO only for the judgement); no conclusion on her own status, no reassurance, no invented date; under 300 words, plain words.",
+  "questions": [
+    {
+      "id": "founder-o1-startup",
+      "question": "I'm on initial OPT, how can I plan for O-1, and I plan to work part time at Northwind Systems and full time on my own startup on OPT and continue in STEM OPT; what should I know?",
+      "ideal": "Two jobs and self-employment are allowed on post-completion OPT (SEVP 1004-03: licences, related to the degree, each reported in 10 days); STEM OPT needs an E-Verify employer, EIN, an I-983 signed by someone else and a bona fide employer-employee relationship, so the startup counts only if it meets that (81 FR 13040), Northwind part time must be at least 20 hours; O-1 has no lottery, needs an employer or agent petitioner and 3 of the evidence types, so start collecting evidence now; offers to save both jobs and add the own-company and O-1 goals; DSO judges whether the startup work is related and can be a STEM employer."
+    },
+    {
+      "id": "self-employment-opt",
+      "question": "Can I be self-employed on my OPT? I want to freelance and build my own app.",
+      "ideal": "Yes in general: SEVP guidance lists self-employed business owner and 1099 work on post-completion OPT, with proper business licences, work related to the degree, at least 20 hours a week, and evidence kept; report it to the DSO within 10 days; note self-employment does not carry over to STEM OPT; DSO judges whether her app work is related to her degree."
+    },
+    {
+      "id": "two-jobs",
+      "question": "Can I keep Northwind and also take a second job at 15 hours a week?",
+      "ideal": "More than one employer is allowed on OPT if each job is related to the degree (SEVP 1004-03); report the new job within 10 days; whether 15 hours on its own or combined hours meet the 20 hour guidance is not spelled out (verify); at STEM OPT each employer used for STEM needs E-Verify and its own I-983; saves the second job as a fact."
+    },
+    {
+      "id": "lost-job-stem",
+      "question": "If I get laid off in the middle of my STEM OPT, what happens and how many days do I have?",
+      "ideal": "On STEM OPT the limit is 150 days in all including the 13 already used on OPT (record), the loss is reported to the DSO within 10 days and the employer reports it too; a new employer needs E-Verify and a new I-983 within 10 days; no date for day 150 is computed without an end date; offers the job ended flow; DSO only for anything about status."
+    },
+    {
+      "id": "travel-pending-stem",
+      "question": "My STEM OPT application will be pending in January. Can I fly home to India for two weeks then?",
+      "ideal": "Rules: travel signature within 6 months (hers passed Sep 2), EAD card, passport and visa; days abroad count as unemployment unless approved leave (guidance); what to carry while STEM is pending is not settled in her rules (verify); the trip itself is a DSO judgement with a drafted question; offers the travel flow; no reassurance."
+    },
+    {
+      "id": "cap-gap-april",
+      "question": "If my employer files an H-1B for me next year and my STEM OPT runs out before October, can I keep working until April 1?",
+      "ideal": "Cap-gap: with a timely cap petition asking for a change of status, status and work permission run on until April 1 of the fiscal year or the H-1B start if earlier (8 CFR 214.2(f)(5)(vi), 89 FR 103054); ends on denial or withdrawal; 90-day limit continues and leaving the US abandons the change of status (guidance); no personal date computed; DSO confirms the cap-gap I-20."
+    },
+    {
+      "id": "change-employer-stem",
+      "question": "I want to switch from Northwind to another company after I'm on STEM OPT. What do I need to do?",
+      "ideal": "New employer must be in E-Verify with an EIN, job related to the STEM degree, at least 20 hours; new I-983 to the DSO within 10 days of starting and report the change within 10 days; Northwind reports the departure; days between jobs count toward 150; DSO judges relatedness of the new role."
+    },
+    {
+      "id": "address-change",
+      "question": "I just moved to a new apartment. Who do I tell?",
+      "ideal": "Report the new address to the DSO within 10 days (SEVP Portal or DSO) and to USCIS within 10 days with AR-11 online (8 CFR 265.1); offers the address flow; nothing for the DSO to judge."
+    },
+    {
+      "id": "lost-ead",
+      "question": "I lost my EAD card. Can I still work, and how do I get a new one?",
+      "ideal": "A replacement is requested on Form I-765 with the fee on uscis.gov; the dates of her work permission (to Feb 13, 2027) do not change; what Northwind accepts for Form I-9 meanwhile is an HR question (verify); keep a copy; offers the lost document flow; no conclusion on her status."
+    },
+    {
+      "id": "h1b-lottery",
+      "question": "What are my chances in the H-1B lottery, and is the $100,000 fee going to apply to me?",
+      "ideal": "No odds (never predicts); explains registration by the employer each spring and selection for an Oct 1 start (uscis.gov), selection weighting changed recently (verify); the $100,000 payment is litigated, a court vacated the policy, so verify on uscis.gov and with the employer; notes O-1 has no lottery as another route without recommending it."
+    }
+  ]
+}
