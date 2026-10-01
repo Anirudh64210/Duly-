@@ -3,8 +3,8 @@
    grouped, every row ready to open), Most used (the latest I-20, the
    EAD card, the approval notice, the passport), then CPT, OPT, STEM OPT,
    University, Visa, Passport, Work, and Other once a file of no known kind is saved.
-   Each chip carries its count. The chips stay on one line; on a narrow
-   screen the strip scrolls sideways inside itself, never the page. Search looks inside the chosen chip; when
+   Each chip carries its count. The chips wrap to a second line when they
+   do not fit, so every filter is always visible. Search looks inside the chosen chip; when
    nothing matches there but something matches elsewhere, one tap searches
    all. Enter opens the first match; Escape clears the search.
    Round 4 (web, phone and desktop): one tap opens a document, one tap
@@ -73,8 +73,8 @@
     '.doc-page .doc-page-actions .btn { height: 44px; padding: 0 var(--s-24); }' +
     '.doc-page > .section { margin-top: var(--s-32); }' +
     '.screen-documents .doc-search { margin-bottom: var(--s-16); }' +
-    '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: var(--s-4); margin: calc(-1 * var(--s-4)); scroll-padding-inline: var(--s-16); }' +
-    '.screen-documents .doc-labels::-webkit-scrollbar { display: none; }' +
+    /* Every filter is always visible: the chips wrap to a second line, never hide in a scroll. */
+    '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: wrap; row-gap: var(--s-8); max-width: 100%; }' +
     '.screen-documents .doc-view > .section:first-child { margin-top: var(--s-32); }' +
     '.screen-documents .doc-view > .section + .section { margin-top: var(--s-32); }' +
     '.screen-documents .doc-add-another { align-self: flex-start; margin-top: var(--s-12); }' +
