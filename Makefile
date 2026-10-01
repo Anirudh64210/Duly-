@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke prototype-app
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -129,6 +129,9 @@ desktop:
 
 samples:
 	cd web && uv run python samples/make.py && npx prettier --write --log-level warn "samples/*.json"
+
+prototype-app:
+	./node_modules/.bin/electron specs/ui-2/prototype/desktop/main.cjs
 
 design-shots: samples
 	DULY_SHOTS=1 npm run build -w web
