@@ -1,4 +1,4 @@
 {
-  "appId": "CHOOSE_ME",
-  "note": "Permanent bundle id (SPEC-W1 point 31). The founder chooses it before the first packaged build; changing it later loses keychain access to everything stored under the old one."
+  "appId": "org.getduly.desktop",
+  "note": "Permanent bundle id (SPEC-W1 point 31), chosen 2026-10-01 from getduly.org. Changing it later loses keychain access to everything stored under it."
 }
