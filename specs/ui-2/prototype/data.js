@@ -781,7 +781,7 @@ window.DULY_SAMPLE = {
     share: { label: 'Share', info: 'Opens your phone\'s share sheet: Mail, Messages or any app.' },
     /* The three asked for most, one tap from the top of Documents on a phone. */
     quick: [
-      { title: 'I-20 · OPT', meta: 'Mar 2026', href: '#/documents/i20-opt' },
+      { title: 'I-20 · OPT', meta: 'OPT from Feb 14, 2026', href: '#/documents/i20-opt' },
       { title: 'EAD card', meta: 'Valid until Feb 13, 2027', href: '#/documents/opt' },
       { title: 'Passport', meta: 'Valid until Jul 9, 2031', href: '#/documents/passport' },
     ],
@@ -798,9 +798,9 @@ window.DULY_SAMPLE = {
        what the newest version changed; versions run newest first. */
     i20Groups: [
       { key: 'opt', title: 'OPT', items: [
-        { id: 'i20-opt', name: 'I-20 · OPT', title: 'OPT', meta: 'Mar 2026', current: true,
+        { id: 'i20-opt', name: 'I-20 · OPT', title: 'OPT', meta: 'OPT Feb 14, 2026 to Feb 13, 2027', current: true,
           about: "Your OPT I-20, with your school's recommendation on page 2. Carry it with your EAD card.",
-          dates: [['This version', 'Mar 2, 2026'], ['Program end', 'Dec 18, 2025'], ['Sent with your I-765', 'Oct 10, 2025']],
+          dates: [['OPT start', 'Feb 14, 2026'], ['OPT end', 'Feb 13, 2027'], ['School recommended OPT', 'Oct 3, 2025'], ['You filed your I-765', 'Oct 10, 2025'], ['This version', 'Mar 2, 2026']],
           latest: { date: 'Mar 2, 2026', change: 'Travel signature added' },
           versions: [
             { date: 'Oct 24, 2025', change: 'End date corrected' },
@@ -808,20 +808,20 @@ window.DULY_SAMPLE = {
           ] },
       ] },
       { key: 'cpt', title: 'CPT', items: [
-        { id: 'i20-cpt-lumen', name: 'I-20 · CPT at Lumen Labs', title: 'Lumen Labs', meta: 'Jan 13 to May 2, 2025',
+        { id: 'i20-cpt-lumen', name: 'I-20 · CPT at Lumen Labs', title: 'Lumen Labs', meta: 'CPT Jan 13 to May 2, 2025 · Part time',
           about: 'The I-20 that let you work at Lumen Labs on CPT.',
-          dates: [['This version', 'Jan 8, 2025'], ['CPT dates', 'Jan 13 to May 2, 2025']],
+          dates: [['CPT start', 'Jan 13, 2025'], ['CPT end', 'May 2, 2025'], ['Employer', 'Lumen Labs'], ['Hours', 'Part time'], ['This version', 'Jan 8, 2025']],
           latest: { date: 'Jan 8, 2025', change: 'Start date corrected' },
           versions: [{ date: 'Dec 16, 2024', change: 'Original' }] },
-        { id: 'i20-cpt-acme', name: 'I-20 · CPT at Acme Robotics', title: 'Acme Robotics', meta: 'Jun 1 to Aug 15, 2024',
+        { id: 'i20-cpt-acme', name: 'I-20 · CPT at Acme Robotics', title: 'Acme Robotics', meta: 'CPT Jun 1 to Aug 15, 2024 · Full time',
           about: 'The I-20 that let you work at Acme Robotics on CPT.',
-          dates: [['This version', 'May 20, 2024'], ['CPT dates', 'Jun 1 to Aug 15, 2024']],
+          dates: [['CPT start', 'Jun 1, 2024'], ['CPT end', 'Aug 15, 2024'], ['Employer', 'Acme Robotics'], ['Hours', 'Full time'], ['This version', 'May 20, 2024']],
           latest: { date: 'May 20, 2024', change: 'Original' } },
-      ], add: 'Add another CPT I-20' },
+      ] },
       { key: 'start', title: 'Starting school', items: [
-        { id: 'i20-start', name: 'I-20 · Starting school', title: 'Initial I-20', meta: 'Aug 2023',
+        { id: 'i20-start', name: 'I-20 · Starting school', title: 'Initial I-20', meta: 'Program Aug 21, 2023 to Dec 18, 2025',
           about: 'The I-20 you entered the US with, for your program at State University.',
-          dates: [['This version', 'Dec 9, 2024'], ['Program start', 'Aug 21, 2023'], ['Program end', 'Dec 18, 2025']],
+          dates: [['Program start', 'Aug 21, 2023'], ['Program end', 'Dec 18, 2025'], ['This version', 'Dec 9, 2024']],
           latest: { date: 'Dec 9, 2024', change: 'Travel signature added' },
           versions: [
             { date: 'Dec 11, 2023', change: 'Travel signature added' },
@@ -830,12 +830,12 @@ window.DULY_SAMPLE = {
       ] },
     ],
     work: [
-      { id: 'ead-card', title: 'EAD card', meta: 'Feb 14, 2026 to Feb 13, 2027',
+      { id: 'ead-card', title: 'EAD card', meta: 'Valid Feb 14, 2026 to Feb 13, 2027',
         about: 'Your work permit for OPT.', dates: [['Valid from', 'Feb 14, 2026'], ['Valid until', 'Feb 13, 2027']] },
-      { id: 'i797', title: 'I-797 approval notice', meta: 'Dec 20, 2025',
-        about: 'USCIS approved your OPT application.', dates: [['Approved', 'Dec 20, 2025'], ['Filed', 'Oct 10, 2025']] },
-      { id: 'offer-northwind', title: 'Offer letter, Northwind Systems', meta: 'Feb 2026',
-        about: 'Your job offer for OPT.', dates: [['Dated', 'Feb 2026']] },
+      { id: 'i797', title: 'I-797 approval notice', meta: 'OPT approved Dec 20, 2025',
+        about: 'USCIS approved your OPT application.', dates: [['You filed', 'Oct 10, 2025'], ['Approved', 'Dec 20, 2025']] },
+      { id: 'offer-northwind', title: 'Offer letter · Northwind Systems', meta: 'Job on OPT, from Feb 27, 2026', also: ['opt'],
+        about: 'Your job on OPT: Software Engineer at Northwind Systems.', dates: [['Job', 'Software Engineer'], ['Start', 'Feb 27, 2026']] },
     ],
     identity: [
       { id: 'passport', title: 'Passport', meta: 'Valid until Jul 9, 2031', about: 'Your passport.', dates: [['Valid until', 'Jul 9, 2031']] },

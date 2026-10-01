@@ -126,14 +126,14 @@
     if (S.ready) return;
     const d = data.documents;
     const push = (it, extra) => S.docs.push(Object.assign({
-      id: it.id || nextId(), title: it.title, meta: it.meta, current: !!it.current,
+      id: it.id || nextId(), title: it.title, meta: it.meta, current: !!it.current, also: it.also || [],
       about: it.about || '', dates: it.dates || null, latest: it.latest || null,
       /* each earlier version: title is what changed, meta its date */
       earlier: (it.versions || []).map((v) => ({ title: v.change, meta: v.date })),
     }, extra));
     d.i20Groups.forEach((g) => g.items.forEach((it) => {
       const title = it.name || (g.key === 'cpt' ? 'I-20 · CPT at ' + it.title : 'I-20 · ' + it.title);
-      const meta = it.current ? 'Latest, ' + it.meta : it.meta;
+      const meta = it.meta;
       push(Object.assign({}, it, { title: title, meta: meta }), {
         group: g.key === 'cpt' ? 'cpt' : (g.key === 'opt' ? 'opt' : (g.key === 'stem' ? 'stem' : 'university')), type: 'i20', phase: g.key, employer: g.key === 'cpt' ? it.title : null,
         rank: it.current ? RANK.current : (RANK[g.key] != null ? RANK[g.key] : RANK.cpt),
@@ -148,8 +148,10 @@
     S.ready = true;
   }
   function nextId() { S.seq += 1; return 'doc-' + S.seq; }
-  function inGroup(key) {
-    return S.docs.map((d, i) => ({ d: d, i: i })).filter((x) => x.d.group === key)
+  /* A document sits under one group in All, and also shows under any label
+     it belongs to (an OPT job letter is in Work and in OPT). */
+  function inGroup(key, primaryOnly) {
+    return S.docs.map((d, i) => ({ d: d, i: i })).filter((x) => x.d.group === key || (!primaryOnly && (x.d.also || []).indexOf(key) >= 0))
       .sort((a, b) => (a.d.rank - b.d.rank) || (a.i - b.i)).map((x) => x.d);
   }
   function groupOf(key) { return GROUPS.filter((g) => g.key === key)[0] || null; }
@@ -373,7 +375,7 @@
   /* ---------------- labels ---------------- */
 
   /* Every document, in the order of the groups. */
-  function allDocs() { return GROUPS.reduce((all, g) => all.concat(inGroup(g.key)), []); }
+  function allDocs() { return GROUPS.reduce((all, g) => all.concat(inGroup(g.key, true)), []); }
   /* Most used: the latest I-20, the EAD card, the approval notice and
      the passport, the ones an employer or a DSO asks for. */
   function mostDocs() {
@@ -432,7 +434,7 @@
      repeated here. */
   function allView() {
     return GROUPS.map((g) => {
-      const docs = inGroup(g.key);
+      const docs = inGroup(g.key, true);
       if (!docs.length) return '';
       return C.section({
         eyebrow: g.title,
