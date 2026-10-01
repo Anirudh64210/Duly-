@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke prototype-app desktop-python desktop-package desktop-verify desktop-launch-time
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -129,6 +129,27 @@ desktop:
 
 samples:
 	cd web && uv run python samples/make.py && npx prettier --write --log-level warn "samples/*.json"
+
+# Step W1 (specs/step-w/SPEC-W1.md point 25). Run outside the agents' jail: they need the network.
+desktop-python:
+	bash desktop/scripts/build-python.sh
+
+desktop-package:
+	npm run build -w web
+	npm run build -w desktop
+	cd desktop && npx electron-forge make
+
+desktop-verify:
+	node desktop/scripts/verify-bundle.mjs
+	node desktop/scripts/read-fuses.mjs
+	codesign --verify --deep --strict desktop/out/Duly-darwin-arm64/Duly.app
+	desktop/out/Duly-darwin-arm64/Duly.app/Contents/MacOS/Duly --verify-start
+
+desktop-launch-time:
+	node desktop/scripts/launch-time.mjs
+
+prototype-app:
+	./node_modules/.bin/electron specs/ui-2/prototype/desktop/main.cjs
 
 design-shots: samples
 	DULY_SHOTS=1 npm run build -w web

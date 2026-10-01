@@ -1,0 +1,887 @@
+{
+  "ran": "2026-10-01 06:52",
+  "results": [
+    {
+      "id": "founder-o1-startup",
+      "question": "I'm on initial OPT, how can I plan for O-1, and I plan to work part time at Northwind Systems and full time on my own startup on OPT and continue in STEM OPT; what should I know?",
+      "ideal": "Two jobs and self-employment are allowed on post-completion OPT (SEVP 1004-03: licences, related to the degree, each reported in 10 days); STEM OPT needs an E-Verify employer, EIN, an I-983 signed by someone else and a bona fide employer-employee relationship, so the startup counts only if it meets that (81 FR 13040), Northwind part time must be at least 20 hours; O-1 has no lottery, needs an employer or agent petitioner and 3 of the evidence types, so start collecting evidence now; offers to save both jobs and add the own-company and O-1 goals; DSO judges whether the startup work is related and can be a STEM employer.",
+      "seconds": 46.2,
+      "result": {
+        "lead": "On post-completion OPT, guidance allows a job plus your own degree-related startup, but that self-employment does not carry into STEM OPT. O-1 has no cap and no lottery, and an employer or agent files it.",
+        "applies": [
+          "You said part time at Northwind Systems; your record shows 40 hours a week.",
+          "Guidance says a self-employed owner on OPT works full time, holds business licences, and runs a business related to the degree.",
+          "At STEM OPT the 20-hour minimum is per employer, so a Northwind job under 20 hours does not count alone."
+        ],
+        "plan": {
+          "now": [
+            "Report the startup to your DSO within 10 days as a new employer, as self-employment counts.",
+            "Report your new Northwind hours so your record matches."
+          ],
+          "stem": [
+            "Check your startup has E-Verify, an EIN, 20 paid hours, an I-983 another person signs, and real employment."
+          ],
+          "after": [
+            "Gather O-1A evidence: a major award or at least 3 of the 8 types, plus an advisory opinion.",
+            "Line up a US employer or US agent to file Form I-129; verify whether your own company can petition."
+          ]
+        },
+        "watch": [
+          "Sole proprietorships and setups without a real employer-employee relationship are named as not apt for STEM OPT.",
+          "Someone other than you signs the I-983 employer attestations for your own company."
+        ],
+        "dso": {
+          "ask": "Whether your startup is related to your degree and has a real employer-employee relationship for STEM OPT.",
+          "draft": "Hi, I am on post-completion OPT and plan to work part time at Northwind Systems and full time on my own computer science startup. Is the startup related enough to my degree for OPT, and could it meet the STEM OPT employer requirements, including a bona fide employer-employee relationship? Thank you, Priya"
+        },
+        "sources": [
+          {
+            "id": "sevp-1004",
+            "name": "SEVP Policy Guidance 1004-03",
+            "href": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf"
+          },
+          {
+            "id": "fr-stem",
+            "name": "81 FR 13040, the STEM OPT rule",
+            "href": "https://www.federalregister.gov/d/2016-04828"
+          },
+          {
+            "id": "uscis-o1",
+            "name": "uscis.gov, O-1 extraordinary ability",
+            "href": "https://www.uscis.gov/working-in-the-united-states/temporary-workers/o-1-visa-individuals-with-extraordinary-ability-or-achievement"
+          },
+          {
+            "id": "cfr-o",
+            "name": "8 CFR 214.2(o), O-1",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          }
+        ],
+        "actions": [
+          {
+            "type": "save",
+            "fact": "Plans to work part time at Northwind Systems and full time on own startup",
+            "label": "Save to my record"
+          },
+          {
+            "type": "goal",
+            "goal": "own-company",
+            "label": "Add \"Start my own company\" to my plan"
+          },
+          {
+            "type": "goal",
+            "goal": "o1",
+            "label": "Add \"O-1 later\" to my plan"
+          }
+        ],
+        "answer": "On post-completion OPT, guidance allows a job plus your own degree-related startup, but that self-employment does not carry into STEM OPT. O-1 has no cap and no lottery, and an employer or agent files it.\n\nWhat applies to you\n- You said part time at Northwind Systems; your record shows 40 hours a week.\n- Guidance says a self-employed owner on OPT works full time, holds business licences, and runs a business related to the degree.\n- At STEM OPT the 20-hour minimum is per employer, so a Northwind job under 20 hours does not count alone.\n\nYour plan\n- Now: Report the startup to your DSO within 10 days as a new employer, as self-employment counts.\n- Now: Report your new Northwind hours so your record matches.\n- At STEM OPT: Check your startup has E-Verify, an EIN, 20 paid hours, an I-983 another person signs, and real employment.\n- After: Gather O-1A evidence: a major award or at least 3 of the 8 types, plus an advisory opinion.\n- After: Line up a US employer or US agent to file Form I-129; verify whether your own company can petition.\n\nWatch out for\n- Sole proprietorships and setups without a real employer-employee relationship are named as not apt for STEM OPT.\n- Someone other than you signs the I-983 employer attestations for your own company.\n\nAsk your DSO\nWhether your startup is related to your degree and has a real employer-employee relationship for STEM OPT.\nDraft: Hi, I am on post-completion OPT and plan to work part time at Northwind Systems and full time on my own computer science startup. Is the startup related enough to my degree for OPT, and could it meet the STEM OPT employer requirements, including a bona fide employer-employee relationship? Thank you, Priya"
+      },
+      "checks": {
+        "words": 289,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "sevp-1004",
+          "fr-stem",
+          "uscis-o1",
+          "cfr-o"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "note": "Rerun alone through the helper (POST /ask) after the multi-topic rule and the trim order changed; the other nine are from the full run.",
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Names every STEM employer requirement, O-1 no cap and no lottery, the bar of a major award or at least 3 of 8, and part time against the 40 hours on her record."
+      }
+    },
+    {
+      "id": "self-employment-opt",
+      "question": "Can I be self-employed on my OPT? I want to freelance and build my own app.",
+      "ideal": "Yes in general: SEVP guidance lists self-employed business owner and 1099 work on post-completion OPT, with proper business licences, work related to the degree, at least 20 hours a week, and evidence kept; report it to the DSO within 10 days; note self-employment does not carry over to STEM OPT; DSO judges whether her app work is related to her degree.",
+      "seconds": 30.1,
+      "result": {
+        "lead": "Yes. Study in the States and SEVP guidance allow self-employment and contract (1099) work on post-completion OPT, alongside other jobs, when each job is related to your degree.",
+        "applies": [
+          "Guidance asks a self-employed owner to hold the proper business licences and actively run a business related to the degree.",
+          "Guidance treats a self-employed owner as working full time, so plan full time in the business; verify with your DSO.",
+          "Northwind at 40 hours a week already meets the 20-hour weekly minimum on its own, so adding up hours decides nothing."
+        ],
+        "plan": {
+          "now": [
+            "Report each new employer, including your own business, to your DSO within 10 days.",
+            "Keep a record for each job and client: title, dates, supervisor or contact, and duties."
+          ],
+          "stem": [
+            "Self-employment does not carry over to STEM OPT; a start-up needs E-Verify, an EIN, 20 paid hours and a real employer relationship.",
+            "The I-983 needs a signer at the company other than you, and sole proprietorships are named as not suitable."
+          ],
+          "after": []
+        },
+        "watch": [
+          "If you leave Northwind, days without qualifying work count toward your 90; 13 were used as of Aug 28, 2026."
+        ],
+        "dso": {
+          "ask": "Only your DSO can judge whether your freelance work and app count as related to your degree.",
+          "draft": "Hi, I am on post-completion OPT, working 40 hours a week as a Software Engineer at Northwind Systems, and I plan to freelance and build my own app. Could you tell me whether this work counts as related to my Master's in Computer Science, and what hours and records you expect for self-employment? Thank you, Priya"
+        },
+        "sources": [
+          {
+            "id": "sits-opt",
+            "name": "Study in the States, F-1 OPT",
+            "href": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+          },
+          {
+            "id": "sevp-1004",
+            "name": "SEVP Policy Guidance 1004-03",
+            "href": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf"
+          },
+          {
+            "id": "fr-stem",
+            "name": "81 FR 13040, the STEM OPT rule",
+            "href": "https://www.federalregister.gov/d/2016-04828"
+          },
+          {
+            "id": "sits-stem",
+            "name": "Study in the States, STEM OPT Hub",
+            "href": "https://studyinthestates.dhs.gov/stem-opt-hub"
+          }
+        ],
+        "actions": [
+          {
+            "type": "goal",
+            "goal": "own-company",
+            "label": "Add \"Start my own company\" to my plan"
+          },
+          {
+            "type": "save",
+            "fact": "Plans to freelance and build her own app",
+            "label": "Save to my record"
+          }
+        ],
+        "answer": "Yes. Study in the States and SEVP guidance allow self-employment and contract (1099) work on post-completion OPT, alongside other jobs, when each job is related to your degree.\n\nWhat applies to you\n- Guidance asks a self-employed owner to hold the proper business licences and actively run a business related to the degree.\n- Guidance treats a self-employed owner as working full time, so plan full time in the business; verify with your DSO.\n- Northwind at 40 hours a week already meets the 20-hour weekly minimum on its own, so adding up hours decides nothing.\n\nYour plan\n- Now: Report each new employer, including your own business, to your DSO within 10 days.\n- Now: Keep a record for each job and client: title, dates, supervisor or contact, and duties.\n- At STEM OPT: Self-employment does not carry over to STEM OPT; a start-up needs E-Verify, an EIN, 20 paid hours and a real employer relationship.\n- At STEM OPT: The I-983 needs a signer at the company other than you, and sole proprietorships are named as not suitable.\n\nWatch out for\n- If you leave Northwind, days without qualifying work count toward your 90; 13 were used as of Aug 28, 2026.\n\nAsk your DSO\nOnly your DSO can judge whether your freelance work and app count as related to your degree.\nDraft: Hi, I am on post-completion OPT, working 40 hours a week as a Software Engineer at Northwind Systems, and I plan to freelance and build my own app. Could you tell me whether this work counts as related to my Master's in Computer Science, and what hours and records you expect for self-employment? Thank you, Priya"
+      },
+      "checks": {
+        "words": 273,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "sits-opt",
+          "sevp-1004",
+          "fr-stem",
+          "sits-stem"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Full time for a self-employed owner, with verify; licences, related to the degree, 10-day report, no carry-over to STEM. The full-time line rests on Study in the States guidance that could not be re-fetched today (SEVP 1004-03 as saved says full time only under the 17-month extension)."
+      }
+    },
+    {
+      "id": "two-jobs",
+      "question": "Can I keep Northwind and also take a second job at 15 hours a week?",
+      "ideal": "More than one employer is allowed on OPT if each job is related to the degree (SEVP 1004-03); report the new job within 10 days; whether 15 hours on its own or combined hours meet the 20 hour guidance is not spelled out (verify); at STEM OPT each employer used for STEM needs E-Verify and its own I-983; saves the second job as a fact.",
+      "seconds": 23.7,
+      "result": {
+        "lead": "Yes. Study in the States guidance allows work for more than one employer on post-completion OPT, as long as each job relates to your degree. Northwind's 40 hours already meet the 20-hour minimum.",
+        "applies": [
+          "Post-completion OPT allows more than one employer, and each job must relate to your Computer Science degree (guidance).",
+          "Northwind alone is 40 hours a week, so you don't need the extra 15 hours to reach the 20-hour minimum.",
+          "You report each new employer to the DSO within 10 days, in the SEVP Portal or through the DSO (8 CFR 214.2(f))."
+        ],
+        "plan": {
+          "now": [
+            "Get the DSO's view on whether the second job relates to your degree before you start it.",
+            "Report the new employer within 10 days of starting, and keep its title, dates, supervisor and duties on file."
+          ],
+          "stem": [
+            "Plan your I-983 around Northwind, because a job under 20 hours a week cannot be a STEM OPT employer on its own."
+          ],
+          "after": []
+        },
+        "watch": [
+          "If Northwind ended, the 15-hour job alone would fall short of the 20-hour weekly OPT minimum.",
+          "The rules here do not say how a side job works once you are on STEM OPT. Verify on the Study in the States STEM OPT Hub."
+        ],
+        "dso": {
+          "ask": "Only the DSO can judge whether the second job relates to your degree.",
+          "draft": "Hi, I am on post-completion OPT, working 40 hours a week as a Software Engineer at Northwind Systems. I am thinking about a second job of about 15 hours a week as [title, duties]. Could you tell me whether it relates to my Master's in Computer Science, and how to report it? Thanks, Priya"
+        },
+        "sources": [
+          {
+            "id": "sits-opt",
+            "name": "Study in the States, F-1 OPT",
+            "href": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+          },
+          {
+            "id": "sevp-1004",
+            "name": "SEVP Policy Guidance 1004-03",
+            "href": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf"
+          },
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          },
+          {
+            "id": "sits-stem",
+            "name": "Study in the States, STEM OPT Hub",
+            "href": "https://studyinthestates.dhs.gov/stem-opt-hub"
+          }
+        ],
+        "actions": [
+          {
+            "type": "save",
+            "fact": "Considering a second job, about 15 hours a week, alongside Northwind Systems",
+            "label": "Save to my record"
+          }
+        ],
+        "answer": "Yes. Study in the States guidance allows work for more than one employer on post-completion OPT, as long as each job relates to your degree. Northwind's 40 hours already meet the 20-hour minimum.\n\nWhat applies to you\n- Post-completion OPT allows more than one employer, and each job must relate to your Computer Science degree (guidance).\n- Northwind alone is 40 hours a week, so you don't need the extra 15 hours to reach the 20-hour minimum.\n- You report each new employer to the DSO within 10 days, in the SEVP Portal or through the DSO (8 CFR 214.2(f)).\n\nYour plan\n- Now: Get the DSO's view on whether the second job relates to your degree before you start it.\n- Now: Report the new employer within 10 days of starting, and keep its title, dates, supervisor and duties on file.\n- At STEM OPT: Plan your I-983 around Northwind, because a job under 20 hours a week cannot be a STEM OPT employer on its own.\n\nWatch out for\n- If Northwind ended, the 15-hour job alone would fall short of the 20-hour weekly OPT minimum.\n- The rules here do not say how a side job works once you are on STEM OPT. Verify on the Study in the States STEM OPT Hub.\n\nAsk your DSO\nOnly the DSO can judge whether the second job relates to your degree.\nDraft: Hi, I am on post-completion OPT, working 40 hours a week as a Software Engineer at Northwind Systems. I am thinking about a second job of about 15 hours a week as [title, duties]. Could you tell me whether it relates to my Master's in Computer Science, and how to report it? Thanks, Priya"
+      },
+      "checks": {
+        "words": 279,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "sits-opt",
+          "sevp-1004",
+          "cfr-f",
+          "sits-stem"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Leads with the 40 hours at Northwind meeting the minimum, and says a 15-hour job cannot be a STEM employer on its own."
+      }
+    },
+    {
+      "id": "lost-job-stem",
+      "question": "If I get laid off in the middle of my STEM OPT, what happens and how many days do I have?",
+      "ideal": "On STEM OPT the limit is 150 days in all including the 13 already used on OPT (record), the loss is reported to the DSO within 10 days and the employer reports it too; a new employer needs E-Verify and a new I-983 within 10 days; no date for day 150 is computed without an end date; offers the job ended flow; DSO only for anything about status.",
+      "seconds": 26.5,
+      "result": {
+        "lead": "Your STEM OPT has not started yet. If it is approved, days without work during it count toward a 150-day limit for the whole OPT. With 13 used as of Aug 28, 2026, 137 would be left (150 minus 13).",
+        "applies": [
+          "If approved, your STEM OPT runs Feb 14, 2027 to Feb 13, 2029, and a layoff then draws on those 137 days.",
+          "After a layoff, 8 CFR asks you to report the job loss within 10 days. Northwind reports your departure within 5 business days.",
+          "A new STEM employer needs E-Verify, an EIN, at least 20 hours a week, degree-related work and its own signed I-983."
+        ],
+        "plan": {
+          "now": [],
+          "stem": [
+            "Report a job loss to your DSO within 10 days, in the SEVP Portal or through the DSO.",
+            "Send a new I-983 for any new employer to your DSO within 10 days."
+          ],
+          "after": []
+        },
+        "watch": [
+          "Days between jobs count toward the 150, and the count covers your whole OPT, including days used now.",
+          "A new job needs a real employer-employee relationship. Self-employment from post-completion OPT does not carry over to STEM OPT."
+        ],
+        "dso": {
+          "ask": "Only the DSO can judge whether a specific new job is directly related to your STEM degree.",
+          "draft": "Hi, I am on post-completion OPT at Northwind Systems and plan to file for STEM OPT. If I were laid off during STEM OPT, how would you review whether a new job is directly related to my Computer Science degree, and what would you need from me? Thank you, Priya"
+        },
+        "sources": [
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          },
+          {
+            "id": "sits-stem",
+            "name": "Study in the States, STEM OPT Hub",
+            "href": "https://studyinthestates.dhs.gov/stem-opt-hub"
+          },
+          {
+            "id": "fr-stem",
+            "name": "81 FR 13040, the STEM OPT rule",
+            "href": "https://www.federalregister.gov/d/2016-04828"
+          }
+        ],
+        "actions": [
+          {
+            "type": "loop",
+            "kind": "job-ends",
+            "label": "My job ended"
+          }
+        ],
+        "answer": "Your STEM OPT has not started yet. If it is approved, days without work during it count toward a 150-day limit for the whole OPT. With 13 used as of Aug 28, 2026, 137 would be left (150 minus 13).\n\nWhat applies to you\n- If approved, your STEM OPT runs Feb 14, 2027 to Feb 13, 2029, and a layoff then draws on those 137 days.\n- After a layoff, 8 CFR asks you to report the job loss within 10 days. Northwind reports your departure within 5 business days.\n- A new STEM employer needs E-Verify, an EIN, at least 20 hours a week, degree-related work and its own signed I-983.\n\nYour plan\n- At STEM OPT: Report a job loss to your DSO within 10 days, in the SEVP Portal or through the DSO.\n- At STEM OPT: Send a new I-983 for any new employer to your DSO within 10 days.\n\nWatch out for\n- Days between jobs count toward the 150, and the count covers your whole OPT, including days used now.\n- A new job needs a real employer-employee relationship. Self-employment from post-completion OPT does not carry over to STEM OPT.\n\nAsk your DSO\nOnly the DSO can judge whether a specific new job is directly related to your STEM degree.\nDraft: Hi, I am on post-completion OPT at Northwind Systems and plan to file for STEM OPT. If I were laid off during STEM OPT, how would you review whether a new job is directly related to my Computer Science degree, and what would you need from me? Thank you, Priya"
+      },
+      "checks": {
+        "words": 261,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "cfr-f",
+          "sits-stem",
+          "fr-stem"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Gives 137 (150 minus 13), the employer 5-business-day report, and offers the job-ended flow."
+      }
+    },
+    {
+      "id": "travel-pending-stem",
+      "question": "My STEM OPT application will be pending in January. Can I fly home to India for two weeks then?",
+      "ideal": "Rules: travel signature within 6 months (hers passed Sep 2), EAD card, passport and visa; days abroad count as unemployment unless approved leave (guidance); what to carry while STEM is pending is not settled in her rules (verify); the trip itself is a DSO judgement with a drafted question; offers the travel flow; no reassurance.",
+      "seconds": 25.9,
+      "result": {
+        "lead": "A two-week trip in January brings you back before your EAD card ends on Feb 13, 2027. That is the simpler case: you return on an unexpired card with a new travel signature.",
+        "applies": [
+          "To return on OPT, 8 CFR and Study in the States list the EAD card, an I-20 signed within 6 months, and a valid passport and visa.",
+          "Your travel signature covered returns only until Sep 2, 2026, so a January return needs a new one.",
+          "Your visa runs to Aug 1, 2028 and your passport to Jul 9, 2031, both after January."
+        ],
+        "plan": {
+          "now": [
+            "Ask your DSO for a new travel signature on your I-20 before you leave.",
+            "Get Northwind Systems to approve your two weeks of leave in writing."
+          ],
+          "stem": [
+            "Keep your return date before Feb 13, 2027, and carry the EAD card itself."
+          ],
+          "after": []
+        },
+        "watch": [
+          "If your return slips past Feb 13, 2027 while STEM OPT is pending, these rules do not say what to carry: verify on Study in the States.",
+          "Leave Northwind has not approved counts toward your 90 days, with 77 left as of Aug 28, 2026."
+        ],
+        "dso": {
+          "ask": "Only your DSO can judge whether this trip makes sense while your STEM OPT application is pending.",
+          "draft": "Hi, I am on post-completion OPT at Northwind Systems, and my EAD card is valid until Feb 13, 2027. I plan to file for STEM OPT and would like to visit India for two weeks in January, coming back before the card ends. Could you advise on travel while the application is pending, and may I get a new travel signature on my I-20? Thank you, Priya"
+        },
+        "sources": [
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          },
+          {
+            "id": "sits-opt",
+            "name": "Study in the States, F-1 OPT",
+            "href": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+          },
+          {
+            "id": "sevp-1004",
+            "name": "SEVP Policy Guidance 1004-03",
+            "href": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf"
+          }
+        ],
+        "actions": [
+          {
+            "type": "loop",
+            "kind": "travel",
+            "label": "I'm travelling"
+          },
+          {
+            "type": "save",
+            "fact": "Plans a two-week trip to India in January 2027 while STEM OPT is pending",
+            "label": "Save to my record"
+          }
+        ],
+        "answer": "A two-week trip in January brings you back before your EAD card ends on Feb 13, 2027. That is the simpler case: you return on an unexpired card with a new travel signature.\n\nWhat applies to you\n- To return on OPT, 8 CFR and Study in the States list the EAD card, an I-20 signed within 6 months, and a valid passport and visa.\n- Your travel signature covered returns only until Sep 2, 2026, so a January return needs a new one.\n- Your visa runs to Aug 1, 2028 and your passport to Jul 9, 2031, both after January.\n\nYour plan\n- Now: Ask your DSO for a new travel signature on your I-20 before you leave.\n- Now: Get Northwind Systems to approve your two weeks of leave in writing.\n- At STEM OPT: Keep your return date before Feb 13, 2027, and carry the EAD card itself.\n\nWatch out for\n- If your return slips past Feb 13, 2027 while STEM OPT is pending, these rules do not say what to carry: verify on Study in the States.\n- Leave Northwind has not approved counts toward your 90 days, with 77 left as of Aug 28, 2026.\n\nAsk your DSO\nOnly your DSO can judge whether this trip makes sense while your STEM OPT application is pending.\nDraft: Hi, I am on post-completion OPT at Northwind Systems, and my EAD card is valid until Feb 13, 2027. I plan to file for STEM OPT and would like to visit India for two weeks in January, coming back before the card ends. Could you advise on travel while the application is pending, and may I get a new travel signature on my I-20? Thank you, Priya"
+      },
+      "checks": {
+        "words": 282,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "cfr-f",
+          "sits-opt",
+          "sevp-1004"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Leads with the January return falling inside the card valid to Feb 13, 2027; the hard case is a return after the card ends. Plan phase label on the return item is loose."
+      }
+    },
+    {
+      "id": "cap-gap-april",
+      "question": "If my employer files an H-1B for me next year and my STEM OPT runs out before October, can I keep working until April 1?",
+      "ideal": "Cap-gap: with a timely cap petition asking for a change of status, status and work permission run on until April 1 of the fiscal year or the H-1B start if earlier (8 CFR 214.2(f)(5)(vi), 89 FR 103054); ends on denial or withdrawal; 90-day limit continues and leaving the US abandons the change of status (guidance); no personal date computed; DSO confirms the cap-gap I-20.",
+      "seconds": 32.4,
+      "result": {
+        "lead": "If STEM OPT is approved, it runs until Feb 13, 2029. An H-1B filed next year would start Oct 1, 2027, which is earlier, so there is no gap to cover.",
+        "applies": [
+          "The spring 2027 and spring 2028 seasons both have Oct 1 start dates, and both come before Feb 13, 2029.",
+          "Only the spring 2029 season starts after that date, on Oct 1, 2029, so cap-gap would only matter then.",
+          "Under 8 CFR, cap-gap extends F-1 status and OPT work permission until April 1 of the fiscal year, or the H-1B start if earlier."
+        ],
+        "plan": {
+          "now": [
+            "File Form I-765 for STEM OPT between Nov 15, 2026 and Feb 13, 2027.",
+            "Keep in mind that the Feb 13, 2029 end date only holds if STEM OPT is approved."
+          ],
+          "stem": [],
+          "after": [
+            "Check that your employer's petition asks for a change of status, because cap-gap requires that.",
+            "Your employer registers each spring and files the petition. You do not file for yourself."
+          ]
+        },
+        "watch": [
+          "Cap-gap ends if the petition is rejected, denied, revoked or withdrawn.",
+          "The 150-day limit on days without work still applies during cap-gap. Guidance treats leaving the US while a change of status is pending as giving it up."
+        ],
+        "dso": null,
+        "sources": [
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          },
+          {
+            "id": "fr-capgap",
+            "name": "89 FR 103054, the cap-gap rule",
+            "href": "https://www.federalregister.gov/d/2024-29354"
+          },
+          {
+            "id": "sevp-1004",
+            "name": "SEVP Policy Guidance 1004-03",
+            "href": "https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf"
+          }
+        ],
+        "actions": [
+          {
+            "type": "loop",
+            "kind": "stem-filing",
+            "label": "Apply for STEM OPT"
+          }
+        ],
+        "answer": "If STEM OPT is approved, it runs until Feb 13, 2029. An H-1B filed next year would start Oct 1, 2027, which is earlier, so there is no gap to cover.\n\nWhat applies to you\n- The spring 2027 and spring 2028 seasons both have Oct 1 start dates, and both come before Feb 13, 2029.\n- Only the spring 2029 season starts after that date, on Oct 1, 2029, so cap-gap would only matter then.\n- Under 8 CFR, cap-gap extends F-1 status and OPT work permission until April 1 of the fiscal year, or the H-1B start if earlier.\n\nYour plan\n- Now: File Form I-765 for STEM OPT between Nov 15, 2026 and Feb 13, 2027.\n- Now: Keep in mind that the Feb 13, 2029 end date only holds if STEM OPT is approved.\n- After: Check that your employer's petition asks for a change of status, because cap-gap requires that.\n- After: Your employer registers each spring and files the petition. You do not file for yourself.\n\nWatch out for\n- Cap-gap ends if the petition is rejected, denied, revoked or withdrawn.\n- The 150-day limit on days without work still applies during cap-gap. Guidance treats leaving the US while a change of status is pending as giving it up."
+      },
+      "checks": {
+        "words": 206,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan"
+        ],
+        "sources": [
+          "cfr-f",
+          "fr-capgap",
+          "sevp-1004"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Tests the premise: STEM OPT to Feb 13, 2029 covers the Oct 1, 2027 and 2028 starts; names the 150-day limit; no $100,000 aside."
+      }
+    },
+    {
+      "id": "change-employer-stem",
+      "question": "I want to switch from Northwind to another company after I'm on STEM OPT. What do I need to do?",
+      "ideal": "New employer must be in E-Verify with an EIN, job related to the STEM degree, at least 20 hours; new I-983 to the DSO within 10 days of starting and report the change within 10 days; Northwind reports the departure; days between jobs count toward 150; DSO judges relatedness of the new role.",
+      "seconds": 25.2,
+      "result": {
+        "lead": "The STEM OPT rules allow a change of employer. The new employer sends a new I-983 training plan to your DSO within 10 days. Your STEM OPT is not filed yet. If it is approved, it runs Feb 14, 2027 to Feb 13, 2029.",
+        "applies": [
+          "The new employer has to be enrolled in E-Verify, have an EIN and offer at least 20 hours a week.",
+          "The new job has to be directly related to your STEM degree, with a real employer-employee relationship.",
+          "Someone at the new employer signs the new I-983, never you."
+        ],
+        "plan": {
+          "now": [],
+          "stem": [
+            "Look up the new company on E-Verify Employer Search before you accept the offer.",
+            "Complete a new I-983 with your new manager and send it to your DSO within 10 days."
+          ],
+          "after": []
+        },
+        "watch": [
+          "Northwind reports your departure to your DSO within 5 business days, and your own report is due within 10 days.",
+          "Days between the two jobs count toward the 150-day limit. As of Aug 28, 2026 you had 137 left, if no more are used."
+        ],
+        "dso": {
+          "ask": "Only your DSO can judge whether a specific new job is directly related to your degree and the company meets the STEM employer rules.",
+          "draft": "Hi, I am on post-completion OPT at Northwind Systems and plan to apply for the STEM OPT extension with them. If I move to a new employer after STEM OPT is approved, what do you need from me? And how do you review whether the new role is directly related to my Computer Science degree? Thanks, Priya"
+        },
+        "sources": [
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          },
+          {
+            "id": "sits-stem",
+            "name": "Study in the States, STEM OPT Hub",
+            "href": "https://studyinthestates.dhs.gov/stem-opt-hub"
+          },
+          {
+            "id": "everify",
+            "name": "E-Verify Employer Search",
+            "href": "https://www.e-verify.gov/about-e-verify/e-verify-data/e-verify-employer-search"
+          }
+        ],
+        "actions": [
+          {
+            "type": "loop",
+            "kind": "job-ends",
+            "label": "My job ended"
+          }
+        ],
+        "answer": "The STEM OPT rules allow a change of employer. The new employer sends a new I-983 training plan to your DSO within 10 days. Your STEM OPT is not filed yet. If it is approved, it runs Feb 14, 2027 to Feb 13, 2029.\n\nWhat applies to you\n- The new employer has to be enrolled in E-Verify, have an EIN and offer at least 20 hours a week.\n- The new job has to be directly related to your STEM degree, with a real employer-employee relationship.\n- Someone at the new employer signs the new I-983, never you.\n\nYour plan\n- At STEM OPT: Look up the new company on E-Verify Employer Search before you accept the offer.\n- At STEM OPT: Complete a new I-983 with your new manager and send it to your DSO within 10 days.\n\nWatch out for\n- Northwind reports your departure to your DSO within 5 business days, and your own report is due within 10 days.\n- Days between the two jobs count toward the 150-day limit. As of Aug 28, 2026 you had 137 left, if no more are used.\n\nAsk your DSO\nOnly your DSO can judge whether a specific new job is directly related to your degree and the company meets the STEM employer rules.\nDraft: Hi, I am on post-completion OPT at Northwind Systems and plan to apply for the STEM OPT extension with them. If I move to a new employer after STEM OPT is approved, what do you need from me? And how do you review whether the new role is directly related to my Computer Science degree? Thanks, Priya"
+      },
+      "checks": {
+        "words": 267,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "cfr-f",
+          "sits-stem",
+          "everify"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 4,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Has the 5-business-day Northwind report and the 137 days; the lead says the new employer sends the I-983 to the DSO, when the student submits it."
+      }
+    },
+    {
+      "id": "address-change",
+      "question": "I just moved to a new apartment. Who do I tell?",
+      "ideal": "Report the new address to the DSO within 10 days (SEVP Portal or DSO) and to USCIS within 10 days with AR-11 online (8 CFR 265.1); offers the address flow; nothing for the DSO to judge.",
+      "seconds": 23.6,
+      "result": {
+        "lead": "Tell two places: your DSO, through the SEVP Portal or the DSO directly, and USCIS, online with Form AR-11. Each is due within 10 days of your move, and one doesn't cover the other.",
+        "applies": [
+          "On post-completion OPT, a change of address goes to your DSO within 10 days, in the SEVP Portal or through the DSO (Study in the States, 8 CFR 214.2(f)).",
+          "Separately, non-citizens report a new address to USCIS within 10 days, online with Form AR-11 (8 CFR 265.1, uscis.gov).",
+          "Your record still shows the address you've had since Mar 1, 2026, so it doesn't have your new apartment yet."
+        ],
+        "plan": {
+          "now": [
+            "Enter your new address in the SEVP Portal, or send it to your DSO, and keep a copy.",
+            "File Form AR-11 online at uscis.gov and save the confirmation page."
+          ],
+          "stem": [
+            "Report any later move to your DSO within 10 days on STEM OPT as well, under the same 10-day rule."
+          ],
+          "after": []
+        },
+        "watch": [
+          "Your 10 days count from your move date, which isn't on your record yet, so note it when you update.",
+          "Updating the SEVP Portal doesn't change your address with USCIS, and filing AR-11 doesn't notify your DSO."
+        ],
+        "dso": null,
+        "sources": [
+          {
+            "id": "sits-opt",
+            "name": "Study in the States, F-1 OPT",
+            "href": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+          },
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          },
+          {
+            "id": "cfr-265",
+            "name": "8 CFR 265.1, address reports",
+            "href": "https://www.ecfr.gov/current/title-8/section-265.1"
+          },
+          {
+            "id": "uscis-address",
+            "name": "uscis.gov, change of address",
+            "href": "https://www.uscis.gov/addresschange"
+          }
+        ],
+        "actions": [
+          {
+            "type": "loop",
+            "kind": "address",
+            "label": "I moved"
+          },
+          {
+            "type": "save",
+            "fact": "Moved to a new apartment; new address not yet reported",
+            "label": "Save to my record"
+          }
+        ],
+        "answer": "Tell two places: your DSO, through the SEVP Portal or the DSO directly, and USCIS, online with Form AR-11. Each is due within 10 days of your move, and one doesn't cover the other.\n\nWhat applies to you\n- On post-completion OPT, a change of address goes to your DSO within 10 days, in the SEVP Portal or through the DSO (Study in the States, 8 CFR 214.2(f)).\n- Separately, non-citizens report a new address to USCIS within 10 days, online with Form AR-11 (8 CFR 265.1, uscis.gov).\n- Your record still shows the address you've had since Mar 1, 2026, so it doesn't have your new apartment yet.\n\nYour plan\n- Now: Enter your new address in the SEVP Portal, or send it to your DSO, and keep a copy.\n- Now: File Form AR-11 online at uscis.gov and save the confirmation page.\n- At STEM OPT: Report any later move to your DSO within 10 days on STEM OPT as well, under the same 10-day rule.\n\nWatch out for\n- Your 10 days count from your move date, which isn't on your record yet, so note it when you update.\n- Updating the SEVP Portal doesn't change your address with USCIS, and filing AR-11 doesn't notify your DSO."
+      },
+      "checks": {
+        "words": 202,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan"
+        ],
+        "sources": [
+          "sits-opt",
+          "cfr-f",
+          "cfr-265",
+          "uscis-address"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Both 10-day reports, separate, move date missing from the record, address flow."
+      }
+    },
+    {
+      "id": "lost-ead",
+      "question": "I lost my EAD card. Can I still work, and how do I get a new one?",
+      "ideal": "A replacement is requested on Form I-765 with the fee on uscis.gov; the dates of her work permission (to Feb 13, 2027) do not change; what Northwind accepts for Form I-9 meanwhile is an HR question (verify); keep a copy; offers the lost document flow; no conclusion on her status.",
+      "seconds": 21.2,
+      "result": {
+        "lead": "Losing the card does not end your work permission. Its dates, Feb 14, 2026 to Feb 13, 2027, stay the same. To get a new card, file Form I-765 for a replacement, with the fee shown on uscis.gov.",
+        "applies": [
+          "Guidance on uscis.gov says losing the card does not change or end the dates of your work permission.",
+          "Northwind already completed your Form I-9, so a lost card usually needs no new I-9. What Northwind asks for is an HR question.",
+          "If an employer asks for your card for Form I-9, a replacement receipt counts for 90 days. Show the new card within those 90 days (I-9 Central)."
+        ],
+        "plan": {
+          "now": [
+            "Ask Northwind HR whether they need anything from you about the lost card.",
+            "Check replacement processing times and the current fee on uscis.gov before you file."
+          ],
+          "stem": [
+            "Remember that a STEM OPT approval brings a new card anyway. Your filing window runs Nov 15, 2026 to Feb 13, 2027."
+          ],
+          "after": []
+        },
+        "watch": [
+          "You need the card itself to return to the US on OPT, so plan any trip abroad around having it.",
+          "Your STEM window opens in 46 days. Weigh a replacement now against waiting for the STEM card."
+        ],
+        "dso": {
+          "ask": "Whether to replace the card now or wait for the STEM OPT card depends on your own situation, so ask your DSO.",
+          "draft": "Hi, I lost my OPT EAD card, which is valid Feb 14, 2026 to Feb 13, 2027. My STEM OPT filing window opens Nov 15, 2026. Would you suggest filing for a replacement card now, or waiting for the card that comes with the STEM OPT approval? Thanks, Priya"
+        },
+        "sources": [
+          {
+            "id": "uscis-i765",
+            "name": "uscis.gov, Form I-765",
+            "href": "https://www.uscis.gov/i-765"
+          },
+          {
+            "id": "uscis-i9-receipts",
+            "name": "uscis.gov, I-9 Central, receipts",
+            "href": "https://www.uscis.gov/i-9-central/form-i-9-acceptable-documents/receipts"
+          },
+          {
+            "id": "cfr-f",
+            "name": "8 CFR 214.2(f), F-1 students",
+            "href": "https://www.ecfr.gov/current/title-8/section-214.2"
+          }
+        ],
+        "actions": [
+          {
+            "type": "loop",
+            "kind": "lost-paper",
+            "label": "I lost my EAD card"
+          }
+        ],
+        "answer": "Losing the card does not end your work permission. Its dates, Feb 14, 2026 to Feb 13, 2027, stay the same. To get a new card, file Form I-765 for a replacement, with the fee shown on uscis.gov.\n\nWhat applies to you\n- Guidance on uscis.gov says losing the card does not change or end the dates of your work permission.\n- Northwind already completed your Form I-9, so a lost card usually needs no new I-9. What Northwind asks for is an HR question.\n- If an employer asks for your card for Form I-9, a replacement receipt counts for 90 days. Show the new card within those 90 days (I-9 Central).\n\nYour plan\n- Now: Ask Northwind HR whether they need anything from you about the lost card.\n- Now: Check replacement processing times and the current fee on uscis.gov before you file.\n- At STEM OPT: Remember that a STEM OPT approval brings a new card anyway. Your filing window runs Nov 15, 2026 to Feb 13, 2027.\n\nWatch out for\n- You need the card itself to return to the US on OPT, so plan any trip abroad around having it.\n- Your STEM window opens in 46 days. Weigh a replacement now against waiting for the STEM card.\n\nAsk your DSO\nWhether to replace the card now or wait for the STEM OPT card depends on your own situation, so ask your DSO.\nDraft: Hi, I lost my OPT EAD card, which is valid Feb 14, 2026 to Feb 13, 2027. My STEM OPT filing window opens Nov 15, 2026. Would you suggest filing for a replacement card now, or waiting for the card that comes with the STEM OPT approval? Thanks, Priya"
+      },
+      "checks": {
+        "words": 280,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan",
+          "dso"
+        ],
+        "sources": [
+          "uscis-i765",
+          "uscis-i9-receipts",
+          "cfr-f"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "Adds the 90-day replacement receipt for Form I-9 and weighs a replacement against the STEM OPT card."
+      }
+    },
+    {
+      "id": "h1b-lottery",
+      "question": "What are my chances in the H-1B lottery, and is the $100,000 fee going to apply to me?",
+      "ideal": "No odds (never predicts); explains registration by the employer each spring and selection for an Oct 1 start (uscis.gov), selection weighting changed recently (verify); the $100,000 payment is litigated, a court vacated the policy, so verify on uscis.gov and with the employer; notes O-1 has no lottery as another route without recommending it.",
+      "seconds": 33.4,
+      "result": {
+        "lead": "No one can give odds on the H-1B lottery. Whether the $100,000 payment applies to you is not settled, because a federal court vacated that policy on Jun 8, 2026, and the case is still in court.",
+        "applies": [
+          "A cap H-1B starts with your employer registering you in the spring, then USCIS selects, for a start on Oct 1.",
+          "Your employer files for you, and USCIS recently changed how selection is weighted, so verify the current method on uscis.gov.",
+          "Your record shows the spring 2027 and spring 2028 seasons, both with Oct 1 starts before your STEM OPT end, Feb 13, 2029, if approved."
+        ],
+        "plan": {
+          "now": [
+            "Ask Northwind Systems whether they plan to register you in the spring 2027 H-1B season."
+          ],
+          "stem": [
+            "Check uscis.gov for the selection method and the status of the $100,000 payment before each spring registration."
+          ],
+          "after": [
+            "Read the O-1 page on uscis.gov: O-1 has no annual cap and no lottery, and an employer or agent files for you."
+          ]
+        },
+        "watch": [
+          "In the spring 2029 season, the Oct 1, 2029 start comes after your STEM OPT end, Feb 13, 2029, if approved.",
+          "The $100,000 payment is still in court, so verify on uscis.gov close to each season."
+        ],
+        "dso": null,
+        "sources": [
+          {
+            "id": "uscis-h1b",
+            "name": "uscis.gov, H-1B cap season",
+            "href": "https://www.uscis.gov/working-in-the-united-states/temporary-workers/h-1b-specialty-occupations-and-fashion-models/h-1b-cap-season"
+          },
+          {
+            "id": "uscis-o1",
+            "name": "uscis.gov, O-1 extraordinary ability",
+            "href": "https://www.uscis.gov/working-in-the-united-states/temporary-workers/o-1-visa-individuals-with-extraordinary-ability-or-achievement"
+          }
+        ],
+        "actions": [],
+        "answer": "No one can give odds on the H-1B lottery. Whether the $100,000 payment applies to you is not settled, because a federal court vacated that policy on Jun 8, 2026, and the case is still in court.\n\nWhat applies to you\n- A cap H-1B starts with your employer registering you in the spring, then USCIS selects, for a start on Oct 1.\n- Your employer files for you, and USCIS recently changed how selection is weighted, so verify the current method on uscis.gov.\n- Your record shows the spring 2027 and spring 2028 seasons, both with Oct 1 starts before your STEM OPT end, Feb 13, 2029, if approved.\n\nYour plan\n- Now: Ask Northwind Systems whether they plan to register you in the spring 2027 H-1B season.\n- At STEM OPT: Check uscis.gov for the selection method and the status of the $100,000 payment before each spring registration.\n- After: Read the O-1 page on uscis.gov: O-1 has no annual cap and no lottery, and an employer or agent files for you.\n\nWatch out for\n- In the spring 2029 season, the Oct 1, 2029 start comes after your STEM OPT end, Feb 13, 2029, if approved.\n- The $100,000 payment is still in court, so verify on uscis.gov close to each season."
+      },
+      "checks": {
+        "words": 207,
+        "under_300_words": true,
+        "has_lead": true,
+        "parts": [
+          "applies",
+          "watch",
+          "plan"
+        ],
+        "sources": [
+          "uscis-h1b",
+          "uscis-o1"
+        ],
+        "no_long_dash": true,
+        "no_third_person": true,
+        "no_first_person": true,
+        "no_should": true,
+        "no_reassurance": true
+      },
+      "judge": {
+        "helpful": 5,
+        "correct": 5,
+        "uses_context": 5,
+        "safe": 5,
+        "note": "No odds, the $100,000 payment as litigated, O-1 as a route with no lottery, no 90-day error."
+      }
+    }
+  ],
+  "judge": {
+    "before_mean": 4.45,
+    "after_mean": 4.975,
+    "rubric": "helpful, correct, uses_context, safe, 1 to 5 each; mean over all 40 scores"
+  }
+}

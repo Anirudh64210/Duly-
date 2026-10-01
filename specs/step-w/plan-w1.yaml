@@ -1,0 +1,35 @@
+branch: step-w
+spec: specs/step-w/SPEC-W1.md
+goal: 'Duly installs and opens like Slack on the founder''s Mac: the engine bundled inside the app, talking over a private socket only Duly can open, packaged with Electron Forge, hardened with fuses, signed for this Mac. No cloud. This plan builds and tests the parts; the founder lane then packages outside the jail, and a second plan reviews the packaged app.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Write tests/unit/desktop_entry/test_desktop_main.py and tests/unit/desktop_entry/test_bundle_inputs.py for SPEC-W1 points 1 to 15 (the slim entrypoint and its forbidden imports, the socket at 0600 in a 0700 folder, the token on stdin, the three routes, the desktop dependency group and the bundle allowlist). Not expected to pass yet. Change no other test.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests'
+- name: build
+  lanes:
+  - lane: L-api
+    agent: builder
+    mission: 'SPEC-W1 section 1 and the engine side of section 2: api/desktop_main.py, api/local_routes.py, and api/main.py mounting local_routes with nothing else changed.'
+    done: bash -c 'uv run pytest tests/unit/desktop_entry/test_desktop_main.py tests/unit/api/test_compute_generic.py tests/unit/acceptance/test_journeys.py -q -p no:cacheprovider && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  - lane: L-desktop
+    agent: builder
+    mission: 'SPEC-W1 sections 2 to 6 on the desktop side: socket.ts, paths.ts, manifest.ts, launch.ts and the engine start in engine.ts and main.ts; desktop/forge.config.ts reading the bundle id from desktop/app.json; desktop/scripts (build-python.sh with --dry-run, sign-adhoc.sh, verify-bundle.mjs, read-fuses.mjs, launch-time.mjs); desktop/python/bundle.json and duly_engine.py; desktop/build/entitlements.plist; the Starting Duly screen. Tests beside each module in desktop/src.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings 0 && uv run python -m tools.copy_lint.lint && bash -n desktop/scripts/build-python.sh && bash -n desktop/scripts/sign-adhoc.sh && uv run pytest tests/unit/desktop_entry/test_bundle_inputs.py -q -p no:cacheprovider'
+  - lane: L-security
+    agent: red-team
+    mission: 'SPEC-W1 point 28 security row: update security/threat-model.md for the engine channel moving from a local port to engine.sock, the ad-hoc and self-signed founder build, and the library-validation entitlement if it is used.'
+    done: bash -c 'grep -q "engine.sock" security/threat-model.md && grep -qi "self-signed" security/threat-model.md'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with SPEC-W1 (the desktop entrypoint, the socket, the mounted local routes); write the SPEC-W1 point beside each change; never loosen an assertion; escalate any failure no point explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2

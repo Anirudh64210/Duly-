@@ -286,6 +286,14 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+desktop = [
+    { name = "fastapi" },
+    { name = "jsonschema" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "tzdata" },
+    { name = "uvicorn" },
+]
 dev = [
     { name = "diff-cover" },
     { name = "httpx" },
@@ -314,6 +322,14 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+desktop = [
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "jsonschema", specifier = ">=4.23" },
+    { name = "pydantic", specifier = ">=2.8" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "tzdata", specifier = ">=2024.1" },
+    { name = "uvicorn", specifier = ">=0.30" },
+]
 dev = [
     { name = "diff-cover", specifier = ">=9.2" },
     { name = "httpx", specifier = ">=0.27" },

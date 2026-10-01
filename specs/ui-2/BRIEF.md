@@ -210,3 +210,90 @@ explanation goes behind an ⓘ, only when it is needed, and is minimal. The rest
    from the legal notes on the 2026 regime. An item with no saved source is removed, never
    invented.
 7. **Navigation labels** are human, intentional and distinct from each other.
+
+## Round 5: the founder's notes (2026-09-30)
+
+Updates, USCIS status and Documents "look great". To change:
+
+1. **Home's next move is answered in place.** "Decide on STEM OPT" opens on Home with Yes, No and
+   Not sure. A yes shows the three key dates in a small strip and an optional "See all steps". It
+   never jumps to another page unasked.
+2. **USCIS status: track another case.** Add any receipt number with its form type (for example an
+   H-1B petition, a green card form or a travel document); it joins the list with its status and
+   checked date. Remove anything on the page that does nothing.
+3. **Next steps comes alive:**
+   - a "today" marker on the date strip shows where the student is between now and the last day;
+   - the current step is highlighted, and steps expand in place;
+   - the progress fills as steps are ticked, and the next step moves up to current.
+   - **The strip is a real timeline** ("the strip can be better"):
+     - scaled to time, from today to the last day to file;
+     - two shaded spans, "Prepare" (from the start-preparing date) and "Filing window" (opens to
+       last day);
+     - a Today marker where the student is, with one line such as "46 days until the window
+       opens";
+     - only the date that matters now is emphasized; the line draws in once and the marker
+       settles.
+4. **Light motion and haptics for a calm feeling of progress:**
+   - a check that draws itself, a soft fill, a gentle settle when a step completes;
+   - a light tap through the Vibration API on phones that support it;
+   - nothing loud, nothing that blocks;
+   - everything off under prefers-reduced-motion, and the screen is complete without motion.
+5. **The value proposition is refined after this round** ("is this all it does").
+
+## Round 7: the founder's notes and the design rules they set (2026-10-01)
+
+These are rules for every screen from now on.
+
+1. **One thing lives in one place.** A loop or item appears in full on exactly one page. Other
+   pages show only a one-line pointer that opens it there. STEM OPT lives in Plan; Home shows a
+   one-line "Next" pointer.
+2. **No ⓘ clusters.** An opened item has at most one ⓘ, at its bottom ("How this was counted"),
+   which lists all of its sources. Lines never carry their own ⓘ.
+3. **Home uses the screen.** It has a fixed format of cards that each deliver something and link to
+   their own page, with no narrow centre column:
+   - a greeting line with the status and date;
+   - three big number cards;
+   - the Ask box (Home only, below the numbers, never at the very top);
+   - a two-column grid: Next (at most 3, each with a date, then "See plan"), Documents (the three
+     most used, one tap each, then "All documents"), USCIS status (each case and its status),
+     Updates (the latest one or two headlines).
+4. **Ask appears only on Home for now.**
+5. **A section that deserves a page gets one.** USCIS status is back in the sidebar.
+6. **Settings uses grouped panels:** Reminders, Security, Backup, Appearance, Your data. Each is a
+   rounded panel with readable rows, a short description where needed, and no long ruled lines.
+7. **Lost a document** opens the saved copy at once, gives the replacement steps for that kind of
+   document (I-20 from the DSO; EAD by Form I-765; passport through the consulate; I-94 from the
+   CBP site), and marks the old one lost. The word "paper" is gone everywhere.
+8. **Record and the journey PDF are removed from v1.** The history stays stored underneath and
+   returns later as an export for H-1B and green card forms that ask for status and work history.
+
+## Round 8: the founder's notes (2026-10-01)
+
+Settings is better and Updates is "amazing". To change:
+
+1. **Ask is a real advisor.**
+   - **Answer the general rules directly.** Self-employment on post-completion OPT, STEM OPT
+     employer requirements (E-Verify, an I-983 with a supervisor who is not the student), and O-1
+     (no lottery; a petitioner, an employer or an agent; evidence of extraordinary ability) are
+     answered with sources such as Study in the States and uscis.gov.
+   - **Use facts the student states in the conversation** as given, and offer "Save to my record".
+   - **Answer in a set shape:** what applies to you; a plan for now, at STEM OPT, and after; what to
+     watch; and only the personal judgement for the DSO, with a draft.
+   - **Location:** at the bottom of Home. The conversation persists across pages and reloads.
+   - **Testing:** checked against a scored set of hard questions before it ships.
+2. **Documents spacing is comfortable, even and minimal.**
+3. **"Try an outcome" is removed** from USCIS status.
+4. **Work is its own page:** the student's jobs (more than one is normal: part time at Northwind
+   Systems and full time at their own company), hours, start dates and reports.
+5. **Plan is built from the record and the student's goals.**
+   - A goal ("Start my own company", "O-1 later") can be added from Plan or from an Ask answer.
+   - Its steps appear beside STEM OPT.
+6. **No jumps.** A Home item is answered in place in a sheet. The Home card is named Plan, like the
+   page it opens.
+7. **Every loop closes itself, as a full UI loop:**
+   - the action;
+   - a self-drawing check and a light haptic tap;
+   - a one-line receipt with the follow-up ("Confirmed. Next check-in Oct 30");
+   - then it leaves the list on its own.
+
+   Nothing waits to be folded by hand. Minimal motion, off under reduced motion.

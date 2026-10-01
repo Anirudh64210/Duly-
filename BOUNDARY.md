@@ -37,6 +37,16 @@ Duly tells you what the rule says, where it is written, what its legal status is
 | B9 | Resolve a conflict between sources on the user's behalf | When the school page and SEVP guidance differ, show both and stop |
 | B10 | Reassure | "You're fine", "nothing to worry about", "you have plenty of time" |
 
+## Before the tests: match a guide (D76)
+
+A question or event is first matched to a guide: a Situation or a loop whose words, steps and
+sources were written ahead of time, checked against this file and reviewed. "I lost my job", "what
+do I do now?" and "when is my deadline?" each have one. A matched guide answers with its reviewed
+words (general rules, Side A), the student's own dates and counts under A3, and the steps of its
+loop, and carries the loop to done. The three tests below then apply to anything said about this
+person beyond the guide's reviewed words, and a guide step that needs a judgement still ends in
+the step back. When no guide matches, the step back is the answer. Doubt still resolves to the stop.
+
 ## The three tests, applied in order
 
 1. Judgement test. Does answering need a judgement about this person's facts against a standard that has no fixed number (related, bona fide, qualifying, reasonable, material)? If yes, stop.

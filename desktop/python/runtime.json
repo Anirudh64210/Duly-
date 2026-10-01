@@ -1,0 +1,9 @@
+{
+  "source": "https://github.com/astral-sh/python-build-standalone",
+  "tag": "20260929",
+  "python": "3.12.14",
+  "asset": "cpython-3.12.14+20260929-aarch64-apple-darwin-install_only.tar.gz",
+  "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260929/cpython-3.12.14+20260929-aarch64-apple-darwin-install_only.tar.gz",
+  "sha256": "de6b8f94fa765639b423ea353ab340669704c7186f96ee3cab389dcfde770c3c",
+  "checked_on": "2026-10-01"
+}
