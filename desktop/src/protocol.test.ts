@@ -1,17 +1,22 @@
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import { EventEmitter } from "node:events";
+import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { PassThrough } from "node:stream";
 
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { EngineView } from "./pages";
+import { COPIED, COPY_PATH, RETRY_PATH, type EngineView } from "./pages";
 import {
   SECURITY_HEADERS,
   TOKEN_HEADER,
   contentType,
   createAppHandler,
   engineRequestInit,
-  engineUrl,
+  engineRequestOptions,
+  socketFetch,
+  type SendRequest,
   inside,
   readInside,
   routeRequest,
@@ -124,18 +129,77 @@ describe("inside a folder", () => {
   });
 });
 
-describe("the engine's address", () => {
-  it("is always this machine", () => {
-    expect(engineUrl(8123, "/v1/status")).toBe("http://127.0.0.1:8123/v1/status");
-    expect(engineUrl(8123, "v1/status?a=b")).toBe("http://127.0.0.1:8123/v1/status?a=b");
-    expect(engineUrl(8123, "//evil.com/x")).toBe("http://127.0.0.1:8123//evil.com/x");
-    expect(engineUrl(8123, "/@evil.com")).toBe("http://127.0.0.1:8123/@evil.com");
+describe("the engine's channel (point 10)", () => {
+  it("carries the socket path and no host or port", () => {
+    const options = engineRequestOptions("/run/engine.sock", "/v1/compute?x=1", {
+      method: "POST",
+      headers: { [TOKEN_HEADER]: "tok" },
+    });
+    expect(options).toEqual({
+      socketPath: "/run/engine.sock",
+      path: "/v1/compute?x=1",
+      method: "POST",
+      headers: { [TOKEN_HEADER]: "tok" },
+    });
+    expect(options).not.toHaveProperty("host");
+    expect(options).not.toHaveProperty("hostname");
+    expect(options).not.toHaveProperty("port");
+    expect(engineRequestOptions("/s", "health", {}).path).toBe("/health");
+    expect(engineRequestOptions("/s", "/health", {}).method).toBe("GET");
   });
 
-  it("refuses a port that is not one", () => {
-    expect(() => engineUrl(0, "/")).toThrow();
-    expect(() => engineUrl(70000, "/")).toThrow();
-    expect(() => engineUrl(1.5, "/")).toThrow();
+  it("sends the request over the socket and reads the answer, never following a redirect", async () => {
+    const sent: { options: RequestOptions; body: unknown }[] = [];
+    const fake = (status: number, headers: Record<string, string>, body: string) =>
+      ((options: RequestOptions, callback: (answer: IncomingMessage) => void) => {
+        const request = new EventEmitter() as EventEmitter & { end(body?: unknown): void };
+        request.end = (written) => {
+          sent.push({ options, body: written });
+          const answer = Object.assign(new PassThrough(), { statusCode: status, headers });
+          callback(answer as unknown as IncomingMessage);
+          answer.end(body);
+        };
+        return request as unknown as ClientRequest;
+      }) satisfies SendRequest;
+
+    const init = engineRequestInit(
+      "POST",
+      "application/json",
+      "tok",
+      new TextEncoder().encode('{"a":1}').buffer,
+    );
+    const answer = await socketFetch(
+      fake(201, { "content-type": "application/json", "set-cookie": "a=b" }, '{"ok":true}'),
+    )("/run/engine.sock", "/v1/compute", init);
+    expect(answer.status).toBe(201);
+    expect(answer.headers.get("Content-Type")).toBe("application/json");
+    expect(answer.headers.get("Set-Cookie")).toBeNull();
+    expect(await answer.text()).toBe('{"ok":true}');
+    expect(sent[0]?.options.socketPath).toBe("/run/engine.sock");
+    expect(String(sent[0]?.body)).toBe('{"a":1}');
+
+    const get = engineRequestInit("GET", null, "tok", null);
+    const moved = await socketFetch(fake(302, { location: "http://example.com/" }, ""))(
+      "/s",
+      "/moved",
+      get,
+    );
+    expect(moved.status).toBe(302);
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.body).toBeUndefined();
+    const empty = await socketFetch(fake(204, {}, ""))("/s", "/empty", get);
+    expect(empty.status).toBe(204);
+  });
+
+  it("fails when the socket cannot be reached", async () => {
+    const refused = (() => {
+      const request = new EventEmitter() as EventEmitter & { end(): void };
+      request.end = () => request.emit("error", new Error("connect ENOENT"));
+      return request as unknown as ClientRequest;
+    }) satisfies SendRequest;
+    await expect(
+      socketFetch(refused)("/s", "/health", engineRequestInit("GET", null, "t", null)),
+    ).rejects.toThrow("ENOENT");
   });
 });
 
@@ -198,14 +262,15 @@ describe("reading a file", () => {
   });
 });
 
-const READY: EngineView = { state: "ready", port: 8123, token: "tok" };
+const READY: EngineView = { state: "ready", socket: "/run/engine.sock", token: "tok" };
 
-function handlerWith(view: EngineView, fetcher = vi.fn()) {
+function handlerWith(view: EngineView, fetcher = vi.fn(), more = {}) {
   return createAppHandler({
     webDist: dist,
     engine: () => view,
     fetch: fetcher,
     readFile: readInside,
+    ...more,
   });
 }
 
@@ -260,8 +325,14 @@ describe("the app handler", () => {
     expect(response.headers.get("Set-Cookie")).toBeNull();
     expectSecurityHeaders(response);
     expect(fetcher).toHaveBeenCalledTimes(1);
-    const [target, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
-    expect(target).toBe("http://127.0.0.1:8123/v1/compute?x=1");
+    const [socket, target, init] = fetcher.mock.calls[0] as unknown as [
+      string,
+      string,
+      RequestInit,
+    ];
+    expect(socket).toBe("/run/engine.sock");
+    expect(target).toBe("/v1/compute?x=1");
+    expect(init.redirect).toBe("manual");
     expect(init.method).toBe("POST");
     expect(init.headers).toEqual({ [TOKEN_HEADER]: "tok", "Content-Type": "application/json" });
     expect(new TextDecoder().decode(init.body as ArrayBuffer)).toBe('{"a":1}');
@@ -295,10 +366,52 @@ describe("the app handler", () => {
       new Request("duly://app/index.html"),
     );
     const html = await response.text();
-    expect(html).toContain("Duly could not start its engine on this Mac.");
-    expect(html).toContain("Traceback &lt;x&gt;");
+    expect(html).toContain("Duly could not start.");
+    expect(html).not.toContain("Traceback");
     expect(html).not.toContain("<h1>screen</h1>");
     expectSecurityHeaders(response);
+  });
+
+  it("starts the engine again on Try again (point 23)", async () => {
+    let view: EngineView = { state: "failed", lines: ["boom"] };
+    const retry = vi.fn(() => {
+      view = { state: "starting" };
+    });
+    const handler = createAppHandler({
+      webDist: dist,
+      engine: () => view,
+      fetch: vi.fn(),
+      readFile: readInside,
+      retry,
+    });
+    const response = await handler(new Request(`duly://app/${RETRY_PATH}`, { method: "POST" }));
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(await response.text()).toContain("Starting Duly");
+    expectSecurityHeaders(response);
+  });
+
+  it("puts the engine's last lines on the clipboard on Copy details (point 23)", async () => {
+    const copy = vi.fn();
+    const handler = handlerWith({ state: "ended", lines: ["one", "two"] }, vi.fn(), { copy });
+    const response = await handler(new Request(`duly://app/${COPY_PATH}`, { method: "POST" }));
+    expect(copy).toHaveBeenCalledWith("one\ntwo");
+    expect(await response.text()).toContain(COPIED);
+  });
+
+  it("does neither by GET, nor while the engine is starting or ready", async () => {
+    const retry = vi.fn();
+    const copy = vi.fn();
+    const failed = handlerWith({ state: "failed", lines: [] }, vi.fn(), { retry, copy });
+    expect((await failed(new Request(`duly://app/${RETRY_PATH}`))).status).toBe(404);
+    for (const view of [{ state: "starting" }, READY] as EngineView[]) {
+      const handler = handlerWith(view, vi.fn(), { retry, copy });
+      for (const path of [RETRY_PATH, COPY_PATH]) {
+        const response = await handler(new Request(`duly://app/${path}`, { method: "POST" }));
+        expect(response.status).toBe(200);
+      }
+    }
+    expect(retry).not.toHaveBeenCalled();
+    expect(copy).not.toHaveBeenCalled();
   });
 
   it("returns no body for HEAD", async () => {

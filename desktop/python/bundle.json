@@ -1,0 +1,18 @@
+{
+  "note": "SPEC-W1 point 14: the only source files copied into the app, as globs from the repository root. The launcher goes to the top of engine-root; every other file keeps its path.",
+  "include": [
+    "engine",
+    "api/__init__.py",
+    "api/desktop_main.py",
+    "api/local_routes.py",
+    "api/case.py",
+    "api/case_f1.py",
+    "api/local_token.py",
+    "desktop/python/duly_engine.py",
+    "rulepacks/*/v*/parameters.yaml",
+    "contracts/case.schema.json",
+    "contracts/case_f1.schema.json",
+    "contracts/rulepack.schema.json",
+    "contracts/product_settings.yaml"
+  ]
+}

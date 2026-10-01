@@ -236,3 +236,82 @@ git printed "tests/holdout: Operation not permitted" (sandbox denies reads there
 Not run: Electron itself or make design-shots. Note: web/src/shots.tsx sets the shot root to
 1280px wide; unless L-web gives it max-width 100% (review finding 4 says it does), the 390 measure
 will fail the shot run, which is what point 7 asks for.
+
+## 2026-10-01, run l-desktop-241886e510, attempt 1
+
+SPEC-W1 sections 2 to 6, desktop side.
+
+- socket.ts (points 6, 8): `<userData>/run/engine.sock`, 103-byte rule, `duly-<16 hex>` fallback under
+  tmpdir (removed on quit), folder checks (owner, not a link, 0700; else removed and made again),
+  the socket check before every health request. Pure over a fake fs.
+- paths.ts (points 16, 19): web, contracts, manifest, engine-root; the packaged command
+  (`python3 -I -B duly_engine.py --mode packaged --socket`, env PATH=/usr/bin:/bin, HOME, TMPDIR,
+  DULY_ENV=desktop) and the repo command (`uv run python -m api.desktop_main --mode repo`, dev).
+  --smoke and --shots ignored when packaged; --verify-start waits for health and quits.
+- engine.ts (points 9, 11, 23): token to stdin then closed, never in argv or env; win32 refused with
+  a plain line; health over the socket; 30 s, 60 s on the first launch of a version; restart (Try
+  again); onChange in place of onEnded.
+- protocol.ts (point 10): http.request with socketPath, no host or port; Try again and Copy details
+  are POST forms the handler answers (no script under the CSP).
+- pages.ts (point 23): Starting Duly on the canvas ground, quiet mark (none under reduced motion),
+  the 8 s line by CSS delay; "Duly could not start." with Try again and Copy details; no lines on
+  its face.
+- manifest.ts + scripts/manifest.mjs (point 17): every file under python/ and engine-root/ hashed;
+  changed, missing or extra refuses. sign-adhoc.sh writes the manifest again after signing the
+  runtime, because codesign changes the bytes build-python.sh hashed.
+- launch.ts (point 24): milestones from process.hrtime, one line per launch, last 20 kept, 0600.
+- forge.config.ts (points 18, 20, 21): bundle id from app.json (prePackage refuses CHOOSE_ME),
+  asar, only dist/ and package.json from desktop/, web/dist and two schemas copied into the asar,
+  extraResource for build/python, build/engine-root, python-manifest.json, DMG and ZIP for darwin,
+  darwin arm64 only, fuses from the table in scripts/read-fuses.mjs, postPackage calls sign-adhoc.sh.
+- scripts: build-python.sh (--dry-run; SHA-256 refusal testable from a cached download),
+  sign-adhoc.sh (--dry-run; inside out; DULY_SIGN_IDENTITY), verify-bundle.mjs, read-fuses.mjs,
+  launch-time.mjs. python/bundle.json, python/duly_engine.py, build/entitlements.plist (allow-jit).
+- .gitignore: build/* and out/ ignored, entitlements.plist kept (`!build/` needed: the user's global
+  gitignore ignores build/).
+
+What ran: the done command, unpiped, output to a file, exit 1. typecheck clean; vitest 19 files,
+242 tests passed; eslint clean after two fixes (URL import in .mjs, an unused parameter); prettier
+--check clean; bash -n clean on both scripts. Copy lint exit 1: 7 findings, all in specs/ (founder
+files on main), none in desktop/. test_bundle_inputs.py: 2 failed, 11 passed; both failures are
+api/desktop_main.py and api/local_routes.py not on this branch (L-api, in parallel). The engine
+loads every pack from a copy made from the allowlist alone (that test passes).
+The sandbox refuses binding a Unix socket (EPERM), so the socket request is tested through an
+injected http.request, not a live server. Not run: Electron, codesign, the build script for real.
+
+## 2026-10-01, run l-desktop-241886e510, attempt 2
+
+No code changed. Checked whether either blocker from attempt 1 had cleared: neither has.
+api/desktop_main.py and api/local_routes.py are still not on this branch (L-api's last attempt was not
+accepted), and the 7 copy lint findings in specs/ (founder files) are still there.
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 1. typecheck clean;
+vitest 19 files, 242 passed; eslint clean; copy lint "7 problem(s)", all in specs/, none in desktop/.
+test_bundle_inputs.py alone: 2 failed (point 14 patterns and allowlist: 'api/desktop_main.py' missing),
+11 passed. Not done: removing the api files from bundle.json to pass, which would break point 14
+and work around the test; merging L-api's unaccepted branch into this lane.
+Status blocked: the done command can pass only after L-api lands and the founder clears specs/.
+
+## 2026-10-01, run l-desktop-241886e510, attempt 3
+
+No code changed. Checked the two blockers again: neither has cleared. api/desktop_main.py and
+api/local_routes.py are not on this branch, on main, or on either L-api branch
+(l-api-b92dbaa4da, l-api-f7feeb0694). The 7 copy lint findings in specs/ (founder files) are still there.
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 1. typecheck clean;
+vitest 19 files, 242 passed; eslint clean; copy lint "7 problem(s)", all in specs/, so the chain stopped
+there. test_bundle_inputs.py alone: 2 failed ('api/desktop_main.py' missing), 11 passed.
+Status escalated: this is the last attempt and the same failure for the third time, with causes outside desktop/.
+
+## 2026-10-01, run l-desktop-4bc5e10815, attempt 1
+
+Merged lane/L-desktop/l-desktop-241886e510 (SPEC-W1 sections 2 to 6 work, including the manifest
+order fix: the manifest is written again after the runtime is signed). Clean merge, no conflicts.
+api/desktop_main.py and api/local_routes.py were already on this branch; desktop/python/runtime.json
+already pins the stripped asset (SPEC-W1 point 12). No desktop code changed in this run beyond the merge.
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0. typecheck clean;
+vitest 19 files, 242 tests passed; eslint clean; copy lint clean; bash -n on both scripts clean;
+tests/unit/desktop_entry/test_bundle_inputs.py 12 passed. git printed "tests/holdout: Operation not
+permitted" during the merge (sandbox denies reads there, as the contract says).
+Not run: Electron itself, a real build-python.sh or sign-adhoc.sh run.

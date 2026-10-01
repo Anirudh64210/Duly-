@@ -27,7 +27,7 @@ import {
 } from "./casefile";
 
 const ROOT = join(__dirname, "..", "..");
-const checker = loadChecker(ROOT);
+const checker = loadChecker(join(ROOT, "contracts"));
 
 /** Stands in for safeStorage: AES-GCM with a key of its own, as the keychain holds one. */
 function testCipher(key: Buffer = randomBytes(32)): Cipher {

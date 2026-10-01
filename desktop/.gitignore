@@ -1,2 +1,8 @@
 dist
 coverage
+# What make desktop-python and make desktop-package write (SPEC-W1 points 15 and 18), except
+# the entitlements, which are source.
+!build/
+build/*
+!build/entitlements.plist
+out/

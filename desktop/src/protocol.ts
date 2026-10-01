@@ -1,8 +1,14 @@
 import { promises as fs } from "node:fs";
+import {
+  request as httpRequest,
+  type ClientRequest,
+  type IncomingMessage,
+  type RequestOptions,
+} from "node:http";
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { insideTheApp } from "./about";
-import { statusPage, type EngineView } from "./pages";
+import { COPY_PATH, RETRY_PATH, details, statusPage, type EngineView } from "./pages";
 
 /** Sent with every answer the app scheme gives, from a file, from the engine or refused. */
 export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
@@ -88,15 +94,58 @@ export function inside(root: string, path: string): boolean {
   );
 }
 
-/** The engine's own address for a path the screen asked for. Always this machine. */
-export function engineUrl(port: number, path: string): string {
-  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
-    throw new Error(`not a port: ${port}`);
-  }
-  const url = new URL(`http://127.0.0.1:${port}${path.startsWith("/") ? path : `/${path}`}`);
-  if (url.host !== `127.0.0.1:${port}`) throw new Error("the engine is only on this machine");
-  return url.href;
+/** A request to the engine, over its socket, with no host and no port (SPEC-W1 point 10). */
+export function engineRequestOptions(
+  socket: string,
+  path: string,
+  init: RequestInit,
+): RequestOptions {
+  const options: RequestOptions = {
+    socketPath: socket,
+    path: path.startsWith("/") ? path : `/${path}`,
+    method: init.method ?? "GET",
+    headers: { ...(init.headers as Record<string, string> | undefined) },
+  };
+  if (init.signal) options.signal = init.signal;
+  return options;
 }
+
+/** Sends a request to the engine and answers with what it said. */
+export type SocketFetch = (socket: string, path: string, init: RequestInit) => Promise<Response>;
+
+const NO_BODY = new Set([101, 204, 205, 304]);
+
+export type SendRequest = (
+  options: RequestOptions,
+  callback: (answer: IncomingMessage) => void,
+) => ClientRequest;
+
+/** The engine's answer over the socket. Node's http never follows a redirect. */
+export function socketFetch(send: SendRequest = httpRequest): SocketFetch {
+  return (socket, path, init) =>
+    new Promise((done, fail) => {
+      const sent = send(engineRequestOptions(socket, path, init), (answer) => {
+        const chunks: Buffer[] = [];
+        answer.on("data", (chunk: Buffer) => chunks.push(chunk));
+        answer.on("error", fail);
+        answer.on("end", () => {
+          const status = answer.statusCode ?? 502;
+          const type = answer.headers["content-type"];
+          done(
+            new Response(NO_BODY.has(status) ? null : Buffer.concat(chunks), {
+              status,
+              headers: type === undefined ? {} : { "Content-Type": type },
+            }),
+          );
+        });
+      });
+      sent.on("error", fail);
+      const body = init.body;
+      sent.end(body instanceof ArrayBuffer ? Buffer.from(body) : undefined);
+    });
+}
+
+export const fetchOverSocket: SocketFetch = socketFetch();
 
 const CONTENT_TYPES: Readonly<Record<string, string>> = {
   ".html": "text/html; charset=utf-8",
@@ -162,11 +211,22 @@ export async function readInside(
 export interface AppDeps {
   webDist: string;
   engine: () => EngineView;
-  fetch: (input: string, init: RequestInit) => Promise<Response>;
+  fetch: SocketFetch;
   readFile: (root: string, relativePath: string) => Promise<Uint8Array<ArrayBuffer> | null>;
   /** Files under web/dist this handler never serves. */
   refuse?: (relativePath: string) => boolean;
+  /** Try again, on the page shown when the engine could not start. */
+  retry?: () => void;
+  /** Copy details: puts the engine's last lines on the clipboard. */
+  copy?: (text: string) => void;
 }
+
+function html(page: string): Response {
+  return new Response(page, { status: 200, headers: responseHeaders("text/html; charset=utf-8") });
+}
+
+/** After an action, when the engine is ready: back to the screen, with no script. */
+const REFRESH = '<!doctype html><meta http-equiv="refresh" content="0;url=/index.html">';
 
 function plain(status: number, sentence: string): Response {
   return new Response(sentence, {
@@ -184,6 +244,19 @@ export function createAppHandler(deps: AppDeps): (request: Request) => Promise<R
       return plain(404, "Not found.");
     }
     const view = deps.engine();
+    if (route.kind === "file" && (route.relative === RETRY_PATH || route.relative === COPY_PATH)) {
+      if (request.method !== "POST") return plain(404, "Not found.");
+      if (view.state === "failed" || view.state === "ended") {
+        if (route.relative === RETRY_PATH && deps.retry !== undefined) {
+          deps.retry();
+        } else if (route.relative === COPY_PATH && deps.copy !== undefined) {
+          deps.copy(details(view));
+          return html(statusPage(view, { copied: true }));
+        }
+      }
+      const now = deps.engine();
+      return now.state === "ready" ? html(REFRESH) : html(statusPage(now));
+    }
     if (route.kind === "engine") {
       if (view.state !== "ready") return plain(503, "Duly's engine is not running.");
       const body =
@@ -196,7 +269,7 @@ export function createAppHandler(deps: AppDeps): (request: Request) => Promise<R
       );
       let answer: Response;
       try {
-        answer = await deps.fetch(engineUrl(view.port, route.path), init);
+        answer = await deps.fetch(view.socket, route.path, init);
       } catch {
         return plain(502, "Duly could not reach its engine.");
       }
@@ -208,12 +281,7 @@ export function createAppHandler(deps: AppDeps): (request: Request) => Promise<R
         { status: answer.status, headers: responseHeaders(answer.headers.get("Content-Type")) },
       );
     }
-    if (route.relative === "index.html" && view.state !== "ready") {
-      return new Response(statusPage(view), {
-        status: 200,
-        headers: responseHeaders("text/html; charset=utf-8"),
-      });
-    }
+    if (route.relative === "index.html" && view.state !== "ready") return html(statusPage(view));
     const bytes = await deps.readFile(deps.webDist, route.relative);
     if (bytes === null) return plain(404, "Not found.");
     return new Response(bytes, {
