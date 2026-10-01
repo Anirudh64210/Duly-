@@ -1,30 +1,24 @@
-/* Plan (#/plan): what comes next and by when, the student's USCIS cases, and
-   her work (BLUEPRINT 3.1: Next steps on the time strip, reports owed,
-   Status, WorkBook). One page title, then three views as chips that wrap
-   (nothing scrolls sideways):
+/* Plan (#/plan): one page, one list (founder review, Oct 1). From the top:
+     Plan, the path and the answer in one quiet line, the stepper, then one
+     list of everything to do in date order (screens/steps.js draws it: the
+     loops that need her now, the steps, the STEM OPT filing loop, reports
+     owed), "Add your school's steps", and at the bottom two folded rows:
+       USCIS status   the cases (screens/uscis.js), opened in place
+       Work           the jobs on the record, My job ended, My hours changed
+     No view chips, no section titles, no ⓘ beside a title.
 
-     #/plan                Next steps. The STEM OPT page from screens/steps.js,
-                           drawn as a view: the intent, the real timeline, the
-                           steps with their ticks, school steps, Reports you
-                           owe, cap-gap. Its review links work here too
-                           (#/plan/rec-2026-12-01, #/plan/reports-sample, ...).
-                           The STEM OPT filing loop lives here (BLUEPRINT 2.6 C):
-                           "Yes" opens it, planned, not a strip that stops.
-                           Under the steps: every other open loop ("Also open").
-     #/plan/status         USCIS status, from screens/uscis.js: each case with
-                           its receipt, last checked and next check.
-     #/plan/status/<id>    one case (a drilled page with its back link).
-     #/plan/workbook       WorkBook: the jobs on the record, where a change at
-                           work opens its loop, and what WorkBook will hold.
-
+     #/plan                the page
+     #/plan/status         the page with USCIS status open
+     #/plan/status/<id>    one case (a drilled page with its back link)
+     #/plan/workbook       the page with Work open
    Old routes redirect here, keeping their params: #/steps, #/next and
    #/checklists to #/plan; #/uscis and #/applications to #/plan/status.
 
    The STEM OPT loop and the page agree (every date from app/record.js through
    App.loops; nothing is worked out here):
-     loop saves "I-983 signed"     the step "Fill out your training plan" ticks
+     loop saves "I-983 signed"     the step "Fill out your I-983" ticks
      loop saves the recommendation the step "Get your new I-20" ticks, and the
-                                   timeline's last day moves (2026-12-01 + 60
+                                   stepper's last day moves (2026-12-01 + 60
                                    = 2027-01-30, python3)
      loop saves the receipt        "File Form I-765" ticks, and the STEM OPT
                                    case in USCIS status gets the receipt,
@@ -33,30 +27,25 @@
      ticking the training plan     takes the loop's "I-983 signed" exit
      a receipt added in USCIS      takes the loop's "filed" exit when the loop
      status                        is at its filing step
-     the loop closes "not applying" the intent reads "Not applying this time"
+     the loop closes "not applying" the answer reads "Not applying this time"
    Undo in the loop undoes what it set here; a tick the student made herself
    is never taken back. */
 (function () {
   'use strict';
 
   const STYLE = '<style>' +
-    '.screen-plan .plan-head { margin-bottom: var(--s-16); }' +
-    /* Three equal chips on one line at phone width; never a sideways scroll. */
-    '.screen-plan .plan-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 420px; margin-bottom: var(--s-32); }' +
-    '.screen-plan .plan-views .chip { justify-content: center; min-width: 0; padding: 0 var(--s-8); text-decoration: none; white-space: nowrap; }' +
-    '.screen-plan .wb-actions { margin-top: var(--s-16); }' +
-    '.screen-plan .wb-loops { margin-top: var(--s-24); }' +
-    '.screen-plan .wb-soon .row-title { color: var(--ink-2); }' +
+    /* Tighter rhythm on this page: 12px rows, 32px between groups. */
+    '.screen-plan { --gap-section: var(--s-32); }' +
+    '.screen-plan .row { padding-top: var(--s-12); padding-bottom: var(--s-12); min-height: 48px; }' +
+    '.screen-plan .pl-folds { margin-top: var(--s-32); }' +
+    '.screen-plan .pl-folds > .list > .item > .disc { padding: 0 var(--s-12) var(--s-16); gap: 0; }' +
+    '.screen-plan .pl-folds .track-case:not(.is-open), .screen-plan .pl-folds .track-case:not(.is-open) + .us-foot { display: inline-flex; vertical-align: middle; margin: var(--s-12) var(--s-16) 0 0; }' +
+    '.screen-plan .pl-folds .disc .section { margin-top: var(--s-16); }' +
+    '.screen-plan .pl-folds .src.is-info { display: none; }' +
+    '.screen-plan .wb-actions { margin-top: var(--s-12); }' +
     '</style>';
 
   const e = (s) => C.esc(s);
-  const VIEWS = [
-    { key: 'steps', label: 'Next steps', href: '#/plan' },
-    { key: 'status', label: 'USCIS status', href: '#/plan/status' },
-    { key: 'workbook', label: 'WorkBook', href: '#/plan/workbook' },
-  ];
-  const INFO = 'What comes next and by when, your cases with USCIS, and your work. Every date is worked out from your record.';
-
   /* Old routes. The router swaps the first part and keeps the rest:
      #/uscis/opt becomes #/plan/status/opt. */
   Object.assign(App.ALIASES, { steps: 'plan', next: 'plan', checklists: 'plan', uscis: 'plan/status', applications: 'plan/status' });
@@ -221,26 +210,16 @@
 
   /* ---------------- views ---------------- */
 
-  function head(view) {
-    return '<header class="page-header plan-head">' +
-      C.titleWith('<h1 class="t-big" tabindex="-1">Plan</h1>', INFO) + '</header>' +
-      '<nav class="chips plan-views" aria-label="Plan">' + VIEWS.map((v) =>
-        '<a class="chip" href="' + v.href + '"' + (v.key === view ? ' aria-current="page"' : '') + '>' + e(v.label) + '</a>').join('') +
-      '</nav>';
-  }
-
-  /* Every other loop open in the student's plan, earliest engine date first
+  /* Every other loop open in her plan, earliest engine date first
      (App.loops.whatsNext), and any closed today with its receipt. The STEM
-     OPT loop sits with its steps above; reports sit in Reports you owe; the
-     crisis screen keeps nothing. */
-  function alsoOpen() {
-    if (!L() || !C.loops) return '';
+     OPT loop sits in the I-765 row's place; reports sit by their due date;
+     the crisis screen keeps nothing. */
+  function otherLoops() {
+    if (!L()) return [];
     const skip = (lp) => lp.kind === 'stem-filing' || lp.kind === 'report-owed' || (L().def(lp.kind) || {}).private;
     const open = L().whatsNext({ max: 50 }).loops.filter((lp) => !skip(lp));
     const done = L().list({ all: true }).filter((lp) => closedToday(lp) && !skip(lp));
-    const list = open.concat(done);
-    if (!list.length) return '';
-    return C.section({ cls: 'plan-also', eyebrow: 'Also open', content: C.loops(list, { label: 'Also open' }) });
+    return open.concat(done);
   }
 
   function stepsView(data, params) {
@@ -248,7 +227,7 @@
     if (!S || !S.view) return '';
     const lp = stemLoop();
     if (lp) syncStem(lp);
-    return S.view(data, params, { embedded: true, loop: lp }) + alsoOpen();
+    return S.view(data, params, { embedded: true, loop: lp, others: otherLoops() });
   }
 
   function statusView(data) {
@@ -294,18 +273,8 @@
     });
   }
 
-  const WORK = ['job-ends', 'checkin'];
-  function workLoops() {
-    if (!L()) return [];
-    return L().list({ all: true }).filter((lp) => WORK.indexOf(lp.kind) >= 0 && (isOpen(lp) || closedToday(lp)));
-  }
-
-  const SOON = [
-    { title: 'Hours, week by week', meta: 'A change in hours opens its report' },
-    { title: 'Employer details for your I-983', meta: 'E-Verify company ID, address and your manager' },
-    { title: 'Offers and start dates', meta: 'Saved once, used for your reports and your count' },
-  ];
-
+  /* Work, opened in place: the jobs, the employer's public fact, and the
+     two changes. A change opens its loop in the list above. */
   function workbookView(data) {
     const r = App.record();
     const today = L() ? L().now() : data.today.iso;
@@ -320,19 +289,22 @@
         C.button({ label: 'My hours changed', kind: 'text', attrs: { 'data-plan-start': 'hours' } }),
       ])
       : '';
-    const loops = workLoops();
-    const jobsSection = C.section({
-      cls: 'wb-jobs', eyebrow: 'Your work',
-      info: 'Each job with its hours and dates, from your record. A change here opens its steps, with the dates worked out for you.',
-      content: (rows.length ? C.list(rows, { accordion: false, label: 'Your jobs' }) : '<p class="t-meta">No job on your record yet.</p>') +
-        (actions ? '<div class="wb-actions">' + actions + '</div>' : '') +
-        (loops.length && C.loops ? '<div class="wb-loops">' + C.loops(loops, { label: 'Changes at work' }) + '</div>' : ''),
-    });
-    const soon = C.section({
-      cls: 'wb-soon', eyebrow: 'Coming to WorkBook',
-      content: C.list(SOON.map((s) => C.row({ title: s.title, meta: s.meta })), { accordion: false, label: 'Coming to WorkBook' }),
-    });
-    return jobsSection + soon;
+    return (rows.length ? C.list(rows, { accordion: false, label: 'Your jobs' }) : '<p class="t-meta">No job on your record yet.</p>') +
+      (actions ? '<div class="wb-actions">' + actions + '</div>' : '');
+  }
+
+  /* The two folded rows at the bottom. #/plan/status and #/plan/workbook
+     open theirs. */
+  function folds(data, view) {
+    const apps = (data.applications && data.applications.items) || [];
+    const r = App.record();
+    const today = L() ? L().now() : data.today.iso;
+    const job = (r.jobs || []).filter((j) => !j.end || j.end >= today)[0];
+    const n = apps.length;
+    return '<div class="pl-folds">' + C.list([
+      C.row({ key: 'plan:status', title: 'USCIS status', value: n === 1 ? '1 case' : n + ' cases', content: statusView(data), open: view === 'status' }),
+      C.row({ key: 'plan:work', title: 'Work', value: job ? job.employer : 'No job saved', content: workbookView(data), open: view === 'workbook' }),
+    ], { accordion: false, label: 'Cases and work' }) + '</div>';
   }
 
   /* Start a change at work and open it in place. */
@@ -368,28 +340,29 @@
     titleFor(params) {
       const r = route(params);
       if (r.view === 'status' && r.id) { const a = App.findApplication(r.id); return a ? a.title : 'USCIS status'; }
-      return r.view === 'status' ? 'USCIS status' : (r.view === 'workbook' ? 'WorkBook' : 'Plan');
+      return 'Plan';
     },
     render(data, params) {
       const r = route(params);
-      /* One case: a drilled page, with its back link and no view chips. */
+      /* One case: a drilled page, with its back link. */
       if (r.view === 'status' && r.id) {
         const one = window.SCREENS.uscis.view(data, [r.id]);
         return STYLE + one + (one.indexOf('class="footer"') >= 0 ? '' : C.footer());
       }
-      const body = r.view === 'status' ? statusView(data) : (r.view === 'workbook' ? workbookView(data) : stepsView(data, r.params));
-      return STYLE + head(r.view) + body + C.footer();
+      return STYLE + stepsView(data, r.params) + folds(data, r.view) + C.footer();
     },
     mount(root, data, params) {
       root.classList.add('screen-plan');
       const r = route(params);
-      if (r.view === 'steps' && window.SCREENS.steps) window.SCREENS.steps.mount(root);
-      if (r.view === 'status' && window.SCREENS.uscis) window.SCREENS.uscis.mount(root);
-      if (r.view === 'workbook') {
-        root.addEventListener('click', (ev) => {
-          const b = ev.target.closest('[data-plan-start]');
-          if (b) startWork(b.dataset.planStart);
-        });
+      if (window.SCREENS.steps) window.SCREENS.steps.mount(root);
+      if (window.SCREENS.uscis) window.SCREENS.uscis.mount(root);
+      root.addEventListener('click', (ev) => {
+        const b = ev.target.closest('[data-plan-start]');
+        if (b) startWork(b.dataset.planStart);
+      });
+      if (r.view !== 'steps' && !r.id) {
+        const row = root.querySelector('[data-key="plan:' + (r.view === 'status' ? 'status' : 'work') + '"]');
+        if (row) setTimeout(() => row.scrollIntoView({ block: 'start' }), 0);
       }
     },
   };

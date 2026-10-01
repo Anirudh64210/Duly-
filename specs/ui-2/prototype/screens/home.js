@@ -1,79 +1,41 @@
-/* Today (#/today; #/home stays and draws the same page). BLUEPRINT 3.2:
-   four fixed slots, always in this order, each with an empty state that
-   still says something, mostly folded:
-     1. Where you stand: one line and one number, as of a date. The source
-        mark opens how it was counted; the other numbers are one tap down.
-        A count is a threat value, so it always has actions beside it
-        (BLUEPRINT 2.3 rule 7): How it was counted, Other numbers, and while
-        the count is held at an older day, the action that brings it to
-        today.
-     2. What's next: at most three open loops, one line each
-        (App.loops.whatsNext, earliest engine date first), drawn by C.loop,
-        then the overflow ("2 more, next on Nov 1", to Plan), then one line
-        for a tracked USCIS case. The job confirmation shows once: as the
-        check-in loop here. Slot 1 and the end line carry it only while the
-        check-in sits in the overflow.
-     3. Your papers: how many are kept, on how many devices, when they were
-        backed up, and the next to run out.
-     4. What changed: a published rule change that touches this student
-        (opens, then folds away once seen), else "Rules checked Sep 30".
-        News is in Record, not here.
-   Then the end line, Ask (C.askField from components/ask.js) and the footer.
-
-   The end line "Nothing in Duly needs you before <date>" shows only when
-   every condition of BLUEPRINT 3.2 holds: no fact is Can't tell yet or
-   held at an older day, the rules were checked today, the papers are
-   backed up (sync healthy) and reminders are on; and no open loop needs
-   the student now. Otherwise it names each unknown, with its way out
-   ("Not confirmed since Aug 28: your job at Northwind Systems", only while
-   that check-in is not on screen in slot 2).
-
-   Loops on Today. A loop the student acts on stays where it is for this
-   visit, closed ones included, so its receipt stays in view until it is
-   folded or she leaves. A loop opened by another one (My job ended opens
-   the job-ends loop; a STEM OPT approval opens five reports) is not
-   unfolded: it takes a place by engine date if one of the three is free,
-   else it goes to the overflow line. The STEM OPT filing loop
-   is opened by its runway trigger (playbook 'stem-filing', trigger
-   { from: 'runway', fact: 'stemOpens' }) while the card runs, nothing is
-   filed and the answer is not No. When the loop moves past its first step
-   the STEM OPT answer reads Yes on every screen.
+/* Home (#/home; #/today goes here). Glanceable first, then what needs her:
+     1. One quiet line: the date and the status ("On OPT").
+     2. Three large figures, side by side, each with its label and one line:
+          days without work used, of 90, as of a date (the one ⓘ: how it
+          was counted);
+          the EAD card valid until, with the days left;
+          the next date the engine holds (App.nextDates), what it is and
+          how far away.
+     3. At most three open loops, folded to one line each
+        (App.loops.whatsNext, earliest engine date first), then the overflow
+        line to Plan, then a USCIS case only while it is still waiting.
+     4. One documents line (how many, on how many devices, backed up), with
+        the next to run out only when it is not the card already shown.
+     5. A rule change that touches the plan, only when there is one.
+     6. The end line, only when it says something.
+   Ask is the field at the top of every page (components/ask.js).
+   No eyebrows, no section titles: each part says what it is.
 
    Sample, Priya, today 2026-09-30 (each checked with python3):
      count       Feb 14 to Feb 26, 2026 is 13 days without work; the job
                  check-in waits (Northwind last confirmed 2026-08-28,
                  2026-09-30 - 2026-08-28 = 33 days, at least the 30-day
-                 setting), so the count is as of Aug 28:
-                 "On OPT. 13 of 90 days without work, as of Aug 28."
-     numbers     card ends 2027-02-13: 2027-02-13 - 2026-09-30 = 136 days;
-                 window opens 2027-02-13 - 90 = 2026-11-15, in 46 days
-     next        check-in (timer 2026-09-30 + 5 business days = 2026-10-07)
-                 then STEM OPT (file on or before 2027-02-13, the card end).
-                 After the STEM OPT approval is saved: the check-in, STEM OPT
-                 with its receipt, the earliest of the five reports it opened;
-                 the other four go to the overflow line
-     USCIS       OPT work permit: Approved, as of Dec 20, 2025; after the
-                 STEM OPT approval is saved on 2026-09-30, which is later:
-                 STEM OPT work permit, Approved, as of Sep 30, 2026
-     papers      4 I-20s + 3 work + 3 identity + 2 school = 12, on the phone
-                 and the MacBook (the web shows the record, it keeps no
-                 copy), backed up 9:40 (sample: no sync engine yet); next to
-                 run out: EAD card, Feb 13, 2027
-     changed     no published rule change touches the plan: "Rules checked
-                 Sep 30"
-     end line    none at first: the check-in is on screen and needs her, so
-                 it is not said again ("Not confirmed since Aug 28" shows
-                 only while the check-in sits in the overflow). After "Still at Northwind Systems" and the STEM OPT steps
-                 started: reminders 2026-10-15 (training plan, the start
-                 preparing day 2026-11-15 - 1 month), 2027-02-10 and
-                 2027-02-13; next job check-in 2026-09-30 + 30 = 2026-10-30;
-                 earliest is Oct 15: "Nothing in Duly needs you before Oct 15."
+                 setting), so the count is as of Aug 28: "13 /90, as of Aug 28"
+     card        ends 2027-02-13: 2027-02-13 - 2026-09-30 = 136 days left
+     next date   start preparing for STEM OPT: 2027-02-13 - 90 = 2026-11-15,
+                 less 1 month = 2026-10-15, in 15 days
+     loops       check-in (timer 2026-09-30 + 5 business days = 2026-10-07)
+                 then STEM OPT (file on or before 2027-02-13, the card end)
+     documents   4 I-20s + 3 work + 3 identity + 2 school = 12, on the phone
+                 and the MacBook, backed up 9:40 (sample: no sync engine yet);
+                 the next to run out is the EAD card, already a figure
+     end line    none at first: the check-in is on screen and needs her.
+                 After "Still at Northwind Systems" and the STEM OPT steps
+                 started: "Nothing in Duly needs you before Oct 15."
    Demo states:
-     #/today/offline   the rules and the backup last ran Sep 29 (data.checked
-                       .offline): the end line names both instead
-     #/today/no-ead    no EAD card yet (also after onboarding with the card
-                       left for later): no count and no date from a card the
-                       student never added. */
+     #/home/offline   the rules and the backup last ran Sep 29
+     #/home/no-ead    no EAD card yet: no count and no date from a card the
+                      student never added. */
 (function () {
   'use strict';
 
@@ -84,51 +46,45 @@
 
   /* Every word on Today, one stable wording each. */
   const COPY = {
-    title: 'Today',
-    eyebrow: 'Where you stand',
-    count: '{status}. {used} of {limit} days without work, as of {asOf}.',
-    countUnknown: "{status}. Days without work: can't tell yet from {from}.",
-    noCard: '{status}. Add your EAD card to count your days.',
+    title: 'Home',
+    noCard: 'Add your EAD card to count your days.',
     addCard: 'Add your EAD card',
-    howCounted: 'How it was counted',
+    daysLabel: 'Days without work',
+    daysAsOf: 'As of {date}',
+    daysUnknown: "Can't tell yet",
+    daysUnknownFrom: 'From {date}',
     confirm: 'Confirm your job to count to today',
-    numbers: 'Other numbers',
-    cardUntil: 'EAD card valid until',
-    windowOpens: 'STEM OPT window opens',
-    day90: 'Day {limit} without work',
-    daysLeft: '{n} left',
+    cardLabel: 'EAD card valid until',
+    stemCardLabel: 'STEM OPT card valid until',
+    cardLeft: '{n} left',
+    nextLabel: 'Next date',
+    nextNone: 'None ahead',
     inDays: 'in {n}',
-    next: "What's next",
     nextEmpty: 'Nothing open right now.',
     more: '{more}. All of them are in Plan',
     caseTitle: 'USCIS: {title}',
-    papers: 'Your papers',
-    papersLine: '{n} kept on {devices} devices · backed up {time}',
-    papersLineOff: '{n} kept on {devices} devices · not backed up since {date}',
+    papersLine: '{n} documents on {devices} devices · backed up {time}',
+    papersLineOff: '{n} documents on {devices} devices · not backed up since {date}',
     runOut: 'Next to run out: {what}',
-    changed: 'What changed',
     touch: '{n} rule change touches your plan: {todo}',
     touchMany: '{n} rule changes touch your plan: {todo}',
     touchRead: 'Read the update',
     touchSeen: 'Mark seen and fold this away',
-    rulesOn: 'Rules checked {date}',
-    rulesOff: 'Rules last checked {date}',
     endClear: 'Nothing in Duly needs you before {date}.',
     endClearNow: 'Nothing in Duly needs you now.',
     endJob: 'Not confirmed since {date}: your job at {employer}',
     endPetition: 'Not confirmed since {date}: your H-1B petition',
     endCount: "Can't tell yet: days without work from {date}",
     endRules: 'Not checked since {date}: rules',
-    endSync: 'Not backed up since {date}: papers',
+    endSync: 'Not backed up since {date}: documents',
     endReminders: 'Reminders are off on this phone.',
     endJobAct: 'Confirm your job',
     endPetitionAct: 'Update the petition status',
     endCountAct: 'Add your hours in WorkBook',
     endSettingsAct: 'Open Settings',
     endOnline: 'Checked again once you are online.',
-    ask: 'Ask about a date, a paper or a change',
-    rulesInfo: 'Your dates are worked out from the current rules. When a rule changes, they update and the change shows here.',
   };
+
 
   /* Sync and backup: no engine in the prototype yet (BLUEPRINT section 5),
      so these are sample values. Offline: the last run was the day before
@@ -173,7 +129,7 @@
     }
   });
 
-  /* ---------------- slot 1: where you stand ---------------- */
+  /* ---------------- the line and the figures ---------------- */
   function statusWord(r) {
     const t = today();
     const s = r.stem && r.stem.card;
@@ -190,61 +146,86 @@
     return ci && ctx.loops.shown.indexOf(ci) < 0 ? ci : null;
   }
 
-  function standing(ctx) {
+  /* The one quiet line above the figures: the date and the status. On a
+     tablet or phone the top bar carries the date, so only the status shows. */
+  function topLine(r) {
+    return '<p class="home-line t-meta num"><span class="home-date">' + e(App.data.today.long) + ' · </span>' + e(statusWord(r)) + '</p>';
+  }
+
+  /* The card that is in force today: the STEM OPT card once it runs, else
+     the OPT card. */
+  function cardNow(r) {
+    const t = today();
+    const s = r.stem && r.stem.card;
+    if (s && D().okIso(s.until) && s.from <= t && t <= s.until) return { until: s.until, label: COPY.stemCardLabel };
+    if (r.opt && D().okIso(r.opt.until) && r.opt.until >= t) return { until: r.opt.until, label: COPY.cardLabel };
+    return null;
+  }
+
+  /* A date as a figure: "Feb 13" large, its year small after it when it is
+     not this year. */
+  function figDate(iso) {
+    const parts = fmt(iso).split(', ');
+    return e(parts[0]) + (parts[1] ? '<small>' + e(parts[1]) + '</small>' : '');
+  }
+  function figure(p) {
+    return '<div class="figure">' +
+      '<p class="' + C.cls('figure-value', p.text && 'is-text') + '">' + p.value + '</p>' +
+      '<p class="figure-label">' + e(p.label) + (p.src || '') + '</p>' +
+      (p.meta ? '<p class="' + C.cls('figure-meta', p.act && 'is-act') + '">' + p.meta + '</p>' : '') +
+      '</div>';
+  }
+
+  function figures(ctx) {
     const r = App.record();
-    const status = statusWord(r);
-    const date = C.dateLine(App.data.today.long);
     if (ctx.noCard) {
-      return date + '<section class="hero today-stand" aria-labelledby="hero-title">' +
-        '<p class="hero-eyebrow">' + C.shield({ halo: true }) + '<span class="t-eyebrow-hero">' + e(COPY.eyebrow) + '</span></p>' +
-        '<h1 class="hero-title t-big" id="hero-title" tabindex="-1">' + e(fill(COPY.noCard, { status: status })) + '</h1>' +
+      return topLine(r) + '<section class="home-figures" aria-labelledby="hero-title">' +
+        '<h1 class="t-big" id="hero-title" tabindex="-1">' + e(COPY.noCard) + '</h1>' +
         '<div class="hero-actions">' + C.button({ label: COPY.addCard, kind: 'primary', href: '#/documents/add' }) + '</div></section>';
     }
+    const t = today();
+    const out = [];
+    /* 1. Days without work, of the limit, as of a date. */
     const it = App.compute()['unemployment.used'];
     const u = App.unemployment ? App.unemployment() : {};
     const limit = App.RULE.unemploymentLimit;
-    let line;
-    let src = null;
-    if (!it) line = status + '.';
-    else if (it.n == null) line = fill(COPY.countUnknown, { status: status, from: fmt(unknownFrom() || it.asOf) });
-    else line = fill(COPY.count, { status: status, used: it.n, limit: limit, asOf: keep(fmt(it.asOf)) });
+    let src = '';
     if (it && App.data.sources && App.data.sources.unemployment) {
-      src = Object.assign({}, App.data.sources.unemployment, u.counted ? { counted: [u.counted] } : {});
+      src = C.source(Object.assign({}, App.data.sources.unemployment, u.counted ? { counted: [u.counted] } : {}), { inline: true });
     }
-    const held = it && it.asOf && it.asOf < today();
-    /* The job confirmation shows once: as the check-in in slot 2. Only when
-       the check-in sits in the overflow does slot 1 carry the way to it. */
-    const ci = held ? offScreenCheckin(ctx) : null;
-
-    /* Other numbers, one tap down, each with its source. */
-    const rows = [];
-    const t = today();
-    if (r.opt && D().okIso(r.opt.until) && r.opt.until >= t) {
-      /* 2027-02-13 - 2026-09-30 = 136 days. */
-      rows.push(C.valueRow({ label: COPY.cardUntil, value: D().fmt(r.opt.until, { year: true }) + ' · ' + fill(COPY.daysLeft, { n: plural(D().daysBetween(t, r.opt.until), 'day') }), editable: false, source: 'eadEnds', num: true }));
-      const stemOpen = App.stemIntent() !== 'no' && !((r.stem || {}).filed || (r.stem || {}).receipt);
-      if (stemOpen) {
-        /* 2027-02-13 - 90 = 2026-11-15; 2026-11-15 - 2026-09-30 = 46 days. */
-        const opens = D().addDays(r.opt.until, -App.RULE.stemBefore);
-        if (opens >= t) rows.push(C.valueRow({ label: COPY.windowOpens, value: fmt(opens) + ' · ' + fill(COPY.inDays, { n: plural(D().daysBetween(t, opens), 'day') }), editable: false, source: 'stemOpens', num: true }));
-      }
+    if (it && it.n != null) {
+      const held = it.asOf && it.asOf < t;
+      const ci = held ? offScreenCheckin(ctx) : null;
+      out.push(figure({
+        value: e(String(it.n)) + '<small>/' + e(String(limit)) + '</small>',
+        label: COPY.daysLabel, src: src,
+        meta: ci ? '<button type="button" class="link" data-today-open="' + e(ci.id) + '">' + e(COPY.confirm) + '</button>'
+          : e(fill(COPY.daysAsOf, { date: keep(fmt(it.asOf)) })),
+      }));
+    } else if (it) {
+      out.push(figure({ value: e(COPY.daysUnknown), text: true, label: COPY.daysLabel, src: src,
+        meta: e(fill(COPY.daysUnknownFrom, { date: keep(fmt(unknownFrom() || it.asOf)) })) }));
     }
-    const d90 = App.compute()['unemployment.day90'];
-    if (d90 && d90.iso) rows.push(C.valueRow({ label: fill(COPY.day90, { limit: limit }), value: fmt(d90.iso), editable: false, source: d90.counted ? App.ruleWith('unemployment', d90.counted) : 'unemployment', num: true }));
-    const open = !!App.state['today:numbers'];
-    const actions = [];
-    if (ci) actions.push('<button type="button" class="btn btn-pill" data-today-open="' + e(ci.id) + '">' + e(COPY.confirm) + '</button>');
-    if (rows.length) {
-      actions.push('<button type="button" class="btn btn-text today-numbers-toggle" data-today-numbers aria-expanded="' + (open ? 'true' : 'false') + '" aria-controls="today-numbers">' +
-        e(COPY.numbers) + C.icon('chevron', { cls: 'today-chev', size: 12 }) + '</button>');
+    /* 2. The card in force: valid until, and the days left.
+       2027-02-13 - 2026-09-30 = 136 days. */
+    const card = cardNow(r);
+    if (card) {
+      out.push(figure({
+        value: figDate(card.until),
+        label: card.label,
+        meta: e(fill(COPY.cardLeft, { n: plural(D().daysBetween(t, card.until), 'day') })),
+      }));
     }
-    return date + '<section class="hero today-stand" aria-labelledby="hero-title">' +
-      '<p class="hero-eyebrow">' + C.shield({ halo: true }) + '<span class="t-eyebrow-hero">' + e(COPY.eyebrow) + '</span></p>' +
-      '<div class="title-row"><h1 class="hero-title t-big" id="hero-title" tabindex="-1">' + e(line) + '</h1>' +
-      (src ? C.source(src, { inline: true }) : '') + '</div>' +
-      (actions.length ? '<div class="hero-actions">' + actions.join('') + '</div>' : '') +
-      (rows.length ? '<div class="list today-numbers" id="today-numbers" aria-label="' + e(COPY.numbers) + '"' + (open ? '' : ' hidden') + '>' + rows.join('') + '</div>' : '') +
-      '</section>';
+    /* 3. The next date the engine holds, what it is and how far away. */
+    const nd = (App.nextDates ? App.nextDates() : [])[0];
+    out.push(nd ? figure({
+      value: figDate(nd.iso),
+      label: COPY.nextLabel,
+      meta: e(nd.title.replace(/\.$/, '')) + ' · ' + e(nd.days === 0 ? 'today' : (nd.days === 1 ? 'tomorrow' : fill(COPY.inDays, { n: plural(nd.days, 'day') }))),
+    }) : figure({ value: e(COPY.nextNone), text: true, label: COPY.nextLabel }));
+    return topLine(r) + '<section class="home-figures" aria-labelledby="hero-title">' +
+      '<h1 class="sr-only" id="hero-title" tabindex="-1">' + e(COPY.title) + '</h1>' +
+      '<div class="figures">' + out.join('') + '</div></section>';
   }
   /* The first day the count cannot be read, from the engine's projection. */
   function unknownFrom() {
@@ -252,7 +233,7 @@
     return u && u.iso ? u.iso : null;
   }
 
-  /* ---------------- slot 2: what's next ---------------- */
+  /* ---------------- the open loops ---------------- */
   /* The earliest date a loop will come back: its first reminder, else its
      timer. Used for the overflow line only. */
   function nextIsoOf(lp) {
@@ -322,9 +303,9 @@
       return x;
     }).filter((a) => a.receipt && !/^not filed/i.test(a.status || ''));
     const waiting = list.filter((a) => !/^(approved|denied)/i.test(a.status || '') && !/card mailed/i.test(a.status || ''));
-    if (waiting.length) return waiting[waiting.length - 1];
-    /* Latest change first; a case with no date keeps its place after. */
-    return list.slice().sort((a, b) => (a.changedOn < b.changedOn ? 1 : (a.changedOn > b.changedOn ? -1 : 0)))[0] || null;
+    /* Only a case still waiting earns a line on Home; a decided one is in
+       Plan, USCIS status. */
+    return waiting.length ? waiting[waiting.length - 1] : null;
   }
   function caseLine(a) {
     if (!a) return '';
@@ -380,7 +361,7 @@
   }
 
   function nextSlot(ctx) {
-    if (!L() || !C.loop) return C.section({ eyebrow: COPY.next, content: '<p class="t-lead">' + e(COPY.nextEmpty) + '</p>' });
+    if (!L() || !C.loop) return '<p class="t-lead home-empty">' + e(COPY.nextEmpty) + '</p>';
     const shown = ctx.loops.shown;
     /* The overflow: open loops not shown, with the next date among them
        (the earliest first reminder, else timer, of those loops). */
@@ -391,13 +372,13 @@
     /* Order (BLUEPRINT 3.2): the loops, the overflow line, then the case. */
     const more = moreText ? '<p class="loop-more t-meta"><a class="link is-quiet" href="' + planHref + '">' + e(fill(COPY.more, { more: moreText })) + '</a></p>' : '';
     const loops = shown.length
-      ? '<div class="loops today-loops" aria-label="' + e(COPY.next) + '">' + shown.map(loopHtml).join('') + '</div>'
-      : '<p class="t-lead today-empty">' + e(COPY.nextEmpty) + '</p>';
+      ? '<div class="loops today-loops" aria-label="Open now">' + shown.map(loopHtml).join('') + '</div>'
+      : '<p class="t-lead home-empty">' + e(COPY.nextEmpty) + '</p>';
     const kase = ctx.case ? '<div class="loops today-loops today-case-row">' + caseLine(ctx.case) + '</div>' : '';
-    return C.section({ eyebrow: COPY.next, cls: 'today-next', content: loops + more + kase });
+    return '<section class="home-next" aria-label="Open now">' + loops + more + kase + '</section>';
   }
 
-  /* ---------------- slot 3: your papers ---------------- */
+  /* ---------------- the documents line ---------------- */
   /* Every paper on file, once each (as the Share sheet counts them):
      4 I-20s + 3 work + 3 identity + 2 school = 12. */
   function paperCount() {
@@ -419,41 +400,29 @@
       ? fill(COPY.papersLineOff, { n: n, devices: deviceCount(), date: fmt(ctx.lastRun) })
       : fill(COPY.papersLine, { n: n, devices: deviceCount(), time: SYNC.backedUp });
     const w = App.documentWatch ? App.documentWatch() : null;
-    const nx = w && w.next && !(ctx.noCard && w.next.key === 'ead') ? w.next : null;
-    const href = window.SCREENS.papers ? '#/papers' : '#/documents';
-    return C.section({
-      eyebrow: COPY.papers, cls: 'today-papers',
-      content: C.list([C.row({ key: 'today-papers', title: title, meta: nx ? fill(COPY.runOut, { what: nx.text }) : null, href: href })], { accordion: false, label: COPY.papers }),
-    });
+    /* The next to run out, unless it is the card the figures already show. */
+    const card = cardNow(App.record());
+    const nx = w && w.next && !(ctx.noCard && w.next.key === 'ead') && !(card && w.next.iso === card.until) ? w.next : null;
+    return '<div class="home-docs">' + C.list([C.row({ key: 'today-papers', title: title, meta: nx ? fill(COPY.runOut, { what: nx.text }) : null, href: '#/documents' })], { accordion: false, label: 'Documents' }) + '</div>';
   }
 
-  /* ---------------- slot 4: what changed ---------------- */
+  /* ---------------- a rule change that touches the plan ---------------- */
   /* A published update touches the plan when it changed a step for this
      student (updates item.changed). Seen ones fold away. */
   function touching() {
     const items = ((App.data.updates || {}).items || []);
     return items.filter((u) => (u.changed || []).some((c) => c && c.title) && !App.state['today:seen:' + u.id]);
   }
-  function changedSlot(ctx) {
+  function changedSlot() {
     const t = touching();
-    let head;
-    if (t.length) {
-      const todo = C.todoShort(C.affectsFor(t[0]).todo) || '';
-      const title = fill(t.length === 1 ? COPY.touch : COPY.touchMany, { n: t.length, todo: todo.charAt(0).toLowerCase() + todo.slice(1) });
-      const body = t.map((u) => '<p class="t-row">' + e(u.title) + '</p>' +
-        '<ul class="today-changed">' + u.changed.filter((c) => c && c.title).map((c) => '<li>' + e(c.title + (c.change ? ': ' + c.change : '')) + '</li>').join('') + '</ul>' +
-        '<p>' + C.link({ label: COPY.touchRead, href: '#/updates/' + u.id }) + '</p>').join('') +
-        '<div class="btn-group"><button type="button" class="btn btn-pill" data-today-seen="' + e(t.map((u) => u.id).join(',')) + '">' + e(COPY.touchSeen) + '</button></div>';
-      head = C.list([C.row({ key: 'today-touch', title: title, content: body })], { label: COPY.changed });
-    } else {
-      const rules = Object.assign({}, App.data.rules || {}, {
-        checked: fill(ctx.offline ? COPY.rulesOff : COPY.rulesOn, { date: fmt(ctx.offline ? ctx.lastRun : today()) }),
-        info: COPY.rulesInfo,
-      });
-      head = C.rulesLine(rules);
-    }
-    /* News lives in Record (BLUEPRINT 3.2), not here. */
-    return C.section({ eyebrow: COPY.changed, cls: 'today-changed-slot', content: head });
+    if (!t.length) return '';
+    const todo = C.todoShort(C.affectsFor(t[0]).todo) || '';
+    const title = fill(t.length === 1 ? COPY.touch : COPY.touchMany, { n: t.length, todo: todo.charAt(0).toLowerCase() + todo.slice(1) });
+    const body = t.map((u) => '<p class="t-row">' + e(u.title) + '</p>' +
+      '<ul class="today-changed">' + u.changed.filter((c) => c && c.title).map((c) => '<li>' + e(c.title + (c.change ? ': ' + c.change : '')) + '</li>').join('') + '</ul>' +
+      '<p>' + C.link({ label: COPY.touchRead, href: '#/updates/' + u.id }) + '</p>').join('') +
+      '<div class="btn-group"><button type="button" class="btn btn-pill" data-today-seen="' + e(t.map((u) => u.id).join(',')) + '">' + e(COPY.touchSeen) + '</button></div>';
+    return '<div class="home-changed">' + C.list([C.row({ key: 'today-touch', title: title, content: body })], { label: 'Rule changes' }) + '</div>';
   }
 
   /* ---------------- the end line ---------------- */
@@ -502,36 +471,31 @@
     return '<p class="today-end today-end-line is-clear">' + e(first ? fill(COPY.endClear, { date: fmt(first) }) : COPY.endClearNow) + '</p>';
   }
 
-  /* ---------------- Ask ---------------- */
-  function askSlot() {
-    if (typeof C.askField !== 'function') return '';
-    return '<div class="today-ask">' + C.askField({ label: COPY.ask }) + '</div>';
-  }
-
   /* Layout only. Sizes from system.css; spacing from the scale. */
   const STYLE = '<style>' +
-    '.screen-today .today-stand .title-row { display: flex; align-items: flex-start; gap: var(--s-8); margin-top: var(--s-12); }' +
-    '.screen-today .today-stand .title-row .hero-title { margin-top: 0; flex: 0 1 auto; }' +
-    '.screen-today .today-stand .title-row .src { margin-top: var(--s-8); flex: none; }' +
-    '.screen-today .today-stand .hero-actions { margin-top: var(--s-16); }' +
-    '.screen-today .today-numbers-toggle { display: inline-flex; align-items: center; gap: var(--s-4); }' +
-    '.screen-today .today-chev { transform: rotate(90deg); transition: transform .2s ease; opacity: .72; }' +
-    '.screen-today .today-numbers-toggle[aria-expanded="true"] .today-chev { transform: rotate(-90deg); }' +
-    '.screen-today .today-numbers { margin-top: var(--s-16); }' +
-    '.screen-today .today-tag { margin-left: var(--s-4); vertical-align: baseline; }' +
-    '.screen-today .today-case .loop-head { color: var(--ink); text-decoration: none; }' +
-    '.screen-today .today-case .chev { transform: none; }' +
-    '.screen-today .today-empty { margin: 0 0 var(--s-12); }' +
-    '.screen-today .loop-more + .today-case-row { margin-top: var(--s-12); }' +
-    '.screen-today .today-loops + .today-case-row .loop { border-top: 0; }' +
-    '.screen-today .today-changed { margin: var(--s-8) 0 var(--s-12); padding-left: var(--s-16); }' +
-    '.screen-today .today-changed-slot .rules-line { margin: 0 0 var(--s-12); }' +
-    '.screen-today .today-end { margin-top: var(--s-32); display: flex; flex-direction: column; gap: var(--s-8); }' +
-    '.screen-today .today-end-line { margin: 0; font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); overflow-wrap: anywhere; }' +
-    '.screen-today .today-end-line .btn-text { padding: 0; min-height: 0; vertical-align: baseline; }' +
-    '.screen-today .today-end-line.is-clear { color: var(--ink); }' +
-    '.screen-today .today-ask { margin-top: var(--s-32); }' +
-    '@media (prefers-reduced-motion: reduce) { .screen-today .today-chev { transition: none; } }' +
+    '.screen-home .home-line { margin: 0; color: var(--ink-2); }' +
+    '@media (max-width: 960px) { .screen-home .home-date { display: none; } }' +
+    '.screen-home .home-figures > h1.t-big { margin-top: var(--s-4); }' +
+    '.screen-home .home-figures > .hero-actions { margin: var(--s-16) 0 var(--s-24); }' +
+    '.screen-home .figure-meta .link { font-weight: 500; text-align: left; }' +
+    '.screen-home .today-tag { margin-left: var(--s-4); vertical-align: baseline; }' +
+    '.screen-home .today-case .loop-head { color: var(--ink); text-decoration: none; }' +
+    '.screen-home .today-case .chev { transform: none; }' +
+    '.screen-home .home-empty { margin: 0; }' +
+    '.screen-home .loop-more + .today-case-row { margin-top: var(--s-12); }' +
+    '.screen-home .today-loops + .today-case-row .loop { border-top: 0; }' +
+    /* The documents line and a rule change close the same list as the
+       loops: same edges, one hairline between. */
+    '.screen-home .home-docs .item, .screen-home .home-changed .item { margin: 0; border-top: 0; }' +
+    '.screen-home .home-docs .item > .row, .screen-home .home-changed .item > .row { padding-left: 0; padding-right: 0; border-radius: 0; }' +
+    '.screen-home .home-docs .item > .row:hover, .screen-home .home-changed .item > .row:hover { background: none; }' +
+    '.screen-home .home-docs .row:hover .row-title { color: var(--accent); }' +
+    '.screen-home .home-empty + .home-docs .item { border-top: 1px solid var(--hairline); }' +
+    '.screen-home .today-changed { margin: var(--s-4) 0 var(--s-8); padding-left: var(--s-16); }' +
+    '.screen-home .today-end { margin-top: var(--s-24); display: flex; flex-direction: column; gap: var(--s-4); }' +
+    '.screen-home .today-end-line { margin: 0; font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-2); overflow-wrap: anywhere; }' +
+    '.screen-home .today-end-line .btn-text { padding: 0; min-height: 0; vertical-align: baseline; }' +
+    '.screen-home .today-end-line.is-clear { color: var(--ink-2); }' +
     '</style>';
 
   /* ---------------- the page ---------------- */
@@ -548,7 +512,6 @@
       if (key !== visit) {
         visit = key;
         App.state['today:shown'] = [];
-        App.state['today:numbers'] = false;
         /* Mostly folded: each visit starts with every loop folded to its
            line, and the last visit's receipts folded away. */
         if (L()) {
@@ -566,21 +529,11 @@
       };
       ctx.case = ctx.noCard ? null : trackedCase();
       ctx.loops = planLoops(ctx);
-      return STYLE + standing(ctx) + nextSlot(ctx) + papersSlot(ctx) + changedSlot(ctx) + endLine(ctx) + askSlot() + C.footer();
+      return STYLE + figures(ctx) + nextSlot(ctx) + papersSlot(ctx) + changedSlot() + endLine(ctx) + C.footer();
     },
     mount(root) {
-      root.classList.add('screen-today');
+      root.classList.add('screen-home');
       root.addEventListener('click', (ev) => {
-        const num = ev.target.closest('[data-today-numbers]');
-        if (num) {
-          ev.preventDefault();
-          const open = num.getAttribute('aria-expanded') !== 'true';
-          App.state['today:numbers'] = open;
-          num.setAttribute('aria-expanded', open ? 'true' : 'false');
-          const panel = root.querySelector('#today-numbers');
-          if (panel) { panel.hidden = !open; if (open) App.play(panel, 'is-arriving'); }
-          return;
-        }
         /* Confirm your job (shown only while the check-in sits in the
            overflow): bring the check-in into What's next, unfold it where it
            stands and put focus on its first answer. */
@@ -595,7 +548,7 @@
             const shown = App.state['today:shown'] || [];
             if (shown.indexOf(id) < 0) App.state['today:shown'] = [id].concat(shown).slice(0, MAX);
             App.rerender();
-            box = document.querySelector('.screen-today [data-loop="' + id.replace(/"/g, '') + '"]');
+            box = document.querySelector('.screen-home [data-loop="' + id.replace(/"/g, '') + '"]');
             if (!box) return;
           }
           const head = box.querySelector('.loop-head');

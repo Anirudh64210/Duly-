@@ -10,24 +10,24 @@
   /* Shell                                                              */
   /* ---------------------------------------------------------------- */
 
-  /* Navigation (BLUEPRINT 3.1, Duly 2): four places, the same four in the
-     sidebar and the phone's tab bar, then Settings and Feedback quietly at
-     the bottom. Ask is an entry, not a place (app/ask.js puts it at the top
-     of the sidebar and in the phone's top bar).
+  /* Navigation: five places, the same five in the sidebar and the phone's
+     tab bar, then Settings and Feedback quietly at the bottom. Ask is not a
+     place: it is the field at the top of every page (C.askBar, drawn here
+     with the top bar so it never moves).
        name      the place's own route
        routes    every route that belongs to the place: the nav item shows
                  as current on each, and a waiting dot on any of them shows
                  on the place
        fallback  the route the item opens while the place's own screen is not
-                 registered (the older page that holds the same things)
-     Old routes keep working: each page that took a place's job sets its own
-     alias (App.ALIASES), and the router only follows an alias whose screen
-     exists, so nothing lands on a missing page. #/home stays Today. */
+                 registered
+     Old routes keep working: #/today goes to #/home and #/papers to
+     #/documents (App.ALIASES, set in app/nav.js). */
   const NAV = [
-    { name: 'today', label: 'Today', tab: true, icon: 'home', routes: ['today', 'home'], fallback: 'home' },
+    { name: 'home', label: 'Home', tab: true, icon: 'home', routes: ['home', 'today'] },
     { name: 'plan', label: 'Plan', tab: true, icon: 'next', routes: ['plan', 'steps', 'uscis', 'timeline', 'employer', 'next', 'checklists', 'applications'], fallback: 'steps' },
-    { name: 'papers', label: 'Papers', tab: true, icon: 'documents', routes: ['papers', 'documents'], fallback: 'documents' },
-    { name: 'record', label: 'Record', tab: true, icon: 'timeline', routes: ['record', 'case', 'updates'], fallback: 'case' },
+    { name: 'documents', label: 'Documents', tab: true, icon: 'documents', routes: ['documents', 'papers'], fallback: 'papers' },
+    { name: 'updates', label: 'Updates', tab: true, icon: 'news', routes: ['updates', 'news'] },
+    { name: 'record', label: 'Record', tab: true, icon: 'timeline', routes: ['record', 'case'], fallback: 'case' },
   ];
   const NAV_SECONDARY = [
     { name: 'settings', label: 'Settings', routes: ['settings'], quiet: true },
@@ -84,11 +84,13 @@
       navList(NAV_SECONDARY, p.route, p.waiting, 'nav-quiet') +
       '</aside>';
   }
+  /* The phone and tablet top bar, then Ask: the field at the top of the
+     content on every page, drawn once with the shell so it stays put. */
   function topbar(p) {
     return '<header class="topbar">' + wordmark() +
       '<div class="topbar-right">' + (p && p.date ? '<span class="t-micro">' + esc(p.date) + '</span>' : '') +
       '<button class="btn btn-text" type="button" data-menu aria-expanded="false" aria-controls="menu">Menu</button></div>' +
-      '</header>';
+      '</header>' + (typeof C.askBar === 'function' ? C.askBar() : '');
   }
   function menuSheet(p) {
     return '<div class="menu" id="menu" role="dialog" aria-label="Menu">' +

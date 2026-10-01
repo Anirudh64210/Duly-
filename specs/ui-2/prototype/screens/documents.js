@@ -30,26 +30,23 @@
    returns there when the sheet closes, with its scroll, and the toast shows
    there. A saved EAD card also lifts that page's no-EAD view.
 
-   Duly 2 (BLUEPRINT 3.1, 2.6 E): this page is Papers, at #/papers. Every
-   #/documents address still works: App.ALIASES sends it to #/papers with
-   the rest of the path kept (#/documents/i20 opens #/papers/i20, the OPT
-   label), so links from other screens need no change.
-   The lost-paper guide (playbook 'lost-paper' in DULY_SAMPLE.loops) opens
-   from here two ways: "I lost a paper" at the top, which asks which paper,
-   and "I lost this" on the page of each paper the guide covers, which
-   starts with the paper already chosen. An open loop is drawn with
-   C.loops at the top of Papers and on its paper's own page; App.loops
-   carries it from there (asking, planned, waiting, confirming, closed).
-   A paper reported lost keeps its dates and shows "Reported lost" with the
-   date in its row and in its key dates, read from App.record().lost. */
+   Round 7 (founder: less space, fewer elements): the page is Documents, at
+   #/documents (#/papers redirects here). One line under the title holds the
+   count and the next date to run out. All is one flat list, no group
+   titles: the chips already name the groups. Each row is its title and one
+   line, with the date it runs out on the right. Share in the header opens
+   the share sheet (app/sheets.js): tick documents, share them together.
+   The lost-paper guide (playbook 'lost-paper') opens from "I lost a
+   document" at the top and "I lost this" on a document's page; an open
+   loop is drawn with C.loops at the top. */
 (function () {
   'use strict';
 
   /* The address of this page. */
-  const BASE = '#/papers';
+  const BASE = '#/documents';
   const isPapers = (name) => name === 'papers' || name === 'documents';
-  /* Old addresses redirect in place: #/documents/<rest> -> #/papers/<rest>. */
-  if (window.App && App.ALIASES) App.ALIASES.documents = 'papers';
+  /* Old addresses redirect in place: #/papers/<rest> -> #/documents/<rest>. */
+  if (window.App && App.ALIASES) { delete App.ALIASES.documents; App.ALIASES.papers = 'documents'; }
 
   /* The groups, in the order a student looks for them. */
   const GROUPS = [
@@ -62,7 +59,7 @@
     { key: 'work', title: 'Work', words: 'work job employment employer offer letter' },
     { key: 'other', title: 'Other', words: 'other' },
   ];
-  /* The passport is both a document (#/papers/passport, its own page) and
+  /* The passport is both a document (#/documents/passport, its own page) and
      a label; the label's address is its other name, identity. */
   const LABEL_ADDR = { passport: 'identity' };
   const ALIAS = { all: 'all', most: 'most', cpt: 'cpt', opt: 'opt', stem: 'stem', university: 'university', school: 'university', visa: 'visa', passport: 'passport', identity: 'passport', work: 'work', employment: 'work', job: 'work', status: 'opt', i20: 'opt', other: 'other' };
@@ -76,79 +73,84 @@
 
   const S = { ready: false, docs: [], group: 'all', query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, backTo: null, page: null };
 
-  /* Layout only: type sizes come from system.css. */
+  /* Layout only: type sizes come from system.css. Round 7 rhythm: label to
+     value 4, row padding 12, between groups 24, between sections 32. */
   const STYLE = '<style>' +
-    '.screen-documents .page-header .ph-top { align-items: center; flex-wrap: wrap; row-gap: var(--s-16); }' +
-    /* the whole row opens the document: the title button stretches over the row */
-    '.screen-documents .doc-open { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }' +
+    '.screen-documents .page-header { margin-bottom: 0; }' +
+    '.screen-documents .page-header .ph-top { align-items: center; flex-wrap: wrap; row-gap: var(--s-12); }' +
+    '.screen-documents .page-header .ph-aside { flex: 0 1 auto; min-width: 0; max-width: 100%; }' +
+    '.screen-documents .doc-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); }' +
+    '.screen-documents .doc-sub { margin: var(--s-4) 0 var(--s-24); font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }' +
+    '.screen-documents .doc-sub a { font-weight: 600; }' +
+    '.screen-documents .doc-sub .is-close { color: var(--caution); }' +
+    '.screen-documents .doc-search { margin-bottom: var(--s-12); }' +
+    /* Every filter is always visible: the chips wrap, never hide in a scroll. */
+    '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: wrap; row-gap: var(--s-8); max-width: 100%; }' +
+    '.screen-documents .doc-view > .section { margin-top: var(--s-24); }' +
+    /* the whole row opens the document: the title link stretches over the row */
+    '.screen-documents .doc-open { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; text-decoration: none; }' +
     '.screen-documents .doc-open::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-field); }' +
     '.screen-documents .doc-open:focus-visible { box-shadow: none; }' +
     '.screen-documents .doc-open:focus-visible::after { box-shadow: var(--focus-ring); }' +
+    '.screen-documents .doc-row > .row { min-height: 0; padding-top: var(--s-12); padding-bottom: var(--s-12); }' +
     '.screen-documents .doc-row > .row:hover { background: var(--row-hover); }' +
     '.screen-documents .doc-row .row-trail { position: relative; z-index: 1; }' +
-    '.screen-documents a.doc-open { text-decoration: none; }' +
     '.screen-documents .doc-row .row-title, .screen-documents .doc-row .row-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
     '.screen-documents .doc-row .row-text { min-width: 0; }' +
-    '.doc-page .page-header { margin-bottom: 0; }' +
-    '.doc-page .doc-page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); margin-top: var(--s-24); }' +
-    /* a lost-paper loop on Papers or on its paper's page */
-    '.screen-documents .doc-lost { margin: 0 0 var(--s-32); }' +
-    '.doc-page .doc-lost { margin: var(--s-32) 0 0; }' +
-    '.doc-page .doc-page-actions + .section { margin-top: var(--s-48); }' +
-    '.doc-page .doc-page-actions .btn { height: 44px; padding: 0 var(--s-24); }' +
-    '.doc-page > .section { margin-top: var(--s-32); }' +
-    '.screen-documents .doc-search { margin-bottom: var(--s-16); }' +
-    /* Round 6: Share a pack beside Add a document; Next to run out; one expiry line per row */
-    '.screen-documents .doc-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); }' +
-    '.screen-documents .doc-head-actions .btn { height: 44px; }' +
-    /* three actions: the group may shrink and wrap, never run off a phone */
-    '.screen-documents .page-header .ph-aside { flex: 0 1 auto; min-width: 0; max-width: 100%; }' +
-    /* the expiry line wraps rather than hide its date on a phone */
-    '.screen-documents .doc-row .row-meta.doc-expiry { white-space: normal; }' +
-    '.screen-documents .doc-next { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-8); row-gap: 0; margin: 0 0 var(--s-24); }' +
-    '.screen-documents .doc-next .t-eyebrow { margin: 0; }' +
-    '.screen-documents .doc-next .link.is-close, .screen-documents .doc-expiry.is-close { color: var(--caution); }' +
-    /* Every filter is always visible: the chips wrap to a second line, never hide in a scroll. */
-    '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: wrap; row-gap: var(--s-8); max-width: 100%; }' +
-    '.screen-documents .doc-view > .section:first-child { margin-top: var(--s-32); }' +
-    '.screen-documents .doc-view > .section + .section { margin-top: var(--s-32); }' +
-    '.screen-documents .doc-add-another { align-self: flex-start; margin-top: var(--s-12); }' +
+    /* the date it runs out, on the right, in one column */
+    '.screen-documents .doc-when { position: relative; z-index: 0; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-2); text-align: right; max-width: 280px; font-variant-numeric: tabular-nums; }' +
+    '.screen-documents .doc-when.is-close { color: var(--caution); }' +
+    '.screen-documents .doc-when.is-passed { color: var(--ink-3); }' +
+    '.screen-documents .doc-when { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '.screen-documents .doc-row .share-btn { min-width: 32px; justify-content: center; padding-left: var(--s-8); padding-right: 0; }' +
+    '.screen-documents .doc-row .share-btn > span { display: none; }' +
     '.screen-documents .doc-none { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-8); }' +
+    /* a lost-paper loop at the top, or on its document's page */
+    '.screen-documents .doc-lost { margin: 0 0 var(--s-24); }' +
+    '.doc-page .doc-lost { margin: var(--s-24) 0 0; }' +
+    /* a document's own page */
+    '.doc-page .page-header { margin-bottom: 0; }' +
+    '.doc-page .page-header .ph-sub { margin-top: var(--s-4); }' +
+    '.doc-page .doc-page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-8); margin-top: var(--s-16); }' +
+    '.doc-page .doc-page-actions .btn { height: 40px; padding: 0 var(--s-16); }' +
+    '.doc-page > .section { margin-top: var(--s-24); }' +
+    '.doc-page > .section + .section { margin-top: var(--s-32); }' +
+    '.doc-page .section-head { padding-bottom: var(--s-4); }' +
     /* the document sheet, appended to body while open */
     '.screen-documents.doc-layer { position: fixed; inset: 0; z-index: 45; }' +
     '.doc-layer .doc-scrim { position: absolute; inset: 0; background: var(--scrim); animation: fade .2s ease-out; }' +
-    '.doc-layer .doc-sheet { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; max-width: 100%; overflow-y: auto; background: var(--ground); border-left: 1px solid var(--hairline); box-shadow: var(--shadow-pop); padding: var(--s-16) var(--s-24) var(--s-32); animation: drop .28s ease-out; }' +
+    '.doc-layer .doc-sheet { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; max-width: 100%; overflow-y: auto; background: var(--ground); border-left: 1px solid var(--hairline); box-shadow: var(--shadow-pop); padding: var(--s-12) var(--s-24) var(--s-24); animation: drop .28s ease-out; }' +
     '.doc-layer .doc-sheet:focus-visible { box-shadow: var(--shadow-pop); border-radius: 0; }' +
-    '.doc-layer .doc-sheet-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s-16); }' +
-    '.doc-layer .doc-close { width: 44px; height: 44px; margin-right: calc(-1 * var(--s-12)); padding: 0; color: var(--ink-3); }' +
+    '.doc-layer .doc-sheet-top { display: flex; justify-content: flex-end; align-items: center; margin-bottom: var(--s-4); }' +
+    '.doc-layer .doc-close { width: 40px; height: 40px; margin-right: calc(-1 * var(--s-12)); padding: 0; color: var(--ink-3); }' +
     '.doc-layer .doc-close:hover { color: var(--ink); }' +
     '.doc-layer .doc-sheet-inner { display: flex; flex-direction: column; animation: fade .2s ease-out; }' +
     '.doc-layer .doc-sheet-inner > h2:focus-visible { box-shadow: none; }' +
-    '.doc-layer .doc-sheet-meta { margin-top: var(--s-8); }' +
-    '.doc-layer .doc-sheet-body { margin-top: var(--s-24); display: flex; flex-direction: column; }' +
-    '.doc-layer .doc-or { margin-top: var(--s-12); }' +
-    '.doc-layer .doc-samples { margin-top: var(--s-48); }' +
-    '.doc-layer .doc-samples .t-eyebrow { margin-bottom: var(--s-12); }' +
-    '.doc-layer .doc-dup { margin-top: var(--s-24); display: flex; flex-direction: column; gap: var(--s-12); }' +
-    '.doc-layer .doc-unsure { align-self: flex-start; margin-top: var(--s-24); }' +
+    '.doc-layer .doc-sheet-meta { margin-top: var(--s-4); }' +
+    '.doc-layer .doc-sheet-body { margin-top: var(--s-16); display: flex; flex-direction: column; }' +
+    '.doc-layer .doc-or { margin-top: var(--s-8); }' +
+    '.doc-layer .doc-samples { margin-top: var(--s-24); }' +
+    '.doc-layer .doc-samples .t-eyebrow { margin-bottom: var(--s-4); }' +
+    '.doc-layer .doc-samples .row, .doc-layer .doc-fields .row { min-height: 0; padding-top: var(--s-12); padding-bottom: var(--s-12); }' +
+    '.doc-layer .doc-dup { margin-top: var(--s-16); display: flex; flex-direction: column; gap: var(--s-8); }' +
+    '.doc-layer .doc-unsure { align-self: flex-start; margin-top: var(--s-16); }' +
     '.doc-layer .doc-reading { display: flex; flex-direction: column; gap: var(--s-12); }' +
     '.doc-layer .doc-reading .bar > i { width: 40%; animation: doc-scan 1.2s ease-in-out infinite; }' +
     '@keyframes doc-scan { from { transform: translateX(-100%); } to { transform: translateX(250%); } }' +
-    /* round 4: the open document, the share sheet, phone and pointer parts */
-    '.doc-layer .doc-paper { display: flex; flex-direction: column; gap: var(--s-8); width: 136px; aspect-ratio: 8.5 / 11; padding: var(--s-16) var(--s-12); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-tag); box-shadow: var(--shadow-pop); }' +
-    '.doc-layer .doc-paper.is-card { width: 216px; aspect-ratio: 1.586; border-radius: var(--r-card); }' +
+    '.doc-layer .doc-paper { display: flex; flex-direction: column; gap: var(--s-8); width: 120px; aspect-ratio: 8.5 / 11; padding: var(--s-12); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-tag); box-shadow: var(--shadow-pop); }' +
+    '.doc-layer .doc-paper.is-card { width: 200px; aspect-ratio: 1.586; border-radius: var(--r-card); }' +
     '.doc-layer .doc-paper-title { font-size: var(--t-small); line-height: var(--lh-meta); font-weight: 600; color: var(--ink-2); overflow-wrap: anywhere; }' +
     '.doc-layer .doc-paper i { display: block; height: 4px; border-radius: 2px; background: var(--hairline); }' +
     '.doc-layer .doc-paper i.is-short { width: 60%; }' +
-    '.doc-layer .doc-fields { margin-top: var(--s-24); }' +
+    '.doc-layer .doc-fields { margin-top: var(--s-16); }' +
     '.doc-layer .doc-file .row-lead { color: var(--ink-2); }' +
-    '.doc-layer .doc-photo { margin-top: var(--s-12); }' +
+    '.doc-layer .doc-photo { margin-top: var(--s-8); }' +
     '@media (hover: none) { .doc-layer .doc-pointer { display: none; } }' +
     '@media (hover: hover) { .doc-layer .doc-touch { display: none; } }' +
     '@media (max-width: 640px) {' +
-    '  .screen-documents .doc-row .share-btn { min-width: 44px; justify-content: center; }' +
-    '  .screen-documents .doc-row .share-btn > span { display: none; }' +
-    '  .doc-layer .doc-sheet { top: auto; left: 0; width: auto; max-height: 85vh; border-left: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--s-16) var(--s-24) calc(var(--s-24) + env(safe-area-inset-bottom)); animation: sheet .28s var(--ease-rise); }' +
+    '  .screen-documents .doc-row .share-btn { min-width: 40px; }' +
+    '  .screen-documents .doc-when { max-width: 42vw; white-space: normal; }' +
+    '  .doc-layer .doc-sheet { top: auto; left: 0; width: auto; max-height: 85vh; border-left: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--s-12) var(--s-16) calc(var(--s-16) + env(safe-area-inset-bottom)); animation: sheet .28s var(--ease-rise); }' +
     '}' +
     '</style>';
 
@@ -251,6 +253,7 @@
     if (doc.type === 'identity' && /^passport/i.test(doc.title)) return [name, ['Valid until', doc.meta.replace(/^Valid until /, '')]];
     if (doc.type === 'school' && /degree/i.test(doc.title)) return [name, ['Degree', pr.degree], ['Awarded', pr.awarded]];
     if (doc.type === 'school') return [name, ['School', st.school]];
+    if (doc.dates && doc.dates.length) return [name].concat(doc.dates);
     return [name, ['Dated', doc.meta]];
   }
 
@@ -360,24 +363,25 @@
     const i = W.byDoc[doc.id];
     if (!i || !i.line) return null;
     const own = i.title === doc.title || doc.title.indexOf(i.title) === 0;
-    const text = own ? i.line : i.title + ' ' + i.line.charAt(0).toLowerCase() + i.line.slice(1);
+    /* A part of the document that has run out says so plainly: "Travel
+       signature expired Sep 2", not "covered returns until". */
+    const text = own ? i.line : (i.passed ? i.title + ' expired ' + i.line.replace(/^.*?until /i, '') : i.title + ' ' + i.line.charAt(0).toLowerCase() + i.line.slice(1));
     return { text: text, date: fmtIso(i.iso), close: !!i.close, passed: !!i.passed, sample: !!i.sample };
   }
-  /* "Next to run out: EAD card, Feb 13, 2027", one line at the top. The
-     paper's name opens it; the source mark shows the rule and the field it
-     was read from. */
-  function nextHtml(W) {
+  /* The one line under the title: "12 documents · Next to run out: EAD
+     card, Feb 13, 2027". The name opens it. */
+  function subHtml(W) {
+    const count = plural(S.docs.length, 'document');
     const n = W.next;
-    if (!n) return '';
+    if (!n) return '<p class="doc-sub num">' + C.esc(count) + '</p>';
     const it = W.items.filter((i) => i.key === n.key)[0] || {};
     const doc = it.doc ? docById(it.doc) : null;
     const text = n.title + ', ' + fmtIso(n.iso);
     const what = doc
       ? '<a class="' + C.cls('link', n.close && 'is-close') + '" href="' + BASE + '/' + C.esc(doc.id) + '">' + C.esc(text) + '</a>'
-      : '<span class="' + C.cls('row-title', n.close && 'is-close') + '">' + C.esc(text) + '</span>';
+      : '<span class="' + C.cls(n.close && 'is-close') + '">' + C.esc(text) + '</span>';
     const mark = n.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '';
-    const why = it.source ? C.source(it.source) : C.info('Each paper runs out on its own date. This is the soonest; every document that runs out shows its date in the list.');
-    return '<p class="doc-next"><span class="t-eyebrow">' + C.esc(W.title || 'Next to run out') + '</span>' + what + mark + why + '</p>';
+    return '<p class="doc-sub num">' + C.esc(count) + ' · ' + C.esc(W.title || 'Next to run out') + ': ' + what + mark + '</p>';
   }
 
   /* ---------------- a lost paper (BLUEPRINT 2.6 E) ---------------- */
@@ -438,35 +442,44 @@
   }
   function lostHtml(paper) {
     const list = lostLoops(paper);
-    return list.length ? '<div class="section doc-lost">' + C.loops(list, { label: 'Lost papers' }) + '</div>' : '';
+    return list.length ? '<div class="section doc-lost">' + C.loops(list, { label: 'Lost documents' }) + '</div>' : '';
   }
 
   /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, reveal = true })
-     One line of title, one line of meta. A tap opens the document's own
-     page, where its earlier versions are. A document that runs out has one
-     more line, its expiry; when its meta already says the same date, the
-     expiry line takes the meta's place, so nothing is said twice. */
+     One row per document: its title and one line on the left, the date it
+     runs out on the right (the document watch line, or Reported lost). When
+     the meta already says that date, the meta is left out, so nothing is
+     said twice. A tap opens the document's own page. */
   function docRows(list, o) {
     const opt = o || {};
     const W = watch();
     return list.map((doc) => {
       const prefix = opt.prefix ? opt.prefix(doc) : '';
-      const ex = expiryOf(doc, W);
+      let ex = expiryOf(doc, W);
       const same = !!(ex && ex.date && String(doc.meta || '').indexOf(ex.date) !== -1);
-      const meta = same ? prefix : (prefix ? prefix + ', ' : '') + doc.meta;
+      /* A date already past and already in the line needs no second say. */
+      if (same && ex.passed) ex = null;
+      const meta = same && ex ? shortAbout(doc) : (prefix ? prefix + ' · ' : '') + doc.meta;
       const lost = lostFacts(doc).map((f) => f[0] + ' ' + f[1]).join(' · ');
-      const below = (ex ? '<span class="' + C.cls('row-meta num doc-expiry', ex.close && 'is-close') + '">' + C.esc(ex.text) +
-        (ex.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '') + '</span>' : '') +
-        (lost ? '<span class="row-meta num doc-expiry">' + C.esc(lost) + '</span>' : '');
+      const whenText = lost || (ex ? ex.text : '');
+      const when = whenText ? '<span class="' + C.cls('doc-when', !lost && ex && ex.close && 'is-close', !lost && ex && ex.passed && 'is-passed') + '">' + C.esc(whenText) +
+        (!lost && ex && ex.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '') + '</span>' : '';
       return C.row({
         key: opt.keyOf ? opt.keyOf(doc) : doc.id,
         title: C.raw('<a class="doc-open" href="' + BASE + '/' + C.esc(doc.id) + '">' + C.esc(doc.title) + '</a>'),
         meta: meta,
-        below: below,
-        trailing: shareBtn(refOf(doc), doc.title, opt.reveal),
+        trailing: when + shareBtn(refOf(doc), doc.title, opt.reveal),
         cls: 'doc-row',
       });
     });
+  }
+
+  /* "Your work permit for OPT": the about line, when short and not just the
+     title again ("Your passport"). */
+  function shortAbout(doc) {
+    const a = String(doc.about || '').replace(/\.$/, '');
+    if (!a || a.length > 40 || /\./.test(a)) return '';
+    return norm(a.replace(/^your /i, '')) === norm(doc.title) ? '' : a;
   }
 
   /* ---------------- a document's own page ---------------- */
@@ -486,14 +499,15 @@
       ? '<button type="button" class="btn btn-text is-quiet" data-doc-lost="' + C.esc(lp.value) + '">I lost this</button>' : '';
     const header = C.pageHeader({
       title: doc.title,
-      back: { label: 'Papers', href: BASE },
+      back: { label: 'Documents', href: BASE },
       subline: doc.about || (g ? g.title : ''),
     });
     const actions = '<div class="doc-page-actions">' +
       C.button({ label: 'Open', kind: 'primary', attrs: { 'data-doc-show': ref } }) +
       shareBtn(ref, doc.title, false).replace('btn btn-text is-small share-btn', 'btn btn-pill share-btn') + lostBtn + '</div>' +
       (lp ? lostHtml(lp.value) : '');
-    const keyDates = dates.length ? C.section({ eyebrow: 'Key dates', content: C.found(dates) }) : '';
+    /* The dates speak for themselves: no title over them. */
+    const keyDates = dates.length ? C.section({ content: C.found(dates) }) : '';
     const earlier = doc.earlier.length ? C.section({
       eyebrow: 'Earlier versions',
       content: C.list(doc.earlier.map((e, i) => C.row({
@@ -543,8 +557,10 @@
 
   /* ---------------- labels ---------------- */
 
-  /* Every document, in the order of the groups. */
-  function allDocs() { return GROUPS.reduce((all, g) => all.concat(inGroup(g.key, true)), []); }
+  /* Every document, the ones in use now first: OPT and work, then travel
+     papers, then school and the older CPT I-20s. */
+  const ALL_ORDER = ['opt', 'stem', 'work', 'passport', 'visa', 'university', 'cpt', 'other'];
+  function allDocs() { return ALL_ORDER.reduce((all, k) => all.concat(inGroup(k, true)), []); }
   /* Most used: the latest I-20, the EAD card, the approval notice and
      the passport, the ones an employer or a DSO asks for. */
   function mostDocs() {
@@ -577,7 +593,7 @@
   function labelsHtml() {
     const cur = current();
     return C.chips({
-      key: 'docLabel', label: 'Show papers',
+      key: 'docLabel', label: 'Show documents',
       items: labels().map((l) => ({ value: l.key, label: l.title, count: docsFor(l.key).length, selected: l.key === cur })),
     }).replace('class="chips', 'class="chips doc-labels')
       /* one tab stop for the group; the arrow keys move between chips */
@@ -586,7 +602,7 @@
 
   function searchHtml() {
     return '<div class="doc-search" role="search">' +
-      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search, like I-20 or passport', ariaLabel: 'Search papers' }) +
+      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search, like I-20 or passport', ariaLabel: 'Search documents' }) +
       '<p class="sr-only" role="status" aria-live="polite" data-doc-status></p>' +
       '</div>';
   }
@@ -598,70 +614,10 @@
 
   /* ---------------- views ---------------- */
 
-  /* All: every document, under its group, each ready to open. The ones
-     asked for most have their own chip, Most used, so they are not
-     repeated here. */
-  /* ---------------- Carry these (VALUE-2 feature 3) ---------------- */
-
-  /* The newest papers for a trip, the same list Your profile > Check a trip
-     shows (carryList in case.js): passport, visa, the OPT I-20 with the
-     travel signature, the EAD card, and the offer letter of the job open
-     today. Read from App.record(), never written here. For Priya, today
-     2026-09-30 (checked in python3):
-       passport         records.passport.doc 'passport' (sample)
-       F-1 visa         records.visa.doc 'f1-visa' (sample)
-       I-20 · OPT       records.travelSignature.doc 'i20-opt'
-       EAD card         records.opt.doc 'ead-card'
-       Offer letter     records.jobs[0] Northwind, start 2026-02-27 <= 2026-09-30,
-                        no end, so open today: doc 'offer-northwind'
-     5 papers. Each row's own expiry line comes from the document watch. */
-  function carryDocs() {
-    let rec = null;
-    try { rec = typeof App.record === 'function' ? App.record() : null; } catch (err) { rec = null; }
-    if (!rec) return [];
-    const t = ((window.DULY_SAMPLE || App.data || {}).today || {}).iso || '';
-    const job = (rec.jobs || []).filter((j) => j.start <= t && (!j.end || t <= j.end))[0] || null;
-    const ids = [rec.passport && rec.passport.doc, rec.visa && rec.visa.doc,
-      rec.travelSignature && rec.travelSignature.doc, rec.opt && rec.opt.doc, job && job.doc];
-    const seen = {};
-    return ids.filter((id) => id && !seen[id] && (seen[id] = true)).map(docById).filter(Boolean);
-  }
-  function carryHtml() {
-    const docs = carryDocs();
-    if (!docs.length) return '';
-    const btn = C.button({ label: 'Share all', kind: 'text', small: true, attrs: { 'data-doc-carry': '', 'aria-label': 'Share all ' + docs.length + ' papers to carry' } });
-    const sec = C.section({
-      eyebrow: 'Carry these',
-      info: 'The newest papers to have with you when you travel. They are kept on this device, so they open without a connection. Share all sends them together in one tap.',
-      content: C.list(docRows(docs, { keyOf: (d) => 'carry:' + d.id }), { accordion: false, label: 'Carry these' }),
-    });
-    /* Share all sits at the end of the section head, where a section's link goes. */
-    return sec.replace(/<\/div>(<div class="list")/, btn + '</div>$1');
-  }
-  /* One tap: every paper to the device's own share sheet, as files where the
-     browser can share files; otherwise the names, through App.share. */
-  function shareCarry() {
-    const rs = carryDocs().map((d) => resolve(refOf(d))).filter(Boolean);
-    if (!rs.length) return;
-    let files = [];
-    try { files = rs.map((r) => new File([samplePdf(r)], fileName(r), { type: 'application/pdf' })); } catch (err) { files = []; }
-    if (files.length && navigator.share && navigator.canShare && navigator.canShare({ files: files })) {
-      App.emit('share', 'Carry these', true, null);
-      navigator.share({ files: files, title: 'Carry these' }).catch(() => { /* closed */ });
-      return;
-    }
-    App.share({ title: 'Carry these', text: 'Papers: ' + rs.map((r) => r.title).join(', ') });
-  }
-
+  /* All: every document in one list, in the order of the groups. No group
+     titles: the chips name the groups. */
   function allView() {
-    return carryHtml() + GROUPS.map((g) => {
-      const docs = inGroup(g.key, true);
-      if (!docs.length) return '';
-      return C.section({
-        eyebrow: g.title,
-        content: C.list(docRows(docs), { accordion: false, label: g.title }),
-      });
-    }).join('');
+    return C.section({ content: C.list(docRows(allDocs()), { accordion: false, label: 'All documents' }) });
   }
 
   function labelView(label) {
@@ -683,9 +639,8 @@
           '</p>',
       });
     }
-    const prefix = cur === 'all' || cur === 'most' ? (d) => groupOf(d.group).title : null;
     return C.section({
-      content: C.list(docRows(list, { prefix: prefix }), { accordion: false, label: 'Matching documents' }),
+      content: C.list(docRows(list), { accordion: false, label: 'Matching documents' }),
     });
   }
 
@@ -854,7 +809,7 @@
     layer.className = 'screen-documents doc-layer';
     layer.innerHTML = '<div class="doc-scrim" data-doc-close></div>' +
       '<div class="doc-sheet" role="dialog" aria-modal="true" aria-labelledby="doc-sheet-title" tabindex="-1">' +
-      '<div class="doc-sheet-top"><span class="t-eyebrow">Papers</span>' +
+      '<div class="doc-sheet-top">' +
       '<button type="button" class="btn btn-text doc-close" data-doc-close aria-label="Close">' + C.icon('close') + '</button></div>' +
       '<div class="doc-sheet-inner">' + sheetInner(App.data) + '</div></div>';
     document.body.appendChild(layer);
@@ -1123,7 +1078,7 @@
   /* ---------------- screen ---------------- */
 
   const SCREEN = {
-    title: 'Papers',
+    title: 'Documents',
     /* Switching labels redraws in place; opening a document's own page,
        or leaving it, is a page move. */
     paramsInPlace(params, prev) {
@@ -1134,7 +1089,7 @@
     titleFor(params) {
       if (App.data) init(App.data);
       const doc = params && params[0] && docById(params[0]);
-      return doc ? doc.title : 'Papers';
+      return doc ? doc.title : 'Documents';
     },
     render(data, params) {
       init(data);
@@ -1156,20 +1111,19 @@
         if (file) startReading(file, false);
       }
 
-      /* No hero and no subline: the chips carry the counts. */
+      /* The title, three actions, one line of what matters, then search,
+         the chips and the list. */
       const header = C.pageHeader({
-        title: 'Papers',
+        title: 'Documents',
         info: 'Every version is kept and encrypted. Files are read on ' + ((data.device && data.device.yours) || 'your device') + ', with no outside AI.',
-        /* VALUE-2 feature 7: Share a pack opens the shared sheet (App.openSharePack,
-           caught by app/sheets.js); Add a document stays the primary, on the right. */
         aside: '<div class="doc-head-actions">' +
-          '<button type="button" class="btn btn-text is-quiet" data-doc-lost="">I lost a paper</button>' +
-          C.sharePackButton({ label: 'Share a pack' }) +
+          '<button type="button" class="btn btn-text is-quiet" data-doc-lost="">I lost a document</button>' +
+          C.sharePackButton({ label: 'Share' }) +
           C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }) + '</div>',
       });
       return STYLE +
         '<div class="screen-documents">' +
-        header + lostHtml(null) + nextHtml(watch()) + searchHtml() + labelsHtml() +
+        header + subHtml(watch()) + lostHtml(null) + searchHtml() + labelsHtml() +
         '<div class="doc-view" data-doc-view>' + viewHtml() + '</div>' +
         '</div>' +
         C.footer();
@@ -1214,8 +1168,6 @@
           if (chip) chip.focus({ preventScroll: true });
           return;
         }
-        /* Carry these: Share all, every paper in one tap. */
-        if (e.target.closest('[data-doc-carry]')) { e.preventDefault(); shareCarry(); return; }
         /* Share is caught here, before App.share, so it opens this page's
            share sheet for the very file on the row. */
         const share = e.target.closest('[data-doc-ref]');
@@ -1240,8 +1192,19 @@
       if (status) status.textContent = statusText();
     },
   };
-  /* One screen, two names: #/papers, and #/documents for any link that
-     reaches it before the alias redirects. */
-  window.SCREENS['papers'] = SCREEN;
+  /* #/documents; #/papers redirects here (App.ALIASES, above). */
   window.SCREENS['documents'] = SCREEN;
+
+  /* For the share sheet (app/sheets.js): every document as it stands now,
+     added ones included, and a file for each (the sample PDF). */
+  App.documentList = () => {
+    if (App.data) init(App.data);
+    return allDocs().map((d) => ({ id: d.id, title: d.title, meta: d.meta }));
+  };
+  App.documentFile = (id) => {
+    if (App.data) init(App.data);
+    const r = resolve(id);
+    if (!r) return null;
+    try { return new File([samplePdf(r)], fileName(r), { type: 'application/pdf' }); } catch (err) { return null; }
+  };
 })();

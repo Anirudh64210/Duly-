@@ -1,215 +1,148 @@
-/* components/ask.js: Ask, the assistant's front door (BLUEPRINT 3.3; D76, D77).
+/* components/ask.js: Ask, drawn (BLUEPRINT 3.3; D76, D77).
 
-   Ask is an entry, not a tab (BLUEPRINT 3.1): a quiet field at the top of
-   the sidebar on a laptop (Cmd K or Ctrl K), an Ask button in the phone's
-   top bar, a field at the bottom of Today, and "Ask about this" on a card.
-   No AI model: app/ask.js matches the words on the device against the
-   guides' phrases, the papers, the pages and the dates the engine holds.
-   Every question ends somewhere useful: a Situation's loop started in
-   place, a paper, a page, what is next, or the step back with the DSO
-   question drafted (BOUNDARY, "The step back").
+   Ask is one field at the top of every page, in the same place always
+   (Cmd K or Ctrl K puts the cursor in it). A question opens the answer
+   panel on the right (from the bottom on a phone): the question, a quiet
+   "Thinking", then the answer in plain words and at most two buttons that
+   start a guided flow in place. A follow-up field sits at the foot.
+   Answers come from the helper (ask_server.py), which works only from the
+   dates Duly's engine computed; app/ask.js does the talking.
 
    Public (every function returns an HTML string):
-     C.askEntry({ where: 'sidebar'|'top', key? })  the shell's quiet entry
-     C.askField({ label? })                       the field-like button for
-                                                  Today, slot after the four
-     C.askAbout({ text, label? })                 "Ask about this" on a card;
-                                                  opens Ask with text filled in
-     C.askPanel()                                 the sheet's inside
-     C.askResults(found, view)                    the results under the field
+     C.askBar()                 the field at the top of the content
+     C.askAbout({ text, label })  "Ask about this" on a card
+     C.askPanel()               the panel's frame
+     C.askTurn(turn, loopsHtml) one question and what came back
    Behaviour is wired once in app/ask.js by data attributes:
-     data-ask-open="<text?>"  opens Ask (text is put in the field)
-     data-ask-close           closes it
-     data-ask-start="<kind>"  starts that Situation's loop in place
-     data-ask-back            from a loop back to the results
-     data-ask-stepback        shows the step back for the typed words
-     data-ask-clear           empties the field and shows every Situation
-     data-ask-whatif          opens What if (App.openChange), never saves
-   Spacing only from the scale; hairlines, not boxes; no red, no alarms. */
+     data-askbar / data-askbar-q   the top field (submit asks)
+     data-ask-open="<text>"        opens the panel and asks the text
+     data-ask-close                closes it
+     data-ask-start="<kind>"       starts that flow in place (data-turn)
+     data-ask-retry="<turn>"       asks that question again */
 
 (function () {
   'use strict';
 
   const C = window.C;
-  const { esc, escText, cls, icon } = C;
-  const SAMPLE = () => window.DULY_SAMPLE || {};
-  const loopsData = () => SAMPLE().loops || {};
+  const { esc, escText, icon } = C;
 
-  /* The words, kept in one place so each has one stable wording. */
+  /* The words, one stable wording each. */
   const W = {
-    title: 'Ask',
-    entry: 'Ask',
-    fieldLabel: 'Ask about a paper, a date or something that happened',
-    placeholder: 'For example: I lost my job',
-    local: 'Matched on this device. What you type is not saved.',
-    situations: 'Situations',
-    situationsLine: 'Something that happened. Each step you take is saved to your record.',
-    whatIf: 'What if',
-    whatIfLine: 'Try a change and see which dates move. Nothing is saved to your record.',
-    whatIfButton: 'Try a change without saving',
-    papers: 'Papers',
-    next: "What's next",
-    nextEmpty: 'Nothing open needs you right now.',
-    pages: 'Pages',
-    noneOfThese: 'Write the question to your DSO instead',
-    noGuide: 'No guide in Duly matches these words.',
-    stepback: 'This part depends on your own situation, so it is a question for your DSO.',
-    stepbackLine: 'The email is drafted from your record. Edit it, then send it yourself.',
-    attorney: 'Find an immigration attorney',
-    everySituation: 'See every situation',
-    back: 'Back to Ask',
-    draftOpen: 'Write the question to your DSO',
+    label: 'Ask Duly',
+    placeholder: 'Ask about your visa, dates or documents',
+    placeholderShort: 'Ask anything',
+    follow: 'Ask a follow-up',
+    thinking: 'Thinking',
+    note: 'From your record. Not legal advice.',
+    offline: 'Ask is not running on this computer yet.',
+    offlineHow: 'In the prototype folder, run',
+    offlineCmd: 'python3 ask_server.py',
+    offlineThen: 'then ask again.',
+    meanwhile: 'Meanwhile, this may help:',
+    failed: 'No answer this time.',
+    retry: 'Ask again',
     aboutThis: 'Ask about this',
   };
 
-  /* askEntry({ where }) : sidebar draws a quiet field with the shortcut;
-     top draws a text button for the phone's top bar. */
-  function askEntry(p) {
-    const o = p || {};
-    if (o.where === 'top') {
-      return '<button type="button" class="btn btn-text ask-top" data-ask-open="" aria-haspopup="dialog">' + esc(W.entry) + '</button>';
-    }
+  function askBar() {
     const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
-    const key = o.key || (mac ? '⌘K' : 'Ctrl K');
-    return '<button type="button" class="ask-entry" data-ask-open="" aria-haspopup="dialog" aria-keyshortcuts="' + (mac ? 'Meta+K' : 'Control+K') + '">' +
-      '<span>' + esc(W.entry) + '</span><kbd>' + esc(key) + '</kbd></button>';
+    return '<form class="askbar" role="search" data-askbar>' +
+      '<label class="sr-only" for="askbar-q">' + esc(W.label) + '</label>' +
+      '<input class="askbar-input" id="askbar-q" type="text" data-askbar-q autocomplete="off" autocapitalize="sentences" spellcheck="true" enterkeyhint="send"' +
+      ' placeholder="' + esc(W.placeholder) + '" aria-keyshortcuts="' + (mac ? 'Meta+K' : 'Control+K') + '">' +
+      '<kbd class="askbar-key" aria-hidden="true">' + (mac ? '⌘K' : 'Ctrl K') + '</kbd>' +
+      '</form>';
   }
 
-  /* askField({ label? }) : a button drawn like a field, for the bottom of
-     Today. It opens the sheet, where the real field is. */
-  function askField(p) {
-    const o = p || {};
-    return '<button type="button" class="ask-field" data-ask-open="" aria-haspopup="dialog">' +
-      '<span>' + escText(o.label || W.fieldLabel) + '</span></button>';
-  }
-
-  /* askAbout({ text, label? }) : the quiet "Ask about this" on a card. */
   function askAbout(p) {
     const o = p || {};
-    return '<button type="button" class="btn btn-text is-small is-quiet ask-about" data-ask-open="' + esc(o.text || '') + '" aria-haspopup="dialog">' +
+    return '<button type="button" class="btn btn-text is-small is-quiet ask-about" data-ask-open="' + esc(o.text || '') + '">' +
       esc(o.label || W.aboutThis) + '</button>';
   }
 
   function askPanel() {
-    return '<div class="sheet-top"><h2 class="t-medium" id="sheet-title" tabindex="-1">' + esc(W.title) + '</h2>' +
+    return '<div class="sheet-top ask-top"><h2 class="sr-only" id="sheet-title" tabindex="-1">' + esc(W.label) + '</h2>' +
       '<button type="button" class="sheet-x" data-ask-close aria-label="Close">' + icon('close') + '</button></div>' +
-      '<div class="sheet-body ask-body">' +
-      '<form class="ask-form field" role="search" data-ask-form>' +
-      '<label class="field-label" for="ask-q">' + escText(W.fieldLabel) + '</label>' +
-      '<input class="input" id="ask-q" type="search" data-ask-q autocomplete="off" autocapitalize="sentences" spellcheck="true" enterkeyhint="search"' +
-      ' placeholder="' + esc(W.placeholder) + '" aria-describedby="ask-local">' +
-      '<p class="field-help" id="ask-local">' + esc(W.local) + '</p>' +
-      '</form>' +
-      '<p class="sr-only" role="status" aria-live="polite" data-ask-live></p>' +
-      '<div class="ask-results" data-ask-results></div>' +
-      '</div>';
+      '<div class="sheet-body ask-body"><div class="ask-thread" data-ask-thread></div>' +
+      '<p class="sr-only" role="status" aria-live="polite" data-ask-live></p></div>' +
+      '<div class="sheet-foot ask-foot">' +
+      '<form class="ask-follow" data-ask-form><label class="sr-only" for="ask-q">' + esc(W.follow) + '</label>' +
+      '<input class="input" id="ask-q" type="text" data-ask-q autocomplete="off" autocapitalize="sentences" enterkeyhint="send" placeholder="' + esc(W.follow) + '"></form>' +
+      '<p class="t-meta ask-note">' + esc(W.note) + '</p></div>';
   }
 
-  function row(p) {
-    const inner = '<span class="ask-row-text"><span class="t-row">' + escText(p.title) + '</span>' +
-      (p.meta ? '<span class="t-meta">' + escText(p.meta) + '</span>' : '') + '</span>' + icon('chevron', { cls: 'chev' });
-    if (p.href) return '<a class="ask-row" href="' + esc(p.href) + '" data-ask-go>' + inner + '</a>';
-    return '<button type="button" class="ask-row" data-ask-start="' + esc(p.kind) + '">' + inner + '</button>';
+  /* The answer's paragraphs; a quoted question for the DSO stays in its
+     paragraph. */
+  function paras(text) {
+    return String(text || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+      .map((p) => '<p>' + escText(p).replace(/\n/g, '<br>') + '</p>').join('');
   }
-  function section(title, body, line) {
-    return '<section class="ask-sec"><h3 class="t-eyebrow">' + esc(title) + '</h3>' +
-      (line ? '<p class="t-meta ask-line">' + esc(line) + '</p>' : '') + body + '</section>';
-  }
-  function list(rows) { return '<div class="ask-list">' + rows.join('') + '</div>'; }
-
-  function situationRows(items) {
-    return list(items.map((s) => row({ kind: s.kind, title: s.label, meta: s.openLine || null })));
+  function actions(t) {
+    if (!t.actions || !t.actions.length || (t.loopIds && t.loopIds.length)) return '';
+    return '<div class="btn-group ask-acts">' + t.actions.map((a, i) =>
+      '<button type="button" class="btn ' + (i === 0 ? 'btn-pill is-lead' : 'btn-pill') + '" data-ask-start="' + esc(a.kind) + '" data-turn="' + esc(t.id) + '">' + esc(a.label) + '</button>').join('') + '</div>';
   }
 
-  /* The step back (BOUNDARY): the sentence, the DSO draft (opened), and
-     where to find an attorney. The draft carries the student's own words. */
-  function stepback(found, view) {
-    const d = view.draft || {};
-    const c = (loopsData().contacts || {}).attorney || {};
-    return '<section class="ask-sec ask-stepback">' +
-      (found.none ? '<p class="t-small">' + esc(W.noGuide) + '</p>' : '') +
-      '<p class="t-row">' + esc(W.stepback) + '</p>' +
-      '<p class="t-meta ask-line">' + esc(W.stepbackLine) + '</p>' +
-      C.emailDraft(Object.assign({ key: 'ask', openLabel: W.draftOpen }, d)) +
-      '<div class="btn-group">' +
-      (c.href ? '<a class="link" href="' + esc(c.href) + '" target="_blank" rel="noopener">' + esc(W.attorney) + '</a>' : '') +
-      '</div>' +
-      '<div class="btn-group"><button type="button" class="btn btn-text is-quiet" data-ask-clear>' + esc(W.everySituation) + '</button></div>' +
-      '</section>';
-  }
-
-  /* askResults(found, view)
-     found: App.ask.find(text) : { empty, crisis, situations, papers, next, pages, none }
-     view:  { mode: 'results'|'loop'|'stepback', loops?: [loop], draft?, nextList? } */
-  function askResults(found, view) {
-    const v = view || {};
-    const f = found || { empty: true };
-    if (v.mode === 'loop' && v.loops && v.loops.length) {
-      return '<div class="ask-loop">' +
-        '<div class="btn-group"><button type="button" class="btn btn-text is-quiet" data-ask-back>' + esc(W.back) + '</button></div>' +
-        C.loops(v.loops) +
-        '</div>';
+  /* turn: { id, q, state: thinking|answer|offline|failed|crisis, answer,
+     actions: [{ kind, label }], error, loopIds } */
+  function askTurn(t, loopsHtml) {
+    let body = '';
+    if (t.state === 'thinking') {
+      body = '<p class="ask-thinking"><span>' + esc(W.thinking) + '</span><i></i><i></i><i></i></p>';
+    } else if (t.state === 'answer') {
+      body = '<div class="ask-a">' + paras(t.answer) + '</div>' + actions(t);
+    } else if (t.state === 'offline') {
+      body = '<div class="ask-a"><p>' + esc(W.offline) + ' ' + esc(W.offlineHow) + ' <code>' + esc(W.offlineCmd) + '</code>, ' + esc(W.offlineThen) + '</p>' +
+        (t.actions && t.actions.length && !(t.loopIds && t.loopIds.length) ? '<p class="t-meta">' + esc(W.meanwhile) + '</p>' : '') + '</div>' +
+        actions(t) +
+        '<div class="btn-group"><button type="button" class="btn btn-text" data-ask-retry="' + esc(t.id) + '">' + esc(W.retry) + '</button></div>';
+    } else if (t.state === 'failed') {
+      body = '<div class="ask-a"><p>' + esc(W.failed) + (t.error ? ' <span class="t-meta">' + escText(t.error) + '</span>' : '') + '</p></div>' +
+        '<div class="btn-group"><button type="button" class="btn btn-text" data-ask-retry="' + esc(t.id) + '">' + esc(W.retry) + '</button></div>';
     }
-    if (f.crisis && v.loops && v.loops.length) {
-      /* Crisis is matched first and shown alone: a fixed screen, no dates,
-         no verdict (BLUEPRINT 2.7). */
-      return '<div class="ask-loop ask-crisis">' + C.loops(v.loops) + '</div>';
-    }
-    if (f.empty) {
-      return section(W.situations, situationRows(f.situations || []), W.situationsLine) +
-        section(W.whatIf, '<div class="btn-group"><button type="button" class="btn btn-pill" data-ask-whatif>' + esc(W.whatIfButton) + '</button></div>', W.whatIfLine);
-    }
-    if (v.mode === 'stepback' || f.none) return stepback(f, v);
-
-    /* The order of BLUEPRINT 3.3: a paper, a date, a page, a Situation. */
-    let out = '';
-    if (f.papers && f.papers.length) out += section(W.papers, list(f.papers.map(row)));
-    if (f.next) {
-      const n = v.nextList || { loops: [] };
-      out += section(W.next, n.loops.length ? C.loops(n.loops, { more: n.more }) : '<p class="t-meta">' + esc(W.nextEmpty) + '</p>');
-    }
-    if (f.pages && f.pages.length) out += section(W.pages, list(f.pages.map((p) => row({ title: p.label, href: p.href }))));
-    if (f.situations && f.situations.length) out += section(W.situations, situationRows(f.situations), W.situationsLine);
-    out += '<div class="btn-group ask-none"><button type="button" class="btn btn-text" data-ask-stepback>' + esc(W.noneOfThese) + '</button></div>';
-    return out;
+    return '<article class="ask-turn" data-turn-id="' + esc(t.id) + '">' +
+      '<p class="ask-q">' + escText(t.q) + '</p>' + body +
+      (loopsHtml ? '<div class="ask-loop">' + loopsHtml + '</div>' : '') +
+      '</article>';
   }
 
-  Object.assign(C, { askEntry, askField, askAbout, askPanel, askResults });
+  Object.assign(C, { askBar, askAbout, askPanel, askTurn });
   Object.defineProperty(C._, 'askWords', { value: W });
 
-  /* Styles for Ask, from the system tokens. */
   if (typeof document !== 'undefined' && !document.getElementById('ask-style')) {
     const css = [
-      '.ask-entry { display: flex; align-items: center; gap: var(--s-8); width: 100%; min-height: 36px; margin: 0 0 var(--s-24); padding: 0 var(--s-12); background: var(--surface); color: var(--ink-3); border: 1px solid var(--hairline); border-radius: var(--r-field); font: inherit; font-size: var(--t-small); line-height: var(--lh-meta); text-align: left; cursor: pointer; transition: border-color .16s ease; }',
-      '.ask-entry:hover { border-color: var(--control-border-hover); color: var(--ink-2); }',
-      '.ask-entry:focus-visible { outline: none; box-shadow: var(--focus-ring); }',
-      '.ask-entry kbd { margin-left: auto; font: inherit; color: var(--ink-4); }',
-      '@media (pointer: coarse) { .ask-entry { min-height: 44px; } }',
-      '.ask-top { padding: var(--s-12) 0; }',
-      '.ask-field { display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0 var(--s-16); background: var(--surface); color: var(--ink-3); border: 1.5px solid var(--control-border); border-radius: var(--r-field); font: inherit; font-size: var(--t-small); line-height: var(--lh-meta); text-align: left; cursor: text; transition: border-color .16s ease; }',
-      '.ask-field:hover { border-color: var(--control-border-hover); }',
-      '.ask-field:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }',
-      '.ask-field span { overflow-wrap: anywhere; }',
-      '.ask-body { gap: var(--s-24); }',
-      '.ask-form .field-help { margin-bottom: 0; }',
-      '.ask-results { display: flex; flex-direction: column; gap: var(--s-32); min-width: 0; }',
-      '.ask-sec { display: flex; flex-direction: column; gap: var(--s-8); min-width: 0; }',
-      '.ask-sec > .t-eyebrow { margin: 0; }',
-      '.ask-line { margin: 0 0 var(--s-4); }',
-      '.ask-list { display: flex; flex-direction: column; }',
-      '.ask-row { display: flex; align-items: center; gap: var(--s-12); width: 100%; min-height: 48px; padding: var(--s-12) 0; background: none; border: 0; border-top: 1px solid var(--hairline-inner); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }',
-      '.ask-list > .ask-row:last-child { border-bottom: 1px solid var(--hairline-inner); }',
-      '.ask-row:hover .t-row { color: var(--accent); }',
-      '.ask-row:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-nav); }',
-      '.ask-row-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }',
-      '.ask-row .t-row, .ask-row .t-meta { overflow-wrap: anywhere; }',
-      '.ask-row .chev { flex: none; width: 14px; height: 14px; color: var(--ink-3); }',
-      '.ask-stepback { gap: var(--s-12); }',
-      '.ask-stepback > p { margin: 0; }',
-      '.ask-stepback .draft { align-self: stretch; }',
-      '.ask-none { margin-top: calc(-1 * var(--s-16)); }',
-      '.ask-loop { display: flex; flex-direction: column; gap: var(--s-8); }',
+      /* The field at the top of the content: the column's width, one line. */
+      '.askbar { position: relative; width: var(--column); max-width: calc(100% - 64px); margin: var(--s-24) auto 0; display: flex; align-items: center; }',
+      '.askbar-input { width: 100%; height: 44px; padding: 0 64px 0 var(--s-16); background: var(--surface); color: var(--ink); border: 1px solid var(--control-border); border-radius: var(--r-field); font: inherit; font-size: var(--t-small); transition: border-color .16s ease; }',
+      '.askbar-input::placeholder { color: var(--ink-3); }',
+      '.askbar-input:hover { border-color: var(--control-border-hover); }',
+      '.askbar-input:focus, .askbar-input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }',
+      '.askbar-key { position: absolute; right: var(--s-16); font: inherit; font-size: var(--t-small); color: var(--ink-4); pointer-events: none; }',
+      '.askbar-input:focus + .askbar-key { opacity: 0; }',
+      '@media (max-width: 640px) { .askbar { width: auto; max-width: none; margin: var(--s-16) var(--s-24) 0; } .askbar-key { display: none; } .askbar-input { padding-right: var(--s-16); } }',
+      '@media (max-width: 359px) { .askbar { margin-left: var(--s-16); margin-right: var(--s-16); } }',
+      /* The panel. */
+      '.ask-sheet { width: 480px; }',
+      '.ask-top { justify-content: flex-end; padding-top: var(--s-12); padding-bottom: 0; }',
+      '.ask-body { gap: 0; padding-top: 0; }',
+      '.ask-thread { display: flex; flex-direction: column; gap: var(--s-24); }',
+      '.ask-turn { display: flex; flex-direction: column; gap: var(--s-12); min-width: 0; }',
+      '.ask-turn + .ask-turn { padding-top: var(--s-24); border-top: 1px solid var(--hairline); }',
+      '.ask-q { font-size: var(--t-medium); font-weight: 600; line-height: var(--lh-medium); letter-spacing: -.01em; color: var(--ink); overflow-wrap: anywhere; }',
+      '.ask-a { display: flex; flex-direction: column; gap: var(--s-12); font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink-body); }',
+      '.ask-a p { margin: 0; overflow-wrap: anywhere; }',
+      '.ask-a code { font: inherit; font-weight: 600; color: var(--ink); background: var(--row-hover); padding: 0 var(--s-4); border-radius: var(--r-tag); white-space: nowrap; }',
+      '.ask-acts { margin-top: var(--s-4); }',
+      '.ask-acts .btn.is-lead { border-color: var(--accent); color: var(--accent); }',
+      '.ask-thinking { display: flex; align-items: center; gap: var(--s-4); color: var(--ink-3); font-size: var(--t-small); line-height: var(--lh-small); }',
+      '.ask-thinking span { margin-right: var(--s-4); }',
+      '.ask-thinking i { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-4); animation: ask-pulse 1.2s ease-in-out infinite; }',
+      '.ask-thinking i:nth-of-type(2) { animation-delay: .2s; } .ask-thinking i:nth-of-type(3) { animation-delay: .4s; }',
+      '@keyframes ask-pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }',
+      '.ask-loop { display: flex; flex-direction: column; }',
       '.ask-loop .loop-body { padding-left: 0; }',
+      '.ask-foot { display: flex; flex-direction: column; gap: var(--s-8); }',
+      '.ask-note { text-align: center; color: var(--ink-4); }',
     ].join('\n');
     const el = document.createElement('style');
     el.id = 'ask-style';

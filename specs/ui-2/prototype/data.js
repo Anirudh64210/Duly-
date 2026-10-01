@@ -420,7 +420,7 @@ window.DULY_SAMPLE = {
     tasks: [
       { key: 'everify', title: 'Check that Northwind Systems uses E-Verify', meta: 'Listed in E-Verify, checked Sep 30', info: 'Ask HR for the E-Verify company ID. It goes on your I-983.', source: 'stemEmployer',
         open: { label: 'See', href: '#/employer' } },
-      { key: 'i983', title: 'Fill out your training plan with your manager', meta: 'Form I-983', info: 'You and your manager both sign it.', source: 'stemPlan' },
+      { key: 'i983', title: 'Fill out your I-983 training plan with your manager', meta: 'Form I-983', info: 'You and your manager both sign it.', source: 'stemPlan' },
       { key: 'i20', title: 'Get your new I-20 from your school', meta: null, info: "It carries your school's STEM OPT recommendation.", source: 'within60',
         onDone: { action: 'Add the date your school recommends you', rest: 'to see your exact last day to file.', href: '#/case/recommended', source: 'within60' } },
       { key: 'i765', title: 'File Form I-765 with USCIS', meta: 'Nov 15, 2026 to Feb 13, 2027', info: "Within 60 days of your school's recommendation.", source: 'stemOpens' },
@@ -800,7 +800,7 @@ window.DULY_SAMPLE = {
     i20Groups: [
       { key: 'opt', title: 'OPT', items: [
         { id: 'i20-opt', name: 'I-20 · OPT', title: 'OPT', meta: 'OPT Feb 14, 2026 to Feb 13, 2027 · at Northwind Systems', current: true,
-          about: "Your OPT I-20, with your school's recommendation on page 2. OPT is not tied to one employer, so no company is printed on it; the employer below is the one you reported. Carry it with your EAD card.",
+          about: "Your OPT I-20, with your school's recommendation on page 2. Carry it with your EAD card.",
           dates: [['OPT start', 'Feb 14, 2026'], ['OPT end', 'Feb 13, 2027'], ['Employer you reported', 'Northwind Systems, since Feb 27, 2026'], ['School recommended OPT', 'Oct 3, 2025'], ['You filed your I-765', 'Oct 10, 2025'], ['This version', 'Mar 2, 2026']],
           latest: { date: 'Mar 2, 2026', change: 'Travel signature added' },
           versions: [
@@ -840,11 +840,11 @@ window.DULY_SAMPLE = {
     ],
     identity: [
       { id: 'passport', title: 'Passport', meta: 'Valid until Jul 9, 2031', about: 'Your passport.', dates: [['Valid until', 'Jul 9, 2031'], ['This version', 'Mar 3, 2026']] },
-      { id: 'f1-visa', title: 'F-1 visa', meta: 'Aug 2023', about: 'The visa in your passport.', dates: [['Issued', 'Aug 2023'], ['This version', 'Mar 3, 2026']] },
-      { id: 'i94', title: 'I-94', meta: 'Aug 2023', about: 'Your record of entry to the US.', dates: [['Entered', 'Aug 2023'], ['This version', 'Mar 3, 2026']] },
+      { id: 'f1-visa', title: 'F-1 visa', meta: 'Issued Aug 2023', about: 'The visa in your passport.', dates: [['Issued', 'Aug 2023'], ['This version', 'Mar 3, 2026']] },
+      { id: 'i94', title: 'I-94', meta: 'Entered Aug 2023', about: 'Your record of entry to the US.', dates: [['Entered', 'Aug 2023'], ['This version', 'Mar 3, 2026']] },
     ],
     school: [
-      { id: 'degree', title: 'Degree certificate', meta: 'Dec 18, 2025', about: "Your Master's in Computer Science.", dates: [['Awarded', 'Dec 18, 2025']] },
+      { id: 'degree', title: 'Degree certificate', meta: 'Awarded Dec 18, 2025', about: "Your Master's in Computer Science.", dates: [['Awarded', 'Dec 18, 2025']] },
       { id: 'transcripts', title: 'Transcripts', meta: 'State University', about: 'Your grades from State University.', dates: [] },
     ],
     kinds: ['I-20', 'EAD card', 'I-797', 'Other'],
@@ -905,6 +905,8 @@ window.DULY_SAMPLE = {
     lockAfter: '5 minutes',
     lockOptions: ['1 minute', '5 minutes', '15 minutes', '1 hour'],
     remind: 'Two weeks before, and again two days before.',
+    /* The value beside the reminder switch, on one line. */
+    remindShort: 'Two weeks and two days before',
     timeZone: 'New York, set from this device',
     theme: 'system',
     deleteMeta: 'Removes your records and documents from your account and your devices. Backups you saved stay where you put them.',
@@ -970,6 +972,24 @@ window.DULY_SAMPLE = {
       'report:job-start:northwind': '2026-02-27',
       'report:address:2026-03-01': '2026-03-04',
     },
+  },
+
+  /* Your record as a journey (founder review, Oct 1): about six milestones,
+     oldest first, each one line with its dates, opening to a few facts and
+     its papers. Copy only: screens/record.js reads every date from records
+     above and from the papers. {employer} is filled from the job. */
+  journey: {
+    title: 'Your record',
+    save: 'Save a copy',
+    profile: 'Your profile',
+    arrived: 'Arrived in the US',
+    cpt: 'CPT',
+    opt: 'OPT',
+    stem: 'STEM OPT',
+    job: 'Job at {employer}',
+    petition: 'H-1B petition',
+    now: 'Now',
+    empty: 'Nothing here yet. Papers you add show here, with their dates.',
   },
 
   /* Reports you owe (VALUE-2 feature 4). Copy only; the rows and dates come
@@ -1041,30 +1061,14 @@ window.DULY_SAMPLE = {
     ],
   },
 
-  /* Share, with a one-page summary (VALUE-2 feature 7). Papers are
-     preselected by who it is for; the summary is a fixed template over the
-     record and computed items. No model writes it. Names and numbers are
-     hidden until the student shows them. The employer list makes no I-9
-     claim (M-274 is not saved). */
+  /* Share documents (VALUE-2 feature 7, Round 7): tick documents, then
+     share them together or save them as one file. No summary page. */
   sharePack: {
-    title: 'Share your papers',
-    info: 'Pick who it is for. The newest papers are picked for you, and the summary is filled in from your record.',
-    for: [
-      { value: 'employer', label: 'Employer', docs: ['ead-card', 'i20-opt'], parts: ['status', 'card', 'job'] },
-      { value: 'dso', label: 'DSO', docs: ['i20-opt', 'ead-card', 'i797', 'offer-northwind'], parts: ['status', 'program', 'card', 'job', 'reports', 'counts', 'questions'] },
-      { value: 'attorney', label: 'Attorney', docs: ['passport', 'f1-visa', 'i94', 'i20-opt', 'i20-cpt-lumen', 'i20-cpt-acme', 'i20-start', 'ead-card', 'i797', 'offer-northwind', 'degree', 'transcripts'],
-        parts: ['status', 'program', 'cpt', 'card', 'job', 'travel', 'trips', 'petitions', 'counts', 'questions'] },
-    ],
-    summaryLabel: 'One-page summary',
-    showLabel: 'Show names and numbers',
-    hidden: 'Hidden',
+    title: 'Share documents',
     share: 'Share',
-    pdf: 'Save as PDF',
+    save: 'Save',
     cancel: 'Cancel',
-    footer: 'From my records. Not legal advice.',
-    holds: 'The text holds {parts}. {names}',
-    namesHidden: 'Names and numbers are hidden.',
-    namesShown: 'Names and numbers are shown.',
+    bundle: 'Documents',
   },
 
   /* Document watch (VALUE-2 feature 6). Days before an end that count as
@@ -2530,7 +2534,7 @@ window.DULY_SAMPLE.loops = {
        hands over to the job-ends loop. */
     checkin: {
       version: '2026.09.2',
-      title: 'Check-in: {employer}',
+      title: 'Still at {employer}?',
       cantTell: 'days without work',
       start: 'ask',
       dismiss: false,

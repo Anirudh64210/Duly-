@@ -1,15 +1,15 @@
-/* app/sheets.js: VALUE-2. The small sheet, Try a change, Share, the check-in and report rows.
+/* app/sheets.js: VALUE-2. The small sheet, Try a change, Share documents, the check-in and report rows.
 
    One sheet at a time, laid over the page: a panel on the right on a wide
    window, a sheet from the bottom on a phone. Escape, the scrim, the close
    mark and Cancel all close it; focus returns to what opened it. Nothing in
    a sheet saves on its own.
      App.openChange(preset?, { presets?, stemCard? })   Try a change
-     App.openSharePack(who?)                            Share, with a summary
+     App.openSharePack(ids?)                            Share documents
      App.closeSheet()
    Wiring by data attributes (components/change.js lists them). The inputs
-   use data-field="change:<name>" and the chips data-choices="change:<name>"
-   or "share:who", so the shared handlers in events.js and controls.js set
+   use data-field="change:<name>" and the chips data-choices="change:<name>",
+   so the shared handlers in events.js and controls.js set
    App.state and announce them; this file listens for those and redraws the
    sheet, or only its result while a field is typed in. */
 
@@ -154,71 +154,99 @@
     }
   }
 
-  /* ---------------- Share, with a summary ---------------- */
-  const SP = { who: null, docs: {}, summary: true, show: false };
-  /* Each paper, with sample: true when a record that came from it holds
-     sample values (records.passport and records.visa today), so the Share
-     rows carry the Sample mark as Documents does. */
-  function allPapers() {
+  /* ---------------- Share documents ---------------- */
+  /* Round 7: tick documents, then Share sends them together through the
+     device's own share sheet, or Save keeps them as one file (a .zip when
+     there are several). The files come from screens/documents.js
+     (App.documentList, App.documentFile: the prototype's sample PDFs). */
+  const SP = { docs: {} };
+  function papers() {
+    if (typeof App.documentList === 'function') return App.documentList();
     const d = data.documents || {};
-    const rec = App.record();
-    const sampleDocs = {};
-    Object.keys(rec).forEach((k) => { const r = rec[k]; if (r && !Array.isArray(r) && typeof r === 'object' && r.doc && r.sample) sampleDocs[r.doc] = true; });
-    const out = {};
-    const put = (i, title) => { out[i.id] = { id: i.id, title: title, meta: i.meta, sample: !!(i.sample || sampleDocs[i.id]) }; };
-    (d.i20Groups || []).forEach((g) => (g.items || []).forEach((i) => put(i, i.name || i.title)));
-    ['work', 'identity', 'school'].forEach((k) => (d[k] || []).forEach((i) => put(i, i.title)));
+    const out = [];
+    (d.i20Groups || []).forEach((g) => (g.items || []).forEach((i) => out.push({ id: i.id, title: i.name || i.title, meta: i.meta })));
+    ['work', 'identity', 'school'].forEach((k) => (d[k] || []).forEach((i) => out.push({ id: i.id, title: i.title, meta: i.meta })));
     return out;
   }
-  function shareState() {
-    const cfg = data.sharePack || {};
-    const pick = (cfg.for || []).filter((f) => f.value === SP.who)[0];
-    const all = allPapers();
-    const papers = pick ? pick.docs.map((id) => all[id]).filter(Boolean) : [];
-    return { who: SP.who, docs: SP.docs, summary: SP.summary, show: SP.show, papers: papers };
-  }
-  function setWho(who) {
-    SP.who = who || null;
-    const pick = ((data.sharePack || {}).for || []).filter((f) => f.value === who)[0];
+  function shareState() { return { docs: SP.docs, papers: papers() }; }
+  /* App.openSharePack(ids?) : ids (an array, or "a,b") are ticked to start. */
+  App.openSharePack = (ids) => {
     SP.docs = {};
-    if (pick) pick.docs.forEach((id) => { SP.docs[id] = true; });
-  }
-  /* App.openSharePack('employer' | 'dso' | 'attorney' | undefined) */
-  App.openSharePack = (who) => {
-    SP.summary = true; SP.show = false;
-    App.state['share:summary'] = true; App.state['share:show'] = false;
-    setWho(who || null);
+    const pick = Array.isArray(ids) ? ids : String(ids || '').split(',').filter(Boolean);
+    pick.forEach((id) => { SP.docs[id] = true; });
     openSheet('share', () => C.sharePack(shareState()));
-    emit('sheet', 'share', SP.who, null);
+    emit('sheet', 'share', null, null);
   };
   App.shareState = shareState;
+  function picked() {
+    return papers().filter((p) => SP.docs[p.id]).map((p) => (App.documentFile ? App.documentFile(p.id) : null)).filter(Boolean);
+  }
   function shareAct(btn) {
     const act = btn.dataset.shareAct;
     if (act === 'cancel') { closeSheet(true); return; }
-    const st = shareState();
-    const sum = SP.summary ? App.summary(SP.who, { show: SP.show }) : null;
-    const names = st.papers.filter((p) => SP.docs[p.id]).map((p) => p.title + (p.sample ? ' (sample)' : ''));
-    if (act === 'pdf') { printSummary(sum, names); return; }
-    if (act === 'share') {
-      const text = (sum ? sum.text + '\n\n' : '') + (names.length ? 'Papers: ' + names.join(', ') : '');
+    const files = picked();
+    if (!files.length) return;
+    const title = ((data.sharePack || {}).bundle) || 'Documents';
+    if (act === 'share' && navigator.share && navigator.canShare && navigator.canShare({ files: files })) {
       closeSheet(true);
-      App.share({ title: sum ? sum.title : 'My papers', text: text });
+      emit('share', title, true, null);
+      navigator.share({ files: files, title: title }).catch(() => { /* closed */ });
+      return;
     }
+    /* Save, or Share where the browser cannot share files: one file. */
+    closeSheet(true);
+    saveBundle(files, title).then((name) => {
+      emit('share', title, true, null);
+      toast(act === 'share' ? 'Saved ' + name + '. Attach it from your downloads' : 'Saved ' + name);
+    });
   }
-  /* Save as PDF: the summary on its own page, through the browser's print
-     dialog (Save as PDF there). */
-  function printSummary(sum, names) {
-    if (!sum) return;
-    const w = window.open('', '_blank', 'noopener=no');
-    if (!w) { toast('Allow pop-ups to save the PDF'); return; }
-    const css = 'body{font:15px/24px "Instrument Sans",system-ui,sans-serif;color:#1A1917;margin:48px;max-width:640px}' +
-      'h3{font-size:20px;line-height:28px;margin:0}.t-meta{color:#6B6862;margin:0 0 16px}.t-eyebrow{font-weight:600;font-variant-caps:all-small-caps;letter-spacing:.06em;color:#6B6862;margin:16px 0 4px}p{margin:0}' +
-      '.summary-foot{margin-top:24px}';
-    w.document.write('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>' + C.esc(sum.title) + '</title><style>' + css + '</style></head><body>' +
-      C.summaryPage(sum) + (names.length ? '<p class="t-eyebrow">Papers</p><p>' + C.esc(names.join(', ')) + '</p>' : '') + '</body></html>');
-    w.document.close();
-    w.focus();
-    setTimeout(() => { try { w.print(); } catch (e) { /* closed */ } }, 200);
+  function download(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  function saveBundle(files, title) {
+    if (files.length === 1) { download(files[0], files[0].name); return Promise.resolve(files[0].name); }
+    const name = title + '.zip';
+    return zip(files).then((blob) => { download(blob, name); return name; });
+  }
+  /* A plain .zip (stored, no compression): every OS opens it. */
+  const CRC = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n += 1) { let c = n; for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+    return t;
+  })();
+  function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i += 1) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function zip(files) {
+    const enc = new TextEncoder();
+    const seen = {};
+    return Promise.all(files.map((f) => f.arrayBuffer())).then((bufs) => {
+      const parts = [], central = [];
+      let offset = 0;
+      bufs.forEach((buf, i) => {
+        let nm = files[i].name;
+        if (seen[nm]) nm = nm.replace(/(\.\w+)$/, ' ' + (++seen[nm]) + '$1'); else seen[nm] = 1;
+        const name = enc.encode(nm), body = new Uint8Array(buf), crc = crc32(body);
+        const head = new DataView(new ArrayBuffer(30));
+        head.setUint32(0, 0x04034b50, true); head.setUint16(4, 20, true); head.setUint16(6, 0x0800, true);
+        head.setUint32(14, crc, true); head.setUint32(18, body.length, true); head.setUint32(22, body.length, true);
+        head.setUint16(26, name.length, true);
+        const cen = new DataView(new ArrayBuffer(46));
+        cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true);
+        cen.setUint32(16, crc, true); cen.setUint32(20, body.length, true); cen.setUint32(24, body.length, true);
+        cen.setUint16(28, name.length, true); cen.setUint32(42, offset, true);
+        parts.push(head, name, body);
+        central.push(cen, name);
+        offset += 30 + name.length + body.length;
+      });
+      const size = central.reduce((n, x) => n + x.byteLength, 0);
+      const end = new DataView(new ArrayBuffer(22));
+      end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+      end.setUint32(12, size, true); end.setUint32(16, offset, true);
+      return new Blob(parts.concat(central, [end]), { type: 'application/zip' });
+    });
   }
 
   /* ---------------- clicks ---------------- */
@@ -232,7 +260,7 @@
       return;
     }
     const so = t.closest('[data-share-open]');
-    if (so && so.tagName === 'BUTTON') { e.preventDefault(); App.openSharePack(so.dataset.shareOpen || null); return; }
+    if (so && so.tagName === 'BUTTON') { e.preventDefault(); App.openSharePack(so.dataset.shareOpen || ''); return; }
     if (t.closest('[data-sheet-close]')) { e.preventDefault(); closeSheet(true); return; }
     const ca = t.closest('[data-change-act]');
     if (ca) { e.preventDefault(); changeAct(ca); return; }
@@ -274,11 +302,6 @@
       /* A chip can add or remove a field (the outcome's day): redraw all. */
       if (d.kind === 'choice') redraw(); else redrawResult();
       return;
-    }
-    if (open.kind === 'share') {
-      if (key === 'share:who') { setWho(d.value); redraw(); return; }
-      if (key === 'share:summary') { SP.summary = !!d.value; redraw(); return; }
-      if (key === 'share:show') { SP.show = !!d.value; redraw(); }
     }
   });
 

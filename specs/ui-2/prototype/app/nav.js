@@ -62,8 +62,8 @@
   }
 
   /* The nav is never redrawn: the current item and the waiting dots move in
-     place. Each item is a place (data-place: today, plan, papers, record,
-     settings, feedback) that holds several routes (C.placeOf), so #/uscis
+     place. Each item is a place (data-place: home, plan, documents,
+     updates, record, settings, feedback) that holds several routes (C.placeOf), so #/uscis
      shows Plan as current and a dot waiting in steps shows on Plan. */
   function updateNav() {
     const waiting = waitingIn();
@@ -89,6 +89,20 @@
     const t = data.today.long.split(', ');
     return t.length > 1 ? t[1] : t[0];
   }
+
+  /* The places' own names: #/today goes to #/home and #/papers to
+     #/documents, sub-paths kept (#/papers/ead-card -> #/documents/ead-card).
+     Set once every page file has run (they load after this one and an older
+     one may point documents the other way), before the first draw. */
+  function settleAliases() {
+    const A = App.ALIASES || {};
+    if (A.documents === 'papers') delete A.documents;
+    if (A.home === 'today') delete A.home;
+    A.today = 'home';
+    A.papers = 'documents';
+  }
+  settleAliases();
+  window.addEventListener('DOMContentLoaded', settleAliases);
 
   Object.assign(App._, { snapshot, reopen, refocus, updateNav, phoneDate });
 })();

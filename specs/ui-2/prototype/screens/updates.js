@@ -1,4 +1,4 @@
-/* News (Round 3, note 6). Articles about the rules for this student's
+/* Updates (Round 3, note 6; titled Updates to match the nav, Oct 1). Articles about the rules for this student's
    status, like a good news app. The route stays #/updates.
    Routes:
      #/updates          the list: the newest story as the lead, then the rest
@@ -44,7 +44,7 @@
 
   function listPage(data, empty) {
     const all = empty ? [] : items(data);
-    const header = C.pageHeader({ title: 'News', info: data.updates.pageInfo });
+    const header = C.pageHeader({ title: 'Updates', info: data.updates.pageInfo });
     if (!all.length) return header + C.empty({ text: data.updates.empty || 'No news yet.' });
 
     const lead = C.updateRow(all[0], { headline: true }).replace('class="item news-row', 'class="item news-row news-lead');
@@ -106,7 +106,7 @@
 
   function detailPage(data, u) {
     const header = C.pageHeader({
-      back: { label: 'News', href: '#/updates' },
+      back: { label: 'Updates', href: '#/updates' },
       eyebrow: u.label,
       title: u.title,
       subline: u.dek,
@@ -126,10 +126,10 @@
   }
 
   window.SCREENS['updates'] = {
-    title: 'News',
+    title: 'Updates',
     titleFor(params) {
       const u = params[0] && App.findUpdate(params[0]);
-      return u ? u.title : 'News';
+      return u ? u.title : 'Updates';
     },
     render(data, params) {
       const id = params[0];

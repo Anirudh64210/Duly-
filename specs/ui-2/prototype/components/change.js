@@ -1,5 +1,5 @@
 /* components/change.js: VALUE-2 pieces. Try a change, the check-in, Share
-   with a summary, Reports you owe, Document watch, From your paper.
+   documents, Reports you owe, Document watch, From your paper.
 
    Every number here comes from app/record.js (App.whatIf, App.reportsOwed,
    App.documentWatch, App.summary, App.fromPaper); nothing is worked out in
@@ -7,9 +7,9 @@
      data-change-open="<preset>"  opens Try a change on that preset
      data-change-act              cancel | save | copy
      data-checkin-act             yes | update | undo
-     data-share-open="<who>"      opens Share (who optional)
-     data-share-act               cancel | share | pdf
-     data-share-doc="<id>"        a paper's checkbox
+     data-share-open="<ids>"      opens Share (ids to tick, optional)
+     data-share-act               cancel | save | share
+     data-share-doc="<id>"        a document's row (ticks it)
      data-report-act              done | undo   (data-report="<id>")
      data-sheet-close             closes the open sheet
    Public:
@@ -19,8 +19,7 @@
      C.askDso(questions)                   "Ask your DSO" with Copy (data-ask-copy)
      C.checkin(c?, { done? })              one fact to confirm: Yes or Update, then Undo
      C.sharePack(state)                    the sheet's inside (App.openSharePack draws it)
-     C.summaryPage(summary)                the one-page summary, as previewed and printed
-     C.shareButton is in employer.js; C.sharePackButton({ who?, label? }) opens this one
+     C.shareButton is in employer.js; C.sharePackButton({ docs?, label? }) opens this one
      C.reports(r?)                         the rows of Reports you owe (wrap in C.section)
      C.docWatch(w?)                        Next to run out, then one line per paper
      C.fromPaper(rows)                     "From your paper" rows for the source sheet */
@@ -252,60 +251,46 @@
       '</span></span><span class="row-trail">' + info(c.info, { inline: false }) + '</span></div></div>';
   }
 
-  /* ---------------- share, with a one-page summary ---------------- */
+  /* ---------------- share documents ---------------- */
 
-  /* sharePackButton({ who?, label = 'Share', kind = 'pill' }) : the one
-     Share action, in Documents and in Your profile. */
+  /* sharePackButton({ docs?: id[], label = 'Share', kind = 'pill' }) : the
+     one Share action, in Documents and in Your profile. docs ticks those
+     documents when the sheet opens. */
   function sharePackButton(p) {
     const o = p || {};
-    return '<button type="button" class="' + cls('btn share-btn', o.kind === 'text' ? 'btn-text' : 'btn-pill') + '"' + attrs({ 'data-share-open': o.who || '' }) + '>' +
+    return '<button type="button" class="' + cls('btn share-btn', o.kind === 'text' ? 'btn-text' : 'btn-pill') + '"' + attrs({ 'data-share-open': (o.docs || []).join(',') }) + '>' +
       icon('share') + '<span>' + esc(o.label || 'Share') + '</span></button>';
   }
 
-  /* summaryPage(s = App.summary(who, { show })) : the fixed template, as the
-     preview and as the printed page. */
-  function summaryPage(s) {
-    if (!s) return '';
-    return '<article class="summary-page" aria-label="One-page summary">' +
-      '<h3 class="summary-title">' + esc(s.title) + '</h3><p class="t-meta">' + esc(s.meta) + '</p>' +
-      s.sections.map((x) => '<section class="summary-part"><p class="t-eyebrow">' + esc(x.label) + '</p>' +
-        x.lines.map((l) => '<p>' + escText(l) + '</p>').join('') + '</section>').join('') +
-      '<p class="t-meta summary-foot">' + esc(s.footer || '') + '</p></article>';
-  }
-
-  /* sharePack({ who, docs: { id: true }, summary, show, papers: [{ id, title, meta, sample? }] })
-     The inside of the Share sheet. Who first; then the papers, picked for
-     that reader; then the summary, previewed, names and numbers hidden
-     until shown; then what the text holds; Cancel, Save as PDF, Share. */
+  /* sharePack({ docs: { id: true }, papers: [{ id, title, meta }] })
+     Round 7: tick the documents, then share them together or save them.
+     No "who is it for", no summary page. A whole row ticks its document. */
+  const SHARE_STYLE = '<style>' +
+    '.share-pack.sheet-body { gap: 0; padding-top: 0; }' +
+    '.share-pack .share-doc > .row { min-height: 0; padding-top: var(--s-12); padding-bottom: var(--s-12); align-items: center; gap: var(--s-12); cursor: pointer; }' +
+    '.share-pack .share-doc > .row:hover { background: var(--row-hover); }' +
+    '.share-pack .share-doc .check { margin-top: 0; pointer-events: none; }' +
+    '.share-pack .share-doc .row-title, .share-pack .share-doc .row-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '.share-pack .share-doc .row-text { min-width: 0; }' +
+    '</style>';
   function sharePack(st) {
     const cfg = SAMPLE().sharePack || {};
     const s = st || {};
-    const A = APP();
-    const sum = s.who && s.summary !== false && A.summary ? A.summary(s.who, { show: !!s.show }) : null;
-    const papers = s.who ? (s.papers || []).map((d) => {
+    const rows = (s.papers || []).map((d) => {
       const on = !!(s.docs && s.docs[d.id]);
-      return '<div class="item share-doc"><div class="row is-static">' +
-        '<button type="button" class="check" role="checkbox" aria-checked="' + (on ? 'true' : 'false') + '" data-share-doc="' + esc(d.id) + '" aria-label="' + esc(d.title) + '">' + icon('tick', { size: 12 }) + '</button>' +
-        '<span class="row-text"><span class="row-title">' + escText(d.title) + (d.sample ? ' <span class="marks">' + sampleMark() + '</span>' : '') + '</span>' + (d.meta ? '<span class="row-meta">' + escText(d.meta) + '</span>' : '') + '</span>' +
-        '</div></div>';
-    }).join('') : '';
-    const count = s.who ? Object.keys(s.docs || {}).filter((k) => s.docs[k]).length : 0;
-    const ready = !!s.who && (count > 0 || !!sum);
-    return sheetTop({ title: cfg.title || 'Share your papers', info: cfg.info }) +
-      '<div class="sheet-body share-pack">' +
-      '<div class="field"><p class="field-label">Who is it for?</p>' +
-      chips({ key: 'share:who', label: 'Who is it for?', inline: true, items: (cfg.for || []).map((f) => ({ value: f.value, label: f.label, selected: f.value === s.who })) }) + '</div>' +
-      (s.who ? '<div class="share-block"><p class="t-eyebrow">Papers · ' + count + '</p><div class="list">' + papers + '</div></div>' +
-        '<div class="list share-switches">' +
-        C.settingRow({ title: cfg.summaryLabel || 'One-page summary', control: C.toggle({ key: 'share:summary', on: s.summary !== false, label: cfg.summaryLabel || 'One-page summary' }) }) +
-        (s.summary !== false ? C.settingRow({ title: cfg.showLabel || 'Show names and numbers', control: C.toggle({ key: 'share:show', on: !!s.show, label: cfg.showLabel || 'Show names and numbers' }) }) : '') +
-        '</div>' +
-        (sum ? summaryPage(sum) + '<p class="t-meta share-holds">' + esc(sum.holds) + '</p>' : '') : '') +
-      '</div>' +
+      return '<div class="item share-doc"><button type="button" class="row" role="checkbox" aria-checked="' + (on ? 'true' : 'false') + '" data-share-doc="' + esc(d.id) + '">' +
+        '<span class="check" aria-checked="' + (on ? 'true' : 'false') + '" aria-hidden="true">' + icon('tick', { size: 12 }) + '</span>' +
+        '<span class="row-text"><span class="row-title">' + escText(d.title) + '</span>' + (d.meta ? '<span class="row-meta">' + escText(d.meta) + '</span>' : '') + '</span>' +
+        '</button></div>';
+    }).join('');
+    const count = Object.keys(s.docs || {}).filter((k) => s.docs[k]).length;
+    const none = count === 0 ? ' disabled' : '';
+    return SHARE_STYLE + sheetTop({ title: cfg.title || 'Share documents' }) +
+      '<div class="sheet-body share-pack"><div class="list" aria-label="Documents">' + rows + '</div></div>' +
       '<div class="sheet-foot">' + buttonRow({
         back: ['<button type="button" class="btn btn-text is-quiet" data-share-act="cancel">' + esc(cfg.cancel || 'Cancel') + '</button>',
-          '<button type="button" class="btn btn-pill" data-share-act="pdf"' + (sum ? '' : ' disabled') + '>' + esc(cfg.pdf || 'Save as PDF') + '</button>'],
-        primary: '<button type="button" class="btn btn-primary" data-share-act="share"' + (ready ? '' : ' disabled') + '>' + esc(cfg.share || 'Share') + '</button>',
+          '<button type="button" class="btn btn-pill" data-share-act="save"' + none + '>' + esc(cfg.save || 'Save') + '</button>'],
+        primary: '<button type="button" class="btn btn-primary" data-share-act="share"' + none + '>' + esc(cfg.share || 'Share') + (count ? ' ' + count : '') + '</button>',
       }) + '</div>';
   }
 
@@ -375,6 +360,6 @@
       '</div>').join('') + '</div>';
   }
 
-  Object.assign(C, { tryChange, change, askDso, beforeAfter, checkin, sharePackButton, summaryPage, sharePack, reports, docWatch, fromPaper });
+  Object.assign(C, { tryChange, change, askDso, beforeAfter, checkin, sharePackButton, sharePack, reports, docWatch, fromPaper });
   Object.assign(C._, { changeResult, sheetTop, changeSaveLabel: saveLabel });
 })();
