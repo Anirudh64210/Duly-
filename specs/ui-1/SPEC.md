@@ -41,3 +41,7 @@ Nothing here changes a date, a count or what is asked. Words follow D56 and the 
 8. Home follows the canvas order: headline, calm line, the metrics, then Your next move
    (finding 5). openQuestionsLine goes back into Home as a literal; the two extra .why margins go
    (finding 6).
+
+## Covers
+
+Design rows the founder's screen review reopened: HOME-001, HOME-002, HOME-003 and the rows specs/design-1/SPEC.md Covers names for Home, Your case and Onboarding. That is 3 of 2461 requirement rows named here.
