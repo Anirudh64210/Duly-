@@ -239,3 +239,30 @@ Updates, USCIS status and Documents "look great". To change:
    - nothing loud, nothing that blocks;
    - everything off under prefers-reduced-motion, and the screen is complete without motion.
 5. **The value proposition is refined after this round** ("is this all it does").
+
+## Round 7: the founder's notes and the design rules they set (2026-10-01)
+
+These are rules for every screen from now on.
+
+1. **One thing lives in one place.** A loop or item appears in full on exactly one page. Other
+   pages show only a one-line pointer that opens it there. STEM OPT lives in Plan; Home shows a
+   one-line "Next" pointer.
+2. **No ⓘ clusters.** An opened item has at most one ⓘ, at its bottom ("How this was counted"),
+   which lists all of its sources. Lines never carry their own ⓘ.
+3. **Home uses the screen.** It has a fixed format of cards that each deliver something and link to
+   their own page, with no narrow centre column:
+   - a greeting line with the status and date;
+   - three big number cards;
+   - the Ask box (Home only, below the numbers, never at the very top);
+   - a two-column grid: Next (at most 3, each with a date, then "See plan"), Documents (the three
+     most used, one tap each, then "All documents"), USCIS status (each case and its status),
+     Updates (the latest one or two headlines).
+4. **Ask appears only on Home for now.**
+5. **A section that deserves a page gets one.** USCIS status is back in the sidebar.
+6. **Settings uses grouped panels:** Reminders, Security, Backup, Appearance, Your data. Each is a
+   rounded panel with readable rows, a short description where needed, and no long ruled lines.
+7. **Lost a document** opens the saved copy at once, gives the replacement steps for that kind of
+   document (I-20 from the DSO; EAD by Form I-765; passport through the consulate; I-94 from the
+   CBP site), and marks the old one lost. The word "paper" is gone everywhere.
+8. **Record and the journey PDF are removed from v1.** The history stays stored underneath and
+   returns later as an export for H-1B and green card forms that ask for status and work history.
