@@ -28,6 +28,8 @@
      App.summary(who, { show })   feature 7: the one-page summary, a fixed template
      App.fromPaper(sourceKey)     D74: [{ paper, field, value, fed: { label, text }, href }]
      App.fedValue(key)            the computed value a paper field fed
+     App.recordEvents()           the event log, append only (see "the event log")
+     App.recordLines()            the log as Your record lines for screens/record.js
      App.dates                    { addDays, addMonths, addBusinessDays, daysBetween,
                                     holidays, fmt, monthsReading }
    o.stemCard: a STEM card to use in place of the record's (the sample card,
@@ -157,11 +159,98 @@
   const clone = (o) => JSON.parse(JSON.stringify(o));
   let REC = null;
   const undoStack = [];
-  function record() { if (!REC) REC = clone(data.records || {}); return REC; }
+  function record() { if (!REC) { REC = clone(data.records || {}); sync(REC); } return REC; }
   App.record = record;
   function getPath(obj, path) {
     return String(path).split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
   }
+
+  /* ---------------- the event log (Your record) ---------------- */
+  /* rec.events: what happened, in the order it was saved. Only appended:
+     a new address is a new event and the earlier one stays. Undo (a loop's
+     or App.undoRecord) puts the record back as it was before the save,
+     events included, so an undone save leaves no line.
+       jobStart    { jobId, employer, title, doc, on: first day }
+       jobEnd      { jobId, employer, on: last day }
+       hours       { jobId, employer, on, hours }
+       checkinYes  { jobId, employer, on, hoursText }  only when the
+                   student said "Still at" (a check-in's checkinYes save or
+                   App.answerCheckin yes), or the confirmedOn in data.js,
+                   read once when the record is first made. A job end or a
+                   new job also stamps confirmedOn, and that is no event.
+       address     { on: since, lines, sample }
+     Sample, Priya: Northwind from Feb 27, Still at Northwind on Aug 28
+     (jobs[0].confirmedOn), address from Mar 1. After the job ends walk
+     (last day Oct 31, a new job at At least 20): the job end and the new
+     job's start are added, and no Still at line for either job. After a
+     move on Oct 5: a second address event; Mar 1 stays, with its report
+     made Mar 4 (2026-03-01 + 10 = 2026-03-11), and the Oct 5 report is
+     due 2026-10-05 + 10 = 2026-10-15. Checked with python3 on 2026-10-01. */
+  const sameLines = (a, b) => (a || []).join('|') === (b || []).join('|');
+  function hoursText(j, iso) {
+    const changed = (j.hoursChanges || []).some((c) => c.on <= iso);
+    if (!changed && j.hoursBand === 'full') return 'At least ' + RULE.minHours + ' hours a week';
+    if (!changed && j.hoursBand === 'part') return 'Fewer than ' + RULE.minHours + ' hours a week';
+    const h = hoursOn(j, iso);
+    return h != null && h !== '' ? h + ' hours a week' : '';
+  }
+  function sync(rec) {
+    if (!rec) return [];
+    const first = !Array.isArray(rec.events);
+    const ev = first ? (rec.events = []) : rec.events;
+    const ids = {};
+    ev.forEach((x) => { ids[x.id] = true; });
+    const push = (x) => { if (!ids[x.id]) { ids[x.id] = true; ev.push(Object.assign({ logged: today() }, x)); } };
+    const yes = (j, on) => push({ id: 'checkin-yes:' + j.id + ':' + on, kind: 'checkinYes', on: on, jobId: j.id, employer: j.employer, hoursText: hoursText(j, on) });
+    (rec.jobs || []).forEach((j) => {
+      if (okIso(j.start)) push({ id: 'job-start:' + j.id, kind: 'jobStart', on: j.start, jobId: j.id, employer: j.employer, title: j.title || '', doc: j.doc || null });
+      if (okIso(j.end)) push({ id: 'job-end:' + j.id + ':' + j.end, kind: 'jobEnd', on: j.end, jobId: j.id, employer: j.employer });
+      (j.hoursChanges || []).forEach((h) => {
+        if (okIso(h.on)) push({ id: 'hours:' + j.id + ':' + h.on, kind: 'hours', on: h.on, jobId: j.id, employer: j.employer, hours: h.hours });
+      });
+      /* data.js only: the day the student last confirmed the job. */
+      if (first && okIso(j.confirmedOn) && j.confirmedOn !== j.start) yes(j, j.confirmedOn);
+    });
+    /* A check-in answered Still at, read from the loop store without
+       starting any loop. */
+    if (rec === REC) {
+      (((App.state || {}).loops || {}).list || []).forEach((lp) => {
+        const on = lp && lp.kind === 'checkin' && lp.saved ? lp.saved.checkinYes : null;
+        const j = on && (rec.jobs || []).filter((x) => x.id === (lp.context || {}).jobId)[0];
+        if (j && okIso(on)) yes(j, on);
+      });
+    }
+    const a = rec.address;
+    if (a && okIso(a.since)) {
+      const last = ev.filter((x) => x.kind === 'address').pop();
+      if (!last || last.on !== a.since || !sameLines(last.lines, a.lines)) {
+        const n = ev.filter((x) => x.kind === 'address').length;
+        push({ id: 'address:' + a.since + ':' + n, kind: 'address', on: a.since, lines: (a.lines || []).slice(), sample: !!a.sample });
+      }
+    }
+    return ev;
+  }
+  /* Every address on the log, one per day moved (a later fix to the lines
+     of the same day replaces that day's lines), oldest first. */
+  function addresses(rec) {
+    const by = {};
+    sync(rec).filter((x) => x.kind === 'address').forEach((x) => { by[x.on] = x; });
+    return Object.keys(by).sort().map((k) => by[k]);
+  }
+  App.recordEvents = () => sync(record()).slice();
+  /* App.recordLines() : the event log as Your record lines,
+     { key, iso, cat, title, meta, doc?, sample? }, keys as screens/record.js
+     already uses them (so an erased line stays erased). */
+  App.recordLines = () => sync(record()).map((x) => {
+    switch (x.kind) {
+      case 'jobStart': return { key: 'work:job-start:' + x.jobId, iso: x.on, cat: 'work', title: 'Started at ' + x.employer, meta: x.title || '', doc: x.doc || undefined };
+      case 'jobEnd': return { key: 'work:job-end:' + x.jobId + ':' + x.on, iso: x.on, cat: 'work', title: 'Job at ' + x.employer + ' ended', meta: 'Last day ' + fmtY(x.on) };
+      case 'hours': return { key: 'work:hours:' + x.jobId + ':' + x.on, iso: x.on, cat: 'work', title: 'New hours at ' + x.employer, meta: x.hours != null ? x.hours + ' hours a week' : '' };
+      case 'checkinYes': return { key: 'work:confirmed:' + x.jobId + ':' + x.on, iso: x.on, cat: 'work', title: 'Confirmed: still at ' + x.employer, meta: x.hoursText || '' };
+      case 'address': return { key: 'status:address:' + x.on, iso: x.on, cat: 'status', title: 'Moved to a new address', meta: (x.lines || [])[(x.lines || []).length - 1] || '', sample: !!x.sample };
+      default: return null;
+    }
+  }).filter(Boolean);
 
   const openJobs = (rec, iso) => (rec.jobs || []).filter((j) => j.start <= iso && (!j.end || iso <= j.end));
   function hoursOn(job, iso) {
@@ -312,11 +401,12 @@
         if (c) push({ id: 'report:job-hours:' + j.id + ':' + h.on, kind: 'change', what: 'New hours at ' + j.employer, title: 'Report your new hours at ' + j.employer, from: h.on, due: addDays(h.on, RULE.reportWithin), source: REPORT_SOURCE[c] });
       });
     });
-    const a = rec.address;
-    if (a && okIso(a.since) && cardOn(rec, a.since, o)) {
-      /* 2026-03-01 + 10 = 2026-03-11 (made 2026-03-04). */
-      push({ id: 'report:address:' + a.since, kind: 'change', what: 'New address', title: 'Report your new address', from: a.since, due: addDays(a.since, RULE.reportWithin), source: REPORT_SOURCE[cardOn(rec, a.since, o)] });
-    }
+    /* Every address on the log, so a report made for an earlier one stays.
+       2026-03-01 + 10 = 2026-03-11 (made 2026-03-04). */
+    addresses(rec).forEach((a) => {
+      const c = cardOn(rec, a.on, o);
+      if (c) push({ id: 'report:address:' + a.on, kind: 'change', what: 'New address', title: 'Report your new address', from: a.on, due: addDays(a.on, RULE.reportWithin), source: REPORT_SOURCE[c] });
+    });
     const s = stemCardOf(rec, o);
     if (s && okIso(s.from) && okIso(s.until)) {
       /* Sample card 2027-02-14 to 2029-02-13 (engine _add_stem_items):
@@ -423,7 +513,7 @@
       const ch = (j.hoursChanges || []).slice().sort((a, b) => (a.on < b.on ? -1 : 1));
       put({ id: 'job.' + j.id, label: 'Job at ' + j.employer, text: 'From ' + fmt(j.start) + (okIso(j.end) ? ' to ' + fmt(j.end) : ''), none: 'Not on your record' });
       put({ id: 'job.' + j.id + '.hours', label: 'Hours a week at ' + j.employer, source: 'optHours',
-        text: [String(j.hours)].concat(ch.map((c) => c.hours + ' from ' + fmt(c.on))).join(', then ') });
+        text: [j.hoursBand === 'full' ? 'At least ' + RULE.minHours : (j.hoursBand === 'part' ? 'Fewer than ' + RULE.minHours : String(j.hours))].concat(ch.map((c) => c.hours + ' from ' + fmt(c.on))).join(', then ') });
     });
     reportItems(rec, o).forEach((it) => put({ id: it.id, label: it.title, source: it.source, iso: it.due, counted: it.counted,
       text: it.made ? 'Made ' + fmt(it.made) : 'By ' + fmt(it.due), none: 'Nothing to report', sample: it.sample }));
@@ -723,12 +813,19 @@
     const list = kind === 'job' ? rec.jobs : rec.petitions;
     const it = (list || []).filter((x) => x.id === key)[0];
     if (!it) return;
+    const evId = 'checkin-yes:' + key + ':' + today();
     if (ans === 'undo') {
       if (checkinUndo[id]) it.confirmedOn = checkinUndo[id];
       delete checkinUndo[id];
+      /* Undo takes back the Still at event this answer added. */
+      if (kind === 'job' && Array.isArray(rec.events)) rec.events = rec.events.filter((x) => x.id !== evId || x.via !== 'answer');
     } else {
       checkinUndo[id] = it.confirmedOn;
       it.confirmedOn = today();
+      if (kind === 'job') {
+        const ev = sync(rec);
+        if (!ev.some((x) => x.id === evId)) ev.push({ id: evId, kind: 'checkinYes', on: today(), jobId: it.id, employer: it.employer, hoursText: hoursText(it, today()), logged: today(), via: 'answer' });
+      }
     }
     emit('checkin', id, ans, null);
   };
@@ -892,7 +989,7 @@
         rec.opt.category + ', category ' + rec.opt.code + ', ' + fmtY(rec.opt.from) + ' to ' + fmtY(rec.opt.until),
         'Receipt number: ' + (show ? rec.opt.receipt : hidden),
       ] : [] },
-      job: { label: 'Job', lines: (rec.jobs || []).map((j) => [j.title, j.employer].filter(Boolean).join(', ') + ', ' + (j.end ? fmtY(j.start) + ' to ' + fmtY(j.end) : 'since ' + fmtY(j.start)) + ', ' + hoursOn(j, t) + ' hours a week') },
+      job: { label: 'Job', lines: (rec.jobs || []).map((j) => [j.title, j.employer].filter(Boolean).join(', ') + ', ' + (j.end ? fmtY(j.start) + ' to ' + fmtY(j.end) : 'since ' + fmtY(j.start)) + (hoursText(j, t) ? ', ' + hoursText(j, t) : '')) },
       travel: { label: 'Travel papers', lines: [
         /* Sample values say so on the shared page too. */
         rec.passport ? 'Passport valid until ' + fmtY(rec.passport.expires) + (rec.passport.sample ? ' (sample)' : '') : null,

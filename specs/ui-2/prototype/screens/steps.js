@@ -85,6 +85,13 @@
     '.screen-steps .st-more { padding-top: var(--s-12); }' +
     '.screen-steps .st-more .btn { padding: 0; }' +
     '.screen-steps .st-ask-dso { margin-top: var(--s-16); }' +
+    /* Inside Plan: the title is a section title; the loop sits under the timeline. */
+    '.screen-steps .st-head.is-embedded { margin-bottom: var(--s-24); }' +
+    '.screen-steps .st-loop { margin: var(--s-24) 0 var(--s-32); }' +
+    /* Under its own section title the loop's line leads with what it needs. */
+    '.screen-steps .st-loop .loop:not(.is-done) .loop-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }' +
+    '.screen-steps .st-loop .loop:not(.is-done) .loop-seen { color: var(--ink); font-weight: 500; line-height: var(--lh-small); }' +
+    '.screen-steps .st-reports .loops { margin-bottom: var(--s-16); }' +
     '</style>';
 
   const OPEN = 'steps:schoolOpen';
@@ -160,6 +167,23 @@
     return ev.label + ': ' + String(ev.value).toLowerCase() + (ev.checked ? ', checked ' + ev.checked : '');
   }
 
+  /* The employer record says it takes part: the E-Verify step is done from
+     the record, the way the loop's saves tick the other steps. A tick the
+     student changed herself (App.state['task:everify'] set) still wins, so
+     unticking it sticks. A school step placed after it follows. */
+  function everifyOnRecord() {
+    const emp = App.employer ? App.employer() : null;
+    return !!(emp && emp.everify && emp.everify.state === 'participates');
+  }
+  function withRecordSteps(entries) {
+    if (!everifyOnRecord() || App.state['task:everify'] != null) return entries;
+    return entries.map((en) => {
+      if (en.key === 'everify' && en.type === 'federal') return Object.assign({}, en, { done: true });
+      if (en.afterOf && en.afterOf.key === 'everify') return Object.assign({}, en, { afterOf: Object.assign({}, en.afterOf, { done: true }) });
+      return en;
+    });
+  }
+
   function fedRow(entry, current) {
     const s = entry.step;
     const isEv = entry.key === 'everify';
@@ -167,6 +191,8 @@
     return C.task({
       key: entry.key, title: s.title, done: entry.done,
       meta: isEv ? (everifyMeta() || s.meta || null) : (s.meta || null),
+      /* Ticked, the E-Verify row keeps the search's fact, not "Done Sep 30". */
+      doneMeta: isEv ? everifyMeta() : null,
       open: isEv && s.open ? s.open : null,
       /* Without a detail the explanation stays behind an ⓘ, as before. */
       info: detail ? null : (s.info || null),
@@ -203,7 +229,7 @@
   const COMPLETE_LINE = 'All steps done. Your receipt number goes in ';
   function completeLine(allDone) {
     return '<p class="st-complete t-meta" data-steps-complete' + (allDone ? '' : ' hidden') + '>' +
-      e(COMPLETE_LINE) + '<a class="link" href="#/uscis">USCIS status</a>.</p>';
+      e(COMPLETE_LINE) + '<a class="link" href="#/plan/status">USCIS status</a>.</p>';
   }
 
   /* The real timeline. Its own key, so the draw-in plays here once even
@@ -213,6 +239,56 @@
     if (f) withFileBy(props, f);
     return '<section class="st-when" aria-label="' + e(props.label || 'Key dates') + '">' +
       C.timeline(Object.assign({}, props, { key: 'steps:stem' })) + '</section>';
+  }
+
+  /* ---------------- the saved STEM OPT card ---------------- */
+
+  /* The card the STEM OPT loop saved (its "new card" exit). Once it is on
+     the record, filing is behind her: the intent line and the filing
+     stepper give way to the card and the report dates it brings. The
+     reports-sample review card is never treated as saved. */
+  function savedCard() {
+    const s = ((App.record ? App.record() : {}).stem || {}).card;
+    const ok = App.dates && App.dates.okIso;
+    return s && !s.sample && ok && ok(s.from) && ok(s.until) ? s : null;
+  }
+
+  function cardLine(card) {
+    const F = App.dates.fmtY;
+    return '<p class="st-intent t-meta"><span>STEM OPT card saved: ' + e(F(card.from)) + ' to ' + e(F(card.until)) + '</span></p>';
+  }
+
+  /* The STEM reports this card brings, from App.reportsOwed (app/record.js,
+     nothing counted here): its validation reports and evaluations, open
+     ones only. Card 2027-02-14 to 2029-02-13, today 2026-09-30:
+       Validation report, 6 months   2027-08-14 + 10 business days = 2027-08-27
+       12-month evaluation           2028-02-14 + 10 days          = 2028-02-24
+       Validation report, 12 months  2028-02-14 + 10 business days = 2028-02-29
+       Validation report, 18 months  2028-08-14 + 10 business days = 2028-08-28
+       Final evaluation              2029-02-13 + 10 days          = 2029-02-23
+       (24 months: 2029-03-01, after the card ends, so not owed)
+     5 open, the next by Aug 27, 2027. (python3, 2026-09-30) */
+  function cardReports(card) {
+    const all = App.reportsOwed ? App.reportsOwed() : null;
+    const mine = ['report:validation:' + card.from + ':', 'report:eval-12:' + card.from, 'report:eval-final:' + card.from];
+    return ((all && all.open) || []).filter((x) => mine.some((p) => String(x.id).indexOf(p) === 0)).sort(byDue);
+  }
+
+  /* The stepper for the card: when it starts, the next report owed (the
+     date that matters now, emphasized, with its own arithmetic behind the
+     mark) and when it ends. Today sits among them. Its own key, so the
+     line draws in once for the card, not as the filing stepper's redraw. */
+  function cardTimeline(card, r) {
+    const today = r.today || App.data.today.iso;
+    const reps = cardReports(card);
+    const next = reps.filter((x) => x.due >= today)[0] || null;
+    const marks = [{ label: 'Card starts', date: card.from }];
+    if (next) marks.push({ label: next.title, date: next.due, emphasis: true, source: next.rule || next.source });
+    marks.push({ label: 'Card ends', date: card.until, source: 'eadEnds' });
+    const n = reps.length;
+    const caption = n ? n + (n === 1 ? ' report' : ' reports') + ' to your DSO on this card' : 'No reports left on this card';
+    return '<section class="st-when" aria-label="STEM OPT card">' +
+      C.timeline({ key: 'steps:stem-card', label: 'STEM OPT card', today: today, marks: marks, caption: caption }) + '</section>';
   }
 
   /* ---------------- feature 1: the file-by date ---------------- */
@@ -289,19 +365,28 @@
     if (!all) return '';
     const t = App.data.today.iso;
     const many = !!App.state[REPORTS_ALL];
-    const open = all.open || [];
+    /* A report another loop opened (a new job's report, the STEM OPT
+       validation reports) is drawn as its loop, with its reminders and its
+       receipt, and leaves the plain rows. A loop closed today keeps its
+       receipt here until she leaves. */
+    const owedLoops = App.loops ? App.loops.list({ all: true }).filter((lp) => lp.kind === 'report-owed' &&
+      (lp.state !== 'closed' && lp.state !== 'dismissed' ? true : lp.state === 'closed' && lp.closedOn === App.loops.now())) : [];
+    const byLoop = owedLoops.map((lp) => (lp.context || {}).reportId);
+    const plain = (x) => byLoop.indexOf(x.id) < 0;
+    const open = (all.open || []).filter(plain);
     const shownOpen = many ? open : open.slice(0, 2);
     /* Marked made today: stays where it was, with Undo, until she leaves. */
-    const justMade = (all.done || []).filter((x) => x.made === t);
+    const justMade = (all.done || []).filter((x) => x.made === t).filter(plain);
     let rows = shownOpen.concat(justMade).sort(byDue);
-    if (!rows.length) rows = (all.rows || []).filter((x) => x.standing);
+    if (!rows.length && !owedLoops.length) rows = (all.rows || []).filter((x) => x.standing);
+    const loopsHtml = owedLoops.length && C.loops ? C.loops(owedLoops, { label: 'Reports opened from your plan' }) : '';
     const rest = open.length - 2;
     const more = rest > 0
       ? '<p class="st-more"><button type="button" class="btn btn-text is-small" data-steps-reports="' + (many ? 'fewer' : 'more') + '" aria-expanded="' + many + '">' +
         e(many ? 'Show fewer' : 'Show ' + rest + ' more') + '</button></p>'
       : '';
     return C.section({ cls: 'st-reports', eyebrow: all.title || 'Reports you owe', info: all.info,
-      content: C.reports(Object.assign({}, all, { rows: rows })) + more });
+      content: loopsHtml + (rows.length || !loopsHtml ? C.reports(Object.assign({}, all, { rows: rows })) : '') + more });
   }
 
   /* ---------------- feature 8: cap-gap ---------------- */
@@ -359,20 +444,42 @@
   /* The quiet sections under the steps, on either answer. */
   function recordSections(r) { return reportsSection(r) + capGapSection(r); }
 
-  function stemView(data, r) {
+  /* stemView(data, r, o?)
+     o.embedded  drawn inside Plan (screens/plan.js): the title is an h2 under
+                 Plan's h1, and Plan draws the one footer.
+     o.loop      the STEM OPT filing loop (App.loops, BLUEPRINT 2.6 C). While
+                 it is open it replaces the intent question: it sits under the
+                 timeline, unfolded to its current step, and "Not applying for
+                 STEM OPT this time" is one of its exits. A closed loop shows
+                 its receipt under the intent line.
+     Once the loop has saved the new card (record stem.card), the intent
+     line and the filing stepper give way to the saved card and its report
+     dates (cardLine, cardTimeline); the closed loop's receipt stays. */
+  function stemView(data, r, o) {
+    const opt = o || {};
     const stem = data.stem;
-    const intent = App.stemIntent();
-    const head = (inner) => '<header class="page-header st-head">' +
-      C.titleWith('<h1 class="t-big" tabindex="-1">STEM OPT extension</h1>', stem.askInfo) + inner + '</header>';
+    const lp = opt.loop || null;
+    const loopOpen = !!(lp && lp.state !== 'closed' && lp.state !== 'dismissed');
+    const loopHtml = lp && C.loop ? '<div class="st-loop">' + C.loop(lp) + '</div>' : '';
+    const card = savedCard();
+    const intent = loopOpen ? 'yes' : App.stemIntent();
+    const foot = opt.embedded ? '' : C.footer();
+    const head = (inner) => (opt.embedded
+      ? '<div class="st-head is-embedded">' + C.titleWith('<h2 class="t-medium" id="st-title">STEM OPT extension</h2>', stem.askInfo) + inner + '</div>'
+      : '<header class="page-header st-head">' + C.titleWith('<h1 class="t-big" tabindex="-1">STEM OPT extension</h1>', stem.askInfo) + inner + '</header>');
 
-    if (intent === 'no') {
+    if (intent === 'no' && !card) {
       return head('<p class="st-intent t-meta"><span>Not applying this time</span>' + answerBtn('Change', '', 'btn btn-text is-small') + '</p>') +
         '<p class="st-big t-medium"><span>' + C.escText(stem.noTitle) + '</span>' + C.source(withPlain('eadEnds', stem.noInfo), { inline: true }) + '</p>' +
-        recordSections(r) + C.footer();
+        loopHtml + recordSections(r) + foot;
     }
 
     let ask;
-    if (intent === 'yes') {
+    if (card) {
+      ask = cardLine(card);
+    } else if (loopOpen) {
+      ask = '';
+    } else if (intent === 'yes') {
       ask = '<p class="st-intent t-meta"><span>You plan to apply</span>' + answerBtn('Change', '', 'btn btn-text is-small') + '</p>';
     } else {
       ask = '<div class="st-ask">' +
@@ -384,13 +491,27 @@
         '</div></div>';
     }
 
-    const entries = App.steps('stem');
-    const now = App.currentStep('stem');
+    const entries = withRecordSteps(App.steps('stem'));
+    /* App.currentStep('stem') reads the steps without the record's E-Verify
+       fact, so the current step is found here, the same way: the first open,
+       visible step. */
+    const firstOpen = entries.filter((en) => !en.done && !(en.afterOf && !en.afterOf.done))[0];
+    const now = firstOpen ? firstOpen.key : null;
     const f = fileByFor(r);
     /* With a file-by date, the I-765 step reads the window to it:
        rec-2026-12-01 gives "Nov 15, 2026 to Jan 30, 2027". */
-    const fileStep = (en) => (f && !f.stopped && en.key === 'i765'
-      ? Object.assign({}, en, { step: Object.assign({}, en.step, { meta: f.opensText + ' to ' + f.lastText }) }) : en);
+    /* Once the record has them (the STEM OPT loop saves both), the steps
+       read the saved facts instead of the plan: the I-20 step its
+       recommendation day, without the ask to add it; the I-765 step the day
+       it was filed. Recommended 2026-12-01 reads "Recommended Dec 1, 2026". */
+    const recd = ((App.record ? App.record() : {}).stem || {}).recommended;
+    const withMeta = (en, meta, extra) => Object.assign({}, en, { step: Object.assign({}, en.step, { meta: meta }, extra || {}) });
+    const fileStep = (en) => {
+      if (f && f.stopped && en.key === 'i765') return withMeta(en, 'Filed ' + f.filedText);
+      if (f && !f.stopped && en.key === 'i765') return withMeta(en, f.opensText + ' to ' + f.lastText);
+      if (en.key === 'i20' && App.dates.okIso(recd)) return withMeta(en, 'Recommended ' + App.dates.fmt(recd, { year: true }), { onDone: null });
+      return en;
+    };
     const rows = entries.map((en) => (en.type === 'school' ? schoolRow(en, data, en.key === now) : fedRow(fileStep(en), en.key === now)));
     const visible = entries.filter((en) => !(en.afterOf && !en.afterOf.done));
     const done = visible.filter((en) => en.done).length;
@@ -412,12 +533,22 @@
       C.rulesLine(data.rules) +
       '</section>';
 
-    return head(ask) + timelineFor(r, f) + steps + recordSections(r) + C.footer();
+    const when = card ? cardTimeline(card, r) : timelineFor(r, f);
+    return head(ask) + when + (loopOpen || (lp && (intent === 'yes' || card)) ? loopHtml : '') + steps + recordSections(r) + foot;
+  }
+
+  /* For Plan (screens/plan.js): the same page as a view, and its behaviour. */
+  function view(data, params, o) {
+    const r = parse(params);
+    applyDemo(r.demo);
+    return STYLE + stemView(data, r, o);
   }
 
   window.SCREENS.steps = {
     title: 'Next steps',
     paramsInPlace: true,
+    view: view,
+    parse: parse,
     titleFor() { return 'Next steps'; },
     render(data, params) {
       /* Fallback if the hash got past the swap: redraw as the Timeline. */
@@ -477,7 +608,8 @@
     wired = true;
     document.addEventListener('duly:change', (ev) => {
       const d = ev.detail || {};
-      if (App.route !== 'steps') return;
+      /* On this page, or on Plan's Next steps view, which draws it. */
+      if (!document.querySelector('main#main.screen-steps')) return;
       if (d.kind === 'task') { syncComplete(); return; }
       if (d.kind === 'school-import' && d.value === 'empty') {
         /* Not now folds it away; Change keeps the box open for a new link. */

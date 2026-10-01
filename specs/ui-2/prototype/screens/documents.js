@@ -28,9 +28,28 @@
    this device", then the found fields with one "Looks right".
    Round 2 note 1: an add that came through #/documents/add from another page
    returns there when the sheet closes, with its scroll, and the toast shows
-   there. A saved EAD card also lifts that page's no-EAD view. */
+   there. A saved EAD card also lifts that page's no-EAD view.
+
+   Duly 2 (BLUEPRINT 3.1, 2.6 E): this page is Papers, at #/papers. Every
+   #/documents address still works: App.ALIASES sends it to #/papers with
+   the rest of the path kept (#/documents/i20 opens #/papers/i20, the OPT
+   label), so links from other screens need no change.
+   The lost-paper guide (playbook 'lost-paper' in DULY_SAMPLE.loops) opens
+   from here two ways: "I lost a paper" at the top, which asks which paper,
+   and "I lost this" on the page of each paper the guide covers, which
+   starts with the paper already chosen. An open loop is drawn with
+   C.loops at the top of Papers and on its paper's own page; App.loops
+   carries it from there (asking, planned, waiting, confirming, closed).
+   A paper reported lost keeps its dates and shows "Reported lost" with the
+   date in its row and in its key dates, read from App.record().lost. */
 (function () {
   'use strict';
+
+  /* The address of this page. */
+  const BASE = '#/papers';
+  const isPapers = (name) => name === 'papers' || name === 'documents';
+  /* Old addresses redirect in place: #/documents/<rest> -> #/papers/<rest>. */
+  if (window.App && App.ALIASES) App.ALIASES.documents = 'papers';
 
   /* The groups, in the order a student looks for them. */
   const GROUPS = [
@@ -43,6 +62,9 @@
     { key: 'work', title: 'Work', words: 'work job employment employer offer letter' },
     { key: 'other', title: 'Other', words: 'other' },
   ];
+  /* The passport is both a document (#/papers/passport, its own page) and
+     a label; the label's address is its other name, identity. */
+  const LABEL_ADDR = { passport: 'identity' };
   const ALIAS = { all: 'all', most: 'most', cpt: 'cpt', opt: 'opt', stem: 'stem', university: 'university', school: 'university', visa: 'visa', passport: 'passport', identity: 'passport', work: 'work', employment: 'work', job: 'work', status: 'opt', i20: 'opt', other: 'other' };
   /* The label chips, in order. 'all' and 'most' are views, the rest groups. */
   const LABELS = [{ key: 'all', title: 'All' }, { key: 'most', title: 'Most used' }]
@@ -68,7 +90,10 @@
     '.screen-documents .doc-row .row-title, .screen-documents .doc-row .row-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
     '.screen-documents .doc-row .row-text { min-width: 0; }' +
     '.doc-page .page-header { margin-bottom: 0; }' +
-    '.doc-page .doc-page-actions { display: flex; align-items: center; gap: var(--s-12); margin-top: var(--s-24); }' +
+    '.doc-page .doc-page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); margin-top: var(--s-24); }' +
+    /* a lost-paper loop on Papers or on its paper's page */
+    '.screen-documents .doc-lost { margin: 0 0 var(--s-32); }' +
+    '.doc-page .doc-lost { margin: var(--s-32) 0 0; }' +
     '.doc-page .doc-page-actions + .section { margin-top: var(--s-48); }' +
     '.doc-page .doc-page-actions .btn { height: 44px; padding: 0 var(--s-24); }' +
     '.doc-page > .section { margin-top: var(--s-32); }' +
@@ -76,6 +101,8 @@
     /* Round 6: Share a pack beside Add a document; Next to run out; one expiry line per row */
     '.screen-documents .doc-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); }' +
     '.screen-documents .doc-head-actions .btn { height: 44px; }' +
+    /* three actions: the group may shrink and wrap, never run off a phone */
+    '.screen-documents .page-header .ph-aside { flex: 0 1 auto; min-width: 0; max-width: 100%; }' +
     /* the expiry line wraps rather than hide its date on a phone */
     '.screen-documents .doc-row .row-meta.doc-expiry { white-space: normal; }' +
     '.screen-documents .doc-next { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-8); row-gap: 0; margin: 0 0 var(--s-24); }' +
@@ -346,11 +373,72 @@
     const doc = it.doc ? docById(it.doc) : null;
     const text = n.title + ', ' + fmtIso(n.iso);
     const what = doc
-      ? '<a class="' + C.cls('link', n.close && 'is-close') + '" href="#/documents/' + C.esc(doc.id) + '">' + C.esc(text) + '</a>'
+      ? '<a class="' + C.cls('link', n.close && 'is-close') + '" href="' + BASE + '/' + C.esc(doc.id) + '">' + C.esc(text) + '</a>'
       : '<span class="' + C.cls('row-title', n.close && 'is-close') + '">' + C.esc(text) + '</span>';
     const mark = n.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '';
     const why = it.source ? C.source(it.source) : C.info('Each paper runs out on its own date. This is the soonest; every document that runs out shows its date in the list.');
     return '<p class="doc-next"><span class="t-eyebrow">' + C.esc(W.title || 'Next to run out') + '</span>' + what + mark + why + '</p>';
+  }
+
+  /* ---------------- a lost paper (BLUEPRINT 2.6 E) ---------------- */
+
+  /* The guide's own list of papers, each tied to a document id. A paper the
+     guide does not list (a degree, an offer letter) gets no entry: its
+     replacement is not a DSO question, and no other steps are saved. */
+  function lostDef() { return window.App && App.loops ? App.loops.def('lost-paper') : null; }
+  function lostPaperOf(doc) {
+    const d = lostDef();
+    return d ? (d.papers || []).filter((p) => p.doc === doc.id)[0] || null : null;
+  }
+  /* Lost-paper loops to draw: every open one, and a closed one until its
+     receipt is folded (then it lives in Your record). paper narrows to one
+     paper; a loop still asking which paper has none yet. */
+  function lostLoops(paper) {
+    if (!window.App || !App.loops) return [];
+    return App.loops.list({ all: true }).filter((lp) => lp.kind === 'lost-paper' &&
+      (lp.state === 'closed' ? !!(lp.receipt && !lp.receipt.folded) : lp.state !== 'dismissed') &&
+      (paper == null || lp.values.paper === paper));
+  }
+  function openLost(paper) {
+    return lostLoops(paper).filter((lp) => lp.state !== 'closed')[0] || null;
+  }
+  /* What the record holds about a lost paper: the day it was reported lost
+     (set by the loop's save, App.record().lost[docId]) and the new one, once
+     added (App.record().replaced[docId] = { added, until }). */
+  function lostFacts(doc) {
+    let r = null;
+    try { r = typeof App.record === 'function' ? App.record() : null; } catch (err) { r = null; }
+    const lost = r && r.lost ? r.lost[doc.id] : null;
+    const rep = r && r.replaced ? r.replaced[doc.id] : null;
+    const out = [];
+    if (lost) out.push(['Reported lost', fmtIso(lost)]);
+    if (rep && rep.until) out.push(['New one valid until', fmtIso(rep.until)]);
+    return out.filter((f) => f[1]);
+  }
+  /* Start the guide, or open the one already running for this paper. From a
+     paper's page the paper is chosen already, so the first question left is
+     where the student is. */
+  function startLost(paper) {
+    if (!window.App || !App.loops) return;
+    let lp = paper ? openLost(paper) : null;
+    if (!lp) lp = App.loops.start('lost-paper', paper ? { from: 'papers', paper: paper } : { from: 'papers' });
+    if (!lp) return;
+    if (paper && !lp.values.paper) App.loops.answer(lp.id, 'paper', paper);
+    App.state['loopOpen:' + lp.id] = true;
+    App.loops.markSeen(lp.id);
+    if (App.haptic) App.haptic('select');
+    App.rerender();
+    const box = document.querySelector('#main [data-loop="' + lp.id + '"]');
+    if (!box) return;
+    const target = box.querySelector(lp.values.paper ? '[data-loop-choice="where"]' : '[data-loop-choice]') || box.querySelector('.loop-head');
+    const r = box.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (target) target.focus({ preventScroll: true });
+    if (App.play) App.play(box, 'is-arriving');
+  }
+  function lostHtml(paper) {
+    const list = lostLoops(paper);
+    return list.length ? '<div class="section doc-lost">' + C.loops(list, { label: 'Lost papers' }) + '</div>' : '';
   }
 
   /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, reveal = true })
@@ -366,11 +454,13 @@
       const ex = expiryOf(doc, W);
       const same = !!(ex && ex.date && String(doc.meta || '').indexOf(ex.date) !== -1);
       const meta = same ? prefix : (prefix ? prefix + ', ' : '') + doc.meta;
-      const below = ex ? '<span class="' + C.cls('row-meta num doc-expiry', ex.close && 'is-close') + '">' + C.esc(ex.text) +
-        (ex.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '') + '</span>' : '';
+      const lost = lostFacts(doc).map((f) => f[0] + ' ' + f[1]).join(' · ');
+      const below = (ex ? '<span class="' + C.cls('row-meta num doc-expiry', ex.close && 'is-close') + '">' + C.esc(ex.text) +
+        (ex.sample ? ' <span class="marks">' + C.sampleMark() + '</span>' : '') + '</span>' : '') +
+        (lost ? '<span class="row-meta num doc-expiry">' + C.esc(lost) + '</span>' : '');
       return C.row({
         key: opt.keyOf ? opt.keyOf(doc) : doc.id,
-        title: C.raw('<a class="doc-open" href="#/documents/' + C.esc(doc.id) + '">' + C.esc(doc.title) + '</a>'),
+        title: C.raw('<a class="doc-open" href="' + BASE + '/' + C.esc(doc.id) + '">' + C.esc(doc.title) + '</a>'),
         meta: meta,
         below: below,
         trailing: shareBtn(refOf(doc), doc.title, opt.reveal),
@@ -388,15 +478,21 @@
   function docPage(data, doc) {
     const ref = refOf(doc);
     const g = groupOf(doc.group);
-    const dates = doc.dates || (fieldsOf(doc) || []).filter((f) => f[0] !== 'Name');
+    const dates = (doc.dates || (fieldsOf(doc) || []).filter((f) => f[0] !== 'Name')).concat(lostFacts(doc));
+    /* I lost this: only on a paper the guide covers, and only while no
+       loop for it is open (the open one is drawn below instead). */
+    const lp = lostPaperOf(doc);
+    const lostBtn = lp && !openLost(lp.value)
+      ? '<button type="button" class="btn btn-text is-quiet" data-doc-lost="' + C.esc(lp.value) + '">I lost this</button>' : '';
     const header = C.pageHeader({
       title: doc.title,
-      back: { label: 'Documents', href: '#/documents' },
+      back: { label: 'Papers', href: BASE },
       subline: doc.about || (g ? g.title : ''),
     });
     const actions = '<div class="doc-page-actions">' +
       C.button({ label: 'Open', kind: 'primary', attrs: { 'data-doc-show': ref } }) +
-      shareBtn(ref, doc.title, false).replace('btn btn-text is-small share-btn', 'btn btn-pill share-btn') + '</div>';
+      shareBtn(ref, doc.title, false).replace('btn btn-text is-small share-btn', 'btn btn-pill share-btn') + lostBtn + '</div>' +
+      (lp ? lostHtml(lp.value) : '');
     const keyDates = dates.length ? C.section({ eyebrow: 'Key dates', content: C.found(dates) }) : '';
     const earlier = doc.earlier.length ? C.section({
       eyebrow: 'Earlier versions',
@@ -481,7 +577,7 @@
   function labelsHtml() {
     const cur = current();
     return C.chips({
-      key: 'docLabel', label: 'Show documents',
+      key: 'docLabel', label: 'Show papers',
       items: labels().map((l) => ({ value: l.key, label: l.title, count: docsFor(l.key).length, selected: l.key === cur })),
     }).replace('class="chips', 'class="chips doc-labels')
       /* one tab stop for the group; the arrow keys move between chips */
@@ -490,7 +586,7 @@
 
   function searchHtml() {
     return '<div class="doc-search" role="search">' +
-      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search, like I-20 or passport', ariaLabel: 'Search documents' }) +
+      C.field({ key: 'docSearch', type: 'search', value: S.query, placeholder: 'Search, like I-20 or passport', ariaLabel: 'Search papers' }) +
       '<p class="sr-only" role="status" aria-live="polite" data-doc-status></p>' +
       '</div>';
   }
@@ -629,7 +725,7 @@
      link land on the same view. The history entry keeps its state. */
   function setHash(label) {
     if (S.page) return;   /* a document's own page keeps its address */
-    const h = '#/documents' + (label && label !== 'all' ? '/' + label : '');
+    const h = BASE + (label && label !== 'all' ? '/' + (LABEL_ADDR[label] || label) : '');
     if (location.hash !== h) {
       try { history.replaceState(history.state, '', h); } catch (err) { /* file:// */ }
     }
@@ -758,7 +854,7 @@
     layer.className = 'screen-documents doc-layer';
     layer.innerHTML = '<div class="doc-scrim" data-doc-close></div>' +
       '<div class="doc-sheet" role="dialog" aria-modal="true" aria-labelledby="doc-sheet-title" tabindex="-1">' +
-      '<div class="doc-sheet-top"><span class="t-eyebrow">Documents</span>' +
+      '<div class="doc-sheet-top"><span class="t-eyebrow">Papers</span>' +
       '<button type="button" class="btn btn-text doc-close" data-doc-close aria-label="Close">' + C.icon('close') + '</button></div>' +
       '<div class="doc-sheet-inner">' + sheetInner(App.data) + '</div></div>';
     document.body.appendChild(layer);
@@ -842,7 +938,7 @@
       arrived = true;
       window.removeEventListener('hashchange', onArrive);
       clearTimeout(fallback);
-      if (App.route === 'documents') App.rerender();
+      if (isPapers(App.route)) App.rerender();
       else if (eadSaved && /\/no-ead(\/|$)/.test(location.hash)) {
         App.go(location.hash.split('/').filter((part) => part !== 'no-ead').join('/'), { replace: true, inPlace: true });
       }
@@ -1002,7 +1098,7 @@
   document.addEventListener('duly:change', (e) => {
     const d = e.detail || {};
     if (d.kind === 'document') { S.requested = true; return; }
-    if (!window.App || App.route !== 'documents') return;
+    if (!window.App || !isPapers(App.route)) return;
     if (d.kind === 'field' && d.key === 'docSearch') {
       if (S.query === d.value) return;
       S.query = d.value;
@@ -1021,28 +1117,30 @@
 
   window.addEventListener('hashchange', () => {
     const name = (location.hash || '').replace(/^#\/?/, '').split('/')[0];
-    if (name !== 'documents') { clearTimeout(S.timer); S.sheet = null; S.backTo = null; S.query = ''; App.state.docSearch = ''; removeLayer(); }
+    if (!isPapers(name)) { clearTimeout(S.timer); S.sheet = null; S.backTo = null; S.query = ''; App.state.docSearch = ''; removeLayer(); }
   });
 
   /* ---------------- screen ---------------- */
 
-  window.SCREENS['documents'] = {
-    title: 'Documents',
+  const SCREEN = {
+    title: 'Papers',
     /* Switching labels redraws in place; opening a document's own page,
        or leaving it, is a page move. */
     paramsInPlace(params, prev) {
-      const isDoc = (ps) => !!(ps && ps[0] && !ALIAS[ps[0]] && ps[0] !== 'add');
+      if (App.data) init(App.data);
+      const isDoc = (ps) => !!(ps && ps[0] && ps[0] !== 'add' && docById(ps[0]));
       return !isDoc(params) && !isDoc(prev);
     },
     titleFor(params) {
       if (App.data) init(App.data);
       const doc = params && params[0] && docById(params[0]);
-      return doc ? doc.title : 'Documents';
+      return doc ? doc.title : 'Papers';
     },
     render(data, params) {
       init(data);
       const p = params && params[0];
-      const page = p && !ALIAS[p] && p !== 'add' ? docById(p) : null;
+      /* A document's own page wins over a label of the same name. */
+      const page = p && p !== 'add' ? docById(p) : null;
       S.page = page ? page.id : null;
       if (page) return docPage(data, page);
       S.group = ALIAS[p] || 'all';
@@ -1054,23 +1152,24 @@
         clearTimeout(S.timer);
         S.sheet = { stage: 'pick', hint: null };
         /* Opened by a link or a drop on another page: remember to go back. */
-        S.backTo = p === 'add' && App.from && !/^#\/documents(\/|$)/.test(App.from.hash) ? App.from.hash : null;
+        S.backTo = p === 'add' && App.from && !/^#\/(papers|documents)(\/|$)/.test(App.from.hash) ? App.from.hash : null;
         if (file) startReading(file, false);
       }
 
       /* No hero and no subline: the chips carry the counts. */
       const header = C.pageHeader({
-        title: 'Documents',
+        title: 'Papers',
         info: 'Every version is kept and encrypted. Files are read on ' + ((data.device && data.device.yours) || 'your device') + ', with no outside AI.',
         /* VALUE-2 feature 7: Share a pack opens the shared sheet (App.openSharePack,
            caught by app/sheets.js); Add a document stays the primary, on the right. */
         aside: '<div class="doc-head-actions">' +
+          '<button type="button" class="btn btn-text is-quiet" data-doc-lost="">I lost a paper</button>' +
           C.sharePackButton({ label: 'Share a pack' }) +
           C.button({ label: 'Add a document', kind: 'primary', attrs: { 'data-doc-add': '' } }) + '</div>',
       });
       return STYLE +
         '<div class="screen-documents">' +
-        header + nextHtml(watch()) + searchHtml() + labelsHtml() +
+        header + lostHtml(null) + nextHtml(watch()) + searchHtml() + labelsHtml() +
         '<div class="doc-view" data-doc-view>' + viewHtml() + '</div>' +
         '</div>' +
         C.footer();
@@ -1083,7 +1182,9 @@
           const share = e.target.closest('[data-doc-ref]');
           if (share) { e.preventDefault(); e.stopPropagation(); openShare(share.dataset.docRef, false); return; }
           const show = e.target.closest('[data-doc-show]');
-          if (show) openDoc(show.dataset.docShow);
+          if (show) { openDoc(show.dataset.docShow); return; }
+          const lost = e.target.closest('[data-doc-lost]');
+          if (lost) { e.preventDefault(); startLost(lost.dataset.docLost || null); }
         });
         return;
       }
@@ -1103,6 +1204,8 @@
       root.addEventListener('click', (e) => {
         const add = e.target.closest('[data-doc-add]');
         if (add) { e.preventDefault(); openSheet({ hint: add.dataset.docAdd || null }); return; }
+        const lost = e.target.closest('[data-doc-lost]');
+        if (lost) { e.preventDefault(); startLost(lost.dataset.docLost || null); return; }
         /* "N matches in All": search every document instead. */
         const lab = e.target.closest('[data-doc-label]');
         if (lab) {
@@ -1137,4 +1240,8 @@
       if (status) status.textContent = statusText();
     },
   };
+  /* One screen, two names: #/papers, and #/documents for any link that
+     reaches it before the alias redirects. */
+  window.SCREENS['papers'] = SCREEN;
+  window.SCREENS['documents'] = SCREEN;
 })();

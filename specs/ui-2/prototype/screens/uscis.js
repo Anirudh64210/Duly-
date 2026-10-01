@@ -41,6 +41,7 @@
     '.screen-uscis .track-case.is-open + .us-foot { margin-top: var(--s-32); }' +
     '.screen-uscis .us-petition .list + .list { margin-top: var(--s-24); }' +
     '.screen-uscis .us-outcome { margin-top: var(--s-12); }' +
+    '.screen-uscis .us-checked { margin-top: var(--s-12); }' +
     '</style>';
 
   /* The statuses a student can record after rechecking, and the tracker
@@ -56,6 +57,51 @@
   const NO_CARD = ['i129', 'i140', 'i539'];
   const RECEIPT = /^[A-Z]{3}\d{10}$/;
   const NBSP = ' ';
+  /* USCIS status lives in Plan now (BLUEPRINT 3.1): #/plan/status lists the
+     cases, #/plan/status/<id> opens one. #/uscis and #/applications redirect
+     there (screens/plan.js). */
+  const BASE = '#/plan/status';
+
+  /* The next check (BLUEPRINT 3.1, Status: receipt, last checked, next
+     check). There is no USCIS connection in v1 (decision 14), so the next
+     check is the follow-up of the loop that waits on this case: the STEM OPT
+     filing loop, waiting on USCIS, asks "Any notice from USCIS?" 30 days
+     after the day it was filed (its timer, app/loops.js). A receipt saved
+     Sep 30, 2026 gives 2026-09-30 + 30 = 2026-10-30 (python3). No waiting
+     loop, no next check: a decided case needs none. */
+  const LOOP_OF = { stem: 'stem-filing' };
+  function waitingLoop(a) {
+    const kind = LOOP_OF[a.id];
+    if (!kind || !App.loops) return null;
+    return App.loops.list().filter((lp) => lp.kind === kind && lp.state === 'waiting' && lp.step === 'decision' && lp.timerAt)[0] || null;
+  }
+  function nextCheck(a) {
+    const lp = waitingLoop(a);
+    return lp ? App.dates.fmt(lp.timerAt, { year: true }) : null;
+  }
+
+  /* The check line on every case with a receipt (BLUEPRINT 3.1): "Checked
+     {asOf} · next check {date}". asOf is the day the status was last seen
+     on USCIS (saved with each status, data.js applications.items).
+       OPT, Approved, asOf Dec 20, 2025, no waiting loop:
+         "Checked Dec 20, 2025 · decided, no next check"
+       STEM OPT once its receipt is saved Sep 30, 2026 (asOf today), loop
+         waiting on USCIS, timer 2026-09-30 + 30 = 2026-10-30 (python3):
+         "Checked Sep 30, 2026 · next check Oct 30, 2026"
+       A case added to track, status Unknown, asOf null:
+         "Added Sep 30 · not checked yet"
+     Not filed yet (no receipt): nothing on USCIS to check, no line. */
+  const DECIDED = ['Approved', 'Denied', 'Card mailed'];
+  function checkLine(a) {
+    if (!a.receipt) return null;
+    const next = nextCheck(a);
+    if (isUnknown(a) || !a.asOf) {
+      return (a.added ? 'Added ' + a.added + ' · ' : '') + 'not checked yet' + (next ? ' · next check ' + next : '');
+    }
+    const tail = next ? 'next check ' + next : (DECIDED.indexOf(a.status) >= 0 ? 'decided, no next check' : 'no next check set');
+    return 'Checked ' + a.asOf + ' · ' + tail;
+  }
+  const keepDates = (s) => s.replace(/(\w{3}) (\d)/g, '$1' + NBSP + '$2').replace(/(\d), (\d{4})/g, '$1,' + NBSP + '$2');
 
   function today() { return App.data.today.short; }
   function noCard(a) { return NO_CARD.indexOf(a.formType) >= 0; }
@@ -108,23 +154,23 @@
     ], { accordion: false, label: pt.label }) + '</div>';
   }
 
-  /* The list row: the receipt and the date its status was last seen. A case
-     added to track and not yet rechecked reads "Added Sep 30". */
+  /* The list row: the receipt and its check line (checkLine). A case added
+     to track and not yet rechecked reads "Added Sep 30 · not checked yet". */
   function caseRow(a) {
-    let when = null;
-    if (a.receipt) when = isUnknown(a) && a.added ? 'Added ' + a.added : statusDate(a);
+    const line = checkLine(a);
     return C.row({
       key: a.id,
       title: a.title,
-      meta: a.receipt ? a.receipt + (when ? ' · ' + when.replace(/ /g, NBSP) : '') : null,
+      meta: a.receipt ? a.receipt + (line ? ' · ' + keepDates(line) : '') : null,
       below: processingLine(processingOf(a)),
       value: a.status,
-      href: '#/uscis/' + a.id,
+      href: BASE + '/' + a.id,
     });
   }
 
-  function listView(apps) {
-    return C.pageHeader({ title: 'USCIS status' }) +
+  /* o.embedded: drawn inside Plan, under its h1 and its view chips. */
+  function listView(apps, o) {
+    return (o && o.embedded ? '' : C.pageHeader({ title: 'USCIS status' })) +
       C.list(apps.items.map(caseRow), { accordion: false, label: 'Your cases' }) +
       C.trackCase() +
       '<div class="us-foot">' + recheck(apps.tracking) + '</div>' +
@@ -136,7 +182,7 @@
      out on this page. Priya's record has no petition (data.js records.petitions
      is empty), so the section first says where the cap-gap end will show,
      with the rule behind an ⓘ, and offers Try an outcome (feature 2, the
-     petition preset only). "This happened" in that sheet puts the petition on
+     petition preset only). The sheet's save button puts the petition on
      the record and the rows below appear.
      With the sheet's sample inputs (data.js change.presets petition), checked
      with python3 on 2026-09-30:
@@ -180,7 +226,7 @@
       key: 'capgap-empty',
       title: 'Cap-gap end',
       meta: 'Shows here once your petition is on your record',
-      info: 'April 1 of the fiscal year your H-1B would start in, or the H-1B start if earlier, for a petition filed on or after Jan 17, 2025. A fiscal year starts October 1. Try an outcome, then This happened to add it.',
+      info: 'April 1 of the fiscal year your H-1B would start in, or the H-1B start if earlier, for a petition filed on or after Jan 17, 2025. A fiscal year starts October 1. Try an outcome, then save the petition to your record from there.',
     });
     const body = ps.length
       ? ps.map((p) => C.list(petitionRows(p), { accordion: false, label: 'H-1B petition' }) + petitionAsk(p)).join('')
@@ -197,7 +243,7 @@
 
   /* Try an outcome: Try a change on the petition preset only. From a
      petition already on the record, the sheet opens on its dates, Now reads
-     that petition, and "This happened" replaces it (the old one comes back
+     that petition, and its save button replaces it (the old one comes back
      with Undo). App.openChange and App.whatIf do the replacing. */
   function tryOutcome(id) {
     const p = id ? (App.record().petitions || []).filter((x) => x.id === id)[0] : null;
@@ -229,12 +275,13 @@
       C.valueRow({ label: 'Receipt number', value: a.receipt, editable: false, num: true }),
       C.valueRow({ label: 'Status', key: 'us-status-row', value: a.status + (when ? ' ' + when : ''), editable: false }),
     ];
-    if (a.asOf && a.asOf !== when) facts.push(C.valueRow({ label: 'Last checked', value: a.asOf, editable: false, num: true }));
     (a.dates || []).filter((d) => shown.indexOf(d.label) < 0).forEach((d) => {
       facts.push(C.valueRow({ label: d.label, value: d.date, editable: false, num: true, source: d.source }));
     });
     const actions = [recheck(tr, a), C.button({ label: 'Update status', kind: 'pill', attrs: { 'data-us-open': '' } })];
+    const line = checkLine(a);
     return C.list(facts, { accordion: false, label: 'Case' }) +
+      (line ? '<p class="t-meta num us-checked">' + C.esc(keepDates(line)) + '</p>' : '') +
       processingFact(processingOf(a)) +
       /* No tracker while the status is unknown: every step would read as not reached. */
       (a.current == null ? '' : C.tracker({ steps: steps, current: a.current })) +
@@ -277,7 +324,7 @@
   }
 
   function caseView(a, apps) {
-    const back = { label: 'USCIS status', href: '#/uscis' };
+    const back = { label: 'USCIS status', href: BASE };
     const form = a.form && a.form !== a.title ? a.form : null;
     const header = C.pageHeader({
       title: a.title,
@@ -361,7 +408,7 @@
     const item = items[at];
     if (!item || !App.removeCase(id)) return;
     App.haptic('select');
-    location.hash = '#/uscis';
+    location.hash = BASE;
     App.toast('Stopped tracking ' + item.title, {
       action: 'Undo',
       onAction() {
@@ -369,7 +416,7 @@
         if (list.some((x) => x.id === item.id)) return;
         list.splice(Math.min(at, list.length), 0, item);
         App.emit('case', 'add', item.id, null);
-        if (location.hash !== '#/uscis') return;
+        if (location.hash !== BASE) return;
         App.rerender();
         const row = document.querySelector('main#main .item[data-key="' + CSS.escape(item.id) + '"]');
         if (row) App.play(row, 'is-arriving');
@@ -412,8 +459,16 @@
     if (!/^#\/documents(\/|$)/.test(location.hash)) awaiting = null;
   });
 
+  /* For Plan (screens/plan.js): the list or one case, as a view. */
+  function view(data, params, o) {
+    const apps = data.applications;
+    const one = params && params[0] ? App.findApplication(params[0]) : null;
+    return STYLE + (one ? caseView(one, apps) : listView(apps, o));
+  }
+
   window.SCREENS.uscis = {
     title: 'USCIS status',
+    view: view,
     titleFor(params) {
       const a = params && params[0] ? App.findApplication(params[0]) : null;
       return a ? a.title : 'USCIS status';

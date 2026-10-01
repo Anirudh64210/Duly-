@@ -32,6 +32,9 @@
     }
     const to = ALIASES[parts[0]];
     if (!to) return;
+    /* An alias is followed only when its page exists (an alias may carry a
+       path, 'plan/status'), so a place not built yet never strands a link. */
+    if (!window.SCREENS[String(to).split('/')[0]]) return;
     parts[0] = to;
     try { history.replaceState(history.state, '', '#/' + parts.join('/')); } catch (e) { location.replace('#/' + parts.join('/')); }
   }

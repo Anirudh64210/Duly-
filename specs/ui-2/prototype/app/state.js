@@ -37,9 +37,10 @@
 
   /* Nav dots: where something is waiting for the student. */
   function waitingIn() {
-    const out = (data.waitingIn || []).filter((k) => k !== 'steps' && k !== 'case');
+    const out = (data.waitingIn || []).filter((k) => k !== 'steps' && k !== 'plan' && k !== 'case');
     const intent = stemIntent();
-    if (intent === null || intent === 'unsure') out.push('steps');
+    /* Next steps now lives in Plan (screens/plan.js); both names carry the dot. */
+    if (intent === null || intent === 'unsure') out.push('steps', 'plan');
     if (awardedWaiting()) out.push('case');
     return out;
   }

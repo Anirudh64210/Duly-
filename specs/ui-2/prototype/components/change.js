@@ -141,25 +141,87 @@
       '<ul>' + qs.map((q) => '<li>' + escText(q) + '</li>').join('') + '</ul></div>';
   }
 
+  /* What if never writes (BLUEPRINT 3.3). The only exit that saves names
+     its outcome (BLUEPRINT 2.5), worked out from the inputs on screen:
+     "Save to my record: job ends Oct 31". Dates go through App.dates.fmt,
+     which leaves the year off in today's year: 2026-10-31 reads "Oct 31"
+     while today is 2026-09-30. "ends" or "ended" compares the ISO day with
+     today as strings: '2026-10-31' > '2026-09-30', so "ends" (checked with
+     python3 on 2026-10-01). */
+  const SAVE_HEAD = 'Save to my record';
+  function saveLabel(key, v, job) {
+    const A = APP();
+    const ok = (iso) => !!(A.dates && A.dates.okIso ? A.dates.okIso(iso) : /^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')));
+    const d = (iso) => (ok(iso) && A.dates ? A.dates.fmt(iso) : '');
+    const todayIso = (SAMPLE().today || {}).iso || '';
+    const tense = (iso, future, past) => (String(iso) > todayIso ? future : past);
+    const x = v || {};
+    let what = '';
+    switch (key) {
+      case 'jobEnd':
+        if (d(x.on)) what = 'job ' + tense(x.on, 'ends', 'ended') + ' ' + d(x.on);
+        break;
+      case 'newEmployer':
+        if (d(x.start)) what = 'new job' + (x.employer ? ' at ' + x.employer : '') + ' from ' + d(x.start);
+        break;
+      case 'fewerHours':
+        if (d(x.on) && x.hours !== '' && x.hours != null) what = x.hours + ' hours a week' + (job ? ' at ' + job.employer : '') + ' from ' + d(x.on);
+        break;
+      case 'cpt':
+        if (d(x.start) && d(x.end)) what = 'CPT ' + d(x.start) + ' to ' + d(x.end);
+        break;
+      case 'trip':
+        if (d(x.leave) && d(x.back)) what = 'trip ' + d(x.leave) + ' to ' + d(x.back);
+        break;
+      case 'petition':
+        if (d(x.filed)) what = 'H-1B petition filed ' + d(x.filed);
+        break;
+      default: break;
+    }
+    return what ? SAVE_HEAD + ': ' + what : SAVE_HEAD;
+  }
+  const canSave = (res) => !!(res && res.ok && res.rows && res.rows.length);
+
+  /* app/sheets.js redraws only the result while a field is typed in, so the
+     save label is kept in step here. The listener is added on the first
+     draw, after app/sheets.js has added its own, so it reads the new value. */
+  let relabelOn = false;
+  function relabel() {
+    const A = APP();
+    const btn = document.querySelector('.sheet [data-change-act="save"]');
+    if (!btn || !A.changeState) return;
+    const st = A.changeState();
+    btn.textContent = saveLabel(st.preset, st.values, st.job);
+    btn.disabled = !canSave(st.result);
+  }
+
   /* change({ preset, presets, values, result, job }) : the inside of the
      Try a change sheet. app/sheets.js keeps the state and redraws only the
-     result while a field is typed in. */
+     result while a field is typed in. The foot holds a band that reads
+     "Not saved to your record" the whole time the sheet is open. */
   function change(st) {
     const ch = SAMPLE().change || {};
     const s = st || {};
     const all = ch.presets || [];
     const list = s.presets && s.presets.length ? all.filter((p) => s.presets.indexOf(p.key) !== -1) : all;
     const res = s.result;
-    return sheetTop({ title: ch.title || 'Try a change', info: ch.info }) +
+    if (!relabelOn) { relabelOn = true; document.addEventListener('duly:change', () => setTimeout(relabel, 0)); }
+    /* data.js still names the old button in its info text; read it with the
+       new name until that copy is changed there. */
+    const infoText = ch.info ? String(ch.info).replace(/This happened/g, SAVE_HEAD) : ch.info;
+    const band = '<p class="change-band" role="note" style="margin:0 0 var(--s-12);padding:var(--s-8) var(--s-12);border-radius:8px;' +
+      'background:var(--accent-tint);border:1px solid var(--tint-border);color:var(--ink);font-size:var(--t-small);line-height:var(--lh-small)">' +
+      '<span style="font-weight:500">Not saved to your record.</span> Nothing here is saved or scheduled unless you tap ' + esc(SAVE_HEAD) + '.</p>';
+    return sheetTop({ title: ch.title || 'Try a change', info: infoText }) +
       '<div class="sheet-body change">' +
       '<div class="field"><p class="field-label">What changes?</p>' +
       chips({ key: 'change:preset', label: 'What changes?', inline: true, items: list.map((p) => ({ value: p.key, label: p.label, selected: p.key === s.preset })) }) + '</div>' +
       (s.preset ? '<div class="change-inputs">' + changeInputs(s.preset, s.values || {}, s.job) + '</div>' +
         '<div class="change-result" data-change-result aria-live="polite">' + changeResult(res) + '</div>' : '') +
       '</div>' +
-      '<div class="sheet-foot">' + buttonRow({
+      '<div class="sheet-foot">' + band + buttonRow({
         back: '<button type="button" class="btn btn-text is-quiet" data-change-act="cancel">' + esc(ch.cancel || 'Cancel') + '</button>',
-        primary: '<button type="button" class="btn btn-primary" data-change-act="save"' + (res && res.ok && res.rows.length ? '' : ' disabled') + '>' + esc(ch.save || 'This happened') + '</button>',
+        primary: '<button type="button" class="btn btn-primary" data-change-act="save"' + (canSave(res) ? '' : ' disabled') + '>' + esc(saveLabel(s.preset, s.values, s.job)) + '</button>',
       }) + '</div>';
   }
 
@@ -314,5 +376,5 @@
   }
 
   Object.assign(C, { tryChange, change, askDso, beforeAfter, checkin, sharePackButton, summaryPage, sharePack, reports, docWatch, fromPaper });
-  Object.assign(C._, { changeResult, sheetTop });
+  Object.assign(C._, { changeResult, sheetTop, changeSaveLabel: saveLabel });
 })();

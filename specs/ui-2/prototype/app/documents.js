@@ -103,7 +103,8 @@
   function addDocument(file) {
     App.state.pendingDocument = file ? file.name : null;
     emit('document', 'add', file ? file.name : null, null);
-    if (App.route !== 'documents') go('#/documents/add'); else render('inplace');
+    /* Papers (#/papers) is the documents page; #/documents redirects there. */
+    if (App.route !== 'papers' && App.route !== 'documents') go('#/papers/add'); else render('inplace');
   }
   App.addDocument = addDocument;
   window.addEventListener('dragover', (e) => { e.preventDefault(); });

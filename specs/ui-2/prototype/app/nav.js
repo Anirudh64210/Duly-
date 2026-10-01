@@ -61,20 +61,26 @@
     if (el && !el.closest('[hidden]')) el.focus({ preventScroll: true });
   }
 
-  /* The nav is never redrawn: the current item and the waiting dots move in place. */
+  /* The nav is never redrawn: the current item and the waiting dots move in
+     place. Each item is a place (data-place: today, plan, papers, record,
+     settings, feedback) that holds several routes (C.placeOf), so #/uscis
+     shows Plan as current and a dot waiting in steps shows on Plan. */
   function updateNav() {
     const waiting = waitingIn();
+    const placeOf = (r) => (C.placeOf ? C.placeOf(r) : r);
+    const here = placeOf(App.route);
+    const dots = waiting.map(placeOf);
+    const nameOf = (a) => a.dataset.place || (a.getAttribute('href') || '').replace(/^#\//, '');
     document.querySelectorAll('.nav-item').forEach((a) => {
-      const name = (a.getAttribute('href') || '').replace(/^#\//, '');
-      if (name === App.route) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      const name = nameOf(a);
+      if (name === here) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
       const dot = a.querySelector('.wait-dot');
-      const on = waiting.indexOf(name) !== -1;
+      const on = dots.indexOf(name) !== -1;
       if (on && !dot) a.insertAdjacentHTML('beforeend', '<span class="wait-dot" role="img" aria-label="Something here is waiting for you"></span>');
       if (!on && dot) dot.remove();
     });
     document.querySelectorAll('.tabbar .tab').forEach((a) => {
-      const name = (a.getAttribute('href') || '').replace(/^#\//, '');
-      if (name === App.route) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      if (nameOf(a) === here) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
   }
   App.updateNav = updateNav;

@@ -318,8 +318,9 @@ window.DULY_SAMPLE = {
        'stemIntent' is answered in place on Home (Round 5, note 1): inPlace
        true means draw C.stemDecide() there instead of a link away; the
        primary href is kept only as the no-script fallback.
-       'changes' is the standing rule to report a change within 10 days; it
-       has no date and shows only when there is no dated move. */
+       'changes' is the standing rule to report a job change within 10 days;
+       it has no date and shows only when there is no dated move. Address
+       is left out until (f)(17) is a saved rule (BLUEPRINT 2.6 D). */
     nextMoves: [
       {
         key: 'stemIntent',
@@ -332,7 +333,7 @@ window.DULY_SAMPLE = {
       },
       {
         key: 'changes',
-        title: 'Changed your address or job?',
+        title: 'Changed your job?',
         meta: 'Report it within 10 days',
         href: '#/steps',
         source: 'reportChanges',
@@ -645,7 +646,7 @@ window.DULY_SAMPLE = {
       steps: [
         { key: 'reported', title: 'Job reported to your school', meta: 'Northwind Systems, Feb 27, 2026', done: true, doneMeta: 'Done Feb 27, 2026' },
         /* A standing rule, never done: render with C.ongoing (no checkbox). */
-        { key: 'changes', title: 'Report a change of address or job within 10 days', meta: 'Ongoing', ongoing: true, source: 'reportChanges' },
+        { key: 'changes', title: 'Report a change of name or job within 10 days', meta: 'Ongoing', ongoing: true, source: 'reportChanges' },
       ],
     },
     h1b: { eyebrow: 'Later', title: 'H-1B starts with your employer.', line: null, info: 'The dates appear here when USCIS announces the next registration.' },
@@ -831,16 +832,16 @@ window.DULY_SAMPLE = {
     ],
     work: [
       { id: 'ead-card', title: 'EAD card', meta: 'Valid Feb 14, 2026 to Feb 13, 2027',
-        about: 'Your work permit for OPT.', dates: [['Valid from', 'Feb 14, 2026'], ['Valid until', 'Feb 13, 2027']] },
+        about: 'Your work permit for OPT.', dates: [['Valid from', 'Feb 14, 2026'], ['Valid until', 'Feb 13, 2027'], ['This version', 'Mar 3, 2026']] },
       { id: 'i797', title: 'I-797 approval notice', meta: 'OPT approved Dec 20, 2025',
-        about: 'USCIS approved your OPT application.', dates: [['You filed', 'Oct 10, 2025'], ['Approved', 'Dec 20, 2025']] },
+        about: 'USCIS approved your OPT application.', dates: [['You filed', 'Oct 10, 2025'], ['Approved', 'Dec 20, 2025'], ['This version', 'Mar 3, 2026']] },
       { id: 'offer-northwind', title: 'Offer letter · Northwind Systems', meta: 'Job on OPT, from Feb 27, 2026', also: ['opt'],
         about: 'Your job on OPT: Software Engineer at Northwind Systems.', dates: [['Job', 'Software Engineer'], ['Start', 'Feb 27, 2026']] },
     ],
     identity: [
-      { id: 'passport', title: 'Passport', meta: 'Valid until Jul 9, 2031', about: 'Your passport.', dates: [['Valid until', 'Jul 9, 2031']] },
-      { id: 'f1-visa', title: 'F-1 visa', meta: 'Aug 2023', about: 'The visa in your passport.', dates: [['Issued', 'Aug 2023']] },
-      { id: 'i94', title: 'I-94', meta: 'Aug 2023', about: 'Your record of entry to the US.', dates: [['Entered', 'Aug 2023']] },
+      { id: 'passport', title: 'Passport', meta: 'Valid until Jul 9, 2031', about: 'Your passport.', dates: [['Valid until', 'Jul 9, 2031'], ['This version', 'Mar 3, 2026']] },
+      { id: 'f1-visa', title: 'F-1 visa', meta: 'Aug 2023', about: 'The visa in your passport.', dates: [['Issued', 'Aug 2023'], ['This version', 'Mar 3, 2026']] },
+      { id: 'i94', title: 'I-94', meta: 'Aug 2023', about: 'Your record of entry to the US.', dates: [['Entered', 'Aug 2023'], ['This version', 'Mar 3, 2026']] },
     ],
     school: [
       { id: 'degree', title: 'Degree certificate', meta: 'Dec 18, 2025', about: "Your Master's in Computer Science.", dates: [['Awarded', 'Dec 18, 2025']] },
@@ -978,7 +979,10 @@ window.DULY_SAMPLE = {
     title: 'Reports you owe',
     info: 'What you report, to whom and by when, worked out from your record. Mark one made when you send it.',
     to: 'Your DSO',
-    standing: { title: 'Report a change of name, address or job', meta: 'Within 10 days of the change' },
+    /* No address here until 8 CFR 214.2(f)(17) is a saved rule with its
+       quote (BLUEPRINT 2.6 D): the address loop says "Your DSO can confirm
+       the deadline" instead. */
+    standing: { title: 'Report a change of name or job', meta: 'Within 10 days of the change' },
     made: 'You marked this made on {date}',
     markDone: 'Mark made',
     undo: 'Undo',
@@ -1331,3 +1335,1310 @@ window.DULY_SAMPLE.paperFields = {
 
 /* One list of STEM OPT steps. */
 window.DULY_SAMPLE.checklists.stem.steps = window.DULY_SAMPLE.stem.tasks;
+
+/* ===== LOOPS (BLUEPRINT section 2; D75, D76, D77) =====
+   Every question or life event is a loop carried to a confirmed outcome.
+   This section is the Playbooks as data: reviewed words with typed holes,
+   and a graph of steps. app/loops.js runs them; components/loop.js draws
+   one; check-loops.mjs fails the build on a dead end.
+
+   No literal number lives in a template: every date and count is a hole
+   that app/loops.js fills from App.compute, App.fileBy and the record
+   (the engine stand-in in app/record.js). The sample dates for Priya, from
+   DULY_SAMPLE.records, checked with python3 on 2026-09-30:
+     job ends: last day 2026-10-31 + 10 days = 2026-11-10 (report day);
+               2026-11-10 - 3 = 2026-11-07 (first reminder);
+               13 days without work before Northwind (Feb 14 to Feb 26);
+               day 14 is 2026-11-01, day 90 is 2026-11-01 + 76 = 2027-01-16;
+               a new job from 2026-11-20 stops the count at 13 + 19 = 32.
+               Check-in every 14 days: 2026-09-30 + 14 = 2026-10-14.
+     travel:   2026-12-19 to 2027-01-09 is 21 days away; signature
+               2026-03-02 + 6 months = 2026-09-02, before the return;
+               five months from leaving is 2027-05-19; asks on
+               2026-12-19 - 21 = 2026-11-28 and 2026-12-19 - 2 = 2026-12-17.
+     STEM:     card end 2027-02-13 - 90 = 2026-11-15 (window opens);
+               start preparing 2026-11-15 - 1 month = 2026-10-15; with a
+               recommendation on 2026-12-01, + 60 = 2027-01-30 sets the day;
+               recommended 2026-09-30 + 60 = 2026-11-29, reminders on
+               2026-11-29 - 3 = 2026-11-26 and the day. A filing day of
+               2026-09-30 is before the window opens (2026-11-15). DSO
+               reply day: 2026-09-30 + 5 business days = 2026-10-07.
+     address:  no date in the loop (no saved (f)(17) rule); a check-in a
+               week on, 2026-09-30 + 7 = 2026-10-07.
+     new job:  Acme from 2026-11-20: its report 2026-11-20 + 10 = 2026-11-30.
+     hours:    15 hours a week from 2026-10-01: report by 2026-10-01 + 10 =
+               2026-10-11; 15 < 20, so those days count as days without work.
+     check-in: Northwind confirmed 2026-08-28, 33 days ago; a yes today
+               sets the next one at 2026-09-30 + 30 = 2026-10-30.
+
+   Step shape (internal names, never on screen):
+     { state, who?: 'date'|'event'|'person', person?, tag: 'A'|'B'|'fixed',
+       title, lines?: [{ text, source?, tag?, threat? }], fields?: [...],
+       actions?: [...], exits: [{ key, label, to, by?, needs?, saves?,
+       receipt?, confirm?, cancel?, snooze?, quiet?, when? }],
+       timer: { kind: 'deadline'|'checkin', at, then, ask, every?, fallback? } }
+   A template may be a list: the first one whose holes are all filled is
+   used, and '' hides the line. to: a step key, 'closed', 'dismissed',
+   '@back' (the step before) or '@resume' (where a step back began).
+   at: { fact, minus?, plus? } | { days } | { businessDays } | { setting }. */
+window.DULY_SAMPLE.loops = {
+  states: ['open', 'asking', 'planned', 'waiting', 'confirming', 'closed', 'dismissed'],
+  final: ['closed', 'dismissed'],
+  /* What the student sees. Never the internal state name. */
+  seen: {
+    needs: 'Needs you',
+    planned: 'Planned: {next}',
+    waitingWho: 'Waiting on {who} until {until}',
+    waitingEvent: 'Waiting on {who}',
+    waitingDate: 'Waiting until {until}',
+    done: 'Done {date}',
+    cantTell: "Can't tell yet: {fact} as of {asOf}",
+  },
+  /* Product settings, not rules (BLUEPRINT 2.4; founder decision 11). */
+  settings: {
+    deadlineLeadDays: 3,
+    weeklyBudget: 3,
+    backoffAfter: 3,
+    dsoReplyBusinessDays: 5,
+    checkinDays: 14,
+    travelFirstAskDays: 21,
+    travelLastAskDays: 2,
+    newFactDays: 3,
+    pendingCap: 50,
+  },
+  /* The receipt: what changed, what was checked, the next date. */
+  receipts: {
+    remindOn: 'Reminder set on this phone: {dates}.',
+    remindOff: 'Reminders are off here. Add the dates to your calendar.',
+    nothingElse: 'Nothing else needs you for this.',
+    next: 'Next: {next}.',
+    checked: 'Checked against {checked}.',
+    undo: 'Undo',
+    fold: 'Fold',
+    reopen: 'Reopen',
+    calendarOnce: 'Add the dates to your calendar',
+  },
+  /* Footprint lines, written to Your record on every transition. A closing
+     receipt already starts "Done.", so closed adds nothing before it. */
+  footprint: {
+    opened: 'Opened: {title}',
+    moved: '{title}: {what}',
+    closed: '{title}: {receipt}',
+    dismissed: '{title}: dropped',
+    reopened: '{title}: reopened. {reason}',
+    backoff: "{title}: {n} check-ins unanswered, asking stopped. Can't tell yet as of {asOf}",
+  },
+  /* Ask in v1 (D77): matched on the device, crisis first (BLUEPRINT 2.7). */
+  crisisPhrases: [
+    { text: 'ice came', notice: false },
+    { text: 'ice at my door', notice: false },
+    { text: 'ice is at my door', notice: false },
+    { text: 'immigration officers', notice: false },
+    { text: 'detained', notice: false },
+    { text: 'sevis terminated', notice: true },
+    { text: 'sevis was terminated', notice: true },
+    { text: 'terminated my sevis', notice: true },
+    { text: 'visa revoked', notice: true },
+    { text: 'visa was revoked', notice: true },
+    { text: 'revoked my visa', notice: true },
+    { text: "i can't do this anymore", notice: false },
+    { text: 'i cant do this anymore', notice: false },
+    { text: 'want to die', notice: false },
+    { text: 'end my life', notice: false },
+    { text: 'hurt myself', notice: false },
+  ],
+  /* Public contacts for the crisis screen. The school office is the sample
+     school's office page (State University's site, the same example.edu
+     domain as its STEM OPT page in schoolImport); no phone number is
+     invented. */
+  contacts: {
+    lifeline: { name: '988 Lifeline', call: 'tel:988', text: 'sms:988', href: 'https://988lifeline.org/' },
+    attorney: { name: 'AILA lawyer search', href: 'https://www.ailalawyer.com/' },
+    schoolOffice: { name: 'international student office', href: 'https://www.example.edu/international' },
+  },
+
+  /* Steps shared by every playbook that uses them: the step back (BOUNDARY,
+     "The step back"; D57) and its hand-off that comes back. */
+  shared: {
+    stepback: {
+      'dso-ask': {
+        state: 'asking', tag: 'B',
+        title: 'This part depends on your own situation, so it is a question for your DSO.',
+        lines: [{ text: 'Write it in your own words. The email is drafted from your record; you send it yourself.' }],
+        fields: [{ key: 'question', kind: 'text', label: 'Your question', placeholder: 'For example: does a volunteer role count?' }],
+        actions: [{ kind: 'draft', draft: 'question' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+        exits: [
+          { key: 'sent', label: 'Save to my record: asked my DSO {today}', to: 'dso-wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
+          { key: 'back', label: 'Back', to: '@back', quiet: true },
+        ],
+        timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'dso-ask', ask: 'Send the question to your DSO?' },
+      },
+      'dso-wait': {
+        state: 'waiting', who: 'person', person: 'your DSO', tag: 'B',
+        title: 'Waiting on your DSO until {dsoReplyBy}',
+        lines: [{ text: 'Any date that needs you keeps its reminders while you wait.' }],
+        exits: [
+          { key: 'replied', label: 'Save to my record: DSO replied {today}', to: '@resume', saves: 'dsoReplied', receipt: 'Saved: your DSO replied {today}.' },
+          { key: 'again', label: 'Write the question again', to: 'dso-ask', quiet: true },
+        ],
+        timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'dso-reply', ask: 'Did your DSO reply?' },
+      },
+      'dso-reply': {
+        state: 'confirming', tag: 'B',
+        title: 'Did your DSO reply?',
+        exits: [
+          { key: 'replied', label: 'Save to my record: DSO replied {today}', to: '@resume', saves: 'dsoReplied', receipt: 'Saved: your DSO replied {today}.' },
+          { key: 'notYet', label: 'No reply yet: ask again {dsoReplyBy}', to: 'dso-wait' },
+        ],
+        timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'dso-reply', ask: 'Did your DSO reply?' },
+      },
+    },
+  },
+
+  playbooks: {
+    /* A. Job ends (the founder's chain): what, how, where, when, and what to
+       keep in mind. Never what follows day 90, never a status word. */
+    'job-ends': {
+      version: '2026.09.2',
+      title: 'Job at {employer} ended',
+      situation: 'My job ended',
+      cantTell: 'days without work',
+      newJobLines: {
+        full: ['Count stopped at {stoppedAt} days.', ''],
+        part: 'Fewer than {minHours} hours a week: those days count as days without work.',
+        unsure: 'Hours not saved yet: add them in WorkBook to stop the count.',
+      },
+      start: 'last-day',
+      uses: ['stepback'],
+      dismiss: false,
+      obligation: { fact: 'reportDue', source: 'reportChanges', title: 'Report the end of your job', metBy: ['reportMade'] },
+      triggers: [
+        { from: 'checkin', exit: 'ended' },
+        { from: 'ask', phrases: ['i got laid off', 'laid off', 'i lost my job', 'lost my job', 'my job ended', 'job ended', 'fired', 'my last day at work', 'quit my job'] },
+        { from: 'workbook', event: 'job.end' },
+      ],
+      reopenOn: [
+        { key: 'newJobEnded', label: 'Reopen: the new job ended' },
+        { key: 'hours', label: 'Reopen: my hours fell' },
+        { key: 'rule', label: 'Reopen: a reporting rule changed' },
+      ],
+      holes: ['minHours', 'employer', 'lastDay', 'lastDayLong', 'reportDue', 'reportLead', 'used', 'limit', 'asOf', 'day90', 'byEnd', 'cardEnd', 'otherJobs',
+        'newEmployer', 'newStart', 'stoppedAt', 'newJobLine', 'made', 'name', 'sevisId', 'school', 'question', 'careerPage', 'nextCheckin'],
+      /* Flags the steps read (app/loops.js BIND['job-ends']):
+           made           the end-of-job report is marked made
+           beforeLastDay  today is before the saved last day: the report is
+                          not offered as made before the job has ended
+                          (2026-09-30 < 2026-10-31). Until the binder sets it,
+                          '!beforeLastDay' reads true and nothing is hidden. */
+      drafts: {
+        report: {
+          openLabel: 'Write the report to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'End of my job at {employer}, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. My last day at {employer} is {lastDayLong}.", "I'm writing to report the end of this job."],
+          questions: ['Is there anything else you need from me for this report?', 'Is there a form or a portal I use for it?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        late: {
+          openLabel: 'Write to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'Reporting the end of my job, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. My last day at {employer} was {lastDayLong}, and I have not reported it yet."],
+          questions: ['How do I report it now?', 'Is there anything else you need from me?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        question: {
+          openLabel: 'Write the question to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'A question about my OPT, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. My last day at {employer} is {lastDayLong}."],
+          questions: ['{question}'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+      },
+      steps: {
+        'last-day': {
+          state: 'asking', tag: 'A',
+          title: 'When is your last day at {employer}?',
+          lines: [{ text: ['Other jobs on your record: {otherJobs}.', 'No other job on your record.'] }],
+          fields: [{ key: 'lastDay', kind: 'date', label: 'Last day at work' }],
+          exits: [
+            { key: 'save', label: ['Save to my record: job ended {lastDay}', 'Pick the last day to save it'], needs: ['lastDay'], to: 'plan', saves: 'jobEnd',
+              receipt: 'Saved: last day at {employer}, {lastDay}. Checked against your record and the reporting rule.' },
+            { key: 'notSure', label: "I'm not sure yet", to: 'last-day-wait', quiet: true },
+            /* The job is confirmed as of today, so the count moves on from
+               here and the next check-in is set: a yes on 2026-09-30 + 30
+               (checkin.jobDays) = 2026-10-30. */
+            { key: 'still', label: 'Still at {employer}: confirm as of {today}', to: 'closed', by: 'student', outcome: 'same', saves: 'checkinYes',
+              receipt: ['Confirmed {today}. Next check-in: {nextCheckin}.', 'Confirmed {today}: still at {employer}.'] },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'last-day', ask: 'Do you know your last day at {employer} now?' },
+        },
+        'last-day-wait': {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: "Can't tell yet: your report day. Your last day at {employer} settles it.",
+          exits: [{ key: 'know', label: 'Add my last day now', to: 'last-day' }],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'last-day', ask: 'Do you know your last day at {employer} now?' },
+        },
+        plan: {
+          state: 'planned', tag: 'A', threat: true,
+          title: 'Report the end of your job on or before {reportDue}',
+          lines: [
+            { text: 'Saved: last day at {employer}, {lastDay}.' },
+            { text: 'Report it to your DSO at {school} on or before {reportDue}.', source: 'reportChanges', tag: 'guidance' },
+            { text: ['As of {asOf}: {used} of {limit} days without work used. Day {limit} is {day90}.', 'As of {asOf}: {used} of {limit} days without work used. By {cardEnd}: {byEnd}.'], source: 'unemployment', threat: true },
+            { text: 'A job of at least {minHours} hours a week stops the count.', source: 'optHours' },
+          ],
+          actions: [
+            { kind: 'draft', draft: 'report' },
+            { kind: 'link', label: "Your school's career office", fact: 'careerPage' },
+            { kind: 'rule', label: 'What counts as a job on OPT', source: 'optHours' },
+          ],
+          exits: [
+            { key: 'remind', label: 'Remind me on {reportLead} and {reportDue}', to: 'wait-report', receipt: '{remindReceipt}' },
+            { key: 'made', label: 'Save to my record: report made {today}', when: '!beforeLastDay', to: 'count', saves: 'reportMade', receipt: 'Report marked made {today}.' },
+            { key: 'newJob', label: 'Add a new job or offer: it stops the count', to: 'new-job', quiet: true },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'reportDue', minus: 'lead' }, then: 'confirm-report', ask: 'Report made? The day is {reportDue}.' },
+        },
+        'wait-report': {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'Report the end of your job on or before {reportDue}',
+          lines: [{ text: 'Reminders: {reportLead} and {reportDue}.' }],
+          actions: [{ kind: 'draft', draft: 'report' }, { kind: 'calendar', label: 'Add both dates to your calendar' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', when: '!beforeLastDay', to: 'count', saves: 'reportMade', receipt: 'Report marked made {today}.' },
+            { key: 'newJob', label: 'Add a new job or offer', to: 'new-job', quiet: true },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'reportDue', minus: 'lead' }, then: 'confirm-report', ask: 'Report made? The day is {reportDue}.' },
+        },
+        /* The same three steps once a new job is saved before the report is
+           made: marking the report made then closes the loop, since the new
+           job has already stopped the count. Last day 2026-10-31, Acme from
+           2026-11-20 at 20 hours or more: 13 + (2026-11-20 - 2026-11-01 =
+           19) = 32 days, "Count stopped at 32 days." */
+        'wait-report-job': {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'Report the end of your job on or before {reportDue}',
+          lines: [
+            { text: 'New job at {newEmployer} from {newStart} saved.' },
+            { text: 'Reminders: {reportLead} and {reportDue}.' },
+          ],
+          actions: [{ kind: 'draft', draft: 'report' }, { kind: 'calendar', label: 'Add both dates to your calendar' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', when: '!beforeLastDay', to: 'closed', by: 'student', outcome: 'new-job', saves: 'reportMade',
+              receipt: 'Done. Report marked made {made}. New job at {newEmployer} from {newStart} saved. {newJobLine}' },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'reportDue', minus: 'lead' }, then: 'confirm-report-job', ask: 'Report made? The day is {reportDue}.' },
+        },
+        'confirm-report-job': {
+          state: 'confirming', tag: 'A',
+          title: 'Report made? The day is {reportDue}.',
+          lines: [{ text: 'New job at {newEmployer} from {newStart} saved.' }],
+          actions: [{ kind: 'draft', draft: 'report' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', to: 'closed', by: 'student', outcome: 'new-job', saves: 'reportMade',
+              receipt: 'Done. Report marked made {made}. New job at {newEmployer} from {newStart} saved. {newJobLine}' },
+            { key: 'notYet', label: 'Not yet: remind me on {reportDue}', to: 'wait-report-job', snooze: { limit: 'reportDue' } },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'reportDue', plus: 1 }, then: 'report-passed-job', ask: 'Report made? The day was {reportDue}.' },
+        },
+        'report-passed-job': {
+          state: 'confirming', tag: 'B', threat: true, once: true,
+          title: 'The report day was {reportDue}. Today is {today}.',
+          short: 'Report day was {reportDue}: a question for your DSO',
+          lines: [{ text: 'This is a question for your DSO.', threat: true }],
+          actions: [{ kind: 'draft', draft: 'late' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', to: 'closed', by: 'student', outcome: 'new-job', saves: 'reportMade',
+              receipt: 'Done. Report marked made {made}. New job at {newEmployer} from {newStart} saved. {newJobLine}' },
+            { key: 'asked', label: 'Save to my record: asked my DSO {today}', to: 'dso-wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'report-passed-job', ask: 'Report made, or asked your DSO?' },
+        },
+        'confirm-report': {
+          state: 'confirming', tag: 'A',
+          title: 'Report made? The day is {reportDue}.',
+          actions: [{ kind: 'draft', draft: 'report' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', to: 'count', saves: 'reportMade', receipt: 'Report marked made {today}.' },
+            { key: 'notYet', label: 'Not yet: remind me on {reportDue}', to: 'wait-report', snooze: { limit: 'reportDue' } },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'reportDue', plus: 1 }, then: 'report-passed', ask: 'Report made? The day was {reportDue}.' },
+        },
+        /* Bad news: once, in full, with the path in the same view. */
+        'report-passed': {
+          state: 'confirming', tag: 'B', threat: true, once: true,
+          title: 'The report day was {reportDue}. Today is {today}.',
+          short: 'Report day was {reportDue}: a question for your DSO',
+          lines: [{ text: 'This is a question for your DSO.', threat: true }],
+          actions: [{ kind: 'draft', draft: 'late' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', to: 'count', saves: 'reportMade', receipt: 'Report marked made {today}.' },
+            { key: 'asked', label: 'Save to my record: asked my DSO {today}', to: 'dso-wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'report-passed', ask: 'Report made, or asked your DSO?' },
+        },
+        count: {
+          state: 'waiting', who: 'event', person: 'a new job', tag: 'A', threat: true,
+          title: ['Days without work: {used} of {limit} as of {asOf}', 'Days without work: as of {asOf}'],
+          lines: [
+            { text: ['Report marked made {made}.', ''] },
+            { text: ['Day {limit} is {day90}.', 'By {cardEnd}: {byEnd}.'], source: 'unemployment', threat: true },
+            { text: 'When you have an offer, add it here: it stops the count.' },
+          ],
+          actions: [{ kind: 'rule', label: 'What counts as a job on OPT', source: 'optHours' }],
+          exits: [
+            { key: 'newJob', label: 'Add a new job or offer', to: 'new-job' },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'checkin-job', ask: 'Any new job or offer?' },
+        },
+        'checkin-job': {
+          state: 'confirming', tag: 'A', threat: true,
+          title: 'Any new job or offer?',
+          lines: [{ text: ['Days without work: {used} of {limit} as of {asOf}. Day {limit} is {day90}.', 'Days without work: {used} of {limit} as of {asOf}.'], source: 'unemployment', threat: true }],
+          exits: [
+            { key: 'newJob', label: 'Add the new job', to: 'new-job' },
+            { key: 'none', label: 'No job yet: ask again {nextCheck}', to: 'count', saves: 'confirmNoJob', receipt: 'Confirmed: no new job as of {today}.' },
+            { key: 'stop', label: 'Stop checking in: keep the count on Today', to: 'closed', by: 'student', outcome: 'report-made', quiet: true, when: 'made',
+              receipt: 'Done. Report marked made {made}. The count stays on Today.' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'checkin-job', ask: 'Any new job or offer?' },
+        },
+        'new-job': {
+          state: 'asking', tag: 'A',
+          title: 'Your new job',
+          fields: [
+            { key: 'newEmployer', kind: 'text', label: 'Employer' },
+            { key: 'newStart', kind: 'date', label: 'First day' },
+            { key: 'newHours', kind: 'choice', label: 'Hours a week', options: [{ value: 'full', label: 'At least {minHours}' }, { value: 'part', label: 'Fewer than {minHours}' }], notSure: "I'm not sure" },
+          ],
+          exits: [
+            { key: 'save', label: ['Save to my record: job at {newEmployer} from {newStart}', 'Add the employer, first day and hours to save it'], needs: ['newEmployer', 'newStart', 'newHours'], when: 'made',
+              to: 'closed', by: 'student', outcome: 'new-job', saves: 'newJob', spawn: [{ kind: 'report-owed', report: 'job-start' }],
+              receipt: 'Done. Report marked made {made}. New job at {newEmployer} from {newStart} saved. {newJobLine}' },
+            { key: 'saveFirst', label: ['Save to my record: job at {newEmployer} from {newStart}', 'Add the employer, first day and hours to save it'], needs: ['newEmployer', 'newStart', 'newHours'], when: '!made',
+              to: 'wait-report-job', saves: 'newJob', spawn: [{ kind: 'report-owed', report: 'job-start' }],
+              receipt: 'New job at {newEmployer} from {newStart} saved. {newJobLine} Still open: report the end of your job on or before {reportDue}.' },
+            { key: 'back', label: 'Back', to: '@back', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'new-job', ask: 'Add the new job?' },
+        },
+      },
+    },
+
+    /* B. Travel. Never "you can travel"; re-entry judgements go to the DSO. */
+    travel: {
+      version: '2026.09.2',
+      title: 'Trip {leave} to {back}',
+      titleEmpty: 'A trip',
+      situation: "I'm travelling",
+      cantTell: 'your return',
+      start: 'dates',
+      uses: ['stepback'],
+      dismiss: true,
+      triggers: [{ from: 'plan', action: 'Plan a trip' }, { from: 'ask', phrases: ['going home', 'travel', 'travelling', 'traveling', 'trip', 'flying home', 'leave the us', 'christmas'] }],
+      reopenOn: [{ key: 'returnChanged', label: 'Reopen: my return date changed' }, { key: 'newI20', label: 'Reopen: a new I-20 arrived' }],
+      holes: ['signatureMonths', 'absenceMonths', 'folderCount', 'leave', 'back', 'leaveLong', 'backLong', 'daysAway', 'signed', 'signedLong', 'signatureUntil', 'cardEnd', 'fiveMonths', 'passportUntil', 'visaUntil',
+        'firstAsk', 'lastAsk', 'purposeLabel', 'returned', 'name', 'sevisId', 'school', 'question'],
+      carry: ['i20-opt', 'ead-card', 'passport', 'f1-visa'],
+      drafts: {
+        signature: {
+          openLabel: 'Ask your DSO for a new travel signature',
+          to: 'Your DSO at {school}',
+          subject: 'Travel signature, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I plan to travel from {leaveLong} and come back on {backLong}.", 'The travel signature on my I-20 is from {signedLong}.'],
+          questions: ['Could I get a new travel signature on my I-20 before I leave?', 'Is there anything else you need from me for it?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        question: {
+          openLabel: 'Write the question to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'A question about my trip, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I plan to travel from {leaveLong} and come back on {backLong}."],
+          questions: ['{question}'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+      },
+      steps: {
+        dates: {
+          state: 'asking', tag: 'A',
+          title: 'When do you leave and come back?',
+          lines: [{ text: 'Passport and visa: on file.' }],
+          fields: [
+            { key: 'leave', kind: 'date', label: 'Leave' },
+            { key: 'back', kind: 'date', label: 'Come back' },
+            { key: 'purpose', kind: 'choice', label: 'While away', optionsFrom: 'change.purposes' },
+          ],
+          exits: [
+            { key: 'save', label: ['Save this trip plan: {leave} to {back}', 'Add both dates and the reason to save it'], needs: ['leave', 'back', 'purpose'], to: 'check', saves: 'tripPlan',
+              receipt: 'Trip plan saved: {leave} to {back}. Checked against your I-20, EAD card, passport and visa.' },
+            { key: 'drop', label: 'Not planning a trip after all', to: 'dismissed', quiet: true, confirm: 'Drop this trip plan? Nothing is saved.', cancel: 'Cancel' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'dates', ask: 'Still planning a trip?' },
+        },
+        check: {
+          state: 'planned', tag: 'A',
+          title: 'Trip {leave} to {back}: {daysAway} days away',
+          lines: [
+            { text: ['Travel signature: signed {signed}. {signatureMonths} months from it is {signatureUntil}, after your return.'], when: 'signatureCovers', source: 'travelSignature' },
+            { text: 'Travel signature: signed {signed}. {signatureMonths} months from it is {signatureUntil}, before your return on {back}.', when: '!signatureCovers', source: 'travelSignature' },
+            { text: 'EAD card: ends {cardEnd}, after your return.', when: 'cardCovers', source: 'eadEnds' },
+            { text: 'EAD card: ends {cardEnd}, before your return on {back}.', when: '!cardCovers', source: 'eadEnds' },
+            { text: '{absenceMonths} months from leaving is {fiveMonths}. Your return is {back}.', source: 'travelAbsence' },
+            { text: 'Passport valid until {passportUntil}. F-1 visa valid until {visaUntil}.' },
+            { text: 'Days away count as days without work unless on leave your employer approved or travel for the job.', when: 'purposeCounts', source: 'unemploymentAbroad' },
+          ],
+          actions: [
+            { kind: 'draft', draft: 'signature', when: '!signatureCovers' },
+            { kind: 'link', label: 'Carry these: I-20, EAD card, passport, visa', href: '#/documents' },
+            { kind: 'calendar', label: 'Add both dates to your calendar' },
+          ],
+          exits: [
+            { key: 'remind', label: 'Remind me on {firstAsk} and {lastAsk}', to: 'wait', receipt: '{remindReceipt}' },
+            { key: 'asked', label: 'Save to my record: signature asked {today}', when: '!signatureCovers', to: 'wait-folder', saves: 'signatureRequested',
+              receipt: 'Saved: travel signature asked {today}.' },
+            { key: 'change', label: 'Change the dates', to: 'dates', quiet: true },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+            { key: 'drop', label: 'Cancel this trip', to: 'dismissed', quiet: true, confirm: 'Drop this trip plan? The dates come off your plan.', cancel: 'Keep the trip' },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'firstAsk' }, then: 'ask-signature', ask: 'Signature requested?' },
+        },
+        /* Waiting keeps the check lines and the one thing the trip still
+           needs (a new signature, when the last one does not cover the
+           return): 2026-03-02 + 6 months = 2026-09-02, before 2027-01-09. */
+        wait: {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'Trip {leave} to {back}',
+          lines: [
+            { text: 'Next: {firstAsk}, then {lastAsk}.' },
+            { text: ['Travel signature: signed {signed}. {signatureMonths} months from it is {signatureUntil}, after your return.'], when: 'signatureCovers', source: 'travelSignature' },
+            { text: 'Travel signature: signed {signed}. {signatureMonths} months from it is {signatureUntil}, before your return on {back}.', when: '!signatureCovers', source: 'travelSignature' },
+            { text: 'EAD card: ends {cardEnd}, after your return.', when: 'cardCovers', source: 'eadEnds' },
+            { text: 'EAD card: ends {cardEnd}, before your return on {back}.', when: '!cardCovers', source: 'eadEnds' },
+            { text: '{absenceMonths} months from leaving is {fiveMonths}. Your return is {back}.', source: 'travelAbsence' },
+            { text: 'Passport valid until {passportUntil}. F-1 visa valid until {visaUntil}.' },
+            { text: 'Days away count as days without work unless on leave your employer approved or travel for the job.', when: 'purposeCounts', source: 'unemploymentAbroad' },
+          ],
+          actions: [
+            { kind: 'draft', draft: 'signature', when: '!signatureCovers' },
+            { kind: 'link', label: 'Carry these: I-20, EAD card, passport, visa', href: '#/documents' },
+            { kind: 'calendar', label: 'Add both dates to your calendar' },
+          ],
+          exits: [
+            { key: 'asked', label: 'Save to my record: signature asked {today}', when: '!signatureCovers', to: 'wait-folder', saves: 'signatureRequested',
+              receipt: 'Saved: travel signature asked {today}.' },
+            { key: 'change', label: 'Change the dates', to: 'dates', quiet: true },
+            { key: 'drop', label: 'Cancel this trip', to: 'dismissed', quiet: true, confirm: 'Drop this trip plan? The dates come off your plan.', cancel: 'Keep the trip' },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'firstAsk' }, then: 'ask-signature', ask: 'Signature requested?' },
+        },
+        'ask-signature': {
+          state: 'confirming', tag: 'A',
+          title: ['Travel signature requested? {signatureMonths} months from the last one is {signatureUntil}.', 'Travel signature requested?'],
+          actions: [{ kind: 'draft', draft: 'signature' }],
+          exits: [
+            { key: 'requested', label: 'Save to my record: signature requested {today}', to: 'wait-folder', saves: 'signatureRequested', receipt: 'Saved: travel signature requested {today}.' },
+            { key: 'signed', label: 'Save to my record: new signature added', to: 'wait-folder', by: 'fact', saves: 'signatureAdded', receipt: 'Saved: new travel signature {today}.' },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'lastAsk' }, then: 'ask-folder', ask: 'Folder on this phone?' },
+        },
+        'wait-folder': {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'Trip {leave} to {back}',
+          lines: [{ text: 'Next: {lastAsk}, the folder for this phone.' }],
+          exits: [{ key: 'change', label: 'Change the dates', to: 'dates', quiet: true }],
+          timer: { kind: 'checkin', at: { fact: 'lastAsk' }, then: 'ask-folder', ask: 'Folder on this phone?' },
+        },
+        'ask-folder': {
+          state: 'confirming', tag: 'A',
+          title: 'Carry these on this phone?',
+          lines: [{ text: 'I-20, EAD card, passport and visa, ready without a connection.' }],
+          exits: [
+            { key: 'save', label: 'Save the folder to this phone', to: 'away', saves: 'carryFolder', receipt: 'Folder saved to this phone: {folderCount} papers.' },
+            { key: 'skip', label: 'Skip the folder', to: 'away', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'back' }, then: 'confirm-return', ask: 'Back in the US? Confirm your return date.' },
+        },
+        away: {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'Away until {back}',
+          exits: [{ key: 'change', label: 'My return date changed', to: 'dates' }],
+          timer: { kind: 'checkin', at: { fact: 'back' }, then: 'confirm-return', ask: 'Back in the US? Confirm your return date.' },
+        },
+        'confirm-return': {
+          state: 'confirming', tag: 'A',
+          title: 'Back in the US? Confirm your return date.',
+          exits: [
+            { key: 'same', label: 'Save to my record: back on {back}', to: 'closed', by: 'student', outcome: 'trip', saves: 'tripDone',
+              receipt: 'Trip saved, {leave} to {back}, {daysAway} days away.' },
+            { key: 'other', label: 'Back on another day', to: 'return-date', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'confirm-return', ask: 'Back in the US? Confirm your return date.' },
+        },
+        'return-date': {
+          state: 'asking', tag: 'A',
+          title: 'The day you came back',
+          fields: [{ key: 'returned', kind: 'date', label: 'Back in the US' }],
+          exits: [
+            { key: 'save', label: ['Save to my record: back on {returned}', 'Pick the day to save it'], needs: ['returned'], to: 'closed', by: 'student', outcome: 'trip', saves: 'tripReturned',
+              receipt: 'Trip saved, {leave} to {back}, {daysAway} days away.' },
+            { key: 'back', label: 'Back', to: '@back', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'confirm-return', ask: 'Back in the US? Confirm your return date.' },
+        },
+      },
+    },
+
+    /* C. STEM OPT filing. The Today card "Decide on STEM OPT" opens it in
+       place; Yes goes to planned, not to a strip that stops. Never
+       "eligible", odds, or a date from a rule not saved with its quote. */
+    'stem-filing': {
+      version: '2026.09.2',
+      title: 'STEM OPT extension',
+      situation: 'Apply for STEM OPT',
+      cantTell: 'the filing',
+      lastBy: { card: 'Your EAD card end', recommendation: 'Your recommendation plus {withinDays} days' },
+      start: 'facts',
+      uses: ['stepback'],
+      dismiss: false,
+      obligation: { fact: 'last', source: 'stemCloses', title: 'File your I-765', metBy: ['filed'] },
+      triggers: [{ from: 'decide', key: 'stemIntent', value: 'yes' }, { from: 'ask', phrases: ['stem extension', 'stem opt', 'stem'] }, { from: 'runway', fact: 'stemOpens' }],
+      /* after: the outcomes a reason fits. "Apply after all" follows "not
+         applying"; a new employer or an evidence notice follows a filing. */
+      reopenOn: [
+        { key: 'apply', label: 'Reopen: I want to apply after all', after: ['not-applying'] },
+        { key: 'employer', label: 'Reopen: I changed employer', after: ['approved', 'denied'] },
+        { key: 'rfe', label: 'Reopen: a notice asking for evidence arrived', after: ['approved', 'denied'] },
+      ],
+      holes: ['withinDays', 'opens', 'last', 'lastBy', 'prepare', 'cip', 'employer', 'everifyChecked', 'cardUntil', 'recommended', 'receipt', 'cardFrom', 'newCardFrom', 'newCardUntil',
+        'name', 'sevisId', 'school', 'question', 'filed', 'filedOn', 'lastLead'],
+      /* Holes and flags the filing steps read (app/loops.js
+         BIND['stem-filing']):
+           lastLead    the last day minus deadlineLeadDays. Recommended
+                       2026-09-30: + 60 = 2026-11-29, - 3 = 2026-11-26;
+                       with no recommendation, 2027-02-13 - 3 = 2027-02-10.
+           filedOn     the filing day the student typed
+           filedEarly  filedOn is before the window opens (2027-02-13 - 90
+                       = 2026-11-15), so a filing saved on 2026-09-30 is
+                       outside it. Until the binder sets it, the early line
+                       and draft stay hidden and nothing else changes. */
+      drafts: {
+        recommend: { from: 'email' },
+        early: {
+          openLabel: 'Write to your DSO about the filing day',
+          to: 'Your DSO at {school}',
+          subject: 'STEM OPT filing day, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I filed my STEM OPT application on {filedOn}, receipt {receipt}. The filing window on my record opens {opens}."],
+          questions: ['Could we go over the filing day together?', 'Is there anything you need from me?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        late: {
+          openLabel: 'Write to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'STEM OPT filing, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. My EAD card ends {cardUntil}, and I have not filed my STEM OPT application."],
+          questions: ['Could we talk about my options?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        rfe: {
+          openLabel: 'Write to your DSO about the notice',
+          to: 'Your DSO at {school}',
+          subject: 'Request for evidence on my STEM OPT application, {name}',
+          paragraphs: ['Hi,', "I'm {name}. USCIS sent a request for evidence on my STEM OPT application, receipt {receipt}. It arrived {today}."],
+          questions: ['Could we go over it together?', 'Is this something to take to an immigration attorney?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        question: {
+          openLabel: 'Write the question to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'A question about STEM OPT, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I'm preparing to apply for the STEM OPT extension."],
+          questions: ['{question}'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+      },
+      steps: {
+        facts: {
+          state: 'asking', tag: 'A',
+          title: 'File your I-765 on or before {last}',
+          lines: [
+            { text: 'Window opens {opens}. {lastBy} sets the last day.', source: 'stemOpens' },
+            { text: 'Field code {cip}, on the STEM list. From your I-20.', source: 'stemList' },
+            { text: '{employer} takes part in E-Verify, checked {everifyChecked}.', source: 'stemEmployer' },
+            { text: 'The day your school recommends you can move the last day earlier.', source: 'within60' },
+          ],
+          fields: [{ key: 'recommended', kind: 'date', label: 'Day your school recommended you' }],
+          /* Receipts carry the file-by date in their own words, so the
+             engine adds no second "Next" line. Opens 2026-11-15 - 1 month =
+             2026-10-15, the training plan's start-by day. */
+          exits: [
+            { key: 'start', label: 'Start the steps: training plan first', to: 'i983',
+              receipt: 'Saved: applying for STEM OPT. File on or before {last}. Next: training plan, start by {prepare}.' },
+            { key: 'rec', label: ['Save to my record: recommended {recommended}', 'Add the recommendation day to save it'], needs: ['recommended'], to: 'file', saves: 'recommended',
+              receipt: 'Saved: recommended {recommended}. File on or before {last}.' },
+            { key: 'no', label: 'Not applying for STEM OPT this time', to: 'closed', by: 'student', outcome: 'not-applying', quiet: true,
+              confirm: 'Stop the STEM OPT steps? Your file-by date stays in Plan.', cancel: 'Cancel',
+              receipt: 'Saved: not applying for STEM OPT this time. Your EAD card ends {cardUntil}.' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'facts', ask: 'Start the STEM OPT steps?' },
+        },
+        i983: {
+          state: 'planned', tag: 'A',
+          title: 'Fill out your I-983 with your manager',
+          lines: [
+            { text: 'Start preparing by {prepare}. Window opens {opens}. File on or before {last}.', source: 'startPreparing' },
+            { text: 'You and your manager both sign it.', source: 'stemPlan' },
+          ],
+          exits: [
+            /* 2026-09-30 + 5 business days = 2026-10-07, the DSO reply day. */
+            { key: 'signed', label: 'Save to my record: I-983 signed {today}', to: 'recommend', saves: 'i983Signed',
+              receipt: "Saved: I-983 signed {today}. File on or before {last}. Next: {dsoReplyBy}, your school's recommendation." },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+            { key: 'no', label: 'Not applying for STEM OPT this time', to: 'closed', by: 'student', outcome: 'not-applying', quiet: true,
+              confirm: 'Stop the STEM OPT steps? Your file-by date stays in Plan.', cancel: 'Cancel',
+              receipt: 'Saved: not applying for STEM OPT this time. Your EAD card ends {cardUntil}.' },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'prepare' }, every: 'checkinDays', then: 'i983', ask: 'Training plan signed?' },
+        },
+        recommend: {
+          state: 'waiting', who: 'person', person: 'your DSO', tag: 'A',
+          title: 'Waiting on your DSO until {dsoReplyBy}',
+          lines: [{ text: 'Your school enters its recommendation and sends a new I-20. File within {withinDays} days of it.', source: 'within60' }],
+          fields: [{ key: 'recommended', kind: 'date', label: 'Day your school recommended you' }],
+          actions: [{ kind: 'draft', draft: 'recommend' }],
+          exits: [
+            { key: 'rec', label: ['Save to my record: recommended {recommended}', 'Add the recommendation day to save it'], needs: ['recommended'], to: 'file', by: 'fact', saves: 'recommended',
+              receipt: 'Saved: recommended {recommended}. File on or before {last}.' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'recommend-reply', ask: 'Did your DSO reply?' },
+        },
+        'recommend-reply': {
+          state: 'confirming', tag: 'A',
+          title: 'Did your school recommend you?',
+          fields: [{ key: 'recommended', kind: 'date', label: 'Day your school recommended you' }],
+          exits: [
+            { key: 'rec', label: ['Save to my record: recommended {recommended}', 'Add the recommendation day to save it'], needs: ['recommended'], to: 'file', by: 'fact', saves: 'recommended',
+              receipt: 'Saved: recommended {recommended}. File on or before {last}.' },
+            { key: 'notYet', label: 'Not yet: ask again {dsoReplyBy}', to: 'recommend' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'recommend-reply', ask: 'Did your school recommend you?' },
+        },
+        /* The receipt number is the outside fact that meets the obligation
+           (BLUEPRINT 2.3 rule 4, 2.6 C5). The filing day is optional and
+           typed, never assumed to be today, and checked against the window:
+           a day before it opens is said once, in full, with the DSO draft
+           beside it (filedEarly). */
+        file: {
+          state: 'planned', tag: 'A',
+          title: 'File your I-765 on or before {last}',
+          lines: [
+            { text: 'Window opens {opens}. {lastBy} sets the last day.', source: 'within60' },
+            { text: 'Filed {filedOn}, before the window opens on {opens}. This is a question for your DSO.', when: 'filedEarly', threat: true },
+            { text: 'Add the filing day and the receipt number from your USCIS notice once you file.' },
+          ],
+          fields: [
+            { key: 'filedOn', kind: 'date', label: 'Day you filed' },
+            { key: 'receipt', kind: 'receipt', label: 'Receipt number', placeholder: 'Three letters and ten digits' },
+          ],
+          actions: [
+            { kind: 'draft', draft: 'early', when: 'filedEarly' },
+            { kind: 'link', label: 'Where to file: Form I-765 on uscis.gov', href: 'https://www.uscis.gov/i-765' },
+            { kind: 'calendar', label: 'Add both dates to your calendar' },
+          ],
+          exits: [
+            { key: 'filed', label: ['Save to my record: filed {filedOn}, receipt {receipt}', 'Save to my record: receipt {receipt}', 'Add the receipt number to save it'], needs: ['receipt'], to: 'decision', by: 'fact', saves: 'filed',
+              receipt: ['Saved: filed {filedOn}, receipt {receipt}. USCIS status shows it on Today.', 'Saved: filed, receipt {receipt}. USCIS status shows it on Today.'] },
+            { key: 'remind', label: ['Remind me on {lastLead} and {last}', 'Remind me before {last}'], to: 'file-wait', receipt: '{remindReceipt}' },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'last', minus: 'lead' }, then: 'file-confirm', ask: 'Filed? The last day is {last}.' },
+        },
+        'file-wait': {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'File your I-765 on or before {last}',
+          lines: [
+            { text: ['Reminders: {lastLead} and {last}.', 'Window opens {opens}.'] },
+            { text: 'Filed {filedOn}, before the window opens on {opens}. This is a question for your DSO.', when: 'filedEarly', threat: true },
+          ],
+          fields: [
+            { key: 'filedOn', kind: 'date', label: 'Day you filed' },
+            { key: 'receipt', kind: 'receipt', label: 'Receipt number', placeholder: 'Three letters and ten digits' },
+          ],
+          actions: [
+            { kind: 'draft', draft: 'early', when: 'filedEarly' },
+            { kind: 'link', label: 'Where to file: Form I-765 on uscis.gov', href: 'https://www.uscis.gov/i-765' },
+            { kind: 'calendar', label: 'Add both dates to your calendar' },
+          ],
+          exits: [
+            { key: 'filed', label: ['Save to my record: filed {filedOn}, receipt {receipt}', 'Save to my record: receipt {receipt}', 'Add the receipt number to save it'], needs: ['receipt'], to: 'decision', by: 'fact', saves: 'filed',
+              receipt: ['Saved: filed {filedOn}, receipt {receipt}. USCIS status shows it on Today.', 'Saved: filed, receipt {receipt}. USCIS status shows it on Today.'] },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'last', minus: 'lead' }, then: 'file-confirm', ask: 'Filed? The last day is {last}.' },
+        },
+        'file-confirm': {
+          state: 'confirming', tag: 'A',
+          title: 'Filed? The last day is {last}.',
+          lines: [{ text: 'Filed {filedOn}, before the window opens on {opens}. This is a question for your DSO.', when: 'filedEarly', threat: true }],
+          fields: [
+            { key: 'filedOn', kind: 'date', label: 'Day you filed' },
+            { key: 'receipt', kind: 'receipt', label: 'Receipt number', placeholder: 'Three letters and ten digits' },
+          ],
+          actions: [{ kind: 'draft', draft: 'early', when: 'filedEarly' }, { kind: 'link', label: 'Where to file: Form I-765 on uscis.gov', href: 'https://www.uscis.gov/i-765' }],
+          exits: [
+            { key: 'filed', label: ['Save to my record: filed {filedOn}, receipt {receipt}', 'Save to my record: receipt {receipt}', 'Add the receipt number to save it'], needs: ['receipt'], to: 'decision', by: 'fact', saves: 'filed',
+              receipt: ['Saved: filed {filedOn}, receipt {receipt}. USCIS status shows it on Today.', 'Saved: filed, receipt {receipt}. USCIS status shows it on Today.'] },
+            { key: 'notYet', label: 'Not yet: remind me on {last}', to: 'file', snooze: { limit: 'last' } },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'last', plus: 1 }, then: 'file-passed', ask: 'Filed? The last day was {last}.' },
+        },
+        'file-passed': {
+          state: 'confirming', tag: 'B', threat: true, once: true,
+          title: 'The last day to file was {last}. Today is {today}.',
+          short: 'Last day to file was {last}: a question for your DSO',
+          lines: [{ text: 'This is a question for your DSO.', threat: true }],
+          fields: [
+            { key: 'filedOn', kind: 'date', label: 'Day you filed, if you filed' },
+            { key: 'receipt', kind: 'receipt', label: 'Receipt number, if you filed', placeholder: 'Three letters and ten digits' },
+          ],
+          actions: [{ kind: 'draft', draft: 'late' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+          exits: [
+            { key: 'filed', label: ['Save to my record: filed {filedOn}, receipt {receipt}', 'Save to my record: receipt {receipt}', 'Add the receipt number if you filed'], needs: ['receipt'], to: 'decision', by: 'fact', saves: 'filed',
+              receipt: ['Saved: filed {filedOn}, receipt {receipt}.', 'Saved: filed, receipt {receipt}.'] },
+            { key: 'asked', label: 'Save to my record: asked my DSO {today}', to: 'dso-wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'file-passed', ask: 'Filed, or asked your DSO?' },
+        },
+        decision: {
+          state: 'waiting', who: 'event', person: 'USCIS', tag: 'A',
+          title: 'Waiting on USCIS: receipt {receipt}',
+          lines: [{ text: ['Filed {filed}. The status line sits on Today.', 'The status line sits on Today.'] }],
+          fields: [
+            { key: 'newCardFrom', kind: 'date', label: 'New card valid from' },
+            { key: 'newCardUntil', kind: 'date', label: 'New card valid until' },
+          ],
+          actions: [
+            { kind: 'link', label: 'Check case status on USCIS', href: 'https://egov.uscis.gov/' },
+            { kind: 'link', label: 'Add the approval notice and the new card to Papers', href: '#/documents/add' },
+          ],
+          exits: [
+            /* Closed when the approval arrives and the dates on the new card
+               are typed and confirmed (BLUEPRINT 2.6 C6). Closing opens its
+               children: the validation reports and evaluations, each its own
+               loop. */
+            { key: 'approved', label: ['Save to my record: approved, new card {newCardFrom} to {newCardUntil}', 'Add the dates on the new card to save it'], needs: ['newCardFrom', 'newCardUntil'],
+              to: 'closed', by: 'fact', outcome: 'approved', saves: 'newCard', spawn: [{ kind: 'report-owed', report: 'stem' }],
+              receipt: 'Done. Approval saved, new card valid {newCardFrom} to {newCardUntil}. Report dates for STEM OPT are now on your plan.' },
+            { key: 'rfe', label: 'A notice asking for more evidence arrived', to: 'rfe', saves: 'rfe', receipt: 'Saved: a request for evidence arrived {today}.' },
+            { key: 'denied', label: 'A denial notice arrived', to: 'denied', saves: 'denied', receipt: 'Saved: a denial notice arrived {today}.' },
+          ],
+          timer: { kind: 'checkin', at: { days: 30 }, then: 'decision', ask: 'Any notice from USCIS?' },
+        },
+        rfe: {
+          state: 'waiting', who: 'person', person: 'your DSO or an attorney', tag: 'B',
+          title: 'Waiting on your DSO or an attorney until {dsoReplyBy}',
+          lines: [{ text: 'A request for evidence arrived {today}. This is a question for your DSO or an immigration attorney.' }],
+          actions: [{ kind: 'draft', draft: 'rfe' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+          exits: [{ key: 'sent', label: 'Save to my record: response sent {today}', to: 'decision', saves: 'rfeAnswered', receipt: 'Saved: response sent {today}. Waiting on USCIS.' }],
+          timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'rfe', ask: 'Did your DSO or attorney reply?' },
+        },
+        denied: {
+          state: 'waiting', who: 'person', person: 'your DSO or an attorney', tag: 'B', once: true,
+          title: 'A denial notice arrived {today}. This is a question for your DSO or an immigration attorney.',
+          short: 'Denial notice saved: a question for your DSO',
+          actions: [{ kind: 'draft', draft: 'late' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+          exits: [{ key: 'spoke', label: 'Save to my record: spoke with my DSO {today}', to: 'closed', by: 'student', outcome: 'denied',
+            receipt: 'Denial notice saved. Talk with your DSO saved {today}.' }],
+          timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'denied', ask: 'Did your DSO or attorney reply?' },
+        },
+      },
+    },
+
+    /* D. Address change. No date and no "10 days" figure (BLUEPRINT 2.6 D):
+       8 CFR 214.2(f)(17) is decided (D74) but not yet a saved rule with its
+       quote, and the only source here is Study in the States guidance. So the
+       step says "Your DSO can confirm the deadline" and drafts the update.
+       The obligation reads ruleDue, which the engine binds only once the
+       (f)(17) rule is saved; until then the deadline timers fall back to a
+       check-in a week on (2026-09-30 + 7 = 2026-10-07) and nothing is
+       guaranteed by a date Duly does not have. When the rule lands, the
+       templates gain the date and open address loops reopen to show it. */
+    address: {
+      version: '2026.09.2',
+      title: 'New address',
+      situation: 'I moved',
+      cantTell: 'the school update',
+      start: 'new-address',
+      uses: ['stepback'],
+      dismiss: false,
+      obligation: { fact: 'ruleDue', source: 'reportChanges', title: 'Tell your school your new address', optional: true, metBy: ['addressTold'] },
+      triggers: [{ from: 'ask', phrases: ['i moved', 'moved', 'new address', 'change my address', 'moving'] }, { from: 'record', fact: 'address' }],
+      reopenOn: [{ key: 'rule', label: 'Reopen: the address rule was saved' }],
+      holes: ['address', 'moved', 'movedLong', 'oldAddress', 'ruleDue', 'name', 'sevisId', 'school', 'question'],
+      drafts: {
+        address: {
+          openLabel: 'Write to your school',
+          to: 'Your DSO at {school}',
+          subject: 'New address, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I moved on {movedLong}. My new address is {address}."],
+          questions: ['Could you update my record?', 'Is there a deadline for this update?', 'Is there anything else you need from me?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        question: {
+          openLabel: 'Write the question to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'A question about my address, {name}',
+          paragraphs: ['Hi,', "I'm {name}. I moved on {movedLong}."],
+          questions: ['{question}'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+      },
+      steps: {
+        'new-address': {
+          state: 'asking', tag: 'A',
+          title: 'Your new address',
+          lines: [{ text: 'On your record now: {oldAddress}.' }],
+          fields: [
+            { key: 'address', kind: 'text', label: 'New address' },
+            { key: 'moved', kind: 'date', label: 'Moved on' },
+          ],
+          exits: [
+            { key: 'save', label: ['Save to my record: new address from {moved}', 'Add the address and the day to save it'], needs: ['address', 'moved'], to: 'tell', saves: 'address',
+              receipt: 'Saved: new address from {moved}.' },
+            { key: 'none', label: 'Not moving after all', to: 'closed', by: 'student', outcome: 'no-change', quiet: true, receipt: 'Nothing saved. Your address stays {oldAddress}.' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'new-address', ask: 'Add your new address?' },
+        },
+        tell: {
+          state: 'planned', tag: 'A',
+          title: 'Tell your school about your new address. Your DSO can confirm the deadline.',
+          lines: [{ text: 'Saved: new address from {moved}.' }],
+          actions: [{ kind: 'draft', draft: 'address' }],
+          exits: [
+            { key: 'told', label: 'Save to my record: school told {today}', to: 'closed', by: 'student', outcome: 'told', saves: 'addressTold',
+              receipt: 'Done. New address saved from {moved}. School told {today}.' },
+            { key: 'remind', label: 'Remind me in a week', to: 'wait', receipt: '{remindReceipt}' },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'ruleDue', minus: 'lead' }, then: 'confirm', ask: 'Updated with your school?', fallback: { kind: 'checkin', at: { days: 7 } } },
+        },
+        wait: {
+          state: 'waiting', who: 'date', tag: 'A',
+          title: 'Tell your school about your new address',
+          lines: [{ text: 'Your DSO can confirm the deadline.' }],
+          actions: [{ kind: 'draft', draft: 'address' }],
+          exits: [{ key: 'told', label: 'Save to my record: school told {today}', to: 'closed', by: 'student', outcome: 'told', saves: 'addressTold',
+            receipt: 'Done. New address saved from {moved}. School told {today}.' }],
+          timer: { kind: 'deadline', at: { fact: 'ruleDue', minus: 'lead' }, then: 'confirm', ask: 'Updated with your school?', fallback: { kind: 'checkin', at: { days: 7 } } },
+        },
+        confirm: {
+          state: 'confirming', tag: 'A',
+          title: 'Updated with your school?',
+          actions: [{ kind: 'draft', draft: 'address' }],
+          exits: [
+            { key: 'told', label: 'Save to my record: school told {today}', to: 'closed', by: 'student', outcome: 'told', saves: 'addressTold',
+              receipt: 'Done. New address saved from {moved}. School told {today}.' },
+            { key: 'notYet', label: ['Not yet: remind me on {ruleDue}', 'Not yet: ask again in a week'], to: 'wait', snooze: { limit: 'ruleDue' } },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'ruleDue', plus: 1 }, then: 'passed', ask: 'Updated with your school?', fallback: { kind: 'checkin', at: { days: 7 }, then: 'confirm' } },
+        },
+        /* Reached only once ruleDue is bound (the saved (f)(17) rule). */
+        passed: {
+          state: 'confirming', tag: 'B', threat: true, once: true,
+          title: ['The day to tell your school was {ruleDue}. Today is {today}.', 'Tell your school about your new address. Your DSO can confirm the deadline.'],
+          short: ['Address day was {ruleDue}: a question for your DSO', 'Address update: a question for your DSO'],
+          lines: [{ text: 'This is a question for your DSO.', threat: true }],
+          actions: [{ kind: 'draft', draft: 'address' }],
+          exits: [
+            { key: 'told', label: 'Save to my record: school told {today}', to: 'closed', by: 'student', outcome: 'told', saves: 'addressTold',
+              receipt: 'Done. New address saved from {moved}. School told {today}.' },
+            { key: 'asked', label: 'Save to my record: asked my DSO {today}', to: 'dso-wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'passed', ask: 'Updated with your school?' },
+        },
+      },
+    },
+
+    /* E. Lost document. No replacement procedure is saved in the F-1 pack,
+       so none is invented: the copy, then the DSO. */
+    'lost-paper': {
+      version: '2026.09.2',
+      title: ['Lost {paperLower}', 'A lost paper'],
+      situation: 'I lost a paper',
+      cantTell: 'the replacement',
+      whereLines: { in: 'I am in the US now.', out: 'I am outside the US now.' },
+      start: 'which',
+      dismiss: true,
+      triggers: [{ from: 'papers', action: 'I lost a paper' }, { from: 'ask', phrases: ['lost my passport', 'lost my i-20', 'lost my ead', 'lost my card', 'lost my visa', 'lost a paper', 'stolen'] }],
+      reopenOn: [{ key: 'again', label: 'Reopen: the new paper has a problem' }],
+      holes: ['paper', 'paperLower', 'copySaved', 'copyHref', 'whereLine', 'newUntil', 'today', 'name', 'sevisId', 'school'],
+      papers: [
+        { value: 'passport', label: 'Passport', doc: 'passport' },
+        { value: 'ead', label: 'EAD card', doc: 'ead-card' },
+        { value: 'i20', label: 'I-20', doc: 'i20-opt' },
+        { value: 'visa', label: 'F-1 visa', doc: 'f1-visa' },
+        { value: 'i94', label: 'I-94', doc: 'i94' },
+        /* Papers adds an "I lost this" entry on each immigration paper it
+           keeps; these four are the rest of Priya's. The degree, transcripts
+           and offer letter come from the school or employer, not the DSO, so
+           this guide does not cover them. */
+        { value: 'i797', label: 'I-797 approval notice', doc: 'i797' },
+        { value: 'i20-cpt-lumen', label: 'I-20 for CPT at Lumen Labs', doc: 'i20-cpt-lumen' },
+        { value: 'i20-cpt-acme', label: 'I-20 for CPT at Acme Robotics', doc: 'i20-cpt-acme' },
+        { value: 'i20-start', label: 'Initial I-20', doc: 'i20-start' },
+      ],
+      drafts: {
+        reissue: {
+          openLabel: 'Ask your DSO about a replacement',
+          to: 'Your DSO at {school}',
+          subject: 'Lost {paperLower}, {name}',
+          paragraphs: ['Hi,', "I'm {name}, on post-completion OPT. I lost my {paperLower}. {whereLine}"],
+          questions: ['How do I get a replacement?', 'Is there anything you need from me in the meantime?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+      },
+      steps: {
+        which: {
+          state: 'asking', tag: 'A',
+          title: 'Which paper, and where are you?',
+          fields: [
+            { key: 'paper', kind: 'choice', label: 'Paper', optionsFrom: 'papers' },
+            { key: 'where', kind: 'choice', label: 'You are', options: [{ value: 'in', label: 'Inside the US' }, { value: 'out', label: 'Outside the US' }] },
+          ],
+          exits: [
+            { key: 'save', label: ['Save to my record: {paperLower} reported lost {today}', 'Pick the paper and where you are'], needs: ['paper', 'where'], to: 'copy', saves: 'lost',
+              receipt: 'Saved: {paperLower} reported lost {today}. Its dates keep their reminders until a new one is added.' },
+            { key: 'found', label: 'Found it: nothing to save', to: 'dismissed', quiet: true, confirm: 'Drop this? Nothing is saved.', cancel: 'Cancel' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'which', ask: 'Which paper did you lose?' },
+        },
+        /* The copy's saved date is the paper's "This version" date in
+           Papers (I-20 for OPT: Mar 2, 2026; passport: Mar 3, 2026). */
+        copy: {
+          state: 'planned', tag: 'A',
+          title: 'Your copy of the {paperLower} is here',
+          lines: [
+            { text: ['A copy saved {copySaved}, with its number and dates. It opens on this phone without a connection.', 'A copy is in Papers, with its number and dates. It opens on this phone without a connection.'] },
+            { text: 'No replacement steps are saved for this paper yet, so the next step is a question for your DSO.' },
+          ],
+          actions: [{ kind: 'link', label: 'Open the copy', fact: 'copyHref' }, { kind: 'draft', draft: 'reissue' }],
+          exits: [
+            { key: 'asked', label: 'Save to my record: asked my DSO {today}', to: 'wait', saves: 'askedDso', receipt: 'Saved: question sent to your DSO {today}.' },
+            { key: 'arrived', label: 'Add the new {paperLower}', to: 'confirm-new' },
+            { key: 'found', label: 'Found the old one', to: 'closed', by: 'student', outcome: 'found', quiet: true, saves: 'foundPaper', receipt: 'Saved: {paperLower} found {today}. The lost mark is off.' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'arrived', ask: 'Replacement arrived?' },
+        },
+        wait: {
+          state: 'waiting', who: 'event', person: 'the new {paperLower}', tag: 'A',
+          title: 'Waiting on the new {paperLower}',
+          exits: [
+            { key: 'arrived', label: 'Add the new {paperLower}', to: 'confirm-new' },
+            { key: 'found', label: 'Found the old one', to: 'closed', by: 'student', outcome: 'found', quiet: true, saves: 'foundPaper', receipt: 'Saved: {paperLower} found {today}. The lost mark is off.' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'arrived', ask: 'Replacement arrived?' },
+        },
+        arrived: {
+          state: 'confirming', tag: 'A',
+          title: 'Replacement arrived?',
+          exits: [
+            { key: 'yes', label: 'Add the new {paperLower}', to: 'confirm-new' },
+            { key: 'notYet', label: 'Not yet: ask again {nextCheck}', to: 'wait' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'arrived', ask: 'Replacement arrived?' },
+        },
+        /* Closed when the new paper is added and confirmed (BLUEPRINT 2.6
+           E5): its date typed from the paper and saved. The receipt lists
+           what moved; the old paper stays marked lost. */
+        'confirm-new': {
+          state: 'confirming', tag: 'A',
+          title: 'The new {paperLower}',
+          fields: [{ key: 'newUntil', kind: 'date', label: 'Valid until, on the new paper' }],
+          actions: [{ kind: 'link', label: 'Add the paper to Papers', href: '#/documents/add' }],
+          exits: [
+            { key: 'save', label: ['Save to my record: new {paperLower}, valid until {newUntil}', 'Add the date on the new paper to save it'], needs: ['newUntil'], to: 'closed', by: 'fact', outcome: 'replaced', saves: 'replaced',
+              receipt: 'Done. New {paperLower} saved, valid until {newUntil}. The old one stays marked lost.' },
+            { key: 'back', label: 'Back', to: '@back', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'confirm-new', ask: 'Add the new {paperLower}?' },
+        },
+      },
+    },
+
+    /* Crisis and enforcement (BLUEPRINT 2.7). A fixed screen, never
+       generated, no dates and no verdict. Matched before any guide. Nothing
+       from it is written to Your record (private: true; BLUEPRINT 3.4).
+       To be reviewed by a clinician and an attorney before it ships. */
+    crisis: {
+      version: '2026.09.2',
+      title: 'Help now',
+      start: 'help',
+      private: true,
+      fixed: true,
+      dismiss: true,
+      literals: ['988'],
+      review: 'clinician and attorney, before it ships',
+      triggers: [{ from: 'ask', crisis: true }],
+      holes: ['school', 'officeName', 'today', 'keepAsk'],
+      steps: {
+        help: {
+          state: 'open', tag: 'fixed',
+          title: 'Help is here, now.',
+          lines: [
+            { text: 'Call or text 988, any time, day or night.' },
+            { text: 'Your {officeName} at {school}.' },
+            { text: 'Talk to an immigration attorney now.' },
+          ],
+          actions: [
+            { kind: 'link', label: 'Call 988', contact: 'lifeline', part: 'call' },
+            { kind: 'link', label: 'Text 988', contact: 'lifeline', part: 'text' },
+            { kind: 'link', label: 'Open the {officeName} page', contact: 'schoolOffice' },
+            { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' },
+            { kind: 'start', label: 'Save the notice and the day it arrived', loop: 'notice', when: 'notice' },
+          ],
+          exits: [
+            { key: 'keep', label: 'Keep these on Today', to: 'keep' },
+            { key: 'close', label: 'Close this', to: 'dismissed', quiet: true, confirm: 'Take these off the screen? Ask finds them again any time.', cancel: 'Cancel' },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'keepAsk' }, then: 'check', ask: 'Still want these on Today?' },
+        },
+        /* Kept on Today: the same help, no date, no timer line, no receipt
+           (BLUEPRINT 2.7). keepAsk is never bound, so the timer never sets a
+           date: the screen stays until the student takes it off. Its only
+           purpose is the check step the student can still be asked from. */
+        keep: {
+          state: 'open', tag: 'fixed',
+          title: 'Help is here, now.',
+          lines: [
+            { text: 'Call or text 988, any time, day or night.' },
+            { text: 'Your {officeName} at {school}.' },
+            { text: 'Talk to an immigration attorney now.' },
+          ],
+          actions: [
+            { kind: 'link', label: 'Call 988', contact: 'lifeline', part: 'call' },
+            { kind: 'link', label: 'Text 988', contact: 'lifeline', part: 'text' },
+            { kind: 'link', label: 'Open the {officeName} page', contact: 'schoolOffice' },
+            { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' },
+          ],
+          exits: [{ key: 'off', label: 'Take these off Today', to: 'closed', by: 'student', outcome: 'off', quiet: true,
+            confirm: 'Take these off Today? Ask finds them again any time.', cancel: 'Cancel' }],
+          timer: { kind: 'checkin', at: { fact: 'keepAsk' }, then: 'check', ask: 'Still want these on Today?' },
+        },
+        check: {
+          state: 'confirming', tag: 'fixed',
+          title: 'Still want these on Today?',
+          exits: [
+            { key: 'keep', label: 'Keep these on Today', to: 'keep' },
+            { key: 'off', label: 'Take these off Today', to: 'closed', by: 'student', outcome: 'off' },
+          ],
+          timer: { kind: 'checkin', at: { fact: 'keepAsk' }, then: 'check', ask: 'Still want these on Today?' },
+        },
+      },
+    },
+
+    /* A notice received: SEVIS termination or visa revocation (BLUEPRINT
+       2.7). Save the notice, record the day it arrived, drafts to the DSO and
+       an attorney. No consequence is stated, ever. */
+    notice: {
+      version: '2026.09.1',
+      title: ['Notice: {kindLabel}', 'A notice'],
+      situation: 'I got a notice',
+      literals: ['988'],
+      cantTell: 'a reply',
+      start: 'notice',
+      dismiss: true,
+      triggers: [{ from: 'crisis', action: 'notice' }, { from: 'papers', action: 'Add a notice' }],
+      holes: ['kindLabel', 'kindLower', 'arrived', 'arrivedLong', 'name', 'sevisId', 'school', 'today'],
+      kinds: [
+        { value: 'sevis', label: 'SEVIS record terminated' },
+        { value: 'visa', label: 'Visa revoked' },
+        { value: 'other', label: 'Another notice' },
+      ],
+      drafts: {
+        dso: {
+          openLabel: 'Write to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'A notice I received, {name}',
+          paragraphs: ['Hi,', "I'm {name}, an F-1 student at {school}. I received a notice: {kindLower}. It arrived on {arrivedLong}."],
+          questions: ['Could we talk about it as soon as possible?', 'What do you need from me?'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+        attorney: {
+          openLabel: 'Write to an immigration attorney',
+          to: 'An immigration attorney',
+          subject: 'Consultation request, {name}',
+          paragraphs: ['Hello,', "I'm {name}, an F-1 student at {school}. I received a notice: {kindLower}. It arrived on {arrivedLong}."],
+          questions: ['Could I book a consultation about it?', 'What should I bring?'],
+          signoff: ['Thank you,', '{name}'],
+        },
+      },
+      steps: {
+        notice: {
+          state: 'asking', tag: 'B',
+          title: 'Save the notice',
+          lines: [{ text: 'Help now: call or text 988, any time.' }],
+          fields: [
+            { key: 'kind', kind: 'choice', label: 'The notice', optionsFrom: 'kinds' },
+            { key: 'arrived', kind: 'date', label: 'The day it arrived' },
+          ],
+          actions: [{ kind: 'link', label: 'Add the notice to Papers', href: '#/documents/add' }],
+          exits: [
+            { key: 'save', label: ['Save to my record: {kindLabel}, arrived {arrived}', 'Pick the notice and the day it arrived'], needs: ['kind', 'arrived'], to: 'handoff', saves: 'notice',
+              receipt: 'Saved: {kindLabel}, arrived {arrived}.' },
+            { key: 'close', label: 'Close without saving', to: 'dismissed', quiet: true, confirm: 'Close without saving the notice?', cancel: 'Cancel' },
+          ],
+          timer: { kind: 'checkin', at: { days: 1 }, then: 'notice', ask: 'Save the notice?' },
+        },
+        handoff: {
+          state: 'waiting', who: 'person', person: 'your DSO and an attorney', tag: 'B',
+          title: 'Waiting on your DSO and an attorney until {dsoReplyBy}',
+          lines: [{ text: 'Saved: {kindLabel}, arrived {arrived}.' }, { text: 'This is a question for your DSO and an immigration attorney.' }],
+          actions: [{ kind: 'draft', draft: 'dso' }, { kind: 'draft', draft: 'attorney' }, { kind: 'link', label: 'Find an immigration attorney', contact: 'attorney' }],
+          exits: [
+            { key: 'dso', label: 'Save to my record: spoke with my DSO {today}', to: 'closed', by: 'student', outcome: 'dso', saves: 'spokeDso',
+              receipt: 'Notice saved, arrived {arrived}. Talk with your DSO saved {today}.' },
+            { key: 'attorney', label: 'Save to my record: spoke with an attorney {today}', to: 'closed', by: 'student', outcome: 'attorney', saves: 'spokeAttorney',
+              receipt: 'Notice saved, arrived {arrived}. Talk with an attorney saved {today}.' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'reply', ask: 'Did your DSO or an attorney reply?' },
+        },
+        reply: {
+          state: 'confirming', tag: 'B',
+          title: 'Did your DSO or an attorney reply?',
+          exits: [
+            { key: 'dso', label: 'Save to my record: spoke with my DSO {today}', to: 'closed', by: 'student', outcome: 'dso', saves: 'spokeDso',
+              receipt: 'Notice saved, arrived {arrived}. Talk with your DSO saved {today}.' },
+            { key: 'attorney', label: 'Save to my record: spoke with an attorney {today}', to: 'closed', by: 'student', outcome: 'attorney', saves: 'spokeAttorney',
+              receipt: 'Notice saved, arrived {arrived}. Talk with an attorney saved {today}.' },
+            { key: 'notYet', label: 'No reply yet: ask again {dsoReplyBy}', to: 'handoff' },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'dsoReplyBusinessDays', businessDays: true }, then: 'reply', ask: 'Did your DSO or an attorney reply?' },
+        },
+      },
+    },
+
+    /* The job check-in (VALUE-2 feature 5, now a loop). Opened by a stale
+       fact. "Still at Northwind" closes it with a receipt; "My job ended"
+       hands over to the job-ends loop. */
+    checkin: {
+      version: '2026.09.2',
+      title: 'Check-in: {employer}',
+      cantTell: 'days without work',
+      start: 'ask',
+      dismiss: false,
+      triggers: [{ from: 'stale', fact: 'job.confirmedOn', days: 'checkin.jobDays' }],
+      holes: ['employer', 'hours', 'confirmedOn', 'nextCheckin', 'newHours', 'hoursFrom', 'today', 'minHours'],
+      /* hoursBelow (app/loops.js BIND.checkin): the new hours are fewer than
+         opt.min_hours_per_week (15 < 20). Then the save says those days count
+         as days without work and opens the count (job-ends at its count
+         step, reason hours). Until the binder sets it, the plain save runs
+         and the rule line above the fields says the same thing. */
+      steps: {
+        ask: {
+          state: 'confirming', tag: 'A',
+          title: 'Still at {employer}, about {hours} hours a week?',
+          lines: [{ text: 'Last confirmed {confirmedOn}. Your count is as of that day.', source: 'unemployment' }],
+          exits: [
+            { key: 'same', label: 'Still at {employer}', to: 'closed', by: 'student', outcome: 'same', saves: 'checkinYes',
+              receipt: 'Confirmed {today}. Next check-in: {nextCheckin}.' },
+            { key: 'ended', label: 'My job ended', to: 'closed', by: 'student', outcome: 'ended', spawn: [{ kind: 'job-ends' }],
+              receipt: 'Check-in closed: job ending. Next: your last day at {employer}.' },
+            { key: 'hours', label: 'My hours changed', to: 'hours', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'ask', ask: 'Still at {employer}, about {hours} hours a week?' },
+        },
+        hours: {
+          state: 'asking', tag: 'A',
+          title: 'Your hours at {employer}',
+          lines: [{ text: 'A job of at least {minHours} hours a week stops the count. Fewer: those days count as days without work.', source: 'optHours' }],
+          fields: [
+            { key: 'newHours', kind: 'number', label: 'Hours a week' },
+            { key: 'hoursFrom', kind: 'date', label: 'From' },
+          ],
+          exits: [
+            { key: 'save', label: ['Save to my record: {newHours} hours a week from {hoursFrom}', 'Add the hours and the day to save it'], needs: ['newHours', 'hoursFrom'], when: '!hoursBelow',
+              to: 'closed', by: 'student', outcome: 'hours', saves: 'hours', spawn: [{ kind: 'report-owed', report: 'job-hours' }],
+              receipt: 'Saved: {newHours} hours a week at {employer} from {hoursFrom}.' },
+            { key: 'saveBelow', label: ['Save to my record: {newHours} hours a week from {hoursFrom}', 'Add the hours and the day to save it'], needs: ['newHours', 'hoursFrom'], when: 'hoursBelow',
+              to: 'closed', by: 'student', outcome: 'hours', saves: 'hours', spawn: [{ kind: 'report-owed', report: 'job-hours' }, { kind: 'job-ends', start: 'count', reason: 'hours' }],
+              receipt: 'Saved: {newHours} hours a week at {employer} from {hoursFrom}. Fewer than {minHours} hours a week: those days count as days without work.' },
+            { key: 'back', label: 'Back', to: '@back', quiet: true },
+          ],
+          timer: { kind: 'checkin', at: { setting: 'newFactDays' }, then: 'ask', ask: 'Still at {employer}, about {hours} hours a week?' },
+        },
+      },
+    },
+
+    /* A dated report the student owes: the children of other loops (a new
+       job's report, STEM OPT validation reports and evaluations). The due
+       date and its rule come from App.reportsOwed(), never from here. */
+    'report-owed': {
+      version: '2026.09.2',
+      title: '{reportTitle}',
+      cantTell: 'the report',
+      start: 'owed',
+      child: true,
+      uses: ['stepback'],
+      dismiss: false,
+      obligation: { fact: 'due', source: '@report', title: '{reportTitle}', metBy: ['reportOwedMade'] },
+      triggers: [{ from: 'loop', event: 'closed or saved' }, { from: 'engine', fact: 'reportsOwed' }],
+      holes: ['reportTitle', 'due', 'reportLead', 'name', 'sevisId', 'school', 'question'],
+      /* notYetDue (app/loops.js BIND['report-owed']): the event the report
+         is about has not happened yet (row.from after today: Acme starts
+         2026-11-20; the first validation report is counted from
+         2027-08-14). Then "report made" is not offered. Until the binder
+         sets it, '!notYetDue' reads true and nothing is hidden. */
+      drafts: {
+        question: {
+          openLabel: 'Write the question to your DSO',
+          to: 'Your DSO at {school}',
+          subject: 'A question about a report, {name}',
+          paragraphs: ['Hi,', "I'm {name}. This is about: {reportTitle}, due {due}."],
+          questions: ['{question}'],
+          signoff: ['Thank you,', '{name}', 'SEVIS ID {sevisId}'],
+        },
+      },
+      steps: {
+        owed: {
+          state: 'planned', tag: 'A',
+          title: ['{reportTitle} on or before {due}', '{reportTitle}'],
+          lines: [{ text: ['Reminders: {reportLead} and {due}.', 'The date shows once the dates it is counted from are on your record.'], source: '@report' }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', when: '!notYetDue', to: 'closed', by: 'student', outcome: 'made', saves: 'reportOwedMade', receipt: 'Done. {reportTitle}: marked made {today}.' },
+            { key: 'dso', label: 'Ask my DSO a question', to: 'dso-ask', quiet: true },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'due', minus: 'lead' }, then: 'confirm', ask: 'Made? The day is {due}.', fallback: { kind: 'checkin', at: { setting: 'checkinDays' } } },
+        },
+        confirm: {
+          state: 'confirming', tag: 'A',
+          title: 'Made? The day is {due}.',
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', to: 'closed', by: 'student', outcome: 'made', saves: 'reportOwedMade', receipt: 'Done. {reportTitle}: marked made {today}.' },
+            { key: 'notYet', label: 'Not yet: remind me on {due}', to: 'owed', snooze: { limit: 'due' } },
+          ],
+          timer: { kind: 'deadline', at: { fact: 'due', plus: 1 }, then: 'passed', ask: 'Made? The day was {due}.', fallback: { kind: 'checkin', at: { setting: 'checkinDays' }, then: 'confirm' } },
+        },
+        passed: {
+          state: 'confirming', tag: 'B', threat: true, once: true,
+          title: 'The day was {due}. Today is {today}.',
+          short: '{reportTitle}: the day was {due}',
+          lines: [{ text: 'This is a question for your DSO.', threat: true }],
+          exits: [
+            { key: 'made', label: 'Save to my record: report made {today}', to: 'closed', by: 'student', outcome: 'made', saves: 'reportOwedMade', receipt: 'Done. {reportTitle}: marked made {today}.' },
+            { key: 'asked', label: 'Ask my DSO a question', to: 'dso-ask' },
+          ],
+          timer: { kind: 'checkin', at: { days: 7 }, then: 'passed', ask: 'Made, or asked your DSO?' },
+        },
+      },
+    },
+  },
+};
+/* ===== END LOOPS ===== */

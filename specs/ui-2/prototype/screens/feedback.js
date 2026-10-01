@@ -56,7 +56,7 @@ window.SCREENS['feedback'] = {
         key: 'feedback',
         rows: 5,
         value: draft,
-        label: 'What should we do better?',
+        label: 'What should Duly do better?',
         placeholder: 'The dates on Home were clear, but',
       }) +
       '<div class="btn-row">' +

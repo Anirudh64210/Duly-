@@ -10,23 +10,49 @@
   /* Shell                                                              */
   /* ---------------------------------------------------------------- */
 
-  /* Navigation (Round 3, note 7): human labels, each distinct from the rest.
-     Old routes redirect (App.ALIASES in app.js): next and checklists go to
-     steps, applications to uscis. Tab and sidebar use the same label;
-     Timeline lives in Menu on a phone. */
+  /* Navigation (BLUEPRINT 3.1, Duly 2): four places, the same four in the
+     sidebar and the phone's tab bar, then Settings and Feedback quietly at
+     the bottom. Ask is an entry, not a place (app/ask.js puts it at the top
+     of the sidebar and in the phone's top bar).
+       name      the place's own route
+       routes    every route that belongs to the place: the nav item shows
+                 as current on each, and a waiting dot on any of them shows
+                 on the place
+       fallback  the route the item opens while the place's own screen is not
+                 registered (the older page that holds the same things)
+     Old routes keep working: each page that took a place's job sets its own
+     alias (App.ALIASES), and the router only follows an alias whose screen
+     exists, so nothing lands on a missing page. #/home stays Today. */
   const NAV = [
-    { name: 'home', label: 'Home', tab: true, icon: 'home' },
-    { name: 'steps', label: 'Next steps', tab: true, icon: 'next' },
-    { name: 'uscis', label: 'USCIS status', tab: true, icon: 'uscis' },
-    { name: 'documents', label: 'Documents', tab: true, icon: 'documents' },
-    { name: 'updates', label: 'News', tab: true, icon: 'news' },
-    { name: 'timeline', label: 'Timeline' },
+    { name: 'today', label: 'Today', tab: true, icon: 'home', routes: ['today', 'home'], fallback: 'home' },
+    { name: 'plan', label: 'Plan', tab: true, icon: 'next', routes: ['plan', 'steps', 'uscis', 'timeline', 'employer', 'next', 'checklists', 'applications'], fallback: 'steps' },
+    { name: 'papers', label: 'Papers', tab: true, icon: 'documents', routes: ['papers', 'documents'], fallback: 'documents' },
+    { name: 'record', label: 'Record', tab: true, icon: 'timeline', routes: ['record', 'case', 'updates'], fallback: 'case' },
   ];
   const NAV_SECONDARY = [
-    { name: 'case', label: 'Your profile' },
-    { name: 'settings', label: 'Settings' },
-    { name: 'feedback', label: 'Feedback' },
+    { name: 'settings', label: 'Settings', routes: ['settings'], quiet: true },
+    { name: 'feedback', label: 'Feedback', routes: ['feedback'], quiet: true },
   ];
+
+  /* placeOf(route) : the nav name a route belongs to ('today', 'plan', ...),
+     or the route itself when it belongs to none. */
+  function placeOf(route) {
+    const all = NAV.concat(NAV_SECONDARY);
+    for (let i = 0; i < all.length; i += 1) if (all[i].routes.indexOf(route) !== -1) return all[i].name;
+    return route;
+  }
+  /* The address a nav item opens: its own screen when registered, else the
+     older page that holds the same things. */
+  function hrefOf(n) {
+    const S = window.SCREENS || {};
+    if (S[n.name] || !n.fallback) return '#/' + n.name;
+    return '#/' + n.fallback;
+  }
+  /* waiting: route names with something waiting (App.waitingIn()); a dot
+     shows on the place that holds any of them. */
+  function waitsIn(n, waiting) {
+    return (waiting || []).some((w) => (n.routes || [n.name]).indexOf(w) !== -1);
+  }
 
   /* wordmark({ large?, link = true }) : link false draws it as plain text,
      for onboarding, where the logo must not be a way out of setup. */
@@ -34,25 +60,28 @@
     const p = o || {};
     const c = cls('wordmark', p.large && 'is-large');
     const inner = 'Duly<span class="dot" aria-hidden="true">.</span>';
-    return p.link === false ? '<span class="' + c + '">' + inner + '</span>' : '<a class="' + c + '" href="#/home">' + inner + '</a>';
+    return p.link === false ? '<span class="' + c + '">' + inner + '</span>' : '<a class="' + c + '" href="' + hrefOf(NAV[0]) + '">' + inner + '</a>';
   }
 
   function navItem(p) {
-    return '<a class="nav-item" href="#/' + esc(p.name) + '"' + (p.active ? ' aria-current="page"' : '') + '>' +
+    return '<a class="' + cls('nav-item', p.quiet && 'is-quiet') + '" href="' + esc(p.href || ('#/' + p.name)) + '" data-place="' + esc(p.name) + '"' +
+      (p.active ? ' aria-current="page"' : '') + '>' +
       '<span>' + esc(p.label) + '</span>' +
       (p.waiting ? '<span class="wait-dot" role="img" aria-label="Something here is waiting for you"></span>' : '') +
       '</a>';
   }
-  function navList(items, route, waiting) {
-    return '<nav class="nav">' + items.map((n) => navItem({
-      name: n.name, label: n.label, active: n.name === route, waiting: (waiting || []).indexOf(n.name) !== -1,
+  function navList(items, route, waiting, extra) {
+    const here = placeOf(route);
+    return '<nav class="' + cls('nav', extra) + '">' + items.map((n) => navItem({
+      name: n.name, label: n.label, href: hrefOf(n), quiet: n.quiet,
+      active: n.name === here, waiting: waitsIn(n, waiting),
     })).join('') + '</nav>';
   }
   function sidebar(p) {
     return '<aside class="sidebar" aria-label="Main">' + wordmark() +
       navList(NAV, p.route, p.waiting) +
       '<div class="sidebar-spacer"></div>' +
-      navList(NAV_SECONDARY, p.route, p.waiting) +
+      navList(NAV_SECONDARY, p.route, p.waiting, 'nav-quiet') +
       '</aside>';
   }
   function topbar(p) {
@@ -63,13 +92,27 @@
   }
   function menuSheet(p) {
     return '<div class="menu" id="menu" role="dialog" aria-label="Menu">' +
-      navList(NAV, p.route, p.waiting) + navList(NAV_SECONDARY, p.route, p.waiting) + '</div>';
+      navList(NAV, p.route, p.waiting) + navList(NAV_SECONDARY, p.route, p.waiting, 'nav-quiet') + '</div>';
   }
   function tabbar(p) {
+    const here = placeOf(p.route);
     return '<nav class="tabbar" aria-label="Main">' + NAV.filter((n) => n.tab).map((n) =>
-      '<a class="tab" href="#/' + n.name + '"' + (n.name === p.route ? ' aria-current="page"' : '') + '>' +
+      '<a class="tab" href="' + esc(hrefOf(n)) + '" data-place="' + esc(n.name) + '"' + (n.name === here ? ' aria-current="page"' : '') + '>' +
       icon(n.icon) + '<span>' + esc(n.label) + '</span></a>').join('') + '</nav>';
   }
 
-  Object.assign(C, { NAV, NAV_SECONDARY, wordmark, navItem, sidebar, topbar, menuSheet, tabbar });
+  Object.assign(C, { NAV, NAV_SECONDARY, placeOf, wordmark, navItem, sidebar, topbar, menuSheet, tabbar });
+
+  /* Settings and Feedback sit quietly at the bottom: the meta colour, the
+     same size, no current-page accent weight beyond the colour. */
+  if (typeof document !== 'undefined' && !document.getElementById('shell-style')) {
+    const el = document.createElement('style');
+    el.id = 'shell-style';
+    el.textContent = [
+      '.nav-quiet .nav-item { color: var(--ink-3); }',
+      '.nav-quiet .nav-item:hover { color: var(--ink-2); }',
+      '.nav-quiet .nav-item[aria-current="page"] { color: var(--accent); font-weight: 400; }',
+    ].join('\n');
+    (document.head || document.documentElement).appendChild(el);
+  }
 })();
