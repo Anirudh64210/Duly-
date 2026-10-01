@@ -16,6 +16,8 @@ export default tseslint.config(
       "docs/**",
       ".scratch/**",
       "specs/**/prototype/**", // clickable design prototypes, not product code
+      "desktop/build/**", // the bundled Python runtime (step-w W1)
+      "desktop/out/**", // the packaged app (step-w W1)
     ],
   },
   js.configs.recommended,

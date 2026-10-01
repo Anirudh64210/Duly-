@@ -26,3 +26,7 @@ REVIEW.json
 HEALTH.txt
 ESCALATE.md
 .done-scratch/
+
+# Desktop build output (step-w W1): the bundled Python runtime and the packaged app.
+desktop/build/
+desktop/out/
