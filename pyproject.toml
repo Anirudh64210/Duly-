@@ -46,7 +46,8 @@ package = false
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["workbook-handoff", "duly-plan", "docs"]
+# specs/ holds research scripts and the clickable prototype, not product code.
+extend-exclude = ["workbook-handoff", "duly-plan", "docs", "specs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "S", "C4", "SIM", "RUF", "DTZ", "PT"]
