@@ -7,7 +7,6 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.engine import Engine
 
-from api import case as records_case
 from api.case_f1 import (
     NOT_A_NUMBER,
     NOT_JSON,
@@ -17,18 +16,18 @@ from api.case_f1 import (
     read_body,
 )
 from api.db import database_reachable, make_engine
+from api.local_routes import API_VERSION, get_body, get_clock, router
 from api.local_token import NOT_FROM_THE_APP, TOKEN_HEADER, expected_token, request_allowed
 from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
-from engine.clocks import Clock, SystemClock, day_in_zone
+from engine.clocks import Clock
 from engine.f1 import compute_f1, parse_case
 from engine.rulepack import Rulepack, load_all
 from engine.verdict import VerdictInputs, decide
 
-API_VERSION = "0.0.0"
-CONTRACTS_VERSION = "0.0.0"
-
 app = FastAPI(title="Duly API", version=API_VERSION, docs_url=None, redoc_url=None)
+# /health, /version and /v1/compute, shared with the desktop engine (SPEC-W1 point 2).
+app.include_router(router)
 
 _engines: dict[str, Engine] = {}
 
@@ -43,24 +42,10 @@ async def local_token_guard(
     return await call_next(request)
 
 
-def get_clock() -> Clock:
-    return SystemClock()
-
-
 def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Engine:
     if settings.database_url not in _engines:
         _engines[settings.database_url] = make_engine(settings.database_url)
     return _engines[settings.database_url]
-
-
-@app.get("/health")
-def health() -> dict[str, bool]:
-    return {"ok": True}
-
-
-@app.get("/version")
-def version() -> dict[str, str]:
-    return {"api": API_VERSION, "contracts": CONTRACTS_VERSION}
 
 
 def _iso(day: date | None) -> str | None:
@@ -107,10 +92,6 @@ def get_f1_pack() -> Rulepack:
     return next(p for p in load_all() if p.category == "f1")
 
 
-async def get_body(request: Request) -> bytes:
-    return await request.body()
-
-
 @app.post("/v1/compute/f1")
 def compute_f1_case(
     body: Annotated[bytes, Depends(get_body)],
@@ -138,39 +119,6 @@ def compute_f1_case(
         # name what was sent.
         raise HTTPException(status_code=422, detail=NOT_YET) from None
     return compute_f1(case, pack, clock)
-
-
-@lru_cache
-def get_packs() -> list[Rulepack]:
-    return load_all()
-
-
-@app.post("/v1/compute")
-def compute_case(
-    body: Annotated[bytes, Depends(get_body)],
-    packs: Annotated[list[Rulepack], Depends(get_packs)],
-    clock: Annotated[Clock, Depends(get_clock)],
-) -> dict[str, Any]:
-    """A case under case.schema.json, for any category. Stateless, as /v1/compute/f1 is,
-    and refused in the same words."""
-    try:
-        raw = read_body(body)
-    except NotANumberError:
-        raise HTTPException(status_code=422, detail=NOT_A_NUMBER) from None
-    except (ValueError, RecursionError):
-        raise HTTPException(status_code=422, detail=NOT_JSON) from None
-    problem = records_case.first_problem(raw)
-    if problem is not None:
-        raise HTTPException(status_code=422, detail=problem)
-    today = day_in_zone(clock, raw["time_zone"])
-    if records_case.answered_after(raw, today):
-        raise HTTPException(status_code=422, detail=NOT_YET)
-    try:
-        return records_case.compute(raw, packs, clock)
-    except ValueError:
-        # A kind, a field or a category the packs do not declare. The engine's words name
-        # what was sent, so they are not shown.
-        raise HTTPException(status_code=422, detail=records_case.NOT_IN_THE_PACK) from None
 
 
 @app.get("/ops/v1/status")
