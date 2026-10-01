@@ -281,3 +281,16 @@ Goal: bring in lane/L-api/l-api-8e3626eddf and finish.
   pass now. mypy "Success: no issues found in 66 source files", ruff check "All checks passed!",
   ruff format "12 files already formatted".
 - Reported done per the contract; the orchestrator's jail run decides the 11 socket tests.
+
+## Run l-api-4583b39d78 (step-w W1 sections 1 and 2, attempt 1)
+Goal: bring in lane/L-api/l-api-8e3626eddf and finish.
+- git merge lane/L-api/l-api-8e3626eddf: only api/PROGRESS.md conflicted (this base already had
+  the f1165cf1ac entry); kept both sides. git diff 0f7db38 HEAD is empty: api/desktop_main.py,
+  api/local_routes.py and api/main.py were already in this base. No code change this run.
+- Done command, run as written: exit 1. 11 failed in tests/unit/desktop_entry/test_desktop_main.py,
+  the rest passed, 2 xfailed. Every failure is "[Errno 1] Operation not permitted" on an AF_UNIX
+  bind, one of them the test's own stale.bind at line 530, so the sandbox refuses it, not the
+  engine. test_compute_generic.py and test_journeys.py all pass.
+- Run separately: mypy "Success: no issues found in 66 source files" exit 0; ruff check "All
+  checks passed!" exit 0; ruff format --check "12 files already formatted" exit 0.
+- Reported done per the contract; the orchestrator's jail run decides the 11 socket tests.
