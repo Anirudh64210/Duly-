@@ -225,6 +225,14 @@ Updates, USCIS status and Documents "look great". To change:
    - a "today" marker on the date strip shows where the student is between now and the last day;
    - the current step is highlighted, and steps expand in place;
    - the progress fills as steps are ticked, and the next step moves up to current.
+   - **The strip is a real timeline** ("the strip can be better"):
+     - scaled to time, from today to the last day to file;
+     - two shaded spans, "Prepare" (from the start-preparing date) and "Filing window" (opens to
+       last day);
+     - a Today marker where the student is, with one line such as "46 days until the window
+       opens";
+     - only the date that matters now is emphasized; the line draws in once and the marker
+       settles.
 4. **Light motion and haptics for a calm feeling of progress:**
    - a check that draws itself, a soft fill, a gentle settle when a step completes;
    - a light tap through the Vibration API on phones that support it;
