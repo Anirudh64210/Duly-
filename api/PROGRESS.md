@@ -239,3 +239,45 @@ records case and returns its output.
   whose stages, questions or values differ from the journey (points 3 to 8: links, cap-gap
   spans, completeness, closed windows, stem.basis_ten_years_end, pack questions). Those are
   engine/ and rulepacks/ work, outside api/.
+
+## Run l-api-8e3626eddf (step-w W1 sections 1 and 2, attempt 1)
+Goal: specs/step-w/SPEC-W1.md points 1 to 5, 7 and 9: api/desktop_main.py, api/local_routes.py,
+api/main.py mounting the shared routes.
+- api/local_routes.py (new): one APIRouter with GET /health, GET /version and POST /v1/compute
+  (the compute body moved from api/main.py unchanged), plus get_clock, get_body, get_packs,
+  API_VERSION, CONTRACTS_VERSION. Imports fastapi, api.case, api.case_f1, engine/ only.
+  /health and /version moved too, so both apps answer them from one function.
+- api/main.py: include_router(router); imports get_clock and get_body from local_routes, so
+  api.main.get_clock is the same object and every existing override still applies. The f1,
+  status and ops routes and the DULY_LOCAL_TOKEN middleware are unchanged.
+- api/desktop_main.py (new): create_app(token) (openapi, docs, redoc off; middleware requires
+  X-Duly-Local on every route, /health included, hmac.compare_digest on bytes); main():
+  --mode packaged|repo, --socket; packaged refuses DULY_ENV other than desktop; token is the
+  first stdin line (empty: refuse); bind_socket: path over 103 bytes refused, parent must be
+  this user's with no group or world write, an existing path removed only if lstat shows this
+  user's socket, bind under umask 0o177, chmod 0o600, lstat check; uvicorn.Server(...).run(
+  sockets=[sock]) with log_level warning and access_log False. Refusals: one line on stderr,
+  exit 1, no traceback.
+- Done command, run as written: exit 1. 184 tests, 11 failed, 2 skipped. Every one of the 11
+  is the sandbox refusing a Unix socket bind: "[Errno 1] Operation not permitted" (10 from the
+  engine, 1 from the test's own stale.bind at line 530). A bare probe confirmed it: AF_UNIX
+  bind fails with EPERM in TMPDIR and in api/ alike in this run's Bash sandbox. Points 1, 2, 3
+  and the refusal tests of 4, 7 and 9 pass. mypy "Success: no issues found in 66 source
+  files", ruff check "All checks passed!", ruff format "12 files already formatted".
+- Scratch check under TMPDIR (desktop_main run with a TCP listening socket in place of
+  bind_socket): no header, empty, DULY_LOCAL_TOKEN's value and a byte-short token all 403 on
+  /health, /version and /v1/compute; the right token 200; h1b case answers cannot_tell with
+  category_not_covered:h1b; /openapi.json 404. Captured stdout and stderr were empty: no
+  canary, no token, no path.
+- tests/unit/api all pass. Copy lint on api: clean.
+
+## Run l-api-f1165cf1ac (step-w W1 sections 1 and 2, attempt 1, resume)
+Goal: bring in lane/L-api/l-api-8e3626eddf and finish.
+- git merge lane/L-api/l-api-8e3626eddf: clean merge, api/desktop_main.py, api/local_routes.py,
+  api/main.py, api/PROGRESS.md. No code change needed this run.
+- Done command, run as written: exit 1. 11 failed, the rest passed, 2 xfailed. Every failure is
+  the sandbox refusing an AF_UNIX bind ("[Errno 1] Operation not permitted"), the same 11 as the
+  last run. tests/unit/api/test_compute_generic.py and tests/unit/acceptance/test_journeys.py all
+  pass now. mypy "Success: no issues found in 66 source files", ruff check "All checks passed!",
+  ruff format "12 files already formatted".
+- Reported done per the contract; the orchestrator's jail run decides the 11 socket tests.
