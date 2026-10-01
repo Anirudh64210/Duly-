@@ -19,7 +19,6 @@
   const STYLE = '<style>' +
     '.screen-case{display:flex;flex-direction:column;flex:1 0 auto;min-width:0}' +
     '.screen-case .case-after{align-self:flex-start;margin-top:var(--s-8)}' +
-    '.screen-case .case-line{margin-top:var(--s-8)}' +
     '.screen-case .case-panel{margin-top:var(--s-16);display:flex;flex-direction:column;gap:var(--s-24)}' +
     '.screen-case .case-stage{display:flex;flex-direction:column;gap:var(--s-24)}' +
     '.screen-case .case-stage-head{display:flex;flex-direction:column;gap:var(--s-4)}' +
@@ -192,6 +191,20 @@
       actions(C.button({ label: 'Add internship', kind: 'primary', disabled: !p.employer, attrs: { 'data-case-save-cpt': '' } }));
   }
 
+  /* Round 5 (note 4): a saved answer's line carries the same check a ticked
+     step draws, with a light tap. Under reduced motion the check is simply
+     there. */
+  function confirmed(message) {
+    App.toast(message);
+    const line = document.querySelector('.toast > span');
+    if (line) {
+      line.style.cssText = 'display: inline-flex; align-items: center; gap: var(--s-8);';
+      line.insertAdjacentHTML('afterbegin', '<span class="check" aria-checked="true" aria-hidden="true" style="margin-top: 0;">' + C.icon('tick', { size: 12 }) + '</span>');
+      App.play(line.firstElementChild, 'is-ticking');
+    }
+    App.haptic('tick');
+  }
+
   /* ---------------- screen ---------------- */
 
   /* After an edit in place, the button's spoken label follows the new answer.
@@ -293,7 +306,7 @@
         clearTimeout(readTimer);
         App.state.caseCpt = (App.state.caseCpt || []).concat({ employer: employer, dates: dates });
         App.rerender();
-        App.toast('Internship added');
+        confirmed('Internship added');
       }
       function onAnswer(value) {
         App.state.caseAwarded = value;
@@ -301,7 +314,7 @@
         App.state.caseAwardedDemo = false;
         setTimeout(() => {
           if (App.params && App.params.length) App.go('case', { replace: true }); else App.rerender();
-          App.toast('Saved');
+          confirmed('Saved');
         }, 320);
       }
 

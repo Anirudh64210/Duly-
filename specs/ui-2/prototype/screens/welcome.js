@@ -89,7 +89,6 @@
   const STYLE = '<style>' +
     '.screen-welcome .w-gap-8 { margin-top: var(--s-8); }' +
     '.screen-welcome .w-gap-12 { margin-top: var(--s-12); }' +
-    '.screen-welcome .w-gap-16 { margin-top: var(--s-16); }' +
     '.screen-welcome .w-gap-24 { margin-top: var(--s-24); }' +
     '.screen-welcome .w-gap-32 { margin-top: var(--s-32); }' +
     '.screen-welcome .w-head { display: flex; align-items: center; gap: var(--s-8); }' +
@@ -102,8 +101,11 @@
     '.screen-welcome .w-reading { display: flex; flex-direction: column; gap: var(--s-8); }' +
     '.screen-welcome .w-lines { display: flex; flex-direction: column; gap: var(--s-8); }' +
     '.screen-welcome .w-job { display: flex; flex-direction: column; gap: var(--s-16); margin-top: var(--s-24); }' +
-    '.screen-welcome .onb-unsure:has(> [data-onb-area]:empty) { display: none; }' +
     '.screen-welcome .suggest { max-height: calc(var(--s-64) * 4); overflow-y: auto; }' +
+    /* Round 5 (note 4): the tick of a step just answered draws itself, the
+       same check a ticked step draws elsewhere. */
+    '.screen-welcome .step svg path { stroke-dasharray: 14; stroke-dashoffset: 0; }' +
+    '.screen-welcome .step.is-ticking svg path { animation: check-draw .32s .12s ease-out both; }' +
     '.is-entering > .screen-welcome { animation: none; }' +
     '.is-entering .screen-welcome > .onb-body > * { animation: rise .55s var(--ease-rise) backwards; }' +
     '.is-entering .screen-welcome > .onb-body > :nth-child(1) { animation-delay: .06s; }' +
@@ -604,6 +606,7 @@
     const keys = stepKeys(s);
     const i = keys.indexOf(key);
     s.reached = Math.max(s.reached, i);
+    s.justAnswered = key;
     /* after the finish, a changed answer goes straight back to the summary,
        unless a later step now needs an answer (On OPT adds the EAD card) */
     if (s.finished) {
@@ -699,7 +702,7 @@
     s.field.state = onList(s.field.code) ? 'confirmed' : 'saved';
     if (s.field.state === 'confirmed') setAppField('confirmed');
     updateArea(r, 'field', true);
-    App.toast('Field code confirmed');
+    confirmed('Field code confirmed');
     focusSel('[data-onb="next"]');
   }
   function checkField(r) {
@@ -710,6 +713,7 @@
     s.field = { state: onList(code) ? 'confirmed' : 'saved', code: code, from: 'typed' };
     if (s.field.state === 'confirmed') setAppField('confirmed');
     updateArea(r, 'field', true);
+    confirmed(s.field.state === 'confirmed' ? 'Field code confirmed' : 'Field code saved');
     focusSel('[data-onb="next"]');
   }
   function resetField(r) {
@@ -724,6 +728,35 @@
     }
     updateArea(r, 'field', true);
     focusSel('[data-field="onb.cip"]');
+  }
+
+  /* Round 5 (note 4): a confirmed answer's line carries the same check a
+     ticked step draws, with a light tap. Under reduced motion the check is
+     simply there. */
+  function confirmed(message) {
+    App.toast(message);
+    const line = document.querySelector('.toast > span');
+    if (line) {
+      line.style.cssText = 'display: inline-flex; align-items: center; gap: var(--s-8);';
+      line.insertAdjacentHTML('afterbegin', '<span class="check" aria-checked="true" aria-hidden="true" style="margin-top: 0;">' + C.icon('tick', { size: 12 }) + '</span>');
+      App.play(line.firstElementChild, 'is-ticking');
+    }
+    App.haptic('tick');
+  }
+
+  /* The step just answered: its tick in the step list draws itself, with a
+     light tap. Only for a real answer, not "I'm not sure" or "Add it later".
+     On the finish screen the first visit has its own moment, so the tap is
+     left to it. */
+  function tickAnswered(r, s, key) {
+    const done = s.justAnswered;
+    s.justAnswered = null;
+    if (!done || s.unsure[done] || !(valid(done, s) || (done === 'ead' && s.ead === 'added'))) return;
+    const i = stepKeys(s).indexOf(done);
+    const btn = i === -1 ? null : r.querySelectorAll('.steps .step')[i];
+    if (!btn || !btn.classList.contains('is-done')) return;
+    App.play(btn, 'is-ticking');
+    if (key !== 'done' || s.celebrated) App.haptic('tick');
   }
 
   /* ---------------- suggestions ---------------- */
@@ -937,6 +970,7 @@
       r.addEventListener('drop', onDrop);
       const key = (params && params[0]) || 'start';
       const s = S();
+      tickAnswered(r, s, key);
       if (key === 'done' && !s.celebrated) {
         s.celebrated = true;
         setTimeout(() => { const h = document.querySelector('#main h1'); if (h) App.confetti(h); }, 450);

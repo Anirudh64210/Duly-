@@ -291,6 +291,20 @@
         if (f) f.focus(); else if (m) m.focus();
       }
 
+      /* Round 5 (note 4): a finished copy in or out carries the same check a
+         ticked step draws, with a light tap. Under reduced motion the check
+         is simply there. */
+      function confirmed(message) {
+        App.toast(message);
+        const line = document.querySelector('.toast > span');
+        if (line) {
+          line.style.cssText = 'display: inline-flex; align-items: center; gap: var(--s-8);';
+          line.insertAdjacentHTML('afterbegin', '<span class="check" aria-checked="true" aria-hidden="true" style="margin-top: 0;">' + C.icon('tick', { size: 12 }) + '</span>');
+          App.play(line.firstElementChild, 'is-ticking');
+        }
+        App.haptic('tick');
+      }
+
       function busy(btn, label, ms, done) {
         const was = btn.textContent;
         btn.disabled = true; btn.textContent = label;
@@ -319,20 +333,20 @@
           busy(b, 'Backing up', 1100, () => {
             App.state.lastBackup = 'today';
             setMeta('backup', backupMeta(data));
-            App.toast('Backup saved to your downloads');
+            confirmed('Backup saved to your downloads');
           });
         } else if (act === 'restore') {
           const input = root.querySelector('[data-sx-file]');
           if (input) input.click();
         } else if (act === 'restore-yes') {
           closeRestore();
-          App.toast('Your records are restored');
+          confirmed('Your records are restored');
           const c = root.querySelector('[data-sx="restore"]'); if (c) c.focus();
         } else if (act === 'restore-no') {
           closeRestore();
           const c = root.querySelector('[data-sx="restore"]'); if (c) c.focus();
         } else if (act === 'export') {
-          busy(b, 'Preparing', 1100, () => App.toast('Your records are in one folder in your downloads'));
+          busy(b, 'Preparing', 1100, () => confirmed('Your records are in one folder in your downloads'));
         } else if (act === 'signout') {
           signOut(b);
         } else if (act === 'delete') {

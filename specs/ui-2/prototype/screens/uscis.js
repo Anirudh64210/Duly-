@@ -1,16 +1,21 @@
 /* USCIS status (#/uscis, #/uscis/<id>): each case with its receipt number
    and its status (Round 3, note 3). Replaces Applications; #/applications
    redirects here with its params.
-   List: one row per case (receipt and status date, or "Not filed yet"),
-   the recheck button that says you log in, and one short line with its ⓘ
-   that live tracking comes once connected (BACKLOG B8).
+   List (Round 5, note 2): one row per case (receipt and the date its status
+   was last seen, or "Not filed yet"), then Track another case (C.trackCase,
+   wired in app.js: any receipt number with what it is for, saved as
+   Unknown until rechecked), then the recheck button. The "live tracking
+   once connected" line is gone: it did nothing.
    Case with a receipt: receipt, one status line with its date, any date the
-   tracker does not show (Card valid), the tracker, then Recheck and an
-   in-place Update status (a status choice, saved with today's date).
+   tracker does not show (Card valid, Added), the tracker once a status is
+   known, then Recheck and an in-place Update status (a status choice,
+   saved with today's date). A case the student added also has Stop
+   tracking, with Undo in the toast.
    Case not filed yet: one place to add the receipt number. Its preparation
    dates live on Next steps only. Add your I-797C opens the add sheet
    (#/documents/add); once the notice is saved, the receipt number read from
-   it waits in the field for one tap. Typing stays the fallback.
+   it waits in the field for one tap. Typing stays the fallback. Errors
+   show under the field.
    Processing time (Round 4, analysis move 7.7): USCIS's own published figure
    for the case's form and category, quoted with its source and as-of date,
    for a filed application only: a receipt number and no decision. Never on
@@ -23,8 +28,6 @@
   const STYLE =
     '<style>' +
     '.screen-uscis .us-foot { margin-top: var(--s-24); display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-12); }' +
-    '.screen-uscis .us-foot .inline-src { vertical-align: middle; }' +
-    '.screen-uscis .us-nowrap { white-space: nowrap; }' +
     '.screen-uscis .tracker { margin-top: var(--s-24); }' +
     '.screen-uscis .us-update { margin-top: var(--s-24); display: flex; flex-direction: column; gap: var(--s-12); }' +
     '.screen-uscis .us-update .btn-row { margin-top: 0; }' +
@@ -32,6 +35,10 @@
     '.screen-uscis .us-receipt .btn-row { margin-top: 0; }' +
     '.screen-uscis .us-pt { margin-top: var(--s-24); }' +
     '.screen-uscis .us-pt-line .mark { margin-left: var(--s-4); }' +
+    '.screen-uscis .track-case + .us-foot { margin-top: var(--s-12); }' +
+    '.screen-uscis .track-case { margin-top: var(--s-12); }' +
+    '.screen-uscis .track-case.is-open { margin-top: var(--s-24); }' +
+    '.screen-uscis .track-case.is-open + .us-foot { margin-top: var(--s-32); }' +
     '</style>';
 
   /* The statuses a student can record after rechecking, and the tracker
@@ -43,9 +50,21 @@
     { label: 'Denied', step: 'Decision' },
     { label: 'Card mailed', step: 'Card mailed' },
   ];
+  /* Petitions and stay requests end at the decision: no card is mailed. */
+  const NO_CARD = ['i129', 'i140', 'i539'];
   const RECEIPT = /^[A-Z]{3}\d{10}$/;
+  const NBSP = ' ';
 
   function today() { return App.data.today.short; }
+  function noCard(a) { return NO_CARD.indexOf(a.formType) >= 0; }
+  function stepsFor(a) {
+    const all = App.data.applications.steps;
+    return noCard(a) ? all.filter((s) => s !== 'Card mailed') : all;
+  }
+  function statusesFor(a) {
+    return noCard(a) ? STATUSES.filter((s) => s.step !== 'Card mailed') : STATUSES;
+  }
+  function isUnknown(a) { return /^unknown$/i.test(a.status || ''); }
 
   /* The date of the current status: the one saved with it, else the dated
      row of the same name, else the date it was last seen. */
@@ -55,16 +74,12 @@
     return d ? d.date : a.asOf || null;
   }
 
-  function liveLine(tr) {
-    const text = tr.label + ' ' + tr.state.charAt(0).toLowerCase() + tr.state.slice(1);
-    const cut = text.lastIndexOf(' ') + 1;
-    return '<p class="t-meta">' + C.esc(text.slice(0, cut)) +
-      '<span class="us-nowrap">' + C.esc(text.slice(cut)) +
-      C.info(tr.info, { label: 'About live tracking', link: tr.caseStatus }) + '</span></p>';
-  }
-
-  function recheck(tr) {
-    return C.button({ label: tr.recheck.label, kind: 'pill', href: tr.recheck.href });
+  /* Where to recheck: the student's USCIS account for her own filings; the
+     public case status page (any receipt number, no login) for a case she
+     added to track. */
+  function recheck(tr, a) {
+    const to = a && a.tracked && tr.caseStatus ? tr.caseStatus : tr.recheck;
+    return C.button({ label: to.label, kind: 'pill', href: to.href });
   }
 
   /* USCIS's processing time for this case's form and category, only while
@@ -78,7 +93,7 @@
   function processingLine(pt) {
     if (!pt) return '';
     return '<span class="row-meta us-pt-line">' +
-      C.esc(pt.line.replace(/\.$/, '') + ' · as of ' + pt.asOf.replace(/ /g, ' ')) +
+      C.esc(pt.line.replace(/\.$/, '') + ' · as of ' + pt.asOf.replace(/ /g, NBSP)) +
       (pt.sample ? ' ' + C.sampleMark() : '') + '</span>';
   }
 
@@ -91,12 +106,15 @@
     ], { accordion: false, label: pt.label }) + '</div>';
   }
 
+  /* The list row: the receipt and the date its status was last seen. A case
+     added to track and not yet rechecked reads "Added Sep 30". */
   function caseRow(a) {
-    const when = a.receipt ? statusDate(a) : null;
+    let when = null;
+    if (a.receipt) when = isUnknown(a) && a.added ? 'Added ' + a.added : statusDate(a);
     return C.row({
       key: a.id,
       title: a.title,
-      meta: a.receipt ? a.receipt + (when ? ' · ' + when.replace(/ /g, ' ') : '') : null,
+      meta: a.receipt ? a.receipt + (when ? ' · ' + when.replace(/ /g, NBSP) : '') : null,
       below: processingLine(processingOf(a)),
       value: a.status,
       href: '#/uscis/' + a.id,
@@ -104,10 +122,10 @@
   }
 
   function listView(apps) {
-    const tr = apps.tracking;
     return C.pageHeader({ title: 'USCIS status' }) +
       C.list(apps.items.map(caseRow), { accordion: false, label: 'Your cases' }) +
-      '<div class="us-foot">' + recheck(tr) + liveLine(tr) + '</div>';
+      C.trackCase() +
+      '<div class="us-foot">' + recheck(apps.tracking) + '</div>';
   }
 
   /* The Update status panel, hidden until asked for. */
@@ -115,7 +133,7 @@
     return '<div class="us-update" data-us-panel hidden>' +
       C.chips({
         key: 'us-status:' + a.id, inline: true, label: 'Status',
-        items: STATUSES.map((s) => ({ value: s.label, label: s.label, selected: s.label === a.status })),
+        items: statusesFor(a).map((s) => ({ value: s.label, label: s.label, selected: s.label === a.status })),
       }) +
       '<p class="t-meta num">As of ' + C.esc(today()) + '</p>' +
       C.buttonRow({
@@ -127,22 +145,26 @@
 
   function trackedView(a, apps) {
     const tr = apps.tracking;
-    const when = statusDate(a);
-    const shown = apps.steps.concat(STATUSES.map((s) => s.label));
+    const unknown = isUnknown(a);
+    const when = unknown ? null : statusDate(a);
+    const steps = stepsFor(a);
+    const shown = steps.concat(STATUSES.map((s) => s.label));
     const facts = [
       C.valueRow({ label: 'Receipt number', value: a.receipt, editable: false, num: true }),
-      C.valueRow({ label: 'Status', value: a.status + (when ? ' ' + when : ''), editable: false }),
+      C.valueRow({ label: 'Status', key: 'us-status-row', value: a.status + (when ? ' ' + when : ''), editable: false }),
     ];
     if (a.asOf && a.asOf !== when) facts.push(C.valueRow({ label: 'Last checked', value: a.asOf, editable: false, num: true }));
     (a.dates || []).filter((d) => shown.indexOf(d.label) < 0).forEach((d) => {
       facts.push(C.valueRow({ label: d.label, value: d.date, editable: false, num: true, source: d.source }));
     });
+    const actions = [recheck(tr, a), C.button({ label: 'Update status', kind: 'pill', attrs: { 'data-us-open': '' } })];
     return C.list(facts, { accordion: false, label: 'Case' }) +
       processingFact(processingOf(a)) +
-      C.tracker({ steps: apps.steps, current: a.current }) +
+      /* No tracker while the status is unknown: every step would read as not reached. */
+      (a.current == null ? '' : C.tracker({ steps: steps, current: a.current })) +
       '<div class="us-foot" data-us-foot>' +
-        C.btnGroup([recheck(tr), C.button({ label: 'Update status', kind: 'pill', attrs: { 'data-us-open': '' } })]) +
-        liveLine(tr) +
+        C.btnGroup(actions) +
+        (a.tracked ? '<button type="button" class="btn btn-text is-quiet" data-us-remove="' + C.esc(a.id) + '">Stop tracking</button>' : '') +
       '</div>' +
       updatePanel(a);
   }
@@ -153,15 +175,19 @@
   }
 
   /* Not filed yet: the receipt number, read from the I-797C when one was
-     added (waiting in the field for one tap), else typed. */
+     added (waiting in the field for one tap), else typed. A problem shows
+     under the field. */
   function receiptView(a, apps) {
+    const key = 'us-receipt:' + a.id;
     const read = App.state['us-notice:' + a.id] || null;
     const other = read ? caseWith(read, a.id) : null;
     const filled = read && !other;
+    const typed = App.state[key];
+    const error = App.state['us-receipt-error:' + a.id] || null;
     return '<div class="us-receipt">' +
       C.field({
-        label: 'Receipt number', key: 'us-receipt:' + a.id, value: filled ? read : null,
-        placeholder: apps.receiptPlaceholder, autocomplete: 'off',
+        label: 'Receipt number', key: key, value: typed != null ? typed : (filled ? read : null),
+        placeholder: apps.receiptPlaceholder, autocomplete: 'off', error: error,
         help: filled ? 'From your I-797C' : (other ? 'That notice is for your ' + other.title : null),
       }) +
       C.buttonRow({
@@ -174,15 +200,16 @@
 
   function caseView(a, apps) {
     const back = { label: 'USCIS status', href: '#/uscis' };
+    const form = a.form && a.form !== a.title ? a.form : null;
     const header = C.pageHeader({
       title: a.title,
-      meta: a.receipt ? a.form : a.form + ' · ' + a.status,
+      meta: a.receipt ? form : [form, a.status].filter(Boolean).join(' · '),
       back: back,
     });
     return header + (a.receipt ? trackedView(a, apps) + C.footer() : receiptView(a, apps));
   }
 
-  /* ---------------- in place: Update status and Add receipt number ---------------- */
+  /* ---------------- in place: Update status, Add receipt number, Stop tracking ---------------- */
 
   function showPanel(root, open) {
     const panel = root.querySelector('[data-us-panel]');
@@ -190,6 +217,7 @@
     if (!panel || !foot) return;
     panel.hidden = !open;
     foot.hidden = open;
+    if (open) App.play(panel, 'is-arriving');
     const target = open
       ? panel.querySelector('[role="radio"][aria-checked="true"]') || panel.querySelector('[role="radio"]')
       : foot.querySelector('[data-us-open]');
@@ -202,12 +230,17 @@
     if (!a || !pick) { App.toast('Choose a status'); return; }
     const status = pick.dataset.value;
     const s = STATUSES.filter((x) => x.label === status)[0];
-    if (status !== a.status && s) a.current = App.data.applications.steps.indexOf(s.step);
+    if (s && (status !== a.status || a.current == null)) a.current = stepsFor(a).indexOf(s.step);
     a.status = status;
     a.statusOn = today();
     a.asOf = today();
     App.emit('edit', 'us-status:' + id, status, pick);
+    App.haptic('complete');
     App.rerender();
+    const row = document.querySelector('main#main .item[data-key="us-status-row"]');
+    if (row) App.play(row, 'is-arriving');
+    const open = document.querySelector('main#main [data-us-open]');
+    if (open) open.focus({ preventScroll: true });
     App.toast('Status saved');
   }
 
@@ -215,19 +248,55 @@
     const a = App.findApplication(id);
     const input = root.querySelector('[data-field="us-receipt:' + id + '"]');
     if (!a || !input) return;
-    const v = input.value.replace(/[\s-]/g, '').toUpperCase();
-    if (!RECEIPT.test(v)) { input.focus(); App.toast('Three letters and ten digits'); return; }
-    const other = caseWith(v, id);
-    if (other) { input.focus(); App.toast('That number is on your ' + other.title); return; }
+    const v = App.normalizeReceipt(input.value);
+    const E = ((App.data.applications || {}).add || {}).errors || {};
+    let error = null;
+    if (!v) error = E.empty || 'Add the receipt number from your USCIS notice.';
+    else if (!RECEIPT.test(v)) error = E.format || 'A receipt number is three letters and ten digits.';
+    else if (caseWith(v, id)) error = 'That number is on your ' + caseWith(v, id).title + '.';
+    if (error) {
+      App.state['us-receipt:' + id] = input.value;
+      App.state['us-receipt-error:' + id] = error;
+      App.rerender();
+      const again = document.querySelector('main#main [data-field="us-receipt:' + id + '"]');
+      if (again) again.focus({ preventScroll: true });
+      return;
+    }
     delete App.state['us-notice:' + id];
+    delete App.state['us-receipt:' + id];
+    delete App.state['us-receipt-error:' + id];
     a.receipt = v;
     a.status = 'Received';
-    a.current = App.data.applications.steps.indexOf('Received');
+    a.current = stepsFor(a).indexOf('Received');
     a.statusOn = today();
     a.asOf = today();
     App.emit('edit', 'us-receipt:' + id, v, input);
+    App.haptic('complete');
     App.rerender();
     App.toast('Receipt number added');
+  }
+
+  /* Stop tracking a case the student added: back to the list, with Undo. */
+  function removeCase(id) {
+    const items = App.data.applications.items;
+    const at = items.findIndex((x) => x.id === id);
+    const item = items[at];
+    if (!item || !App.removeCase(id)) return;
+    App.haptic('select');
+    location.hash = '#/uscis';
+    App.toast('Stopped tracking ' + item.title, {
+      action: 'Undo',
+      onAction() {
+        const list = App.data.applications.items;
+        if (list.some((x) => x.id === item.id)) return;
+        list.splice(Math.min(at, list.length), 0, item);
+        App.emit('case', 'add', item.id, null);
+        if (location.hash !== '#/uscis') return;
+        App.rerender();
+        const row = document.querySelector('main#main .item[data-key="' + CSS.escape(item.id) + '"]');
+        if (row) App.play(row, 'is-arriving');
+      },
+    });
   }
 
   /* ---------------- the I-797C, read on the device ---------------- */
@@ -254,7 +323,11 @@
     const save = e.target.closest('.doc-layer [data-doc-save]');
     if (!save) return;
     const v = readReceipt(save.closest('.doc-layer'));
-    if (v) App.state['us-notice:' + awaiting] = v;
+    if (v) {
+      App.state['us-notice:' + awaiting] = v;
+      delete App.state['us-receipt:' + awaiting];
+      delete App.state['us-receipt-error:' + awaiting];
+    }
     awaiting = null;
   }, true);
   window.addEventListener('hashchange', () => {
@@ -284,7 +357,9 @@
         const save = t.closest('[data-us-save]');
         if (save) { saveStatus(root, save.dataset.usSave); return; }
         const add = t.closest('[data-us-receipt]');
-        if (add) saveReceipt(root, add.dataset.usReceipt);
+        if (add) { saveReceipt(root, add.dataset.usReceipt); return; }
+        const rm = t.closest('[data-us-remove]');
+        if (rm) removeCase(rm.dataset.usRemove);
       });
       root.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && root.querySelector('[data-us-panel]:not([hidden])')) { showPanel(root, false); return; }

@@ -28,8 +28,7 @@
     '.screen-updates .fy-answer { margin: var(--s-4) 0 0; }' +
     '.screen-updates .fy-todo { margin: 0; }' +
     '.screen-updates .fy-changed { margin: var(--s-8) 0 0; padding-left: var(--s-16); }' +
-    '.screen-updates .art-source { margin-top: var(--s-24); }' +
-    '.screen-updates .art-source { display: flex; flex-wrap: wrap; column-gap: var(--s-8); }' +
+    '.screen-updates .art-source { margin-top: var(--s-24); display: flex; flex-wrap: wrap; column-gap: var(--s-8); }' +
     '.screen-updates .art-source a { white-space: nowrap; }' +
     '@media (max-width: 640px) { .screen-updates .for-you { padding: var(--s-16); } }' +
     '</style>';

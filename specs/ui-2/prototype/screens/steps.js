@@ -6,45 +6,69 @@
    the Timeline, so #/steps/cpt, #/steps/opt and #/steps/h1b go to #/timeline
    in place.
 
+   Round 5, note 3: the page comes alive.
      title, with the why behind its ⓘ
      the intent, answered right here (data-answer="stemIntent", shared with
        Home, Timeline and Your profile); once answered, one quiet line + Change
-     the key dates as a strip, each with its source mark
+     C.timeline(App.stemTimeline()): drawn to scale from today to the last
+       day to file, the Prepare and Filing window spans, the Today marker
+       with one line ("46 days until the window opens"), only the date that
+       matters now emphasized. It draws in once (its own key, so Home's strip
+       never uses up the motion) and is at rest on every redraw.
      Steps: federal and "Your school" steps together, in order (App.steps).
-       Title only; the detail sits behind the row's one mark. The count at
-       the right of the heading moves in place (app.js updateProgress).
-       The E-Verify step carries the Employer check's fact as its meta
-       ("E-Verify: takes part, checked Sep 30") and opens #/employer. The
-       field code stays behind the title's ⓘ only.
+       The current step (App.currentStep) has a quiet tint. Each step opens
+       in place, from its chevron or a tap on its row, to its one plain line
+       and the rule behind it (the source mark sits inside the detail, so a
+       row carries one mark). Ticking a step draws its check, settles the
+       row, fills the bar beside the count, gives a light tap and moves the
+       tint to the next open step (app.js setTask, advanceCurrent). The list
+       carries data-current, so unticking brings the tint back too.
+       When every step is done: the bar settles, the confetti plays the first
+       time only (App.complete), and one quiet line says what comes next.
+       The E-Verify step carries the Employer check's fact as its meta and
+       keeps See, to #/employer. School steps keep Open, to the school page.
      "Add your school's page": one control. It opens to a link or a PDF,
        shows the steps found, and they are confirmed once (C.schoolImport).
      The DSO email opens only on request, from the school step that needs it.
 
    Review links: #/steps/school (steps found, waiting to confirm),
-   #/steps/school-added (confirmed). */
+   #/steps/school-added (confirmed), #/steps/2026-12-01 (the timeline as it
+   reads on that day: inside the window, the last day emphasized). */
 (function () {
   'use strict';
 
   /* Layout only. Sizes are the system's three (big, medium, small). */
   const STYLE = '<style>' +
-    '.screen-steps .st-head { margin-bottom: var(--s-48); }' +
+    '.screen-steps .st-head { margin-bottom: var(--s-32); }' +
     '.screen-steps .st-ask { margin-top: var(--s-24); display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-16); }' +
     '.screen-steps .st-intent { margin-top: var(--s-12); display: flex; align-items: center; gap: var(--s-12); }' +
     '.screen-steps .st-intent .btn { padding: 0; }' +
     '.screen-steps .st-big { display: flex; align-items: center; gap: var(--s-8); }' +
     '.screen-steps .st-big .inline-src { margin-left: 0; }' +
-    /* The date's source mark sits beside its label, not on a line of its own. */
-    '.screen-steps .date-pt { display: grid; grid-template-columns: auto 16px; justify-content: start; align-items: center; column-gap: var(--s-8); }' +
-    '.screen-steps .date-pt .dp-date { grid-column: 1 / -1; }' +
-    '.screen-steps .date-pt .src { margin-top: 0; }' +
+    '.screen-steps .st-when { margin-bottom: 0; }' +
+    /* The count and its bar, at the right of the Steps heading. */
+    '.screen-steps .st-steps .section-head { align-items: center; }' +
+    '.screen-steps .st-progress { gap: var(--s-12); min-width: 0; }' +
+    '.screen-steps .st-progress .bar { width: 96px; flex: none; }' +
+    '.screen-steps .st-progress [data-progress-label] { white-space: nowrap; }' +
+    /* A step's detail: its plain line, then the rule in a quieter voice. */
+    '.screen-steps .task-detail p { margin: 0; }' +
+    '.screen-steps .task-detail .st-rule { color: var(--ink-3); }' +
+    '.screen-steps .task-detail .st-rule .inline-src { vertical-align: -3px; }' +
+    /* The current step, open: the tint runs on under its detail. */
+    '.screen-steps .task.is-current.is-open > .row { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }' +
+    '.screen-steps .task.is-current > .task-detail { background: var(--accent-tint); border-radius: 0 0 var(--r-field) var(--r-field); transition: background .3s ease; }' +
+    '.screen-steps .task-detail { transition: background .3s ease; }' +
     '.screen-steps .st-add { display: flex; align-items: center; gap: var(--s-8); }' +
     '.screen-steps .st-add .btn { padding: var(--s-12) 0; }' +
+    '.screen-steps .st-complete { margin-top: var(--s-16); color: var(--ink-2); }' +
     '.screen-steps .st-steps .rules-line { margin-top: var(--s-24); }' +
     '.screen-steps .st-done-list .row-lead { height: var(--lh-small); }' +
     '</style>';
 
   const OPEN = 'steps:schoolOpen';
   const e = (s) => C.esc(s);
+  const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
   /* Old path views now live on the Timeline. The hash is swapped before the
      router reads it: once at load, and on each hashchange in the capture
@@ -59,11 +83,12 @@
   window.addEventListener('hashchange', toTimeline, true);
 
   function parse(params) {
-    let demo = null;
+    let demo = null, today = null;
     (params || []).forEach((x) => {
       if (x === 'school' || x === 'school-added') demo = x;
+      else if (ISO.test(x) && !isNaN(Date.parse(x))) today = x;
     });
-    return { demo: demo };
+    return { demo: demo, today: today };
   }
 
   /* A review link forces the school import state once per visit, so the
@@ -81,13 +106,6 @@
     return '<button type="button" class="' + cls + '" data-answer="stemIntent" data-value="' + e(value) + '">' + e(label) + '</button>';
   }
 
-  /* One mark per step: the rule, with the step's own detail as its plain line. */
-  function mark(step) {
-    const rule = step.source ? C.getRule(step.source) : null;
-    if (!rule) return { info: step.info || null, source: null };
-    return { info: null, source: Object.assign({}, rule, { plain: step.info || rule.plain }) };
-  }
-
   /* The rule with one more sentence of its own, so a line keeps one mark. */
   function withPlain(key, extra) {
     const rule = C.getRule(key) || {};
@@ -95,6 +113,19 @@
   }
 
   function sentence(t) { return t ? String(t).replace(/\.?$/, '.') : null; }
+
+  /* A step's detail, opened in place: its own plain line, then the rule it
+     comes from with the source mark. Nothing when there is neither. */
+  function detailOf(line, ruleKey) {
+    const rule = ruleKey ? C.getRule(ruleKey) : null;
+    const parts = [];
+    if (line) parts.push('<p>' + C.escText(line) + '</p>');
+    if (rule) {
+      parts.push('<p class="st-rule">' + (rule.plain ? C.escText(rule.plain) : C.escText(rule.name || '')) +
+        ' ' + C.source(ruleKey, { inline: true }) + '</p>');
+    }
+    return parts.length ? parts.join('') : null;
+  }
 
   /* The E-Verify step: the Employer check's fact as its meta, so the page
      never says it twice. Never a verdict, only what the search shows. */
@@ -105,23 +136,32 @@
     return ev.label + ': ' + String(ev.value).toLowerCase() + (ev.checked ? ', checked ' + ev.checked : '');
   }
 
-  function fedRow(entry) {
+  function fedRow(entry, current) {
     const s = entry.step;
-    const m = mark(s);
     const isEv = entry.key === 'everify';
+    const detail = detailOf(s.info, s.source);
     return C.task({
       key: entry.key, title: s.title, done: entry.done,
-      meta: isEv ? everifyMeta() : null,
+      meta: isEv ? (everifyMeta() || s.meta || null) : (s.meta || null),
       open: isEv && s.open ? s.open : null,
-      source: m.source, info: m.info, updated: s.updated || null,
+      /* Without a detail the explanation stays behind an ⓘ, as before. */
+      info: detail ? null : (s.info || null),
+      updated: s.updated || null,
       onDone: s.onDone ? C.unknown(s.onDone) : null,
+      current: current,
+      detail: detail,
     });
   }
 
-  function schoolRow(entry, data) {
+  function schoolRow(entry, data, current) {
     const s = entry.step;
-    const plain = Object.assign({}, entry, { step: Object.assign({}, s, { meta: null, info: s.info || sentence(s.meta) }) });
-    return C.schoolStep(plain, { email: Object.assign({}, data.email, { openLabel: 'Email your DSO' }) });
+    const line = s.info || sentence(s.meta);
+    const plain = Object.assign({}, entry, { step: Object.assign({}, s, { meta: null, info: null }) });
+    return C.schoolStep(plain, {
+      email: Object.assign({}, data.email, { openLabel: 'Email your DSO' }),
+      current: current,
+      detail: detailOf(line, null),
+    });
   }
 
   function schoolAdd(data) {
@@ -135,7 +175,22 @@
       '</div></div>';
   }
 
-  function stemView(data) {
+  /* The line under a finished list. */
+  const COMPLETE_LINE = 'All steps done. Your receipt number goes in ';
+  function completeLine(allDone) {
+    return '<p class="st-complete t-meta" data-steps-complete' + (allDone ? '' : ' hidden') + '>' +
+      e(COMPLETE_LINE) + '<a class="link" href="#/uscis">USCIS status</a>.</p>';
+  }
+
+  /* The real timeline. Its own key, so the draw-in plays here once even
+     after Home has shown its small strip. */
+  function timelineFor(today) {
+    const props = App.stemTimeline(today ? { today: today } : undefined);
+    return '<section class="st-when" aria-label="' + e(props.label || 'Key dates') + '">' +
+      C.timeline(Object.assign({}, props, { key: 'steps:stem' })) + '</section>';
+  }
+
+  function stemView(data, r) {
     const stem = data.stem;
     const intent = App.stemIntent();
     const head = (inner) => '<header class="page-header st-head">' +
@@ -161,19 +216,29 @@
     }
 
     const entries = App.steps('stem');
-    const rows = entries.map((en) => (en.type === 'school' ? schoolRow(en, data) : fedRow(en)));
+    const now = App.currentStep('stem');
+    const rows = entries.map((en) => (en.type === 'school' ? schoolRow(en, data, en.key === now) : fedRow(en, en.key === now)));
     const visible = entries.filter((en) => !(en.afterOf && !en.afterOf.done));
     const done = visible.filter((en) => en.done).length;
+    const total = visible.length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const label = done + ' of ' + total + ' done';
+
+    /* data-current on the list: app.js keeps one step current in it, even
+       after every step was done and one is unticked again. */
+    const list = C.list(rows, { accordion: false, label: 'STEM OPT steps' }).replace('<div class="list"', '<div class="list" data-current');
 
     const steps = '<section class="section st-steps" aria-labelledby="st-steps-h">' +
       '<div class="section-head"><h2 class="sh-label t-eyebrow" id="st-steps-h">Steps</h2>' +
-      '<span class="t-meta num" data-progress><span data-progress-label>' + done + ' of ' + visible.length + ' done</span></span></div>' +
-      C.list(rows, { accordion: false, label: 'STEM OPT steps' }) +
+      '<div class="progress st-progress" data-progress>' + '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Steps done"><i style="width:' + pct + '%"></i></div>' +
+      '<span class="t-meta num" data-progress-label>' + e(label) + '</span></div></div>' +
+      list +
+      completeLine(total > 0 && done === total) +
       schoolAdd(data) +
       C.rulesLine(data.rules) +
       '</section>';
 
-    return head(ask) + C.dates({ points: stem.dates }) + steps + C.footer();
+    return head(ask) + timelineFor(r.today) + steps + C.footer();
   }
 
   window.SCREENS.steps = {
@@ -185,7 +250,7 @@
       if (toTimeline()) setTimeout(App.rerender, 0);
       const r = parse(params);
       applyDemo(r.demo);
-      return STYLE + stemView(data);
+      return STYLE + stemView(data, r);
     },
     mount(root) {
       root.classList.add('screen-steps');
@@ -202,6 +267,21 @@
   };
 
   /* ---------------- behaviour, wired once ---------------- */
+
+  /* The finished line shows and hides in place as steps are ticked. It sits
+     under the list, so nothing above it moves. */
+  function syncComplete() {
+    const main = document.querySelector('main#main.screen-steps');
+    if (!main) return;
+    const line = main.querySelector('[data-steps-complete]');
+    if (!line) return;
+    const checks = Array.from(main.querySelectorAll('.st-steps .list [role="checkbox"][data-task]')).filter((c) => !c.closest('[hidden]'));
+    const all = checks.length > 0 && checks.every((c) => c.getAttribute('aria-checked') === 'true');
+    if (all === !line.hidden) return;
+    line.hidden = !all;
+    if (all) App.play(line, 'is-arriving');
+  }
+
   let wired = false;
   function wire() {
     if (wired) return;
@@ -209,6 +289,7 @@
     document.addEventListener('duly:change', (ev) => {
       const d = ev.detail || {};
       if (App.route !== 'steps') return;
+      if (d.kind === 'task') { syncComplete(); return; }
       if (d.kind === 'school-import' && d.value === 'empty') {
         /* Not now folds it away; Change keeps the box open for a new link. */
         App.state[OPEN] = !(d.el && d.el.dataset && d.el.dataset.schoolImport === 'dismiss');

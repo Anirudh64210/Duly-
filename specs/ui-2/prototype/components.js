@@ -360,7 +360,15 @@
                    "Waiting on: <title>" until that step is done; app.js hides
                    and shows it in place when the school step is checked.
        afterOf?    { key, done }: an After school step. The row stays hidden
-                   until the federal step <key> is done; app.js reveals it in place. */
+                   until the federal step <key> is done; app.js reveals it in place.
+     Round 5 (note 3):
+       current?    true: the step that is now. A quiet tinted row. When the
+                   student ticks it, app.js moves "current" to the next open
+                   step in the same list, with a short highlight
+                   (App.advanceCurrent). Mark one step per list.
+       detail?     html: the step expands in place. A chevron at the end of the
+                   row (and a tap on the title) opens it, the same as any
+                   disclosure row; expanded? true starts it open. */
   function task(p) {
     const openLink = p.open ? '<a class="task-open"' + attrs(hrefAttrs(p.open.href)) + '>' + esc(p.open.label) + '</a>' : '';
     const w = p.waitingOn;
@@ -372,15 +380,20 @@
     const marks = (p.school ? schoolMark() : '') + (p.updated ? updatedMark(p.updated) : '');
     const after = p.afterOf ? ' data-after="' + esc(p.afterOf.key) + '"' + (p.afterOf.done ? '' : ' hidden') : '';
     const metaText = p.done && p.doneMeta ? p.doneMeta : p.meta;
-    const trail = openLink + (p.source ? source(p.source) : '') + (p.info ? info(p.info, { inline: false }) : '');
-    return '<div class="' + cls('item task', p.done && 'is-done', p.school && 'is-school') + '" data-key="' + esc(p.key || '') + '"' + after + '><div class="row is-static">' +
+    const discId = p.detail ? uid('disc') : '';
+    const more = p.detail ? '<button type="button" class="task-more" data-disclosure aria-expanded="' + (p.expanded ? 'true' : 'false') + '" aria-controls="' + discId + '" aria-label="' + esc('Details: ' + p.title) + '">' + icon('chevron', { cls: 'chev' }) + '</button>' : '';
+    const trail = openLink + (p.source ? source(p.source) : '') + (p.info ? info(p.info, { inline: false }) : '') + more;
+    return '<div class="' + cls('item task', p.done && 'is-done', p.school && 'is-school', p.current && 'is-current', p.detail && 'has-detail', p.detail && p.expanded && 'is-open') + '" data-key="' + esc(p.key || '') + '"' + after +
+      (p.current ? ' aria-current="step"' : '') + '><div class="row is-static">' +
       checkbox({ checked: p.done, key: p.key, label: p.title }) +
       '<span class="row-text"><span class="row-title">' + escText(p.title) + (marks ? ' <span class="marks">' + marks + '</span>' : '') + '</span>' +
       '<span class="row-meta" data-meta="' + escText(p.meta || '') + '"' + (p.doneMeta ? ' data-done-meta="' + escText(p.doneMeta) + '"' : '') +
       (metaText ? '' : ' hidden') + '>' +
       escText(metaText) + '</span>' + below + '</span>' +
       (trail ? '<span class="row-trail">' + trail + '</span>' : '') +
-      '</div></div>';
+      '</div>' +
+      (p.detail ? '<div class="disc task-detail" id="' + discId + '"' + (p.expanded ? '' : ' hidden') + '>' + p.detail + '</div>' : '') +
+      '</div>';
   }
 
   /* ongoing({ key?, title, meta?, source?, info? }) : a standing rule, e.g. "Report any job change
@@ -767,6 +780,8 @@
       school: true,
       open: s.link ? { label: s.link.label || 'Open', href: s.link.href } : null,
       afterOf: entry.afterOf || null,
+      current: !!(entry.current || opt.current),
+      detail: opt.detail || null,
       action: s.draft && opt.email ? emailDraft(Object.assign({}, opt.email, { step: key, primary: opt.primary })) : (opt.action || null),
     });
   }
@@ -861,7 +876,13 @@
     });
   }
   /* statusLine(app) : "Approved, as of Dec 20, 2025" */
-  function statusLine(a) { return a.status + (a.asOf ? ', as of ' + a.asOf : ''); }
+  function statusLine(a) {
+    if (/^unknown$/i.test(a.status || '')) {
+      const add = ((window.DULY_SAMPLE || {}).applications || {}).add || {};
+      return (add.unknown || 'Unknown') + (a.added ? ', added ' + a.added : '');
+    }
+    return a.status + (a.asOf ? ', as of ' + a.asOf : '');
+  }
 
   /* note({ title, text?, source?, actions? (html), icon = 'shield' }) : inline finding, e.g. STEM detected */
   function note(p) {
@@ -1110,6 +1131,178 @@
       icon('share') + '<span>' + esc(o.label || 'Share') + '</span></button>';
   }
 
+  /* ---------------------------------------------------------------- */
+  /* Round 5: the timeline, the STEM OPT choice in place, track a case  */
+  /* ---------------------------------------------------------------- */
+
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function isoTime(iso) { return Date.parse(String(iso).slice(0, 10) + 'T12:00:00Z'); }
+  /* fmtDate('2027-02-13', { year: true|false|'auto', ref: '2026-09-30' }) : 'Feb 13, 2027'.
+     'auto' (the default) adds the year only when it differs from ref's. */
+  function fmtDate(iso, o) {
+    const opt = o || {};
+    const t = new Date(isoTime(iso));
+    if (isNaN(t.getTime())) return String(iso || '');
+    const ref = opt.ref ? new Date(isoTime(opt.ref)) : null;
+    const withYear = opt.year === true || (opt.year !== false && (!ref || ref.getUTCFullYear() !== t.getUTCFullYear()));
+    return MONTHS[t.getUTCMonth()] + ' ' + t.getUTCDate() + (withYear ? ', ' + t.getUTCFullYear() : '');
+  }
+
+  /* timeline({ today, from?, to?, spans: [{ label, from, to }], marks: [{ label, date, emphasis?, display?, source? }],
+                caption?, todayLabel = 'Today', label?, key?, compact? })
+     A real timeline, drawn to scale (Round 5, note 3). Dates are ISO
+     (YYYY-MM-DD). The scale runs from `from` (default today) to `to` (default
+     the latest date given).
+       spans     shaded bands with their name inside ("Prepare", "Filing
+                 window"), a 2px gap where two meet. A name that does not fit
+                 its band is hidden and kept for screen readers.
+       marks     a tick on the line with the date and label under it. Only the
+                 mark with emphasis: true is set in ink and accent; the rest
+                 are quiet. Labels never collide: app.js lays them out in rows
+                 by measuring them (one row on a wide column, a second row
+                 with a longer stem where a phone needs it).
+       today     the Today marker, a dot and a stem, with `caption` beside it
+                 ("46 days until the window opens"). It is the figcaption.
+       key       motion plays once per key: the line draws in from the left,
+                 the spans fade in after it and the marker settles. A redraw
+                 of the same key shows it at rest. Default: the label.
+       compact   the small strip, e.g. on Home: thinner band, no span names.
+     The picture is aria-hidden; the marks are a real ordered list, and the
+     caption reads "Today, Sep 30. 46 days until the window opens". Off under
+     prefers-reduced-motion; complete without motion. */
+  function timeline(p) {
+    const today = p.today;
+    const all = [today].concat((p.marks || []).map((m) => m.date), (p.spans || []).reduce((a, s) => a.concat([s.from, s.to]), []));
+    const t0 = isoTime(p.from || today);
+    const t1 = isoTime(p.to || all.reduce((a, b) => (isoTime(b) > isoTime(a) ? b : a), today));
+    const range = Math.max(1, t1 - t0);
+    const pct = (iso) => Math.max(0, Math.min(100, ((isoTime(iso) - t0) / range) * 100));
+    const n = (v) => Number(v.toFixed(3));
+    const key = p.key || p.label || 'timeline';
+    /* Mark dates take their year from the strip's own start, so they read
+       left to right the same way whatever today is. */
+    const ref = p.from || today;
+
+    const spans = (p.spans || []).map((sp, i) => {
+      const a = pct(sp.from), b = pct(sp.to);
+      if (b <= a) return '';
+      return '<span class="' + cls('tl-span', 'is-' + (i % 2 ? 'b' : 'a')) + '" style="--a:' + n(a) + '%;--b:' + n(b) + '%" title="' +
+        esc(sp.label + ': ' + fmtDate(sp.from, { ref: ref }) + ' to ' + fmtDate(sp.to, { ref: ref })) + '">' +
+        (p.compact ? '' : '<span class="tl-span-label">' + esc(sp.label) + '</span>') + '</span>';
+    }).join('');
+    const ticks = (p.marks || []).map((m) => '<span class="' + cls('tl-tick', m.emphasis && 'is-emph') + '" style="--x:' + n(pct(m.date)) + '%"></span>').join('');
+    const tx = n(pct(today));
+    /* One name per date. With named bands, a date that starts a band shows
+       only its date (the band names it); in the small strip only the
+       emphasized date and the last one keep a visible label. A hidden label
+       stays in the list for screen readers. */
+    const lastT = (p.marks || []).reduce((a, m) => Math.max(a, isoTime(m.date)), -Infinity);
+    const startsSpan = (iso) => (p.spans || []).some((sp) => isoTime(sp.from) === isoTime(iso));
+    const marks = (p.marks || []).map((m) => {
+      const shown = m.display || fmtDate(m.date, { ref: ref });
+      const isEnd = m.end || isoTime(m.date) === lastT;
+      const quiet = p.compact ? !(m.emphasis || isEnd) : (!isEnd && startsSpan(m.date));
+      const src = m.source ? source(m.source, { inline: true }) : '';
+      const body = quiet
+        ? '<span class="tl-date num">' + esc(shown) + '<span class="sr-only">, ' + esc(m.label) + '</span></span>' +
+          (src && !p.compact ? '<span class="tl-label is-bare">' + src + '</span>' : '')
+        : '<span class="tl-date num">' + esc(shown) + '</span><span class="tl-label">' + esc(m.label) + src + '</span>';
+      return '<li class="' + cls('tl-mark', m.emphasis && 'is-emph', quiet && !p.compact && 'is-from') + '" style="--x:' + n(pct(m.date)) + '%"' + (m.emphasis ? ' aria-current="date"' : '') + '>' +
+        '<span class="tl-stem" aria-hidden="true"></span>' + body + '</li>';
+    }).join('');
+    const spanText = (p.spans || []).map((sp) => sp.label + ' ' + fmtDate(sp.from, { ref: ref }) + ' to ' + fmtDate(sp.to, { ref: ref })).join('. ');
+    const todayLabel = p.todayLabel || 'Today';
+
+    return '<figure class="' + cls('tl', p.compact && 'is-compact') + '" data-timeline="' + esc(key) + '" style="--today:' + tx + '%"' +
+      (p.label ? ' aria-label="' + esc(p.label) + '"' : '') + '>' +
+      '<figcaption class="tl-now"><span class="tl-now-inner">' +
+      '<span class="tl-now-label">' + esc(todayLabel) + '<span class="sr-only">, ' + esc(fmtDate(today, { year: true })) + '.</span></span>' +
+      (p.caption ? '<span class="tl-caption">' + esc(p.caption) + '</span>' : '') +
+      (spanText ? '<span class="sr-only"> ' + esc(spanText) + '.</span>' : '') +
+      '</span></figcaption>' +
+      '<div class="tl-plot" aria-hidden="true"><span class="tl-line"></span>' + spans + ticks +
+      '<span class="tl-today"><i></i></span></div>' +
+      '<ol class="tl-marks">' + marks + '</ol>' +
+      '</figure>';
+  }
+
+  /* stemDecide({ seeAll = true, label? }) : Home's next move, answered in
+     place (Round 5, note 1). Reads App.stemPlan(), so Home and Next steps
+     share one answer and one set of dates.
+       not answered  "Decide on STEM OPT", its date and source, Yes, No, Not sure
+       yes           "You plan to apply · Change", the three dates as a small
+                     timeline, and See all steps (seeAll: false hides it)
+       no            "Not applying this time · Change"
+       not sure      "Decide any time", the three choices kept
+     The buttons are data-answer="stemIntent"; app.js redraws every
+     [data-stem-decide] in place when the answer changes, with a light tap
+     and a short highlight, and never leaves the page. */
+  function stemDecide(o) {
+    const opt = o || {};
+    const plan = window.App && App.stemPlan ? App.stemPlan() : null;
+    if (!plan) return '';
+    const d = plan.decide;
+    const intent = plan.intent;
+    const btn = (c, kind) => '<button type="button" class="' + cls('btn', kind) + '" data-answer="stemIntent" data-value="' + esc(c.value) + '"' +
+      (intent === c.value ? ' aria-pressed="true"' : '') + '>' + esc(c.label) + '</button>';
+    const change = '<button type="button" class="btn btn-text is-small" data-answer="stemIntent" data-value="">' + esc(d.change) + '</button>';
+    const prep = plan.byKey.prepare || {};
+    let body;
+    if (intent === 'yes') {
+      body = '<p class="sd-state t-meta"><span>' + esc(d.yes) + '</span>' + change + '</p>' +
+        timeline(Object.assign(App.stemTimeline(), { compact: true, key: 'stem-home' })) +
+        (opt.seeAll !== false && d.seeAll ? '<p class="sd-more">' + link(d.seeAll) + '</p>' : '');
+    } else if (intent === 'no') {
+      body = '<p class="sd-state t-meta"><span>' + esc(d.no) + '</span>' + change + '</p>';
+    } else {
+      body = '<div class="sd-ask">' +
+        '<p class="sd-q"><span class="row-title">' + esc(d.title) + '</span>' + (prep.source ? source(prep.source, { inline: true }) : '') +
+        (prep.date ? '<span class="sd-date row-value num">By ' + esc(fmtDate(prep.iso, { ref: plan.today })) + '</span>' : '') + '</p>' +
+        '<div class="btn-group" role="group" aria-label="' + esc(d.title) + '">' +
+        d.choices.map((c, i) => btn(c, i === 0 ? 'btn-primary' : (c.value === 'unsure' ? 'btn-text is-quiet' : 'btn-pill'))).join('') +
+        '</div>' +
+        (intent === 'unsure' ? '<p class="sd-state t-meta">' + esc(d.unsure) + '</p>' : '') +
+        '</div>';
+    }
+    return '<div class="stem-decide" data-stem-decide' + (opt.seeAll === false ? ' data-see-all="no"' : '') + ' data-intent="' + esc(intent || 'none') + '">' + body + '</div>';
+  }
+
+  /* trackCase({ open? }) : "Track another case" on USCIS status (Round 5,
+     note 2). Closed, one quiet button; open, the receipt number, what the
+     case is for (a short list plus Other, which asks for the form by name),
+     Cancel and Track this case. app.js wires it: App.addCase() checks and
+     saves, an error shows under its field in place, and a saved case joins
+     App.data.applications.items with status Unknown until rechecked. The
+     open state is App.state['trackCase:open']. */
+  function trackCase(o) {
+    const opt = o || {};
+    const apps = (window.DULY_SAMPLE || {}).applications || {};
+    const a = apps.add || {};
+    const st = (window.App && App.state) || {};
+    const open = opt.open != null ? opt.open : !!st['trackCase:open'];
+    if (!open) {
+      return '<div class="track-case" data-track-case="closed">' +
+        '<button type="button" class="btn btn-text" data-case-act="open">' + esc(a.open || 'Track another case') + '</button></div>';
+    }
+    const err = st['trackCase:error'] || {};
+    const form = st['trackCase:form'] || null;
+    const types = apps.formTypes || [];
+    return '<div class="track-case is-open" data-track-case="open" role="group" aria-label="' + esc(a.open || 'Track another case') + '">' +
+      field({ label: a.receiptLabel, key: 'trackCase:receipt', value: st['trackCase:receipt'] || null, placeholder: apps.receiptPlaceholder,
+        autocomplete: 'off', error: err.receipt || null }) +
+      '<div class="field"><p class="field-label" id="tc-form-label">' + esc(a.formLabel) + '</p>' +
+      chips({ key: 'trackCase:form', label: a.formLabel, items: types.map((t) => ({ value: t.key, label: t.label, selected: form === t.key })) }) +
+      (err.form ? '<p class="field-error">' + esc(err.form) + '</p>' : '') + '</div>' +
+      '<div class="tc-other"' + (form === 'other' ? '' : ' hidden') + '>' +
+      field({ label: a.otherLabel, key: 'trackCase:other', value: st['trackCase:other'] || null, placeholder: a.otherPlaceholder, error: err.other || null }) +
+      '</div>' +
+      buttonRow({
+        back: '<button type="button" class="btn btn-text is-quiet" data-case-act="cancel">' + esc(a.cancel || 'Cancel') + '</button>',
+        primary: '<button type="button" class="btn btn-pill" data-case-act="save">' + esc(a.save || 'Track this case') + '</button>',
+      }) +
+      '</div>';
+  }
+
   window.C = {
     esc, raw, cls, attrs, uid, icon,
     NAV, NAV_SECONDARY,
@@ -1126,5 +1319,6 @@
     note, caution, dates, tracker, found, footer,
     steps, onboarding,
     sampleMark, promise, pillars, fact, stemField, jobsAsk, employerCheck, employerRow, processingTime, reminders, shareButton,
+    fmtDate, timeline, stemDecide, trackCase,
   };
 })();

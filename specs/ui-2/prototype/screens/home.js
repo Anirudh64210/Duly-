@@ -21,9 +21,14 @@
      #/home/no-ead   no EAD card yet. Onboarding with the card left for later
                      lands here too, whatever the route says: no count and no
                      date is shown from a card the student never added.
-   The STEM OPT choice is asked on Next steps (#/steps); the next move here
-   follows the answer in App.stemIntent(). The word Duly does not appear in
-   this screen's text. */
+   Round 5, note 1: the STEM OPT choice is answered here, in place. Decide
+   opens the row with Yes, No and Not sure. Yes shows the three dates as the
+   small strip (C.timeline, compact) and See all steps; No and Not sure fold the row back with one quiet line. The answer is
+   App.setStemIntent(), the same one Next steps reads, with a light tap. The
+   height eases between states, so nothing below jumps, and nothing leaves
+   Home unless the student taps See all steps. Change reopens the choices
+   without clearing the answer; Escape or Decide folds them away again.
+   The word Duly does not appear in this screen's text. */
 (function () {
   'use strict';
 
@@ -46,10 +51,20 @@
     '.screen-home .move.has-draft > .row { padding-bottom: var(--s-8); }' +
     '.screen-home .move .draft { padding: 0 var(--s-12) var(--s-16); }' +
     '.screen-home .home-news .rules-line { margin-top: var(--s-16); }' +
-    '@media (prefers-reduced-motion: reduce) { .screen-home .metric-ask.is-leaving { transition: none; } }' +
+    '.screen-home .stem-move > .row .row-text { gap: 0; }' +
+    '.screen-home .stem-move .sm-chev { flex: none; opacity: .72; transform: rotate(90deg); transition: transform .22s ease; }' +
+    '.screen-home .stem-move .sm-toggle[aria-expanded="true"] .sm-chev { transform: rotate(-90deg); }' +
+    '.screen-home .stem-move .sm-change { padding: var(--s-8) 0; }' +
+    '.screen-home .stem-move .sm-panel { padding: var(--s-4) var(--s-12) var(--s-16); }' +
+    '.screen-home .stem-move .sm-panel .btn-text[aria-pressed="true"] { color: var(--ink); }' +
+    '.screen-home .stem-move .sm-plan { display: flex; flex-direction: column; gap: var(--s-16); padding: 0 var(--s-12) var(--s-16); }' +
+    '.screen-home .stem-move .sm-plan .tl { padding: 0; }' +
+    '.screen-home .stem-move .sm-foot { margin: 0; }' +
+    '@media (prefers-reduced-motion: reduce) { .screen-home .metric-ask.is-leaving, .screen-home .stem-move .sm-chev { transition: none; } }' +
     '</style>';
 
   const ADD_EAD = '#/documents/add';
+  const OPEN_KEY = 'home:stemOpen';     /* the choices are showing */
   const DRAFT_KEY = 'dso-days';
   const e = (s) => C.esc(s);
 
@@ -108,11 +123,11 @@
   /* One line: the title (with its source mark), the date, one action.
      m.draft puts an email draft under the line instead of a button;
      m.choice puts two answers there instead (the job question). */
-  function moveLine(m) {
+  function moveItem(m) {
     const src = m.info ? C.info(m.info, { label: 'Why we ask' }) : (m.source ? C.source(m.source, { inline: true }) : '');
     const mark = m.school ? ' <span class="marks">' + C.schoolMark() + '</span>' : '';
     const action = m.draft ? '' : (m.choice ? choiceHtml(m.choice) : C.button({ label: m.action, kind: 'primary', href: m.href }));
-    return '<div class="list" aria-label="Your next move"><div class="item move' + (m.draft ? ' has-draft' : '') + '" data-key="' + e(m.key) + '">' +
+    return '<div class="item move' + (m.draft ? ' has-draft' : '') + '" data-key="' + e(m.key) + '">' +
       '<div class="row is-static">' +
       '<span class="row-text"><span class="row-title">' + C.escText(m.title) + mark + src + '</span></span>' +
       '<span class="row-trail">' +
@@ -120,7 +135,79 @@
       action +
       '</span></div>' +
       (m.draft ? C.emailDraft(m.draft) : '') +
-      '</div></div>';
+      '</div>';
+  }
+  function moveLine(m) {
+    if (m.inPlace) return stemMoveHtml(m.data);
+    return '<div class="list move-list" aria-label="Your next move">' + moveItem(m) + '</div>';
+  }
+
+  /* ---- the STEM OPT choice, answered in place (Round 5, note 1) ----
+     One state at a time:
+       ask   "Decide on STEM OPT", its date, Decide. Decide opens the row
+             with Yes, No and Not sure. After Not sure the row stays folded
+             with "Decide any time" under the title.
+       yes   "You plan to apply · Change", the three dates as the small strip
+             and See all steps.
+       no    "Not applying this time · Change", then the standing rule to
+             report a change, as before.
+     Change reopens the choices with the answer kept; folding them away again
+     brings the answer back. */
+  function stemView() {
+    const intent = App.stemIntent();
+    const open = !!App.state[OPEN_KEY];
+    return { intent: intent, open: open, state: (intent === 'yes' || intent === 'no') && !open ? intent : 'ask' };
+  }
+
+  function stemItemHtml(data) {
+    const plan = App.stemPlan();
+    const d = plan.decide || {};
+    const prep = plan.byKey.prepare || {};
+    const v = stemView();
+    const topic = (data.stem && data.stem.eyebrow) || 'STEM OPT extension';
+    const move = (data.home.nextMoves || []).filter((x) => x.key === 'stemIntent')[0] || {};
+    const decideLabel = (move.primary && move.primary.label) || 'Decide';
+    const src = prep.source || move.source;
+
+    if (v.state !== 'ask') {
+      const change = '<button type="button" class="btn btn-text is-small sm-change" data-stem-home="change" aria-label="' +
+        e(d.change + ' your STEM OPT answer') + '">' + e(d.change) + '</button>';
+      const row = '<div class="row is-static">' +
+        '<span class="row-text"><span class="row-title">' + e(topic) + '</span>' +
+        '<span class="row-meta is-act">' + e(v.state === 'yes' ? d.yes : d.no) + '</span></span>' +
+        '<span class="row-trail">' + change + '</span></div>';
+      if (v.state === 'no') return row;
+      /* No caption here: the Next date tile above already gives the count,
+         so the strip keeps only its Today marker. */
+      const strip = C.timeline(Object.assign(App.stemTimeline(), { compact: true, caption: null, key: 'stem-home' }));
+      return row + '<div class="sm-plan">' + strip +
+        (d.seeAll ? '<p class="sm-foot">' + C.link(d.seeAll) + '</p>' : '') + '</div>';
+    }
+
+    const quiet = v.intent === 'unsure' && !v.open;
+    const choices = (d.choices || []).map((c) => '<button type="button" class="' +
+      C.cls('btn', c.value === 'unsure' ? 'btn-text is-quiet' : 'btn-pill') + '" data-stem-home="answer" data-value="' + e(c.value) + '"' +
+      (v.intent === c.value ? ' aria-pressed="true"' : '') + '>' + e(c.label) + '</button>').join('');
+    return '<div class="row is-static">' +
+      '<span class="row-text"><span class="row-title">' + e(d.title || move.title) + (src ? C.source(src, { inline: true }) : '') + '</span>' +
+      (quiet ? '<span class="row-meta">' + e(d.unsure) + '</span>' : '') + '</span>' +
+      '<span class="row-trail">' +
+      (prep.iso ? '<span class="row-value num">By ' + e(C.fmtDate(prep.iso, { ref: plan.today })) + '</span>' : '') +
+      '<button type="button" class="' + C.cls('btn', v.intent === 'unsure' ? 'btn-pill' : 'btn-primary', 'sm-toggle') + '" data-stem-home="toggle"' +
+      ' aria-expanded="' + (v.open ? 'true' : 'false') + '"' + (v.open ? ' aria-controls="sm-choices"' : '') + '>' +
+      e(decideLabel) + C.icon('chevron', { cls: 'sm-chev', size: 12 }) + '</button>' +
+      '</span></div>' +
+      (v.open ? '<div class="sm-panel" id="sm-choices" role="group" aria-label="' + e(d.title) + '"><div class="btn-group">' + choices + '</div></div>' : '');
+  }
+
+  function stemMoveHtml(data) {
+    const v = stemView();
+    const c = (data.home.nextMoves || []).filter((x) => x.key === 'changes')[0] || {};
+    return '<div class="list move-list" aria-label="Your next move" data-stem-home-list>' +
+      '<div class="' + C.cls('item move stem-move', v.open && 'is-open') + '" data-key="stemIntent" data-state="' + v.state + '">' +
+      stemItemHtml(data) + '</div>' +
+      (v.state === 'no' ? moveItem({ key: 'changes', title: c.title, date: 'Within 10 days', action: 'See how', href: c.href || '#/steps', source: c.source }) : '') +
+      '</div>';
   }
 
   /* The one move for this student, from the demo state, the job list and the
@@ -141,25 +228,13 @@
       };
     }
 
-    const intent = App.stemIntent();
+    /* The STEM OPT choice, answered in place: Yes, No, Not sure or none yet.
+       Once every STEM OPT step is done the move is the application itself. */
+    if (App.stemIntent() === 'yes' && !nextStemStep()) {
+      return { key: 'uscis', title: 'Track your application', action: 'Open', href: '#/uscis' };
+    }
     const d = find('stemIntent');
-    if (intent === 'no') {
-      const c = find('changes');
-      return { key: 'changes', title: c.title, date: 'Within 10 days', action: 'See how', href: c.href || '#/steps', source: c.source };
-    }
-    if (intent === 'yes') {
-      const step = nextStemStep();
-      if (!step) return { key: 'uscis', title: 'Track your application', action: 'Open', href: '#/uscis' };
-      const anyDone = App.steps('stem').some((s) => s.done);
-      const filing = step.key === 'i765';
-      return {
-        key: 'stemStep', title: step.step.title, school: step.type === 'school',
-        date: filing ? 'From Nov 15' : 'By ' + d.date,
-        action: anyDone ? 'Continue' : 'Start', href: '#/steps',
-        source: filing ? 'stemOpens' : d.source,
-      };
-    }
-    /* Not answered yet, or not sure. */
+    if (d.inPlace) return { key: 'stemIntent', inPlace: true, data: data };
     return {
       key: 'stemIntent', title: d.title, date: d.date ? 'By ' + d.date : null,
       action: (d.primary && d.primary.label) || 'Decide', href: (d.primary && d.primary.href) || '#/steps', source: d.source,
@@ -219,6 +294,79 @@
     return box.innerHTML;
   }
 
+  /* ---- in place: open, answer, fold ---- */
+  let ctx = null;
+  const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* The list eases from its old height to its new one, so News below glides
+     instead of jumping. Painting is clipped to the moving edge only. Under
+     reduced motion the new state is simply there. */
+  function morph(el, h0) {
+    const h1 = el.offsetHeight;
+    if (reduced() || !el.animate || Math.abs(h1 - h0) < 2) return;
+    const clip = 'inset(-8px -24px 0 -24px)';
+    el.animate([{ height: h0 + 'px', clipPath: clip }, { height: h1 + 'px', clipPath: clip }],
+      { duration: 280, easing: 'cubic-bezier(.2, .7, .2, 1)' });
+  }
+
+  /* Redraw the move in place and return the new list. */
+  function redrawMove(root) {
+    const list = root.querySelector('[data-stem-home-list]');
+    if (!list || !ctx) return null;
+    const h0 = list.offsetHeight;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = stemMoveHtml(ctx.data);
+    const next = tmp.firstElementChild;
+    list.replaceWith(next);
+    App.layoutTimelines(next);
+    morph(next, h0);
+    return next;
+  }
+
+  /* The third number follows the answer (the window opening, or the card's
+     end after a no). Swapped quietly, only when it changed. */
+  function refreshMetrics(root) {
+    if (!ctx) return;
+    const cur = root.querySelectorAll('.metrics > .metric')[2];
+    const tmp = document.createElement('div');
+    tmp.innerHTML = metricsHtml(ctx.data, ctx.mode, ctx.u);
+    const fresh = tmp.querySelectorAll('.metrics > .metric')[2];
+    if (!cur || !fresh || cur.innerHTML === fresh.innerHTML) return;
+    cur.replaceWith(fresh);
+    App.play(fresh, 'is-arriving');
+  }
+
+  const focusIn = (el, sel) => {
+    const f = el && el.querySelector(sel);
+    if (f) f.focus({ preventScroll: true });
+  };
+
+  function setOpen(root, open) {
+    App.state[OPEN_KEY] = !!open;
+    const list = redrawMove(root);
+    if (!list) return;
+    if (open) {
+      const panel = list.querySelector('.sm-panel');
+      App.play(panel, 'is-arriving');
+      focusIn(list, '.sm-panel [aria-pressed="true"], .sm-panel button');
+    } else {
+      focusIn(list, '.sm-toggle, .sm-change');
+    }
+  }
+
+  /* An answer folds the row back to its quiet line (or the strip, for a
+     yes), with a light tap from App.setStemIntent and a short highlight.
+     The answer is the one Next steps reads. Nothing navigates. */
+  function answerStem(root, value, btn) {
+    App.state[OPEN_KEY] = false;
+    App.setStemIntent(value, btn);
+    const list = redrawMove(root);
+    refreshMetrics(root);
+    if (!list) return;
+    App.play(list.querySelector('.stem-move'), 'is-arriving');
+    focusIn(list, '.sm-change, .sm-toggle');
+  }
+
   window.SCREENS['home'] = {
     title: 'Home',
 
@@ -232,6 +380,7 @@
       const noJob = asked === 'no-job';
       const h = data.home;
       const u = unemploymentFor(mode);
+      ctx = { data: data, mode: mode, u: u };
 
       /* ---- hero: where you stand; the why is behind the ⓘ ---- */
       const heroHtml = C.hero({
@@ -267,6 +416,22 @@
 
     mount(root) {
       root.classList.add('screen-home');
+      root.addEventListener('click', (ev) => {
+        const b = ev.target.closest('[data-stem-home]');
+        if (!b || !root.contains(b)) return;
+        ev.preventDefault();
+        const act = b.dataset.stemHome;
+        if (act === 'toggle') setOpen(root, !App.state[OPEN_KEY]);
+        else if (act === 'change') setOpen(root, true);
+        else if (act === 'answer') answerStem(root, b.dataset.value, b);
+      });
+      /* Escape folds the choices away and gives focus back to Decide. */
+      root.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'Escape' || !App.state[OPEN_KEY]) return;
+        if (!ev.target.closest || !ev.target.closest('.stem-move')) return;
+        ev.preventDefault();
+        setOpen(root, false);
+      });
     },
   };
 })();

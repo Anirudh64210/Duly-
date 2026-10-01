@@ -429,7 +429,7 @@ a.wordmark:hover { color: var(--ink); }
 }
 
 .bar { height: 3px; border-radius: 2px; background: var(--track); overflow: hidden; }
-.bar > i { display: block; height: 100%; border-radius: 2px; background: var(--accent); transition: width .32s var(--ease-rise); }
+.bar > i { display: block; height: 100%; border-radius: 2px; background: var(--accent); transition: width .6s var(--ease-rise); }
 /* The fill plays on first launch only. A page change shows the bar at its
    value; a value that changes in place moves by the width transition. */
 .is-entering .bar > i { animation: fillw .9s .12s var(--ease-rise) backwards; }
@@ -1168,6 +1168,119 @@ a.mark.is-updated:hover { color: var(--accent-hover); }
 .found { display: flex; flex-direction: column; }
 
 /* ------------------------------------------------------------------ */
+/* 13b. Round 5: timeline, the STEM OPT choice, track a case            */
+/* ------------------------------------------------------------------ */
+
+/* C.timeline: drawn to scale. A 2px line, two shaded spans with their name
+   inside and a 2px gap where they meet, a tick per date, the Today marker
+   (a stem and a dot ringed in the ground colour) with its one line above.
+   Dates and labels sit under their ticks; app.js lays them out in rows so
+   they never touch. Both spans share one quiet tint: only the emphasized
+   date is set in ink at 600 with an accent tick, and the Today marker
+   stands on the band. Time already passed recedes under a veil of the
+   ground colour; the time ahead stays full strength. Text keeps the text
+   inks. */
+.tl { margin: 0; padding: 0 var(--s-8); min-width: 0; }
+.tl-now { min-height: var(--lh-meta); }
+.tl-now-inner {
+  display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-8); max-width: 100%;
+  font-size: var(--t-small); line-height: var(--lh-meta);
+}
+.tl-now-inner > * { white-space: nowrap; }
+.tl-now-label { font-weight: 600; color: var(--ink); }
+.tl-caption { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tl-plot { position: relative; height: 24px; margin-top: var(--s-12); }
+.tl-plot::before {
+  content: ""; position: absolute; z-index: 1; left: 0; top: 0; bottom: 0; width: var(--today);
+  background: var(--ground); opacity: .55; pointer-events: none;
+}
+.tl-line {
+  position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px;
+  border-radius: 1px; background: var(--track); transform-origin: left center;
+}
+.tl-span {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(var(--a) + 1px); width: calc(var(--b) - var(--a) - 2px); min-width: 2px;
+  display: flex; align-items: center; overflow: hidden;
+  padding: 0 var(--s-8); border-radius: var(--r-tag);
+}
+.tl-span { background: var(--accent-tint); }
+.tl-span-label {
+  font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small);
+  color: var(--ink-2); white-space: nowrap;
+}
+.tl-span.is-tight .tl-span-label { visibility: hidden; }
+.tl-tick {
+  position: absolute; z-index: 1; top: 0; bottom: 0; left: var(--x);
+  width: 1px; margin-left: -1px; background: var(--chip-selected-border);
+}
+.tl-tick.is-emph { width: 2px; top: calc(-1 * var(--s-4)); bottom: calc(-1 * var(--s-4)); background: var(--accent); }
+.tl-today {
+  position: absolute; z-index: 2; left: var(--today); top: calc(-1 * var(--s-12)); bottom: 100%;
+  width: 2px; margin-left: -1px; border-radius: 1px; background: var(--ink);
+}
+.tl-today i {
+  position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; margin-left: -5px;
+  border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--ground);
+}
+.tl-marks { position: relative; list-style: none; margin: 0; padding: 0; height: 52px; }
+.tl-mark {
+  position: absolute; top: var(--s-8); left: var(--x); transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; text-align: center; white-space: nowrap;
+}
+.tl.is-laid .tl-mark { transform: none; }
+.tl-mark.is-start { align-items: flex-start; text-align: left; }
+.tl-mark.is-end { align-items: flex-end; text-align: right; }
+.tl-stem {
+  position: absolute; left: var(--stem-x, 50%); top: calc(-1 * var(--stem-h, 8px)); height: var(--stem-h, 8px);
+  width: 1px; margin-left: -1px; background: var(--chip-selected-border);
+}
+.tl-mark.is-emph .tl-stem { width: 2px; background: var(--accent); }
+.tl-date { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink-2); }
+.tl-label.is-bare .inline-src { margin-left: 0; }
+.tl-label { display: inline-flex; align-items: center; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
+.tl-mark.is-emph .tl-date { font-weight: 600; color: var(--ink); }
+.tl-mark.is-emph .tl-label { color: var(--ink-2); }
+.tl-mark:hover .src { color: var(--ink-3); }
+/* The small strip (Home): a thin band, no span names. */
+.tl.is-compact .tl-plot { height: 8px; }
+.tl.is-compact .tl-span { padding: 0; border-radius: 4px; }
+
+/* C.stemDecide: Home's next move, answered in place. */
+.stem-decide { display: flex; flex-direction: column; gap: var(--s-16); padding: var(--s-16) 0; }
+.stem-decide .sd-ask { display: flex; flex-direction: column; gap: var(--s-12); }
+.stem-decide .sd-q { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--s-8); }
+.stem-decide .sd-q .inline-src { margin-left: 0; }
+.stem-decide .sd-date { margin-left: auto; }
+.stem-decide .sd-state { display: flex; align-items: center; gap: var(--s-12); }
+.stem-decide .sd-state .btn { padding: 0; }
+.stem-decide .btn-text[aria-pressed="true"] { color: var(--ink); }
+.stem-decide .tl { margin-top: var(--s-8); }
+
+/* C.trackCase: Track another case. */
+.track-case { margin-top: var(--s-24); }
+.track-case.is-open { display: flex; flex-direction: column; gap: var(--s-24); max-width: 560px; }
+.track-case .chips { margin-bottom: 0; }
+.track-case .btn-row { margin-top: 0; }
+
+/* C.task({ detail }): a step that expands in place, from its chevron or a
+   tap on the row. */
+.task-more {
+  position: relative; flex: none; display: grid; place-items: center;
+  width: 16px; height: var(--lh-small); padding: 0; border: 0; background: none; color: var(--ink-4);
+}
+.task-more::after { content: ""; position: absolute; inset: -12px -14px; }
+.task-more:hover, .task-more:focus-visible { color: var(--ink-2); }
+.task.has-detail > .row { cursor: pointer; }
+.task.has-detail > .row:hover { background: var(--row-hover); }
+.task-detail { padding-left: calc(var(--s-12) + 18px + var(--s-16)); }
+
+/* The step that is now: a quiet tint, no box. */
+.task.is-current > .row { background: var(--accent-tint); }
+.task.is-current.has-detail > .row:hover { background: var(--accent-tint); }
+.task .row-title { transition: color .3s ease; }
+
+/* ------------------------------------------------------------------ */
 /* 14. Motion                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -1199,6 +1312,41 @@ a.mark.is-updated:hover { color: var(--accent-hover); }
 
 .confetti { position: fixed; z-index: 70; width: 6px; height: 6px; margin: -3px 0 0 -3px; pointer-events: none; border-radius: 50%; }
 .confetti.is-strip { width: 4px; height: 10px; border-radius: 2px; }
+
+/* Round 5 (note 4): light motion for a calm feeling of progress. Every
+   class here is added for one play by App.play() and removed when it ends,
+   so a redraw never replays it. Under reduced motion none is added and the
+   rule below stops the rest; the end state is always already on screen. */
+@keyframes check-draw { from { stroke-dashoffset: 14; } }
+@keyframes check-pop { from { transform: scale(.86); } }
+@keyframes settle { from { transform: translateY(-2px); } }
+@keyframes settle-soft { 0% { transform: scale(.985); } 60% { transform: scale(1.01); } 100% { transform: none; } }
+@keyframes arrive { from { background: var(--tint-border); transform: translateY(4px); } }
+@keyframes arrive-row { from { background: var(--accent-tint); } }
+@keyframes arrive-soft { from { opacity: 0; transform: translateY(4px); } }
+@keyframes tl-draw { from { transform: scaleX(0); } }
+@keyframes tl-settle { 0% { opacity: 0; transform: translateY(-8px); } 70% { opacity: 1; transform: translateY(1px); } 100% { transform: none; } }
+
+/* A check that draws itself. */
+.check svg path { stroke-dasharray: 14; stroke-dashoffset: 0; }
+.check.is-ticking { animation: check-pop .3s var(--ease-rise); }
+.check.is-ticking svg path { animation: check-draw .32s .04s ease-out both; }
+/* A gentle settle when a step completes, and when a list is complete. */
+.task.is-settling > .row { animation: settle .5s var(--ease-rise); }
+.is-complete { animation: settle-soft .6s var(--ease-rise); }
+span.is-complete { display: inline-block; }
+/* A short highlight when a step moves up to current, or a new row arrives. */
+.task.is-current.is-arriving > .row { animation: arrive .9s var(--ease-rise); }
+.item.is-arriving:not(.task) > .row { animation: arrive-row 1s ease-out; }
+.is-arriving:not(.item) { animation: arrive-soft .4s var(--ease-rise); }
+/* The timeline draws in once: the Today line appears with the line as it
+   draws from the left, then the spans and dates, and the Today marker
+   settles last. */
+.tl.is-drawing .tl-line { animation: tl-draw .8s var(--ease-rise) both; }
+.tl.is-drawing .tl-span { animation: fade .45s .4s ease-out both; }
+.tl.is-drawing .tl-tick, .tl.is-drawing .tl-mark { animation: fade .4s .55s ease-out both; }
+.tl.is-drawing .tl-today { animation: tl-settle .7s .75s var(--ease-rise) both; }
+.tl.is-drawing .tl-now { animation: fade .4s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

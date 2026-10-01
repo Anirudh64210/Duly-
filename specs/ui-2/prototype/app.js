@@ -42,7 +42,35 @@
      App.calendarFile(), App.addToCalendar()   every reminder date as one .ics
 
    Old routes redirect in place (Round 3, note 7): #/next and #/checklists
-   go to #/steps, #/applications to #/uscis, keeping their params. */
+   go to #/steps, #/applications to #/uscis, keeping their params.
+
+   Round 5 (BRIEF.md, Round 5) adds:
+     App.haptic(kind)              a light tap through navigator.vibrate where
+                                   the phone has it: 'tick' 10ms, 'select' 6ms,
+                                   'complete' a softer double. No-op elsewhere,
+                                   under prefers-reduced-motion, and when
+                                   App.state.haptics === false.
+     App.play(el, cls)             add a one-shot motion class ('is-ticking',
+                                   'is-settling', 'is-arriving', 'is-complete'),
+                                   removed when it ends. No-op under reduced motion.
+     App.currentStep(path)         the key of the step that is now: the first
+                                   open, visible step of App.steps(path).
+     App.advanceCurrent(listEl)    move "current" to the first open step in a
+                                   list, with a short highlight. setTask calls it.
+     App.stemPlan()                the STEM OPT choice and its dates, one source
+                                   for Home and Next steps:
+                                   { intent, today, dates, byKey, decide, timeline }
+     App.setStemIntent(v)          answer it ('yes'|'no'|'unsure'|null) in place
+     App.stemTimeline({ today? })  props for C.timeline, from DULY_SAMPLE.stem
+     App.layoutTimelines(root?)    lay out timeline labels; runs after every
+                                   render and on resize, so screens never call it
+                                   unless they insert a timeline themselves
+     App.formTypes(), App.formType(key)
+     App.normalizeReceipt(v), App.isReceipt(v)
+     App.addCase({ receipt, form, other?, title? })  -> { ok, item } | { ok: false, errors }
+     App.removeCase(id)            only a case the student added
+   New 'duly:change' kinds: 'case' (add | remove), 'current' (key of the new
+   current step). */
 
 window.SCREENS = window.SCREENS || {};
 
@@ -248,6 +276,209 @@ window.SCREENS = window.SCREENS || {};
     return open ? pt : null;
   };
 
+  /* ---------------- round 5: the STEM OPT choice, one source (note 1) ---------------- */
+
+  const isoT = (iso) => Date.parse(String(iso).slice(0, 10) + 'T12:00:00Z');
+  const dayCount = (a, b) => Math.round((isoT(b) - isoT(a)) / 86400000);
+  const nDays = (n) => n + (n === 1 ? ' day' : ' days');
+  const fill = (tpl, v) => String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m));
+
+  /* App.stemTimeline({ today? }) : props for C.timeline from DULY_SAMPLE.stem.
+     Scaled from today (or from the start of the first span once today is past
+     it, so the Today marker travels through the plan) to the last day to
+     file. Emphasis and the one line follow where today is: the window
+     opening until it opens, then the last day to file. today overrides the
+     sample's today, for a review link. */
+  function stemTimeline(o) {
+    const opt = o || {};
+    const st = data.stem || {};
+    const tl = st.timeline || {};
+    const c = tl.captions || {};
+    const today = opt.today || data.today.iso;
+    const by = {};
+    (st.dates || []).forEach((d) => { by[d.key] = d; });
+    const opens = by.opens, closes = by.closes;
+    const t = isoT(today);
+    let emph = null, caption = null;
+    if (opens && t < isoT(opens.iso)) { emph = 'opens'; caption = fill(c.before, { n: nDays(dayCount(today, opens.iso)) }); }
+    else if (closes && t < isoT(closes.iso)) { emph = 'closes'; caption = fill(c.open, { n: nDays(dayCount(today, closes.iso)) }); }
+    else if (closes && t === isoT(closes.iso)) { emph = 'closes'; caption = c.last; }
+    else if (closes) { caption = fill(c.after, { date: closes.date }); }
+    const spans = (tl.spans || []).filter((s) => by[s.from] && by[s.to]).map((s) => ({ label: s.label, from: by[s.from].iso, to: by[s.to].iso }));
+    const first = spans.length ? spans[0].from : today;
+    const end = closes ? closes.iso : today;
+    return {
+      key: 'stem', label: tl.label, today: today,
+      from: isoT(first) < t ? first : today,
+      to: isoT(end) > t ? end : today,
+      spans: spans,
+      marks: (st.dates || []).map((d) => ({ label: d.label, date: d.iso, emphasis: d.key === emph, source: d.source })),
+      caption: caption,
+    };
+  }
+  App.stemTimeline = stemTimeline;
+
+  /* App.stemPlan({ today? }) : what Home and Next steps both read.
+       intent    App.stemIntent()
+       dates     the three key dates [{ key, iso, date, label, source, end? }]
+       byKey     the same by key: prepare, opens, closes
+       decide    DULY_SAMPLE.stem.decide (title, choices, lines, seeAll)
+       timeline  App.stemTimeline() */
+  function stemPlan(o) {
+    const st = data.stem || {};
+    const dates = (st.dates || []).map((d) => Object.assign({}, d));
+    const byKey = {};
+    dates.forEach((d) => { byKey[d.key] = d; });
+    return {
+      intent: stemIntent(), today: (o && o.today) || data.today.iso,
+      dates: dates, byKey: byKey, decide: st.decide || {}, timeline: stemTimeline(o),
+    };
+  }
+  App.stemPlan = stemPlan;
+
+  /* App.setStemIntent('yes' | 'no' | 'unsure' | null) : the answer, from any
+     screen. A light tap, the 'answer' event (Next steps redraws on it), and
+     every C.stemDecide block on the page redrawn in place. */
+  function setStemIntent(v, el) {
+    App.state.stemIntent = v == null ? '' : String(v);
+    haptic('tick');
+    emit('answer', 'stemIntent', App.state.stemIntent, el || null);
+    refreshDecide(el);
+  }
+  App.setStemIntent = setStemIntent;
+
+  /* Redraw each [data-stem-decide] in place, keep focus inside it. */
+  function refreshDecide(from) {
+    const hadFocus = from && from.closest && from.closest('[data-stem-decide]');
+    document.querySelectorAll('main#main [data-stem-decide]').forEach((box) => {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = C.stemDecide({ seeAll: box.dataset.seeAll !== 'no' });
+      const next = tmp.firstElementChild;
+      if (!next) return;
+      box.replaceWith(next);
+      layoutTimelines(next);
+      play(next, 'is-arriving');
+      if (hadFocus) {
+        const f = next.querySelector('[data-answer="stemIntent"][aria-pressed="true"], [data-answer="stemIntent"], a');
+        if (f) f.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  /* ---------------- round 5: track another case (note 2) ---------------- */
+
+  const RECEIPT_RE = /^[A-Z]{3}\d{10}$/;
+  App.normalizeReceipt = (v) => String(v || '').toUpperCase().replace(/[\s-]/g, '');
+  App.isReceipt = (v) => RECEIPT_RE.test(App.normalizeReceipt(v));
+  App.formTypes = () => ((data.applications || {}).formTypes || []).slice();
+  App.formType = (key) => App.formTypes().filter((t) => t.key === key)[0] || null;
+
+  /* App.addCase({ receipt, form, other?, title? }) : save a case to track.
+     receipt is normalised (upper case, no spaces or dashes) and checked:
+     three letters and ten digits, not already on the list. form is a
+     formTypes key; 'other' needs `other`, the form in the student's words.
+     The case joins DULY_SAMPLE.applications.items as
+       { id: 'case-<receipt>', title, form, formType, receipt, status: 'Unknown',
+         current: null, asOf: null, added: 'Sep 30', tracked: true, manual: true,
+         dates: [{ label: 'Added', date }], next: { title, href }, processing: null }
+     and stays Unknown until the student records a status after rechecking.
+     Returns { ok: true, item } or { ok: false, errors: { receipt?, form?, other? } }
+     with the copy to show under each field. */
+  function addCase(o) {
+    const opt = o || {};
+    const apps = data.applications = data.applications || { items: [] };
+    apps.items = apps.items || [];
+    const add = apps.add || {};
+    const E = add.errors || {};
+    const receipt = App.normalizeReceipt(opt.receipt);
+    const errors = {};
+    if (!receipt) errors.receipt = E.empty || 'Add the receipt number.';
+    else if (!RECEIPT_RE.test(receipt)) errors.receipt = E.format || 'Three letters and ten digits.';
+    else if (apps.items.some((x) => App.normalizeReceipt(App.state['receipt:' + x.id] || x.receipt) === receipt)) errors.receipt = E.duplicate || 'Already on your list.';
+    const type = App.formType(opt.form);
+    const other = String(opt.other || '').trim();
+    if (!type) errors.form = E.form || 'Choose what the case is for.';
+    else if (type.key === 'other' && !other) errors.other = E.other || 'Name the form.';
+    if (Object.keys(errors).length) return { ok: false, errors: errors };
+    const tr = apps.tracking || {};
+    const item = {
+      id: 'case-' + receipt.toLowerCase(),
+      title: opt.title || (type.key === 'other' ? other : type.label),
+      form: type.key === 'other' ? other : type.form,
+      formType: type.key,
+      receipt: receipt,
+      status: add.unknown || 'Unknown',
+      current: null,
+      asOf: null,
+      added: shortToday(),
+      manual: true,
+      tracked: true,
+      dates: [{ label: 'Added', date: data.today.short }],
+      next: { title: add.unknownLine || 'Recheck on USCIS to see its status', href: (tr.caseStatus && tr.caseStatus.href) || (tr.recheck && tr.recheck.href) || null },
+      processing: null,
+      schoolSteps: [],
+    };
+    apps.items.push(item);
+    emit('case', 'add', item.id, null);
+    return { ok: true, item: item };
+  }
+  App.addCase = addCase;
+  /* App.removeCase(id) : only a case the student added (tracked: true). */
+  App.removeCase = (id) => {
+    const apps = data.applications || {};
+    const before = (apps.items || []).length;
+    apps.items = (apps.items || []).filter((x) => !(x.id === id && x.tracked));
+    const gone = apps.items.length !== before;
+    if (gone) emit('case', 'remove', id, null);
+    return gone;
+  };
+
+  /* C.trackCase in place: open, cancel, save, the form type, Enter to save. */
+  function redrawTrackCase(el) {
+    const box = el && el.closest ? el.closest('.track-case') : document.querySelector('main#main .track-case');
+    if (!box) return null;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = C.trackCase();
+    const next = tmp.firstElementChild;
+    box.replaceWith(next);
+    return next;
+  }
+  function clearTrackCase() {
+    ['open', 'receipt', 'form', 'other', 'error'].forEach((k) => { delete App.state['trackCase:' + k]; });
+  }
+  function trackCaseAct(btn) {
+    const act = btn.dataset.caseAct;
+    if (act === 'open') {
+      App.state['trackCase:open'] = true;
+      const box = redrawTrackCase(btn);
+      if (box) { play(box, 'is-arriving'); const i = box.querySelector('input'); if (i) i.focus(); }
+      return;
+    }
+    if (act === 'cancel') {
+      clearTrackCase();
+      const box = redrawTrackCase(btn);
+      const b = box && box.querySelector('[data-case-act="open"]'); if (b) b.focus();
+      return;
+    }
+    if (act === 'save') {
+      const res = addCase({ receipt: App.state['trackCase:receipt'], form: App.state['trackCase:form'], other: App.state['trackCase:other'] });
+      if (!res.ok) {
+        App.state['trackCase:error'] = res.errors;
+        const box = redrawTrackCase(btn);
+        const k = res.errors.receipt ? 'receipt' : (res.errors.form ? 'form' : 'other');
+        const f = box && (k === 'form' ? box.querySelector('[data-choices="trackCase:form"] [role="radio"]') : box.querySelector('[data-field="trackCase:' + k + '"]'));
+        if (f) f.focus();
+        return;
+      }
+      clearTrackCase();
+      haptic('complete');
+      toast(((data.applications || {}).add || {}).saved || 'Case added');
+      render('inplace');
+      const row = document.querySelector('main#main .item[data-key="' + cssEsc(res.item.id) + '"]');
+      if (row) play(row, 'is-arriving');
+    }
+  }
+
   /* App.share({ title, text?, url? }) : one tap to the phone's share sheet
      where the browser has one; otherwise a quiet toast (the prototype has no
      real files). Emits 'share'. */
@@ -295,6 +526,242 @@ window.SCREENS = window.SCREENS || {};
   };
 
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- round 5: motion and haptics (note 4) ---------------- */
+
+  /* Light, never loud: one short tap for a tick, a softer double for a
+     completion. Phones without the Vibration API (iPhone Safari) and every
+     desktop simply do nothing. */
+  const HAPTICS = { tick: 10, select: 6, complete: [8, 70, 8] };
+  let lastHaptic = 0;
+  function haptic(kind) {
+    if (reduced() || App.state.haptics === false) return false;
+    if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false;
+    const now = Date.now();
+    if (kind !== 'complete' && now - lastHaptic < 60) return false;
+    lastHaptic = now;
+    try { return navigator.vibrate(HAPTICS[kind] || HAPTICS.tick); } catch (e) { return false; }
+  }
+  App.haptic = haptic;
+
+  /* play(el, cls) : a one-shot motion class, removed when it ends (or after
+     1.2s as a guard). Under reduced motion nothing is added; the end state is
+     already on screen. */
+  function play(el, name) {
+    if (!el || reduced()) return;
+    el.classList.remove(name);
+    void el.offsetWidth;
+    el.classList.add(name);
+    const done = () => el.classList.remove(name);
+    el.addEventListener('animationend', function end(ev) {
+      if (ev.target !== el && !el.contains(ev.target)) return;
+      if (el.getAnimations && el.getAnimations({ subtree: true }).some((a) => a.playState === 'running')) return;
+      el.removeEventListener('animationend', end);
+      done();
+    });
+    setTimeout(done, 1200);
+  }
+  App.play = play;
+
+  /* App.currentStep(path) : the key of the first open, visible step. */
+  App.currentStep = (path) => {
+    const open = App.steps(path || 'stem').filter((s) => !s.done && !(s.afterOf && !s.afterOf.done));
+    return open[0] ? open[0].key : null;
+  };
+
+  /* App.advanceCurrent(list) : in a list that marks a current step, the first
+     open visible step becomes current; when that changes, it gets a short
+     highlight. Returns the new current item or null. */
+  function advanceCurrent(list) {
+    if (!list) return null;
+    const items = Array.from(list.querySelectorAll(':scope > .task'));
+    const was = items.filter((it) => it.classList.contains('is-current'))[0] || null;
+    const next = items.filter((it) => !it.hidden && !it.classList.contains('is-done'))[0] || null;
+    if (was === next) return next;
+    if (was) { was.classList.remove('is-current'); was.removeAttribute('aria-current'); }
+    if (next) {
+      next.classList.add('is-current');
+      next.setAttribute('aria-current', 'step');
+      play(next, 'is-arriving');
+    }
+    emit('current', next ? next.dataset.key : null, true, next);
+    return next;
+  }
+  App.advanceCurrent = advanceCurrent;
+
+  /* ---------------- round 5: timelines (note 3) ---------------- */
+
+  /* Labels under a C.timeline never collide: each sits centred on its tick,
+     held inside the column, and drops to a second row (with a longer stem)
+     only where it would touch a neighbour. The emphasized mark is placed
+     first, so it keeps the top row. A span name that does not fit its band
+     is hidden (the figcaption still reads it). The draw-in plays once per
+     timeline key. */
+  const drawn = {};
+  let tlObserver = null;
+  function layoutTimeline(fig) {
+    if (!fig || !fig.isConnected) return;
+    const ol = fig.querySelector('.tl-marks');
+    if (!ol) return;
+    if (tlObserver) tlObserver.observe(ol);
+    const W = ol.clientWidth;
+    if (!W) return;
+    const GAP = 12, STEM = 8;
+    const items = Array.from(ol.children);
+    fig.classList.add('is-laid');
+    const EDGE = 8;  /* the stem stays at least this far inside its label */
+    const boxes = items.map((li) => {
+      const x = (parseFloat(li.style.getPropertyValue('--x')) || 0) / 100 * W;
+      const w = li.offsetWidth;
+      return { li: li, x: x, w: w, h: li.offsetHeight, emph: li.classList.contains('is-emph'), from: li.classList.contains('is-from') };
+    });
+    /* A date that starts a named band hangs from its tick, left aligned
+       under the band's name; any other date centres on its tick. */
+    const pref = (b) => Math.max(0, Math.min(W - b.w, b.from ? b.x - 1 : b.x - b.w / 2));
+    boxes.forEach((b) => {
+      b.lo = Math.max(0, Math.min(W - b.w, b.x - b.w + EDGE));
+      b.hi = Math.min(W - b.w, Math.max(0, b.x - (b.from ? 1 : EDGE)));
+    });
+    /* Two labels keep GAP apart; a bare date beside its neighbour needs only 8. */
+    const gap = (o, b) => (o.box.from || b.from ? 8 : GAP);
+    const hits = (row, b, l) => row.some((o) => l < o.left + o.w + gap(o, b) && o.left < l + b.w + gap(o, b));
+    /* Where a label can sit in a row: centred on its tick if free, else
+       slid just clear of its neighbours, as long as the tick stays under it
+       and it stays inside the column. Null when the row has no room. */
+    function fit(row, b) {
+      const lo = b.lo, hi = b.hi;
+      const centre = pref(b);
+      const tries = [centre];
+      row.forEach((o) => { tries.push(o.left + o.w + gap(o, b), o.left - gap(o, b) - b.w); });
+      const ok = tries.filter((l) => l >= lo - 0.5 && l <= hi + 0.5 && !hits(row, b, l));
+      if (!ok.length) return null;
+      return ok.sort((a, c) => Math.abs(a - centre) - Math.abs(c - centre))[0];
+    }
+    /* A stem that runs down to a lower row must not cut through a label
+       above it. Greedy placement in four orders (emphasized first or not,
+       left to right or right to left); the one with no cut stems and the
+       fewest rows wins, then the one that keeps the emphasized date on top. */
+    const crosses = (o, l, w) => o.x > l - 4 && o.x < l + w + 4;
+    function place(order) {
+      const rows = [];   /* each row: placed entries { box, left, w, x, r } */
+      const at = new Map();
+      order.forEach((b) => {
+        let pick = null, first = null;
+        for (let r = 0; r <= rows.length; r += 1) {
+          const row = rows[r] || [];
+          const l = row.length ? fit(row, b) : pref(b);
+          if (l == null) continue;
+          if (first == null) first = { r: r, l: l };
+          const above = rows.slice(0, r).some((rw) => rw.some((o) => crosses(b, o.left, o.w)));
+          const below = rows.slice(r + 1).some((rw) => rw.some((o) => crosses(o, l, b.w)));
+          if (!above && !below) { pick = { r: r, l: l }; break; }
+        }
+        pick = pick || first;
+        const entry = { box: b, left: pick.l, w: b.w, x: b.x, r: pick.r };
+        (rows[pick.r] = rows[pick.r] || []).push(entry);
+        at.set(b, entry);
+      });
+      let cuts = 0;
+      boxes.forEach((o) => boxes.forEach((q) => {
+        const eo = at.get(o), eq = at.get(q);
+        if (o !== q && eo.r > eq.r && crosses(o, eq.left, eq.w)) cuts += 1;
+      }));
+      return { rows: rows, at: at, cuts: cuts };
+    }
+    /* One row, when the labels can share it: pack them left and right as
+       far as they go, then hold each as near its preferred place as the
+       packing allows. Null when one row has no room. */
+    function oneRow() {
+      const xs = boxes.slice().sort((a, b) => a.x - b.x);
+      const L = [], R = [];
+      for (let i = 0; i < xs.length; i += 1) {
+        L[i] = i ? Math.max(xs[i].lo, L[i - 1] + xs[i - 1].w + gap({ box: xs[i - 1] }, xs[i])) : xs[i].lo;
+        if (L[i] > xs[i].hi + 0.5) return null;
+      }
+      for (let i = xs.length - 1; i >= 0; i -= 1) {
+        R[i] = i < xs.length - 1 ? Math.min(xs[i].hi, R[i + 1] - xs[i].w - gap({ box: xs[i] }, xs[i + 1])) : xs[i].hi;
+      }
+      const row = [];
+      const at = new Map();
+      let prev = -Infinity;
+      for (let i = 0; i < xs.length; i += 1) {
+        const l = Math.max(L[i], prev, Math.min(R[i], pref(xs[i])));
+        const e = { box: xs[i], left: l, w: xs[i].w, x: xs[i].x, r: 0 };
+        prev = l + xs[i].w + (i < xs.length - 1 ? gap(e, xs[i + 1]) : 0);
+        row.push(e); at.set(xs[i], e);
+      }
+      return row.every((e) => e.left <= e.box.hi + 0.5) ? { rows: [row], at: at, cuts: 0 } : null;
+    }
+    const byEmph = (a, b) => b.emph - a.emph;
+    const emphRow = (pl) => boxes.filter((b) => b.emph).reduce((n, b) => n + pl.at.get(b).r, 0);
+    const tries = [
+      place(boxes.slice().sort((a, b) => byEmph(a, b) || (a.x - b.x))),
+      place(boxes.slice().sort((a, b) => byEmph(a, b) || (b.x - a.x))),
+      place(boxes.slice().sort((a, b) => a.x - b.x)),
+      place(boxes.slice().sort((a, b) => b.x - a.x)),
+    ].concat(boxes.length ? (oneRow() || []) : []).sort((p1, p2) => (p1.cuts - p2.cuts) || (p1.rows.length - p2.rows.length) || (emphRow(p1) - emphRow(p2)));
+    const best = tries[0];
+    const rows = best.rows;
+    boxes.forEach((b) => { b.left = best.at.get(b).left; b.row = best.at.get(b).r; });
+    const rowH = Math.max.apply(null, boxes.map((b) => b.h).concat([0])) + GAP;
+    boxes.forEach((b) => {
+      const top = STEM + b.row * rowH;
+      b.li.style.left = b.left + 'px';
+      b.li.style.top = top + 'px';
+      b.li.style.setProperty('--stem-x', (b.x - b.left) + 'px');
+      b.li.style.setProperty('--stem-h', top + 'px');
+      const at = (b.x - b.left) / (b.w || 1);
+      b.li.classList.toggle('is-start', at < 0.34);
+      b.li.classList.toggle('is-end', at > 0.66);
+    });
+    ol.style.height = (STEM + rows.length * rowH - GAP) + 'px';
+
+    /* The Today line sits at the marker, held inside the column. */
+    const now = fig.querySelector('.tl-now-inner');
+    if (now) {
+      const tx = (parseFloat(fig.style.getPropertyValue('--today')) || 0) / 100 * W;
+      now.style.marginLeft = '0px';
+      /* The real width, rounded up: offsetWidth rounds down a fraction and
+         the line then wraps against the column's edge. */
+      const w = Math.ceil(now.getBoundingClientRect().width);
+      now.style.marginLeft = Math.max(0, Math.min(W - w, tx - 8)) + 'px';
+    }
+    /* A span's name hides when its band has no room for it. The Today
+       marker stands on the band, so the name never steps around it. */
+    fig.querySelectorAll('.tl-span').forEach((sp) => {
+      const lab = sp.querySelector('.tl-span-label');
+      if (!lab) return;
+      const pad = 8;
+      sp.classList.toggle('is-tight', lab.scrollWidth > sp.clientWidth - pad * 1.5);
+    });
+
+    const key = fig.dataset.timeline || '';
+    if (!drawn[key]) {
+      drawn[key] = true;
+      if (!reduced()) fig.classList.add('is-drawing');
+    }
+  }
+  function layoutTimelines(root) {
+    const scope = root || document;
+    if (scope.matches && scope.matches('[data-timeline]')) layoutTimeline(scope);
+    scope.querySelectorAll('[data-timeline]').forEach(layoutTimeline);
+  }
+  App.layoutTimelines = layoutTimelines;
+  if (window.ResizeObserver) {
+    tlObserver = new ResizeObserver((entries) => {
+      entries.forEach((en) => {
+        const fig = en.target.closest('[data-timeline]');
+        if (!fig || !fig.isConnected) { tlObserver.unobserve(en.target); return; }
+        const w = Math.round(en.contentRect.width);
+        if (fig._tlW === w) return;
+        fig._tlW = w;
+        layoutTimeline(fig);
+      });
+    });
+  } else {
+    window.addEventListener('resize', () => layoutTimelines());
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layoutTimelines());
   const isPhone = () => window.matchMedia('(max-width: 640px)').matches;
   const cssEsc = (v) => (window.CSS && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, '\\$&'));
 
@@ -444,6 +911,7 @@ window.SCREENS = window.SCREENS || {};
       if (h1 && App.booted) h1.focus({ preventScroll: true });
     }
     if (typeof screen.mount === 'function') screen.mount(main, data, r.params);
+    layoutTimelines(main);
     if (keep && keep.focus) refocus(main, keep.focus);
   }
 
@@ -509,7 +977,7 @@ window.SCREENS = window.SCREENS || {};
     }
     if (el.matches('[data-disclosure]')) {
       const item = el.closest('.item[data-key]');
-      if (item) return '.item[data-key="' + cssEsc(item.dataset.key) + '"] > [data-disclosure]';
+      if (item) return '.item[data-key="' + cssEsc(item.dataset.key) + '"] ' + (el.classList.contains('task-more') ? '.task-more' : '> [data-disclosure]');
     }
     if (el.matches('a[href]')) return 'a[href="' + cssEsc(el.getAttribute('href')) + '"]';
     return null;
@@ -597,9 +1065,20 @@ window.SCREENS = window.SCREENS || {};
     }
     if (t.closest('[data-jobs="change"]')) { App.setJobs(null); return; }
 
-    /* disclosure rows: one open per list */
+    /* round 5: track another case */
+    const ca = t.closest('[data-case-act]');
+    if (ca) { e.preventDefault(); trackCaseAct(ca); return; }
+
+    /* disclosure rows: one open per list. A step with detail opens from its
+       chevron button or a tap anywhere on its row that is not a control. */
     const head = t.closest('[data-disclosure]');
-    if (head && !t.closest('a, button, input, textarea, select, [contenteditable]')) { toggleDisclosure(head); return; }
+    const ctl = t.closest('a, button, input, textarea, select, [contenteditable]');
+    if (head && (!ctl || ctl === head)) { toggleDisclosure(head); return; }
+    const drow = t.closest('.task.has-detail > .row');
+    if (drow && !ctl) {
+      const h = drow.querySelector('[data-disclosure]');
+      if (h) { toggleDisclosure(h); return; }
+    }
 
     /* checkbox tasks */
     const check = t.closest('[role="checkbox"][data-task]');
@@ -683,11 +1162,15 @@ window.SCREENS = window.SCREENS || {};
       if (editing) { finishEdit(editing, false); return; }
     }
     const t = e.target;
-    if ((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('[data-disclosure]')) {
+    if ((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('[data-disclosure]') && t.tagName !== 'BUTTON') {
       e.preventDefault(); toggleDisclosure(t); return;
     }
     if (e.key === 'Enter' && t.closest && t.closest('.vrow.is-editing') && t.matches('input')) {
       e.preventDefault(); finishEdit(t.closest('.vrow'), true); return;
+    }
+    if (e.key === 'Enter' && t.matches && t.matches('[data-field^="trackCase:"]')) {
+      const save = t.closest('.track-case') && t.closest('.track-case').querySelector('[data-case-act="save"]');
+      if (save) { e.preventDefault(); trackCaseAct(save); return; }
     }
     if (e.key === 'Enter' && t.matches && t.matches('[data-school-import-url]')) {
       e.preventDefault(); schoolImportAct(t.closest('.school-import').querySelector('[data-school-import="fetch"]')); return;
@@ -742,7 +1225,7 @@ window.SCREENS = window.SCREENS || {};
     }
   }
   function setOpen(item, open) {
-    const head = item.querySelector(':scope > [data-disclosure]');
+    const head = item.querySelector(':scope > [data-disclosure], :scope > .row > .row-trail > [data-disclosure]');
     const disc = item.querySelector(':scope > .disc');
     if (!head || !disc) return;
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -752,10 +1235,14 @@ window.SCREENS = window.SCREENS || {};
   App.setOpen = setOpen;
 
   /* ---------------- tasks ---------------- */
+  let completedNow = false;
   function setTask(check, on) {
     check.setAttribute('aria-checked', on ? 'true' : 'false');
     const item = check.closest('.task');
     const key = check.dataset.task;
+    const list = item && item.parentElement;
+    const tracksCurrent = !!(list && (list.hasAttribute('data-current') || list.querySelector(':scope > .task.is-current')));
+    if (on) { play(check, 'is-ticking'); if (item) play(item, 'is-settling'); }
     if (item) {
       item.classList.toggle('is-done', on);
       const meta = item.querySelector('.row-meta');
@@ -780,8 +1267,11 @@ window.SCREENS = window.SCREENS || {};
     });
     document.querySelectorAll('[data-waits="' + cssEsc(key) + '"]').forEach((el) => { el.hidden = on; });
     document.querySelectorAll('[data-after="' + cssEsc(key) + '"]').forEach((el) => { el.hidden = !on; });
+    completedNow = false;
     updateProgress(check.closest('main'));
+    if (on && !completedNow) haptic('tick');
     emit('task', key, on, check);
+    if (tracksCurrent) { list.setAttribute('data-current', ''); advanceCurrent(list); }
   }
   App.setTask = (key, on) => {
     const c = document.querySelector('[role="checkbox"][data-task="' + cssEsc(key) + '"]');
@@ -822,7 +1312,17 @@ window.SCREENS = window.SCREENS || {};
     });
     const key = group.dataset.choices;
     App.state[key] = radio.dataset.value;
+    haptic('select');
     if (key === 'theme') applyTheme(radio.dataset.value);
+    if (key === 'trackCase:form') {
+      const box = group.closest('.track-case');
+      const other = box && box.querySelector('.tc-other');
+      if (other) {
+        const show = radio.dataset.value === 'other';
+        other.hidden = !show;
+        if (show) { play(other, 'is-arriving'); const i = other.querySelector('input'); if (i) i.focus({ preventScroll: true }); }
+      }
+    }
     emit('choice', key, radio.dataset.value, radio);
   }
 
@@ -830,6 +1330,9 @@ window.SCREENS = window.SCREENS || {};
   function answer(btn) {
     const key = btn.dataset.answer;
     const value = btn.dataset.value;
+    /* The STEM OPT choice is answered in place wherever it is asked. */
+    if (key === 'stemIntent' && btn.closest('[data-stem-decide]')) { setStemIntent(value, btn); return; }
+    if (key === 'stemIntent') haptic('tick');
     App.state[key] = value;
     const item = btn.closest('.ask');
     if (item) {
@@ -1096,7 +1599,9 @@ window.SCREENS = window.SCREENS || {};
     data.completions = data.completions || [];
     if (!key || data.completions.indexOf(key) !== -1) return false;
     data.completions.push(key);
-    if (anchor) burst(anchor);
+    completedNow = true;
+    haptic('complete');
+    if (anchor) { play(anchor, 'is-complete'); burst(anchor); }
     return true;
   }
 

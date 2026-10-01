@@ -69,8 +69,6 @@
     '.screen-documents .doc-view > .section + .section { margin-top: var(--s-32); }' +
     '.screen-documents .doc-add-another { align-self: flex-start; margin-top: var(--s-12); }' +
     '.screen-documents .doc-none { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-8); }' +
-    '.screen-documents .doc-new > .row { animation: doc-flash 1.8s ease-out; }' +
-    '@keyframes doc-flash { from { background: var(--accent-tint); } to { background: transparent; } }' +
     /* the document sheet, appended to body while open */
     '.screen-documents.doc-layer { position: fixed; inset: 0; z-index: 45; }' +
     '.doc-layer .doc-scrim { position: absolute; inset: 0; background: var(--scrim); animation: fade .2s ease-out; }' +
@@ -298,7 +296,7 @@
         title: openTitle(doc.title, refOf(doc)),
         meta: C.raw(C.esc((prefix ? prefix + ', ' : '') + doc.meta) + versions),
         trailing: shareBtn(refOf(doc), doc.title, opt.reveal),
-        cls: C.cls('doc-row', S.newId === doc.id && 'doc-new'),
+        cls: 'doc-row',
       }));
       if (open) {
         doc.earlier.forEach((e, i) => out.push(C.row({
@@ -697,7 +695,7 @@
       else if (eadSaved && /\/no-ead(\/|$)/.test(location.hash)) {
         App.go(location.hash.split('/').filter((part) => part !== 'no-ead').join('/'), { replace: true, inPlace: true });
       }
-      if (message) App.toast(message);
+      if (message) confirmed(message);
     };
     const onArrive = () => setTimeout(arrive, 0);
     window.addEventListener('hashchange', onArrive);
@@ -781,7 +779,21 @@
     }
     closeSheet(false);
     App.rerender();
+    confirmed(message);
+  }
+
+  /* Round 5 (note 4): a confirmed document's line carries the same check a
+     ticked step draws, with a light tap. Under reduced motion the check is
+     simply there. */
+  function confirmed(message) {
     App.toast(message);
+    const line = document.querySelector('.toast > span');
+    if (line) {
+      line.style.cssText = 'display: inline-flex; align-items: center; gap: var(--s-8);';
+      line.insertAdjacentHTML('afterbegin', '<span class="check" aria-checked="true" aria-hidden="true" style="margin-top: 0;">' + C.icon('tick', { size: 12 }) + '</span>');
+      App.play(line.firstElementChild, 'is-ticking');
+    }
+    App.haptic('tick');
   }
 
   function onLayerClick(e) {
@@ -902,11 +914,13 @@
       /* A legacy link (#/documents/work) settles on its label's address. */
       if (!S.sheet) setHash(current());
       revealChip();
-      /* Scroll only for a new document out of view, never over a restored scroll. */
+      /* A new document gets the short highlight every new row gets. Scroll
+         only when it is out of view, never over a restored scroll. */
       if (S.newId) {
         const el = root.querySelector('[data-doc-view] [data-key="' + S.newId + '"]');
         const r = el && el.getBoundingClientRect();
         if (r && (r.top < 0 || r.bottom > window.innerHeight)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        if (el) App.play(el, 'is-arriving');
       }
       S.newId = null;
       root.addEventListener('click', (e) => {

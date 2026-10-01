@@ -315,7 +315,9 @@ window.DULY_SAMPLE = {
     /* Third metric with no EAD card on file. */
     metricNoEad: { eyebrow: 'Next date', add: { action: 'Add your EAD card', rest: 'to see this date.', href: '#/documents/add' } },
     /* Your next move: one line, a date and one action (Round 3, note 1).
-       'stemIntent' opens Next steps, where the question is asked.
+       'stemIntent' is answered in place on Home (Round 5, note 1): inPlace
+       true means draw C.stemDecide() there instead of a link away; the
+       primary href is kept only as the no-script fallback.
        'changes' is the standing rule to report a change within 10 days; it
        has no date and shows only when there is no dated move. */
     nextMoves: [
@@ -325,6 +327,7 @@ window.DULY_SAMPLE = {
         date: 'Oct 15',
         meta: 'Start preparing by Oct 15',
         primary: { label: 'Decide', href: '#/steps' },
+        inPlace: true,
         source: 'startPreparing',
       },
       {
@@ -358,11 +361,52 @@ window.DULY_SAMPLE = {
     noLine: null,
     noInfo: "You'll see what comes after OPT closer to that date.",
     today: { label: 'Today', pct: 0 },
+    /* The three key dates. One source of truth for Home's in-place strip,
+       Next steps and USCIS status: read them through App.stemPlan() and draw
+       them with C.timeline(App.stemTimeline()). key names the date, iso is
+       what the timeline scales by, date is how it reads. */
     dates: [
-      { date: 'Oct 15, 2026', label: 'Start preparing', source: 'startPreparing' },
-      { date: 'Nov 15, 2026', label: 'Window opens', source: 'stemOpens' },
-      { date: 'Feb 13, 2027', label: 'Last day to file', source: 'stemCloses', end: true },
+      { key: 'prepare', iso: '2026-10-15', date: 'Oct 15, 2026', label: 'Start preparing', source: 'startPreparing' },
+      { key: 'opens', iso: '2026-11-15', date: 'Nov 15, 2026', label: 'Window opens', source: 'stemOpens' },
+      { key: 'closes', iso: '2027-02-13', date: 'Feb 13, 2027', label: 'Last day to file', source: 'stemCloses', end: true },
     ],
+    /* The real timeline (Round 5, note 3), built by App.stemTimeline():
+       scaled to time from today (or the start of the first span, once today is
+       past it) to the last day to file. Two shaded spans, a Today marker with
+       one line, and only the date that matters now emphasized: the window
+       opening until it opens, then the last day to file. {n} is "46 days",
+       {date} a date as it reads. */
+    timeline: {
+      label: 'STEM OPT dates',
+      spans: [
+        { label: 'Prepare', from: 'prepare', to: 'opens' },
+        { label: 'Filing window', from: 'opens', to: 'closes' },
+      ],
+      captions: {
+        before: '{n} until the window opens',
+        open: '{n} until the last day to file',
+        last: 'Last day to file',
+        after: 'The last day to file was {date}',
+      },
+    },
+    /* Home's next move, answered in place (Round 5, note 1). C.stemDecide()
+       draws it from here; the answer is App.state.stemIntent, the same one
+       Next steps reads (App.stemIntent, App.setStemIntent). A yes shows the
+       three dates in a small strip and an optional See all steps; nothing
+       leaves Home unasked. */
+    decide: {
+      title: 'Decide on STEM OPT',
+      choices: [
+        { label: 'Yes', value: 'yes' },
+        { label: 'No', value: 'no' },
+        { label: 'Not sure', value: 'unsure' },
+      ],
+      yes: 'You plan to apply',
+      no: 'Not applying this time',
+      unsure: 'Decide any time',
+      change: 'Change',
+      seeAll: { label: 'See all steps', href: '#/steps' },
+    },
     /* The federal STEM OPT steps, computed from the sourced rule pack for this
        student and recomputed when an approved rule change lands. App.steps('stem')
        merges them with the school's steps. The receipt number is not a step:
@@ -431,6 +475,38 @@ window.DULY_SAMPLE = {
   applications: {
     steps: ['Filed', 'Received', 'Biometrics', 'Decision', 'Card mailed'],
     receiptPlaceholder: 'Three letters and ten digits, from your USCIS notice',
+    /* Track another case (Round 5, note 2): any receipt number with its form
+       type, saved to the list with status Unknown until the student rechecks
+       it on USCIS. App.addCase() validates and saves; C.trackCase() is the
+       form. key 'other' asks for the form in the student's own words. */
+    formTypes: [
+      { key: 'i129', label: 'H-1B petition', form: 'Form I-129' },
+      { key: 'i485', label: 'Green card', form: 'Form I-485' },
+      { key: 'i140', label: 'Immigrant petition', form: 'Form I-140' },
+      { key: 'i131', label: 'Travel document', form: 'Form I-131' },
+      { key: 'i765', label: 'Work permit', form: 'Form I-765' },
+      { key: 'i539', label: 'Change or extend stay', form: 'Form I-539' },
+      { key: 'other', label: 'Other' },
+    ],
+    add: {
+      open: 'Track another case',
+      receiptLabel: 'Receipt number',
+      formLabel: 'What is it for?',
+      otherLabel: 'Form or name',
+      otherPlaceholder: 'For example Form I-130',
+      save: 'Track this case',
+      cancel: 'Cancel',
+      saved: 'Case added. Recheck it on USCIS to see its status',
+      unknown: 'Unknown',
+      unknownLine: 'Recheck on USCIS to see its status',
+      errors: {
+        empty: 'Add the receipt number from your USCIS notice.',
+        format: 'A receipt number is three letters and ten digits, like IOE0912345678.',
+        duplicate: 'This receipt number is already on your list.',
+        form: 'Choose what the case is for.',
+        other: 'Name the form, for example Form I-130.',
+      },
+    },
     tracking: {
       live: false,
       label: 'Live tracking',
