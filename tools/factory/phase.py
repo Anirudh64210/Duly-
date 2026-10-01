@@ -950,6 +950,8 @@ def main(argv: list[str] | None = None) -> int:
     from tools.factory import preflight  # imports this module
 
     faults = preflight.problems(Path(args.plan).resolve(), repo, ref="HEAD")
+    if not faults and not os.environ.get("DULY_CLAUDE_BIN"):
+        faults = preflight.baseline(repo)
     if faults:
         print("plan refused by preflight:\n  " + "\n  ".join(faults))
         return 1
