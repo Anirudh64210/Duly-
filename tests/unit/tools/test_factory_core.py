@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -595,3 +596,29 @@ def test_prose_lessons_do_not_reach_the_agents(tmp_path):
     assert memory.for_prompt("L-content", 40, 12000, repo) == ""
     memory.record("all-lanes", "A pipe hid the exit code.", "Unpipe.", "log", "orchestrator", repo)
     assert "pipe hid the exit code" in memory.for_prompt("L-content", 40, 12000, repo)
+
+
+def test_the_jail_allows_a_private_socket_only_where_it_may_write(tmp_path):
+    if not jail.available():
+        pytest.skip("no sandbox on this machine")
+    import shutil
+    import tempfile
+
+    # A short folder: macOS limits a socket path to 103 bytes, and pytest's tmp_path is longer.
+    inside = Path(tempfile.mkdtemp(dir="/tmp", prefix="dj"))
+    env = {"PATH": os.environ["PATH"], "HOME": str(tmp_path)}
+    probe = (
+        "import os, socket, sys\n"
+        "p = sys.argv[1]\n"
+        "s = socket.socket(socket.AF_UNIX)\n"
+        "s.bind(p); s.listen(1)\n"
+        "c = socket.socket(socket.AF_UNIX); c.connect(p); print('ok')\n"
+    )
+    (inside / "probe.py").write_text(probe)
+    short = inside / "s.sock"
+    assert jail.run(f"{sys.executable} probe.py {short}", inside, env).output.strip().endswith("ok")
+    outside = Path(os.path.realpath("/tmp")) / f"duly-jail-{os.getpid()}.sock"
+    try:
+        assert jail.run(f"{sys.executable} probe.py {outside}", inside, env).code != 0
+    finally:
+        shutil.rmtree(inside, ignore_errors=True)

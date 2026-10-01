@@ -145,7 +145,7 @@ The pipeline already reads public law with models (BOUNDARY "Where the assistant
 |---|---|---|---|---|---|---|
 | Apple FM | no | iPhone 15 Pro+, M1 Mac+ only | good (its stated strength) | weak by Apple's own words | none | low; re-eval each OS model update |
 | Gemini Nano | no | some Android, Chrome desktop | good, alpha | weak | none | medium; fragmentation |
-| Bundled open model | no | wide, if the device has RAM | good at 1.7–4B (unverified for Duly's task until evaluated) | fair | none at run time | medium; model updates are app updates |
+| Bundled open model | no | wide, if the device has RAM | good at 1.7 to 4B (unverified for Duly's task until evaluated) | fair | none at run time | medium; model updates are app updates |
 | Self-hosted on AWS | yes, to Duly's account | everything | best available open | good | high at low volume | high |
 | Claude via Bedrock | yes, to Duly's AWS account; provider has no access per AWS | everything | very good | very good | low per turn | low |
 | Provider API, public text only | no (no student data) | offline pipeline | n/a | best | low | low |

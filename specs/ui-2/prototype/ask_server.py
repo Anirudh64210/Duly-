@@ -317,7 +317,7 @@ BOUNDARY.md (the line; THE RULES and HOW TO ANSWER above say how this app applie
 
 def tidy(s, n=400):
     """One line of copy: no long dashes, no markdown marks, no spare spaces."""
-    s = str(s or '').replace('—', ', ').replace('–', ' to ').replace('**', '').replace('`', '')
+    s = str(s or '').replace('\u2014', ', ').replace('\u2013', ' to ').replace('**', '').replace('`', '')
     s = re.sub(r'^\s*[-*•]\s+', '', s)
     s = re.sub(r'\s+([,.;:])', r'\1', re.sub(r'[ \t]+', ' ', s)).strip()
     return s[:n]

@@ -51,6 +51,10 @@ def seatbelt_profile(writable: list[Path], unreadable: list[str]) -> str:
     for path in writable:
         real = os.path.realpath(path)
         lines.append(f"(allow file-write* (subpath {_quote(real)}))")
+        # A private socket (a Unix domain socket) is allowed only where files may be written, so
+        # a test can bind and reach the desktop engine's socket (step-w W1) and nothing else.
+        lines.append(f"(allow network-bind (local unix-socket (subpath {_quote(real)})))")
+        lines.append(f"(allow network-outbound (remote unix-socket (subpath {_quote(real)})))")
     for item in unreadable:
         real = os.path.realpath(os.path.expanduser(item))
         lines.append(f"(deny file-read* (subpath {_quote(real)}))")
