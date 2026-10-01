@@ -25,6 +25,7 @@ import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,7 @@ from tools.factory import (
     alerts,
     billing,
     budget,
+    causes,
     health,
     jail,
     ledger,
@@ -143,6 +145,15 @@ SETTINGS = {
     "autoMemoryEnabled": False,
     "enabledPlugins": {"cc-plugin-agents-md@builtin": False, "cc-plugin-telemetry@builtin": False},
 }
+# A Read with no offset or limit on a file larger than this is counted as a large read.
+LARGE_READ_BYTES = 50 * 1024
+# Causes an agent cannot fix by trying again: in the core table the sandbox denials (plan),
+# and the used up budget and the factory's own defects (factory). A sandbox denial was tried
+# 3 times over, identically, before it stopped.
+STOP_AT_ONCE = ("plan", "factory")
+# Set when the runner is told to end (make stop sends SIGTERM), so the attempt under way can
+# end, keep its work on its branch and write its end row, instead of vanishing mid attempt.
+INTERRUPTED = threading.Event()
 
 
 @dataclass
@@ -187,18 +198,27 @@ class Outcome:
     worktree: str = ""
     files_changed: list[str] = field(default_factory=list)
     kept_commit: str = ""  # unaccepted work saved on the run's own branch, never merged
+    cause: str = ""  # a stop's cause, see causes.classify; empty when done
+    signature: str = ""  # the id of the signature that named the cause, if one did
+    first_context: int = 0  # input, cache read and cache write of the first assistant turn
+    final_context: int = 0  # the same for the last assistant turn
+    large_reads: int = 0  # Read calls with no offset or limit on a file over 50 KB
     report: dict[str, Any] | None = None
 
 
 @dataclass
 class Attempt:
-    ended: str = "exit"  # exit | timeout | stall | loop | tokens | stopped | model
+    ended: str = "exit"  # exit | timeout | stall | loop | tokens | stopped | interrupted | model
     detail: str = ""
     cost_usd: float = 0.0
     usage: dict[str, int] = field(default_factory=lambda: dict.fromkeys(USAGE_KEYS, 0))
     turns: int = 0
     session: str = ""
     model: str = ""
+    first_context: int = 0
+    final_context: int = 0
+    large_reads: int = 0
+    writes_ok: int = 0  # Write tool calls whose result was not an error
 
     @property
     def tokens_in(self) -> int:
@@ -233,26 +253,49 @@ def result_usage(event: dict[str, Any]) -> dict[str, int] | None:
     return None
 
 
-def failure_digest(output: str) -> str:
+def failure_digest(output: str, command: str, code: int) -> str:
     """What an agent needs from a failed done command, not the whole log.
 
-    pytest and vitest name each failing test on a line that starts FAILED, ERROR or FAIL,
-    and pytest puts the first line of the assertion after the id. The summary loses its
-    timing, so that the same failure reads the same on two attempts. Output from any other
-    command falls back to its last four lines.
+    The first line names the exit code and the command, so the digest is never empty: a
+    command such as test prints nothing, and two empty digests once counted as the same
+    failure twice (the auditor probe at 18:43). pytest and vitest name each failing test on
+    a line that starts FAILED, ERROR or FAIL, and pytest puts the first line of the
+    assertion after the id. The summary loses its timing, so that the same failure reads
+    the same on two attempts. Output from any other command falls back to its last four
+    lines.
     """
+    said = " ".join(command.split())
+    head = f"exit {code} from {said[:120]}" + ("..." if len(said) > 120 else "")
     plain = re.sub(r"\x1b\[[0-9;]*m", "", output)
     lines = [s.strip() for s in plain.splitlines() if s.strip()]
     failing = list(dict.fromkeys(s for s in lines if s.startswith(("FAILED ", "ERROR ", "FAIL "))))
     counted = [s for s in lines if re.search(r"\b\d+ (failed|passed|errors?)\b", s)]
     if not (failing or counted):
-        return " | ".join(lines[-4:])[:500]
+        return "\n".join(p for p in (head, " | ".join(lines[-4:])[:500]) if p)
     summary = re.sub(r" in [\d.]+m?s\b.*$", "", counted[-1].strip("= ")) if counted else ""
     first = next((s for s in lines if s.startswith("E ") or "AssertionError" in s), "")
-    parts = [summary, *(s[:240] for s in failing[:10])]
+    parts = [head, summary, *(s[:240] for s in failing[:10])]
     if first:
         parts.append(f"first assertion: {first[:240]}")
     return "\n".join(p for p in parts if p)
+
+
+def backoff() -> list[float]:
+    """The waits before each retry of an infra failure, as phase._remote waits: 5, 20, 60 s."""
+    return [float(w) for w in os.environ.get("DULY_RETRY_SECONDS", "5,20,60").split(",") if w]
+
+
+def context_size(usage: dict[str, Any]) -> int:
+    """How much one turn read: fresh input, cache read and cache write."""
+    return sum(int(usage.get(k) or 0) for k in USAGE_KEYS[:3])
+
+
+def large_read(tool_input: dict[str, Any], root: Path) -> bool:
+    """A Read of a whole file over LARGE_READ_BYTES, with no offset or limit."""
+    if "offset" in tool_input or "limit" in tool_input:
+        return False
+    path = root / str(tool_input.get("file_path", ""))  # an absolute path replaces root
+    return path.is_file() and path.stat().st_size > LARGE_READ_BYTES
 
 
 def charged(usage: dict[str, Any]) -> int:
@@ -329,10 +372,13 @@ def watch(
     unit = float(limit.get("seconds_per_minute", 60))
     last_action, repeats = "", 0
     seen_messages: set[str] = set()
+    writes: set[str] = set()  # ids of the Write tool calls, to read their results
 
     while True:
         now = time.monotonic()
-        if registry.stopped(repo):
+        if INTERRUPTED.is_set():
+            out.ended, out.detail = "interrupted", "the run was interrupted"
+        elif registry.stopped(repo):
             out.ended, out.detail = "stopped", "the factory was stopped"
         elif now - started > contract.timeout_minutes * unit:
             out.ended, out.detail = "timeout", f"{contract.timeout_minutes} minutes"
@@ -381,6 +427,8 @@ def watch(
                 for key in USAGE_KEYS:
                     out.usage[key] += int(usage.get(key) or 0)
                 out.turns = len(seen_messages)
+                out.final_context = context_size(usage)
+                out.first_context = out.first_context or out.final_context
             if out.tokens_charged > tokens_left:
                 out.ended, out.detail = "tokens", "the token budget is used up"
                 _kill(proc)
@@ -389,6 +437,10 @@ def watch(
                 if block.get("type") != "tool_use":
                     continue
                 name, tool_input = block.get("name", ""), block.get("input") or {}
+                if name == "Write":
+                    writes.add(str(block.get("id", "")))
+                elif name == "Read" and large_read(tool_input, root):
+                    out.large_reads += 1
                 action = name + json.dumps(tool_input, sort_keys=True)
                 repeats = repeats + 1 if action == last_action else 1
                 last_action = action
@@ -400,6 +452,16 @@ def watch(
                     out.detail = f"the same action {repeats} times in a row: {text[:120]}"
                     _kill(proc)
                     return out
+        elif kind == "user":
+            content = (event.get("message") or {}).get("content")
+            for block in content if isinstance(content, list) else []:
+                if (
+                    isinstance(block, dict)
+                    and block.get("type") == "tool_result"
+                    and block.get("tool_use_id") in writes
+                    and not block.get("is_error")
+                ):
+                    out.writes_ok += 1
         elif kind == "result":
             out.cost_usd = float(event.get("total_cost_usd") or 0.0)
             out.usage = result_usage(event) or out.usage
@@ -429,6 +491,16 @@ def protected_state(repo: Path, branches: list[str]) -> dict[str, str]:
         elif path.exists():
             state[rel] = path.read_text()
     return state
+
+
+def untouched(repo: Path, branches: list[str], before: dict[str, str]) -> tuple[bool, str]:
+    """The tamper check: whether the protected state is as it was before the run, and when
+    it is not, what changed."""
+    after = protected_state(repo, branches)
+    changed = sorted(k for k in {*before, *after} if before.get(k) != after.get(k))
+    return not changed, "protected parts of the repository changed during the run: " + ", ".join(
+        changed[:6]
+    )
 
 
 def check_report(
@@ -476,10 +548,25 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     began = time.monotonic()
     live: dict[str, Any] = {}  # the worktree and lane, once the run has them
 
-    def finish(status: str, reason: str) -> Outcome:
+    def finish(
+        status: str, reason: str, cause: str | None = None, signature: str | None = None
+    ) -> Outcome:
         outcome.status, outcome.reason = status, reason
         if status in {"failed", "escalated", "stopped"} and "tree" in live:
-            outcome.kept_commit = keep_unaccepted(live["tree"], live["lane"], task, status, repo)
+            kept = live.get("kept")  # set when this attempt's work is already on the branch
+            outcome.kept_commit = (
+                kept
+                if kept is not None
+                else keep_unaccepted(live["tree"], live["lane"], task, status, repo)
+            )
+        if status != "done" and cause is None:
+            # An agent that escalated with disputes has said the SPEC is at fault. Anything
+            # else is named by its signature, or stays unknown until someone names it.
+            if status == "escalated" and (outcome.report or {}).get("disputes"):
+                cause = "spec"
+            else:
+                cause, signature = causes.classify(reason, live.get("context"))
+        outcome.cause, outcome.signature = cause or "", signature or ""
         end = clock.now()
         outcome.seconds = int(time.monotonic() - began)
         outcome.wall_seconds = int((end - start).total_seconds())
@@ -490,9 +577,6 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             "escalated": "blocked",
             "refused": "blocked",
         }.get(status, "failed")
-        # A stop's cause is unknown until the founder names it, except that an agent that
-        # escalated with disputes has said the SPEC is at fault.
-        disputed = status == "escalated" and bool((outcome.report or {}).get("disputes"))
         ledger.append(
             task.lane,
             task.agent,
@@ -504,7 +588,15 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             seconds=outcome.seconds,
             wall_seconds=outcome.wall_seconds,
             plan=outcome.plan,
-            **({} if status == "done" else {"cause": "spec" if disputed else "unknown"}),
+            **(
+                {}
+                if status == "done"
+                else {
+                    "cause": cause,
+                    "cause_source": causes.source(cause),
+                    "signature": signature,
+                }
+            ),
         )
         if status != "done":
             alerts.notify(
@@ -619,6 +711,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     if hidden:
         worktree.hide(tree, "tests/holdout")
     protected = [*config["protected_branches"], task.base, *task.protect.split()]
+    live["context"] = causes.Context(protected_branches=tuple(protected))
     settings = sandbox.write_settings(
         state_dir(repo) / "runs" / task.run_id / "settings.json",
         {
@@ -639,12 +732,16 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         task=task.task,
         base=tree.base_commit,
         contract=contract.version,
+        pid=os.getpid(),
     )
 
     feedback = ""
-    last_failure = ""
+    last_failure, last_fix = "", ""
+    waits = backoff()
     for attempt in range(1, contract.max_attempts + 1):
         outcome.attempts = attempt
+        if INTERRUPTED.is_set():
+            return finish("stopped", "the run was interrupted", "interrupted")
         if registry.stopped(repo):
             return finish("stopped", "the factory was stopped")
         left = round(allowed - outcome.cost_usd, 2)
@@ -729,6 +826,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             start_new_session=True,
         )
         registry.set_pid(task.run_id, proc.pid, repo)
+        live["kept"] = None  # this attempt's work is not on the branch yet
         attempt_start = clock.now().isoformat(timespec="seconds")
         result = watch(proc, task, contract, config, tree.path, repo, tokens_left)
         outcome.cost_usd = round(outcome.cost_usd + result.cost_usd, 4)
@@ -738,6 +836,9 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
         for key, count in result.usage.items():
             outcome.tokens[key] += count
         outcome.turns += result.turns
+        outcome.large_reads += result.large_reads
+        outcome.first_context = outcome.first_context or result.first_context
+        outcome.final_context = result.final_context or outcome.final_context
         outcome.model = result.model or outcome.model
         if result.session:
             outcome.sessions.append(result.session)
@@ -776,23 +877,20 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             repo,
         )
 
-        after = protected_state(repo, protected)
-        if after != before:
-            changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
-            alerts.notify(
-                "tamper",
-                f"{task.lane}: protected state changed: {changed[:4]}",
-                task.lane,
-                task.run_id,
-                repo,
-            )
-            return finish(
-                "failed",
-                "protected parts of the repository changed during the run: "
-                + ", ".join(changed[:6]),
-            )
-        if result.ended == "stopped":
-            return finish("stopped", result.detail)
+        # Checked once more when it fails, so a ref that moved and settled is a flake.
+        tamper = health.retry_once(
+            partial(untouched, repo, protected, before),
+            f"tamper.{task.lane}",
+            repo,
+            task.lane,
+            task.run_id,
+        )
+        if not tamper.ok:
+            alerts.notify("tamper", f"{task.lane}: {tamper.text}", task.lane, task.run_id, repo)
+            return finish("failed", tamper.text)
+        if result.ended in {"stopped", "interrupted"}:
+            cause = "interrupted" if result.ended == "interrupted" else None
+            return finish("stopped", result.detail, cause)
         if result.ended == "billing":
             alerts.notify("guardrail", result.detail, task.lane, task.run_id, repo)
             return finish("refused", result.detail + ". Agents run on the subscription login only.")
@@ -800,6 +898,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             alerts.notify("model", result.detail, task.lane, task.run_id, repo)
             return finish("refused", result.detail)
         where = ""  # the path of the done command's full output, when it failed
+        seen = ""  # text beside the failure that may carry a cause's mark
         if result.ended in {"loop", "stall", "timeout", "tokens"}:
             alerts.notify(
                 "loop"
@@ -833,6 +932,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             outside = violations(lane, _all_changes(tree))
             if outside:
                 problems.append("files outside the lane changed: " + ", ".join(outside[:6]))
+            if probe and "Write" in contract.tools and not result.writes_ok:
+                # The file existing is not enough: the model once wrote it through Bash
+                # after every Write call was denied, and the probe passed on a broken rule.
+                problems.append("no Write tool call succeeded, so the Write rule is not proved")
             if check.code == 0 and not problems and report is not None:
                 if report["status"] != "done":
                     outcome.report = report
@@ -856,9 +959,40 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             if check.code == 0:
                 failure = "; ".join(problems)
             else:
-                failure = f"the done command fails: {failure_digest(check.output)}"
+                digest = failure_digest(check.output, task.done, check.code)
+                failure = f"the done command fails: {digest}"
                 where = f"\nThe full output is in {log.relative_to(tree.path)}."
-        if failure == last_failure:
+                seen = redact(check.output)
+        # The attempt's work goes on its branch now, so nothing is lost if the run ends here,
+        # and the commit's tree tells whether the next attempt tried a different fix.
+        live["kept"] = keep_unaccepted(tree, lane, task, f"attempt {attempt}", repo)
+        fix = _fix(tree)
+        cause, signature = causes.classify(f"{failure}\n{seen}", live["context"])
+        ledger.append(
+            task.lane,
+            task.agent,
+            "step",
+            f"attempt {attempt} not accepted: {failure}"[:400],
+            repo,
+            run_id=task.run_id,
+            cause=cause,
+            cause_source=causes.source(cause),
+            signature=signature,
+        )
+        if cause in STOP_AT_ONCE:
+            return finish(
+                "failed",
+                f"stopped at attempt {attempt}, cause {cause} ({signature}), not retried: "
+                f"{failure}"[:400],
+                cause,
+                signature,
+            )
+        if cause == "infra":
+            if waits and attempt < contract.max_attempts:  # it passes on its own: wait
+                time.sleep(waits.pop(0))
+        elif failure == last_failure and fix != last_fix:
+            # Twice means two different fixes that ended in the same failure. The same code
+            # failing again is not a second failure.
             memory.record(
                 task.lane,
                 f"The same failure twice: {failure}",
@@ -868,16 +1002,8 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
                 repo,
                 task=task.task,
             )
-            return finish("escalated", f"the same failure twice: {failure}"[:400])
-        last_failure, feedback = failure, failure + where
-        ledger.append(
-            task.lane,
-            task.agent,
-            "step",
-            f"attempt {attempt} not accepted: {failure}"[:400],
-            repo,
-            run_id=task.run_id,
-        )
+            return finish("escalated", f"the same failure twice: {failure}"[:400], cause, signature)
+        last_failure, last_fix, feedback = failure, fix, failure + where
 
     alerts.notify(
         "retry_storm",
@@ -892,12 +1018,13 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
 
 
 def keep_unaccepted(tree: worktree.Tree, lane: Lane, task: Task, status: str, repo: Path) -> str:
-    """Save the work of a run that ended without being accepted, on its own branch only.
+    """Save the work of an attempt or a run not accepted, on the run's own branch only.
 
     A run cut off by a budget or a limit used to leave its work uncommitted in a worktree
-    that the next run never sees, so the next run began again from nothing. The work is
-    committed to the run's branch, marked as not accepted, and never merged: only a later
-    run that passes its done command can carry it forward. Files outside the lane are left
+    that the next run never sees, so the next run began again from nothing. Every attempt
+    not accepted, and every run that ends without being accepted, commits its work to the
+    run's branch, marked as not accepted, and never merged: only a later attempt or run
+    that passes its done command can carry it forward. Files outside the lane are left
     out. Nothing here may stop the run from ending, so a failure is recorded and passed.
     """
     try:
@@ -930,6 +1057,12 @@ def keep_unaccepted(tree: worktree.Tree, lane: Lane, task: Task, status: str, re
             run_id=task.run_id,
         )
     return sha
+
+
+def _fix(tree: worktree.Tree) -> str:
+    """What the branch holds after an attempt, less the progress log every attempt adds to."""
+    listing = worktree.git(["ls-tree", "-r", "HEAD"], tree.path).splitlines()
+    return "\n".join(line for line in listing if not line.endswith("PROGRESS.md"))
 
 
 def _all_changes(tree: worktree.Tree) -> list[str]:
@@ -967,6 +1100,8 @@ def main() -> int:
     parser.add_argument("--protect", default="")
     parser.add_argument("--result", default="")
     args = parser.parse_args()
+    for sign in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+        signal.signal(sign, lambda *_: INTERRUPTED.set())
     outcome = run(
         Task(
             args.lane,

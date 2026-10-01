@@ -15,6 +15,7 @@ export default tseslint.config(
       "design/canvas/**", // the founder's canvas, kept verbatim; its viewer is not product code
       "docs/**",
       ".scratch/**",
+      "specs/**/prototype/**", // clickable design prototypes, not product code
     ],
   },
   js.configs.recommended,

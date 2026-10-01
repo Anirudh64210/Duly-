@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
 .PHONY: up down seed logs test e2e attack lane prove-gates \
-        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden drift weekly mutation register desktop desktop-smoke
+        gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke
 
 up:
 	$(COMPOSE) up -d --build --wait
@@ -112,14 +112,13 @@ factory-test:
 	uv run pytest tests/unit/tools -q --cov=tools/factory --cov-report=xml:.scratch/coverage/factory.xml
 	uv run diff-cover .scratch/coverage/factory.xml --include "tools/factory/*" --fail-under=80 --compare-branch=$(BASE)
 
+# The golden tasks, then the judge's drift check when the pinned model changed since the last.
 golden:
 	uv run python -m tools.factory.golden
 
-drift:
-	uv run python -m tools.factory.drift
-
+# The newest scorecards, with the runs to read by hand and the questions for each.
 weekly:
-	@uv run python -m tools.factory.weekly
+	@uv run python -m tools.factory.efficiency --latest 3
 
 mutation:
 	uv run python -m tools.gates.mutation $(FILES)

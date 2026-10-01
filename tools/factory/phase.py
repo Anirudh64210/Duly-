@@ -31,7 +31,18 @@ import yaml
 
 from engine.clocks import SystemClock
 from tools.diff_policy.check import load_lane, violations
-from tools.factory import alerts, billing, efficiency, jail, ledger, registry, sandbox, worktree
+from tools.factory import (
+    alerts,
+    billing,
+    causes,
+    efficiency,
+    health,
+    jail,
+    ledger,
+    registry,
+    sandbox,
+    worktree,
+)
 from tools.factory.config import is_blocking, load_config, review_problems, spec_point
 from tools.factory.paths import REPO_ROOT, main_repo, state_dir
 
@@ -87,6 +98,7 @@ def load_plan(path: Path, repo: Path) -> dict[str, Any]:
         "name", path.parent.name if path.parent.parent.name == "specs" else plan["branch"]
     )
     plan.setdefault("merge", "local")
+    plan.setdefault("file", _plan_key(repo, path))
     if plan["merge"] not in {"local", "pr"}:
         raise PlanError("merge is local or pr")
     for rnd in plan["rounds"]:
@@ -127,19 +139,140 @@ def needs_founder(files: list[str]) -> dict[str, list[str]]:
     return found
 
 
-def _say(repo: Path, kind: str, message: str) -> None:
-    ledger.append("founder", "orchestrator", kind, message, repo)
+def _say(repo: Path, kind: str, message: str, **extra: Any) -> dict[str, Any]:
+    row = ledger.append("founder", "orchestrator", kind, message, repo, **extra)
     print(f"[{kind}] {message}", flush=True)
+    return row
 
 
-def _stop(repo: Path, plan: dict[str, Any], message: str, cause: str = "unknown") -> None:
-    """A stop always carries a cause, so make efficiency can count stops by cause. The
-    orchestrator seldom knows it, so it is unknown until the founder names it."""
+def _where(plan: dict[str, Any], round_name: str = "") -> dict[str, Any]:
+    """The fields that let a plan be found again: its name, its file, the round and the pid
+    of the runner. The reaper and resume read them."""
+    return {
+        "plan": plan.get("name") or plan["branch"],
+        "plan_file": plan.get("file", ""),
+        "round": round_name,
+        "pid": os.getpid(),
+    }
+
+
+# Where a round stopped, in the order a round runs.
+STAGES = ("lane", "review", "merge", "checks", "ci")
+
+
+def _stop(
+    repo: Path,
+    plan: dict[str, Any],
+    message: str,
+    cause: str = "unknown",
+    stage: str | None = None,
+    signature: str | None = None,
+    round_name: str = "",
+) -> None:
+    """A stop always carries a cause, so make efficiency can count stops by cause, and the
+    stage it stopped at. A cause the orchestrator proved from the failure's text is auto;
+    otherwise it is unknown until the founder names it, which handled records as human."""
     if cause not in efficiency.CAUSES:
         raise ValueError(f"unknown cause {cause}")
-    name = plan.get("name") or plan["branch"]
-    ledger.append("founder", "orchestrator", "blocked", message, repo, plan=name, cause=cause)
+    if stage is not None and stage not in STAGES:
+        raise ValueError(f"unknown stage {stage}")
+    ledger.append(
+        "founder",
+        "orchestrator",
+        "blocked",
+        message,
+        repo,
+        **_where(plan, round_name),
+        cause=cause,
+        cause_source=causes.source(cause),
+        signature=signature,
+        stage=stage,
+    )
     print(f"[blocked] {message}", flush=True)
+
+
+def _running(row: dict[str, Any]) -> bool:
+    """Whether the process id a row records is alive. A missing or malformed one is not."""
+    try:
+        return registry.alive(int(row.get("pid") or 0))
+    except (TypeError, ValueError, OverflowError, OSError):
+        return False
+
+
+def reap(repo: Path) -> list[str]:
+    """Write interrupted for every run and every plan whose process is gone with no end row.
+
+    Sleep, a killed runner or a closed lid left runs that never ended, which nobody could
+    count or resume. A run is gone only when its registry claim is gone and the process id
+    its row records is not alive, so a lost claim never marks a live run. Runs at every
+    factory start. Returns the run ids and plan files reaped.
+    """
+    events = ledger.read(repo)
+    live = registry.active(repo)
+    ended = {str(r["run_id"]) for r in events if r.get("run_id") and r.get("kind") in END_KINDS}
+    reaped: list[str] = []
+    for row in events:
+        run = str(row.get("run_id") or "")
+        if row.get("kind") != "start" or not run or run in ended or run in live or _running(row):
+            continue
+        ended.add(run)
+        ledger.append(
+            str(row.get("lane", "")),
+            "orchestrator",
+            "blocked",
+            f"interrupted: run {run} has no end row and its process is gone",
+            repo,
+            run_id=run,
+            plan=str(row.get("plan") or str(row.get("task", "")).split("/")[0]),
+            cause="interrupted",
+            cause_source="auto",
+        )
+        reaped.append(run)
+    for key, row in _last_plan_rows(events).items():
+        # A runner's claim is named for its pid and dropped once that pid is dead, so a live
+        # pid covers both halves of the test.
+        if row["kind"] == "blocked" or row.get("closed") or _running(row):
+            continue
+        ledger.append(
+            "founder",
+            "orchestrator",
+            "blocked",
+            f"round {row['round']} interrupted: the plan's runner is gone. Run make resume",
+            repo,
+            plan=row["plan"],
+            plan_file=key,
+            round=row["round"],
+            pid=row.get("pid"),
+            cause="interrupted",
+            cause_source="auto",
+            signature=None,
+            stage=None,
+        )
+        reaped.append(key)
+    return reaped
+
+
+END_KINDS = ("done", "failed", "blocked")
+
+
+def _last_plan_rows(events: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Each plan file's newest row from its runner, the plans ordered by that row."""
+    last: dict[str, dict[str, Any]] = {}
+    for row in events:
+        key = row.get("plan_file")
+        if key and row.get("lane") == "founder" and row.get("round") is not None:
+            last.pop(key, None)
+            last[key] = row
+    return last
+
+
+def parked(events: list[dict[str, Any]]) -> tuple[str, str] | None:
+    """The plan file and round of the last plan that stopped and has not run since: parked
+    for a person, or interrupted. None when every plan ran to its end."""
+    for key, row in reversed(_last_plan_rows(events).items()):
+        if row["kind"] == "blocked" and row.get("round"):
+            return str(key), str(row["round"])
+    return None
 
 
 def _git(repo: Path, *args: str) -> tuple[int, str]:
@@ -496,13 +629,22 @@ def _tail(output: str) -> str:
     return " | ".join(output.strip().splitlines()[-3:])[:300]
 
 
+def _check_once(repo: Path, command: str) -> tuple[bool, str]:
+    done = _jailed(repo, command)
+    return done.code == 0, done.output
+
+
 def run_checks(repo: Path, checks: list[dict[str, str]]) -> bool:
+    """Run the round's checks after its merges. A check that fails is run once more, and a
+    pass then is a flake (health.retry_once)."""
     results: dict[str, str] = {}
     for check in checks:
-        done = _jailed(repo, check["run"])
-        results[check["name"]] = "pass" if done.code == 0 else "fail"
-        if done.code:
-            _say(repo, "failed", f"check {check['name']} fails: {_tail(done.output)}")
+        tried = health.retry_once(
+            partial(_check_once, repo, check["run"]), f"check.{check['name']}", repo
+        )
+        results[check["name"]] = "pass" if tried.ok else "fail"
+        if not tried.ok:
+            _say(repo, "failed", f"check {check['name']} fails: {_tail(tried.text)}")
     (state_dir(repo) / "gates.json").write_text(
         json.dumps({"at": SystemClock().now().isoformat(timespec="seconds"), "results": results})
     )
@@ -606,6 +748,37 @@ def briefing(plan: dict[str, Any], rnd: dict[str, Any], job: dict[str, Any]) -> 
     return "\n\n".join(parts)
 
 
+def reusable_review(repo: Path) -> dict[str, Any] | None:
+    """The review on the branch, when nothing but reviews/ changed since the commit it read.
+    A plan resumed after its review round reuses that review instead of paying for another."""
+    try:
+        review = json.loads((repo / "reviews" / "REVIEW.json").read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    commit = str(review.get("reviewed_commit") or "") if isinstance(review, dict) else ""
+    if not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+        return None
+    code, text = _git(repo, "diff", "--name-only", commit, "HEAD")
+    if code or any(not line.startswith("reviews/") for line in text.splitlines() if line):
+        return None
+    return dict(review)
+
+
+def _cause(repo: Path, since: dict[str, Any], stage: str | None) -> tuple[str, str | None]:
+    """The cause the round's failure texts prove, from every failure, alert and stop written
+    since the round started; unknown when none is proved or two disagree."""
+    rows = ledger.read(repo)
+    seals = [r.get("hash") for r in rows]
+    after = rows[seals.index(since["hash"]) + 1 :] if since.get("hash") in seals else []
+    text = "\n".join(
+        str(r.get("message", "")) for r in after if r.get("kind") in {"failed", "alert", "blocked"}
+    )
+    context = causes.Context(
+        tuple(load_config(repo)["protected_branches"]), local_gates_green=stage == "ci"
+    )
+    return causes.classify(text, context)
+
+
 def run_round(
     repo: Path,
     plan: dict[str, Any],
@@ -615,19 +788,36 @@ def run_round(
 ) -> bool:
     """Run a round's steps, then its agents, then its checks.
 
-    Lanes whose task already landed are not run again. A review always runs again: it must
-    read the branch as it is now, and a vetoed review lands its files too.
+    Lanes whose task already landed are not run again. A review runs again unless the review
+    on the branch read the code as it is now (reusable_review). A stop names the stage it
+    stopped at and, when the failure text proves one, its cause.
     """
     name = rnd["name"]
-    _say(
-        repo, "start", f"round {name}: " + ", ".join(j["lane"] for j in rnd["steps"] + rnd["lanes"])
+    began = _say(
+        repo,
+        "start",
+        f"round {name}: " + ", ".join(j["lane"] for j in rnd["steps"] + rnd["lanes"]),
+        **_where(plan, name),
     )
     todo = [] if skip_agents else rnd["steps"] + rnd["lanes"]
-    again = [j for j in todo if j["task"] not in landed or j.get("agent") == "reviewer"]
+    reviewed = any(j.get("agent") == "reviewer" and j["task"] in landed for j in todo)
+    review = reusable_review(repo) if reviewed else None
+    again = [
+        j
+        for j in todo
+        if j["task"] not in landed or (j.get("agent") == "reviewer" and review is None)
+    ]
     if len(again) < len(todo):
         done = ", ".join(j["lane"] for j in todo if j not in again)
         _say(repo, "step", f"round {name}: already on the branch, not run again: {done}")
-    ok = all(run_step(repo, plan, s) for s in again if "run" in s)
+    stage: str | None = None
+    if review is not None:
+        _say(repo, "step", f"review of {review['reviewed_commit']} reused: {review['decision']}")
+        if review["decision"] != "APPROVE":
+            stage = "review"
+    ok = stage is None and all(run_step(repo, plan, s) for s in again if "run" in s)
+    if stage is None and not ok:
+        stage = "lane"
     jobs = [j for j in again if "agent" in j] if ok else []
     runs = state_dir(repo) / "runs"
     runs.mkdir(exist_ok=True)
@@ -670,25 +860,50 @@ def run_round(
         outcomes.append((job, out))
         if out["status"] != "done":
             ok = False
+            stage = stage or "lane"
             _say(repo, "failed", f"{job['lane']}: {out['status']}: {out.get('reason', '')}"[:300])
     for job, out in outcomes:
         if out["status"] != "done":
             continue
         if job["agent"] == "reviewer" and not check_review(repo, job, out):
             ok = False
-        ok = land(repo, plan, job, out) and ok
+            stage = stage or "review"
+        if not land(repo, plan, job, out):
+            ok = False
+            stage = stage or "merge"
     # A round that already failed stops here: its checks could only say so again, slowly.
-    ok = ok and run_checks(repo, rnd.get("checks", []))
+    if ok and not run_checks(repo, rnd.get("checks", [])):
+        ok, stage = False, "checks"
     # One pull request and one CI run per plan, at its last round, unless a round asks for
     # its own: a CI run after every round cost 13 waits in one day for one feature.
     last = rnd is plan["rounds"][-1]
     if ok and plan["merge"] == "pr" and rnd.get("checkpoint", last):
         ok = checkpoint(repo, plan, name)
+        stage = None if ok else "ci"
     if ok:
-        _say(repo, "done", f"round {name} complete")
+        _say(repo, "done", f"round {name} complete", **_where(plan, name))
     else:
-        _stop(repo, plan, f"round {name} stopped. Fix, then rerun with --from-round {name}")
+        cause, signature = _cause(repo, began, stage)
+        _stop(
+            repo,
+            plan,
+            f"round {name} stopped. Fix, then rerun with --from-round {name}",
+            cause,
+            stage,
+            signature,
+            name,
+        )
     return ok
+
+
+def write_scorecard(repo: Path, name: str) -> Path | None:
+    """At plan close, keep the plan's scorecard in .factory/scorecards/<plan>.json. A card
+    that cannot be written is said, and never fails the plan that already landed."""
+    try:
+        return efficiency.write_scorecard(name, state_dir(repo), repo)
+    except (OSError, ValueError, KeyError, TypeError) as err:
+        _say(repo, "step", f"scorecard for {name} not written: {err}")
+        return None
 
 
 def stay_awake(argv: list[str]) -> None:
@@ -711,6 +926,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--checks-only", default="")
     args = parser.parse_args(argv)
     repo = main_repo(Path.cwd())
+    reap(repo)
+    worktree.prune(repo)
     try:
         plan = load_plan(Path(args.plan), repo)
     except (PlanError, OSError, ValueError) as err:
@@ -767,7 +984,7 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 started = True
             if registry.stopped(repo):
-                _stop(repo, plan, "the factory is stopped")
+                _stop(repo, plan, "the factory is stopped", round_name=rnd["name"])
                 return 1
             if rnd is plan["rounds"][0] and not args.from_round:
                 mark_start(repo, Path(args.plan))
@@ -778,7 +995,10 @@ def main(argv: list[str] | None = None) -> int:
             "done",
             f"plan complete on {plan['branch']}. "
             "Merging into a protected branch is the founder's step.",
+            **_where(plan),
+            closed=True,
         )
+        write_scorecard(repo, str(plan["name"]))
         return 0
     finally:
         registry.release(f"orchestrator-{os.getpid()}", repo)

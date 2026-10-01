@@ -8,7 +8,10 @@ branch, the kill switch, a claim held by another run, and spent budgets.
 import dataclasses
 import json
 import os
+import signal
+import subprocess
 import sys
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -52,6 +55,8 @@ def test_the_ordinary_path(tmp_path, monkeypatch):
         assert trailer in message
     assert "REPORT.json" not in mini.git(repo, "show", "--stat", "--format=", out.branch)
     assert mini.git(repo, "rev-parse", "phase-x") == out.base_commit  # nothing was merged
+    start = next(r for r in ledger.read(repo) if r["kind"] == "start")
+    assert start["pid"] == os.getpid()  # R4: the reaper reads it once the claim is gone
     assert ledger.verify(repo) == []
     assert registry.active(repo) == {}
     assert telemetry.read_runs(repo)[0]["status"] == "done"
@@ -68,8 +73,9 @@ def test_hidden_tests_are_not_in_a_builders_worktree(tmp_path, monkeypatch):
 def test_the_orchestrator_runs_the_done_command_itself(tmp_path, monkeypatch):
     says_done = [{"init": mini.MODEL}, {"report": "engine", "files": []}, {"result": {"cost": 0.1}}]
     _, out = play(tmp_path, monkeypatch, [says_done, says_done])
-    assert out.status == "escalated"
-    assert "the done command fails" in out.reason
+    # The same code failing again is not a second failure: no escalation, the attempts run out.
+    assert (out.status, out.attempts) == ("failed", 3)
+    assert "the done command fails: exit 1 from test -f engine/new.py" in out.reason
 
 
 def test_a_missing_report_costs_an_attempt_and_the_next_is_told_why(tmp_path, monkeypatch):
@@ -88,7 +94,7 @@ def test_a_report_that_leaves_out_a_changed_file_is_refused(tmp_path, monkeypatc
         {"result": {}},
     ]
     _, out = play(tmp_path, monkeypatch, [hides, hides])
-    assert out.status == "escalated"
+    assert out.status == "failed"
     assert "leaves out files that changed: engine/extra.py" in out.reason
 
 
@@ -110,7 +116,7 @@ def test_a_malformed_report_is_refused(tmp_path, monkeypatch, body):
         {"result": {}},
     ]
     _, out = play(tmp_path, monkeypatch, [bad, bad])
-    assert out.status == "escalated"
+    assert out.status == "failed"
     assert "REPORT.json" in out.reason
 
 
@@ -124,7 +130,7 @@ def test_a_hang_is_stopped_by_the_time_limit(tmp_path, monkeypatch):
     hang = [{"init": mini.MODEL}, {"tool": "Bash", "input": {"command": "x"}}, {"sleep": 30}]
     repo = mini.build(tmp_path, limits={"stall_minutes": 1000, "seconds_per_minute": 0.02})
     _, out = play(tmp_path, monkeypatch, [hang, hang], repo=repo)
-    assert out.status == "escalated"
+    assert out.status == "failed"
     assert "timeout" in out.reason
     assert out.seconds < 20
 
@@ -157,8 +163,9 @@ def test_the_wrong_model_is_refused(tmp_path, monkeypatch):
 def test_a_token_budget_stops_the_run(tmp_path, monkeypatch):
     greedy = [{"init": mini.MODEL}, {"usage": {"in": 9_000_000, "out": 10}}, {"sleep": 30}]
     _, out = play(tmp_path, monkeypatch, [greedy, greedy])
-    assert out.status == "failed"
+    assert (out.status, out.attempts) == ("failed", 1)  # R2: a used up budget is not retried
     assert "budget" in out.reason
+    assert (out.cause, out.signature) == ("factory", "budget.used_up")
 
 
 def test_cache_reads_count_at_a_tenth_against_the_budget(tmp_path, monkeypatch):
@@ -199,7 +206,7 @@ def test_writes_outside_the_lane_are_never_accepted(tmp_path, monkeypatch):
         {"result": {}},
     ]
     _repo, out = play(tmp_path, monkeypatch, [strays, strays])
-    assert out.status == "escalated"
+    assert out.status == "failed"
     assert "files outside the lane changed: tests/cheat.py" in out.reason
     assert out.head_commit == ""
 
@@ -217,6 +224,30 @@ def test_moving_a_protected_branch_fails_the_run(tmp_path, monkeypatch):
     assert out.status == "failed"
     assert "refs/heads/phase-x" in out.reason
     assert any(row.get("alert") == "tamper" for row in ledger.read(repo))
+    assert not any(row.get("cause") == "flake" for row in ledger.read(repo))
+
+
+def test_r2_a_tamper_check_that_passes_on_its_retry_is_a_flake(tmp_path, monkeypatch):
+    real = agent_run.protected_state
+    calls: list[int] = []
+
+    def settling(repo, branches):
+        calls.append(1)
+        state = real(repo, branches)
+        return {**state, "refs/heads/phase-x": "moving"} if len(calls) == 2 else state
+
+    monkeypatch.setattr(agent_run, "protected_state", settling)
+    repo, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])])
+    assert out.status == "done", out.reason
+    assert len(calls) == 3  # before the run, the check, and its one retry
+    rows = ledger.read(repo)
+    assert not any(row.get("alert") == "tamper" for row in rows)
+    (flake,) = [r for r in rows if r.get("cause") == "flake"]
+    assert (flake["signature"], flake["lane"], flake["run_id"]) == (
+        "tamper.L-engine",
+        "L-engine",
+        out.run_id,
+    )
 
 
 def test_nothing_starts_while_the_factory_is_stopped(tmp_path, monkeypatch):
@@ -352,8 +383,12 @@ def test_a_health_probe_runs_on_its_own_model_with_a_short_prompt(tmp_path, monk
     memory.record("L-engine", "an old failure", "a fix", "run", "orchestrator", repo, task="t/1")
     probe_model = health.model(repo)
     assert probe_model != mini.MODEL
-    steps = mini.good(["engine/new.py"])
-    steps[0] = {"init": probe_model}
+    steps = [
+        {"init": probe_model},
+        *write_call("engine/new.py", ok=True),
+        {"report": "engine", "files": ["engine/new.py"]},
+        {"result": {}},
+    ]
     _, out, calls = launched(tmp_path, monkeypatch, [steps], repo=repo, name="health/builder")
     assert out.status == "done", out.reason
     assert out.model == probe_model
@@ -625,7 +660,8 @@ def test_retry_feedback_carries_failures_not_the_log(tmp_path, monkeypatch):
     assert "0.05s" not in feedback
     assert "FAILED tests/x.py::test_a - assert 1 == 2" in feedback
     assert "first assertion: E   assert 1 == 2" in feedback
-    assert "noise line" not in feedback
+    assert "exit 1 from test -f engine/new.py" in feedback
+    assert "noise line 199" not in feedback
     assert "The full output is in .scratch/done-1.log." in feedback
     log = (Path(out.worktree) / ".scratch" / "done-1.log").read_text()
     assert "noise line 199" in log
@@ -635,8 +671,10 @@ def test_retry_feedback_carries_failures_not_the_log(tmp_path, monkeypatch):
 def test_the_digest_reads_the_same_on_two_runs_of_the_same_failure():
     first = "\x1b[31mFAILED t.py::test_a - assert 1 == 2\x1b[0m\n1 failed in 0.51s\n"
     second = "FAILED t.py::test_a - assert 1 == 2\n1 failed in 12.30s\n"
-    assert agent_run.failure_digest(first) == agent_run.failure_digest(second)
-    assert agent_run.failure_digest(first).splitlines() == [
+    digest = agent_run.failure_digest(first, "uv run pytest", 1)
+    assert digest == agent_run.failure_digest(second, "uv run pytest", 1)
+    assert digest.splitlines() == [
+        "exit 1 from uv run pytest",
         "1 failed",
         "FAILED t.py::test_a - assert 1 == 2",
     ]
@@ -644,4 +682,248 @@ def test_the_digest_reads_the_same_on_two_runs_of_the_same_failure():
 
 def test_the_digest_of_a_command_that_is_not_a_test_runner_is_its_tail():
     output = "\n".join(f"line {n}" for n in range(10))
-    assert agent_run.failure_digest(output) == "line 6 | line 7 | line 8 | line 9"
+    assert agent_run.failure_digest(output, "make x", 2).splitlines() == [
+        "exit 2 from make x",
+        "line 6 | line 7 | line 8 | line 9",
+    ]
+
+
+def write_call(path, ok):
+    """A Write tool call as the real stream shows it: the call, the file, then the result.
+
+    A denied call still leaves the file, as when the model fell back to Bash (the 18:44 probe).
+    """
+    use = {
+        "type": "assistant",
+        "message": {
+            "id": f"w-{path}",
+            "content": [
+                {
+                    "type": "tool_use",
+                    "id": f"tu-{path}",
+                    "name": "Write",
+                    "input": {"file_path": path},
+                }
+            ],
+        },
+    }
+    said = "written" if ok else "Permission to use Write has been denied"
+    result = {
+        "type": "user",
+        "message": {
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": f"tu-{path}",
+                    "is_error": not ok,
+                    "content": said,
+                }
+            ]
+        },
+    }
+    return [{"raw": json.dumps(use)}, {"write": path}, {"raw": json.dumps(result)}]
+
+
+def attempt_rows(repo):
+    return [
+        r
+        for r in ledger.read(repo)
+        if r["kind"] == "step"
+        and r["message"].startswith("attempt ")
+        and "not accepted" in r["message"]
+    ]
+
+
+def test_r6_a_probe_passes_only_when_its_write_tool_call_succeeded(tmp_path, monkeypatch):
+    repo = mini.build(tmp_path)
+    denied = [
+        {"init": health.model(repo)},
+        *write_call("engine/new.py", ok=False),
+        {"report": "engine", "files": ["engine/new.py"]},
+        {"result": {}},
+    ]
+    _, out = play(tmp_path, monkeypatch, [denied], repo=repo, name="health/builder")
+    assert out.status != "done"  # the file exists, but only a Write call proves the rule
+    assert "no Write tool call succeeded" in out.reason
+    assert not health.passed(agent_run.load_contract("builder", repo), "L-engine", repo, repo)
+
+
+def test_r3_an_empty_output_still_names_the_command_and_its_exit_code():
+    assert agent_run.failure_digest("", "test -f docs/HEALTH.txt", 1) == (
+        "exit 1 from test -f docs/HEALTH.txt"
+    )
+    long = "uv run pytest " + "tests/unit/x.py " * 20
+    head = agent_run.failure_digest("", long, 2)
+    assert head.startswith("exit 2 from uv run pytest tests/unit/x.py")
+    assert head.endswith("...")
+    assert len(head) < 150
+
+
+def test_r3_the_same_failure_after_two_different_fixes_escalates(tmp_path, monkeypatch):
+    first = [
+        {"init": mini.MODEL},
+        {"write": "engine/a.py"},
+        {"report": "engine", "files": ["engine/a.py"]},
+        {"result": {}},
+    ]
+    second = [
+        {"init": mini.MODEL},
+        {"write": "engine/b.py"},
+        {"report": "engine", "files": ["engine/a.py", "engine/b.py"]},
+        {"result": {}},
+    ]
+    repo, out = play(tmp_path, monkeypatch, [first, second])
+    assert (out.status, out.attempts) == ("escalated", 2)
+    assert out.reason.startswith("the same failure twice: the done command fails: exit 1 from")
+    end = [r for r in ledger.read(repo) if r["kind"] == "blocked"][-1]
+    assert (end["cause"], end["cause_source"]) == ("unknown", None)
+
+
+def test_r3_the_same_code_failing_again_is_not_a_second_failure(tmp_path, monkeypatch):
+    # Only the progress log changes between the attempts, which is not a fix.
+    same = [
+        {"init": mini.MODEL},
+        {"write": "engine/a.py"},
+        {"tool": "Bash", "input": {"command": "echo tried >> engine/PROGRESS.md"}},
+        {"write": "engine/PROGRESS.md", "text": "tried\n"},
+        {"report": "engine", "files": ["engine/a.py", "engine/PROGRESS.md"]},
+        {"result": {}},
+    ]
+    again = [*same[:3], {"write": "engine/PROGRESS.md", "text": "tried\ntried again\n"}, *same[4:]]
+    _, out = play(tmp_path, monkeypatch, [same, again, again])
+    assert (out.status, out.attempts) == ("failed", 3)
+    assert "none accepted" in out.reason
+
+
+def test_r1_r2_a_sandbox_denial_stops_at_attempt_one_naming_its_cause(tmp_path, monkeypatch):
+    done = "printf 'OSError: mkdtemp /var/x: Operation not permitted\\n'; exit 1"
+    repo, out = play(tmp_path, monkeypatch, [mini.good(["engine/new.py"])] * 3, done=done)
+    assert (out.status, out.attempts) == ("failed", 1)
+    assert "stopped at attempt 1, cause plan (sandbox.mkdtemp), not retried" in out.reason
+    (row,) = attempt_rows(repo)
+    assert (row["cause"], row["cause_source"], row["signature"]) == (
+        "plan",
+        "auto",
+        "sandbox.mkdtemp",
+    )
+    stop = [r for r in ledger.read(repo) if r["kind"] == "failed"][-1]
+    assert (stop["cause"], stop["cause_source"], stop["signature"]) == (
+        "plan",
+        "auto",
+        "sandbox.mkdtemp",
+    )
+    assert telemetry.read_runs(repo)[-1]["signature"] == "sandbox.mkdtemp"
+
+
+def test_r1_m6_an_attempt_no_signature_names_stays_unknown(tmp_path, monkeypatch):
+    no_work = [{"init": mini.MODEL}, {"report": "engine", "files": []}, {"result": {}}]
+    repo, out = play(tmp_path, monkeypatch, [no_work, mini.good(["engine/new.py"])])
+    assert out.status == "done"
+    (row,) = attempt_rows(repo)
+    # No one has named it yet, so it has no source, as phase writes an unknown stop.
+    assert (row["cause"], row["cause_source"], row["signature"]) == ("unknown", None, None)
+    assert out.cause == ""  # a run that ends done has no cause
+
+
+def test_r2_an_infra_failure_waits_and_tries_again(tmp_path, monkeypatch):
+    slept = []
+    monkeypatch.setattr(agent_run.time, "sleep", slept.append)
+    done = (
+        "test -f .scratch/tried || { mkdir -p .scratch; touch .scratch/tried; "
+        "echo 'ssh: Could not resolve host: github.com'; exit 1; }; test -f engine/new.py"
+    )
+    good = mini.good(["engine/new.py"])
+    repo, out = play(tmp_path, monkeypatch, [good, good], done=done)
+    assert (out.status, out.attempts) == ("done", 2)
+    assert slept == [5.0]
+    (row,) = attempt_rows(repo)
+    assert (row["cause"], row["signature"]) == ("infra", "remote.transient")
+
+
+def test_r2_infra_failing_on_every_attempt_backs_off_and_never_escalates(tmp_path, monkeypatch):
+    slept = []
+    monkeypatch.setattr(agent_run.time, "sleep", slept.append)
+    done = "echo 'fatal: Could not read from remote repository.'; exit 128"
+    fixes = [mini.good([f"engine/f{n}.py"]) for n in range(3)]
+    for n, steps in enumerate(fixes):  # each attempt keeps the files before it in its report
+        steps[-2]["files"] = [f"engine/f{k}.py" for k in range(n + 1)]
+    _, out = play(tmp_path, monkeypatch, fixes, done=done)
+    assert (out.status, out.attempts) == ("failed", 3)
+    assert slept == [5.0, 20.0]  # no wait after the last attempt
+    assert (out.cause, out.signature) == ("infra", "remote.transient")
+
+
+def test_r5_every_failed_attempt_leaves_its_work_on_the_branch(tmp_path, monkeypatch):
+    first = [
+        {"init": mini.MODEL},
+        {"write": "engine/a.py"},
+        {"report": "engine", "files": ["engine/a.py"]},
+        {"result": {}},
+    ]
+    second = mini.good(["engine/new.py"])
+    second[-2]["files"] = ["engine/a.py", "engine/new.py"]
+    repo, out = play(tmp_path, monkeypatch, [first, second])
+    assert (out.status, out.attempts) == ("done", 2)
+    kept = [r["message"] for r in ledger.read(repo) if "unaccepted work kept" in r["message"]]
+    assert len(kept) == 1
+    sha = kept[0].split(" at ")[1].split(";")[0]
+    shown = mini.git(repo, "show", "--stat", "--format=%s", sha)
+    assert "not accepted (attempt 1)" in shown
+    assert "engine/a.py" in shown
+    # The accepted work still lands as one commit on the base.
+    log = mini.git(repo, "log", "--format=%s", f"{out.base_commit}..{out.branch}")
+    assert log.splitlines() == ["L-engine: Add engine/new.py. Nothing else."]
+
+
+def test_r5_a_run_killed_mid_attempt_leaves_a_wip_commit(tmp_path):
+    repo = mini.build(tmp_path)
+    slow = [{"init": mini.MODEL}, {"write": "engine/new.py"}, {"sleep": 60}]
+    env = {**os.environ, **mini.scenario(tmp_path, [slow]), "PYTHONPATH": str(mini.REAL)}
+    result = tmp_path / "result.json"
+    proc = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "tools.factory.agent_run",
+            *("--lane", "L-engine", "--agent", "builder", "--task", "t/1", "--spec", "s.md"),
+            *("--mission", "m", "--done", "test -f engine/new.py", "--base", "phase-x"),
+            *("--run-id", "l-engine-killed", "--result", str(result)),
+        ],
+        cwd=repo,
+        env=env,
+    )
+    written = repo.parent / f"{repo.name}-worktrees" / "l-engine-killed" / "engine" / "new.py"
+    for _ in range(300):
+        if written.exists():
+            break
+        time.sleep(0.1)
+    assert written.exists()
+    proc.send_signal(signal.SIGTERM)
+    assert proc.wait(timeout=60) == 1
+    out = json.loads(result.read_text())
+    assert (out["status"], out["cause"]) == ("stopped", "interrupted")
+    shown = mini.git(repo, "show", "--stat", "--format=%s", out["kept_commit"])
+    assert "wip(L-engine): not accepted (stopped)" in shown
+    assert "engine/new.py" in shown
+    assert mini.git(repo, "rev-parse", "lane/L-engine/l-engine-killed") == out["kept_commit"]
+    stop = [r for r in ledger.read(repo) if r["kind"] == "blocked"][-1]
+    assert (stop["cause"], stop["cause_source"]) == ("interrupted", "auto")
+
+
+def test_m3_m4_context_and_large_reads_reach_the_metrics(tmp_path, monkeypatch):
+    big, small = tmp_path / "big.txt", tmp_path / "small.txt"
+    big.write_text("x" * (agent_run.LARGE_READ_BYTES + 1))
+    small.write_text("x")
+    steps = mini.good(["engine/new.py"])
+    steps[1:1] = [
+        {"usage": {"in": 100, "out": 5, "cached": 1_000}},
+        {"tool": "Read", "input": {"file_path": str(big)}},
+        {"tool": "Read", "input": {"file_path": str(big), "limit": 40}},
+        {"tool": "Read", "input": {"file_path": str(small)}},
+        {"usage": {"in": 10, "out": 5, "cached": 5_000}},
+    ]
+    repo, out = play(tmp_path, monkeypatch, [steps])
+    assert out.status == "done", out.reason
+    assert (out.first_context, out.final_context, out.large_reads) == (1_100, 5_010, 1)
+    row = telemetry.read_runs(repo)[-1]
+    assert (row["first_context"], row["final_context"], row["large_reads"]) == (1_100, 5_010, 1)

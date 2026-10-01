@@ -711,3 +711,41 @@ def test_a_broken_registry_reads_as_empty(tmp_path):
     (tmp_path / ".factory" / "registry.json").write_text("[]")
     assert data.read_registry(tmp_path) == {}
     assert data.read_registry(tmp_path / "nowhere") == {}
+
+
+def test_the_window_shows_each_plans_scorecard_the_latest_first(tmp_path):
+    from tools.factory import efficiency
+
+    folder = tmp_path / ".factory" / "scorecards"
+    folder.mkdir(parents=True)
+    runs = [
+        {
+            "task": f"{plan}/b/L-x",
+            "agent": "builder",
+            "cost_usd": 1.0,
+            "started_at": f"2026-09-29T{hour}:00:00+00:00",
+            "ended_at": f"2026-09-29T{hour}:30:00+00:00",
+        }
+        for plan, hour in (("old", "10"), ("new", "12"))
+    ]
+    for plan in ("old", "new"):
+        card = efficiency.scorecard(plan, [], runs)
+        (folder / f"{plan}.json").write_text(json.dumps(card))
+    (folder / "broken.json").write_text("{")
+    (folder / "other.json").write_text("[]")
+    cards = data.read_scorecards(tmp_path)
+    assert [c["plan"] for c in cards] == ["new", "old"]
+    dollars = next(m for m in cards[0]["measures"] if m["id"] == "dollars")
+    assert dollars == {
+        "id": "dollars",
+        "label": "List dollars",
+        "read_by": "EFF",
+        "value": 1.0,
+        "last_three": 1.0,
+        "target": "under $105",
+        "met": True,
+    }
+    assert cards[0]["totals"]["runs"] == 1
+    assert data.read_scorecards(tmp_path / "nowhere") == []
+    main = data.snapshot_json(tmp_path, ps_output="", environ={}, auth_json="{}")
+    assert [c["plan"] for c in main["scorecards"]] == ["new", "old"]

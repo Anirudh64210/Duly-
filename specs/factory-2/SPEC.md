@@ -88,12 +88,15 @@ veto upheld. These small additions make every section 2 target readable:
   runs only on a model change, with golden (L6).
 
 Wall hours use efficiency.py's one definition. The brief's 15.7 hours for product-2 used another
-start time and cannot be recomputed; by this definition product-2 took 9.7 hours
-(audit-ledger 1). B3 replays product-1 and product-2 into scorecards as the baselines.
+start time and cannot be recomputed; by this definition product-2 took 9.8 hours
+(audit-ledger 1). B3 replays product-1 and product-2 into scorecards as the baselines. What the
+ledger records for product-2: 8 vetoes and 1 approval of its own reviews (2 further vetoes filed
+under its task belonged to ui-1), 29 stops, 5 of them at the checks stage, 21 plan files and 9.8
+wall hours. The brief's 11 vetoes counted ui-1's and could not be traced otherwise.
 
 ### 1.3 Efficiency (FINAL batch 2, as approved)
 
-Evidence: product-2 took 13 reviews and 11 vetoes, all 19 vetoes upheld, so faults are found late,
+Evidence: product-2 recorded 9 reviews of its own with 8 vetoes (the ledger; the brief's 13 and 11 counted ui-1), every veto upheld, so faults are found late,
 not invented (FINAL section 1, item 4); 13 round-check failures after every lane passed, 7 of them
 coverage gates first run after the merge; fix cycles of 1 to 2.4 hours falling to 0.3 when
 narrowed by hand (FINAL 5).
@@ -273,17 +276,17 @@ it (1.2); "test" runs in `make factory-test`; "grep" is the literal search shown
 
 | Pillar | Measure | Baseline | Target | Read by |
 |---|---|---|---|---|
-| Efficiency | Vetoes per plan | 11 (product-2) | at most 3 | EFF |
+| Efficiency | Vetoes per plan | 8 (product-2, ledger) | at most 3 | EFF |
 | Efficiency | First-review approval | 0 of 3 plans | at least 1 of the next 3 | M1 |
 | Efficiency | Median hours per fix cycle | 1 to 2.4 | under 0.5 | M2 |
-| Efficiency | Checks-stage stops after all lanes passed | 13 per plan | at most 2 | M5 |
+| Efficiency | Checks-stage stops after all lanes passed | 5 (product-2, ledger) | at most 2 | M5 |
 | Efficiency | Stops with cause `spec` | 8.5 per plan | at most 3 | EFF |
 | Efficiency | Reviewer median turns; tokens per run | 49.5; 5.2 M | under 30; under 3 M | M3 |
 | Efficiency | Builder, test-author median final context | 66 k, 71 k | 30% lower | M3 |
 | Efficiency | Drafter, reviewer median final context | 122 k, 157 k | under 80 k | M3 |
 | Efficiency | Whole-file reads of files over 50 KB | 504 in two days | 0 | M4 |
 | Efficiency | List dollars per plan | $150 to $165 | under $105 | EFF |
-| Efficiency | Wall hours per feature | 9.7 (product-2) | under 5 | EFF |
+| Efficiency | Wall hours per feature | 9.8 (product-2) | under 5 | EFF |
 | Efficiency | Health share of dollars | 10% | under 2% | M7 |
 | Reliability | Stops with a cause once answered | 0 of 29 | 100% | EFF |
 | Reliability | Wrong auto causes when the 61 recorded stops are replayed | n/a | 0 | test |
@@ -347,7 +350,7 @@ live check. B4 and B5 are FINAL's approved order (4 with 5, 7, 9, 10, then one p
 | Batch | Contents | Effort | Tests | Live check |
 |---|---|---|---|---|
 | B2 Reliability | R6, R3, R1, R2, R4, R5 | M | Sandbox gives Edit to every writing lane; digest never empty; one test per signature; replay of the 61 stops and 24 escalations gives the founder's cause or `unknown`, never a wrong one; reaper marks a killed fake run; kill mid-attempt leaves a wip commit | Health passes for every lane first try; l-audit probe 5 of 5 |
-| B3 Measure | M1 to M8, L5 scorecard, L6 | S | product-2 scorecard matches known totals (11 vetoes, 29 stops, 21 plan files); each M field set on a fake run | Founder reads the product-1 and product-2 scorecards, every field filled |
+| B3 Measure | M1 to M8, L5 scorecard, L6 | S | product-2 scorecard matches the ledger (8 vetoes and 1 approval of its own, plus 2 ui-1 vetoes filed under its task that the card counts, so 10; 29 stops, 5 at the checks stage; 21 plan files; 9.8 wall hours); each M field set on a fake run | Founder reads the product-1 and product-2 scorecards, every field filled |
 | B4 Lanes catch their own faults | Profile file started (G1 first keys, G3 gate list), E3, E5, E6 incl. `tools.rulepack.show`, E8, Stop hook and `lane` target removed | M | Preflight refuses the 06:04 L-engine cross-lane done command; coverage gate runs in a lane; digest parser per stack | Held for B5's plan |
 | B5 Checks before review | E1 with the sweep removal, E2 (D8, `waive:`, lane rule) | M | Checks catch a planted regression, a non-ancestor commit and an id leak; fix round refuses an untouched lane; kept commit merged before start | One real plan: every efficiency target read from its scorecard |
 | B6 Checklist and plans | U1, U2, E4, U3, U4, U5, U10 | L | Shape parser refuses malformed points; draft plan for product-2's checklist has its lanes and rounds minus copies; dry run catches the audit U2 selector and path errors; hand plans still run | One feature from checklist to review with one plan file; hand-typed lines counted |
@@ -393,6 +396,6 @@ once.
 | Rerun-lane button, earlier runs per lane view | Deferred | Not in the audits' top frictions |
 | Generated RUNBOOK | Reduced to a short RUNBOOK and a test that its commands exist | Same guarantee, less machinery |
 | `factory new`, `plan`, `spec check`, `health`, `score`, `upgrade` verbs | Folded into `approve`, `start`, `efficiency`, `sync` | Twelve verbs cover the loop |
-| Wall hours "SPEC approved to final approval", baseline 15.7 | Replaced by efficiency.py's definition, baseline 9.7 | The draft's definition is not recorded anywhere |
+| Wall hours "SPEC approved to final approval", baseline 15.7 | Replaced by efficiency.py's definition, baseline 9.8 | The draft's definition is not recorded anywhere |
 | Generality batch before efficiency (draft B4) | Moved to last (B9); only the profile keys new code needs come early | Renames across 11 modules are risk with no payoff until a second project exists |
 | Separate THREAT_MODEL.md, interactive `init` questions | Folded into README; `init` writes starter files | Less to maintain |

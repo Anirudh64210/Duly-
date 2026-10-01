@@ -1,0 +1,991 @@
+{
+ "about": "Every failure, escalation and round stop message in duly/.factory/events.jsonl from 2026-09-29T05:48 to 2026-09-30T18:49, with the cause the founder gave it (specs/factory-2/audit-reliability.md section 2 and his control rows). unknown: the founder named the stop, not this line, or named nothing.",
+ "rows": [
+  {
+   "at": "2026-09-29T06:30:33+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "check gates 1 to 6 fails: \u001b[90m11:30PM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mscanned ~7165923 bytes (7.17 MB) in 2.29s\u001b[0m | \u001b[90m11:30PM\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mleaks found: 1\u001b[0m | make: *** [gate-4] Error 1"
+  },
+  {
+   "at": "2026-09-29T06:30:36+00:00",
+   "kind": "stop",
+   "cause": "factory",
+   "text": "round C stopped. Fix, then rerun with --from-round C"
+  },
+  {
+   "at": "2026-09-29T06:40:20+00:00",
+   "kind": "escalation",
+   "cause": "unknown",
+   "text": "escalated: see tests/ESCALATE.md"
+  },
+  {
+   "at": "2026-09-29T06:40:20+00:00",
+   "kind": "failed",
+   "cause": "unknown",
+   "text": "L-tests: lane ended without passing its done command"
+  },
+  {
+   "at": "2026-09-29T06:40:20+00:00",
+   "kind": "stop",
+   "cause": "unknown",
+   "text": "round S stopped. Fix, then rerun with --from-round S"
+  },
+  {
+   "at": "2026-09-29T06:45:54+00:00",
+   "kind": "failed",
+   "cause": "unknown",
+   "text": "check reviewer approved fails:"
+  },
+  {
+   "at": "2026-09-29T06:45:54+00:00",
+   "kind": "stop",
+   "cause": "unknown",
+   "text": "round D stopped. Fix, then rerun with --from-round D"
+  },
+  {
+   "at": "2026-09-29T07:15:16+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "check gates 1 to 6 fails: \u001b[90m12:15AM\u001b[0m \u001b[32mINF\u001b[0m \u001b[1mscanned ~7731111 bytes (7.73 MB) in 2.5s\u001b[0m | \u001b[90m12:15AM\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mleaks found: 1\u001b[0m | make: *** [gate-4] Error 1"
+  },
+  {
+   "at": "2026-09-29T07:15:20+00:00",
+   "kind": "stop",
+   "cause": "factory",
+   "text": "round F3 stopped. Fix, then rerun with --from-round F3"
+  },
+  {
+   "at": "2026-09-29T08:25:55+00:00",
+   "kind": "stop",
+   "cause": "unknown",
+   "text": "round G4 stopped. Fix, then rerun with --from-round G4"
+  },
+  {
+   "at": "2026-09-29T09:13:11+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "tamper: L-pipeline: protected state changed: ['refs/heads/factory-v2']"
+  },
+  {
+   "at": "2026-09-29T09:13:11+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "failed: protected parts of the repository changed during the run: refs/heads/factory-v2"
+  },
+  {
+   "at": "2026-09-29T09:13:11+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "failed: L-pipeline builder: protected parts of the repository changed during the run: refs/heads/factory-v2"
+  },
+  {
+   "at": "2026-09-29T09:21:15+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "tamper: L-web: protected state changed: ['refs/heads/factory-v2']"
+  },
+  {
+   "at": "2026-09-29T09:21:15+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "failed: L-web builder: protected parts of the repository changed during the run: refs/heads/factory-v2"
+  },
+  {
+   "at": "2026-09-29T09:39:23+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "eval_drop: golden tasks: 0% passed, 100% needed"
+  },
+  {
+   "at": "2026-09-29T10:27:46+00:00",
+   "kind": "escalation",
+   "cause": "factory",
+   "text": "escalated: the same failure twice: the done command fails:"
+  },
+  {
+   "at": "2026-09-29T10:27:46+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "escalated: L-factory skill-curator: the same failure twice: the done command fails:"
+  },
+  {
+   "at": "2026-09-29T11:11:40+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: Escalated: the done command failed twice with the same failure (my run and the stop hook), exit 1, 66 tests failing in this worktree. Sections 1 to 6 are written in engine/f1.py. The tests of this round (commit e802414) are not on this branch; against them in a scratch folder, 55 fail: 2 in test_f1_"
+  },
+  {
+   "at": "2026-09-29T11:11:40+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-engine builder: Escalated: the done command failed twice with the same failure (my run and the stop hook), exit 1, 66 tests failing in this worktree. Sections 1 to 6 are written in engine/f1.py. The"
+  },
+  {
+   "at": "2026-09-29T11:11:40+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-engine: escalated: Escalated: the done command failed twice with the same failure (my run and the stop hook), exit 1, 66 tests failing in this worktree. Sections 1 to 6 are written in engine/f1.py. The tests of this round (commit e802414) are not on this branch; against them in a scratch folder, 5"
+  },
+  {
+   "at": "2026-09-29T11:12:56+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "check engine tests fails: FAILED tests/unit/engine/test_f1_sourcing.py::test_a_longer_extension_gives_more_reports | FAILED tests/unit/engine/test_f1_sourcing.py::test_each_setting_used_is_listed_under_duly_settings[case_a] | FAILED tests/unit/engine/test_f1_sourcing.py::test_each_setting_used_is_listed_under_duly_settings[c"
+  },
+  {
+   "at": "2026-09-29T11:12:56+00:00",
+   "kind": "stop",
+   "cause": "spec",
+   "text": "round engine stopped. Fix, then rerun with --from-round engine"
+  },
+  {
+   "at": "2026-09-29T11:43:34+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: Sections 1 to 6 of specs/product-1/SPEC.md are written in engine/f1.py. The done command exits 1, twice, with the same 66 failed tests of 763. Every one is a test that contradicts the SPEC or the output contract; none is worked around. In tests/unit/engine/test_f1_product.py 2 tests fail, down from"
+  },
+  {
+   "at": "2026-09-29T11:43:34+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-engine builder: Sections 1 to 6 of specs/product-1/SPEC.md are written in engine/f1.py. The done command exits 1, twice, with the same 66 failed tests of 763. Every one is a test that contradicts th"
+  },
+  {
+   "at": "2026-09-29T11:43:35+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-engine: escalated: Sections 1 to 6 of specs/product-1/SPEC.md are written in engine/f1.py. The done command exits 1, twice, with the same 66 failed tests of 763. Every one is a test that contradicts the SPEC or the output contract; none is worked around. In tests/unit/engine/test_f1_product.py 2 t"
+  },
+  {
+   "at": "2026-09-29T12:22:36+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: Merged lane/L-engine/l-engine-b63b2c6ea2 (already an ancestor). Point 7: an answer with no about is not an answer; the question stays open (engine/f1.py _answer). Point 8: parse_case(raw, clock) already refuses an answer dated after the person's own day. engine_literals, mypy, ruff check and ruff fo"
+  },
+  {
+   "at": "2026-09-29T12:22:36+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-engine builder: Merged lane/L-engine/l-engine-b63b2c6ea2 (already an ancestor). Point 7: an answer with no about is not an answer; the question stays open (engine/f1.py _answer). Point 8: parse_case"
+  },
+  {
+   "at": "2026-09-29T12:22:36+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-engine: escalated: Merged lane/L-engine/l-engine-b63b2c6ea2 (already an ancestor). Point 7: an answer with no about is not an answer; the question stays open (engine/f1.py _answer). Point 8: parse_case(raw, clock) already refuses an answer dated after the person's own day. engine_literals, mypy, r"
+  },
+  {
+   "at": "2026-09-29T12:22:55+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "check engine tests fails: FAILED tests/unit/engine/test_f1_product.py::test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_answer[True] | FAILED tests/unit/engine/test_f1_product.py::test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_answer[False] | FAILED tests/unit/engine/test_f1_"
+  },
+  {
+   "at": "2026-09-29T13:31:17+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "retry_storm: L-tests: 3 attempts, none accepted"
+  },
+  {
+   "at": "2026-09-29T13:31:17+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "failed: 3 attempts, none accepted: the done command fails: All checks passed! | 40 files already formatted | mktemp: mkdtemp failed on /var/folders/wr/4yqfch851v90m4n6tc4t7zb00000gn/T/tmp.v55zMEZstn: Operation not permitted"
+  },
+  {
+   "at": "2026-09-29T13:31:17+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "failed: L-tests test-author: 3 attempts, none accepted: the done command fails: All checks passed! | 40 files already formatted | mktemp: mkdtemp failed on /var/folders/wr/4yqfch851v90m4n6tc4t7zb00000gn/T/tmp"
+  },
+  {
+   "at": "2026-09-29T13:31:17+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-tests: failed: 3 attempts, none accepted: the done command fails: All checks passed! | 40 files already formatted | mktemp: mkdtemp failed on /var/folders/wr/4yqfch851v90m4n6tc4t7zb00000gn/T/tmp.v55zMEZstn: Operation not permitted"
+  },
+  {
+   "at": "2026-09-29T13:31:17+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round tests stopped. Fix, then rerun with --from-round tests"
+  },
+  {
+   "at": "2026-09-29T13:46:11+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: api/main.py passes the clock to parse_case (SPEC-resolutions.md point 8) and turns its ValueError into a 422 with fixed words (api/case_f1.py NOT_YET) that never repeat the date sent. The 3 failing tests in tests/unit/api/test_compute_product.py now pass; mypy, ruff check, ruff format and copy lint"
+  },
+  {
+   "at": "2026-09-29T13:46:11+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-api builder: api/main.py passes the clock to parse_case (SPEC-resolutions.md point 8) and turns its ValueError into a 422 with fixed words (api/case_f1.py NOT_YET) that never repeat the date sent. T"
+  },
+  {
+   "at": "2026-09-29T13:46:11+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-api: escalated: api/main.py passes the clock to parse_case (SPEC-resolutions.md point 8) and turns its ValueError into a 422 with fixed words (api/case_f1.py NOT_YET) that never repeat the date sent. The 3 failing tests in tests/unit/api/test_compute_product.py now pass; mypy, ruff check, ruff for"
+  },
+  {
+   "at": "2026-09-29T13:53:38+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "budget: L-web: the token budget is used up"
+  },
+  {
+   "at": "2026-09-29T13:53:38+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "budget: L-web: the budget for this task is used up"
+  },
+  {
+   "at": "2026-09-29T13:53:39+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "failed: the budget for this task is used up"
+  },
+  {
+   "at": "2026-09-29T13:53:39+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "failed: L-web builder: the budget for this task is used up"
+  },
+  {
+   "at": "2026-09-29T13:53:39+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "L-web: failed: the budget for this task is used up"
+  },
+  {
+   "at": "2026-09-29T13:53:40+00:00",
+   "kind": "failed",
+   "cause": "unknown",
+   "text": "check offline gates fails: \u2716 15 problems (15 errors, 0 warnings) |  | make: *** [gate-1] Error 1"
+  },
+  {
+   "at": "2026-09-29T13:54:07+00:00",
+   "kind": "failed",
+   "cause": "unknown",
+   "text": "check hidden tests fails: FAILED tests/holdout/test_holdout_sourcing.py::test_an_item_is_open_from_today_through_the_lookahead_and_on_no_other_day | FAILED tests/holdout/test_holdout_sourcing.py::test_the_evaluation_is_due_the_interval_and_the_days_after_the_start | FAILED tests/holdout/test_holdout_sourcing.py::test_there_i"
+  },
+  {
+   "at": "2026-09-29T13:54:07+00:00",
+   "kind": "stop",
+   "cause": "unknown",
+   "text": "round api-and-screen stopped. Fix, then rerun with --from-round api-and-screen"
+  },
+  {
+   "at": "2026-09-29T14:32:19+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "check offline gates fails: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning. | Failure. Coverage is below 80%. | make: *** [gate-6] Error 1"
+  },
+  {
+   "at": "2026-09-29T14:32:29+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round api-and-screen stopped. Fix, then rerun with --from-round api-and-screen"
+  },
+  {
+   "at": "2026-09-29T14:37:52+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "check offline gates fails: desktop/coverage/lcov-report/prettify.js:23: phrase:sealed: \"as,base,by,checked,decimal,delegate,descending,dynamic,event,fixed,foreach,from,group,implicit,in,interface,internal,in | copy lint: 1 problem(s) | make: *** [gate-1] Error 1"
+  },
+  {
+   "at": "2026-09-29T14:38:02+00:00",
+   "kind": "stop",
+   "cause": "factory",
+   "text": "round api-and-screen stopped. Fix, then rerun with --from-round api-and-screen"
+  },
+  {
+   "at": "2026-09-29T14:43:45+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "failed: clean CI did not pass for round api-and-screen: 98237\t\ngates\tfail\t2m57s\thttps://github.com/Anirudh64210/Duly-/actions/runs/36584458927/job/109460926446\t\ngates\tpending\t0\thttps://github.com/Anirudh64210/Duly-/actions/runs/36584451291/job/109460898237",
+   "local_gates_green": true
+  },
+  {
+   "at": "2026-09-29T14:49:25+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "failed: could not open the pull request: a pull request for branch \"work/product-1\" into branch \"product-1\" already exists:\nhttps://github.com/Anirudh64210/Duly-/pull/3"
+  },
+  {
+   "at": "2026-09-29T14:54:39+00:00",
+   "kind": "alert",
+   "cause": "infra",
+   "text": "failed: could not push the phase branch: git@github.com: Permission denied (publickey).\nfatal: Could not read from remote repository.\n\nPlease make sure you have the correct access rights\nand the reposi"
+  },
+  {
+   "at": "2026-09-29T14:54:39+00:00",
+   "kind": "stop",
+   "cause": "infra",
+   "text": "round api-and-screen stopped. Fix, then rerun with --from-round api-and-screen"
+  },
+  {
+   "at": "2026-09-29T15:10:30+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 1, 'sourced': 4, 'never_assumes': 2, 'inside_the_boundary': 4, 'secure': 4, 'tested': 2}"
+  },
+  {
+   "at": "2026-09-29T15:10:30+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round review stopped. Fix, then rerun with --from-round review"
+  },
+  {
+   "at": "2026-09-29T15:57:35+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: Built SPEC-resolutions points 11, 12, 14, 15, 16, 17, 18, 19, 23 and 24 in engine/f1.py and engine/dates.py. Every test in test_f1_windows.py, test_dates.py and test_f1_sourcing.py passes; engine_literals, mypy, ruff check and ruff format pass. pytest fails on 33 older tests whose cases hold a confl"
+  },
+  {
+   "at": "2026-09-29T15:57:35+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-engine builder: Built SPEC-resolutions points 11, 12, 14, 15, 16, 17, 18, 19, 23 and 24 in engine/f1.py and engine/dates.py. Every test in test_f1_windows.py, test_dates.py and test_f1_sourcing.py p"
+  },
+  {
+   "at": "2026-09-29T15:57:35+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-engine: escalated: Built SPEC-resolutions points 11, 12, 14, 15, 16, 17, 18, 19, 23 and 24 in engine/f1.py and engine/dates.py. Every test in test_f1_windows.py, test_dates.py and test_f1_sourcing.py passes; engine_literals, mypy, ruff check and ruff format pass. pytest fails on 33 older tests who"
+  },
+  {
+   "at": "2026-09-29T15:57:35+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round engine-windows stopped. Fix, then rerun with --from-round engine-windows"
+  },
+  {
+   "at": "2026-09-29T16:10:07+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: Brought tests/unit and tests/holdout in line with SPEC-resolutions points 11, 12, 14 to 19, 23 and 24. 70 of 72 failures fixed by changing case facts (point 4) or expecting what a point says (new conflicts, unemployment.opt_card_days_used, seven new rows in conflicts_by_the_table). The done command"
+  },
+  {
+   "at": "2026-09-29T16:10:07+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-tests test-author: Brought tests/unit and tests/holdout in line with SPEC-resolutions points 11, 12, 14 to 19, 23 and 24. 70 of 72 failures fixed by changing case facts (point 4) or expecting what a"
+  },
+  {
+   "at": "2026-09-29T16:10:07+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-tests: escalated: Brought tests/unit and tests/holdout in line with SPEC-resolutions points 11, 12, 14 to 19, 23 and 24. 70 of 72 failures fixed by changing case facts (point 4) or expecting what a point says (new conflicts, unemployment.opt_card_days_used, seven new rows in conflicts_by_the_table"
+  },
+  {
+   "at": "2026-09-29T16:10:28+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "check engine and api tests fails: FAILED tests/unit/api/test_compute_product.py::test_review_1_an_opt_card_of_three_years_is_asked_about | FAILED tests/unit/api/test_compute_product.py::test_review_1_a_filing_dated_2030_is_asked_about | FAILED tests/unit/api/test_compute_product.py::test_the_answer_yes_with_the_about_of_the_question"
+  },
+  {
+   "at": "2026-09-29T16:10:38+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "check hidden tests fails: FAILED tests/holdout/test_holdout_sourcing.py::test_periods_not_reported_names_the_reporting_rule[21] | FAILED tests/holdout/test_holdout_windows.py::test_holdout_a_passed_evaluation_is_asked_about | FAILED tests/holdout/test_holdout_windows.py::test_holdout_an_unreported_end_gives_the_report_item"
+  },
+  {
+   "at": "2026-09-29T16:10:38+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round reconcile-windows stopped. Fix, then rerun with --from-round reconcile-windows"
+  },
+  {
+   "at": "2026-09-29T17:02:30+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 3, 'sourced': 5, 'never_assumes': 2, 'inside_the_boundary': 4, 'secure': 3, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-29T17:02:30+00:00",
+   "kind": "stop",
+   "cause": "spec",
+   "text": "round review stopped. Fix, then rerun with --from-round review"
+  },
+  {
+   "at": "2026-09-29T17:53:43+00:00",
+   "kind": "alert",
+   "cause": "code",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 4, 'never_assumes': 2, 'inside_the_boundary': 4, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-29T17:53:43+00:00",
+   "kind": "stop",
+   "cause": "code",
+   "text": "round review stopped. Fix, then rerun with --from-round review"
+  },
+  {
+   "at": "2026-09-29T18:36:39+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: Built SPEC-resolutions points 39, 40, 42, 43, 46, 48, 49 and 50 in engine/f1.py, plus rules[].plain, regimes and answers_read from the contract. engine/dates.py lists Juneteenth only from 2021-06-17. A cannot_tell verdict now lists its judgement items after the blockers. All 57 tests of test_f1_fix4"
+  },
+  {
+   "at": "2026-09-29T18:36:39+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-engine builder: Built SPEC-resolutions points 39, 40, 42, 43, 46, 48, 49 and 50 in engine/f1.py, plus rules[].plain, regimes and answers_read from the contract. engine/dates.py lists Juneteenth only"
+  },
+  {
+   "at": "2026-09-29T18:36:40+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-engine: escalated: Built SPEC-resolutions points 39, 40, 42, 43, 46, 48, 49 and 50 in engine/f1.py, plus rules[].plain, regimes and answers_read from the contract. engine/dates.py lists Juneteenth only from 2021-06-17. A cannot_tell verdict now lists its judgement items after the blockers. All 57"
+  },
+  {
+   "at": "2026-09-29T18:36:40+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round build stopped. Fix, then rerun with --from-round build"
+  },
+  {
+   "at": "2026-09-29T19:20:33+00:00",
+   "kind": "escalation",
+   "cause": "factory",
+   "text": "escalated: Built plain-1 sections 2 to 5 and SPEC-resolutions points 39 (words), 40 (words), 41, 43 (words), 44 and 46 in web/. Rules show plain words first with the exact words one tap away; items that depend on a paused rule show the regime's plain words, a link to the court's order and the paused value behi"
+  },
+  {
+   "at": "2026-09-29T19:20:33+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "escalated: L-web builder: Built plain-1 sections 2 to 5 and SPEC-resolutions points 39 (words), 40 (words), 41, 43 (words), 44 and 46 in web/. Rules show plain words first with the exact words one tap away; item"
+  },
+  {
+   "at": "2026-09-29T19:20:33+00:00",
+   "kind": "failed",
+   "cause": "factory",
+   "text": "L-web: escalated: Built plain-1 sections 2 to 5 and SPEC-resolutions points 39 (words), 40 (words), 41, 43 (words), 44 and 46 in web/. Rules show plain words first with the exact words one tap away; items that depend on a paused rule show the regime's plain words, a link to the court's order and the"
+  },
+  {
+   "at": "2026-09-29T19:22:14+00:00",
+   "kind": "stop",
+   "cause": "factory",
+   "text": "round screen stopped. Fix, then rerun with --from-round screen"
+  },
+  {
+   "at": "2026-09-29T19:44:21+00:00",
+   "kind": "alert",
+   "cause": "wording",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 4, 'sourced': 2, 'never_assumes': 5, 'inside_the_boundary': 3, 'secure': 4, 'tested': 4}"
+  },
+  {
+   "at": "2026-09-29T19:44:21+00:00",
+   "kind": "stop",
+   "cause": "wording",
+   "text": "round review stopped. Fix, then rerun with --from-round review"
+  },
+  {
+   "at": "2026-09-29T20:30:00+00:00",
+   "kind": "alert",
+   "cause": "wording",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 3, 'sourced': 2, 'never_assumes': 5, 'inside_the_boundary': 4, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-29T22:11:42+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "check offline gates fails: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning. | Failure. Coverage is below 95%. | make: *** [gate-6] Error 1"
+  },
+  {
+   "at": "2026-09-29T22:11:59+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round screen stopped. Fix, then rerun with --from-round screen"
+  },
+  {
+   "at": "2026-09-29T22:39:26+00:00",
+   "kind": "alert",
+   "cause": "wording",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 4, 'sourced': 2, 'never_assumes': 4, 'inside_the_boundary': 5, 'secure': 5, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-29T23:23:04+00:00",
+   "kind": "alert",
+   "cause": "wording",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 2, 'never_assumes': 5, 'inside_the_boundary': 5, 'secure': 5, 'tested': 4}"
+  },
+  {
+   "at": "2026-09-29T23:42:43+00:00",
+   "kind": "alert",
+   "cause": "wording",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 4, 'never_assumes': 5, 'inside_the_boundary': 5, 'secure': 5, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T01:11:44+00:00",
+   "kind": "failed",
+   "cause": "code",
+   "text": "check offline gates fails: !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!! | 2 errors in 1.31s | make: *** [gate-5] Error 2"
+  },
+  {
+   "at": "2026-09-30T01:11:45+00:00",
+   "kind": "failed",
+   "cause": "code",
+   "text": "check hidden tests fails: ERROR tests/holdout/test_holdout_fix5.py - engine.rulepack.RulepackError: par... | ERROR tests/holdout/test_holdout_fix6.py - engine.rulepack.RulepackError: par... | !!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!"
+  },
+  {
+   "at": "2026-09-30T01:11:45+00:00",
+   "kind": "stop",
+   "cause": "code",
+   "text": "round content stopped. Fix, then rerun with --from-round content"
+  },
+  {
+   "at": "2026-09-30T02:26:29+00:00",
+   "kind": "alert",
+   "cause": "wording",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 3, 'never_assumes': 5, 'inside_the_boundary': 4, 'secure': 5, 'tested': 4}"
+  },
+  {
+   "at": "2026-09-30T05:17:43+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "check offline gates fails: Failure. Coverage is below 80%. | Failure. Coverage is below 95%. | make: *** [gate-6] Error 1"
+  },
+  {
+   "at": "2026-09-30T05:18:08+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round screens stopped. Fix, then rerun with --from-round screens"
+  },
+  {
+   "at": "2026-09-30T05:37:33+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: the same failure twice: the done command fails: ______________ coverage: platform darwin, python 3.12.14-final-0 _______________ |  | Coverage XML written to file .scratch/engine-coverage.xml | fatal: Unable to create '/Users/ani/Desktop/Duly/duly/.git/worktrees/l-tests-d29085b29f/index.lock': Operation not permitted"
+  },
+  {
+   "at": "2026-09-30T05:37:33+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-tests test-author: the same failure twice: the done command fails: ______________ coverage: platform darwin, python 3.12.14-final-0 _______________ |  | Coverage XML written to file .scratch/engine-"
+  },
+  {
+   "at": "2026-09-30T05:37:33+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-tests: escalated: the same failure twice: the done command fails: ______________ coverage: platform darwin, python 3.12.14-final-0 _______________ |  | Coverage XML written to file .scratch/engine-coverage.xml | fatal: Unable to create '/Users/ani/Desktop/Duly/duly/.git/worktrees/l-tests-d29085b29"
+  },
+  {
+   "at": "2026-09-30T05:37:33+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round coverage stopped. Fix, then rerun with --from-round coverage"
+  },
+  {
+   "at": "2026-09-30T05:51:28+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 4, 'never_assumes': 3, 'inside_the_boundary': 4, 'secure': 4, 'tested': 2}"
+  },
+  {
+   "at": "2026-09-30T06:11:47+00:00",
+   "kind": "escalation",
+   "cause": "cross-lane",
+   "text": "escalated: Escalated: the done command failed twice with the same cause (my run and the stop hook). POST /v1/compute in api/case.py (L-api) never calls engine/path.py, so every acceptance test fails whatever engine/ does. engine/path.py now does resolutions 3, 5, 6, 7 (ends_also, lists, CPT bars disagreeing) a"
+  },
+  {
+   "at": "2026-09-30T06:11:47+00:00",
+   "kind": "alert",
+   "cause": "cross-lane",
+   "text": "escalated: L-engine builder: Escalated: the done command failed twice with the same cause (my run and the stop hook). POST /v1/compute in api/case.py (L-api) never calls engine/path.py, so every acceptance test"
+  },
+  {
+   "at": "2026-09-30T06:11:47+00:00",
+   "kind": "failed",
+   "cause": "cross-lane",
+   "text": "L-engine: escalated: Escalated: the done command failed twice with the same cause (my run and the stop hook). POST /v1/compute in api/case.py (L-api) never calls engine/path.py, so every acceptance test fails whatever engine/ does. engine/path.py now does resolutions 3, 5, 6, 7 (ends_also, lists, CP"
+  },
+  {
+   "at": "2026-09-30T06:20:06+00:00",
+   "kind": "stop",
+   "cause": "cross-lane",
+   "text": "round build stopped. Fix, then rerun with --from-round build"
+  },
+  {
+   "at": "2026-09-30T06:30:59+00:00",
+   "kind": "escalation",
+   "cause": "cross-lane",
+   "text": "escalated: Merged l-engine-d7a47d2738 (points 3, 5, 6, 7 part, 8 engine side, 9). Added the point 1 translation: engine/f1.py to_records and compute_f1_records (programs.md section 19) sending today's case to path.compute. compute_f1 is left as it is because routing it through the translation fails 758 older t"
+  },
+  {
+   "at": "2026-09-30T06:30:59+00:00",
+   "kind": "alert",
+   "cause": "cross-lane",
+   "text": "escalated: L-engine builder: Merged l-engine-d7a47d2738 (points 3, 5, 6, 7 part, 8 engine side, 9). Added the point 1 translation: engine/f1.py to_records and compute_f1_records (programs.md section 19) sending"
+  },
+  {
+   "at": "2026-09-30T06:30:59+00:00",
+   "kind": "failed",
+   "cause": "cross-lane",
+   "text": "L-engine: escalated: Merged l-engine-d7a47d2738 (points 3, 5, 6, 7 part, 8 engine side, 9). Added the point 1 translation: engine/f1.py to_records and compute_f1_records (programs.md section 19) sending today's case to path.compute. compute_f1 is left as it is because routing it through the translat"
+  },
+  {
+   "at": "2026-09-30T06:30:59+00:00",
+   "kind": "stop",
+   "cause": "cross-lane",
+   "text": "round engine stopped. Fix, then rerun with --from-round engine"
+  },
+  {
+   "at": "2026-09-30T06:45:47+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: POST /v1/compute reaches engine/path.py. 45 of 52 journey tests pass. Journeys that pass in full: J01, J03, J04, J06, J07, J09, J10, J11, J13, J14, J15, J16, J18, J19. Partly: J02 (ten-year date waits for a contract construct, resolution 7), J05 (the pack has no part-time opt_pre rule for months at"
+  },
+  {
+   "at": "2026-09-30T06:45:47+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-engine builder: POST /v1/compute reaches engine/path.py. 45 of 52 journey tests pass. Journeys that pass in full: J01, J03, J04, J06, J07, J09, J10, J11, J13, J14, J15, J16, J18, J19. Partly: J02 (t"
+  },
+  {
+   "at": "2026-09-30T06:45:47+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-engine: escalated: POST /v1/compute reaches engine/path.py. 45 of 52 journey tests pass. Journeys that pass in full: J01, J03, J04, J06, J07, J09, J10, J11, J13, J14, J15, J16, J18, J19. Partly: J02 (ten-year date waits for a contract construct, resolution 7), J05 (the pack has no part-time opt_pr"
+  },
+  {
+   "at": "2026-09-30T06:45:47+00:00",
+   "kind": "stop",
+   "cause": "spec",
+   "text": "round integrate stopped. Fix, then rerun with --from-round integrate"
+  },
+  {
+   "at": "2026-09-30T06:50:03+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: Merged l-engine-50dba0218d. Resolution 13 engine side: engine/path.py _counter now gives a count only when every list it reads (qualifying work and not_qualifying trips) is stated whole; complete.trip is asked. The done command fails in 3 tests of test_path_fix1.py because the journeys J12, J13 and"
+  },
+  {
+   "at": "2026-09-30T06:50:03+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-engine builder: Merged l-engine-50dba0218d. Resolution 13 engine side: engine/path.py _counter now gives a count only when every list it reads (qualifying work and not_qualifying trips) is stated wh"
+  },
+  {
+   "at": "2026-09-30T06:55:26+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-engine: escalated: Merged l-engine-50dba0218d. Resolution 13 engine side: engine/path.py _counter now gives a count only when every list it reads (qualifying work and not_qualifying trips) is stated whole; complete.trip is asked. The done command fails in 3 tests of test_path_fix1.py because the j"
+  },
+  {
+   "at": "2026-09-30T06:55:26+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round finish stopped. Fix, then rerun with --from-round finish"
+  },
+  {
+   "at": "2026-09-30T07:00:45+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: J17 fixed in engine/path.py: a judgement check <kind>.<name> over records of that kind raises <record>.<name> (programs.md section 14, <program>.enrollment). 18 of 20 journeys' tests pass; the two J08 unemployment tests fail on the pack, not the engine. With the pack's unemployment.opt_card span end"
+  },
+  {
+   "at": "2026-09-30T07:00:45+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-engine builder: J17 fixed in engine/path.py: a judgement check <kind>.<name> over records of that kind raises <record>.<name> (programs.md section 14, <program>.enrollment). 18 of 20 journeys' tests"
+  },
+  {
+   "at": "2026-09-30T07:00:45+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-engine: escalated: J17 fixed in engine/path.py: a judgement check <kind>.<name> over records of that kind raises <record>.<name> (programs.md section 14, <program>.enrollment). 18 of 20 journeys' tests pass; the two J08 unemployment tests fail on the pack, not the engine. With the pack's unemploym"
+  },
+  {
+   "at": "2026-09-30T07:12:15+00:00",
+   "kind": "escalation",
+   "cause": "code",
+   "text": "escalated: Point 13 is in the engine (_Run._counter needs every list it reads stated whole, trips included), and the journeys the three test_path_fix1.py tests use (j12, j13, j14) already state trip whole since commit 283bb96. So no test needed a change. The done command still fails on one test that no point e"
+  },
+  {
+   "at": "2026-09-30T07:12:15+00:00",
+   "kind": "alert",
+   "cause": "code",
+   "text": "escalated: L-tests test-author: Point 13 is in the engine (_Run._counter needs every list it reads stated whole, trips included), and the journeys the three test_path_fix1.py tests use (j12, j13, j14) already st"
+  },
+  {
+   "at": "2026-09-30T07:12:15+00:00",
+   "kind": "failed",
+   "cause": "code",
+   "text": "L-tests: escalated: Point 13 is in the engine (_Run._counter needs every list it reads stated whole, trips included), and the journeys the three test_path_fix1.py tests use (j12, j13, j14) already state trip whole since commit 283bb96. So no test needed a change. The done command still fails on one"
+  },
+  {
+   "at": "2026-09-30T07:14:06+00:00",
+   "kind": "failed",
+   "cause": "code",
+   "text": "check offline gates fails: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning. | Failure. Coverage is below 95%. | make: *** [gate-6] Error 1"
+  },
+  {
+   "at": "2026-09-30T07:14:33+00:00",
+   "kind": "failed",
+   "cause": "code",
+   "text": "check hidden tests fails: tests/holdout/test_holdout_journeys.py:378: AssertionError | =========================== short test summary info ============================ | FAILED tests/holdout/test_holdout_journeys.py::test_twin_j11_personal_days_abroad_during_a_job_count"
+  },
+  {
+   "at": "2026-09-30T07:14:34+00:00",
+   "kind": "stop",
+   "cause": "code",
+   "text": "round reconcile stopped. Fix, then rerun with --from-round reconcile"
+  },
+  {
+   "at": "2026-09-30T07:28:42+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round reconcile stopped. Fix, then rerun with --from-round reconcile"
+  },
+  {
+   "at": "2026-09-30T07:40:08+00:00",
+   "kind": "failed",
+   "cause": "unknown",
+   "text": "check offline gates fails: FAILED tests/unit/support/test_placeholders.py::test_every_run_helper_passes_its_case_through_the_guard | 1 failed, 1899 passed, 53 skipped in 97.70s (0:01:37) | make: *** [gate-5] Error 1"
+  },
+  {
+   "at": "2026-09-30T07:40:36+00:00",
+   "kind": "stop",
+   "cause": "unknown",
+   "text": "round reconcile stopped. Fix, then rerun with --from-round reconcile"
+  },
+  {
+   "at": "2026-09-30T07:43:42+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: The run helpers _records and _both of tests/unit/engine/test_f1_translation.py now pass their case through with_the_about_asked (asked by compute_f1) and refuse_placeholders, as every other run helper does; test_every_run_helper_passes_its_case_through_the_guard passes. Six translation tests then fa"
+  },
+  {
+   "at": "2026-09-30T07:43:42+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-tests test-author: The run helpers _records and _both of tests/unit/engine/test_f1_translation.py now pass their case through with_the_about_asked (asked by compute_f1) and refuse_placeholders, as e"
+  },
+  {
+   "at": "2026-09-30T07:43:42+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-tests: escalated: The run helpers _records and _both of tests/unit/engine/test_f1_translation.py now pass their case through with_the_about_asked (asked by compute_f1) and refuse_placeholders, as every other run helper does; test_every_run_helper_passes_its_case_through_the_guard passes. Six trans"
+  },
+  {
+   "at": "2026-09-30T07:43:42+00:00",
+   "kind": "stop",
+   "cause": "spec",
+   "text": "round guard stopped. Fix, then rerun with --from-round guard"
+  },
+  {
+   "at": "2026-09-30T07:57:16+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: Merged lane/L-tests/l-tests-9d76786149. The translation tests now follow resolution 14: lists are stated whole with the path's complete.<kind>, answers carry no marker, the case is compared as sent, a yes to nothing_more_to_record states nothing whole, and opt.earlier_at_this_level is read only on a"
+  },
+  {
+   "at": "2026-09-30T07:57:16+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-tests test-author: Merged lane/L-tests/l-tests-9d76786149. The translation tests now follow resolution 14: lists are stated whole with the path's complete.<kind>, answers carry no marker, the case i"
+  },
+  {
+   "at": "2026-09-30T07:57:16+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-tests: escalated: Merged lane/L-tests/l-tests-9d76786149. The translation tests now follow resolution 14: lists are stated whole with the path's complete.<kind>, answers carry no marker, the case is compared as sent, a yes to nothing_more_to_record states nothing whole, and opt.earlier_at_this_lev"
+  },
+  {
+   "at": "2026-09-30T08:16:52+00:00",
+   "kind": "alert",
+   "cause": "unknown",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 4, 'never_assumes': 3, 'inside_the_boundary': 4, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T08:16:52+00:00",
+   "kind": "stop",
+   "cause": "unknown",
+   "text": "round review stopped. Fix, then rerun with --from-round review"
+  },
+  {
+   "at": "2026-09-30T08:31:22+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: The done command exits 1 on two acceptance tests. Engine literals, mypy, ruff check and ruff format pass. Both failures assert what resolutions point 15 and the saved words do not support, so engine/ was not changed: J06 asks for the window of a next stage point 15 says is not shown, and J19 asks fo"
+  },
+  {
+   "at": "2026-09-30T08:31:22+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-engine builder: The done command exits 1 on two acceptance tests. Engine literals, mypy, ruff check and ruff format pass. Both failures assert what resolutions point 15 and the saved words do not su"
+  },
+  {
+   "at": "2026-09-30T08:31:22+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-engine: escalated: The done command exits 1 on two acceptance tests. Engine literals, mypy, ruff check and ruff format pass. Both failures assert what resolutions point 15 and the saved words do not support, so engine/ was not changed: J06 asks for the window of a next stage point 15 says is not s"
+  },
+  {
+   "at": "2026-09-30T08:31:46+00:00",
+   "kind": "stop",
+   "cause": "plan",
+   "text": "round integrate stopped. Fix, then rerun with --from-round integrate"
+  },
+  {
+   "at": "2026-09-30T08:48:39+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 1, 'sourced': 3, 'never_assumes': 3, 'inside_the_boundary': 4, 'secure': 4, 'tested': 2}"
+  },
+  {
+   "at": "2026-09-30T09:16:06+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 1, 'sourced': 4, 'never_assumes': 2, 'inside_the_boundary': 4, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T09:31:19+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "check offline gates fails: npm error command failed | npm error command sh -c vitest run --coverage | make: *** [gate-5] Error 1"
+  },
+  {
+   "at": "2026-09-30T09:43:16+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 3, 'sourced': 4, 'never_assumes': 3, 'inside_the_boundary': 4, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T10:53:33+00:00",
+   "kind": "alert",
+   "cause": "unknown",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 1, 'sourced': 4, 'never_assumes': 3, 'inside_the_boundary': 4, 'secure': 4, 'tested': 2}"
+  },
+  {
+   "at": "2026-09-30T10:56:38+00:00",
+   "kind": "escalation",
+   "cause": "cross-lane",
+   "text": "escalated: Point 20, desktop half. The shot run already looks for data-landmark equal to the route. Added a test in desktop/src/shots.test.ts that imports web/src/lib/shots.ts and joins the two sides: LANDMARKS names exactly SHOT_SCREENS, each value is its route, and a mark carrying the web's value is counted"
+  },
+  {
+   "at": "2026-09-30T10:56:38+00:00",
+   "kind": "alert",
+   "cause": "cross-lane",
+   "text": "escalated: L-desktop builder: Point 20, desktop half. The shot run already looks for data-landmark equal to the route. Added a test in desktop/src/shots.test.ts that imports web/src/lib/shots.ts and joins the tw"
+  },
+  {
+   "at": "2026-09-30T11:42:07+00:00",
+   "kind": "failed",
+   "cause": "cross-lane",
+   "text": "L-desktop: escalated: Point 20, desktop half. The shot run already looks for data-landmark equal to the route. Added a test in desktop/src/shots.test.ts that imports web/src/lib/shots.ts and joins the two sides: LANDMARKS names exactly SHOT_SCREENS, each value is its route, and a mark carrying the w"
+  },
+  {
+   "at": "2026-09-30T11:42:08+00:00",
+   "kind": "stop",
+   "cause": "cross-lane",
+   "text": "round parts stopped. Fix, then rerun with --from-round parts"
+  },
+  {
+   "at": "2026-09-30T11:44:29+00:00",
+   "kind": "escalation",
+   "cause": "plan",
+   "text": "escalated: Escalated after the same failure twice (own run, then the stop hook). 115 of 117 acceptance journeys pass through POST /v1/compute with no engine change. Two J19 twins fail because the shipped pack no longer reads petition outcome or validity_start: L-content's point 19 change (8d9e2d5) removed peti"
+  },
+  {
+   "at": "2026-09-30T11:44:29+00:00",
+   "kind": "alert",
+   "cause": "plan",
+   "text": "escalated: L-engine builder: Escalated after the same failure twice (own run, then the stop hook). 115 of 117 acceptance journeys pass through POST /v1/compute with no engine change. Two J19 twins fail because t"
+  },
+  {
+   "at": "2026-09-30T11:44:29+00:00",
+   "kind": "failed",
+   "cause": "plan",
+   "text": "L-engine: escalated: Escalated after the same failure twice (own run, then the stop hook). 115 of 117 acceptance journeys pass through POST /v1/compute with no engine change. Two J19 twins fail because the shipped pack no longer reads petition outcome or validity_start: L-content's point 19 change ("
+  },
+  {
+   "at": "2026-09-30T12:08:22+00:00",
+   "kind": "alert",
+   "cause": "unknown",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 4, 'never_assumes': 3, 'inside_the_boundary': 3, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T12:19:56+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: Wrote tests/unit/acceptance/test_fix7.py: 35 tests through POST /v1/compute for resolutions points 22 to 26, named for plan-fix7's selectors (point_22 and unknown_choice for L-engine, the rest for L-content). Each test names the fault or point 25 mutant it kills. 15 fail on HEAD on the intended asse"
+  },
+  {
+   "at": "2026-09-30T12:19:56+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-tests test-author: Wrote tests/unit/acceptance/test_fix7.py: 35 tests through POST /v1/compute for resolutions points 22 to 26, named for plan-fix7's selectors (point_22 and unknown_choice for L-eng"
+  },
+  {
+   "at": "2026-09-30T12:19:56+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-tests: escalated: Wrote tests/unit/acceptance/test_fix7.py: 35 tests through POST /v1/compute for resolutions points 22 to 26, named for plan-fix7's selectors (point_22 and unknown_choice for L-engine, the rest for L-content). Each test names the fault or point 25 mutant it kills. 15 fail on HEAD"
+  },
+  {
+   "at": "2026-09-30T12:19:56+00:00",
+   "kind": "stop",
+   "cause": "spec",
+   "text": "round tests stopped. Fix, then rerun with --from-round tests"
+  },
+  {
+   "at": "2026-09-30T12:32:04+00:00",
+   "kind": "escalation",
+   "cause": "spec",
+   "text": "escalated: Points 23 and 23a are in the f1-us pack: each point 19 petition member, the late-filing check and cap_gap.for_dso now act only for a petition whose start (validity_start when approved and entered, else requested_start, else validity_start) is on or after the start of the period it could extend; with"
+  },
+  {
+   "at": "2026-09-30T12:32:04+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "escalated: L-content rulepack-drafter: Points 23 and 23a are in the f1-us pack: each point 19 petition member, the late-filing check and cap_gap.for_dso now act only for a petition whose start (validity_start wh"
+  },
+  {
+   "at": "2026-09-30T12:32:04+00:00",
+   "kind": "failed",
+   "cause": "spec",
+   "text": "L-content: escalated: Points 23 and 23a are in the f1-us pack: each point 19 petition member, the late-filing check and cap_gap.for_dso now act only for a petition whose start (validity_start when approved and entered, else requested_start, else validity_start) is on or after the start of the period"
+  },
+  {
+   "at": "2026-09-30T12:32:05+00:00",
+   "kind": "stop",
+   "cause": "spec",
+   "text": "round build stopped. Fix, then rerun with --from-round build"
+  },
+  {
+   "at": "2026-09-30T12:59:24+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 4, 'never_assumes': 3, 'inside_the_boundary': 3, 'secure': 4, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T14:08:42+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 3, 'sourced': 5, 'never_assumes': 4, 'inside_the_boundary': 5, 'secure': 5, 'tested': 3}"
+  },
+  {
+   "at": "2026-09-30T14:21:53+00:00",
+   "kind": "alert",
+   "cause": "spec",
+   "text": "eval_drop: the reviewer vetoed: {'correct': 2, 'sourced': 5, 'never_assumes': 4, 'inside_the_boundary': 5, 'secure': 5, 'tested': 2}"
+  },
+  {
+   "at": "2026-09-30T18:44:35+00:00",
+   "kind": "alert",
+   "cause": "factory",
+   "text": "escalated: L-audit auditor: the same failure twice: the done command fails:"
+  },
+  {
+   "at": "2026-09-29T19:20:33+00:00",
+   "kind": "escalation",
+   "cause": "factory",
+   "text": "Built plain-1 sections 2 to 5 and SPEC-resolutions points 39 (words), 40 (words), 41, 43 (words), 44 and 46 in web/. Rules show plain words first with the exact words one tap away; items that depend on a paused rule show the regime's plain words, a link to the court's order and the paused value behind one tap, with no status code or forbidden status word; the DSO drafts (STEM step and talk_to_dso) are in the student's voice with only entered facts; every fixed line is checked for alarm words, conclusions and status words. Api types regenerated; the status parser takes rules_checked_on. The done command exits 1 in this sandbox only at uv run python -m tools.copy_lint.lint, which raises PermissionError reading tests/holdout/.gitkeep (sandbox read denial, the same before any change). Every other step passes (290 tests), and the linter with tests/holdout left out is clean. Escalated because that failure appeared twice and is outside the lane.",
+   "source": "runs/l-web-e2d830be5b REPORT.json summary, whole"
+  }
+ ]
+}

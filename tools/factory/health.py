@@ -7,16 +7,26 @@ the sandbox code, the tools, flags and settings every run starts with, and the p
 model. It is asked for again only when one of those changes, so a change to one lane
 re-runs that lane alone. Because no skill is tested, the probe runs on its own smaller
 model, with a short prompt and no memory.
+
+A probe, like a tamper check or a check after a merge, is tried once more when it fails (see
+retry_once). A pass on that second try is recorded as a flake with its signature, and the
+second flake of one signature is a defect in the factory, which raises an alert.
 """
 
 import hashlib
 import json
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from engine.clocks import Clock
+from tools.factory import alerts, causes, ledger
 from tools.factory.config import Contract, load_config
 from tools.factory.paths import REPO_ROOT, state_dir
+
+if TYPE_CHECKING:
+    from tools.factory.agent_run import Outcome
 
 # The code that builds or enforces the walls. The runner and the role prose are left out.
 SANDBOX_CODE = (
@@ -96,3 +106,110 @@ def remember(
         "at": clock.now().isoformat(timespec="seconds"),
     }
     _file(cwd).write_text(json.dumps(data, indent=2))
+
+
+@dataclass(frozen=True)
+class Tried:
+    """What a check retried once came to. cause and signature describe the first failure."""
+
+    ok: bool
+    text: str
+    cause: str = ""
+    signature: str = ""
+    flaked: bool = False
+
+
+def retry_once(
+    check: Callable[[], tuple[bool, str]],
+    name: str,
+    repo: Path,
+    lane: str = "founder",
+    run_id: str = "",
+) -> Tried:
+    """Run a check, and once more when it fails, unless its failure text proves a cause that
+    a second try cannot change (a sandbox denial, a used up budget, a factory fault).
+
+    name says what was checked, such as health.auditor.l-audit or check.gates, and is the
+    signature of a failure whose text no signature recognises. A pass on the second try is
+    logged as a flake; the second flake of one signature raises an alert, since a flake that
+    repeats is a defect (the auditor probe passed on a retry by chance, over a real bug).
+    """
+    ok, text = check()
+    if ok:
+        return Tried(True, text)
+    cause, known = causes.classify(text)
+    signature = known or name
+    if cause not in {"unknown", "infra"}:
+        return Tried(False, text, cause, signature)
+    ok, later = check()
+    if not ok:
+        return Tried(False, later, cause, signature)
+    flake(repo, signature, name, text, lane, run_id)
+    return Tried(True, later, "flake", signature, flaked=True)
+
+
+def flake(repo: Path, signature: str, name: str, text: str, lane: str, run_id: str) -> int:
+    """Record a pass on retry, and raise the alert when it is the second of its signature.
+    Returns how many flakes of that signature the ledger holds."""
+    first = " ".join(text.split())[:200] or "no output"
+    ledger.append(
+        lane,
+        "orchestrator",
+        "step",
+        f"flake: {name} failed, then passed on the retry. The failure was: {first}",
+        repo,
+        run_id=run_id,
+        cause="flake",
+        cause_source="auto",
+        signature=signature,
+    )
+    seen = sum(
+        1
+        for row in ledger.read(repo)
+        if row.get("cause") == "flake" and row.get("signature") == signature
+    )
+    if seen == 2:
+        alerts.notify(
+            "factory",
+            f"factory defect: {signature} failed and then passed twice; a second flake of one "
+            f"signature is a fault in the factory, not chance. Last failure: {first}",
+            lane,
+            run_id,
+            repo,
+        )
+    return seen
+
+
+def probe(
+    contract: Contract, lane: str, home: str, branch: str, clock: Clock, repo: Path
+) -> "Outcome":
+    """Run a lane's health probe, and once more if it fails. Doctor and golden take this one
+    path, so a probe that passes only on a retry is recorded the same way wherever it runs."""
+    from tools.factory import agent_run, worktree  # agent_run imports this module
+
+    forbidden = contract.health_task.split("try to ")[1].split(" and report")[0]
+    target = forbidden.split()[-1]
+    verify = f"test -f {home}/HEALTH.txt"
+    if not target.startswith("http"):
+        verify += f" && ! test -e {target}"
+    outcomes: list[agent_run.Outcome] = []
+
+    def once() -> tuple[bool, str]:
+        task = agent_run.Task(
+            lane,
+            contract.name,
+            f"health/{contract.name}/{lane}",
+            "CLAUDE.md",
+            contract.health_task.replace("your lane's home folder", home),
+            verify,
+            branch,
+        )
+        out = agent_run.run(task, clock, repo)
+        if out.worktree:
+            tree = worktree.Tree(out.run_id, Path(out.worktree), out.branch, out.base_commit)
+            worktree.remove(tree, True, repo)
+        outcomes.append(out)
+        return out.status == "done", f"{out.status}: {out.reason}"
+
+    retry_once(once, f"health.{contract.name}.{lane}", repo, lane)
+    return outcomes[-1]
