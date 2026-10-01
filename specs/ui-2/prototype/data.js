@@ -383,9 +383,9 @@ window.DULY_SAMPLE = {
         { label: 'Filing window', from: 'opens', to: 'closes' },
       ],
       captions: {
-        before: '{n} until the window opens',
-        open: '{n} until the last day to file',
-        last: 'Last day to file',
+        before: 'Window opens in {n}',
+        open: 'Last day to file in {n}',
+        last: 'Today is the last day to file',
         after: 'The last day to file was {date}',
       },
     },
@@ -781,7 +781,7 @@ window.DULY_SAMPLE = {
     share: { label: 'Share', info: 'Opens your phone\'s share sheet: Mail, Messages or any app.' },
     /* The three asked for most, one tap from the top of Documents on a phone. */
     quick: [
-      { title: 'I-20, OPT recommendation', meta: 'Oct 2025', href: '#/documents/i20' },
+      { title: 'I-20 · OPT recommendation', meta: 'Mar 2026', href: '#/documents/i20-opt' },
       { title: 'EAD card', meta: 'Valid until Feb 13, 2027', href: '#/documents/work' },
       { title: 'Passport', meta: 'Valid until Jul 9, 2031', href: '#/documents/identity' },
     ],
@@ -792,33 +792,59 @@ window.DULY_SAMPLE = {
       { key: 'identity', label: 'Identity', count: 3 },
       { key: 'school', label: 'School', count: 2 },
     ],
+    /* Each I-20 is named by what it is for. A document opens its own page
+       (#/documents/<id>): what it is, its key dates, Open and Share, then
+       its earlier versions, each with what changed. latest.change says
+       what the newest version changed; versions run newest first. */
     i20Groups: [
       { key: 'opt', title: 'OPT', items: [
-        { title: 'OPT recommendation', meta: 'Oct 2025', current: true,
-          /* Earlier versions of the same I-20, kept for the record. */
-          versions: ['Travel signature, Dec 2024', 'Travel signature, Dec 2023', 'Program start, Aug 2023'] },
+        { id: 'i20-opt', name: 'I-20 · OPT recommendation', title: 'OPT recommendation', meta: 'Mar 2026', current: true,
+          about: "Your school's recommendation for OPT. Show it with your EAD card.",
+          dates: [['This version', 'Mar 2, 2026'], ['Program end', 'Dec 18, 2025'], ['Sent with your I-765', 'Oct 10, 2025']],
+          latest: { date: 'Mar 2, 2026', change: 'Travel signature added' },
+          versions: [
+            { date: 'Oct 24, 2025', change: 'End date corrected' },
+            { date: 'Oct 3, 2025', change: 'Original, sent with the I-765' },
+          ] },
       ] },
       { key: 'cpt', title: 'CPT', items: [
-        { title: 'Lumen Labs', meta: 'Jan 13 to May 2, 2025' },
-        { title: 'Acme Robotics', meta: 'Jun 1 to Aug 15, 2024' },
+        { id: 'i20-cpt-lumen', name: 'I-20 · CPT at Lumen Labs', title: 'Lumen Labs', meta: 'Jan 13 to May 2, 2025',
+          about: 'The I-20 that let you work at Lumen Labs on CPT.',
+          dates: [['This version', 'Jan 8, 2025'], ['CPT dates', 'Jan 13 to May 2, 2025']],
+          latest: { date: 'Jan 8, 2025', change: 'Start date corrected' },
+          versions: [{ date: 'Dec 16, 2024', change: 'Original' }] },
+        { id: 'i20-cpt-acme', name: 'I-20 · CPT at Acme Robotics', title: 'Acme Robotics', meta: 'Jun 1 to Aug 15, 2024',
+          about: 'The I-20 that let you work at Acme Robotics on CPT.',
+          dates: [['This version', 'May 20, 2024'], ['CPT dates', 'Jun 1 to Aug 15, 2024']],
+          latest: { date: 'May 20, 2024', change: 'Original' } },
       ], add: 'Add another CPT I-20' },
       { key: 'start', title: 'Starting school', items: [
-        { title: 'Initial I-20', meta: '2023' },
+        { id: 'i20-start', name: 'I-20 · Starting school', title: 'Initial I-20', meta: 'Aug 2023',
+          about: 'The I-20 you entered the US with, for your program at State University.',
+          dates: [['This version', 'Dec 9, 2024'], ['Program start', 'Aug 21, 2023'], ['Program end', 'Dec 18, 2025']],
+          latest: { date: 'Dec 9, 2024', change: 'Travel signature added' },
+          versions: [
+            { date: 'Dec 11, 2023', change: 'Travel signature added' },
+            { date: 'Jun 2, 2023', change: 'Original, used for your visa' },
+          ] },
       ] },
     ],
     work: [
-      { title: 'EAD card', meta: 'Feb 14, 2026 to Feb 13, 2027' },
-      { title: 'I-797 approval notice', meta: 'Dec 20, 2025' },
-      { title: 'Offer letter, Northwind Systems', meta: 'Feb 2026' },
+      { id: 'ead-card', title: 'EAD card', meta: 'Feb 14, 2026 to Feb 13, 2027',
+        about: 'Your work permit for OPT.', dates: [['Valid from', 'Feb 14, 2026'], ['Valid until', 'Feb 13, 2027']] },
+      { id: 'i797', title: 'I-797 approval notice', meta: 'Dec 20, 2025',
+        about: 'USCIS approved your OPT application.', dates: [['Approved', 'Dec 20, 2025'], ['Filed', 'Oct 10, 2025']] },
+      { id: 'offer-northwind', title: 'Offer letter, Northwind Systems', meta: 'Feb 2026',
+        about: 'Your job offer for OPT.', dates: [['Dated', 'Feb 2026']] },
     ],
     identity: [
-      { title: 'Passport', meta: 'Valid until Jul 9, 2031' },
-      { title: 'F-1 visa', meta: 'Aug 2023' },
-      { title: 'I-94', meta: 'Aug 2023' },
+      { id: 'passport', title: 'Passport', meta: 'Valid until Jul 9, 2031', about: 'Your passport.', dates: [['Valid until', 'Jul 9, 2031']] },
+      { id: 'f1-visa', title: 'F-1 visa', meta: 'Aug 2023', about: 'The visa in your passport.', dates: [['Issued', 'Aug 2023']] },
+      { id: 'i94', title: 'I-94', meta: 'Aug 2023', about: 'Your record of entry to the US.', dates: [['Entered', 'Aug 2023']] },
     ],
     school: [
-      { title: 'Degree certificate', meta: 'Dec 18, 2025' },
-      { title: 'Transcripts', meta: 'State University' },
+      { id: 'degree', title: 'Degree certificate', meta: 'Dec 18, 2025', about: "Your Master's in Computer Science.", dates: [['Awarded', 'Dec 18, 2025']] },
+      { id: 'transcripts', title: 'Transcripts', meta: 'State University', about: 'Your grades from State University.', dates: [] },
     ],
     kinds: ['I-20', 'EAD card', 'I-797', 'Other'],
     /* What the prototype "reads" from a CPT I-20 added in the sheet. */

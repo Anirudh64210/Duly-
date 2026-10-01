@@ -591,149 +591,57 @@ window.SCREENS = window.SCREENS || {};
 
   /* ---------------- round 5: timelines (note 3) ---------------- */
 
-  /* Labels under a C.timeline never collide: each sits centred on its tick,
-     held inside the column, and drops to a second row (with a longer stem)
-     only where it would touch a neighbour. The emphasized mark is placed
-     first, so it keeps the top row. A span name that does not fit its band
-     is hidden (the figcaption still reads it). The draw-in plays once per
-     timeline key. */
+  /* A C.timeline stepper fits its column: each label sits centred under
+     its point (the first and last at the edges). Where two labels would
+     touch, the longer name wraps; where even the dates would touch, the
+     steps stack on a vertical line (.is-stacked). The accent line fills
+     once per timeline key. */
   const drawn = {};
   let tlObserver = null;
   function layoutTimeline(fig) {
     if (!fig || !fig.isConnected) return;
-    const ol = fig.querySelector('.tl-marks');
+    const ol = fig.querySelector('.tl-steps');
     if (!ol) return;
     if (tlObserver) tlObserver.observe(ol);
+    fig.classList.remove('is-stacked', 'is-tight');
+    const items = Array.from(ol.children);
+    items.forEach((li) => { li.style.maxWidth = ''; });
     const W = ol.clientWidth;
     if (!W) return;
-    const GAP = 12, STEM = 8;
-    const items = Array.from(ol.children);
-    fig.classList.add('is-laid');
-    const EDGE = 8;  /* the stem stays at least this far inside its label */
-    const boxes = items.map((li) => {
-      const x = (parseFloat(li.style.getPropertyValue('--x')) || 0) / 100 * W;
-      const w = li.offsetWidth;
-      return { li: li, x: x, w: w, h: li.offsetHeight, emph: li.classList.contains('is-emph'), from: li.classList.contains('is-from') };
-    });
-    /* A date that starts a named band hangs from its tick, left aligned
-       under the band's name; any other date centres on its tick. */
-    const pref = (b) => Math.max(0, Math.min(W - b.w, b.from ? b.x - 1 : b.x - b.w / 2));
-    boxes.forEach((b) => {
-      b.lo = Math.max(0, Math.min(W - b.w, b.x - b.w + EDGE));
-      b.hi = Math.min(W - b.w, Math.max(0, b.x - (b.from ? 1 : EDGE)));
-    });
-    /* Two labels keep GAP apart; a bare date beside its neighbour needs only 8. */
-    const gap = (o, b) => (o.box.from || b.from ? 8 : GAP);
-    const hits = (row, b, l) => row.some((o) => l < o.left + o.w + gap(o, b) && o.left < l + b.w + gap(o, b));
-    /* Where a label can sit in a row: centred on its tick if free, else
-       slid just clear of its neighbours, as long as the tick stays under it
-       and it stays inside the column. Null when the row has no room. */
-    function fit(row, b) {
-      const lo = b.lo, hi = b.hi;
-      const centre = pref(b);
-      const tries = [centre];
-      row.forEach((o) => { tries.push(o.left + o.w + gap(o, b), o.left - gap(o, b) - b.w); });
-      const ok = tries.filter((l) => l >= lo - 0.5 && l <= hi + 0.5 && !hits(row, b, l));
-      if (!ok.length) return null;
-      return ok.sort((a, c) => Math.abs(a - centre) - Math.abs(c - centre))[0];
-    }
-    /* A stem that runs down to a lower row must not cut through a label
-       above it. Greedy placement in four orders (emphasized first or not,
-       left to right or right to left); the one with no cut stems and the
-       fewest rows wins, then the one that keeps the emphasized date on top. */
-    const crosses = (o, l, w) => o.x > l - 4 && o.x < l + w + 4;
-    function place(order) {
-      const rows = [];   /* each row: placed entries { box, left, w, x, r } */
-      const at = new Map();
-      order.forEach((b) => {
-        let pick = null, first = null;
-        for (let r = 0; r <= rows.length; r += 1) {
-          const row = rows[r] || [];
-          const l = row.length ? fit(row, b) : pref(b);
-          if (l == null) continue;
-          if (first == null) first = { r: r, l: l };
-          const above = rows.slice(0, r).some((rw) => rw.some((o) => crosses(b, o.left, o.w)));
-          const below = rows.slice(r + 1).some((rw) => rw.some((o) => crosses(o, l, b.w)));
-          if (!above && !below) { pick = { r: r, l: l }; break; }
-        }
-        pick = pick || first;
-        const entry = { box: b, left: pick.l, w: b.w, x: b.x, r: pick.r };
-        (rows[pick.r] = rows[pick.r] || []).push(entry);
-        at.set(b, entry);
+    const n = items.length;
+    if (n > 1) {
+      const dot = parseFloat(getComputedStyle(fig).getPropertyValue('--dot')) || 12;
+      const D = (W - dot) / (n - 1);
+      const A = D - 12;  /* the room between two points, less a 12px gap */
+      const width = (li) => Math.max(li.getBoundingClientRect().width, li.firstElementChild ? li.firstElementChild.scrollWidth : 0);
+      /* How far each label reaches left and right of its point. */
+      const reach = () => items.map((li, i) => {
+        const w = width(li);
+        if (i === 0) return { l: 0, r: w - dot / 2 };
+        if (i === n - 1) return { l: w - dot / 2, r: 0 };
+        return { l: w / 2, r: w / 2 };
       });
-      let cuts = 0;
-      boxes.forEach((o) => boxes.forEach((q) => {
-        const eo = at.get(o), eq = at.get(q);
-        if (o !== q && eo.r > eq.r && crosses(o, eq.left, eq.w)) cuts += 1;
-      }));
-      return { rows: rows, at: at, cuts: cuts };
-    }
-    /* One row, when the labels can share it: pack them left and right as
-       far as they go, then hold each as near its preferred place as the
-       packing allows. Null when one row has no room. */
-    function oneRow() {
-      const xs = boxes.slice().sort((a, b) => a.x - b.x);
-      const L = [], R = [];
-      for (let i = 0; i < xs.length; i += 1) {
-        L[i] = i ? Math.max(xs[i].lo, L[i - 1] + xs[i - 1].w + gap({ box: xs[i - 1] }, xs[i])) : xs[i].lo;
-        if (L[i] > xs[i].hi + 0.5) return null;
+      const need = reach();
+      const cap = need.map((x) => ({ l: x.l, r: x.r }));
+      for (let i = 0; i < n - 1; i += 1) {
+        const a = need[i].r, b = need[i + 1].l;
+        if (a + b <= A) continue;
+        if (a <= A / 2) cap[i + 1].l = A - a;
+        else if (b <= A / 2) cap[i].r = A - b;
+        else { cap[i].r = A / 2; cap[i + 1].l = A / 2; }
       }
-      for (let i = xs.length - 1; i >= 0; i -= 1) {
-        R[i] = i < xs.length - 1 ? Math.min(xs[i].hi, R[i + 1] - xs[i].w - gap({ box: xs[i] }, xs[i + 1])) : xs[i].hi;
+      items.forEach((li, i) => {
+        const c = i === 0 ? cap[0].r + dot / 2 : (i === n - 1 ? cap[i].l + dot / 2 : 2 * Math.min(cap[i].l, cap[i].r));
+        if (c < width(li) - 0.5) li.style.maxWidth = Math.floor(c) + 'px';
+      });
+      const touches = () => { const got = reach(); return got.some((x, i) => i < n - 1 && x.r + got[i + 1].l > D - 4); };
+      if (touches() && fig.querySelector('.tl-y')) fig.classList.add('is-tight');
+      if (touches()) {
+        fig.classList.remove('is-tight');
+        items.forEach((li) => { li.style.maxWidth = ''; });
+        fig.classList.add('is-stacked');
       }
-      const row = [];
-      const at = new Map();
-      let prev = -Infinity;
-      for (let i = 0; i < xs.length; i += 1) {
-        const l = Math.max(L[i], prev, Math.min(R[i], pref(xs[i])));
-        const e = { box: xs[i], left: l, w: xs[i].w, x: xs[i].x, r: 0 };
-        prev = l + xs[i].w + (i < xs.length - 1 ? gap(e, xs[i + 1]) : 0);
-        row.push(e); at.set(xs[i], e);
-      }
-      return row.every((e) => e.left <= e.box.hi + 0.5) ? { rows: [row], at: at, cuts: 0 } : null;
     }
-    const byEmph = (a, b) => b.emph - a.emph;
-    const emphRow = (pl) => boxes.filter((b) => b.emph).reduce((n, b) => n + pl.at.get(b).r, 0);
-    const tries = [
-      place(boxes.slice().sort((a, b) => byEmph(a, b) || (a.x - b.x))),
-      place(boxes.slice().sort((a, b) => byEmph(a, b) || (b.x - a.x))),
-      place(boxes.slice().sort((a, b) => a.x - b.x)),
-      place(boxes.slice().sort((a, b) => b.x - a.x)),
-    ].concat(boxes.length ? (oneRow() || []) : []).sort((p1, p2) => (p1.cuts - p2.cuts) || (p1.rows.length - p2.rows.length) || (emphRow(p1) - emphRow(p2)));
-    const best = tries[0];
-    const rows = best.rows;
-    boxes.forEach((b) => { b.left = best.at.get(b).left; b.row = best.at.get(b).r; });
-    const rowH = Math.max.apply(null, boxes.map((b) => b.h).concat([0])) + GAP;
-    boxes.forEach((b) => {
-      const top = STEM + b.row * rowH;
-      b.li.style.left = b.left + 'px';
-      b.li.style.top = top + 'px';
-      b.li.style.setProperty('--stem-x', (b.x - b.left) + 'px');
-      b.li.style.setProperty('--stem-h', top + 'px');
-      const at = (b.x - b.left) / (b.w || 1);
-      b.li.classList.toggle('is-start', at < 0.34);
-      b.li.classList.toggle('is-end', at > 0.66);
-    });
-    ol.style.height = (STEM + rows.length * rowH - GAP) + 'px';
-
-    /* The Today line sits at the marker, held inside the column. */
-    const now = fig.querySelector('.tl-now-inner');
-    if (now) {
-      const tx = (parseFloat(fig.style.getPropertyValue('--today')) || 0) / 100 * W;
-      now.style.marginLeft = '0px';
-      /* The real width, rounded up: offsetWidth rounds down a fraction and
-         the line then wraps against the column's edge. */
-      const w = Math.ceil(now.getBoundingClientRect().width);
-      now.style.marginLeft = Math.max(0, Math.min(W - w, tx - 8)) + 'px';
-    }
-    /* A span's name hides when its band has no room for it. The Today
-       marker stands on the band, so the name never steps around it. */
-    fig.querySelectorAll('.tl-span').forEach((sp) => {
-      const lab = sp.querySelector('.tl-span-label');
-      if (!lab) return;
-      const pad = 8;
-      sp.classList.toggle('is-tight', lab.scrollWidth > sp.clientWidth - pad * 1.5);
-    });
 
     const key = fig.dataset.timeline || '';
     if (!drawn[key]) {
@@ -783,6 +691,13 @@ window.SCREENS = window.SCREENS || {};
   function redirect() {
     const h = (location.hash || '').replace(/^#\/?/, '');
     const parts = h.split('/');
+    /* After Delete everything (App.state.deleted) only Welcome and its
+       onboarding open; any other route, Back included, lands on Welcome.
+       Finishing onboarding again clears the flag (welcome.js). */
+    if (App.state.deleted && parts[0] !== 'welcome' && parts[0] !== 'onboarding') {
+      try { history.replaceState(history.state, '', '#/welcome'); } catch (e) { location.replace('#/welcome'); }
+      return;
+    }
     const to = ALIASES[parts[0]];
     if (!to) return;
     parts[0] = to;
@@ -837,12 +752,14 @@ window.SCREENS = window.SCREENS || {};
     const root = document.getElementById('main');
     if (curKey && root) saved[curKey] = snapshot(root);
     const prevRoute = App.route;
+    const prevParams = App.params;
     const back = stamp(!!o.replace);
     const r = parse();
     const screen = window.SCREENS[r.name];
-    const quiet = o.inPlace || (screen && screen.paramsInPlace && r.name === prevRoute);
+    const inPlace = screen && (typeof screen.paramsInPlace === 'function' ? screen.paramsInPlace(r.params, prevParams) : screen.paramsInPlace);
+    const quiet = o.inPlace || (inPlace && r.name === prevRoute);
     if (quiet) render('inplace');
-    else render('page', back);
+    else render('page', App.state.deleted ? null : back);
   }
 
   let frame = null;    /* 'shell' | 'bare' */

@@ -10,11 +10,10 @@
      title, with the why behind its ⓘ
      the intent, answered right here (data-answer="stemIntent", shared with
        Home, Timeline and Your profile); once answered, one quiet line + Change
-     C.timeline(App.stemTimeline()): drawn to scale from today to the last
-       day to file, the Prepare and Filing window spans, the Today marker
-       with one line ("46 days until the window opens"), only the date that
-       matters now emphasized. It draws in once (its own key, so Home's strip
-       never uses up the motion) and is at rest on every redraw.
+     C.timeline(App.stemTimeline()): a stepper, Today and the three dates
+       evenly spaced on one line, with one sentence above ("Window opens in
+       46 days"). Its line fills once (its own key, so Home's strip never
+       uses up the motion) and is at rest on every redraw.
      Steps: federal and "Your school" steps together, in order (App.steps).
        The current step (App.currentStep) has a quiet tint. Each step opens
        in place, from its chevron or a tap on its row, to its one plain line

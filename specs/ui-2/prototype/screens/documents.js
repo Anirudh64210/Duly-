@@ -15,8 +15,9 @@
    tap, wherever the browser can share files (phones and most browsers).
    Where it cannot, a small sheet offers Save a copy. Both work for real on
    a small sample PDF made in the page.
-   Earlier versions fold under a document ("3 earlier versions"), and each
-   opens and shares the same way.
+   A tap on a document opens its own page, #/documents/<id>: what it is,
+   its key dates, Open and Share, then its earlier versions, each with its
+   date, what changed and Open.
    Routes: #/documents (All), #/documents/<label> (most, status, employment,
    school, identity, other); #/documents/add opens the add sheet. The older
    links #/documents/i20 and #/documents/work open Status.
@@ -48,7 +49,7 @@
   const RANK = { current: 0, ead: 1, i797: 2, cpt: 3, start: 4 };
   const I20_PHASE = { opt: 'OPT', cpt: 'CPT', start: 'Starting school' };
 
-  const S = { ready: false, docs: [], group: 'all', query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, expanded: {}, backTo: null };
+  const S = { ready: false, docs: [], group: 'all', query: '', sheet: null, timer: null, seq: 0, newId: null, requested: false, returnFocus: null, backTo: null, page: null };
 
   /* Layout only: type sizes come from system.css. */
   const STYLE = '<style>' +
@@ -59,9 +60,15 @@
     '.screen-documents .doc-open:focus-visible { box-shadow: none; }' +
     '.screen-documents .doc-open:focus-visible::after { box-shadow: var(--focus-ring); }' +
     '.screen-documents .doc-row > .row:hover { background: var(--row-hover); }' +
-    '.screen-documents .doc-row .row-trail, .screen-documents .doc-versions { position: relative; z-index: 1; }' +
-    '.screen-documents .doc-earlier > .row { padding-left: calc(var(--s-12) + var(--s-16)); }' +
-    '.screen-documents .doc-earlier .row-title { color: var(--ink-2); }' +
+    '.screen-documents .doc-row .row-trail { position: relative; z-index: 1; }' +
+    '.screen-documents a.doc-open { text-decoration: none; }' +
+    '.screen-documents .doc-row .row-title, .screen-documents .doc-row .row-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '.screen-documents .doc-row .row-text { min-width: 0; }' +
+    '.doc-page .page-header { margin-bottom: 0; }' +
+    '.doc-page .doc-page-actions { display: flex; align-items: center; gap: var(--s-12); margin-top: var(--s-24); }' +
+    '.doc-page .doc-page-actions + .section { margin-top: var(--s-48); }' +
+    '.doc-page .doc-page-actions .btn { height: 44px; padding: 0 var(--s-24); }' +
+    '.doc-page > .section { margin-top: var(--s-32); }' +
     '.screen-documents .doc-search { margin-bottom: var(--s-16); }' +
     '.screen-documents .doc-labels { margin-bottom: 0; flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: var(--s-4); margin: calc(-1 * var(--s-4)); scroll-padding-inline: var(--s-16); }' +
     '.screen-documents .doc-labels::-webkit-scrollbar { display: none; }' +
@@ -116,14 +123,17 @@
     if (S.ready) return;
     const d = data.documents;
     const push = (it, extra) => S.docs.push(Object.assign({
-      id: nextId(), title: it.title, meta: it.meta, current: !!it.current,
-      earlier: (it.versions || []).map((v) => ({ title: v, meta: 'Earlier version, kept' })),
+      id: it.id || nextId(), title: it.title, meta: it.meta, current: !!it.current,
+      about: it.about || '', dates: it.dates || null, latest: it.latest || null,
+      /* each earlier version: title is what changed, meta its date */
+      earlier: (it.versions || []).map((v) => ({ title: v.change, meta: v.date })),
     }, extra));
     d.i20Groups.forEach((g) => g.items.forEach((it) => {
-      const title = g.key === 'opt' ? 'I-20 for OPT' : g.key === 'cpt' ? 'CPT I-20, ' + it.title : it.title;
+      const title = it.name || (g.key === 'cpt' ? 'I-20 · CPT at ' + it.title : 'I-20 · ' + it.title);
       const meta = it.current ? 'Latest, ' + it.meta : it.meta;
-      push({ title: title, versions: it.versions, current: it.current, meta: meta }, {
-        group: 'status', type: 'i20', phase: g.key, rank: it.current ? RANK.current : (RANK[g.key] != null ? RANK[g.key] : RANK.cpt),
+      push(Object.assign({}, it, { title: title, meta: meta }), {
+        group: 'status', type: 'i20', phase: g.key, employer: g.key === 'cpt' ? it.title : null,
+        rank: it.current ? RANK.current : (RANK[g.key] != null ? RANK[g.key] : RANK.cpt),
       });
     }));
     d.work.forEach((it) => {
@@ -157,7 +167,7 @@
       i20: {
         name: 'I-20', group: 'status', rank: RANK.cpt, phase: 'cpt', many: true,
         fields: () => [['Name', st.name], ['School', st.school], ['Program', data.program.degree], ['Issued for', 'CPT'], ['Employer', read.employer], ['Dates', read.dates]],
-        title: (f) => (isBlank(f.Employer) ? 'CPT I-20' : 'CPT I-20, ' + f.Employer),
+        title: (f) => (isBlank(f.Employer) ? 'I-20 · CPT' : 'I-20 · CPT at ' + f.Employer),
         meta: (f) => (isBlank(f.Dates) ? 'Added ' + today : f.Dates),
       },
       i797: {
@@ -188,7 +198,7 @@
     if (doc.fields) return doc.fields;
     const data = App.data, st = data.student, pr = data.program, name = ['Name', st.name];
     if (doc.type === 'i20') {
-      if (doc.phase === 'cpt') return [name, ['Issued for', 'CPT'], ['Employer', doc.title.replace(/^CPT I-20, /, '')], ['Dates', doc.meta]];
+      if (doc.phase === 'cpt') return [name, ['Issued for', 'CPT'], ['Employer', doc.employer || doc.title.replace(/^I-20 · CPT at /, '')], ['Dates', doc.meta]];
       if (doc.phase === 'start') return [name, ['SEVIS ID', st.sevisId], ['School', st.school], ['Program', pr.degree], ['Program start', pr.start]];
       return [name, ['SEVIS ID', st.sevisId], ['School', st.school], ['Program', pr.degree], ['Issued for', 'OPT']];
     }
@@ -263,51 +273,64 @@
     if (!doc) return null;
     if (parts.length > 1) {
       const e = doc.earlier[Number(parts[1])];
-      return e ? { ref: ref, doc: doc, earlier: true, title: doc.title + ', ' + e.title, meta: e.meta, fields: null } : null;
+      return e ? { ref: ref, doc: doc, earlier: true, title: doc.title, meta: 'Earlier version, ' + e.meta + ' · ' + e.title, fields: null } : null;
     }
     return { ref: ref, doc: doc, earlier: false, title: doc.title, meta: doc.meta, fields: fieldsOf(doc) };
   }
 
-  /* The title is the open button, stretched over the row. */
-  function openTitle(label, ref) {
-    return C.raw('<button type="button" class="doc-open" data-doc-open="' + C.esc(ref) + '">' + C.esc(label) + '</button>');
-  }
   /* The shared Share button, tied to this file so the click opens the share
      sheet here (the page catches it before App.share). */
   function shareBtn(ref, title, reveal) {
     return C.shareButton({ title: title, label: (App.data.documents.share || {}).label, reveal: reveal !== false })
       .replace('<button ', '<button data-doc-ref="' + C.esc(ref) + '" ');
   }
-  /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, versions = true, reveal = true }) */
+  /* docRows(list, { prefix?: doc -> text, keyOf?: doc -> key, reveal = true })
+     One line of title, one line of meta. A tap opens the document's own
+     page, where its earlier versions are. */
   function docRows(list, o) {
     const opt = o || {};
-    const out = [];
-    list.forEach((doc) => {
+    return list.map((doc) => {
       const prefix = opt.prefix ? opt.prefix(doc) : '';
-      const n = opt.versions === false ? 0 : doc.earlier.length;
-      /* A search that matches only an earlier version opens the versions. */
-      const auto = searching() && !hasAll(haystack(doc), tokens(S.query));
-      const open = n > 0 && (Object.prototype.hasOwnProperty.call(S.expanded, doc.id) ? S.expanded[doc.id] : auto);
-      const versions = n ? ', <button type="button" class="link is-quiet doc-versions" data-doc-versions="' + C.esc(doc.id) + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
-        C.esc(n + ' earlier version' + (n === 1 ? '' : 's')) + '</button>' : '';
-      const key = opt.keyOf ? opt.keyOf(doc) : doc.id;
-      out.push(C.row({
-        key: key,
-        title: openTitle(doc.title, refOf(doc)),
-        meta: C.raw(C.esc((prefix ? prefix + ', ' : '') + doc.meta) + versions),
+      return C.row({
+        key: opt.keyOf ? opt.keyOf(doc) : doc.id,
+        title: C.raw('<a class="doc-open" href="#/documents/' + C.esc(doc.id) + '">' + C.esc(doc.title) + '</a>'),
+        meta: (prefix ? prefix + ', ' : '') + doc.meta,
         trailing: shareBtn(refOf(doc), doc.title, opt.reveal),
         cls: 'doc-row',
-      }));
-      if (open) {
-        doc.earlier.forEach((e, i) => out.push(C.row({
-          title: openTitle(e.title, refOf(doc, i)),
-          meta: e.meta,
-          trailing: shareBtn(refOf(doc, i), doc.title + ', ' + e.title, opt.reveal),
-          cls: 'doc-row doc-earlier',
-        })));
-      }
+      });
     });
-    return out;
+  }
+
+  /* ---------------- a document's own page ---------------- */
+
+  function docById(id) { return S.docs.filter((d) => d.id === id)[0] || null; }
+  /* #/documents/<id>: the latest version (what it is, its key dates, Open
+     and Share), then Earlier versions, newest first, each with its date,
+     what changed and Open. */
+  function docPage(data, doc) {
+    const ref = refOf(doc);
+    const g = groupOf(doc.group);
+    const dates = doc.dates || (fieldsOf(doc) || []).filter((f) => f[0] !== 'Name');
+    const header = C.pageHeader({
+      title: doc.title,
+      back: { label: 'Documents', href: '#/documents' },
+      subline: doc.about || (g ? g.title : ''),
+    });
+    const actions = '<div class="doc-page-actions">' +
+      C.button({ label: 'Open', kind: 'primary', attrs: { 'data-doc-show': ref } }) +
+      shareBtn(ref, doc.title, false).replace('btn btn-text is-small share-btn', 'btn btn-pill share-btn') + '</div>';
+    const keyDates = dates.length ? C.section({ eyebrow: 'Key dates', content: C.found(dates) }) : '';
+    const earlier = doc.earlier.length ? C.section({
+      eyebrow: 'Earlier versions',
+      content: C.list(doc.earlier.map((e, i) => C.row({
+        key: refOf(doc, i),
+        title: e.title,
+        meta: e.meta,
+        trailing: '<button type="button" class="btn btn-text is-small" data-doc-show="' + C.esc(refOf(doc, i)) + '" aria-label="' + C.esc('Open the version from ' + e.meta) + '">Open</button>',
+        cls: 'doc-row',
+      })), { accordion: false, label: 'Earlier versions' }),
+    }) : '';
+    return STYLE + '<div class="screen-documents doc-page">' + header + actions + keyDates + earlier + '</div>' + C.footer();
   }
 
   /* ---------------- search ---------------- */
@@ -329,7 +352,7 @@
   function tokens(q) { return norm(q).split(/[\s,·]+/).filter(Boolean); }
   function haystack(doc) {
     const g = groupOf(doc.group);
-    return norm([doc.title, doc.meta, g ? g.title + ' ' + g.words : '', TYPE_WORDS[doc.type] || '',
+    return norm([doc.title, doc.meta, doc.latest ? doc.latest.change : '', g ? g.title + ' ' + g.words : '', TYPE_WORDS[doc.type] || '',
       doc.phase ? I20_PHASE[doc.phase] : ''].join(' '));
   }
   function hasAll(text, toks) { return toks.every((t) => text.indexOf(t) !== -1); }
@@ -421,7 +444,7 @@
     const docs = docsFor(label);
     const most = label === 'most';
     return C.section({
-      content: C.list(docRows(docs, { keyOf: most ? (d) => 'most:' + d.id : null, versions: !most }), { accordion: false, label: labelOf(label).title }) +
+      content: C.list(docRows(docs, { keyOf: most ? (d) => 'most:' + d.id : null }), { accordion: false, label: labelOf(label).title }) +
         (label === 'status' ? addAnother : ''),
     });
   }
@@ -478,6 +501,7 @@
   /* The address follows the chosen label, so Back, a reload and a shared
      link land on the same view. The history entry keeps its state. */
   function setHash(label) {
+    if (S.page) return;   /* a document's own page keeps its address */
     const h = '#/documents' + (label && label !== 'all' ? '/' + label : '');
     if (location.hash !== h) {
       try { history.replaceState(history.state, '', h); } catch (err) { /* file:// */ }
@@ -877,11 +901,23 @@
 
   window.SCREENS['documents'] = {
     title: 'Documents',
-    paramsInPlace: true,
-    titleFor() { return 'Documents'; },
+    /* Switching labels redraws in place; opening a document's own page,
+       or leaving it, is a page move. */
+    paramsInPlace(params, prev) {
+      const isDoc = (ps) => !!(ps && ps[0] && !ALIAS[ps[0]] && ps[0] !== 'add');
+      return !isDoc(params) && !isDoc(prev);
+    },
+    titleFor(params) {
+      if (App.data) init(App.data);
+      const doc = params && params[0] && docById(params[0]);
+      return doc ? doc.title : 'Documents';
+    },
     render(data, params) {
       init(data);
       const p = params && params[0];
+      const page = p && !ALIAS[p] && p !== 'add' ? docById(p) : null;
+      S.page = page ? page.id : null;
+      if (page) return docPage(data, page);
       S.group = ALIAS[p] || 'all';
 
       if (p === 'add' || S.requested) {
@@ -910,6 +946,16 @@
     },
     mount(root) {
       removeLayer();
+      if (S.page) {
+        if (S.sheet) createLayer();
+        root.addEventListener('click', (e) => {
+          const share = e.target.closest('[data-doc-ref]');
+          if (share) { e.preventDefault(); e.stopPropagation(); openShare(share.dataset.docRef, false); return; }
+          const show = e.target.closest('[data-doc-show]');
+          if (show) openDoc(show.dataset.docShow);
+        });
+        return;
+      }
       if (S.sheet) createLayer();
       /* A legacy link (#/documents/work) settles on its label's address. */
       if (!S.sheet) setHash(current());
@@ -934,23 +980,10 @@
           if (chip) chip.focus({ preventScroll: true });
           return;
         }
-        const ver = e.target.closest('[data-doc-versions]');
-        if (ver) {
-          const id = ver.dataset.docVersions;
-          S.expanded[id] = ver.getAttribute('aria-expanded') !== 'true';
-          const y = window.scrollY;
-          refreshView();
-          window.scrollTo(0, y);
-          const again = root.querySelector('[data-doc-versions="' + id + '"]');
-          if (again) again.focus({ preventScroll: true });
-          return;
-        }
         /* Share is caught here, before App.share, so it opens this page's
            share sheet for the very file on the row. */
         const share = e.target.closest('[data-doc-ref]');
         if (share) { e.preventDefault(); e.stopPropagation(); openShare(share.dataset.docRef, false); return; }
-        const open = e.target.closest('[data-doc-open]');
-        if (open) { openDoc(open.dataset.docOpen); }
       });
       /* Enter opens the first match; Escape clears the search. */
       root.addEventListener('keydown', (e) => {

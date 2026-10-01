@@ -1148,81 +1148,67 @@
     return MONTHS[t.getUTCMonth()] + ' ' + t.getUTCDate() + (withYear ? ', ' + t.getUTCFullYear() : '');
   }
 
-  /* timeline({ today, from?, to?, spans: [{ label, from, to }], marks: [{ label, date, emphasis?, display?, source? }],
-                caption?, todayLabel = 'Today', label?, key?, compact? })
-     A real timeline, drawn to scale (Round 5, note 3). Dates are ISO
-     (YYYY-MM-DD). The scale runs from `from` (default today) to `to` (default
-     the latest date given).
-       spans     shaded bands with their name inside ("Prepare", "Filing
-                 window"), a 2px gap where two meet. A name that does not fit
-                 its band is hidden and kept for screen readers.
-       marks     a tick on the line with the date and label under it. Only the
-                 mark with emphasis: true is set in ink and accent; the rest
-                 are quiet. Labels never collide: app.js lays them out in rows
-                 by measuring them (one row on a wide column, a second row
-                 with a longer stem where a phone needs it).
-       today     the Today marker, a dot and a stem, with `caption` beside it
-                 ("46 days until the window opens"). It is the figcaption.
-       key       motion plays once per key: the line draws in from the left,
-                 the spans fade in after it and the marker settles. A redraw
-                 of the same key shows it at rest. Default: the label.
-       compact   the small strip, e.g. on Home: thinner band, no span names.
-     The picture is aria-hidden; the marks are a real ordered list, and the
-     caption reads "Today, Sep 30. 46 days until the window opens". Off under
-     prefers-reduced-motion; complete without motion. */
+  /* timeline({ today, marks: [{ label, date, display?, source? }], caption?, label?, key?, compact?,
+                from?, to?, spans?, todayLabel? })
+     A stepper, like order tracking. Today and each mark are points evenly
+     spaced on one straight line, in date order: the first and last sit at
+     the edges, every label centred under its point (the first and last
+     aligned to the edges). Under each point the date in ink, its name quiet
+     on the next line, a source mark beside the date. Passed points and
+     Today are filled, the next point is ringed in accent, the rest are
+     open; the line is accent up to Today. caption is the one sentence above
+     ("Window opens in 46 days"). compact (Home): smaller points, dates only.
+     app.js wraps a name, or stacks the steps, only where a phone needs it.
+     The line fills once per key; off under reduced motion. from, to and
+     spans are accepted and unused. */
   function timeline(p) {
     const today = p.today;
-    const all = [today].concat((p.marks || []).map((m) => m.date), (p.spans || []).reduce((a, s) => a.concat([s.from, s.to]), []));
-    const t0 = isoTime(p.from || today);
-    const t1 = isoTime(p.to || all.reduce((a, b) => (isoTime(b) > isoTime(a) ? b : a), today));
-    const range = Math.max(1, t1 - t0);
-    const pct = (iso) => Math.max(0, Math.min(100, ((isoTime(iso) - t0) / range) * 100));
-    const n = (v) => Number(v.toFixed(3));
+    const tT = isoTime(today);
     const key = p.key || p.label || 'timeline';
-    /* Mark dates take their year from the strip's own start, so they read
-       left to right the same way whatever today is. */
-    const ref = p.from || today;
-
-    const spans = (p.spans || []).map((sp, i) => {
-      const a = pct(sp.from), b = pct(sp.to);
-      if (b <= a) return '';
-      return '<span class="' + cls('tl-span', 'is-' + (i % 2 ? 'b' : 'a')) + '" style="--a:' + n(a) + '%;--b:' + n(b) + '%" title="' +
-        esc(sp.label + ': ' + fmtDate(sp.from, { ref: ref }) + ' to ' + fmtDate(sp.to, { ref: ref })) + '">' +
-        (p.compact ? '' : '<span class="tl-span-label">' + esc(sp.label) + '</span>') + '</span>';
-    }).join('');
-    const ticks = (p.marks || []).map((m) => '<span class="' + cls('tl-tick', m.emphasis && 'is-emph') + '" style="--x:' + n(pct(m.date)) + '%"></span>').join('');
-    const tx = n(pct(today));
-    /* One name per date. With named bands, a date that starts a band shows
-       only its date (the band names it); in the small strip only the
-       emphasized date and the last one keep a visible label. A hidden label
-       stays in the list for screen readers. */
-    const lastT = (p.marks || []).reduce((a, m) => Math.max(a, isoTime(m.date)), -Infinity);
-    const startsSpan = (iso) => (p.spans || []).some((sp) => isoTime(sp.from) === isoTime(iso));
-    const marks = (p.marks || []).map((m) => {
-      const shown = m.display || fmtDate(m.date, { ref: ref });
-      const isEnd = m.end || isoTime(m.date) === lastT;
-      const quiet = p.compact ? !(m.emphasis || isEnd) : (!isEnd && startsSpan(m.date));
-      const src = m.source ? source(m.source, { inline: true }) : '';
-      const body = quiet
-        ? '<span class="tl-date num">' + esc(shown) + '<span class="sr-only">, ' + esc(m.label) + '</span></span>' +
-          (src && !p.compact ? '<span class="tl-label is-bare">' + src + '</span>' : '')
-        : '<span class="tl-date num">' + esc(shown) + '</span><span class="tl-label">' + esc(m.label) + src + '</span>';
-      return '<li class="' + cls('tl-mark', m.emphasis && 'is-emph', quiet && !p.compact && 'is-from') + '" style="--x:' + n(pct(m.date)) + '%"' + (m.emphasis ? ' aria-current="date"' : '') + '>' +
-        '<span class="tl-stem" aria-hidden="true"></span>' + body + '</li>';
-    }).join('');
-    const spanText = (p.spans || []).map((sp) => sp.label + ' ' + fmtDate(sp.from, { ref: ref }) + ' to ' + fmtDate(sp.to, { ref: ref })).join('. ');
     const todayLabel = p.todayLabel || 'Today';
-
-    return '<figure class="' + cls('tl', p.compact && 'is-compact') + '" data-timeline="' + esc(key) + '" style="--today:' + tx + '%"' +
+    const pts = (p.marks || []).map((m) => ({ m: m, t: isoTime(m.date) })).sort((a, b) => a.t - b.t);
+    /* Today sits in date order. On a mark's own date the mark is Today. */
+    const same = pts.find((x) => x.t === tT);
+    if (same) same.today = true;
+    else {
+      const at = pts.findIndex((x) => x.t > tT);
+      pts.splice(at < 0 ? pts.length : at, 0, { today: true, t: tT, m: null });
+    }
+    const n = pts.length;
+    const ti = pts.findIndex((x) => x.today);
+    /* In the small strip a year can drop to a quiet second line when a
+       phone has no room for it beside the day (app.js, .is-tight). */
+    const dateHtml = (d) => {
+      const yr = p.compact && String(d).match(/^(.*), (\d{4})$/);
+      return yr ? esc(yr[1]) + '<span class="tl-y"><span class="tl-c">, </span>' + esc(yr[2]) + '</span>' : esc(d);
+    };
+    const pos = (i) => (n > 1 ? Number(((i / (n - 1)) * 100).toFixed(3)) : 0);
+    const items = pts.map((x, i) => {
+      const m = x.m;
+      const state = x.today ? 'is-today' : (i < ti ? 'is-past' : (i === ti + 1 ? 'is-next' : 'is-ahead'));
+      /* Today reads as a date with its name under it, like the rest; the
+         small strip has no names, so there it reads "Today". On a mark's
+         own date the date line reads "Today". */
+      const date = m ? (x.today ? todayLabel : (m.display || fmtDate(m.date, { ref: today })))
+        : (p.compact ? todayLabel : fmtDate(today, { ref: today }));
+      const name = m ? m.label : todayLabel;
+      const src = m && m.source && !p.compact ? source(m.source, { inline: true }) : '';
+      const edge = i === 0 ? 'is-first' : (i === n - 1 ? 'is-last' : '');
+      const sr = p.compact ? ', ' + (x.today ? fmtDate(today, { year: true }) : name) : '';
+      return '<li class="' + cls('tl-step', state, edge) + '" style="--x:' + pos(i) + '%;--x-f:' + (pos(i) / 100) + '"' + (x.today ? ' aria-current="date"' : '') + '>' +
+        '<span class="tl-date num"><span class="tl-d">' + dateHtml(date) + '</span>' + (sr ? '<span class="sr-only">' + esc(sr) + '</span>' : '') + src + '</span>' +
+        (p.compact ? '' : '<span class="tl-name">' + esc(name) + '</span>') +
+        '</li>';
+    }).join('');
+    const dots = pts.map((x, i) => {
+      const state = x.today ? 'is-today' : (i < ti ? 'is-past' : (i === ti + 1 ? 'is-next' : 'is-ahead'));
+      return '<i class="' + cls('tl-dot', state) + '" style="--x:' + pos(i) + '%;--x-f:' + (pos(i) / 100) + '"></i>';
+    }).join('');
+    return '<figure class="' + cls('tl', p.compact && 'is-compact') + '" data-timeline="' + esc(key) + '" style="--fill:' + pos(ti) + '%;--n:' + n + '"' +
       (p.label ? ' aria-label="' + esc(p.label) + '"' : '') + '>' +
-      '<figcaption class="tl-now"><span class="tl-now-inner">' +
-      '<span class="tl-now-label">' + esc(todayLabel) + '<span class="sr-only">, ' + esc(fmtDate(today, { year: true })) + '.</span></span>' +
-      (p.caption ? '<span class="tl-caption">' + esc(p.caption) + '</span>' : '') +
-      (spanText ? '<span class="sr-only"> ' + esc(spanText) + '.</span>' : '') +
-      '</span></figcaption>' +
-      '<div class="tl-plot" aria-hidden="true"><span class="tl-line"></span>' + spans + ticks +
-      '<span class="tl-today"><i></i></span></div>' +
-      '<ol class="tl-marks">' + marks + '</ol>' +
+      (p.caption ? '<figcaption class="tl-now">' + esc(p.caption) + '</figcaption>' : '') +
+      '<div class="tl-rail" aria-hidden="true"><span class="tl-line"></span><span class="tl-fill"></span>' + dots + '</div>' +
+      '<ol class="tl-steps">' + items + '</ol>' +
       '</figure>';
   }
 

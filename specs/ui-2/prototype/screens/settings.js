@@ -119,6 +119,9 @@
     '.screen-settings .sx-dialog[open] { animation: drop .28s ease-out; }' +
     '.screen-settings .sx-dialog::backdrop { background: var(--scrim); }' +
     '.screen-settings .sx-dialog .t-lead { margin-top: var(--s-8); }' +
+    '.screen-settings .sx-dialog { box-sizing: border-box; overflow: visible; }' +
+    '.screen-settings .sx-dialog-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--s-12); margin-top: var(--s-24); }' +
+    '.screen-settings .sx-dialog-actions .btn { flex: 0 0 auto; height: 44px; padding: 0 var(--s-24); white-space: nowrap; }' +
     '</style>';
 
   window.SCREENS['settings'] = {
@@ -205,12 +208,12 @@
       const dialog = '<dialog class="sx-dialog" aria-labelledby="sx-del-title">' +
         '<h2 class="t-medium" id="sx-del-title">Delete everything?</h2>' +
         '<p class="t-lead">This can\'t be undone. Your records and documents are removed from your account and every device. Backups you saved stay where you put them.</p>' +
-        /* The one placement rule: the other choice on the left, the primary
-           (keep, the safe answer) on the right, in a right-aligned row. */
-        C.buttonRow({
-          back: C.button({ label: 'Delete everything', kind: 'pill', attrs: { 'data-sx': 'delete-yes' } }),
-          primary: C.button({ label: 'Keep my records', kind: 'primary', attrs: { 'data-sx': 'delete-no', autofocus: true } }),
-        }) +
+        /* Cancel on the left, quiet; the outcome on the right. Focus starts
+           on Cancel; Escape and a click on the scrim cancel too. */
+        '<div class="sx-dialog-actions">' +
+          C.button({ label: 'Cancel', kind: 'pill', attrs: { 'data-sx': 'delete-no', autofocus: true } }) +
+          C.button({ label: 'Delete everything', kind: 'primary', attrs: { 'data-sx': 'delete-yes' } }) +
+        '</div>' +
         '</dialog>';
 
       const privacy = s.privacy ? '<p class="t-meta sx-privacy">' + C.esc(s.privacy) + '</p>' : '';
@@ -356,8 +359,13 @@
         } else if (act === 'delete-yes') {
           dialog.dataset.leaving = '1';
           dialog.close();
+          /* The account is gone: Welcome replaces this entry, onboarding
+             starts fresh, and the router keeps every other route on
+             Welcome until onboarding is finished again. */
+          App.state.deleted = true;
+          App.state.onb = null;
           App.toast('Everything is deleted');
-          App.go('welcome');
+          App.go('welcome', { replace: true });
         }
       });
 

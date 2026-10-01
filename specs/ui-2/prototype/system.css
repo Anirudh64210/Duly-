@@ -1171,80 +1171,75 @@ a.mark.is-updated:hover { color: var(--accent-hover); }
 /* 13b. Round 5: timeline, the STEM OPT choice, track a case            */
 /* ------------------------------------------------------------------ */
 
-/* C.timeline: drawn to scale. A 2px line, two shaded spans with their name
-   inside and a 2px gap where they meet, a tick per date, the Today marker
-   (a stem and a dot ringed in the ground colour) with its one line above.
-   Dates and labels sit under their ticks; app.js lays them out in rows so
-   they never touch. Both spans share one quiet tint: only the emphasized
-   date is set in ink at 600 with an accent tick, and the Today marker
-   stands on the band. Time already passed recedes under a veil of the
-   ground colour; the time ahead stays full strength. Text keeps the text
-   inks. */
-.tl { margin: 0; padding: 0 var(--s-8); min-width: 0; }
-.tl-now { min-height: var(--lh-meta); }
-.tl-now-inner {
-  display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-8); max-width: 100%;
+/* C.timeline: a stepper. Points evenly spaced on one 2px line, the first
+   and last at the edges; the line is accent up to Today. Passed points and
+   Today are filled, the next point is ringed in accent, the rest are open.
+   Each label sits centred under its point (the first and last aligned to
+   the edges): the date in ink, its name quiet under it, one type for all.
+   All labels share one grid cell, so the list is as tall as its tallest
+   label. app.js lets a name wrap, or stacks the steps (.is-stacked), only
+   where a narrow column needs it. */
+.tl { --dot: 12px; margin: 0; padding: 0; min-width: 0; }
+.tl-now { margin-bottom: var(--s-16); font-size: var(--t-small); line-height: var(--lh-small); color: var(--ink); font-variant-numeric: tabular-nums; }
+.tl-rail { position: relative; height: var(--dot); margin: 0 calc(var(--dot) / 2); }
+.tl-line, .tl-fill {
+  position: absolute; left: 0; top: calc(50% - 1px); height: 2px; border-radius: 1px;
+}
+.tl-line { right: 0; background: var(--track); transform-origin: left center; }
+.tl-fill { width: var(--fill); background: var(--accent); transform-origin: left center; }
+.tl-dot {
+  position: absolute; z-index: 1; top: 0; left: var(--x); width: var(--dot); height: var(--dot);
+  margin-left: calc(var(--dot) / -2); border-radius: 50%; box-sizing: border-box;
+  background: var(--ground); border: 2px solid var(--chip-selected-border);
+}
+.tl-dot.is-past, .tl-dot.is-today { background: var(--accent); border-color: var(--accent); }
+.tl-dot.is-today { box-shadow: 0 0 0 4px var(--accent-tint); }
+.tl-dot.is-next { border-color: var(--accent); }
+.tl-steps { display: grid; list-style: none; margin: var(--s-12) 0 0; padding: 0; }
+.tl-step {
+  grid-area: 1 / 1; justify-self: start; min-width: 0;
+  margin-left: calc(var(--x) + var(--dot) * (.5 - var(--x-f, 0)));
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
   font-size: var(--t-small); line-height: var(--lh-meta);
 }
-.tl-now-inner > * { white-space: nowrap; }
-.tl-now-label { font-weight: 600; color: var(--ink); }
-.tl-caption { color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.tl-plot { position: relative; height: 24px; margin-top: var(--s-12); }
-.tl-plot::before {
-  content: ""; position: absolute; z-index: 1; left: 0; top: 0; bottom: 0; width: var(--today);
-  background: var(--ground); opacity: .55; pointer-events: none;
+.tl-step.is-first { margin-left: 0; transform: none; align-items: flex-start; text-align: left; }
+.tl-step.is-last { justify-self: end; margin-left: 0; transform: none; align-items: flex-end; text-align: right; }
+.tl-date { display: inline-flex; align-items: center; white-space: nowrap; color: var(--ink); font-weight: 500; }
+.tl-date .inline-src { margin-left: var(--s-4); }
+.tl-name { color: var(--ink-3); text-wrap: balance; }
+.tl-step:hover .src { color: var(--ink-3); }
+/* The small strip (Home): smaller points, dates only. */
+.tl.is-compact { --dot: 10px; }
+.tl.is-compact .tl-steps { margin-top: var(--s-8); }
+/* The small strip on a phone: a year drops to a quiet line of its own. */
+.tl.is-tight .tl-d { display: inline-flex; flex-direction: column; align-items: inherit; }
+.tl.is-tight .tl-step { align-items: center; }
+.tl.is-tight .tl-step.is-first { align-items: flex-start; }
+.tl.is-tight .tl-step.is-last { align-items: flex-end; }
+.tl.is-tight .tl-y { color: var(--ink-3); font-weight: 400; }
+.tl.is-tight .tl-c { display: none; }
+/* A narrow column where even wrapped names would touch: the same steps,
+   stacked on a vertical line, date and name on one line. */
+.tl.is-stacked .tl-rail { display: none; }
+.tl.is-stacked .tl-steps { display: flex; flex-direction: column; margin: 0; }
+.tl.is-stacked .tl-step {
+  position: relative; margin: 0; transform: none; padding: 0 0 var(--s-16) var(--s-24);
+  flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-8); text-align: left;
 }
-.tl-line {
-  position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px;
-  border-radius: 1px; background: var(--track); transform-origin: left center;
+.tl.is-stacked .tl-step:last-child { padding-bottom: 0; }
+.tl.is-stacked .tl-step::before {
+  content: ""; position: absolute; left: 0; top: calc(var(--lh-meta) / 2 - var(--dot) / 2);
+  width: var(--dot); height: var(--dot); box-sizing: border-box; border-radius: 50%;
+  background: var(--ground); border: 2px solid var(--chip-selected-border);
 }
-.tl-span {
-  position: absolute; top: 0; bottom: 0;
-  left: calc(var(--a) + 1px); width: calc(var(--b) - var(--a) - 2px); min-width: 2px;
-  display: flex; align-items: center; overflow: hidden;
-  padding: 0 var(--s-8); border-radius: var(--r-tag);
+.tl.is-stacked .tl-step.is-past::before, .tl.is-stacked .tl-step.is-today::before { background: var(--accent); border-color: var(--accent); }
+.tl.is-stacked .tl-step.is-next::before { border-color: var(--accent); }
+.tl.is-stacked .tl-step:not(:last-child)::after {
+  content: ""; position: absolute; left: calc(var(--dot) / 2 - 1px); top: calc(var(--lh-meta) / 2 + var(--dot) / 2);
+  bottom: calc(var(--dot) / 2 - var(--lh-meta) / 2); width: 2px; background: var(--track);
 }
-.tl-span { background: var(--accent-tint); }
-.tl-span-label {
-  font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small);
-  color: var(--ink-2); white-space: nowrap;
-}
-.tl-span.is-tight .tl-span-label { visibility: hidden; }
-.tl-tick {
-  position: absolute; z-index: 1; top: 0; bottom: 0; left: var(--x);
-  width: 1px; margin-left: -1px; background: var(--chip-selected-border);
-}
-.tl-tick.is-emph { width: 2px; top: calc(-1 * var(--s-4)); bottom: calc(-1 * var(--s-4)); background: var(--accent); }
-.tl-today {
-  position: absolute; z-index: 2; left: var(--today); top: calc(-1 * var(--s-12)); bottom: 100%;
-  width: 2px; margin-left: -1px; border-radius: 1px; background: var(--ink);
-}
-.tl-today i {
-  position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; margin-left: -5px;
-  border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--ground);
-}
-.tl-marks { position: relative; list-style: none; margin: 0; padding: 0; height: 52px; }
-.tl-mark {
-  position: absolute; top: var(--s-8); left: var(--x); transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; text-align: center; white-space: nowrap;
-}
-.tl.is-laid .tl-mark { transform: none; }
-.tl-mark.is-start { align-items: flex-start; text-align: left; }
-.tl-mark.is-end { align-items: flex-end; text-align: right; }
-.tl-stem {
-  position: absolute; left: var(--stem-x, 50%); top: calc(-1 * var(--stem-h, 8px)); height: var(--stem-h, 8px);
-  width: 1px; margin-left: -1px; background: var(--chip-selected-border);
-}
-.tl-mark.is-emph .tl-stem { width: 2px; background: var(--accent); }
-.tl-date { font-size: var(--t-small); font-weight: 500; line-height: var(--lh-small); color: var(--ink-2); }
-.tl-label.is-bare .inline-src { margin-left: 0; }
-.tl-label { display: inline-flex; align-items: center; font-size: var(--t-small); line-height: var(--lh-meta); color: var(--ink-3); }
-.tl-mark.is-emph .tl-date { font-weight: 600; color: var(--ink); }
-.tl-mark.is-emph .tl-label { color: var(--ink-2); }
-.tl-mark:hover .src { color: var(--ink-3); }
-/* The small strip (Home): a thin band, no span names. */
-.tl.is-compact .tl-plot { height: 8px; }
-.tl.is-compact .tl-span { padding: 0; border-radius: 4px; }
+.tl.is-stacked .tl-step.is-past::after { background: var(--accent); }
 
 /* C.stemDecide: Home's next move, answered in place. */
 .stem-decide { display: flex; flex-direction: column; gap: var(--s-16); padding: var(--s-16) 0; }
@@ -1325,7 +1320,6 @@ a.mark.is-updated:hover { color: var(--accent-hover); }
 @keyframes arrive-row { from { background: var(--accent-tint); } }
 @keyframes arrive-soft { from { opacity: 0; transform: translateY(4px); } }
 @keyframes tl-draw { from { transform: scaleX(0); } }
-@keyframes tl-settle { 0% { opacity: 0; transform: translateY(-8px); } 70% { opacity: 1; transform: translateY(1px); } 100% { transform: none; } }
 
 /* A check that draws itself. */
 .check svg path { stroke-dasharray: 14; stroke-dashoffset: 0; }
@@ -1339,14 +1333,12 @@ span.is-complete { display: inline-block; }
 .task.is-current.is-arriving > .row { animation: arrive .9s var(--ease-rise); }
 .item.is-arriving:not(.task) > .row { animation: arrive-row 1s ease-out; }
 .is-arriving:not(.item) { animation: arrive-soft .4s var(--ease-rise); }
-/* The timeline draws in once: the Today line appears with the line as it
-   draws from the left, then the spans and dates, and the Today marker
-   settles last. */
-.tl.is-drawing .tl-line { animation: tl-draw .8s var(--ease-rise) both; }
-.tl.is-drawing .tl-span { animation: fade .45s .4s ease-out both; }
-.tl.is-drawing .tl-tick, .tl.is-drawing .tl-mark { animation: fade .4s .55s ease-out both; }
-.tl.is-drawing .tl-today { animation: tl-settle .7s .75s var(--ease-rise) both; }
-.tl.is-drawing .tl-now { animation: fade .4s ease-out both; }
+/* The timeline draws once, gently: the line runs from the left, each point
+   appears as the line reaches it, and the accent part fills after. */
+.tl.is-drawing .tl-line { animation: tl-draw 1s var(--ease-rise) both; }
+.tl.is-drawing .tl-dot { animation: fade .3s calc(var(--x-f, 0) * .7s) ease-out both; }
+.tl.is-drawing .tl-fill { animation: tl-draw .8s .3s var(--ease-rise) both; }
+.tl.is-drawing .tl-steps { animation: fade .4s .2s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

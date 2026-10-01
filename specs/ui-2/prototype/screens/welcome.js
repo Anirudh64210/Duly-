@@ -547,6 +547,7 @@
       (waiting.length ? C.waiting({ items: waiting, max: waiting.length }) : '');
 
     s.finished = true;
+    App.state.deleted = false;   /* a new account: every route opens again */
     /* every answer stays one tap away: the step list shows all ticks and opens any step */
     const keys = stepKeys(s);
     const list = C.steps({ steps: keys.map((k) => ({ key: k, label: LABEL[k], answer: answerFor(k, s) })), current: -1, reached: keys.length - 1 })
