@@ -24,14 +24,18 @@ from collections.abc import Iterable, Sequence
 from datetime import date, timedelta
 from typing import Any
 
+from hypothesis import settings
 from hypothesis import strategies as st
 
 from engine.rulepack import Rulepack
 
 # Section 9: deadline off, derandomized; 150 examples for P6, 30 for P1 to P5 and P7 in
-# tests/unit, 200 in tests/holdout.
-UNIT_EXAMPLES = 30
-LOGIC_EXAMPLES = 150
+# tests/unit, 200 in tests/holdout. Point 52: under `--hypothesis-profile mutants`
+# (tests/conftest.py) every unit property runs 10.
+MUTANT_EXAMPLES = 10
+_MUTANTS = settings.get_current_profile_name() == "mutants"
+UNIT_EXAMPLES = MUTANT_EXAMPLES if _MUTANTS else 30
+LOGIC_EXAMPLES = MUTANT_EXAMPLES if _MUTANTS else 150
 HOLDOUT_EXAMPLES = 200
 # Section 9: the examples run on 2026-09-29; the properties draw today from these.
 EXAMPLE_DAY = date(2026, 9, 29)
@@ -328,6 +332,9 @@ def waits_on(out: dict[str, Any], output_id: str) -> list[str]:
         for window in stage.get("windows", []):
             if kind == "window" and window["id"] == oid:
                 return list(window.get("waits_on", []))
+    for entry in out.get("upcoming", []) if kind == "upcoming" else []:
+        if entry.get("id") == oid:
+            return list(entry.get("waits_on", []))
     return []
 
 

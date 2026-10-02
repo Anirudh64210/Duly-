@@ -115,3 +115,20 @@ def test_a_link_to_another_category_s_record_is_a_value_not_structure(client):
     res = client.post(URL, json=body)
     assert res.status_code == 200
     assert "unreadable:a1.program" in res.json()["verdict"]["reasons"]
+
+
+def test_a_record_in_a_category_the_case_does_not_list_is_a_structure_fault(client):
+    # Point 39, review w2-unknown finding 6: journey J06 with records[0].category "h1b", a
+    # category the case's categories (["f1"]) do not list. The case schema takes it (a category
+    # matches ^[a-z0-9]+$), so it is the pack's structure: 422 CASE_STRUCTURE, never a 500
+    # (path.py:2036 raises a plain ValueError the route no longer catches). Fails if the route
+    # answers 500 or 200.
+    from api.case import CASE_STRUCTURE
+    from tests.unit.acceptance.test_journeys import j06
+
+    body = j06()
+    assert "h1b" not in body["categories"]
+    body["records"][0]["category"] = "h1b"
+    res = client.post(URL, json=body)
+    assert res.status_code == 422
+    assert res.json() == {"detail": CASE_STRUCTURE}

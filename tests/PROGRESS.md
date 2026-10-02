@@ -3699,3 +3699,54 @@ merged code.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-69e041029c: the review veto of the unknown-values plan (reviews/w2-unknown.md, findings 1 to 14)
+
+Read: the review in full, SPEC-W2-UNKNOWN points 2, 7, 14, 24, 26, 31 to 34, 39, 44 to 52, the
+four regression files, the property file, gaps.py and unknown_toy.py. Probed every new input on
+HEAD (a9152c1) with scripts in $TMPDIR/p before writing an assertion.
+
+Added (point beside each; each date worked by hand in its comment):
+- test_w2_unknown.py: R15, R16 A/B (4 filing days)/C, R24, R29, R33 (toy), R34 (one-record and
+  after-today statements), R35, findings 4 (toy, c1.online left out), 5 (J01 conferred_on
+  not_sure), 12 (D4 without w2: withholds holds every stage and window waiting on w3.end), 14
+  (toy, joined_on after a not_yet left_on is F).
+- test_w2_unknown_counts.py: R3, R14 (both halves: withheld; with p1 85 and 2026-08-24), R21,
+  R22, R38 (visible beside its holdout twin), R39 (toy counter over courses ending on a
+  `first`).
+- test_w2_unknown_stages.py: R36 (unknown stage waiting on a1.card_end; future:stem.dso_on never
+  asked), finding 8 (five STEM windows wait on future:stem.card_start).
+- tests/unit/api/test_case_structure.py: J06 with records[0].category "h1b" gives 422
+  CASE_STRUCTURE (finding 6).
+- Finding 11: F-1 seeds are every journey plus the decided form of the F-1 R cases; P1(b) on
+  the toy pack; P2(b)/(c) now compare the shown reasons, stage states and upcoming dates; a
+  non-vacuity test asserts each output kind was known and changed at least 5 times.
+- Point 52: tests/conftest.py registers the `mutants` profile (10 examples); gaps.py sizes
+  UNIT_EXAMPLES and LOGIC_EXAMPLES from it.
+
+Ran on HEAD: the new rows fail exactly where the review shows a fault: R16 B (not_sure), R22,
+R24 (withholds), R34 x2, R36, finding 4, 5, 8 x5, 12, 14, the API category test (500). Every
+other new row passes (R3, R14, R15, R16 A and C, R21, R29, R33, R35, R38, R39, finding 14's T
+half). The property file with the wider seeds: P1w on F-1 fails (opt.months_at_level.master 12
+shown with a list removed, 24 with one more record); the rest was not seen through. Wall time
+of the property file alone was 100 s on the first run (with the non-vacuity test running P2 a
+second time); that test now reuses P2's run, but the time against point 44's 90 s budget was
+not measured again.
+
+Fails if (per test): R16 B if an unknown filing day withholds a window no change could move
+(U10); R34 if a kind:<id> or future statement counts as whole (U23); R36 if a U card end drops
+the next stage (U25); R22 if an unknown group key drops the group (U12); finding 4 if present on
+an absent ask field reads F (U21); finding 5 if a not_sure happened date is not asked; finding
+8 if a STEM window is null with no waits_on; finding 12 if withholds names fewer outputs than
+wait on the question; finding 14 if NOT_YET on the right stays pending; R3/R21/R14 if a gap
+drops a known window or shows a count it rests on; the API test if the route answers 500.
+
+Done command: ruff check, ruff format --check, pytest --co: exit 0.
+
+Not built: R36's "two filing closes, one known and past, one U" (the shipped STEM next stage has
+no such pair I could set up; the U close case is covered by card_end not_sure); P3's read-once
+half; R16 A's "late filing gives 2026-05-17 to 2026-10-14" (the engine gave the old window for
+a 2026-04-01 filing; put in the report, not asserted).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
