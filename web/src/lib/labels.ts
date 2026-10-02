@@ -264,6 +264,57 @@ const UNIT_WORDS: ReadonlyMap<string, readonly [string, string]> = new Map(
 
 export const NOT_COMPUTED = "Not computed";
 
+// SPEC-W2-UNKNOWN point 2: what leaving a field empty means, as the words the pack's
+// CHANGELOG records for each field it declares not_yet or none. Shown under the field, they
+// make an empty field the person's own statement.
+export const EMPTY_WORDS = {
+  "work.end": "Leave empty if you still work there.",
+  "authorization.filed_on": "Leave empty if Form I-765 has not been filed yet.",
+  "authorization.decision": "Leave empty if no decision has come yet.",
+  "move.registered_on": "Leave empty if you have not registered at the new school yet.",
+  "move.release_date": "Leave empty if your record has not been released in SEVIS yet.",
+  "move.contacted_new_dso_on":
+    "Leave empty if you have not contacted the DSO at the new school yet.",
+  "report.made_on": "Leave empty if you have not made this report yet.",
+  "authorization.card_start": "Leave empty if no decision has come yet.",
+  "authorization.card_end": "Leave empty if no decision has come yet.",
+  "work.on_campus": "Leave empty if the job is not on campus.",
+  "authorization.extends": "Leave empty if this permission does not extend an OPT.",
+  "petition.outcome": "Leave empty if no outcome has been given.",
+  "petition.validity_start": "Leave empty if the petition has no approved validity start date.",
+  "petition.requested_start": "Leave empty if the petition asks for no start date.",
+  "authorization.employer":
+    "Leave empty if no employer is named on the Form I-20 for this permission.",
+  "authorization.basis_program": "Leave empty unless this is a STEM extension.",
+} as const satisfies Record<string, string>;
+
+// SPEC-W2-UNKNOWN point 38: the words for a value Duly could not read, one the person was
+// not sure about, and a number or date withheld until an answer comes.
+export function unreadableLine(label: string, asEntered: string): string {
+  return `Duly could not read what was entered for ${label}: ${asEntered}. Check it and enter it again.`;
+}
+
+export function undecidedLine(label: string): string {
+  return `You said you were not sure about ${label}. Add it when you know. Your DSO can tell you.`;
+}
+
+export function waitingLine(label: string): string {
+  return `Waiting for ${label}`;
+}
+
+/** A value withheld for a waits_on entry: never a number and never 0 (point 38). */
+export function shownValue(item: {
+  value: number | string | boolean | null;
+  unit: string;
+  waits_on?: readonly string[] | undefined;
+}): string {
+  if (item.waits_on === undefined) return formatValue(item.value, item.unit);
+  const pending = item.waits_on.filter((entry) => entry.startsWith("pending:"));
+  const waiting = item.waits_on.filter((entry) => !entry.startsWith("pending:"));
+  if (waiting.length === 0) return `After ${pending.map(gapName).join(" and ")}`;
+  return waitingLine(waiting.map(gapName).join(" and "));
+}
+
 /** A value from the engine or a rule, with its unit, as the user reads it. */
 export function formatValue(value: number | string | boolean | null, unit: string): string {
   if (value === null) return NOT_COMPUTED;
@@ -696,6 +747,15 @@ function fieldTitle(key: string): string | null {
   return record && words ? `${record.name}: ${words}` : null;
 }
 
+/** A gap named inside a line, "Job 1, Hours a week": a record's field, or the gap's own name. */
+function gapName(entry: string): string {
+  const key = entry.replace(/^(pending|future):/, "");
+  const split = key.indexOf(".");
+  const record = recordName(key.slice(0, split));
+  const words = record && FIELD_WORDS.get(`${record.kind}.${key.slice(split + 1)}`);
+  return record && words ? `${record.name}, ${words.replace(/\?$/, "")}` : inputName(key);
+}
+
 /** ui-1 point 5: the words for a question of the path, keyed by what it asks. */
 function pathTitle(questionId: string): string | null {
   if (questionId === TYPED_DATES) return "Did you type these dates from your documents?";
@@ -777,7 +837,30 @@ const PATH_BECAUSE: ReadonlyMap<string, string> = new Map(
   }),
 );
 
-export function becauseLine(because: readonly string[]): string {
+export function becauseLine(
+  because: readonly string[],
+  about: Readonly<Record<string, unknown>> = {},
+): string {
+  // SPEC-W2-UNKNOWN point 38: a value not read is shown back as entered; not sure says so.
+  const own: string[] = [];
+  const rest: string[] = [];
+  for (const reason of because) {
+    const id = reason.slice(reason.indexOf(":") + 1);
+    const entered = about[id];
+    if (reason.startsWith("unreadable:") && entered !== undefined) {
+      const shown = typeof entered === "string" ? entered : JSON.stringify(entered);
+      own.push(unreadableLine(gapName(id), shown));
+    } else if (reason.startsWith("undecided:")) {
+      own.push(undecidedLine(gapName(id)));
+    } else {
+      rest.push(reason);
+    }
+  }
+  if (rest.length === 0) return own.join(" ");
+  return [...own, restLine(rest)].join(" ");
+}
+
+function restLine(because: readonly string[]): string {
   const path = because.flatMap((reason) => {
     if (reason === UNCONFIRMED_TYPED) return ["some dates you typed are not checked yet"];
     const split = reason.indexOf(":");

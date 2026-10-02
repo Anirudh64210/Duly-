@@ -19,6 +19,7 @@ import {
   formatDate,
   formatDay,
   formatValue,
+  shownValue,
   groupOf,
   itemName,
   needsAnswer,
@@ -154,7 +155,7 @@ function Reasons({ output }: { output: EngineOutput }) {
             {item !== undefined && (
               <Disclose label="How Duly counted">
                 <p className="value-line">
-                  {itemName(item.id)}: {formatValue(item.value, item.unit)}
+                  {itemName(item.id)}: {shownValue(item)}
                 </p>
                 <Working item={item} output={output} />
               </Disclose>
@@ -202,7 +203,7 @@ function Metrics({ output }: { output: EngineOutput }) {
             >
               UNEMPLOYMENT COUNT
             </button>
-            <p className="metric-value">{formatValue(used.value, "")}</p>
+            <p className="metric-value">{shownValue({ ...used, unit: "" })}</p>
             {limit !== undefined && (
               <p className="metric-meta">of {formatValue(limit.value, "")} days in the rule</p>
             )}
@@ -237,7 +238,7 @@ function Metrics({ output }: { output: EngineOutput }) {
             >
               FULL-TIME CPT
             </button>
-            <p className="metric-value">{formatValue(cpt.value, "")}</p>
+            <p className="metric-value">{shownValue({ ...cpt, unit: "" })}</p>
             <p className="metric-meta">days in what you entered</p>
           </div>
         )}
@@ -278,7 +279,7 @@ function QuestionsSection({ output, sent }: { output: EngineOutput; sent: Sent }
             key={question.id}
             id={`q:${question.id}`}
             title={questionTitle(question.id)}
-            meta={becauseLine(question.because)}
+            meta={becauseLine(question.because, question.about)}
           >
             {rule !== null && <RuleBlocks ids={[rule]} output={output} />}
             {copy !== null && (
@@ -484,7 +485,7 @@ function DataSection({ output, sent }: { output: EngineOutput; sent: Sent }) {
                 <p className="item-line">
                   <span className="item-name">{itemName(item.id)}</span>
                   <span className="item-value">
-                    {formatValue(item.value, item.unit)}
+                    {shownValue(item)}
                     {item.reading && <span className="reading"> · {READING_TAG}</span>}
                   </span>
                 </p>

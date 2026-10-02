@@ -39,6 +39,7 @@ import {
   factRule,
   formatDate,
   formatValue,
+  shownValue,
   givenLine,
   groupOf,
   inputName,
@@ -288,7 +289,7 @@ function ItemRow(props: {
           {computedName(item)}
           <Marks status={item.status} reading={item.reading} />
         </span>
-        <span className="value">{formatValue(item.value, item.unit)}</span>
+        <span className="value">{shownValue(item)}</span>
       </button>
       <CourtLine
         alternates={item.alternates ?? []}
@@ -468,7 +469,7 @@ export function Questions(props: {
                   {(fact || showsAbout(question.id)) && question.about ? (
                     <AboutValues about={question.about} entered={entered} />
                   ) : (
-                    <p className="because">{becauseLine(question.because)}</p>
+                    <p className="because">{becauseLine(question.because, question.about)}</p>
                   )}
                   {ruleId !== null && rule && (
                     <ul className="rules">

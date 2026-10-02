@@ -52,7 +52,7 @@
         "under": "a2",
         "start": "2026-02-15",
         "hours_per_week": 40,
-        "employer_reported": "yes"
+        "employer_reported": true
       }
     },
     {
@@ -61,5 +61,14 @@
       "fields": { "left_on": "2026-05-01", "returned_on": "2026-05-15" }
     }
   ],
-  "complete": {}
+  "complete": {
+    "program": { "on": "2026-09-29" },
+    "move": { "on": "2026-09-29" },
+    "end_date_change": { "on": "2026-09-29" },
+    "authorization": { "on": "2026-09-29" },
+    "work": { "on": "2026-09-29" },
+    "trip": { "on": "2026-09-29" },
+    "petition": { "on": "2026-09-29" },
+    "withdrawal": { "on": "2026-09-29" }
+  }
 }

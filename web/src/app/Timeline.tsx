@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 
 import type { EngineOutput, Stage } from "../lib/compute";
-import { READING_TAG, formatDate, formatValue } from "../lib/labels";
+import { READING_TAG, formatDate, shownValue } from "../lib/labels";
 import { LANDMARKS } from "../lib/shots";
 import { fetchStatus } from "../lib/status";
 import { stageItemName } from "../lib/views/stages";
@@ -77,7 +77,7 @@ function ItemLines({ ids, stage, output }: { ids: string[]; stage: Stage; output
               <p className="item-line">
                 <span className="item-name">{stageItemName(id, stage)}</span>
                 <span className="item-value">
-                  {formatValue(item.value, item.unit)}
+                  {shownValue(item)}
                   {item.reading && <span className="reading"> · {READING_TAG}</span>}
                 </span>
               </p>

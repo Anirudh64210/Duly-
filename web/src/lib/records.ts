@@ -87,14 +87,11 @@ const DATE_FIELDS: Record<RecordKind, readonly string[]> = {
 // sent as its hours_changes period.
 const DRAFT_ONLY = new Set(["change_start", "change_hours"]);
 
-// SPEC-resolutions point 26: a petition's outcome left as not sure is not known, so it is
-// not sent. The marker is Onboarding's own (views/onboarding.ts NOT_SURE).
-const LEFT_WHEN_NOT_SURE: Partial<Record<RecordKind, ReadonlySet<string>>> = {
-  petition: new Set(["outcome"]),
-};
-
-// Fields the pack declares as numbers.
+// The pack declares hours_per_week a number (kind: number): a typed numeral is that number.
+// Anything else typed there is sent as typed, and the engine reads it and asks.
 const NUMBER_FIELDS = new Set(["hours_per_week"]);
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const NUMERAL = /^-?\d+(\.\d+)?$/;
 
 export function isDateField(kind: RecordKind, name: string): boolean {
   return DATE_FIELDS[kind].includes(name);
@@ -109,48 +106,30 @@ export function nextId(records: readonly DraftRecord[], kind: RecordKind): strin
   return `${prefix}${Math.max(0, ...used) + 1}`;
 }
 
-function cleanField(
-  kind: RecordKind,
-  name: string,
-  value: string | Period[],
-): FieldValue | undefined {
+// SPEC-W2-UNKNOWN point 43: a value is sent as typed, and an empty one as absent (never "").
+function cleanField(name: string, value: string | Period[]): FieldValue | undefined {
   if (Array.isArray(value)) return value.length === 0 ? undefined : value;
   const text = value.trim();
   if (text === "") return undefined;
-  if (text === "not_sure" && LEFT_WHEN_NOT_SURE[kind]?.has(name)) return undefined;
-  if (NUMBER_FIELDS.has(name)) {
-    const number = Number(text);
-    return Number.isFinite(number) ? number : undefined;
-  }
-  if (isDateField(kind, name) && !/^\d{4}-\d{2}-\d{2}$/.test(text)) return undefined;
+  if (NUMBER_FIELDS.has(name) && NUMERAL.test(text)) return Number(text);
   return text;
 }
 
-/** The record as the case holds it: empty fields and links to missing records left out. */
-export function caseRecord(record: DraftRecord, ids: ReadonlySet<string>): CaseRecord {
+/**
+ * The record as the case holds it: empty fields left out, every other value as typed. A link
+ * to an id not in the case is sent too, so the engine asks about it; the ids are not read.
+ */
+// The ids stay in the signature that tests/web/records-typed.test.ts calls.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function caseRecord(record: DraftRecord, _ids?: ReadonlySet<string>): CaseRecord {
   const fields: Record<string, FieldValue> = {};
   for (const [name, value] of Object.entries(record.fields)) {
     if (DRAFT_ONLY.has(name)) continue;
-    const clean = cleanField(record.kind, name, value);
-    if (clean === undefined) continue;
-    if (LINKS.has(name) && typeof clean === "string" && !ids.has(clean)) continue;
-    fields[name] = clean;
+    const clean = cleanField(name, value);
+    if (clean !== undefined) fields[name] = clean;
   }
   return { id: record.id, kind: record.kind, fields };
 }
-
-const LINKS = new Set([
-  "dual_with",
-  "from_program",
-  "to_program",
-  "program",
-  "extends",
-  "basis_program",
-  "employer",
-  "under",
-  "on_campus",
-  "reentry_i20",
-]);
 
 export type Draft = {
   records: DraftRecord[];
@@ -163,8 +142,7 @@ export function buildRecordsCase(
   timeZone: string,
   confirmations: Confirmations,
 ): RecordsCase {
-  const ids = new Set(draft.records.map((record) => record.id));
-  const records = draft.records.map((record) => caseRecord(record, ids));
+  const records = draft.records.map((record) => caseRecord(record));
   const body: RecordsCase = {
     categories: ["f1"],
     time_zone: timeZone,
@@ -182,7 +160,8 @@ export function typedDates(body: RecordsCase): Record<string, string> {
   for (const record of body.records) {
     const kind = record.kind as RecordKind;
     for (const [name, value] of Object.entries(record.fields)) {
-      if (typeof value === "string" && DATE_FIELDS[kind].includes(name)) {
+      // A date that does not read, or not_sure, is asked by the engine, not checked here.
+      if (typeof value === "string" && DATE_FIELDS[kind].includes(name) && ISO_DAY.test(value)) {
         typed[`${record.id}.${name}`] = value;
       }
     }

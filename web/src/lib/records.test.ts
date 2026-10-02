@@ -39,7 +39,9 @@ const draft: Draft = {
 };
 
 describe("buildRecordsCase", () => {
-  it("leaves out every field not known, never sending it as no, none or zero", () => {
+  it("leaves out every empty field, never sending it as no, none or zero", () => {
+    // SPEC-W2-UNKNOWN point 43: a value is sent as typed (the date that does not read, the
+    // link to no record, the hours that are not a number); the engine reads it and asks.
     const body = buildRecordsCase(draft, "America/New_York", {});
     expect(body.categories).toEqual(["f1"]);
     expect(body.facts).toEqual({});
@@ -48,13 +50,15 @@ describe("buildRecordsCase", () => {
       where: "us_on_f1",
       school_name: "State University",
       start_date: "2024-08-20",
+      end_date: "5/15/2026",
+      dual_with: "p9",
     });
     expect(body.records[1]?.fields).toEqual({
       under: "a1",
       start: "2026-06-20",
       hours_per_week: 40,
     });
-    expect(body.records[3]?.fields).toEqual({});
+    expect(body.records[3]?.fields).toEqual({ hours_per_week: "many" });
     expect(body.complete).toEqual({ program: { on: "2026-09-29" } });
   });
 
