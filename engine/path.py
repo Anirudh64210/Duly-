@@ -13,6 +13,7 @@ from typing import Any
 from engine.clocks import Clock, day_in_zone
 from engine.dates import add_months, add_years, is_business_day
 from engine.rulepack import Rulepack
+from engine.settings import load_settings, whole_setting
 from engine.verdict import RULES_STALE_AFTER, VerdictState
 
 Json = dict[str, Any]
@@ -105,6 +106,7 @@ class _Trace:
     lapsed: list[str] = field(default_factory=list)
     differ: list[str] = field(default_factory=list)
     optional_used: bool = False
+    planning: bool = False
 
     def merge(self, other: "_Trace") -> None:
         self.missing += other.missing
@@ -114,12 +116,16 @@ class _Trace:
         self.lapsed += other.lapsed
         self.differ += other.differ
         self.optional_used = self.optional_used or other.optional_used
+        self.planning = self.planning or other.planning
 
 
 class _Run:
-    def __init__(self, case: Json, pack: Rulepack, today: date, records: list[Json]) -> None:
+    def __init__(
+        self, case: Json, pack: Rulepack, today: date, records: list[Json], settings: Json
+    ) -> None:
         self.case = case
         self.pack = pack
+        self.settings = settings
         self.path: Json = pack.path or {}
         self.today = today
         self.facts: Json = case.get("facts", {})
@@ -268,12 +274,22 @@ class _Run:
         return False
 
     def _amount(self, day: date, amount: Json, tr: _Trace) -> date | None:
-        row = self._row(amount["rule"], day, tr)
-        value = None if row is None else _number(row["value"])
-        if row is None or value is None:
+        if "setting" in amount:
+            # A product setting dates a planning window only (the loader refuses it elsewhere).
+            # It is never a rule: nothing goes under rule_ids.
+            setting_id = amount["setting"]
+            value: float | None = whole_setting(self.settings, setting_id)
+            entry = next(e for e in self.settings["settings"] if e.get(ID) == setting_id)
+            unit = str(entry["unit"]).replace(" ", "_")
+            tr.planning = True
+        else:
+            row = self._row(amount["rule"], day, tr)
+            if row is None:
+                return None
+            value, unit = _number(row["value"]), row["unit"]
+        if value is None:
             return None
         n = int(value) * int(amount.get("sign", 1))
-        unit = row["unit"]
         if unit == "days":
             return day + timedelta(days=n)
         if unit == "business_days":
@@ -786,20 +802,25 @@ class _Run:
         dates: dict[str, date | None] = {}
         all_rules: list[str] = list(window["rule_ids"])
         inputs: Json = {}
+        traces: dict[str, _Trace] = {}
         for end in ("opens", "closes"):
-            tr = _Trace()
-            day = self._when(window[end], record, record, tr)
-            dates[end] = day
+            tr = traces[end] = _Trace()
+            dates[end] = self._when(window[end], record, record, tr)
             if is_next:
                 self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed, differ=tr.differ))
             else:
                 self._need(tr)
+        # A window either of whose days a product setting moves is a planning window, and so
+        # are both its items (SPEC-W2 point 46, N1).
+        planning = any(tr.planning for tr in traces.values())
+        for end, tr in traces.items():
             rules = _unique([*window["rule_ids"], *tr.rules])
             all_rules += rules
             inputs.update(tr.inputs)
             item_id = f"{window[ID]}.{end}{suffix}"
             items.append(item_id)
-            self._item(item_id, day, "date", tr.inputs, rules, rid, ahead=not done)
+            day = dates[end]
+            self._item(item_id, day, "date", tr.inputs, rules, rid, not done, planning)
         stage_rules += all_rules
         opens, closes = dates["opens"], dates["closes"]
         is_open = opens is not None and closes is not None and opens <= self.today <= closes
@@ -820,6 +841,8 @@ class _Run:
         }
         if rid is not None:
             entry["record"] = rid
+        if planning:
+            entry["planning"] = True
         return entry
 
     def _item(
@@ -831,6 +854,7 @@ class _Run:
         rules: list[str],
         rid: str | None,
         ahead: bool = False,
+        planning: bool = False,
     ) -> None:
         self._rules(rules)
         shown = value.isoformat() if isinstance(value, date) else value
@@ -845,6 +869,8 @@ class _Run:
         }
         if rid is not None:
             item["record"] = rid
+        if planning:
+            item["planning"] = True
         self.computed.append(item)
         if ahead and isinstance(value, date) and value >= self.today:
             coming: Json = {
@@ -858,6 +884,8 @@ class _Run:
             }
             if rid is not None:
                 coming["record"] = rid
+            if planning:
+                coming["planning"] = True
             self.upcoming.append(coming)
 
     def _next(self, step: Any, record: Json | None) -> None:
@@ -1072,12 +1100,21 @@ class _Run:
             if shown is False:
                 continue
             limit = _number(self._rule_value(counter["limit_rule"], self.today, gtr))
-            value, unit, over = self._calculate(counter, members, limit, gtr)
+            value, unit, over, counted = self._calculate(counter, members, limit, gtr)
             if not whole or shown is None:
                 value, over = None, False
             self._need(gtr)
             rules = _unique([*counter["rule_ids"], counter["limit_rule"], *gtr.rules])
-            self._item(f"{counter[ID]}.{key}", value, unit, gtr.inputs, rules, None)
+            item_id = f"{counter[ID]}.{key}"
+            self._item(item_id, value, unit, gtr.inputs, rules, None)
+            if counted is not None:
+                # SPEC-W2 point 46, N2: the day the count would reach its limit if nothing in
+                # the record changes, the limit-th day counted. None when the count is not
+                # known or never gets there.
+                reached = None
+                if value is not None and limit is not None and 0 < limit <= len(counted):
+                    reached = sorted(counted)[int(limit) - 1]
+                self._item(f"{item_id}.limit_day", reached, "date", gtr.inputs, rules, None)
             if value is not None and limit is not None:
                 result[key] = over
             if over:
@@ -1110,14 +1147,16 @@ class _Run:
 
     def _calculate(
         self, counter: Json, members: list[Json], limit: float | None, tr: _Trace
-    ) -> tuple[float | None, str, bool]:
+    ) -> tuple[float | None, str, bool, list[date] | None]:
+        """The count, its unit, whether it is at or over the limit, and for a count of days
+        every day it counts or would count while nothing in the record changes."""
         calculator = counter["calculator"]
         if calculator == "count_of_records":
             count = len(members)
-            return count, "count", limit is not None and count >= limit
+            return count, "count", limit is not None and count >= limit, None
         spans = [self._span_of(counter, r, tr) for r in members]
         if any(s is None for s in spans):
-            return None, "days", False
+            return None, "days", False, []
         known = [s for s in spans if s is not None]
         if calculator == "sum_of_months":
             months, days = 0, 0
@@ -1129,29 +1168,31 @@ class _Run:
                 months += whole
                 days += (after - add_months(starts, whole)).days
             tr.inputs["days"] = days
-            return months, "months", limit is not None and months >= limit
+            return months, "months", limit is not None and months >= limit, None
         if calculator == "sum_of_days":
             covered: set[date] = set()
             for starts, ends in known:
                 covered |= {starts + timedelta(days=n) for n in range((ends - starts).days + 1)}
             total = len(covered)
-            return total, "days", limit is not None and total >= limit
-        total_days = 0
+            return total, "days", limit is not None and total >= limit, list(covered)
+        counted: list[date] = []
         for record, (starts, ends) in zip(members, known, strict=True):
-            without = self._days_without(counter, record, starts, min(ends, self.today), tr)
+            without = self._days_without(counter, record, starts, ends, tr)
             if without is None:
-                return None, "days", False
-            total_days += without
+                return None, "days", False, []
+            counted += without
+        total_days = sum(1 for day in counted if day <= self.today)
         over = limit is not None and total_days >= limit
-        return total_days, "days", over
+        return total_days, "days", over, counted
 
     def _days_without(
         self, counter: Json, record: Json, starts: date, ends: date, tr: _Trace
-    ) -> int | None:
-        """Days in the span no qualifying record covers. None when it is not known which
-        records qualify: an unknown selection is never read as none."""
-        if ends < starts:
-            return 0
+    ) -> list[date] | None:
+        """Days in the span no qualifying record covers, the days after today as they stand
+        while nothing in the record changes. None when it is not known which records
+        qualify: an unknown selection is never read as none."""
+        if self.today < starts:
+            return []
         covered: set[date] = set()
         hours_limit = None
         if "hours_rule" in counter:
@@ -1171,9 +1212,8 @@ class _Run:
                 return None
             for other in others:
                 covered -= self._days_of(other, starts, ends, tr)
-        return sum(
-            1 for n in range((ends - starts).days + 1) if starts + timedelta(days=n) not in covered
-        )
+        days = (starts + timedelta(days=n) for n in range((ends - starts).days + 1))
+        return [day for day in days if day not in covered]
 
     def _span_fields(self, kind: str) -> tuple[str, str] | None:
         """The fields that hold a record's first and last day: the first two date fields
@@ -1326,13 +1366,14 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
     hard: list[str] = []
     soft: list[str] = []
     runs: list[_Run] = []
+    settings = load_settings()
     for category in categories:
         pack = by_category.get(category)
         if pack is None or not _covered(pack):
             hard.append(f"{NOT_COVERED}{category}")
             continue
         own = [r for r in records if r.get("category", categories[0]) == category]
-        run = _Run(case, pack, today, own)
+        run = _Run(case, pack, today, own, settings)
         run._refuse_undeclared()
         run.ask_unknown_choices()
         runs.append(run)

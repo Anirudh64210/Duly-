@@ -1534,3 +1534,27 @@ Status: done.
 - tests/unit with tools excluded: exit 0.
 
 Status: done.
+
+## l-engine-e7587fdb33: SPEC-W2 point 46, N1 and N2 (W2-P1)
+
+- Before any change: the target tests failed at once with KeyError 'rule' in path.py `_amount`:
+  L-content's pack already holds opt.prepare and stem.prepare with `{setting: plan.prepare_months}`.
+- N1, engine/path.py: `_amount` reads a `setting` amount from contracts/product_settings.yaml
+  (engine.settings, loaded once per compute), its unit from the setting ("business days" read as
+  business_days), and marks the trace planning; the setting never enters rule_ids. `_window`
+  works both days first, then marks the window, both its items and their upcoming entries
+  planning: true when either day used a setting.
+- N2, engine/path.py: for a count of days, `_calculate` also gives every day it counts or would
+  count while nothing changes (days_without_qualifying_period: the uncovered days over the whole
+  span, the count is those up to today; sum_of_days: the covered days). The item
+  `<counter>.<key>.limit_day` (unit date, the counter's rules) is the limit-th such day, null when
+  the count is unknown or never reaches the limit. No item for count_of_records or sum_of_months.
+- engine/rulepack.py `_reject_misplaced_settings`: an amount naming a setting anywhere but
+  path/stages/<n>/windows/<n>/opens|closes is refused in one line naming the setting.
+- Done command as written, output to $TMPDIR/l-engine-e7587-done.txt: exit 0 (journeys and both
+  W2 files pass, 2 xfailed as before; engine literals clean; mypy 68 files clean; ruff clean; 9
+  files formatted).
+- tests/unit with tools excluded: 15 failures, all tests/unit/desktop_entry socket tests with
+  "Operation not permitted" (the sandbox refuses unix sockets); none in engine.
+
+Status: done.
