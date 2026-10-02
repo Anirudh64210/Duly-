@@ -1678,3 +1678,46 @@ Status: escalated.
   point 11 (dispute in REPORT.json).
 
 Status: done.
+
+## l-engine-af4f972318: SPEC-W2-UNKNOWN engine-reads (points 6 to 10, 13 to 17, 25 to 28, 32, 34 to 37, 39)
+
+- Before any change, the done command as written ($TMPDIR/b0.txt): exit 1, 10 failures: R1
+  (withholds), R4, R11, R12 (asked as missing:, not unreadable:), R26 (no CaseStructureError),
+  R30 (a not_sure fact read recorded nothing), R31 (entered_when read a stated not-yet card
+  date as absent, so no apply window), R40 (no not_sure judgement for a field nothing reads),
+  and point 37 (path.py decided on its own).
+- engine/path.py:
+  - `_refuse_undeclared(records)`: undeclared fact, kind or field, an id not matching
+    `^<id_prefix>[0-9]+$`, more than max_records, two records with one id. Messages use the
+    pack's words only, never what was sent.
+  - `_need` names a gap by state: `unreadable:` (about holds the value as entered),
+    `missing:`, `undecided:`. ask_unreadable raises `<record>.<field>.not_sure` for every
+    not_sure, read or not, and asks every unreadable case fact.
+  - `_read` reads case facts against the pack's declared facts, and with a day reads the
+    last field through its history (`_as_given`): a change record that could apply with a
+    day, link or old value not known leaves it unknown, naming the change's field; no change
+    record applies only when the change list is stated whole (else `complete.<kind>`).
+  - `_when3` keeps NONE and NOT_YET apart from not known (ABSENT). `as_of` not known is not
+    known; not yet reads today's value. `_extreme` (earliest_of, latest_of, point 16) and
+    `_first` (point 15) by the SPEC's rules, a found `first` needing the list whole unless
+    pinned by `this.id same_as outer.id` (`_pinned`). A not-yet member never dates an
+    ends_also reading (j08). `ends_also` not known leaves the end not known (point 28).
+  - `_each`: stage and check for_each keep decided records; each undecided one is asked,
+    its questions carry `withholds` `<stage>.<record>`; an undecided record with no gap is
+    `engine_gap:`. Windows and their computed items carry `waits_on` (question ids, lapses,
+    `complete.<kind>`, `pending:`); a null not-known date with nothing named is `engine_gap:`.
+  - entered_when and done_when read through the readers: a stated not-yet is known (R31);
+    not_sure, false or a stated absence is never done.
+  - `_as_date` matches the ISO pattern first (point 41, U27).
+  - compute decides through `verdict.decide` (point 37). verdict.py gained
+    unreadable_inputs, undecided_inputs, categories_not_covered and engine_gaps, each a
+    blocker. A typed date not checked against a document is now a blocker as well.
+- Tried and reverted: asking every not_sure `happened` date (point 32). It fails P6's
+  "a settled tree asks nothing" (point 8) in test_unknown_logic.py. Not built; dispute.
+- Done command as written ($TMPDIR/d3.txt): exit 0. Journeys ($TMPDIR/journeys1.txt): one
+  failure (j08, ends_also above), fixed, then exit 0. The full tests/unit/engine and
+  acceptance run passed 10 minutes twice and was stopped (the property files are slow in
+  my sandbox), so I have no full wide run. R5 and R7 still fail, left to the stages round as
+  the plan note says.
+
+Status: done.

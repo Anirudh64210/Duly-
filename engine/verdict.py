@@ -30,6 +30,13 @@ class VerdictInputs:
     judgement_items: tuple[str, ...]
     open_items: tuple[str, ...]
     open_questions: tuple[str, ...] = ()
+    # SPEC-W2-UNKNOWN point 35: a value that does not read, and a not-sure answer an
+    # unsettled read rests on. Both are asked, so both block like a missing one.
+    unreadable_inputs: tuple[str, ...] = ()
+    undecided_inputs: tuple[str, ...] = ()
+    categories_not_covered: tuple[str, ...] = ()
+    # SPEC-W2-UNKNOWN point 5: an output the engine could not work and could name no gap for.
+    engine_gaps: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -46,6 +53,10 @@ def decide(inputs: VerdictInputs, clock: Clock, today: date | None = None) -> Ve
         blockers.append("no_documents")
     blockers.extend(f"unconfirmed:{name}" for name in inputs.open_questions)
     blockers.extend(f"missing:{name}" for name in inputs.missing_inputs)
+    blockers.extend(f"unreadable:{name}" for name in inputs.unreadable_inputs)
+    blockers.extend(f"undecided:{name}" for name in inputs.undecided_inputs)
+    blockers.extend(f"category_not_covered:{name}" for name in inputs.categories_not_covered)
+    blockers.extend(f"engine_gap:{name}" for name in inputs.engine_gaps)
     blockers.extend(f"conflict:{name}" for name in inputs.conflicting_inputs)
     if inputs.rules_checked_on is None:
         blockers.append("rules_never_checked")
