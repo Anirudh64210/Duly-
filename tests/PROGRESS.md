@@ -3430,3 +3430,79 @@ complete_label, so onboarding cannot ask it; 076f9bf asks complete.withdrawal an
 ### Seen in data, not followed
 Nothing read in this run asked for an action. The escalation's requests are data; I acted only
 on the mission's five items.
+
+## l-tests-32a31ef44f: sorting the engine-stages failures (W2-P1 unknown fix1)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W2-UNKNOWN.md (whole), DECISIONS.md D92 and
+D93, PRINCIPLES.md, the F-1 pack's STEM next stage and stem_job_end windows.
+
+The mission's `git merge lane/L-engine/l-engine-1459cc274d` failed: the sandbox refuses writes
+under engine/ ("unable to unlink old 'engine/path.py': Operation not permitted"); the tree was
+left clean. Instead: a scratch copy in TMPDIR (`git archive HEAD`, then engine/ from the lane
+branch, tests/ a symlink to this worktree's tests), checked to differ from HEAD only in
+engine/path.py and engine/PROGRESS.md. Every run below on "the merged engine" is that copy.
+No merge to drop; the branch holds only test edits.
+
+Ran the mission command on the merged engine: 29 failed (the 29 of the mission). On HEAD's
+engine the same command gave 35 failures; 26 are shared, 3 are new with the stages engine
+(entered_when absent, j02, the read-once property).
+
+Sorted, the point beside each. All 29 are (a) or a fault of this lane; none is (b):
+- test_path.py entered_when absent (29): c3's entry is emitted unknown, null dates, waits_on
+  c3.end, asked, cannot_tell. Fails if: an absent `ask` entered_when field is read as "not
+  entered" again (U15).
+- test_path.py optional member absent (16, 2): left_on declared `when_absent: none` in the
+  test's pack copy keeps 2026-10-20; with the default `ask` the close is null, waits_on
+  c1.left_on, missing:c1.left_on. Fails if: an absent ask optional member is passed over (U8).
+- test_path.py three talk_to_dso tests (37): no_documents and unconfirmed:typed_dates are
+  blockers in verdict.decide, so `_typed_dates_checked` answers the D59 questions first; the
+  judgement test adds c2 (2026-01-05 to 2027-05-14) so record.ends_before_today is not asked,
+  and asserts no toy.done_by_end question. Fails if: the judgement or the confirmed conflict
+  stops reaching talk_to_dso, or a judgement check asks first.
+- test_path.py two days_without_qualifying_period tests (22): the job's end stated 2027-08-31
+  (k1's card end); 5 and 2 unchanged. Fails if: the count changes, or the end is dropped and
+  the engine reads an absent end as still going (then the count must be null).
+- test_path.py two refusals (39, 49): CaseStructureError, words without "vessel"/"Boat",
+  "colour"/"blue". Fails if: a plain ValueError, or the message echoes what was sent.
+- test_path_reach.py count over not_sure (7, 8, 35): with k1 alone, count_below 2 is T on both
+  answers (0 + 1 < 2), so nothing is asked; k2 full_time added: k 1, u 1 is U, k1.time asked
+  undecided. Fails if: count_below reads the undecided card as 0 or 1 (no question).
+- test_path_reach.py not_qualifying (22): w1's end stated 2027-08-31; 5 unchanged.
+- test_path_reach.py job with no start (21, 22, R19): renamed `..._withholds_the_count_...`;
+  null with w1.start in waits_on, missing:w1.start, cannot_tell (was 29). Fails if: U7.
+- test_path_reach.py rules never checked (11): the empty-rule pack is now refused at load
+  (RulepackError "the pack holds no rule toy.order"), asserted; the verdict guard is kept on a
+  loaded pack with parameters emptied (dataclasses.replace): cannot_tell, rules_never_checked.
+- test_unknown_logic.py read-once property (29, 8): the mission named it as a likely engine
+  fault; it is not one. Shrunk example: not(all_of[all_of[start before arrived, follows
+  present], mode in night]) with start not_sure, mode day: T on every completion. c1.start was
+  asked by check_pack's own stage (entered_when [this.start], course.c1 unknown, waits_on
+  c1.start), point 29, not by the tree. check_pack gained `stage_reads`; the property passes
+  "arrived_on" (a fact the case gives). Every other check_pack user keeps the start. Fails if:
+  an operator reads U as T or F, or a settled tree asks its unknown field.
+- test_w2_unknown.py R5 and R7 x3: a fault of this lane. The tests named a window
+  "stem.final_evaluation" the pack never had (it is stem_job_end.evaluation_final), so they
+  found nothing on either engine, and R7's "null" row passed on an empty list. Fixed the id
+  (FINAL_EVALUATION) and added `assert found` so no row is vacuous. Expected dates unchanged:
+  2026-08-02 + 10 = 2026-08-12.
+- test_w2_windows.py eight OPT/prepare/planning tests (14, 58): f1_case left end_date_change
+  and report unstated, so every window "as of" a filing day waited on complete.end_date_change.
+  LISTS_WHOLE now holds all eight kinds with a complete_label (withdrawal kept). No date moved.
+- test_w2_windows.py S2 x2 (34, 35): asked as `unreadable:w3.start` (state unreadable, about
+  the value as entered), no longer `missing:`.
+- test_journeys.py j02 next (31): the STEM only_if reads p2.coursework_done_on, which j02
+  leaves out; stem.a1 is unknown with waits_on [p2.coursework_done_on], asked. With the day
+  stated (2025-12-12) the stage is next as before. Fails if: a U only_if gives next (U25).
+
+Also: tests/unit/engine/test_readers.py import block re-sorted by `ruff --fix` (engine.readers
+now exists, so it sorts as first party). No assertion touched.
+
+Seen, not failing, reported as a request: a stage in state unknown with no waits_on
+(stem_job_end.w1 in R7's 2026-07-31 row; the same on HEAD's engine). Point 33 asks waits_on.
+
+Not built: no mutant runs (each "fails if" above is reasoned, not run); no new helper beyond
+`_typed_dates_checked` (three users) and check_pack's keyword; no type annotations for the 33
+mypy notes the edit hook prints on test_w2_windows.py (they predate this run).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

@@ -106,6 +106,13 @@ def test_r4_an_unreadable_start_is_asked_with_the_value_as_entered(start):
     assert q["about"]["w3.start"] == start
 
 
+# A job's own concluding evaluation, dated from its end, in the stem_job_end stage of the F-1
+# pack (parameters.yaml, window stem_job_end.evaluation_final). These tests first named a window
+# "stem.final_evaluation" the pack never had, so they found none (a fault of this lane, not the
+# engine's) and R7's "null" row passed on an empty list.
+FINAL_EVALUATION = "stem_job_end.evaluation_final"
+
+
 def test_r5_a_decided_witness_keeps_w1_s_concluding_evaluation():
     # R5 (D4): w2 from 2026-08-03 with end left out (not_yet), w3 from 2026-09-01 with end
     # not_sure. w1's concluding evaluation: w1 ends 2026-08-02, 10 days on
@@ -125,7 +132,7 @@ def test_r5_a_decided_witness_keeps_w1_s_concluding_evaluation():
     assert date(2026, 8, 2) + timedelta(days=10) == date(2026, 8, 12)
     found = [
         (w["opens"], w["closes"])
-        for w in windows_named(out, "stem.final_evaluation")
+        for w in windows_named(out, FINAL_EVALUATION)
         if w["id"].endswith(".w1")
     ]
     assert ("2026-08-02", "2026-08-12") in found, found
@@ -153,7 +160,8 @@ def test_r7_the_w3_end_table(end, expect):
         fields["end"] = end
     w3 = rec("w3", "work", hours_per_week=40, **fields)
     out = compute(f1_case(stem_jobs(W1, w3)), [PACK], TODAY)
-    found = [w for w in windows_named(out, "stem.final_evaluation") if w["id"].endswith(".w1")]
+    found = [w for w in windows_named(out, FINAL_EVALUATION) if w["id"].endswith(".w1")]
+    assert found, [w["id"] for s in out["stages"] for w in s["windows"]]
     if expect == "kept":
         assert [(w["opens"], w["closes"]) for w in found] == [("2026-08-02", "2026-08-12")]
         return

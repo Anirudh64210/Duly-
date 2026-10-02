@@ -166,7 +166,6 @@ def test_the_readable_dates_are_the_product_settings_bounds():
     # contracts/product_settings.yaml. The reader reads from the file, so these two edges
     # hold for any engine that reads the same file. Fails if the bounds are hard-coded apart.
     from engine.readers import read
-
     from engine.settings import load_settings
 
     by_id = {row["id"]: row for row in load_settings()["settings"]}

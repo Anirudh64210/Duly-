@@ -490,24 +490,28 @@ def pack(**parts: Any) -> Rulepack:
     return validate_pack(raw)
 
 
-def check_pack(condition: dict[str, Any]) -> Rulepack:
+def check_pack(condition: dict[str, Any], *, stage_reads: str = "this.start") -> Rulepack:
     """P6: the toy records with one check, on the course, whose `holds` is one generated tree.
-    A conflict on c1 means the tree is F; no conflict and nothing asked means T."""
+    A conflict on c1 means the tree is F; no conflict and nothing asked means T.
+
+    The one stage, there so the category is covered, reads `stage_reads` and nothing else. By
+    default the course start: SPEC-W2-UNKNOWN point 29 asks an entered_when field that is
+    unknown, so a test whose tree may read the start passes `stage_reads="arrived_on"` (a fact
+    the case gives) to keep every question on c1 the tree's own."""
     check = {
         "id": "tree",
         "for_each": {"record": "course"},
         "holds": [condition],
         "rule_ids": ["toy.cap"],
     }
-    # One stage that reads only the course start, so the category is covered and nothing else
-    # is read.
-    stage = {
+    stage: dict[str, Any] = {
         "id": "course",
         "label": "Course",
-        "for_each": {"record": "course"},
-        "entered_when": ["this.start"],
+        "entered_when": [stage_reads],
         "rule_ids": ["toy.definition"],
     }
+    if stage_reads.startswith("this."):
+        stage["for_each"] = {"record": "course"}
     return pack(stages=[stage], checks=[check], counters=[])
 
 
