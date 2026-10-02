@@ -1,0 +1,21 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Bring the hidden tests in line with the one rule for unknown values (D92) the way plan-w2-p1-unknown-fix1 did for the visible ones, and fix any engine fault they then still show. SPEC-W2-UNKNOWN points 1, 5, 8, 14, 34 and 54.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Run uv run pytest tests/holdout -q. For each failure decide by the point of SPEC-W2-UNKNOWN that explains it: (a) the test encodes the old reading: a case leaves a list unstated that its expected stage, window or count rests on (state it whole as onboarding will ask it, D92 point 58, as fix0 did for tests/unit/acceptance; never loosen an expected date or count), or it expects the reason missing: where point 1 and 34 now name an entered but unreadable value unreadable:, or any other old reading a point changes: update the test with the point beside the change; (b) no point explains it (for example a planning window that comes back empty though every fact it rests on is stated): leave the test and list it in your REPORT requests as an engine fault, with the input, the expected and the actual output. Done when every (a) failure passes and every (b) failure is listed.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/holdout --co -q >/dev/null'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read .factory/runs/result-step-w_tests_L-tests.json (this plan''s tests round): every request it lists is an engine fault found by the hidden tests, given with its input, expected and actual output (you cannot see those tests). Fix each by the class, as SPEC-W2-UNKNOWN points 6, 8 and 29 to 33 say, generic, nothing about F-1 in engine code. If it lists none, change nothing and report done. Every test in tests/unit/engine and the journeys must keep passing.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
