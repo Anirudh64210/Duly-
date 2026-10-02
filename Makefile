@@ -1,7 +1,7 @@
 COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
-.PHONY: up down seed logs test e2e attack lane prove-gates \
+.PHONY: up down seed logs test ci e2e attack lane prove-gates \
         gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke prototype-app desktop-python desktop-package desktop-verify desktop-launch-time
 
 up:
@@ -67,6 +67,20 @@ test-offline: gate-1 gate-2 gate-3 gate-5 gate-6 gate-7
 
 test: gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7
 	@echo "gates 1 to 7: green"
+
+# Exactly the gate steps of .github/workflows/ci.yml, in its order, with its base branch and
+# the hidden tests. Run before every push; tests/unit/tools/test_ci_mirror.py keeps the two
+# in step.
+ci:
+	$(MAKE) --no-print-directory gate-1
+	$(MAKE) --no-print-directory gate-2
+	$(MAKE) --no-print-directory gate-3 BASE=main
+	$(MAKE) --no-print-directory gate-4
+	$(MAKE) --no-print-directory gate-5
+	$(MAKE) --no-print-directory gate-7
+	uv run pytest tests/holdout -q -p no:cacheprovider
+	$(MAKE) --no-print-directory gate-6 BASE=main
+	@echo "ci: green, the same steps as .github/workflows/ci.yml"
 
 prove-gates:
 	uv run python -m tools.gates.prove
