@@ -411,15 +411,16 @@ def test_the_report_window_carries_the_guidance_tag():
     assert "planning" not in found[0]
 
 
-def test_an_opt_hours_change_gives_its_own_report_window():
-    # Job from 2026-07-01 at 40 hours; from 2026-09-01 at 25 hours, still running. The change
-    # is a change in employment information: 2026-09-01 plus 10 is 2026-09-11. The start
-    # keeps its own window, 2026-07-01 to 2026-07-11.
+def test_an_opt_hours_change_gives_no_report_window_of_its_own():
+    # Job from 2026-07-01 at 40 hours; from 2026-09-01 at 25 hours, still running. No saved
+    # source gives a number of days for reporting a change of hours on post-completion OPT
+    # ((f)(12)(i) states none; the SEVP page names no hours), so Duly gives no date for it
+    # (CLAUDE.md: if the law does not state a number, Duly does not have it). The start keeps
+    # its own window, 2026-07-01 to 2026-07-11. Founder decision 2026-10-01, SPEC-W2 point 45.
     job = opt_job(start="2026-07-01", hours_changes=[{"start": "2026-09-01", "hours_per_week": 25}])
     out = compute(opt_job_case(job), [PACK], TODAY)
     assert report_windows(out, "w1", "opt.report_employer_within_days") == {
         ("2026-07-01", "2026-07-11"),
-        ("2026-09-01", "2026-09-11"),
     }
 
 

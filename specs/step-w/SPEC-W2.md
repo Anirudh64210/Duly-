@@ -429,8 +429,10 @@ with tests first. Codes as used in the gap map.
 
 **Rule pack (L-content, every rule from a saved primary source with its quote, never a number
 written by hand):**
-45. P1 last-day windows; P2 prepare windows (with K6, N1); P3 report windows on a job's start and
-    an hours change; P4 passport, visa and address records with 8 CFR 214.2(f)(17) and
+45. P1 last-day windows (with no DSO recommendation date the last day is not known: missing means
+    Can't tell yet and the date is asked, founder decision 2026-10-01); P2 prepare windows (with K6,
+    N1); P3 report windows on a job's start (an hours change waits: no saved source gives its days,
+    founder decision 2026-10-01); P4 passport, visa and address records with 8 CFR 214.2(f)(17) and
     (f)(12)(ii)(A) (D74); P5 trip windows; P6 the dates to watch; P7 `confirmed_on` fields; P8 the
     cap-gap stage; P9 the DHS STEM list as a saved source; P10 self-employment on OPT and STEM OPT;
     P11 O-1 rules in rulepacks/o1-us; P12 document replacement sources. A rule with no saved source

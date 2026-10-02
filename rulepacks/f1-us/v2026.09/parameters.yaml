@@ -1737,7 +1737,7 @@ path:
           closes:
             earliest_of:
               - {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_after_days}]}
-              - {optional: true, fact: this.dso_on, add: [{rule: opt.file_within_days_of_recommendation}]}
+              - {fact: this.dso_on, add: [{rule: opt.file_within_days_of_recommendation}]}
           rule_ids: [opt.apply_before_days, opt.apply_after_days, opt.file_within_days_of_recommendation]
           done_when: [this.filed_on, this.card_start]
         - id: opt.prepare
@@ -1804,7 +1804,7 @@ path:
           closes:
             earliest_of:
               - {fact: this.extends.card_end}
-              - {optional: true, fact: this.dso_on, add: [{rule: stem.file_within_days_of_recommendation}]}
+              - {fact: this.dso_on, add: [{rule: stem.file_within_days_of_recommendation}]}
           rule_ids: [stem.apply_before_expiry_days, stem.apply_window_closes_rule, stem.file_within_days_of_recommendation]
           done_when: [this.filed_on]
         - id: stem.prepare
