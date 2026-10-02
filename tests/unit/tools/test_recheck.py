@@ -150,6 +150,25 @@ def test_a_rule_naming_the_changed_copy_is_backed_by_its_sha256(tmp_path):
     assert recheck.check(pack) == []
 
 
+def test_a_changed_copy_found_by_its_bytes_still_needs_the_quote(tmp_path):
+    # FEED-PA review note 8: the sha256 key alone must not back a rule.
+    pack = make_pack(tmp_path, checked_on="2026-10-02")
+    recheck.fetch(pack, NOW, fake_web())
+    params = (
+        (pack / "parameters.yaml")
+        .read_text()
+        .replace(
+            "snapshot: sources/page.html, checked_on: 2026-10-02, quote: new page",
+            f"snapshot: sources/other.html, snapshot_sha256: {sha(b'new page')}, "
+            "checked_on: 2026-10-02, quote: words that are not there",
+        )
+    )
+    (pack / "parameters.yaml").write_text(params)
+    assert recheck.check(pack) == [
+        "p2: checked_on 2026-10-02 has no fresh fetch of other.html on or after it"
+    ]
+
+
 def test_a_second_fetch_the_same_day_adds_rows_and_keeps_the_first(tmp_path):
     pack = make_pack(tmp_path)
     recheck.fetch(pack, NOW, fake_web())

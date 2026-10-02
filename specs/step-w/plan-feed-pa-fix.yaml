@@ -1,0 +1,31 @@
+branch: step-w
+spec: specs/step-w/SPEC-FEED.md
+goal: 'Clear the FEED-PA review veto (reviews/feed-pa.md): the appeal draft follows the update contract and states only what its sources show, and every date the pack carries says plainly what it rests on. SPEC-FEED points 28, 29 and 55.'
+merge: local
+audited: false
+rounds:
+- name: fixes
+  lanes:
+  - lane: L-pipeline
+    agent: builder
+    mission: 'Read reviews/feed-pa.md findings 1 and 2. Reshape pipeline/drafts/2026-10-02-presidents-alliance-appeal.json to follow contracts/update.schema.json exactly (SPEC-FEED points 28 and 29): headline, plain, categories ["f1"], history with {on 2026-09-30, legal_status appealed, note, source_url}, claims only with the fields the schema allows; per-claim extras and the absence check go into the claim text or rulepacks/PROGRESS.md, never extra fields. Wording: say only what the sources show, as information: the district court docket listing fetched on 2026-10-02 shows no entry that stays the order, and the First Circuit docket was not read; the final rule would set a fixed admission period (it is enjoined, so never the present tense as if in force). Nothing addressed to the student, nothing about what anyone should do (BOUNDARY.md). It stays a draft. tests/unit/pipeline/test_update_files.py must pass.'
+    done: bash -c 'uv run pytest tests/unit/pipeline -q'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Read reviews/feed-pa.md findings 3, 4 and 6. Finding 3: on calendar.federal_holidays_law (both rows) and capgap.fiscal_year_start_month_day, say in the source note that the govinfo.gov copy is the 2024 Edition, current through 2025-01-06, that uscode.house.gov (which carries later laws) served another page on 2026-10-02, and that any amendment after 2025-01-06 is not covered by this copy; keep the dates as the plan set them. Finding 4: on the fixed_admission_2026 regime, say in its note that the docket listing it rests on was fetched at 2026-10-02T06:09Z, before the status conference the listing sets for 2026-10-02 12:00 in Boston (ECF 52), so any order from it is not covered. Finding 6: fix the two run-on sentences (the regime note, and SOURCES.md around the fetch paragraph). The D90 the pack cites is now in DECISIONS.md. No number, status or date changes.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -m tools.copy_lint.lint && uv run pytest tests/unit/engine -q'
+  checks:
+  - name: sources
+    run: uv run python -m tools.sources.verify rulepacks
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review FEED-PA after its fixes (plan-feed-pa.yaml and plan-feed-pa-fix.yaml) against SPEC-FEED points 28, 29 and 55, PRINCIPLES.md, BOUNDARY.md and your findings in reviews/feed-pa.md. Check each finding is fixed: the draft validates against contracts/update.schema.json and states only what its sources show; the notes on the US Code copy and the docket say what the dates rest on; recheck now needs the quote even when a rule is found by sha256. Try hardest again to find a checked_on that no fetch backs and words that cross Side B. Write reviews/feed-pa.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/feed-pa.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit FEED-PA (plan-feed-pa.yaml and plan-feed-pa-fix.yaml) as your role file describes. Write docs/requirements/audits/feed-pa.md.'
+    done: bash -c 'test -f docs/requirements/audits/feed-pa.md && uv run python -m tools.requirements.register check'

@@ -182,7 +182,8 @@ def _fetches(pack: Path) -> dict[str, list[Fetched]]:
             # Also findable by its bytes: a rule may name the changed copy, saved under sources/
             # with its own name, by that copy's sha256 (SPEC-FEED point 55).
             if row.get("sha256"):
-                found.setdefault(f"sha256:{row['sha256']}", []).append(Fetched(day, None))
+                # A changed copy found by its bytes still has to hold the rule's quote.
+                found.setdefault(f"sha256:{row['sha256']}", []).append(Fetched(day, copy))
     return found
 
 
