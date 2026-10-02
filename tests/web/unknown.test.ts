@@ -41,6 +41,6 @@ describe("point 38, the words for an unknown value", () => {
       line("undecidedLine")("x"),
       line("waitingLine")("x"),
     ];
-    for (const words of all) expect(words).not.toMatch(/[–—]/);
+    for (const words of all) expect(words).not.toMatch(/[\u2013\u2014]/);
   });
 });

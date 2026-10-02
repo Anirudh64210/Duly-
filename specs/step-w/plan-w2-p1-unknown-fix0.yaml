@@ -1,0 +1,19 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Clear the engine-core escalation of the unknown-values plan: the tests agree with each other and with the amended point 11 (D93), the journeys state their lists whole as onboarding will ask them, and the F-1 pack loads under the full lint, so the engine rounds can resume. SPEC-W2-UNKNOWN points 7a, 11, 14, 35 and 54.'
+merge: local
+audited: false
+rounds:
+- name: fixes
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read the L-engine escalation recorded in .factory/runs/result-step-w_engine-core_L-engine.json (disputes 4 to 7) and SPEC-W2-UNKNOWN points 7a, 11 (as amended for D93), 14, 35 and 54. (1) test_unknown_logic.py: the same_as and differs_from rows on a when_absent none field in a check''s holds carry the present: true guard point 7a requires, so they agree with test_rulepack.py point 7a; (2) test_every_operator_is_drawn_at_least_five_times counts the pairwise operators as it counts the list ones, so it can pass; (3) the journeys and the fix tests (test_journeys.py, test_fix7.py, test_fix8.py and any other acceptance case) state each list whole where onboarding will ask it (complete.move and the like, D92 point 58), so their expected stages, counts and windows rest on stated facts, never on an unstated list; never loosen an expected value; (4) the not-sure tests (test_path_reach.py and the others the escalation names) expect point 35: the answer asked with state undecided, the verdict cannot_tell, the DSO judgement kept among the reasons; (5) test_rulepack.py point 11 follows D93: an ordered field may leave choices unranked, and a comparison reaching one is unknown with state undecided; a check may name a product setting. Write the point beside each change.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_rulepack.py --co -q >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Read the L-engine escalation in .factory/runs/result-step-w_engine-core_L-engine.json (disputes 1 to 3) and SPEC-W2-UNKNOWN point 11 as amended (D93). (1) Keep path.order as it is: secondary, language_training, professional and other stay unranked, since no source ranks them (D93); say so in its note. (2) The check program.opt_start_not_too_early names a product setting as a rule: write it {setting: product.opt_start_earliest_years_before_program_end}, and say in the check that it rests on Duly''s setting, not the law. (3) The check stem.extends_post_completion_opt compares this.extends.type on a field whose absence means none: add the present: true guard point 7a requires. No number changes.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09'
+  checks:
+  - name: sources
+    run: uv run python -m tools.sources.verify rulepacks
