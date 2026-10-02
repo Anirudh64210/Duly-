@@ -1721,3 +1721,45 @@ Status: done.
   the plan note says.
 
 Status: done.
+
+## l-engine-aade86ec61: SPEC-W2-UNKNOWN engine-counts (points 18 to 23, 22a, 24 in path.py)
+
+- Before any change, the done command's pytest part ($TMPDIR/b0.txt): exit 1, 14 failures, all
+  in test_w2_unknown_counts.py: R6 (no a1 item: the scope `_select` gave None for a3's gap),
+  R8 x6, R18 x2, R19 x2, R20, R23, R28.
+- engine/path.py, counters rewritten around `_choose`:
+  - Point 18: decided scope records join their group; an undecided one is asked and withholds
+    only the group it could join (none of another record's when grouped by record; its key's
+    group when known, else every group).
+  - Point 19: `_group_key` gives None for a key not known (a chain link or same_value read that
+    is U); such a record withholds every group, its gaps asked. A chain link that is absent
+    starts a chain, as point 19 states.
+  - Point 20: whole over the scope's kind as well as qualifying and not-qualifying kinds.
+  - Point 21: `_covered` reads each qualifying or not-qualifying record; one undecided, or with
+    hours, start, end or link U, makes the count U unless its known first or last day puts it
+    wholly outside the counted days. Unknown hours are never "no job".
+  - Point 22: `_dated` makes a span from three-state days: start U, U; end NOT_YET runs through
+    today (the scope) or the counted span's end (a job), named pending; end U, U; end before
+    start, conflict `span_order.<record>` asked with state conflict and named in waits_on.
+  - Point 22a: a counted record whose span is N raises `<counter>.span_not_known.<record>` and
+    names it in waits_on; the count is withheld.
+  - Point 23: an hours rule with no row in force makes the count U with the lapse named; a limit
+    rule with no row leaves the value and withholds the limit day and at-or-over.
+  - Point 24: the item is still emitted, value null, limit_day null with waits_on, no at-or-over;
+    a null count with nothing named is `engine_gap:`. The limit day past today waits on every
+    pending not-yet end it runs through (R8).
+  - `_Trace.named` carries a conflict or judgement an output waits on. `_select` and `_split`
+    are gone (no other caller). `_conflict` takes an optional (field, state).
+- Done command as written ($TMPDIR/d2.txt, then $TMPDIR/d3.txt after the chain-link change):
+  exit 0; mypy 72 files clean, ruff clean, 11 formatted.
+- Wider comparison against 75ce16e (test_path, test_path_fix1, test_path_reach,
+  test_w2_limit_day, test_w2_windows, test_w2_unknown_stages, test_w2_unknown_f1,
+  test_toy_pack_coverage, test_typed_dates, acceptance): one fixed
+  (test_a_counter_over_an_unknown_selection_counts_nothing_and_goes_to_the_dso), four new
+  failures, each an older toy test that reads a job start or end left empty, on a field
+  declared `ask`, as no days or as still working, which point 22 forbids (disputes).
+- Not built: f1.py's half of point 24 (outside this round's part, which names path.py); ranges
+  (point 60); `withholds` on the questions of undecided scope records (no test or point asks it
+  for counters).
+
+Status: done.
