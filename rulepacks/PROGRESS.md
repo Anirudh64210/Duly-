@@ -1348,3 +1348,31 @@ done command: exit 0
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-9fb0d8ead7, attempt 1 (SPEC-W2-UNKNOWN points 2, 2a and 14)
+
+### What was tried
+
+- Added when_absent to 16 fields of the F-1 pack, from the point 61 list as D92 accepted it. not_yet: work.end, authorization.filed_on, authorization.decision, move.registered_on, move.release_date, move.contacted_new_dso_on, report.made_on. none: work.on_campus, authorization.extends, petition.outcome, petition.validity_start, petition.requested_start. Conditional: authorization.card_start and card_end are not_yet while the decision is absent or pending, else ask. authorization.employer and basis_program are none when the type is not stem_extension, else ask.
+- trip.returned_on stays ask (D92). Every other field stays ask.
+- Added complete_label to end_date_change. It was the only kind read by a history, a first or a count that had none.
+- CHANGELOG: one line per declared field, with the screen words in double quotes.
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  load_all: ok
+  pytest tests/unit/engine/test_when_absent.py -q: 24 passed
+copy lint: 1 problem, tests/web/unknown.test.ts:44 (not in this lane)
+pytest tests/unit/engine -q, this commit against HEAD~1 in a scratch worktree:
+  19 failures fixed (all of test_when_absent.py), none added
+  165 failures on both, all in the W2-UNKNOWN tests that wait on the engine lanes
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
+- Point 7a lint is not in the engine yet. When it lands, these check comparisons read through a field that can now be none and may need a present: true guard: line 2076 (this.under.employer), 2256 and 2266 (basis_program).

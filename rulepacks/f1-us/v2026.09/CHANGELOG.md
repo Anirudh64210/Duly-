@@ -276,3 +276,27 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - Finding 4: the note of fixed_admission_2026 says the docket listing was fetched at 2026-10-02T06:09Z and 06:25Z, before the status conference set for 2026-10-02 at 12:00 PM (ECF 52), so any order from it is not covered.
 - Finding 6: two run-on sentences fixed, in the note of fixed_admission_2026 and in SOURCES.md.
 - No value, status, date, quote, plain text or plain_terms changed. No network was used.
+
+### 2026-10-02, lane L-content, run l-content-9fb0d8ead7 (SPEC-W2-UNKNOWN points 2, 2a and 14)
+
+What leaving a field empty means, from the list of point 61 as D92 accepted it. Each line gives the screen words that make an empty field the person's statement.
+
+- work.end: when_absent not_yet. Screen words: "Leave empty if you still work there."
+- authorization.filed_on: when_absent not_yet. Screen words: "Leave empty if Form I-765 has not been filed yet."
+- authorization.decision: when_absent not_yet. Screen words: "Leave empty if no decision has come yet."
+- move.registered_on: when_absent not_yet. Screen words: "Leave empty if you have not registered at the new school yet."
+- move.release_date: when_absent not_yet. Screen words: "Leave empty if your record has not been released in SEVIS yet."
+- move.contacted_new_dso_on: when_absent not_yet. Screen words: "Leave empty if you have not contacted the DSO at the new school yet."
+- report.made_on: when_absent not_yet. Screen words: "Leave empty if you have not made this report yet."
+- authorization.card_start: when_absent not_yet while the decision is empty or pending, else ask. Screen words: "Leave empty if no decision has come yet."
+- authorization.card_end: when_absent not_yet while the decision is empty or pending, else ask. Screen words: "Leave empty if no decision has come yet."
+- work.on_campus: when_absent none. Screen words: "Leave empty if the job is not on campus."
+- authorization.extends: when_absent none. Screen words: "Leave empty if this permission does not extend an OPT."
+- petition.outcome: when_absent none. Screen words: "Leave empty if no outcome has been given."
+- petition.validity_start: when_absent none. Screen words: "Leave empty if the petition has no approved validity start date."
+- petition.requested_start: when_absent none. Screen words: "Leave empty if the petition asks for no start date."
+- authorization.employer: when_absent none on every type but stem_extension, else ask. Screen words: "Leave empty if no employer is named on the Form I-20 for this permission."
+- authorization.basis_program: when_absent none on every type but stem_extension, else ask. Screen words: "Leave empty unless this is a STEM extension."
+- Every other field stays ask, the default. trip.returned_on stays ask (D92: a trip with no return date is asked, not assumed).
+- end_date_change: complete_label "Is this every change of a program end date?" (point 14; the history of program.end_date reads it). Every other kind a history, a first or a count reads already had one.
+- No rule, number, source, quote or plain text changed.
