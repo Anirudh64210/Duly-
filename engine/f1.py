@@ -838,6 +838,14 @@ def _add_counts(
         settings=checked,
         on=card_start,
     )
+    # SPEC-W2-UNKNOWN point 24: with a period worked in the window, an hours rule the pack
+    # holds no row of leaves the count unknown, never 0, and the check names the rule. A
+    # rule with rows but none in force on the day steps back instead (point 60).
+    if any(hours is not None for _, _, hours in pieces or ()):
+        held = {p["id"] for p in work.pack.parameters}
+        for rule_id in hours_rules:
+            if rule_id not in held:
+                work.name_missing(rule_id)
     # SPEC-resolutions point 60: the rule is read for each period's start. The first start
     # with no row in force gives the count null with the step back; with every start
     # covered the row shown is the one for the earliest start. No period: read for today.
@@ -1434,7 +1442,9 @@ def _judgement_items(
     work: _Working, case: F1Case, cpt_days: int | None, unreached: bool
 ) -> tuple[str, ...]:
     found = []
-    if work.numbers.get("employment.days_under_hours", 0) > 0:
+    # Point 24: a count not worked is not 0. Its missing reason is named where it is added.
+    under = work.numbers.get("employment.days_under_hours")
+    if under is not None and under > 0:
         found.append("hours_under_threshold")
     remaining = work.numbers.get("unemployment.days_remaining")
     if remaining is not None and remaining <= 0:
@@ -1460,7 +1470,8 @@ def _judgement_items(
 
 def _open_items(work: _Working, end_owed: bool) -> tuple[str, ...]:
     found = []
-    if end_owed or work.numbers.get("employment.periods_not_reported", 0) > 0:
+    unreported = work.numbers.get("employment.periods_not_reported")
+    if end_owed or (unreported is not None and unreported > 0):
         found.append("report_employer")
     horizon = work.today + timedelta(days=work.setting(LOOKAHEAD))
     for item_id, day in work.dated.items():
