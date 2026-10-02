@@ -1731,6 +1731,21 @@ path:
           closes: {fact: this.dso_on, add: [{rule: opt.file_within_days_of_recommendation}]}
           rule_ids: [opt.file_within_days_of_recommendation]
           done_when: [this.filed_on]
+        - id: opt.last_day
+          label: "Last day to file Form I-765"
+          opens: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_before_days, sign: -1}]}
+          closes:
+            earliest_of:
+              - {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_after_days}]}
+              - {optional: true, fact: this.dso_on, add: [{rule: opt.file_within_days_of_recommendation}]}
+          rule_ids: [opt.apply_before_days, opt.apply_after_days, opt.file_within_days_of_recommendation]
+          done_when: [this.filed_on, this.card_start]
+        - id: opt.prepare
+          label: "Time to prepare the Form I-765 filing, a planning date"
+          opens: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_before_days, sign: -1}, {setting: plan.prepare_months, sign: -1}]}
+          closes: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: opt.apply_before_days, sign: -1}]}
+          rule_ids: [opt.apply_before_days]
+          done_when: [this.filed_on, this.card_start]
         - id: opt.complete_by
           label: "Practical training completed after the completion of study"
           opens: {fact: this.program.end_date, as_of: {fact: this.filed_on}}
@@ -1782,6 +1797,21 @@ path:
           opens: {fact: this.dso_on}
           closes: {fact: this.dso_on, add: [{rule: stem.file_within_days_of_recommendation}]}
           rule_ids: [stem.file_within_days_of_recommendation]
+          done_when: [this.filed_on]
+        - id: stem.last_day
+          label: "Last day to file Form I-765 for the STEM OPT extension"
+          opens: {fact: this.extends.card_end, add: [{rule: stem.apply_before_expiry_days, sign: -1}]}
+          closes:
+            earliest_of:
+              - {fact: this.extends.card_end}
+              - {optional: true, fact: this.dso_on, add: [{rule: stem.file_within_days_of_recommendation}]}
+          rule_ids: [stem.apply_before_expiry_days, stem.apply_window_closes_rule, stem.file_within_days_of_recommendation]
+          done_when: [this.filed_on]
+        - id: stem.prepare
+          label: "Time to prepare the STEM OPT extension filing, a planning date"
+          opens: {fact: this.extends.card_end, add: [{rule: stem.apply_before_expiry_days, sign: -1}, {setting: plan.prepare_months, sign: -1}]}
+          closes: {fact: this.extends.card_end, add: [{rule: stem.apply_before_expiry_days, sign: -1}]}
+          rule_ids: [stem.apply_before_expiry_days]
           done_when: [this.filed_on]
         - id: stem.validation_1
           label: "First validation report"
@@ -2007,6 +2037,39 @@ path:
           opens: {fact: this.end}
           closes: {fact: this.end, add: [{rule: opt.report_employer_within_days}]}
           rule_ids: [opt.report_employer_within_days, opt.report_interruption]
+    - id: opt_job_start
+      label: "Start of a job on post-completion OPT"
+      for_each: {record: work, where: [{field: this.under.type, in: [opt_post_completion]}, {field: this.start, present: true}]}
+      entered_when: [this.start]
+      rule_ids: [opt.report_employer_within_days]
+      windows:
+        - id: opt_job_start.report
+          label: "Report of the new employment information to the DSO"
+          opens: {fact: this.start}
+          closes: {fact: this.start, add: [{rule: opt.report_employer_within_days}]}
+          rule_ids: [opt.report_employer_within_days]
+    - id: stem_job_start
+      label: "Start of a job with a new employer on a STEM OPT extension"
+      for_each:
+        record: work
+        where:
+          - {field: this.under.type, in: [stem_extension]}
+          - {field: this.start, present: true}
+          - {field: this.start, on_or_after: {fact: this.under.card_start}}
+          - {field: this.employer, differs_from: this.under.employer}
+      entered_when: [this.start]
+      rule_ids: [stem.new_plan_due_days, stem.report_change_within_days, stem.reporting_required]
+      windows:
+        - id: stem_job_start.new_plan
+          label: "New Form I-983 to the DSO"
+          opens: {fact: this.start}
+          closes: {fact: this.start, add: [{rule: stem.new_plan_due_days}]}
+          rule_ids: [stem.new_plan_due_days, stem.reporting_required]
+        - id: stem_job_start.report
+          label: "Report of the new employer name and address to the DSO"
+          opens: {fact: this.start}
+          closes: {fact: this.start, add: [{rule: stem.report_change_within_days}]}
+          rule_ids: [stem.report_change_within_days, stem.reporting_required]
     - id: stem_job_end
       label: "End of a job on a STEM OPT extension"
       for_each: {record: work, where: [{field: this.under.type, in: [stem_extension]}, {field: this.end, present: true}]}
