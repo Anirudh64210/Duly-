@@ -1,0 +1,48 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'The engine gives every F-1 date the new Plan screen shows, each from a saved primary source: the last-day windows, the prepare windows (a product setting, marked planning), the reports due on a job start and an hours change, and the limit day of every counter. W2-P1, SPEC-W2 points 45, 46 and 49 (P1, P2, P3, N1, N2). F-1 only (D89).'
+merge: local
+audited: false
+rounds:
+- name: tests-and-content
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'SPEC-W2 point 49, the L-tests line: write tests/unit/engine/test_w2_windows.py (the last-day windows, the prepare windows marked planning from the K1 settings, the job-start and hours-change reports; check each date against the saved words of its source first) and tests/unit/engine/test_w2_limit_day.py (N2: the day a counter would reach its limit if nothing in the record changes, an item <counter>.<key>.limit_day, whose words never say what follows that day), plus new journey pairs in tests/holdout. Outputs must validate against contracts/engine_output.schema.json as W2-P0 left it. Also: loading a pack that names a product setting ({setting: id}) anywhere but the opens or closes of a stage window (a date add list outside a window, a stage longest, gap_allowed, a condition at_most) is refused with a plain error (contracts/rulepack.schema.json, the setting description). They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_windows.py tests/unit/engine/test_w2_limit_day.py --co -q >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'SPEC-W2 point 45, P1 to P3 in rulepacks/f1-us: the last-day windows, the prepare windows (a window amount naming a product setting, {setting: id}, per K6, never a number written by hand), and the report windows on a job start and an hours change. Every rule from a saved primary source with its quote and a checked_on date. A rule with no saved source is reported missing in your REPORT and its window waits; do not invent a number.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+  checks:
+  - name: sources
+    run: uv run python -m tools.sources.verify rulepacks
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2 point 46, N1 and N2: windows whose amount is a product setting, marked planning: true; and the limit day of each counter (<counter>.<key>.limit_day). All values from the pack and the settings, nothing about F-1 written into engine code. engine/rulepack.py refuses a pack that names a product setting anywhere but the opens or closes of a stage window. Make tests/unit/engine/test_w2_windows.py and test_w2_limit_day.py pass with every journey still passing.'
+    done: bash -c 'uv run pytest tests/unit/engine/test_w2_windows.py tests/unit/engine/test_w2_limit_day.py tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with W2-P1 (SPEC-W2 points 45, 46, 49); write the SPEC point beside each change; never loosen an assertion; escalate any failure no point explains. Then run make samples.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review everything this plan changed against SPEC-W2 points 45, 46 and 49, PRINCIPLES.md and BOUNDARY.md. Try hardest to find a date or number in the pack that no saved source supports, a prepare window presented as a rule rather than a planning setting, F-1 knowledge written into engine code, and limit-day words that say what follows that day. Write reviews/w2-p1.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P1 as your role file describes. Write docs/requirements/audits/w2-p1.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p1.md && uv run python -m tools.requirements.register check'
