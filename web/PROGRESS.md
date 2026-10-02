@@ -1350,3 +1350,17 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not built
 
 - No change to web source or web tests: the new samples pass as they are.
+
+## l-web-8257087052 (W2-P1 second fix round, SPEC-W2 points 45, 46), attempt 1
+
+### Tried and ran
+
+- `make samples`: exit 0. Nothing changed under web/samples: the engine fix for the re-review
+  (a gap in one record keeps another record's known deadline) does not alter any sample.
+- `npm test -w web`: exit 0, 32 files, 601 tests passed. No web test needed a change.
+- `npm test -w desktop`: exit 1, `EPERM mkdir desktop/coverage`, the sandbox refusing writes
+  outside web/, as in earlier attempts. desktop/ is unchanged on this branch.
+
+### Not built
+
+- No change to web source, web tests or samples: none is required by the re-review fixes.
