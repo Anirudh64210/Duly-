@@ -1,0 +1,18 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Settle the reconcile dispute by D94: an empty petition start is asked, never read as none, and while it is unanswered the cap-gap step back is withheld with the start asked by name. SPEC-W2-UNKNOWN points 2, 32, 33, 35 and 61 as amended.'
+merge: local
+audited: false
+rounds:
+- name: pack
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'D94: in rulepacks/f1-us/v2026.09/parameters.yaml declare petition.requested_start and petition.validity_start with when_absent ask (not none), and make the capgap.petition_for_dso note say what D94 says: an empty start is asked, never read as cannot extend, and while it is unanswered the step back waits and the start is asked by name. No number changes.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'D94: the empty-start cases (tests/unit/acceptance/test_fix7.py point 23 with no start, point 23a with neither start, test_fix8.py twin G, and the J19 late case) assert that each empty start is asked by name (a question with field requested_start or validity_start), that cap_gap.for_dso and the stem.filed_while_opt_in_force conflict are withheld (waits_on names the start), and that the verdict is cannot_tell; keep the not_sure cases as they are. Write D94 beside each change; never loosen any other assertion.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'

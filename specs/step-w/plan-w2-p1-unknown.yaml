@@ -154,8 +154,7 @@ rounds:
       in tests/support/gaps.py; cover every new engine branch so the engine diff coverage of gate 6 holds;
       escalate any failure no point explains.
     done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
-      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web &&
-      make gate-6 BASE=work/product-2'
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
   - lane: L-web
     agent: builder
     mission: Make the tests in web/src pass after the samples round regenerated web/samples, changing

@@ -845,7 +845,7 @@ rounds:
       authorization.card_start and card_end only while no decision has come
       (`{not_yet: [{any_of: [{field: this.decision, present: false}, {field: this.decision, in: [pending]}]}], else: ask}`).
     - `none`: work.on_campus (an off-campus job), authorization.extends (an OPT that extends
-      nothing), petition.outcome, validity_start and requested_start; authorization.employer and
+      nothing), petition.outcome (validity_start and requested_start are asked, D94); authorization.employer and
       basis_program `none` on every type but stem_extension, else `ask`.
     - `ask`: everything else, including work.under, program dates, levels, types and every other
       link a count or a selection reads.
