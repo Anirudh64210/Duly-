@@ -1,0 +1,21 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Settle the engine lane''s three disputes in the tests, which they rightly name as contradicting points 14, 31 to 33 and the output contract, and fix the one engine fault the properties showed on other draws, so the unknown-values engine round can land. SPEC-W2-UNKNOWN points 14, 31 to 34 and 46 to 50.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read the disputes in .factory/runs/result-step-w_engine_L-engine.json. (1) tests/unit/engine/test_unknown_logic.py, the read-once tree test: leave happened fields out of its read-once leaves (or leave out their point 32 question), since point 32 asks a happened date that is unknown whatever the tree gives. (2) tests/unit/acceptance/test_journeys.py J07: with p1.end_date left out, opt_post.p1 is shown in state unknown with waits_on p1.end_date (points 31 and 33, review finding 3); keep every other J07 assertion, the OPT next for the bachelors at school B included. (3) tests/unit/engine/test_w2_unknown_props.py: changed also counts an upcoming entry one fill shows and another leaves out (the contract leaves out an upcoming entry that rests on an unknown), and gaps.decided_cases never dates a complete statement after today (point 14 rightly ignores those). (4) Add a fixed example in tests/unit/engine/test_w2_unknown.py for the draw the dispute names: window opt.file_by.p1 must wait on every gap it rests on, p1.end_date included, never only on future:opt_post.dso_on (point 34); it fails today. Write the point beside each change; never loosen any other assertion.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine --co -q >/dev/null'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Your kept work is on lane/L-engine/l-engine-c27fd187fc (last commit d0d14d4): carry it forward. The tests now follow your three disputes. Fix the one remaining fault by the class: a withheld output''s waits_on names every gap it rests on, a present but unknown fact as well as a future gap (point 34; the fixed example for window opt.file_by.p1 in tests/unit/engine/test_w2_unknown.py). Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass; the whole command takes about two and a half minutes, so run single tests while you work.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
