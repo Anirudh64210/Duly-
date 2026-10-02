@@ -294,3 +294,16 @@ Goal: bring in lane/L-api/l-api-8e3626eddf and finish.
 - Run separately: mypy "Success: no issues found in 66 source files" exit 0; ruff check "All
   checks passed!" exit 0; ruff format --check "12 files already formatted" exit 0.
 - Reported done per the contract; the orchestrator's jail run decides the 11 socket tests.
+
+## Run l-api-13b60d3161 (SPEC-W2-UNKNOWN point 39, attempt 1)
+Goal: answer CaseStructureError with 422 CASE_STRUCTURE; retire NOT_IN_THE_PACK.
+- First run of tests/unit/api: 7 failed, all in test_case_structure.py (no CASE_STRUCTURE,
+  NOT_IN_THE_PACK still there).
+- api/case.py: NOT_IN_THE_PACK replaced by CASE_STRUCTURE, plain words that name no sent value.
+- api/local_routes.py: /v1/compute catches engine.path.CaseStructureError only (was every
+  ValueError) and answers 422 CASE_STRUCTURE. Schema faults keep first_problem's detail.
+- api/main.py not changed: /v1/compute is the shared router in local_routes, and
+  /v1/compute/f1 runs engine.f1, which never raises CaseStructureError.
+- Done command, run as written: exit 0. mypy "Success: no issues found in 72 source files",
+  ruff "All checks passed!", "12 files already formatted". Copy lint on api: clean.
+  tests/unit/desktop_entry point_2_a_record test (uses CASE_STRUCTURE): passed.

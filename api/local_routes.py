@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from api import case as records_case
 from api.case_f1 import NOT_A_NUMBER, NOT_JSON, NOT_YET, NotANumberError, read_body
 from engine.clocks import Clock, SystemClock, day_in_zone
+from engine.path import CaseStructureError
 from engine.rulepack import Rulepack, load_all
 from engine.verdict import VerdictInputs, decide
 
@@ -71,10 +72,10 @@ def compute_case(
         raise HTTPException(status_code=422, detail=NOT_YET)
     try:
         return records_case.compute(raw, packs, clock)
-    except ValueError:
-        # A kind, a field or a category the packs do not declare. The engine's words name
-        # what was sent, so they are not shown.
-        raise HTTPException(status_code=422, detail=records_case.NOT_IN_THE_PACK) from None
+    except CaseStructureError:
+        # SPEC-W2-UNKNOWN point 39: a structure the packs do not declare. The engine's words
+        # name what was sent, so they are not shown.
+        raise HTTPException(status_code=422, detail=records_case.CASE_STRUCTURE) from None
 
 
 def _iso(day: date | None) -> str | None:

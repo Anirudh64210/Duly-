@@ -18,9 +18,12 @@ from engine.rulepack import REPO_ROOT, Rulepack
 
 SCHEMA_PATH = REPO_ROOT / "contracts" / "case.schema.json"
 
-NOT_IN_THE_PACK = (
-    "records: a record holds a kind, a field or a category the rule pack does not declare. "
-    "Send only the kinds and fields the pack asks for, under a category the case lists."
+# SPEC-W2-UNKNOWN point 39: the pack's structure, which no person typed and no question could
+# fix. The words never repeat what was sent.
+CASE_STRUCTURE = (
+    "records: the case is not built the way the rule pack declares. Each record needs a kind "
+    "and fields the pack declares, its own id that starts with its kind's prefix, no more "
+    "records of a kind than the pack allows, and only facts the pack declares."
 )
 
 
@@ -43,6 +46,6 @@ def answered_after(raw: dict[str, Any], today: date) -> bool:
 def compute(raw: dict[str, Any], packs: list[Rulepack], clock: Clock) -> dict[str, Any]:
     """The engine output for a case the contract accepts, from engine/path.py.
 
-    Raises ValueError when a record falls outside what the packs declare; the engine's
-    words name what was sent, so the caller shows NOT_IN_THE_PACK instead."""
+    Raises path.CaseStructureError when the case's structure falls outside what the packs
+    declare; the engine's words name what was sent, so the caller shows CASE_STRUCTURE."""
     return path.compute(raw, packs, clock)
