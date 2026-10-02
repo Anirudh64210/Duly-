@@ -14,5 +14,5 @@ rounds:
   lanes:
   - lane: L-tests
     agent: test-author
-    mission: 'D94: the empty-start cases (tests/unit/acceptance/test_fix7.py point 23 with no start, point 23a with neither start, test_fix8.py twin G, and the J19 late case) assert that each empty start is asked by name (a question with field requested_start or validity_start), that cap_gap.for_dso and the stem.filed_while_opt_in_force conflict are withheld (waits_on names the start), and that the verdict is cannot_tell; keep the not_sure cases as they are. Write D94 beside each change; never loosen any other assertion.'
+    mission: 'D94: the empty-start cases (tests/unit/acceptance/test_fix7.py: the case with no start and the case with neither start, as resolutions 23 and 23a in specs/product-1 describe them; test_fix8.py twin G, and the J19 late case) assert that each empty start is asked by name (a question with field requested_start or validity_start), that cap_gap.for_dso and the stem.filed_while_opt_in_force conflict are withheld (waits_on names the start), and that the verdict is cannot_tell; keep the not_sure cases as they are. Write D94 beside each change; never loosen any other assertion.'
     done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
