@@ -1854,3 +1854,26 @@ Status: blocked on the disputes (L-tests).
   course stage). No point names one; raised in REPORT.json.
 
 Status: done.
+
+## l-engine-1710c73bcf: engine-f1, SPEC-W2-UNKNOWN point 24 in engine/f1.py
+
+- Start: the done command failed on one test, R25 (test_w2_unknown_f1.py): with
+  opt.min_hours_per_week left out of the pack, the verdict gave only rule_not_in_force and no
+  `missing:` reason.
+- `_judgement_items` and `_open_items`: the two `numbers.get(..., 0)` defaults are gone. A count
+  not worked is read as not known, never 0.
+- `_add_counts`: with a period worked in the window, an hours rule the pack holds no row of is
+  named missing (`missing:opt.min_hours_per_week`), so the hours check gives its missing reason.
+  A rule with rows but none in force on the day keeps the step back, as test_f1_fix4 point 40
+  wants (talk_to_dso).
+- Tried first, reverted: naming `employment.days_under_hours` and
+  `employment.periods_not_reported` missing whenever null. It broke point 40, point 47, point 60
+  (a lapse is a step back) and the single-missing-reason test (a null report count there is
+  already named by a conflict).
+- Job end: contracts/case_f1.schema.json takes a job end only as a date string matching the
+  pattern, or null, and parse_case refuses a date that does not exist. So no `not_sure` or
+  unreadable end reaches f1.py, and `end is None` already reads only a true absence. Nothing
+  built for it.
+- Done command as written ($TMPDIR/d2.txt): exit 0 (2 xfail already there).
+
+Status: done.
