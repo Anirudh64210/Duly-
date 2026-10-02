@@ -66,14 +66,14 @@ def test_point_2_a_twin_gives_byte_identical_json_from_both_apps(
     assert (b.status_code, b.content) == (a.status_code, a.content)
 
 
-# Point 1: "It does not serve /v1/compute/f1, /v1/status or /ops/*." Asked with the right
-# token, so the answer is the router's, not the guard's: 404, a path the app does not have.
-# Fails if any of them, or FastAPI's own pages, answers.
+# Point 1: "It does not serve /v1/compute/f1 (only the old bench uses it) or /ops/*." Asked
+# with the right token, so the answer is the router's, not the guard's: 404, a path the app
+# does not have. Fails if any of them, or FastAPI's own pages, answers. /v1/status is served
+# since point 1 was amended on 2026-10-01 (the onboarding lists the statuses from it).
 @pytest.mark.parametrize(
     ("method", "path"),
     [
         ("POST", "/v1/compute/f1"),
-        ("GET", "/v1/status"),
         ("GET", "/ops/v1/status"),
         ("GET", "/openapi.json"),
         ("GET", "/docs"),
@@ -85,6 +85,20 @@ def test_point_1_a_server_only_path_is_not_served(
 ) -> None:
     _, desktop = apps
     assert desktop.request(method, path, json={} if method == "POST" else None).status_code == 404
+
+
+# Point 1 as amended: the desktop serves GET /v1/status from its bundled packs, and its
+# database field is "ok" (there is no server database to be unreachable). Fails if the route
+# is gone again, or if it lists no F-1 pack.
+def test_point_1_status_is_served_from_the_bundled_packs(
+    apps: tuple[TestClient, TestClient],
+) -> None:
+    _, desktop = apps
+    answer = desktop.get("/v1/status")
+    assert answer.status_code == 200
+    body = answer.json()
+    assert body["database"] == "ok"
+    assert "f1" in {pack["category"] for pack in body["rulepacks"]}
 
 
 # Point 9: "Every route, /health included, requires the X-Duly-Local header (compared with
