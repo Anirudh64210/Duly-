@@ -133,6 +133,30 @@ def test_a_changed_copy_without_the_quote_backs_nothing(tmp_path):
     ]
 
 
+def test_a_rule_naming_the_changed_copy_is_backed_by_its_sha256(tmp_path):
+    # SPEC-FEED point 55: the changed copy is saved under sources/ with its own name.
+    pack = make_pack(tmp_path, checked_on="2026-10-02")
+    recheck.fetch(pack, NOW, fake_web())
+    params = (
+        (pack / "parameters.yaml")
+        .read_text()
+        .replace(
+            "snapshot: sources/page.html, checked_on: 2026-10-02",
+            f"snapshot: sources/page-2026-10-02.html, snapshot_sha256: {sha(b'new page')}, "
+            "checked_on: 2026-10-02",
+        )
+    )
+    (pack / "parameters.yaml").write_text(params)
+    assert recheck.check(pack) == []
+
+
+def test_a_second_fetch_the_same_day_adds_rows_and_keeps_the_first(tmp_path):
+    pack = make_pack(tmp_path)
+    recheck.fetch(pack, NOW, fake_web())
+    out = recheck.fetch(pack, NOW + dt.timedelta(hours=1), fake_web())
+    assert len(json.loads(out.read_text())["rows"]) == 6
+
+
 def test_only_https_is_ever_opened():
     assert recheck.http_get("file:///etc/passwd") == (0, b"")
     assert recheck.http_get("http://example.com") == (0, b"")

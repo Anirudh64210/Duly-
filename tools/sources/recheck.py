@@ -137,7 +137,10 @@ def fetch(pack: Path, now: dt.datetime, get: Fetcher = http_get) -> Path:
             row["ecfr"] = ecfr
         rows.append(row)
     out = pack / f"recheck-{day}.json"
-    out.write_text(json.dumps({"pack": pack.as_posix(), "day": day, "rows": rows}, indent=2) + "\n")
+    # A second fetch the same day adds its rows; it never writes over the first one's record.
+    earlier = json.loads(out.read_text()).get("rows", []) if out.exists() else []
+    record = {"pack": pack.as_posix(), "day": day, "rows": [*earlier, *rows]}
+    out.write_text(json.dumps(record, indent=2) + "\n")
     return out
 
 
@@ -157,10 +160,12 @@ def _sources(node: Any, label: str = "") -> Iterator[tuple[str, dict[str, Any]]]
 
 @dataclass(frozen=True)
 class Fetched:
-    """One good fetch of a saved file: its day, and the changed copy when it was not the same."""
+    """One good fetch of a saved file: its day, the sha256 of what came back, and the changed
+    copy when it was not the same."""
 
     day: dt.date
     changed_copy: Path | None
+    sha256: str = ""
 
 
 def _fetches(pack: Path) -> dict[str, list[Fetched]]:
@@ -172,7 +177,12 @@ def _fetches(pack: Path) -> dict[str, list[Fetched]]:
                 continue
             day = dt.datetime.fromisoformat(str(row["fetched_at"])).date()
             copy = None if row.get("same") else pack / str(row["saved_as"])
-            found.setdefault(str(row["file"]), []).append(Fetched(day, copy))
+            fetched = Fetched(day, copy, str(row.get("sha256", "")))
+            found.setdefault(str(row["file"]), []).append(fetched)
+            # Also findable by its bytes: a rule may name the changed copy, saved under sources/
+            # with its own name, by that copy's sha256 (SPEC-FEED point 55).
+            if row.get("sha256"):
+                found.setdefault(f"sha256:{row['sha256']}", []).append(Fetched(day, None))
     return found
 
 
@@ -200,7 +210,11 @@ def check(pack: Path) -> list[str]:
         if checked <= REVIEWED_BY_HAND:
             continue
         name = Path(str(source["snapshot"])).name
-        rows = fetches.get(name) or fetches.get(re.sub(r"\.txt$", ".pdf", name)) or []
+        rows = [
+            *fetches.get(name, []),
+            *fetches.get(re.sub(r"\.txt$", ".pdf", name), []),
+            *fetches.get(f"sha256:{source.get('snapshot_sha256', '')}", []),
+        ]
         quote = str(source.get("quote", ""))
         if not any(f.day >= checked and _backs(f, name, quote) for f in rows):
             found.append(
