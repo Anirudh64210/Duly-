@@ -18,7 +18,8 @@ Every number a date is worked from is first read from the saved words of its sou
 (tests/support/w2_pack.py, number_in_saved_words), then the date is worked by hand beside the
 assertion. The window ids opt.last_day and stem.last_day are SPEC-W2 G5's; the SPEC names no id
 for a prepare or a report window, so those are found by what they are: planning, or the job
-record and the rule. Written before the engine and the pack have them: they cannot pass yet.
+record and the rule. Written before the engine and the pack had them; the W2-P1 fix round
+(reviews/w2-p1.md findings 1 to 6) is checked here too.
 """
 
 import calendar
@@ -432,6 +433,31 @@ def test_the_report_window_carries_the_guidance_tag():
     ]
     assert [w["status"] for w in found] == ["guidance"]
     assert "planning" not in found[0]
+
+
+def test_the_job_start_report_is_marked_a_reading_wherever_it_is_shown() -> None:
+    # reviews/w2-p1.md finding 6, PRINCIPLES 1: the saved page gives 10 days for "any changes
+    # in ... employment information"; that a new job is such a change is Duly's reading
+    # (CHANGELOG, P3). So the window and both its computed items carry reading: true, and the
+    # dates stay 2026-07-01 to 2026-07-11 (2026-07-01 plus 10).
+    out = compute(opt_job_case(opt_job(start="2026-07-01")), [PACK], TODAY)
+    found = [
+        w
+        for w in windows(out)
+        if w.get("record") == "w1" and "opt.report_employer_within_days" in w["rule_ids"]
+    ]
+    assert [(w["opens"], w["closes"], w.get("reading")) for w in found] == [
+        ("2026-07-01", "2026-07-11", True)
+    ]
+    shown = [
+        i
+        for i in items(out).values()
+        if i.get("record") == "w1" and "opt.report_employer_within_days" in i["rule_ids"]
+    ]
+    assert sorted((i["value"], i.get("reading")) for i in shown) == [
+        ("2026-07-01", True),
+        ("2026-07-11", True),
+    ]
 
 
 def test_an_opt_hours_change_gives_no_report_window_of_its_own():
