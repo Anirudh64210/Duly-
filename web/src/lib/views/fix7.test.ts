@@ -241,14 +241,14 @@ describe("point 26: Onboarding does not require the petition's outcome", () => {
     expect(petition?.fields.outcome).toBe("not_sure");
   });
 
-  it("still asks the requested start, which point 23 needs, and says what empty means", () => {
-    // SPEC-W2-UNKNOWN point 2: the pack declares requested_start when_absent none, so left
-    // empty it states the petition asks for no start date, in the pack's recorded words.
-    // Kills: the requested start dropped from the view, or empty with no words.
+  it("still asks the requested start, which point 23 needs, and never says empty means none", () => {
+    // D94: the pack declares requested_start when_absent ask, so left empty it is asked by
+    // name, never read as a petition that asks for no start date.
+    // Kills: the requested start dropped from the view, or empty read as none.
     const fields = step(withPetition(), "petition:h1").fields ?? [];
     const start = fields.find((field) => field.name === "requested_start");
     expect(start).toBeDefined();
-    expect(start?.empty).toBe("Leave empty if the petition asks for no start date.");
+    expect(start?.empty).toBeUndefined();
     expect(start?.notSure).not.toBe(true);
   });
 });
