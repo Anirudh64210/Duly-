@@ -1376,3 +1376,32 @@ pytest tests/unit/engine -q, this commit against HEAD~1 in a scratch worktree:
 
 - No network was used. No instruction was found in any data.
 - Point 7a lint is not in the engine yet. When it lands, these check comparisons read through a field that can now be none and may need a present: true guard: line 2076 (this.under.employer), 2256 and 2266 (basis_program).
+
+## 2026-10-02, run l-content-928ba7af6f, attempt 1 (L-engine escalation disputes 1 to 3, D93)
+
+### What was tried
+
+- path.order kept as it is. A comment above it says secondary, language_training, professional and other stay unranked because no source ranks them (D93). The schema's order has additionalProperties false and no note field, so a comment is the only place in this lane.
+- program.opt_start_not_too_early: {rule: product.opt_start_...} became {setting: product.opt_start_...}. A comment in the check says it rests on Duly's setting, not the law. The check schema has no reason field either.
+- stem.extends_post_completion_opt: added {field: this.extends, present: true} before the type test in holds (point 7a).
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+copy lint: clean
+validate_pack of commit b9b8a97 (full lint) in a scratch copy, with its two pre-D93 refusals
+  relaxed (setting outside a window, unranked choice): all 4 packs ok
+  same, with the new present: true removed: refused at path/checks/17/holds/0 (extends can be none)
+  b9b8a97 as it is: refused at path/checks/0/holds/0/on_or_after/add/0 (setting outside a window)
+pytest tests/unit/engine -k "sourcing or rulepack" on HEAD's engine: collection error, the same
+  setting refusal (engine/rulepack.py:132 allows a setting only in a stage window)
+```
+
+### Seen and not worked around
+
+- Until the engine round lets a check name a setting (D93, point 11 as amended), HEAD's engine refuses to load the F-1 pack. The mission asks for the setting form, so it stays; see requests.
+- No network was used. No instruction was found in any data.

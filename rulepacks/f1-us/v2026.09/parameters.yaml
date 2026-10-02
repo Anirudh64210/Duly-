@@ -1630,6 +1630,10 @@ path:
         - {id: decided_on, kind: date, label: "Day of the decision", happened: true}
         - {id: decision, kind: choice, label: "Decision", choices: [pending, approved, denied]}
   order:
+    # Note (D93, SPEC-W2-UNKNOWN point 11): secondary, language_training, professional and
+    # other stay unranked on purpose. No saved source ranks them against the four below, so
+    # Duly gives them no place. A comparison that reaches one is Can't tell yet, asked as
+    # undecided with the DSO named, never a rank Duly invents.
     - record: program
       field: level
       ascending: [associate, bachelor, master, doctorate]
@@ -2127,9 +2131,12 @@ path:
           rule_ids: [stem.evaluation_interval_months, stem.evaluation_due_days, stem.reporting_required, stem.opportunity_ends_with_job, opt.ends_on_release_date, opt.ends_on_transfer_or_new_level]
   checks:
     - id: program.opt_start_not_too_early
+      # This check rests on Duly's setting, not the law (D93). The setting in
+      # contracts/product_settings.yaml marks an OPT card that starts this far before its
+      # program's end as a likely typing mistake. No rule states that span.
       for_each: {record: authorization, where: [{field: this.type, in: [opt_pre_completion, opt_post_completion]}]}
       holds:
-        - {field: this.card_start, on_or_after: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{rule: product.opt_start_earliest_years_before_program_end, sign: -1}]}}
+        - {field: this.card_start, on_or_after: {fact: this.program.end_date, as_of: {fact: this.filed_on}, add: [{setting: product.opt_start_earliest_years_before_program_end, sign: -1}]}}
       rule_ids: [opt.post_completion_definition, opt.max_months]
     - id: program.end_on_or_after_today
       for_each: {record: program, where: [{field: this.where, in: [us_on_f1]}, {field: this.state, in: [in_progress]}]}
@@ -2234,6 +2241,7 @@ path:
     - id: stem.extends_post_completion_opt
       for_each: {record: authorization, where: [{field: this.type, in: [stem_extension]}]}
       holds:
+        - {field: this.extends, present: true}
         - {field: this.extends.type, in: [opt_post_completion]}
       rule_ids: [stem.requires_post_completion_opt]
     - id: stem.filed_while_opt_in_force

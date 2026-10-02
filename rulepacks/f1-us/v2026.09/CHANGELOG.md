@@ -300,3 +300,11 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - Every other field stays ask, the default. trip.returned_on stays ask (D92: a trip with no return date is asked, not assumed).
 - end_date_change: complete_label "Is this every change of a program end date?" (point 14; the history of program.end_date reads it). Every other kind a history, a first or a count reads already had one.
 - No rule, number, source, quote or plain text changed.
+
+### 2026-10-02, lane L-content, run l-content-928ba7af6f (L-engine escalation disputes 1 to 3, SPEC-W2-UNKNOWN points 7a and 11 as amended by D93)
+
+- path.order (program.level): unchanged. A note above it says secondary, language_training, professional and other stay unranked on purpose, since no saved source ranks them (D93).
+- Check program.opt_start_not_too_early: the amount is now {setting: product.opt_start_earliest_years_before_program_end}, not {rule: ...}. A note in the check says it rests on Duly's setting, not the law (D93).
+- Check stem.extends_post_completion_opt: holds now opens with {field: this.extends, present: true}, the guard point 7a requires, since authorization.extends is when_absent none.
+- The notes are YAML comments: contracts/rulepack.schema.json gives order and check no note or reason field.
+- No number, rule, source, quote or plain text changed.
