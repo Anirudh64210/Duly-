@@ -6216,7 +6216,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml; web/src/lib/labels.ts legalStatusWords",
-  "note": "Only the F-1 pack carries regimes with a legal status; the H-1B, O-1 and EB-1A packs are empty.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. The appeal draft states legal_status appealed and history on 2026-09-30. The fixed_admission_2026 regime stays enjoined, with the appeal in its note. Still F-1 only.",
   "part": "founder-decisions"
  },
  {
@@ -6306,7 +6306,7 @@
   "kind": "updates",
   "status": "partial",
   "evidence": "pipeline/graph.py publish_blockers; watch/sources.yaml; tests/unit/pipeline/test_graph.py::test_each_missing_check_blocks_publishing",
-  "note": "The publish rule refuses a claim that is not from a primary source, but no fetcher enforces the host allowlist yet.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. Every claim in the appeal draft is from a primary source: the Federal Register XML, the CourtListener copy of the D. Mass. docket and the ECF 51 order. Rules on uscode.house.gov moved to the govinfo.gov copies when that site served a maintenance page. No fetcher enforces a host allowlist.",
   "part": "founder-decisions"
  },
  {
@@ -6326,7 +6326,7 @@
   "kind": "updates",
   "status": "partial",
   "evidence": "watch/sources.yaml (every: 6h to 24h)",
-  "note": "Intervals are written down; nothing runs on them.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. recheck.py fetched every F-1 source once, on 2026-10-02, run by hand outside the jail. Nothing runs on the intervals in watch/sources.yaml.",
   "part": "founder-decisions"
  },
  {
@@ -6336,7 +6336,7 @@
   "kind": "updates",
   "status": "partial",
   "evidence": "pipeline/graph.py; contracts/update.schema.json",
-  "note": "The publish rule demands these flags, but the stages that would set them are stubs.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. In the appeal draft, all 5 quotes are found in saved copies (I checked). independent_check_passed and refutation_survived are false, so publish_blockers holds it. The stages that would set them are not built.",
   "part": "founder-decisions"
  },
  {
@@ -6344,9 +6344,9 @@
   "source": "DECISIONS.md D2",
   "text": "Every update carries citations to its sources.",
   "kind": "updates",
-  "status": "partial",
-  "evidence": "contracts/update.schema.json (claims need quote, source_url, snapshot_sha256)",
-  "note": "The shape is defined; no update has ever been produced.",
+  "status": "met",
+  "evidence": "contracts/update.schema.json (each claim requires source_url, snapshot_sha256 and quote); tests/unit/pipeline/test_update_files.py (every file in pipeline/drafts and pipeline/published validates); pipeline/drafts/2026-10-02-presidents-alliance-appeal.json",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): partial to met. The one update that exists carries a citation on each of its 5 claims. I validated it against the schema with a FormatChecker (0 errors) and found all 5 quotes in the saved copies named by sha256. test_update_files.py passed. Not proven: the feed's updates/ folder and GET /v1/updates (SPEC-FEED point 29) are not built, so no device check exists yet.",
   "part": "founder-decisions"
  },
  {
@@ -6356,7 +6356,7 @@
   "kind": "updates",
   "status": "met",
   "evidence": "tests/unit/pipeline/test_graph.py::test_graph_holds_an_unapproved_update_before_publish; test_an_empty_update_is_blocked_for_every_reason",
-  "note": "The hold rule is built and tested; it has no real updates to act on yet.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Re-run: tests/unit/pipeline passed. publish_blockers on the appeal draft returns independent_check_not_passed, refutation_not_survived and not_approved_in_ops. pipeline/published/ does not exist.",
   "part": "founder-decisions"
  },
  {
@@ -6375,8 +6375,8 @@
   "text": "Status changes of a law are tracked over time.",
   "kind": "updates",
   "status": "partial",
-  "evidence": "contracts/update.schema.json (history)",
-  "note": "A history field is in the contract and a watch stage is named; no code records a change.",
+  "evidence": "contracts/update.schema.json (history); pipeline/drafts/2026-10-02-presidents-alliance-appeal.json (history on 2026-09-30, appealed); rulepacks/f1-us/v2026.09/parameters.yaml fixed_admission_2026 note",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. The appeal of 2026-09-30 is recorded by hand: in the draft's history and in the regime's note. The regime has no history field of its own. No code records a change of status, and nothing watches for one.",
   "part": "founder-decisions"
  },
  {
@@ -6816,7 +6816,7 @@
   "kind": "updates",
   "status": "partial",
   "evidence": "pipeline/graph.py (founder_approval gate); tests/unit/pipeline/test_graph.py::test_stage_order_ends_with_approval_publish_watch",
-  "note": "The gate is in the graph; the Ops screen has no approval view and no update can be approved by a person.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. The appeal draft has approval.approved false and stays in pipeline/drafts. No screen or command lets a person approve it (make feed-sign, point 14, is not built).",
   "part": "founder-decisions"
  },
  {
@@ -7184,9 +7184,9 @@
   "source": "DECISIONS.md D44",
   "text": "All 22 first lessons are kept: 12 filed by lane for agents, 10 as records of factory faults that were fixed.",
   "kind": "factory",
-  "status": "partial",
-  "evidence": "duly-founder/.claude/LESSONS/ (L-*.md, all-lanes.md, factory-fixed.md)",
-  "note": "on the founder's side branch, not yet merged.",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D68",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): partial to superseded. D68 replaces D44. Lessons by lane are no longer handed to agents: tools/factory/memory.py says prose lessons under .claude/LESSONS/ are not handed to agents.",
   "part": "founder-decisions"
  },
  {
@@ -7366,7 +7366,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "contracts/rulepack.schema.json (checked_on); tests/unit/engine/test_rulepack_values.py::test_rules_checked_on_is_the_oldest_among_the_parameters",
-  "note": "Required by the schema.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Re-run: all 104 parameters and both regimes carry checked_on 2026-10-02 (106 source blocks). recheck --check exits 0, verify exits 0, and load_all gives rules_checked_on 2026-10-02. Two mutants on a scratch copy: a checked_on of 2026-10-03 fails recheck, and a quote not in its copy fails verify.",
   "part": "founder-decisions"
  },
  {
@@ -8435,8 +8435,8 @@
   "text": "Monitoring watches the injunction docket, the First Circuit and D.C. Circuit cases, SEVP broadcasts and the OPT fee NPRM.",
   "kind": "updates",
   "status": "partial",
-  "evidence": "watch/sources.yaml (courtlistener, ice_sevp); rulepacks/f1-us/v2026.09/sources/courtlistener-docket-74661796-entries-2026-09-28.json",
-  "note": "One docket was saved by hand once; nothing watches it.",
+  "evidence": "tools/sources/recheck.py; rulepacks/f1-us/v2026.09/recheck-2026-10-02.json; rulepacks/f1-us/v2026.09/sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. The founder ran recheck.py by hand on 2026-10-02 (06:09Z and 06:25Z), and it fetched the D. Mass. docket listing again. That is page one only (20 of 114 entries). It holds every entry after ECF 51; I listed them. The First Circuit docket (26-2112) was not read, and nothing watches any docket on a schedule.",
   "part": "founder-decisions"
  },
  {
@@ -8496,7 +8496,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py::test_missing_and_conflicting_inputs_are_named; test_rules_on_the_stale_edge; test_litigated_rule_cannot_tell",
-  "note": "All four causes are tested.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Re-run: tests/unit/engine passed (in 1350 passed with pipeline and test_recheck). The 7-day rule in engine/verdict.py:51 and engine/path.py:1421 is unchanged. FEED-PA only moved the input date.",
   "part": "founder-decisions"
  },
  {
@@ -8556,7 +8556,7 @@
   "kind": "updates",
   "status": "partial",
   "evidence": "contracts/update.schema.json (claims.source_url)",
-  "note": "In the contract only.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept partial. The appeal draft's 5 claims are all source_kind primary, with a URL and a saved copy. The schema still allows signal, and the device-side check of point 29 is not built. So this stays partly built.",
   "part": "founder-decisions"
  },
  {
@@ -9417,6 +9417,286 @@
   "status": "partial",
   "evidence": "DECISIONS.md D62; specs/design-1/SPEC.md section 17",
   "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): Adopted by Claude; the founder has not confirmed, and design-1 Done 3 (the founder's walk-through) has not happened.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D63-001",
+  "source": "DECISIONS.md D63",
+  "text": "Cap-gap with the DSO's cap-gap I-20, clean checks and a recently confirmed petition shows the I-20's dates, with words that USCIS decides; without the I-20 it steps back.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. engine/path.py steps back for any petition (product-2 point 19). No cap-gap I-20 record exists.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D64-001",
+  "source": "DECISIONS.md D64",
+  "text": "A denial while the card runs keeps the card's own dates; the grace after a denial steps back to the DSO.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No denial is modelled in engine/path.py.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D65-001",
+  "source": "DECISIONS.md D65",
+  "text": "A stale regime makes only cap-gap items and items under litigated rules cannot_tell; the rest of the verdict stands.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "engine/verdict.py:51; engine/path.py:1421",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Staleness is still whole-pack: past 7 days the whole verdict is cannot_tell with rules_stale. Per-rule staleness is FEED-P8, not built.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D66-001",
+  "source": "DECISIONS.md D66",
+  "text": "A still pending answer is good for 30 days (a product setting), shown as as of <date>, then asked again.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "contracts/product_settings.yaml checkin.petition_days (30 days, decided_in D66)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. The setting is in the contract. No code in engine/, api/ or web/src reads it, and nothing asks again.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D67-001",
+  "source": "DECISIONS.md D67",
+  "text": "Health probes run on claude-haiku-4-5-20251001 through factory/config.yaml model.health_probe; every other agent stays pinned per D51.",
+  "kind": "factory",
+  "status": "met",
+  "evidence": "factory/config.yaml line 8 (health_probe: claude-haiku-4-5-20251001)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, met. Read the file.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D68-001",
+  "source": "DECISIONS.md D68",
+  "text": "The old lessons folder, the proposal inbox, the skill-curator agent, the factory lane, the Stop hook and make lane are deleted.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": ".claude/LESSONS/; proposals/README.md; .claude/agents/skill-curator.md; factory/agents/skill-curator.yaml; .claude/settings.json Stop; Makefile lane:",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. All of these are still in the repository: .claude/LESSONS/ (all-lanes.md, archive, factory-fixed.md), proposals/, the skill-curator agent in both folders, the Stop hook running lane_test.py, and the Makefile target lane (CLAUDE.md still names make lane). Only the lessons by lane are gone.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D69-001",
+  "source": "DECISIONS.md D69",
+  "text": "factory start and factory resume may commit the feature's spec folder and bring it into the work checkout, only when those are the only changes.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. I found no code for this in tools/factory/. The factory command may live outside this repository; nothing here proves it.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D70-001",
+  "source": "DECISIONS.md D70",
+  "text": "The factory template lives in ~/Desktop/factory-template and is exported from Duly; other projects update with factory sync.",
+  "kind": "factory",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. ls ~/Desktop/factory-template: no such directory. No factory sync command found.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D71-001",
+  "source": "DECISIONS.md D71",
+  "text": "Hours per feature are measured from first agent start to last agent end; factory phone alerts are off; changes to factory/project.yaml need the founder.",
+  "kind": "factory",
+  "status": "partial",
+  "evidence": "tools/factory/efficiency.py (wall hours, first run start to last run end); factory/config.yaml alerts.notify macos",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. Wall hours are measured. No phone alert channel is found. factory/project.yaml does not exist in this repository.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D72-001",
+  "source": "DECISIONS.md D72",
+  "text": "Try a change starts on each card the change touches plus one entry in Your profile, not on Home.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No try-a-change code in web/src.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D73-001",
+  "source": "DECISIONS.md D73",
+  "text": "Check-in reminders are computed on the device; no record dates are held on Duly's server for them.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "contracts/schedule.schema.json",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D74-001",
+  "source": "DECISIONS.md D74",
+  "text": "Passport, visa and address records with their sourced rules (8 CFR 214.2(f)(17), (f)(12)(ii)(A)); For you shows only the date in force when a court pauses a rule; From your paper on the source sheet.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. The pack quotes (f)(12)(ii)(A) inside stem rows only. No passport, visa or address record is built, and no From your paper text exists.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D75-001",
+  "source": "DECISIONS.md D75",
+  "text": "Every question or life event is a loop carried to a confirmed outcome; a loop with a dead end fails the build.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "contracts/schedule.schema.json",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract names the Loop module. No loop is built, and no check fails a dead end.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D76-001",
+  "source": "DECISIONS.md D76",
+  "text": "Ask matches a reviewed guide before the boundary tests; no match or a judgement ends in the step back.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "BOUNDARY.md section Before the tests: match a guide (D76)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. In BOUNDARY.md. assistant/boundary.py has no guide matching.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D78-001",
+  "source": "DECISIONS.md D78",
+  "text": "Mac, Windows, Android and iPhone from the start; one shared engine core.",
+  "kind": "product",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the web prototype and the Electron app for Mac exist.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D79-001",
+  "source": "DECISIONS.md D79",
+  "text": "Ask reasons with Claude through Bedrock inside Duly's AWS account; the engine supplies every date and count.",
+  "kind": "privacy",
+  "status": "partial",
+  "evidence": "assistant/providers.py (BEDROCK)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. A provider name only. No Bedrock service or Ask route is built.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D80-001",
+  "source": "DECISIONS.md D80",
+  "text": "Ask in production: a separate address with logs off, requests not linkable to the account, crisis and enforcement questions never leave the device.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Nothing built.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D81-001",
+  "source": "DECISIONS.md D81",
+  "text": "Duly as an installable desktop app: engine bundled, a private pipe instead of a local port, a packager, hardening, signing for the founder's Mac.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "api/desktop_main.py (Unix socket); desktop/forge.config.ts (fuses); desktop/scripts/sign-adhoc.sh; desktop/scripts/build-python.sh",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, met. Read. I did not run make desktop-package. The socket tests cannot bind in this sandbox.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D82-001",
+  "source": "DECISIONS.md D82",
+  "text": "One engine in Rust on every platform, matching the Python reference engine exactly.",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No Cargo.toml in the repository.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D83-001",
+  "source": "DECISIONS.md D83",
+  "text": "Electron for Mac and Windows; React Native with Expo for iPhone and Android.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/forge.config.ts",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. Electron exists. No React Native or Expo project.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D84-001",
+  "source": "DECISIONS.md D84",
+  "text": "A free, open-source (AGPL), local-only app first; the README promises it; a contributor agreement; the repo checked for secrets before publishing.",
+  "kind": "legal",
+  "status": "partial",
+  "evidence": "api/desktop_main.py (engine on the device)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. The desktop engine runs locally. There is no LICENSE file, no license in package.json, and README.md makes no local-only promise. No contributor agreement exists.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D85-001",
+  "source": "DECISIONS.md D85",
+  "text": "Test builds signed with a self-made certificate until the Apple developer account exists.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/scripts/sign-adhoc.sh (ad hoc, or DULY_SIGN_IDENTITY)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, met. Read. Not run here.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D86-001",
+  "source": "DECISIONS.md D86",
+  "text": "On a real record, Ask uses on-device guides and the DSO draft until the private Bedrock service exists.",
+  "kind": "privacy",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No Ask on the device is built.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D87-001",
+  "source": "DECISIONS.md D87",
+  "text": "App bundle id co.tryduly.desktop.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/app.json (appId co.tryduly.desktop)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, met. Read.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D88-001",
+  "source": "DECISIONS.md D88",
+  "text": "Duly checks a signed feed of rule packs and published updates once a day; the feed holds public law text and Duly's summaries only; the founder holds the signing key.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No feed, signing tool or updater exists (no pipeline/feed, no desktop feed code). FEED-PA only moved checked_on by hand.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D89-001",
+  "source": "DECISIONS.md D89",
+  "text": "F-1 complete first (OPT, STEM OPT, CPT, cap-gap, travel, documents); other categories say their rules are coming.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09; engine/path.py",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, partial. OPT, STEM OPT and CPT are computed. Cap-gap steps back, and travel and documents are not built. I found no rules-are-coming words in web/src/app.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D90-001",
+  "source": "DECISIONS.md D90",
+  "text": "Founder keys sign every pack and update; a CI key may sign only the daily check record.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No keys or signing exist. D90 also accepted SPEC-FEED point 69, the docket sign-off that FEED-PA rests on. That part is recorded in the regime note and SOURCES.md claim 2.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D91-001",
+  "source": "DECISIONS.md D91",
+  "text": "The daily check is on by default after one plain setup line; Settings turns it off; with it off the screen says rules go stale after 7 days.",
+  "kind": "updates",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No daily check exists.",
   "part": "founder-decisions"
  },
  {
@@ -10856,7 +11136,7 @@
   "kind": "factory",
   "status": "met",
   "evidence": "tools/factory/agent_run.py (the same failure twice); test_an_agent_can_escalate_and_is_not_asked_again",
-  "note": "Runs and is recorded; metrics.jsonl shows two escalated runs.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Drift check: the test named exists at tests/unit/tools/test_agent_run.py:308 and passed.",
   "part": "gates-factory"
  },
  {
@@ -11774,9 +12054,9 @@
   "source": "11-claude-code-handoff/CLAUDE.md, Pointers",
   "text": "Lessons live in .claude/LESSONS/<lane>.md.",
   "kind": "factory",
-  "status": "met",
-  "evidence": ".claude/LESSONS/L-engine.md and four more; tools/factory/memory.py accepted",
-  "note": "Filed by lane and handed to agents at the start of each run.",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D68; tools/factory/memory.py",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): met to superseded. Drift. .claude/LESSONS/L-engine.md and the other lane files are gone. memory.py says prose lessons under .claude/LESSONS/ are not handed to agents. Agents get orchestrator rows from failures.jsonl instead (D68).",
   "part": "gates-factory"
  },
  {
@@ -15716,7 +15996,7 @@
   "kind": "factory",
   "status": "met",
   "evidence": "docs/factory/RUNBOOK.md; tests/unit/tools/test_phase.py",
-  "note": "Each lane lands as one merge commit, and test_a_seed_plan_becomes_a_checked_traceable_branch reverts one.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Drift check: test_a_seed_plan_becomes_a_checked_traceable_branch fails here with sandbox-exec: sandbox_apply: Operation not permitted (the jail cannot nest in this sandbox). It was not proven or disproven.",
   "part": "research-backend-market"
  },
  {
@@ -16355,8 +16635,8 @@
   "text": "Lesson retrieval is scoped per subsystem, not one global log.",
   "kind": "factory",
   "status": "met",
-  "evidence": "tools/factory/memory.py",
-  "note": "An agent gets its lane's lessons and all-lanes.md, capped in size.",
+  "evidence": "tools/factory/memory.py for_prompt (rows for this lane and all-lanes)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Drift check: the scope moved from lesson files to failures.jsonl rows filtered by lane in for_prompt. It is still scoped by lane.",
   "part": "research-backend-market"
  },
  {

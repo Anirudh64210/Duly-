@@ -1293,7 +1293,7 @@
   "kind": "factory",
   "status": "met",
   "evidence": "tools/factory/agent_run.py (the same failure twice); test_an_agent_can_escalate_and_is_not_asked_again",
-  "note": "Runs and is recorded; metrics.jsonl shows two escalated runs."
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Drift check: the test named exists at tests/unit/tools/test_agent_run.py:308 and passed."
  },
  {
   "id": "PLAN08-030",
@@ -2119,9 +2119,9 @@
   "source": "11-claude-code-handoff/CLAUDE.md, Pointers",
   "text": "Lessons live in .claude/LESSONS/<lane>.md.",
   "kind": "factory",
-  "status": "met",
-  "evidence": ".claude/LESSONS/L-engine.md and four more; tools/factory/memory.py accepted",
-  "note": "Filed by lane and handed to agents at the start of each run."
+  "status": "superseded",
+  "evidence": "DECISIONS.md D68; tools/factory/memory.py",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): met to superseded. Drift. .claude/LESSONS/L-engine.md and the other lane files are gone. memory.py says prose lessons under .claude/LESSONS/ are not handed to agents. Agents get orchestrator rows from failures.jsonl instead (D68)."
  },
  {
   "id": "PLAN11-037",

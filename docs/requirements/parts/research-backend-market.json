@@ -537,7 +537,7 @@
   "kind": "factory",
   "status": "met",
   "evidence": "docs/factory/RUNBOOK.md; tests/unit/tools/test_phase.py",
-  "note": "Each lane lands as one merge commit, and test_a_seed_plan_becomes_a_checked_traceable_branch reverts one."
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Drift check: test_a_seed_plan_becomes_a_checked_traceable_branch fails here with sandbox-exec: sandbox_apply: Operation not permitted (the jail cannot nest in this sandbox). It was not proven or disproven."
  },
  {
   "id": "RBACK-061",
@@ -1112,8 +1112,8 @@
   "text": "Lesson retrieval is scoped per subsystem, not one global log.",
   "kind": "factory",
   "status": "met",
-  "evidence": "tools/factory/memory.py",
-  "note": "An agent gets its lane's lessons and all-lanes.md, capped in size."
+  "evidence": "tools/factory/memory.py for_prompt (rows for this lane and all-lanes)",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Drift check: the scope moved from lesson files to failures.jsonl rows filtered by lane in for_prompt. It is still scoped by lane."
  },
  {
   "id": "RBACK-125",
