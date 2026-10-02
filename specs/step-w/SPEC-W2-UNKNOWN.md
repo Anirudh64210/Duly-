@@ -179,10 +179,14 @@ extended by point 35.
     each with a one-line RulepackError naming the path:
     - a rule amount that is not a number, a unit the engine cannot add, a month-day rule text
       that does not parse;
-    - a `level_*` operator on a field with no `order`, or an ordered field with a choice the
-      order does not rank;
+    - a `level_*` operator on a field with no `order`. An ordered field may leave choices
+      unranked when no source ranks them (D93): a comparison that reaches an unranked choice is
+      unknown with state undecided and the DSO named, never refused at load and never ranked by
+      invention;
     - an `in` value that is not one of the field's choices;
-    - a rule id the pack does not hold (read today as a lapse);
+    - a rule id the pack does not hold (read today as a lapse). A check may compare against a
+      product setting written `{setting: id}` (D93): the check's reason says it rests on Duly's
+      setting, not on the law; a setting is refused anywhere but a window's dates and a check;
     - a qualifying or not-qualifying kind of a counter without two date fields to span;
     - an `outer.` path where no outer record exists, a `this.` path in a check or stage with no
       record, and a `first.field`, `history.from` or `chain_link` of the wrong kind;
