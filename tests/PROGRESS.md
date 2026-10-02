@@ -3302,3 +3302,41 @@ since the mission asks only for a reason naming record and field; no test for fi
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-d049ac1f57: tests in line with the second W2-P1 fix (reviews/w2-p1.md re-review)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p1.md (re-review findings 1 to 3), the L-engine fix
+5c67a6c (path.py `_split` keeps decided records and asks about undecided ones in run_stages and
+run_checks; `_unreadable` treats a date field that does not parse as absent and asks it;
+rulepack.py loads the settings once per pack).
+
+Ran the done command first: ruff "All checks passed!", "92 files already formatted"; pytest
+15 failed, all in tests/unit/desktop_entry/test_desktop_main.py on bind with Errno 1 (the
+sandbox socket wall). Every re-review test the last run wrote (S1, O1, S2 x2, the toy pair and
+property, the x1 pair for finding 2, the holdout S1/S2/O1) now passes on the fixed engine.
+
+Gap found: the mission says the record left undecided is "asked about by name". S1 and O1
+asserted a question; S2 (unreadable w3.start) asserted only a reason, and the holdout's
+parametrized S1/S2 test only a reason. Added, assertions only, none loosened:
+- tests/unit/engine/test_w2_windows.py, S2 test: `asks_for(out, "w3.start")` (finding 1, mission).
+- tests/holdout/test_holdout_w2.py, test_a_gap_in_one_stem_job_keeps_the_other_job_s_windows:
+  a question whose because holds missing:w3.employer (S1) or missing:w3.start (S2 x2).
+First holdout draft tested `named in q["because"]`; because is a list, so it failed on the
+fixed engine. Corrected to f"missing:{named}" (a fault in my test, not the engine).
+
+What makes each fail, checked with pytest plugins in TMPDIR, engine/ untouched:
+- M-a: `_Run._unreadable` put back to the choice-only rule. S2 unit and holdout fail (on the
+  reason, before the new line). Killed.
+- M-b: compute's output with w3's questions removed, reasons kept. S1 and S2 unit and all three
+  holdout cases fail; the holdout fails at the new line 284. Killed: a reason without a question
+  no longer passes.
+
+Done command after: ruff "All checks passed!", "92 files already formatted"; pytest the same 15
+socket failures and nothing else; with test_desktop_main.py deselected, exit 0.
+
+Not built: no test for finding 3 (load_settings once per pack is a cost, not behaviour); no test
+that an unreadable date in a field nothing reads is asked up front (ask_unreadable does it, but
+neither the review nor the mission asks for it, so it would pin a design choice). No new helper.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
