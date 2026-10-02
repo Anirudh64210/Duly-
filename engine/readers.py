@@ -32,7 +32,7 @@ def _readable_days() -> tuple[date, date]:
     return first, last
 
 
-def _date(raw: object) -> date | None:
+def as_date(raw: object) -> date | None:
     # The pattern first: date.fromisoformat also reads basic and week forms (20260803).
     if not isinstance(raw, str) or not ISO_DAY.match(raw):
         return None
@@ -44,7 +44,7 @@ def _date(raw: object) -> date | None:
     return day if first <= day <= last else None
 
 
-def _number(raw: object) -> int | float | None:
+def as_number(raw: object) -> int | float | None:
     if isinstance(raw, bool) or not isinstance(raw, int | float):
         return None
     return raw if math.isfinite(raw) else None
@@ -82,12 +82,12 @@ def _period(raw: object) -> dict[str, Any] | None:
             read[key] = None
             continue
         if key in PERIOD_DATES:
-            got: object = _date(value)
+            got: object = as_date(value)
         elif key == PERIOD_HOURS:
-            got = _number(value)
+            got = as_number(value)
         else:
             # Any other part of a period is a flag or a day (the case schema's own shape).
-            got = value if isinstance(value, bool) else _date(value)
+            got = value if isinstance(value, bool) else as_date(value)
         if got is None:
             return None
         read[key] = got
@@ -104,9 +104,9 @@ def _periods(raw: object) -> list[dict[str, Any]] | None:
 def _known(decl: Mapping[str, Any], raw: object, run: Mapping[str, str]) -> object | None:
     kind = decl.get("kind")
     if kind == "date":
-        return _date(raw)
+        return as_date(raw)
     if kind == "number":
-        return _number(raw)
+        return as_number(raw)
     if kind == "count":
         return _count(raw)
     if kind == "flag":
