@@ -3506,3 +3506,44 @@ mypy notes the edit hook prints on test_w2_windows.py (they predate this run).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-6b2b5395cc: visible regressions for the three faults of the hidden gap property (W2-P1 unknown fix2)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W2-UNKNOWN.md points 1 to 51, the journeys
+j01, j03, j12, j13, j15, and the pack's work kind, opt_job_start and stem.evaluation_final.
+
+Probed each fault on HEAD (c04f662) with path.compute and the shipped packs before writing:
+- j01/j03, mv1.from_program: p1 gives stem.a2 (stem.a4) ends null; p2 gives 2024-07-15
+  (2024-07-22), the release date; not_sure gives null with no waits_on, state next in all three.
+  So the "next date" of the mission is the stage's end; the state does not differ across fills
+  and is not asserted.
+- j12/j13, w1.start left out: questions hold no w1.start; opt_job_start.w1 (done, report window
+  2025-06-01 to 2025-06-11, and 2025-07-01 to 2025-07-11) leaves the output with no waits_on.
+- j15, w4.under left out: stem.evaluation_final.opens.a2 2025-10-31 with no waits_on; the
+  journey gives 2027-06-14. (The mission wrote "from 2025-10-31 to 2027-06-14"; on HEAD the
+  journey is 2027-06-14 and the blank gives 2025-10-31. Either way the two differ.)
+
+Wrote tests/unit/engine/test_w2_unknown_regressions.py, five tests, each with a control that
+shows the gap changes the output (so none is vacuous), then the withheld assertion:
+- test_j01_/test_j03_a_not_sure_move_withholds_the_stem_stage_end_it_could_set (points 6, 33):
+  ends null and mv1.from_program in the stage's waits_on. Fails if: the undecided link is read
+  as "no move leaves p2" and the end emitted null with no waits_on (HEAD).
+- test_j12_/test_j13_a_job_start_left_out_is_asked (point 8, 34, 46(b)(d)): question w1.start,
+  record w1, field start, state absent; cannot_tell. Fails if: the absent start is read as no
+  start and nothing asks (HEAD).
+- test_j15_a_job_link_left_out_withholds_the_concluding_evaluation_never_moves_it (point 6, 33):
+  value null with w4.under in waits_on. Fails if: the blank link is read as "not under a2"
+  (2025-10-31, HEAD) or as "under a2" (2027-06-14 with no waits_on).
+
+Ran: pytest on the file: 5 failed, each on the withheld assertion, every control passed.
+Done command: ruff check, ruff format --check, pytest --co: exit 0.
+
+Seen, not followed up: with w4.under left out, j15 also asks span_order.w4 (not asked in j15 as
+written); w4 has start 2025-12-01 and no end. Reported as a request.
+
+Not built: no new support helper (the _set/_computed/_question here are local, as in
+test_path_fix1.py; tests.support.gaps.question exists but the file reads the journeys through
+records_case like its siblings); no holdout twins (not asked by the mission).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
