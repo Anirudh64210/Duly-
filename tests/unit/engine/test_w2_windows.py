@@ -115,7 +115,20 @@ def test_the_numbers_the_dates_are_worked_from_are_the_saved_words():
 
 # The cases, on the shipped F-1 pack. A field the case does not give is left out.
 
-LISTS_WHOLE = ("program", "authorization", "work", "trip", "move", "petition", "withdrawal")
+# SPEC-W2-UNKNOWN points 14 and 58 (D92): every kind the screen asks whole (each kind with a
+# complete_label) is stated whole, as onboarding asks it. end_date_change and report were left
+# unstated, so an OPT end "as of" a filing day and a report's due day waited on them.
+LISTS_WHOLE = (
+    "program",
+    "authorization",
+    "work",
+    "trip",
+    "move",
+    "petition",
+    "withdrawal",
+    "end_date_change",
+    "report",
+)
 
 
 def f1_case(records: list[dict[str, Any]], on: date = TODAY) -> dict[str, Any]:
@@ -700,7 +713,11 @@ def test_s2_an_unreadable_date_in_one_job_is_named_and_never_removes_another_job
     assert_w2_keeps_both_stem_windows(out)
     assert out["verdict"]["state"] == "cannot_tell"
     assert [r for r in out["verdict"]["reasons"] if "w3.start" in r], out["verdict"]["reasons"]
-    assert asks_for(out, "w3.start")
+    # SPEC-W2-UNKNOWN points 34 and 35: an unreadable value is asked as `unreadable:`, no longer
+    # as `missing:`, with state unreadable and the value as entered in `about`.
+    asked = [q for q in out["questions"] if "unreadable:w3.start" in q["because"]]
+    assert [(q["id"], q.get("state")) for q in asked] == [("w3.start", "unreadable")]
+    assert asked[0]["about"]["w3.start"] == unreadable
     assert {closes for _, closes in dated_windows(out, "w3")} <= {None}
 
 

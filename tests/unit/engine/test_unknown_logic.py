@@ -377,7 +377,8 @@ def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
     # leaves, each leaf known (a value, or NONE through its declaration) or U (not_sure). The
     # check `tree` is a conflict on c1 exactly when the tree is F on every completion, is
     # silent exactly when it is T on every completion, and asks every U leaf's field
-    # otherwise. Fails if any operator reads U as F or T (U3, U4, U20, U21).
+    # otherwise. Fails if any operator reads U as F or T (U3, U4, U20, U21), or asks a field a
+    # settled tree does not rest on (point 8).
     from tests.support.unknown_toy import case, check_pack, rec
     from tests.support.w2_pack import compute
 
@@ -423,7 +424,10 @@ def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
         else:
             fields[name] = value
     c1 = rec("c1", "course", **fields)
-    out = compute(case([c1], TODAY, facts={"arrived_on": "2026-06-01"}), [check_pack(cond)], TODAY)
+    # The stage reads the fact arrived_on, never a field of c1: point 29 asks a course start
+    # that is unknown on the stage's own entry, which would be a question the tree did not ask.
+    pack = check_pack(cond, stage_reads="arrived_on")
+    out = compute(case([c1], TODAY, facts={"arrived_on": "2026-06-01"}), [pack], TODAY)
     conflict = any(r.startswith("conflict:tree") for r in out["verdict"]["reasons"])
     asked = {q.get("field") for q in out["questions"] if q.get("record") == "c1"}
     if results == {False}:

@@ -1431,9 +1431,19 @@ def test_j02_windows_of_the_mba_card(client: TestClient) -> None:
 def test_j02_stem_on_the_earlier_bachelors_is_next(client: TestClient) -> None:
     # programs.md section 14, candidate basis: p1 us_on_f1, bachelor, on_list, conferred
     # 2018-05-19, which is on or after 2026-10-21 minus 60 days (2026-08-22) minus 10 years
-    # (2016-08-22). So a STEM extension of a1 is next.
+    # (2016-08-22). The pack's only_if also needs p1 conferred before the coursework of a1's
+    # program was done (p2.coursework_done_on), which j02 leaves out. SPEC-W2-UNKNOWN point 31:
+    # a next stage whose only_if is U is in state unknown with waits_on, never next, and the
+    # real record's field is asked. With the day stated (2025-12-12, p2's end; 2018-05-19 is
+    # before it) the only_if is T and a STEM extension of a1 is next.
     out = _send(client, j02())
-    assert stage(out, "stem.a1")["state"] == "next"
+    waiting = stage(out, "stem.a1")
+    assert (waiting["state"], waiting.get("waits_on")) == ("unknown", ["p2.coursework_done_on"])
+    assert "p2.coursework_done_on" in question_ids(out)
+    stated = j02()
+    p2 = next(r for r in stated["records"] if r["id"] == "p2")
+    p2["fields"]["coursework_done_on"] = "2025-12-12"
+    assert stage(_send(client, stated), "stem.a1")["state"] == "next"
 
 
 def test_j02_the_next_stem_stage_carries_no_report_dates(client: TestClient) -> None:

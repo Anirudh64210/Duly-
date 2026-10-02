@@ -329,12 +329,21 @@ def test_a_for_each_stage_is_entered_once_for_each_record_with_its_record_id() -
 
 
 def test_a_stage_is_not_entered_while_an_entered_when_field_is_absent() -> None:
-    # Point 1: entered when all its entered_when facts are present. c3 has no end.
+    # Point 1: entered when all its entered_when facts are present. c3 has no end, and this
+    # pack leaves course.end `ask` (no when_absent), so the absence is unknown, not "not
+    # entered": SPEC-W2-UNKNOWN point 29 emits c3's entry with state unknown, null dates and
+    # c3.end in waits_on, asks c3.end, and the verdict is cannot_tell. c1 is entered as before.
     c3 = _rec("c3", "course", start="2026-01-05", level="low")
     out = _compute(_case([C1, c3]), _pack())
-    ids = {s["id"] for s in out.get("stages", [])}
-    assert "course.c3" not in ids
-    assert "course.c1" in ids
+    stages = {s["id"]: s for s in out.get("stages", [])}
+    assert "course.c1" in stages
+    assert stages["course.c1"]["state"] != "unknown"
+    entry = stages["course.c3"]
+    assert (entry["state"], entry["starts"], entry["ends"]) == ("unknown", None, None)
+    assert "c3.end" in entry.get("waits_on", [])
+    assert "c3.end" in [q["id"] for q in out["questions"]]
+    assert "missing:c3.end" in _reasons(out)
+    assert out["verdict"]["state"] == "cannot_tell"
 
 
 # Point 3: windows, done_when; programs.md 13 point 4: paths.
@@ -444,11 +453,24 @@ def _window(opens: dict[str, Any], closes: dict[str, Any], wid: str = "toy.w") -
 
 
 def test_an_optional_member_is_skipped_when_absent() -> None:
-    # earliest_of [end, optional left_on]; left_on absent: closes on end, 2026-10-20.
+    # earliest_of [end, optional left_on]. SPEC-W2-UNKNOWN point 16: an optional member is
+    # passed over only when its value is N, so the pack declares left_on `when_absent: none`
+    # (point 2: a field read through an optional member declares none or not_yet). left_on
+    # absent is then N: closes on end, 2026-10-20. With the default `ask`, the same absence is
+    # unknown: the close is withheld with c1.left_on in waits_on and c1.left_on is asked.
     closes = {"earliest_of": [{"fact": "this.end"}, {"fact": "this.left_on", "optional": True}]}
-    pack = _pack(_one_window(_window({"fact": "this.start"}, closes)))
+    raw = _pack_dict(_one_window(_window({"fact": "this.start"}, closes)))
+    course = next(k for k in raw["path"]["records"] if k["id"] == "course")
+    left_on = next(f for f in course["fields"] if f["id"] == "left_on")
+    left_on["when_absent"] = "none"
+    assert [e.message for e in Draft202012Validator(PACK_SCHEMA).iter_errors(raw)] == []
     c1 = _rec("c1", "course", start="2025-01-06", end="2026-10-20", level="high")
-    assert "2026-10-20" in _dates(_compute(_case([c1]), pack), "toy.definition", "c1")
+    assert "2026-10-20" in _dates(_compute(_case([c1]), validate_pack(raw)), "toy.definition", "c1")
+    asked = _compute(_case([c1]), _pack(_one_window(_window({"fact": "this.start"}, closes))))
+    assert _dates(asked, "toy.definition", "c1") == {"2025-01-06"}  # opens on start, no close
+    held = [i for i in asked["computed"] if i["id"] == "toy.w.closes.c1"]
+    assert [(i["value"], "c1.left_on" in i.get("waits_on", [])) for i in held] == [(None, True)]
+    assert "missing:c1.left_on" in _reasons(asked)
 
 
 def test_an_optional_member_counts_when_present() -> None:
@@ -638,6 +660,22 @@ def test_a_declared_check_that_holds_raises_nothing() -> None:
     assert _mentions(out, "toy.card_after_course") == []
 
 
+def _typed_dates_checked(case: dict[str, Any], pack: Rulepack) -> dict[str, Any]:
+    """SPEC-W2-UNKNOWN point 37: compute decides through engine.verdict.decide, so a verdict is
+    never talk_to_dso while any question is open, the D59 typed-date questions included. The
+    case with typed_dates.from_documents answered yes and each typed date checked, so the
+    matter a test is about is the only one left."""
+    case = copy.deepcopy(case)
+    confirmations = dict(case.get("confirmations", {}))
+    for _ in range(2):  # the checks are asked only after the yes
+        for q in _compute(case, pack)["questions"]:
+            if q["id"].startswith("typed_dates."):
+                about = q.get("about", {})
+                confirmations[q["id"]] = {"answer": True, "on": TODAY.isoformat(), "about": about}
+        case["confirmations"] = confirmations
+    return case
+
+
 def test_a_conflict_confirmed_as_on_the_documents_gives_talk_to_dso() -> None:
     # programs.md 13 point 10: "a yes gives talk_to_dso with the judgement item". The
     # confirmation is keyed by the question the engine itself raised.
@@ -650,13 +688,15 @@ def test_a_conflict_confirmed_as_on_the_documents_gives_talk_to_dso() -> None:
         q["id"]: {"answer": True, "on": TODAY.isoformat(), "about": q.get("about", {})}
         for q in asked
     }
-    out = _compute(case, pack)
+    out = _compute(_typed_dates_checked(case, pack), pack)  # point 37
     assert out["verdict"]["state"] == "talk_to_dso"
 
 
 def test_a_judgement_check_that_does_not_hold_goes_to_the_dso_at_once() -> None:
-    # done_on 2026-11-01 is after end 2026-10-20. A judgement check gives talk_to_dso at
-    # once, with no question first.
+    # done_on 2026-09-01 is after end 2026-08-20. A judgement check gives talk_to_dso at
+    # once, with no question first. Point 37: no other question may be open, so the typed
+    # dates are checked, and c2 (2026-01-05 to 2027-05-14, done 2026-09-01, on or before its
+    # end) keeps a span past today, so record.ends_before_today is not asked.
     check = {
         "id": "toy.done_by_end",
         "for_each": {"record": "course"},
@@ -668,10 +708,15 @@ def test_a_judgement_check_that_does_not_hold_goes_to_the_dso_at_once() -> None:
         "c1", "course", start="2025-01-06", end="2026-10-20", level="high", done_on="2026-09-01"
     )
     late = dict(c1, fields=dict(c1["fields"], end="2026-08-20"))
-    ok = _compute(_case([c1]), _pack(checks=[check]))
-    bad = _compute(_case([late]), _pack(checks=[check]))
+    c2 = _rec(
+        "c2", "course", start="2026-01-05", end="2027-05-14", level="low", done_on="2026-09-01"
+    )
+    pack = _pack(checks=[check])
+    ok = _compute(_case([c1]), pack)
+    bad = _compute(_typed_dates_checked(_case([late, c2]), pack), pack)
     assert _mentions(ok, "toy.done_by_end") == []
     assert _mentions(bad, "toy.done_by_end", "c1")
+    assert not [q for q in bad["questions"] if "toy.done_by_end" in q["id"]]
     assert bad["verdict"]["state"] == "talk_to_dso"
 
 
@@ -844,7 +889,10 @@ def _unemployed(job_start: str, hours: float, under: str = "k1") -> dict[str, An
         card_start="2025-01-01",
         card_end="2025-03-31",
     )
-    w1 = _rec("w1", "job", under=under, start=job_start, hours_per_week=hours)
+    # SPEC-W2-UNKNOWN point 22: this pack leaves job.end `ask`, so an absent end is unknown and
+    # the span with it, never "still going". The job's end is stated: 2027-08-31, k1's own card
+    # end, so the job runs past today (2026-09-29) as the counts below assume.
+    w1 = _rec("w1", "job", under=under, start=job_start, end="2027-08-31", hours_per_week=hours)
     return _compute(_case([C1, k1, k2, w1]), _pack(counters=[UNEMPLOYMENT]))
 
 
@@ -972,7 +1020,8 @@ def test_nothing_after_the_record_gives_talk_to_dso() -> None:
         q["id"]: {"answer": False, "on": TODAY.isoformat(), "about": q.get("about", {})}
         for q in asked
     }
-    out = _compute(_case([c1], confirmations=conf), _pack())
+    case = _typed_dates_checked(_case([c1], confirmations=conf), _pack())  # point 37
+    out = _compute(case, _pack())
     assert out["verdict"]["state"] == "talk_to_dso"
 
 
@@ -996,14 +1045,24 @@ def test_a_pack_with_an_empty_path_is_cannot_tell_with_category_not_covered() ->
 
 def test_a_record_of_a_kind_the_pack_does_not_declare_is_refused() -> None:
     # case.schema.json: "refuses a record whose kind or field the pack does not declare".
-    # The refusal names where the case fails: the kind, never a value.
-    with pytest.raises(ValueError, match="vessel"):
+    # SPEC-W2-UNKNOWN point 39 (and P5, point 49): the refusal is CaseStructureError, in its
+    # own plain words that never repeat what was sent, so the undeclared kind is not in it.
+    from engine.path import CaseStructureError
+
+    with pytest.raises(CaseStructureError) as refused:
         _compute(_case([C1, _rec("x1", "vessel", name="Boat")]), _pack())
+    assert "vessel" not in str(refused.value)
+    assert "Boat" not in str(refused.value)
 
 
 def test_a_field_the_pack_does_not_declare_is_refused() -> None:
-    with pytest.raises(ValueError, match="colour"):
+    # Point 39, as above: the undeclared field and its value are not in the words.
+    from engine.path import CaseStructureError
+
+    with pytest.raises(CaseStructureError) as refused:
         _compute(_case([dict(C1, fields=dict(C1["fields"], colour="blue"))]), _pack())
+    assert "colour" not in str(refused.value)
+    assert "blue" not in str(refused.value)
 
 
 # programs.md 13 point 13: effective_from_basis.

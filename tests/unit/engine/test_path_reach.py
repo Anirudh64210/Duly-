@@ -13,6 +13,7 @@ system time.
 """
 
 import copy
+import dataclasses
 import importlib
 import json
 from datetime import UTC, date, datetime
@@ -23,7 +24,7 @@ import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from engine.clocks import FixedClock
-from engine.rulepack import Rulepack, validate_pack
+from engine.rulepack import Rulepack, RulepackError, validate_pack
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CONTRACTS = REPO_ROOT / "contracts"
@@ -715,10 +716,13 @@ def test_count_below_is_strict() -> None:
 
 
 def test_a_count_over_a_selection_that_reads_not_sure_goes_to_the_dso() -> None:
-    # programs.md 13 point 6: "Not sure" gives <record id>.<field>.not_sure. Counting the
-    # full-time cards of c1 is unknown while k1's time is not_sure (0 or 1 against
-    # toy.max_cards): no conflict. SPEC-W2-UNKNOWN point 35: k1.time asked undecided, the
-    # verdict cannot_tell, the DSO judgement kept.
+    # programs.md 13 point 6: "Not sure" gives <record id>.<field>.not_sure. SPEC-W2-UNKNOWN
+    # point 7 (count_below n, k chosen, u undecided): F if k >= n, T if the list is whole and
+    # k + u < n, else U. With k1 alone (k 0, u 1) 0 + 1 < 2 is T on either answer, so point 8
+    # asks nothing; k2, full time, is added so the answer matters: k 1, u 1, 1 < 2 is not F
+    # and 1 + 1 < 2 is not T, so U (1 or 2 full-time cards against toy.max_cards 2): no
+    # conflict. Point 35: k1.time asked undecided, the verdict cannot_tell, the DSO judgement
+    # kept.
     check = _check(
         "toy.full_time_cards",
         "course",
@@ -735,7 +739,7 @@ def test_a_count_over_a_selection_that_reads_not_sure_goes_to_the_dso() -> None:
             }
         },
     )
-    out = _run_check(check, _course(), _card(time="not_sure"))
+    out = _run_check(check, _course(), _card(time="not_sure"), _card("k2", time="full_time"))
     assert _mentions(out, "conflict:", "toy.full_time_cards") == []
     _undecided(out, "k1", "time")
 
@@ -1039,19 +1043,26 @@ def test_days_of_a_not_qualifying_record_count_even_when_covered() -> None:
     # qualifying: its 5 days (10, 11, 12, 13, 14) count. 29 - (29 - 5) = 5.
     counter = dict(UNEMPLOYMENT, not_qualifying={"record": "trip"})
     k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
-    w1 = _rec("w1", "job", under="k1", start="2026-09-01", hours_per_week=20)
+    # SPEC-W2-UNKNOWN point 22: job.end is `ask` in this pack, so w1's end is stated (k1's card
+    # end, 2027-08-31, past today); an absent end would be unknown, never "still going".
+    w1 = _rec("w1", "job", under="k1", start="2026-09-01", end="2027-08-31", hours_per_week=20)
     t1 = _rec("t1", "trip", start="2026-09-10", end="2026-09-14")
     out = _compute(_case([_course(), k1, w1, t1]), _pack([_course_stage()], counters=[counter]))
     assert _counted(out, "toy.unemployment", "k1") == [5]
 
 
-def test_a_qualifying_job_with_no_start_covers_no_day_and_its_start_is_asked() -> None:
-    # w1 has no start: it covers nothing, all 29 days from 2026-09-01 to 2026-09-29 count,
-    # and w1.start is asked.
+def test_a_qualifying_job_with_no_start_withholds_the_count_and_its_start_is_asked() -> None:
+    # w1 (under k1, 20 hours, at toy.hours) has no start. SPEC-W2-UNKNOWN points 21 and 22 (R19):
+    # a start that is U makes the span U, so the job could cover anything from none to all 29
+    # days from 2026-09-01 to 2026-09-29; it is never read as covering no day. The count is
+    # emitted null with w1.start in waits_on (point 24), w1.start is asked, cannot_tell. Its end
+    # is stated (2027-08-31) so the start is the one gap.
     k1 = _card("k1", card_start="2026-09-01", card_end="2027-08-31")
-    w1 = _rec("w1", "job", under="k1", hours_per_week=20)
+    w1 = _rec("w1", "job", under="k1", end="2027-08-31", hours_per_week=20)
     out = _compute(_case([_course(), k1, w1]), _pack([_course_stage()], counters=[UNEMPLOYMENT]))
-    assert _counted(out, "toy.unemployment", "k1") == [29]
+    assert _counted(out, "toy.unemployment", "k1") == [None]
+    held = [i for i in out["computed"] if i["id"] == "toy.unemployment.k1"]
+    assert [("w1.start" in i.get("waits_on", [])) for i in held] == [True]
     assert "missing:w1.start" in _reasons(out)
     assert out["verdict"]["state"] == "cannot_tell"
 
@@ -1068,7 +1079,14 @@ def test_a_record_naming_a_category_the_case_does_not_list_is_refused() -> None:
 
 
 def test_a_pack_whose_rules_were_never_checked_is_cannot_tell() -> None:
-    out = _compute(_case([_course()]), _pack([_course_stage()], rules=[]))
+    # SPEC-W2-UNKNOWN point 11: a pack whose stages name rules it does not hold is refused at
+    # load, so a pack with no rules no longer loads. The hard rule still holds for a loaded pack
+    # with no checked rule: its parameters emptied after load, the verdict is cannot_tell with
+    # rules_never_checked.
+    with pytest.raises(RulepackError, match="toy"):
+        _pack([_course_stage()], rules=[])
+    unchecked = dataclasses.replace(_pack([_course_stage()]), parameters=())
+    out = _compute(_case([_course()]), unchecked)
     assert out["verdict"]["state"] == "cannot_tell"
     assert "rules_never_checked" in _reasons(out)
 
