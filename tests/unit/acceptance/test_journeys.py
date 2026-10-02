@@ -145,6 +145,23 @@ def _null_or_absent(out: dict[str, Any], item_id: str) -> bool:
 
 
 # The cases. Each is the journey's timeline as records; the answers a student would give.
+#
+# SPEC-W2-UNKNOWN points 14 and 58 (D92): a list not stated whole withholds what an unlisted
+# record could change, and onboarding asks "any others?" in the step that adds each list. A
+# journey's timeline is the whole of the person's story, so each case states every list the
+# screen asks (each kind of the F-1 pack with a complete_label) whole, as the student answers
+# it; a statement for one program's authorizations no longer covers the others (point 14).
+# j08 keeps its trip list open on request (test_j08_unemployment_is_null_until_...).
+ASKED_LISTS = (
+    "program",
+    "move",
+    "end_date_change",
+    "authorization",
+    "work",
+    "report",
+    "trip",
+    "petition",
+)
 
 
 def j01() -> dict[str, Any]:
@@ -217,7 +234,7 @@ def j01() -> dict[str, Any]:
             ),
             rec("w2", "work", employer="e2", under="a2", start="2026-08-01", hours_per_week=40),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -259,7 +276,7 @@ def j02() -> dict[str, Any]:
                 card_end="2027-01-19",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -338,7 +355,7 @@ def j03() -> dict[str, Any]:
                 split_noted="yes",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -418,7 +435,7 @@ def j04() -> dict[str, Any]:
                 card_end="2024-08-09",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "end_date_change", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -474,7 +491,7 @@ def j05() -> dict[str, Any]:
                 card_end="2027-01-14",
             ),
         ],
-        whole("program", "authorization:p1", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -546,7 +563,7 @@ def j06() -> dict[str, Any]:
             rec("e1", "employer", name="Employer X"),
             rec("e2", "employer", name="Employer Y"),
         ],
-        whole("program", "authorization:p1"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -618,7 +635,7 @@ def j07() -> dict[str, Any]:
                 reentry_i20="p2",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -673,7 +690,9 @@ def j08(trips_whole: bool = True) -> dict[str, Any]:
             ),
             rec("w2", "work", on_campus="p2", start="2025-01-13", hours_per_week=20),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work", *trips),
+        whole(
+            *(k for k in ASKED_LISTS if k != "trip"), "authorization:p1", "authorization:p2", *trips
+        ),
     )
 
 
@@ -714,7 +733,7 @@ def j09(requested_on: str = "2025-04-21") -> dict[str, Any]:
                 card_end="2027-01-11",
             ),
         ],
-        whole("program", "authorization:p1", "end_date_change", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -752,7 +771,7 @@ def j10() -> dict[str, Any]:
                 release_date="2025-06-30",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -811,7 +830,7 @@ def j11() -> dict[str, Any]:
                 job_on_return="no",
             ),
         ],
-        whole("program", "authorization:p1", "work", "trip", "petition"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -854,7 +873,7 @@ def j12() -> dict[str, Any]:
                 validity_start="2026-10-01",
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -904,7 +923,7 @@ def j13() -> dict[str, Any]:
                 outcome_on="2026-08-14",
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -976,7 +995,7 @@ def j14() -> dict[str, Any]:
                 outcome_on="2026-07-25",
             ),
         ],
-        whole("program", "authorization:p1", "work", "petition", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -1062,7 +1081,7 @@ def j15(job_c_end: str | None = None) -> dict[str, Any]:
                 hours_changes=[{"start": "2026-01-05", "end": "2026-01-25", "hours_per_week": 15}],
             ),
         ],
-        whole("program", "authorization:p1", "work", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -1119,7 +1138,7 @@ def j16() -> dict[str, Any]:
                 reentry_i20="p1",
             ),
         ],
-        whole("program", "authorization:p0", "authorization:p1", "trip"),
+        whole(*ASKED_LISTS, "authorization:p0", "authorization:p1"),
     )
 
 
@@ -1140,7 +1159,7 @@ def j17() -> dict[str, Any]:
                 online_within_limit="not_sure",
             ),
         ],
-        whole("program", "authorization:p1"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -1169,7 +1188,7 @@ def j18() -> dict[str, Any]:
                 reason="medical",
             ),
         ],
-        whole("program", "authorization:p1", "end_date_change"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -1248,9 +1267,7 @@ def j19() -> dict[str, Any]:
                 card_end="2028-06-08",
             ),
         ],
-        whole(
-            "program", "authorization:p0", "authorization:p1", "authorization:p2", "move", "trip"
-        ),
+        whole(*ASKED_LISTS, "authorization:p0", "authorization:p1", "authorization:p2"),
     )
 
 
@@ -1295,7 +1312,7 @@ def j20() -> dict[str, Any]:
                 card_end="2027-06-14",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 

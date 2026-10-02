@@ -214,10 +214,61 @@ def test_point_11_a_level_operator_on_a_field_with_no_order_is_refused():
     _refused(raw, "mode")
 
 
-def test_point_11_an_ordered_field_with_a_choice_the_order_does_not_rank_is_refused():
+# Point 11 as amended (D93): an ordered field may leave choices unranked when no source ranks
+# them. The pack loads; a comparison that reaches an unranked choice is unknown with state
+# undecided, never refused at load and never ranked by invention.
+
+
+def _unranked_high() -> dict:
     raw = _toy()
     raw["path"]["order"][0]["ascending"] = ["low", "mid"]  # high is a choice, not ranked
-    _refused(raw, "high")
+    return raw
+
+
+def test_point_11_an_ordered_field_may_leave_a_choice_unranked():
+    # Fails if: validate_pack refuses the order that leaves high unranked (the pre-D93 lint).
+    raw = _unranked_high()
+    from tests.support.w2_pack import schema_problems
+
+    assert schema_problems(raw) == []
+    validate_pack(raw)
+
+
+def test_point_11_a_comparison_reaching_an_unranked_choice_is_undecided():
+    # c1's level is high, which the order does not rank, so "high above mid" has no answer:
+    # the check neither holds nor raises its conflict, the level is asked with state undecided,
+    # the reason is undecided:c1.level (point 35) and the verdict is cannot_tell. Today
+    # 2026-09-29. Fails if: the engine ranks high (silent T), reads it as F (conflict:tree),
+    # or refuses it at compute.
+    from datetime import date
+
+    from tests.support.unknown_toy import case, pack_dict, rec
+    from tests.support.w2_pack import compute
+
+    today = date(2026, 9, 29)
+    stage = {
+        "id": "course",
+        "label": "Course",
+        "for_each": {"record": "course"},
+        "entered_when": ["this.start"],
+        "rule_ids": ["toy.definition"],
+    }
+    check = {
+        "id": "tree",
+        "for_each": {"record": "course"},
+        "holds": [{"field": "this.level", "level_above": "mid"}],
+        "rule_ids": ["toy.cap"],
+    }
+    raw = pack_dict(stages=[stage], checks=[check], counters=[])
+    raw["path"]["order"][0]["ascending"] = ["low", "mid"]
+    c1 = rec("c1", "course", level="high", mode="day", start="2026-01-05")
+    out = compute(case([c1], today), [validate_pack(raw)], today)
+    reasons = out["verdict"]["reasons"]
+    assert not any(r.startswith("conflict:tree") for r in reasons), reasons
+    asked = [q for q in out["questions"] if q.get("record") == "c1" and q.get("field") == "level"]
+    assert [q.get("state") for q in asked] == ["undecided"], out["questions"]
+    assert "undecided:c1.level" in reasons, reasons
+    assert out["verdict"]["state"] == "cannot_tell"
 
 
 def test_point_11_an_in_value_that_is_not_a_choice_is_refused():
@@ -231,6 +282,41 @@ def test_point_11_a_rule_id_the_pack_does_not_hold_is_refused():
     raw = _toy()
     _stage(raw, "course")["windows"][0]["closes"]["add"] = [{"rule": "toy.nowhere"}]
     _refused(raw, "toy.nowhere")
+
+
+def test_point_11_a_check_may_compare_against_a_product_setting():
+    # Point 11 as amended (D93): a check may compare against a product setting written
+    # {setting: id}. watch.close_days is 30 days in contracts/product_settings.yaml. Fails if:
+    # validate_pack refuses a setting in a check's holds.
+    raw = _toy()
+    raw["path"]["checks"].append(
+        _course_check(
+            {
+                "field": "this.start",
+                "on_or_before": {
+                    "fact": "this.end",
+                    "add": [{"setting": "watch.close_days", "sign": -1}],
+                },
+            }
+        )
+    )
+    from tests.support.w2_pack import schema_problems
+
+    assert schema_problems(raw) == []
+    validate_pack(raw)
+
+
+def test_point_11_a_setting_in_a_counter_condition_is_still_refused():
+    # Point 11 as amended (D93): "a setting is refused anywhere but a window's dates and a
+    # check". A counter's scope is neither.
+    raw = _toy()
+    _counter(raw, "idle.card")["scope"]["of"]["where"].append(
+        {
+            "field": "this.card_start",
+            "on_or_before": {"fact": "today", "add": [{"setting": "watch.close_days"}]},
+        }
+    )
+    _refused(raw, "watch.close_days")
 
 
 def test_point_11_a_qualifying_kind_without_two_date_fields_is_refused():

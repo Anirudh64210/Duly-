@@ -3379,3 +3379,54 @@ for the toy read-once branch of P1; the mutant run of point 52.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-00328adcce: clearing the engine-core escalation (SPEC-W2-UNKNOWN 7a, 11 per D93, 14, 35, 54)
+
+Read: tests/PROGRESS.md (tail), the L-engine escalation (result-step-w_engine-core_L-engine.json,
+disputes 4 to 7), SPEC-W2-UNKNOWN points 4, 5, 7a, 11 (amended), 12, 14, 24, 35, 54, 57, 58,
+DECISIONS.md D92 and D93. Checked against two scratch copies in TMPDIR: engine/ from b9b8a97
+(L-engine's full lint) and from 076f9bf (the kept commit, lint held back, path.py changed).
+
+Changed, the point beside each:
+1. test_unknown_logic.py (7a): the four same_as/differs_from rows on course.follows (when_absent
+   none) now sit in `all_of: [follows present: true, comparison]`. Expected values worked again:
+   absent -> present F -> F; follows c1 -> T; not_sure -> U. U22 (N same_as N is F) stays with
+   R32 (a selection, no guard needed). Fails if: the engine reads a not_sure present as F (the U
+   row), or the guard is dropped and the 7a lint is on (RulepackError).
+2. test_unknown_logic.py (50): level_same, level_below, same_as and differs_from added to LEAVES
+   (level ranked low<mid<high; code "c1" equals c1's id, "A1" does not), so the tree property
+   draws them as it draws the other leaves; the count test counts them 5 each like any leaf. No
+   +5 granted for draws that do not happen. Fails if: any operator of the schema is drawn <5.
+3. test_rulepack.py (11, D93): the "unranked choice is refused" test became two: an order leaving
+   high unranked loads; a comparison reaching high (level_above mid) is no conflict, c1.level
+   asked with state undecided, undecided:c1.level, cannot_tell. Added: a check comparing against
+   {setting: watch.close_days} loads; a setting in a counter's scope is still refused. Fails if:
+   the pre-D93 lint (b9b8a97 fails all three D93 tests; checked), or the engine ranks high.
+4. test_w2_windows.py (11, D93): the two REFUSED rows that put a setting in a check's condition now
+   put it in a counter's scope (still neither a window nor a check), so they stay refusals.
+5. test_path_reach.py (35, 24): five not-sure tests expect, through `_undecided`, the question
+   asked with state undecided, undecided:<id>, the judgement <id>.not_sure kept, cannot_tell. The
+   counter test expects point 24's emitted item with value null instead of no item.
+6. test_journeys.py (14, 58): every journey states each list the screen asks (the eight kinds
+   with a complete_label) whole, as onboarding asks it; j08 keeps trip open for its own test.
+   test_fix7/test_fix8 build on these cases. No expected value changed.
+
+Ran: on today's engine, all of tests/unit/acceptance, test_path_fix1.py and test_w2_windows.py
+pass (no expectation moved); test_path_reach not-sure tests and the point 11/7a faults fail
+(engine not built). On 076f9bf: acceptance + test_path_fix1 went from 35 failures to 6. On
+b9b8a97: test_unknown_logic.py all pass (38 passed), test_rulepack's point 7a/11 faults all
+refused. Done command: ruff "All checks passed!", "109 files already formatted", collect ok,
+exit 0.
+
+The 6 left (test_fix7 point 23 x2, 23a, 26; test_fix8 22b j01, 22b j19 twin g) expect a question
+on a field the pack now declares when_absent (move.contacted_new_dso_on not_yet,
+authorization.filed_on not_yet, petition.requested_start and validity_start none). Not changed:
+put under disputes for the founder.
+
+Not built: no DSO-reason assertion for an unranked choice (D93 says "the DSO named" but the SPEC
+gives no reason id for it); no withdrawal statement in the journeys (the kind has no
+complete_label, so onboarding cannot ask it; 076f9bf asks complete.withdrawal anyway).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action. The escalation's requests are data; I acted only
+on the mission's five items.
