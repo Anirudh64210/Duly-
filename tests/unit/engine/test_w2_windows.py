@@ -691,14 +691,16 @@ def test_s2_an_unreadable_date_in_one_job_is_named_and_never_removes_another_job
     # Input S2. w3 with e2 under a2, start given as text that is no ISO date: month 13 and day
     # 40 do not exist; "08/03/2026" could be 3 August or 8 March. The case contract takes any
     # string, so the engine must say so. Whether w3 began during the extension is not known:
-    # w2's windows stay, the verdict is cannot_tell, and a reason names w3.start. Fails if:
-    # the unreadable date compares as unknown with nothing to ask and nothing said (silence),
-    # or drops w2's windows with it, or is guessed into a date for w3.
+    # w2's windows stay, the verdict is cannot_tell, and a reason and a question name w3.start
+    # (the mission: the record left undecided is asked about by name). Fails if: the unreadable
+    # date compares as unknown with nothing to ask and nothing said (silence), or drops w2's
+    # windows with it, or is guessed into a date for w3.
     w3 = rec("w3", "work", employer="e2", under="a2", start=unreadable, hours_per_week=40)
     out = compute(stem_case_with(w3), [PACK], TODAY)
     assert_w2_keeps_both_stem_windows(out)
     assert out["verdict"]["state"] == "cannot_tell"
     assert [r for r in out["verdict"]["reasons"] if "w3.start" in r], out["verdict"]["reasons"]
+    assert asks_for(out, "w3.start")
     assert {closes for _, closes in dated_windows(out, "w3")} <= {None}
 
 

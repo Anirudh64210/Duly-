@@ -280,6 +280,8 @@ def test_a_gap_in_one_stem_job_keeps_the_other_job_s_windows(
     assert _w2_stem_windows(out) == W2_KEPT
     assert out["verdict"]["state"] == "cannot_tell"
     assert [r for r in out["verdict"]["reasons"] if named in r], out["verdict"]["reasons"]
+    # The re-review's mission: the record left undecided is asked about by name.
+    assert any(f"missing:{named}" in q["because"] for q in out["questions"]), out["questions"]
     assert _dated(out, "w3") == set()
 
 
