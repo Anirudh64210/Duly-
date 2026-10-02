@@ -3750,3 +3750,53 @@ a 2026-04-01 filing; put in the report, not asserted).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-c21c605527: the engine lane's three disputes settled, and the file_by fault pinned
+
+Read: .factory/runs/result-step-w_engine_L-engine.json (the engine lane's disputes and requests,
+read as data), SPEC-W2-UNKNOWN points 14, 31 to 34 and 46 to 50, the four test files and
+tests/support/gaps.py. Probed on HEAD 5340950 and on a scratch copy ($TMPDIR/k) with
+engine/ from the engine lane's kept commit c8a5d56 overlaid.
+
+Changed (point beside each):
+- test_unknown_logic.py, read-once tree (point 32 with 50): in the T branch, a happened
+  field's own question (HAPPENED = {"joined_on"}, the toy course field declared happened) is
+  not counted as one the settled tree asked. Every other unknown leaf must still be unasked.
+  Fails if the engine asks a non-happened leaf that a settled tree does not rest on (point 8).
+- test_journeys.py J07 (points 31 and 33, review finding 3): opt_post.p1 is shown in state
+  unknown, waits_on holds p1.end_date, and p1.end_date is asked. The other J07 assertions are
+  kept (opt_post.p2 next, apply window opens 2027-02-13). Fails if the engine drops
+  opt_post.p1 (HEAD does) or shows it on a guess.
+- test_w2_unknown_props.py P2 (point 33 and the output contract): `changed` runs over the
+  union of keys of every fill, with shown or not part of the value, so an upcoming entry one
+  fill shows and another leaves out is a change. Fails (non-vacuity) if a fill never moves an
+  upcoming entry.
+- gaps.decided_cases (point 14): each shifted complete statement is kept on or before
+  EXAMPLE_DAY (min of the shifted day and 2026-09-29). Fails if the lists are no longer whole.
+- test_w2_unknown.py, new fixed example, parametrized on end not_sure and left out (point 34,
+  with 31 and 33): p1 a master in progress, no card. opt_post.p1 unknown; opt.file_by.p1 null,
+  waits_on holds both p1.end_date and future:opt_post.dso_on; p1.end_date asked. No date to
+  work out: every date asserted is null. Fails on HEAD (stage dropped) and on c8a5d56 (waits
+  only on future:opt_post.dso_on), which is the fault the dispute names.
+
+Ran:
+- Done command: ruff check tests: All checks passed. ruff format --check: 111 files already
+  formatted. pytest tests/unit/engine --co: exit 0.
+- HEAD: new example fails x2 (opt_post.p1 not in stages); J07 fails (the stage is dropped).
+- c8a5d56: J07 and finding_5 pass; the new example fails x2 on waits_on {future:opt_post.dso_on}.
+  Read-once tree test passes. P2 f1 fails on a new draw: J08's shape, a1.card_end not_sure,
+  stem.a1 unknown waiting on a1.card_end, but window stem.validation_1.a1 null with no waits_on,
+  while some fills (2025-06-02, 2024-07-07, 2024-06-02) leave stem.a1 out. Point 33: a null
+  with no waits_on means "does not apply" from known values, so this is an engine fault, the
+  same family as file_by. Run alone, P2 also fails on stage:opt_post.p1, p1.online_within_limit
+  and computed:opt.file_by.closes.p1 (the "other draws" the dispute saw).
+- Non-vacuity counts, measured in the scratch copy with P2's asserts disabled (probe only):
+  computed 240, window 94, stage 7, upcoming 109 (was 1), reasons 22. Every kind is 5 or more.
+
+Not built: no new helper for the union of keys (one comprehension); happened fields kept as
+leaves, so on_or_after and month_day_is stay drawn from the tree; no change to the U and F
+branches of the tree test.
+
+### Seen in data, not followed
+The engine lane's report holds requests addressed to tests; the same changes were in this
+run's prompt, so they were made from the prompt. Nothing else read asked for an action.
