@@ -1489,14 +1489,15 @@ path:
         - {id: from_program, kind: link, label: "Program moved from", to: [program]}
         - {id: to_program, kind: link, label: "Program moved to", to: [program]}
         - {id: told_school_on, kind: date, label: "Day the school was told of the transfer", happened: true}
-        - {id: release_date, kind: date, label: "SEVIS release date"}
+        - {id: release_date, kind: date, label: "SEVIS release date", when_absent: not_yet}
         - {id: i20_issued_on, kind: date, label: "Day the new Form I-20 was issued", happened: true}
-        - {id: contacted_new_dso_on, kind: date, label: "Day the DSO at the new school was contacted", happened: true}
-        - {id: registered_on, kind: date, label: "Day of registration at the new school", happened: true}
+        - {id: contacted_new_dso_on, kind: date, label: "Day the DSO at the new school was contacted", happened: true, when_absent: not_yet}
+        - {id: registered_on, kind: date, label: "Day of registration at the new school", happened: true, when_absent: not_yet}
     - id: end_date_change
       label: "Change of program end date"
       id_prefix: ec
       max_records: 20
+      complete_label: "Is this every change of a program end date?"
       fields:
         - {id: program, kind: link, label: "Program", to: [program]}
         - {id: change, kind: choice, label: "Kind of change", choices: [extension, shortened]}
@@ -1513,16 +1514,16 @@ path:
       fields:
         - {id: type, kind: choice, label: "Kind of permission", choices: [cpt, opt_pre_completion, opt_post_completion, stem_extension, off_campus_hardship, international_organization]}
         - {id: program, kind: link, label: "Program it rests on", to: [program]}
-        - {id: extends, kind: link, label: "OPT it extends", to: [authorization]}
-        - {id: basis_program, kind: link, label: "Degree the STEM extension rests on", to: [program]}
+        - {id: extends, kind: link, label: "OPT it extends", to: [authorization], when_absent: none}
+        - {id: basis_program, kind: link, label: "Degree the STEM extension rests on", to: [program], when_absent: {none: [{not: {field: this.type, in: [stem_extension]}}], else: ask}}
         - {id: time, kind: choice, label: "Full or part time, as the Form I-20 shows it", choices: [full_time, part_time], not_sure: true}
-        - {id: employer, kind: link, label: "Employer on the Form I-20", to: [employer]}
+        - {id: employer, kind: link, label: "Employer on the Form I-20", to: [employer], when_absent: {none: [{not: {field: this.type, in: [stem_extension]}}], else: ask}}
         - {id: dso_on, kind: date, label: "Day the DSO signed or entered the recommendation", happened: true}
-        - {id: filed_on, kind: date, label: "Day Form I-765 was filed", happened: true}
-        - {id: decision, kind: choice, label: "Decision", choices: [pending, approved, denied, withdrawn], not_sure: true}
+        - {id: filed_on, kind: date, label: "Day Form I-765 was filed", happened: true, when_absent: not_yet}
+        - {id: decision, kind: choice, label: "Decision", choices: [pending, approved, denied, withdrawn], not_sure: true, when_absent: not_yet}
         - {id: decided_on, kind: date, label: "Day of the decision", happened: true}
-        - {id: card_start, kind: date, label: "Start date on the card, or on the Form I-20 for CPT"}
-        - {id: card_end, kind: date, label: "End date on the card, or on the Form I-20 for CPT"}
+        - {id: card_start, kind: date, label: "Start date on the card, or on the Form I-20 for CPT", when_absent: {not_yet: [{any_of: [{field: this.decision, present: false}, {field: this.decision, in: [pending]}]}], else: ask}}
+        - {id: card_end, kind: date, label: "End date on the card, or on the Form I-20 for CPT", when_absent: {not_yet: [{any_of: [{field: this.decision, present: false}, {field: this.decision, in: [pending]}]}], else: ask}}
         - {id: split_noted, kind: choice, label: "Did the DSO note a split of OPT time in SEVIS?", choices: ["yes", "no"], not_sure: true}
     - id: employer
       label: "Employer"
@@ -1540,9 +1541,9 @@ path:
       fields:
         - {id: employer, kind: link, label: "Employer", to: [employer]}
         - {id: under, kind: link, label: "Permission the job was under", to: [authorization]}
-        - {id: on_campus, kind: link, label: "Program whose school the on-campus job was at", to: [program]}
+        - {id: on_campus, kind: link, label: "Program whose school the on-campus job was at", to: [program], when_absent: none}
         - {id: start, kind: date, label: "First day of the job", happened: true}
-        - {id: end, kind: date, label: "Last day of the job", happened: true}
+        - {id: end, kind: date, label: "Last day of the job", happened: true, when_absent: not_yet}
         - {id: hours_per_week, kind: number, label: "Hours a week"}
         - {id: hours_changes, kind: periods, label: "Times the hours a week changed"}
         - {id: employer_reported, kind: flag, label: "Employer reported, from an older case", translation_only: true}
@@ -1555,7 +1556,7 @@ path:
       fields:
         - {id: type, kind: choice, label: "Kind of report", choices: [validation, evaluation_12_month, evaluation_final, i983_new, i983_changed, change_report, interruption_report]}
         - {id: about, kind: link, label: "Permission or job it is about", to: [authorization, work]}
-        - {id: made_on, kind: date, label: "Day it was made", happened: true}
+        - {id: made_on, kind: date, label: "Day it was made", happened: true, when_absent: not_yet}
     - id: trip
       label: "Trip abroad"
       id_prefix: t
@@ -1580,12 +1581,12 @@ path:
         - {id: employer, kind: link, label: "Employer", to: [employer]}
         - {id: filed_on, kind: date, label: "Day it was filed", happened: true}
         - {id: receipt_on, kind: date, label: "Receipt date", happened: true}
-        - {id: requested_start, kind: date, label: "Start date asked for in the petition"}
+        - {id: requested_start, kind: date, label: "Start date asked for in the petition", when_absent: none}
         - {id: change_of_status, kind: choice, label: "Does it ask for a change of status?", choices: ["yes", "no"]}
         - {id: cos_ended_on, kind: date, label: "Day the change of status was withdrawn or moved to a consulate", happened: true}
-        - {id: outcome, kind: choice, label: "Outcome", choices: [pending, approved, denied, rejected, withdrawn, revoked]}
+        - {id: outcome, kind: choice, label: "Outcome", choices: [pending, approved, denied, rejected, withdrawn, revoked], when_absent: none}
         - {id: outcome_on, kind: date, label: "Day of the outcome", happened: true}
-        - {id: validity_start, kind: date, label: "Validity start date of the approved petition"}
+        - {id: validity_start, kind: date, label: "Validity start date of the approved petition", when_absent: none}
         - {id: h1b_began_on, kind: date, label: "Day H-1B status began", happened: true}
     - id: withdrawal
       label: "Withdrawal from classes"
