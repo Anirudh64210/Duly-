@@ -852,11 +852,13 @@ PREPARE = _toy_window(
 )
 
 
-def _check(holds: dict[str, Any]) -> dict[str, Any]:
+def _scoped(where: dict[str, Any]) -> dict[str, Any]:
     return {
-        "id": "toy.check",
-        "for_each": {"record": "card"},
-        "holds": [holds],
+        "id": "toy.card_days",
+        "calculator": "sum_of_days",
+        "scope": {"of": {"record": "card", "where": [where]}, "group": "record"},
+        "span": {"starts": {"fact": "this.card_start"}, "ends": {"fact": "this.card_end"}},
+        "limit_rule": "toy.bar",
         "rule_ids": ["toy.definition"],
     }
 
@@ -884,13 +886,15 @@ REFUSED: dict[str, dict[str, Any]] = {
         ]
     ),
     "stage gap_allowed": toy_pack_dict([toy_stage(gap_allowed=BY_SETTING)]),
+    # SPEC-W2-UNKNOWN point 11 as amended (D93): a check may compare against a setting, so the
+    # two condition cases sit in a counter's scope, which is neither a window nor a check.
     "condition at_most": toy_pack_dict(
-        [toy_stage()], checks=[_check({"field": "this.hours", "at_most": BY_SETTING})]
+        [toy_stage()], counters=[_scoped({"field": "this.hours", "at_most": BY_SETTING})]
     ),
     "a date add list in a condition": toy_pack_dict(
         [toy_stage()],
-        checks=[
-            _check(
+        counters=[
+            _scoped(
                 {"field": "this.card_start", "on_or_before": {"fact": "today", "add": [BY_SETTING]}}
             )
         ],

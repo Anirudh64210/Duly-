@@ -272,6 +272,18 @@ def _mentions(out: dict[str, Any], *parts: str) -> list[str]:
     return [n for n in names if all(p in n for p in parts)]
 
 
+def _undecided(out: dict[str, Any], record: str, field: str) -> None:
+    """SPEC-W2-UNKNOWN point 35 (D92, point 57): a not_sure answer an unsettled read rests on is
+    asked with state undecided and raises undecided:<record>.<field>, a blocker, so the verdict
+    is cannot_tell; the judgement <record>.<field>.not_sure (talk_to_dso) stays among the
+    reasons, so they still point to the DSO."""
+    asked = [q for q in out["questions"] if q.get("record") == record and q.get("field") == field]
+    assert [q.get("state") for q in asked] == ["undecided"], out["questions"]
+    assert f"undecided:{record}.{field}" in _reasons(out)
+    assert f"{record}.{field}.not_sure" in _reasons(out)
+    assert out["verdict"]["state"] == "cannot_tell"
+
+
 def _window(out: dict[str, Any], rule: str, record: str | None) -> dict[str, Any]:
     """The one window of a stage that names the rule and belongs to the record."""
     found = [
@@ -704,7 +716,9 @@ def test_count_below_is_strict() -> None:
 
 def test_a_count_over_a_selection_that_reads_not_sure_goes_to_the_dso() -> None:
     # programs.md 13 point 6: "Not sure" gives <record id>.<field>.not_sure. Counting the
-    # full-time cards of c1 is unknown while k1's time is not_sure: no conflict, the DSO.
+    # full-time cards of c1 is unknown while k1's time is not_sure (0 or 1 against
+    # toy.max_cards): no conflict. SPEC-W2-UNKNOWN point 35: k1.time asked undecided, the
+    # verdict cannot_tell, the DSO judgement kept.
     check = _check(
         "toy.full_time_cards",
         "course",
@@ -722,9 +736,8 @@ def test_a_count_over_a_selection_that_reads_not_sure_goes_to_the_dso() -> None:
         },
     )
     out = _run_check(check, _course(), _card(time="not_sure"))
-    assert "k1.time.not_sure" in _reasons(out)
     assert _mentions(out, "conflict:", "toy.full_time_cards") == []
-    assert out["verdict"]["state"] != "no_open_items"
+    _undecided(out, "k1", "time")
 
 
 HIGH_OR_LEFT = _check(
@@ -749,12 +762,11 @@ def test_any_of_holds_when_one_part_holds() -> None:
 
 
 def test_any_of_with_an_unknown_part_and_no_true_part_is_unknown() -> None:
-    # level not_sure, no left_on: one part unknown, the other false. No conflict; the
-    # judgement c1.level.not_sure gives talk_to_dso.
+    # level not_sure, no left_on: one part unknown, the other false. No conflict;
+    # SPEC-W2-UNKNOWN point 35: c1.level asked undecided, cannot_tell, the DSO judgement kept.
     out = _run_check(HIGH_OR_LEFT, _course(level="not_sure"))
     assert _mentions(out, "conflict:", "toy.high_or_left") == []
-    assert "c1.level.not_sure" in _reasons(out)
-    assert out["verdict"]["state"] == "talk_to_dso"
+    _undecided(out, "c1", "level")
 
 
 def test_all_of_needs_every_part() -> None:
@@ -785,10 +797,10 @@ def test_not_turns_true_to_false_and_false_to_true() -> None:
 
 
 def test_not_of_an_unknown_is_unknown() -> None:
+    # SPEC-W2-UNKNOWN point 35: not over U is U; c1.level asked undecided, cannot_tell.
     out = _run_check(NOT_LOW, _course(level="not_sure"))
     assert _mentions(out, "conflict:", "toy.not_low") == []
-    assert "c1.level.not_sure" in _reasons(out)
-    assert out["verdict"]["state"] == "talk_to_dso"
+    _undecided(out, "c1", "level")
 
 
 def test_a_check_whose_only_if_is_false_does_not_apply() -> None:
@@ -851,10 +863,10 @@ def test_level_same_compares_with_another_record_through_a_path() -> None:
 
 
 def test_a_level_that_is_not_sure_goes_to_the_dso() -> None:
+    # SPEC-W2-UNKNOWN point 35: c1.level asked undecided, cannot_tell, the DSO judgement kept.
     out = _run_check(ABOVE_LOW, _course(level="not_sure"))
     assert _mentions(out, "conflict:", "toy.above_low") == []
-    assert "c1.level.not_sure" in _reasons(out)
-    assert out["verdict"]["state"] == "talk_to_dso"
+    _undecided(out, "c1", "level")
 
 
 # Next: programs.md 13 point 7 and rulepack.schema.json $defs.next_step.
@@ -996,9 +1008,12 @@ def test_a_counter_over_an_unknown_selection_counts_nothing_and_goes_to_the_dso(
     out = _compute(
         _case([_course(), _card(time="not_sure")]), _pack([_course_stage()], counters=[counter])
     )
-    assert [i for i in out["computed"] if str(i["id"]).startswith("toy.full_time_count")] == []
-    assert "k1.time.not_sure" in _reasons(out)
-    assert out["verdict"]["state"] != "no_open_items"
+    # SPEC-W2-UNKNOWN point 24: the withheld count is still emitted, value null (k1 could
+    # make it 0 or 1); point 35: k1.time asked undecided, cannot_tell, the DSO judgement kept.
+    found = [i for i in out["computed"] if str(i["id"]).startswith("toy.full_time_count")]
+    assert found, out["computed"]
+    assert [i["value"] for i in found] == [None] * len(found)
+    _undecided(out, "k1", "time")
 
 
 UNEMPLOYMENT = _counter(

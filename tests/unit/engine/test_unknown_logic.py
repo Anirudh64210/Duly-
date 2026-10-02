@@ -319,6 +319,38 @@ LEAVES: list[dict[str, Any]] = [
         ["low", "mid", "high"],
         lambda v: v == "high",
     ),
+    # The pairwise operators are leaves too, so the tree draws them as often as the others
+    # (point 50; the tables alone drew level_same and level_below 2 times, differs_from 2 and
+    # same_as 3). level is ranked low < mid < high; code is a text field read as given, so
+    # "c1" is c1's own id and "A1" is not.
+    _leaf(
+        "level_same",
+        "level",
+        {"field": "this.level", "level_same": "mid"},
+        ["low", "mid", "high"],
+        lambda v: v == "mid",
+    ),
+    _leaf(
+        "level_below",
+        "level",
+        {"field": "this.level", "level_below": "mid"},
+        ["low", "mid", "high"],
+        lambda v: v == "low",
+    ),
+    _leaf(
+        "same_as",
+        "code",
+        {"field": "this.code", "same_as": "this.id"},
+        ["c1", "A1"],
+        lambda v: v == "c1",
+    ),
+    _leaf(
+        "differs_from",
+        "code",
+        {"field": "this.code", "differs_from": "this.id"},
+        ["c1", "A1"],
+        lambda v: v != "c1",
+    ),
     _leaf(
         "at_most",
         "credits",
@@ -331,11 +363,11 @@ LEAVES: list[dict[str, Any]] = [
 
 def test_the_leaves_cover_the_comparison_operators():
     # Point 50: leaves are drawn from every operator of contracts/rulepack.schema.json. The
-    # rest (level_same, level_below, same_as, differs_from, exists, none, count_below,
-    # count_at_most) are drawn in the tables below.
+    # rest (exists, none, count_below, count_at_most) are drawn in the tables below.
     ops = {leaf["op"] for leaf in LEAVES}
     assert {"field", "present", "in", "before", "on_or_after", "after", "on_or_before"} <= ops
     assert {"level_above", "month_day_is", "at_most"} <= ops
+    assert {"level_same", "level_below", "same_as", "differs_from"} <= ops
 
 
 @LOGIC
@@ -410,6 +442,12 @@ def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
 # Each operator drawn at least 5 times (point 50). The list and pairwise operators are their
 # own small trees, each worked by hand.
 
+
+def _guarded(comparison: dict[str, Any]) -> dict[str, Any]:
+    # Point 7a: a holds comparison on a none field, guarded by present: true in the same all_of.
+    return {"all_of": [{"field": "this.follows", "present": True}, comparison]}
+
+
 OPERATOR_CASES: list[tuple[str, dict[str, Any], dict[str, Any], str]] = [
     # (operator, condition on c1, c1's fields beyond the base, expected T/F/U)
     ("level_same", {"field": "this.level", "level_same": "mid"}, {"level": "mid"}, "T"),
@@ -417,11 +455,20 @@ OPERATOR_CASES: list[tuple[str, dict[str, Any], dict[str, Any], str]] = [
     ("level_below", {"field": "this.level", "level_below": "mid"}, {"level": "low"}, "T"),
     ("level_below", {"field": "this.level", "level_below": "mid"}, {"level": "high"}, "F"),
     ("level_above", {"field": "this.level", "level_above": "mid"}, {"level": "zz"}, "U"),
-    # follows is none-declared: N on either side of same_as is F (point 7, U22), even N with N.
-    ("same_as", {"field": "this.follows", "same_as": "this.follows"}, {}, "F"),
-    ("same_as", {"field": "this.follows", "same_as": "this.id"}, {"follows": "c1"}, "T"),
-    ("same_as", {"field": "this.follows", "same_as": "this.id"}, {"follows": "not_sure"}, "U"),
-    ("differs_from", {"field": "this.follows", "differs_from": "this.id"}, {}, "F"),
+    # follows is none-declared, so point 7a requires a present: true guard on it in the same
+    # all_of of a check's holds (test_rulepack.py point 7a); the rows carry it. Absent follows:
+    # present is F, so the all_of is F. Given c1: present T and c1 same_as c1 T, so T. not_sure:
+    # present is U (undecided) and same_as is U, so U. N same_as N is F (U22) is kept by R32
+    # (test_w2_unknown.py), a selection, where no guard is needed.
+    ("same_as", _guarded({"field": "this.follows", "same_as": "this.follows"}), {}, "F"),
+    ("same_as", _guarded({"field": "this.follows", "same_as": "this.id"}), {"follows": "c1"}, "T"),
+    (
+        "same_as",
+        _guarded({"field": "this.follows", "same_as": "this.id"}),
+        {"follows": "not_sure"},
+        "U",
+    ),
+    ("differs_from", _guarded({"field": "this.follows", "differs_from": "this.id"}), {}, "F"),
     ("differs_from", {"field": "this.mode", "differs_from": "this.level"}, {"mode": "day"}, "T"),
     ("at_most", {"field": "this.credits", "at_most": {"rule": "toy.cap"}}, {"credits": 2}, "T"),
     ("at_most", {"field": "this.credits", "at_most": {"rule": "toy.cap"}}, {"credits": 3}, "F"),
@@ -568,8 +615,8 @@ def test_every_operator_is_drawn_at_least_five_times():
         drawn[op] += 1
     for op in ("all_of", "any_of", "not"):
         drawn[op] += 5
-    # Pairs and lists drawn fewer than 5 times by the tables are drawn again by the module
-    # functions (exists3, count_below3, count_at_most3) 150 times each.
+    # Lists drawn fewer than 5 times by the tables are drawn again by the module functions
+    # (exists3, count_below3, count_at_most3) 150 times each.
     for op in ("exists", "none", "count_below", "count_at_most"):
         drawn[op] += 5
     short = {op: drawn[op] for op in operators if drawn[op] < 5}
