@@ -41,7 +41,8 @@ describe("Timeline (design-1 section 7)", () => {
     mount("/timeline", () => Promise.resolve(NEXT));
     expect(await screen.findByText("APPLICATION")).toBeInTheDocument();
     expect(screen.getByText("From the dates you entered")).toBeInTheDocument();
-    expect(screen.getAllByRole("img", { name: "Done" })).toHaveLength(3);
+    // SPEC-W2 point 45 P3: the job-start report row adds a fourth Done.
+    expect(screen.getAllByRole("img", { name: "Done" })).toHaveLength(4);
     expect(screen.getByRole("img", { name: "Now" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Next" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Later" })).toBeInTheDocument();

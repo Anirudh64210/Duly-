@@ -1305,3 +1305,28 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - rule_copy_not_saved_for_event_day and opt.months_at_level.at_or_over_limit.master are not
   questions; both still read "Something in what you entered needs an answer." and fold into
   one line under Why. Their words are for the content lane, not a words-only web round.
+
+## l-web-c8b9218bf3 (W2-P1, SPEC-W2 points 45, 46, 49), attempt 1
+
+### Tried and ran
+
+- `make samples`: exit 0, nothing changed under web/samples (0825148 already holds the W2-P1
+  samples).
+- First done run: exit 1. web: 35 tests failed, all from one cause: 188 times
+  `Unrecognized key: "planning"`, the N1 mark (point 46) the engine now puts on windows.
+- web/src/lib/compute.ts: `planning: z.literal(true).optional()` on windows, computed and
+  upcoming, as contracts/engine_output.schema.json gives it (const true, absent otherwise).
+- Second run: 4 left. The samples now hold a done stage `opt_job_start.w1`, the report window
+  on a job's start (point 45 P3), as the last Timeline row. Updated timeline.test.ts (rows and
+  marks), fix7.test.ts (rows) and roundB.test.tsx (Done marks 3 to 4), point 45 P3 beside each.
+  No assert loosened: each list is still matched exactly.
+- Third run: web 32 files, 595 tests passed. desktop failed on the sandbox, not on code:
+  `EPERM mkdir desktop/coverage` (writes outside web/ are refused). Without coverage, 248 of
+  249 pass; buildpython.test.ts fails because bash prints "cannot create temp file for here
+  document: Operation not permitted" at build-python.sh line 119 (the sandbox again).
+
+### Not built
+
+- No Plan screen use of `planning`, `limit_day` or the job-start row's words: the mission asks
+  only that the samples and the web tests follow the engine; the screen is a later plan.
+- No `as_of` (N3) in the web schema: no sample carries it yet and no test needs it.

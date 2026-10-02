@@ -147,6 +147,8 @@ describe("point 22: a stage whose dates a petition makes null is unknown, never 
       "opt_post.a2",
       "stem.a2",
       "trip.t1",
+      // SPEC-W2 point 45 P3: the report window on a job's start is a stage of its own.
+      "opt_job_start.w1",
     ]);
     for (const output of [cardRuns(), unknownFirst(), cardEnded()]) {
       const text = rowText(row(timelineView(output, null).rows, "grace.p1"));
