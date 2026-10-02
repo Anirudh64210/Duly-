@@ -1914,3 +1914,81 @@ Status: done.
 - Not built: anything. No finding names a fault.
 
 Status: done.
+
+## l-engine-641a4b8826 (W2-P1 unknown fix5, engine round, attempt 1 on the kept work)
+
+- Carried forward engine/path.py from lane/L-engine/l-engine-c27fd187fc (710a960). At start, the
+  four named tests and SIM102 failed, as the resume note said.
+- test_change_3 (ends_before_today): the kept work put the known end of a stage whose record is
+  undecided (grace.p1, 2026-07-30) into span_ends, so it dated the question. Now those ends go to
+  `maybe_ends`: an end there that is unknown or not past still keeps the question back
+  (point 32), but only entered ends date it. Passes.
+- SIM102 at _cond: folded into one `if`. ruff passes.
+- Finding 9: `_as_date` and `_number` removed from path.py; readers.py's `_date` and `_number`
+  are now public `as_date` and `as_number`, and path.py reads through them. `_all`, `_any`,
+  `_cond` and `not` work through all3, any3 and not3 (`_tri` turns an unknown read into an
+  Unknown on its trace's gaps). Short-circuits are kept: reading more conditions has side
+  effects (used kinds, and so list questions). Same failures before and after: nothing any
+  test expects moved.
+- Finding 6: compute raises CaseStructureError for an undeclared category (kept work).
+- Still failing, all three disputes, not worked around:
+  - test_unknown_logic::test_a_read_once_tree...: joined_on is `happened`; not_sure, it is
+    asked by point 32 / finding 5 (test_finding_5 holds it), even when the tree settles.
+  - test_journeys::test_j07_opt_is_next...: program.p1 is unknown by entered_when (end_date
+    left out), so by point 33 / finding 3 its next stage opt_post.p1 comes, unknown, waiting
+    on p1.end_date; point 31 keeps a next stage whose filing close is unknown.
+  - test_w2_unknown_props::test_the_properties_saw...: upcoming is seen changed once (needs 5).
+    Probed: the derandomized 30 examples rarely draw a date field that feeds a future upcoming
+    date known in C; the changed upcoming keys mostly are absent in C (no entry). Also
+    gaps.decided_cases shifts the `complete` dates by up to +60 days, past today, which point 14
+    / finding 2 reads as not whole. Accepting future statements again still gives upcoming 1.
+- Done command as written ($TMPDIR/done2.log): exit 1 on those three tests only.
+- Not built: no helper beyond `_tri`/`_known` (used by all three operators); no change to the
+  generator-facing behaviour to raise the props count; nothing F-1 specific.
+
+Status: blocked on the three disputes (tests lane reconcile).
+
+## l-engine-641a4b8826 (attempt 2 on the kept work)
+
+- Started from c6e4239. Same three failures as attempt 1; ruff SIM102 and test_change_3 already fixed.
+- No engine change in this attempt. Probed each failure again with new evidence:
+  - read_once_tree: turning off the point 32 ask for a not_sure `happened` date (path.py
+    run_checks) fails test_finding_5 at once. The toy's course.joined_on is `happened`, so the
+    two tests cannot both pass. Same dispute.
+  - J07: the pack's program -> opt_post only_if is T for p1 (bachelor, no OPT card, completed);
+    only p1.end_date (when_absent ask, left out) is unknown, and every opt_post filing close
+    reads it. Points 31 and 33 and R36 keep the stage, unknown. The old pass came from dropping
+    next stages of an unknown entry (finding 3). Same dispute; a pack only_if on a transfer out
+    would settle it (request).
+  - props non-vacuity: instrumented the real P2[f1] run through a pytest plugin in .scratch/plug
+    (editing a copy changes Hypothesis's derandomized draws, which hash the source). Of about 30
+    examples, one changes a known upcoming date (opt.complete_by.closes.a1 on p1.end_date). The
+    other changed upcoming keys are missing from C (the fill creates them). With future
+    statements accepted again (tried, reverted) the count is still 1. Seeds' complete dates are all
+    2026-09-29 (TODAY), so any positive shift makes them future under point 14.
+  - Seen in passing: with other draws (P2 called alone from the non-vacuity test), P2 finds
+    window:opt.file_by.p1 waiting only on future:opt_post.dso_on and not p1.end_date, and a
+    reason unconfirmed:complete.petition not raised in a fill. The full-file run does not draw
+    these. Not fixed in this attempt (time); worth a look next round.
+- Done command as written (.scratch/done-2.log): exit 1, on those three tests only.
+  engine_literals, mypy, ruff check and ruff format pass.
+
+Status: blocked on the three disputes (tests and pack lanes).
+
+## l-engine-3b1d1ed3d5 (W2-P1 unknown fix6, engine round)
+
+- Carried forward engine/ from lane/L-engine/l-engine-c27fd187fc (d0d14d4): path.py, readers.py,
+  PROGRESS.md. The tests now follow the three disputes; at start only
+  test_w2_unknown::test_the_file_by_window_of_a_next_opt_waits_on_the_program_end_too (both
+  params) failed: opt.file_by.p1 waited only on future:opt_post.dso_on.
+- Cause: in `_next`, a next stage kept because a filing close is not known (`_closed` returns
+  what that close waits on, here p1.end_date) set the stage unknown with that gap, but its
+  withheld windows and items did not name it. file_by's own days read only dso_on.
+- Fix (point 34, generic): when `_closed` returns waiting, every window of the stage with a null
+  day and every null item it computed add those gaps to waits_on. Windows with both days known
+  are not withheld and are left as they are.
+- Done command as written ($TMPDIR/done.log): exit 0 (1 xfail already there). engine_literals,
+  mypy (72 files), ruff check and ruff format pass.
+- Not built: no helper; no change to known-dated windows or upcoming (nothing withheld there).
+
+Status: done.

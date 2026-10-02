@@ -14,17 +14,21 @@ from typing import Any
 
 from engine.clocks import Clock, day_in_zone
 from engine.dates import add_months, add_years, is_business_day
-from engine.readers import ISO_DAY, read
+from engine.readers import as_date, as_number, read
 from engine.rulepack import Rulepack
 from engine.settings import dating_setting, load_settings
 from engine.unknown import (
     NONE,
     NOT_YET,
     Gap,
+    Tri,
     Unknown,
+    all3,
+    any3,
     count_at_most3,
     count_below3,
     exists3,
+    not3,
 )
 from engine.verdict import VerdictInputs, decide
 
@@ -69,22 +73,6 @@ class CaseStructureError(ValueError):
     """A case whose structure the pack does not declare: no question could fix it."""
 
 
-def _as_date(value: Any) -> date | None:
-    # The pattern first: date.fromisoformat also reads basic and week forms (point 41).
-    if isinstance(value, str) and ISO_DAY.match(value):
-        try:
-            return date.fromisoformat(value)
-        except ValueError:
-            return None
-    return None
-
-
-def _number(value: Any) -> float | None:
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return None
-    return float(value)
-
-
 def _month_day(text: Any, year: int) -> date | None:
     try:
         month, day = (int(part) for part in str(text).split("-"))
@@ -106,7 +94,7 @@ def _judgement_id(check: Json, record: Json | None) -> str | None:
     return f"{record[ID]}.{name}" if name and kind == record["kind"] else None
 
 
-def _gaps(tr: "_Trace", record: str) -> list[Gap]:
+def _gaps(tr: "_Trace", record: str | None) -> list[Gap]:
     """What an undecided record's conditions rest on, as gaps on that record. Only the count
     of undecided records is read from them; the questions come from the trace itself."""
     gaps = [Gap(record, name, "absent") for name, _ in tr.missing]
@@ -115,6 +103,16 @@ def _gaps(tr: "_Trace", record: str) -> list[Gap]:
     # Any other unknown with nothing on the record to ask holds the record undecided on its
     # conditions as a whole.
     return gaps or [Gap(record, "where", "undecided")]
+
+
+def _tri(got: bool | None, tr: "_Trace") -> Tri:
+    """A condition's answer as a truth value of engine/unknown.py: None is unknown on what the
+    trace read (SPEC-W2-UNKNOWN point 5)."""
+    return Unknown(frozenset(_gaps(tr, None))) if got is None else got
+
+
+def _known(got: Tri) -> bool | None:
+    return None if isinstance(got, Unknown) else got
 
 
 def _pinned(selector: Json) -> bool:
@@ -204,11 +202,16 @@ class _Run:
         self.rows_used: dict[str, Json] = {}
         self.used_kinds: list[str] = []
         self.span_ends: list[date | None] = []
+        # The ends of stages a record may or may not be in: they can keep the record running,
+        # never date the question (point 32).
+        self.maybe_ends: list[date | None] = []
         self.virtual: set[int] = set()
         self.lists: list[Json] = []
         self.differ: list[str] = []
         # How deep the conditions read now sit inside a selection's where.
         self.selecting = 0
+        # Whether the conditions read now are a check's holds.
+        self.holding = False
 
     # Reading the record.
 
@@ -280,10 +283,11 @@ class _Run:
         """A gap on a field, kept in the trace by its state (SPEC-W2-UNKNOWN point 5)."""
         (tr.unsure if state == "undecided" else tr.missing).append((name, rid))
 
-    def _as_given(self, record: Json, name: str, on: date, tr: _Trace) -> Any:
+    def _as_given(self, record: Json, name: str, on: date | _Absent, tr: _Trace) -> Any:
         """The value of a field as it stood on a day, through its history (SPEC-W2-UNKNOWN
         point 27). A change record that could apply, whose day, link or old value is not
-        known, leaves the value unknown: ABSENT, with the change's own field in the trace."""
+        known, leaves the value unknown: ABSENT, with the change's own field in the trace.
+        On a day not known (ABSENT), the value is known only when no change could apply."""
         value = record["fields"].get(name)
         history = self._decl(record, name).get("history")
         if history is None:
@@ -303,8 +307,12 @@ class _Run:
                     break
                 if part == history["link"] and got != record[ID]:
                     break
-                if part == history["from"] and isinstance(got, date) and got > on:
-                    changes.append((got, other))
+                if part == history["from"] and isinstance(got, date):
+                    if on is ABSENT:
+                        # Point 26: on a day not known, any change of this record could apply.
+                        return ABSENT
+                    if isinstance(on, date) and got > on:
+                        changes.append((got, other))
         if unknown:
             return ABSENT
         if not changes:
@@ -353,7 +361,7 @@ class _Run:
         this: Json | None,
         outer: Json | None,
         tr: _Trace,
-        on: date | None = None,
+        on: date | _Absent | None = None,
     ) -> Any:
         """A value for a condition: as given when known, NONE or NOT_YET when the field's
         when_absent says what its absence means, or ABSENT with the gap in the trace
@@ -475,7 +483,7 @@ class _Run:
             row = self._row(amount["rule"], day, tr)
             if row is None:
                 return None
-            value, unit = _number(row["value"]), row["unit"]
+            value, unit = as_number(row["value"]), row["unit"]
         if value is None:
             return None
         n = int(value) * int(amount.get("sign", 1))
@@ -515,28 +523,22 @@ class _Run:
             if day is None:
                 return ABSENT
         elif "fact" in w:
-            on: date | None = None
+            on: date | _Absent | None = None
+            sub = _Trace()
             if "as_of" in w:
-                sub = _Trace()
+                # A day not yet come reads the value as it stands today (None). A day not
+                # known reads it only when no change record could apply (point 26).
                 as_of = self._when3(w["as_of"], this, outer, sub)
-                if as_of is ABSENT:
-                    # Point 26: a day not known leaves the value not known.
-                    tr.merge(sub)
-                    return ABSENT
-                # A day not yet come reads the value as it stands today.
-                on = as_of if isinstance(as_of, date) else None
+                on = as_of if isinstance(as_of, date) or as_of is ABSENT else None
                 tr.inputs.update(sub.inputs)
             day = self._read(w["fact"], this, outer, tr, on)
+            if day is ABSENT and on is ABSENT:
+                tr.merge(sub)
             if day is NONE or day is NOT_YET:
                 if day is NOT_YET:
-                    name, owner = self._asked_name(w["fact"], this, outer)
-                    if owner is None and this is not None and id(this) in self.virtual:
-                        # Point 31: a field of a record not entered yet comes with it.
-                        tr.named.append(f"future:{this['stage']}.{w['fact'].split('.')[-1]}")
-                    else:
-                        tr.pending.append((name, owner))
+                    self._not_yet(w["fact"], this, outer, tr)
                 return day
-            day = _as_date(day) if day is not ABSENT else None
+            day = as_date(day) if day is not ABSENT else None
             if day is None:
                 return ABSENT
         else:
@@ -554,11 +556,14 @@ class _Run:
             day += ONE_DAY
         return day
 
-    def _asked_name(
-        self, path: str, this: Json | None, outer: Json | None
-    ) -> tuple[str, str | None]:
+    def _not_yet(self, path: str, this: Json | None, outer: Json | None, tr: _Trace) -> None:
+        """A not-yet value an answer rests on: pending, as it comes with time (point 5), or
+        future when it is a field of a record not entered yet (point 31)."""
         _, asked, owner = self._resolve(path, this, outer)
-        return asked or path, owner
+        if asked is None and this is not None and id(this) in self.virtual:
+            tr.named.append(f"future:{this['stage']}.{path.split('.')[-1]}")
+        else:
+            tr.pending.append((asked or path, owner))
 
     def _extreme(
         self, members: list[Json], earliest: bool, this: Json | None, outer: Json | None, tr: _Trace
@@ -635,7 +640,7 @@ class _Run:
                 continue
             tr.merge(sub)
             best = ABSENT
-        if best is not ABSENT and not self._stated(kind) and not _pinned(selector):
+        if best is not ABSENT and not self._stated(kind, selector, outer) and not _pinned(selector):
             tr.lists.append(f"complete.{kind}")
             return ABSENT
         return best
@@ -671,7 +676,11 @@ class _Run:
         """The chosen records, and each undecided record with what it read."""
         chosen: list[Json] = []
         undecided: list[tuple[Json, _Trace]] = []
-        for record in self.records.values():
+        records = list(self.records.values())
+        if outer is not None and id(outer) in self.virtual:
+            # Point 31: a next stage's record not entered yet is one of its kind's records.
+            records.append(outer)
+        for record in records:
             if record["kind"] != selector["record"]:
                 continue
             sub = _Trace()
@@ -699,7 +708,7 @@ class _Run:
         kind = selector["record"]
         chosen, undecided = self._choose(selector, outer)
         unstated = None
-        if not self._stated(kind):
+        if not self._stated(kind, selector, outer):
             unstated = Unknown(frozenset({Gap(None, f"complete.{kind}", "list")}))
         pending = [Unknown(frozenset(_gaps(sub, record[ID]))) for record, sub in undecided]
         got = decide(len(chosen), pending, unstated)
@@ -717,17 +726,16 @@ class _Run:
     ) -> bool | None:
         # A condition known to fail settles the whole: nothing the others read is asked.
         subs: list[_Trace] = []
-        unknown = False
+        results: list[Tri] = []
         for c in conditions:
             sub = _Trace()
-            result = self._cond(c, this, outer, sub)
-            if result is False:
+            results.append(_tri(self._cond(c, this, outer, sub), sub))
+            if results[-1] is False:
                 return False
-            unknown = unknown or result is None
             subs.append(sub)
         for sub in subs:
             tr.merge(sub)
-        return None if unknown else True
+        return _known(all3(results))
 
     def _cond(self, c: Json, this: Json | None, outer: Json | None, tr: _Trace) -> bool | None:
         # SPEC-W2-UNKNOWN point 7: a known value is compared; NONE or NOT_YET (stated
@@ -735,10 +743,10 @@ class _Run:
         results: list[bool | None] = []
         sub = _Trace()
         value: Any = self._read(c["field"], this, outer, sub) if "field" in c else ABSENT
-        if "present" in c and value is ABSENT and not self.selecting and self._only_absent(sub):
-            # A check still reads an absent `ask` field as not there under present, and asks
-            # it through its own conflict. A selection never does: a record it would drop on
-            # a guess is undecided, its gap asked (points 2, 6 and 8).
+        holds_alone = self.holding and not self.selecting
+        if "present" in c and value is ABSENT and holds_alone and self._only_absent(sub):
+            # A check's holds alone reads an absent field as not there under present, and asks
+            # it through its own conflict. Everywhere else it is unknown (point 2).
             value, sub = NONE, _Trace()
         tr.merge(sub)
         known = value is not ABSENT
@@ -749,7 +757,7 @@ class _Run:
             results.append(not stated and value in c["in"] if known else None)
         for key in ("on_or_before", "on_or_after", "before", "after"):
             if key in c:
-                results.append(self._compare_dates(key, value, c[key], this, outer, tr))
+                results.append(self._compare_dates(key, value, c["field"], c[key], this, outer, tr))
         for key in ("level_above", "level_same", "level_below"):
             if key in c:
                 results.append(self._level(key, value, c[key], c["field"], this, outer, tr))
@@ -763,13 +771,13 @@ class _Run:
                 else:
                     results.append((value == other) == (key == "same_as"))
         if "month_day_is" in c:
-            day = _as_date(value)
+            day = as_date(value)
             text = None if day is None else self._rule_value(c["month_day_is"], day, tr)
             placed = None if day is None else _month_day(text, day.year)
             results.append(False if stated else None if placed is None else placed == day)
         if "at_most" in c:
-            number = _number(value)
-            limit = _number(self._rule_value(c["at_most"]["rule"], self.today, tr))
+            number = as_number(value)
+            limit = as_number(self._rule_value(c["at_most"]["rule"], self.today, tr))
             fits = None if number is None or limit is None else number <= limit
             results.append(False if stated else fits)
         for key in ("exists", "none"):
@@ -778,7 +786,7 @@ class _Run:
                 results.append(None if found is None else found == (key == "exists"))
         for key in ("count_below", "count_at_most"):
             if key in c:
-                limit = _number(self._rule_value(c[key]["rule"], self.today, tr))
+                limit = as_number(self._rule_value(c[key]["rule"], self.today, tr))
                 if limit is None:
                     results.append(None)
                     continue
@@ -789,46 +797,64 @@ class _Run:
         if "all_of" in c:
             results.append(self._all(c["all_of"], this, outer, tr))
         if "not" in c:
-            inner = self._cond(c["not"], this, outer, tr)
-            results.append(None if inner is None else not inner)
+            results.append(_known(not3(_tri(self._cond(c["not"], this, outer, tr), tr))))
         if not results:
             # A field alone: a flag is its value; any other kind reads as present: true.
             flag = self._decl_at(c["field"], this, outer).get("kind") == "flag"
             results.append(None if not known else value is True if flag else not stated)
-        if False in results:
-            return False
-        return None if None in results else True
+        return _known(all3(_tri(got, tr) for got in results))
 
     def _any(
         self, conditions: list[Json], this: Json | None, outer: Json | None, tr: _Trace
     ) -> bool | None:
         # A condition known to hold settles the whole: nothing the others read is asked.
         subs: list[_Trace] = []
-        unknown = False
+        results: list[Tri] = []
         for c in conditions:
             sub = _Trace()
-            result = self._cond(c, this, outer, sub)
-            if result is True:
+            results.append(_tri(self._cond(c, this, outer, sub), sub))
+            if results[-1] is True:
                 return True
-            unknown = unknown or result is None
             subs.append(sub)
         for sub in subs:
             tr.merge(sub)
-        return None if unknown else False
+        return _known(any3(results))
 
     def _compare_dates(
-        self, key: str, value: Any, w: Json, this: Json | None, outer: Json | None, tr: _Trace
+        self,
+        key: str,
+        value: Any,
+        field_path: str,
+        w: Json,
+        this: Json | None,
+        outer: Json | None,
+        tr: _Trace,
     ) -> bool | None:
         if value is NONE:
             return False
-        other = self._when(w, this, outer, tr)
-        if value is NOT_YET and other is not None:
-            # Not yet is later than every day up to today; against a later day it is pending.
-            if other > self.today:
-                tr.pending.append((str(w.get("fact", key)), None))
-                return None
-            return key in ("after", "on_or_after")
-        day = _as_date(value)
+        sub = _Trace()
+        found = self._when3(w, this, outer, sub)
+        if found is NONE:
+            return False
+        other = found if isinstance(found, date) else None
+        day = as_date(value)
+        if value is NOT_YET or found is NOT_YET:
+            # Not yet is later than every day up to today (point 7); against a later day, or
+            # against another not yet, the order comes with time: pending.
+            known = other if value is NOT_YET else day
+            if known is not None and known <= self.today:
+                sub.pending = []
+                tr.merge(sub)
+                return (
+                    key in ("after", "on_or_after")
+                    if value is NOT_YET
+                    else key in ("before", "on_or_before")
+                )
+            tr.merge(sub)
+            if value is NOT_YET and (known is not None or found is NOT_YET):
+                self._not_yet(field_path, this, outer, tr)
+            return None
+        tr.merge(sub)
         if day is None or other is None:
             return None
         if key == "on_or_before":
@@ -964,7 +990,7 @@ class _Run:
         given = self.confirmations.get(qid)
         if not isinstance(given, dict):
             return None
-        on = _as_date(given.get("on"))
+        on = as_date(given.get("on"))
         if on is None or on > self.today:
             return None
         if about is not None and given.get("about", about) != about:
@@ -1007,11 +1033,15 @@ class _Run:
                     # Point 32: an end not known never reads as "ended before today"; a known
                     # end still counts toward it.
                     saved = self._snapshot()
-                    self.span_ends.append(
+                    self.maybe_ends.append(
                         self._when(stage["span"]["ends"], record, record, _Trace())
                     )
                     self._restore(saved)
                 unknown.append(self._unknown_stage(stage, sid, rid, waits))
+                # Point 33: a stage is never dropped on a guess, so its next stages still come,
+                # each unknown while what it rests on is.
+                for step in stage.get("next", []):
+                    self._next(step, record)
         # A stage another names as next is shown once, as next.
         shown = {entry[ID] for entry in self.stages}
         self.stages += [entry for entry in unknown if entry[ID] not in shown]
@@ -1057,11 +1087,32 @@ class _Run:
             waits = self._waits(sub)
             if not waits:
                 self._engine_gap(entry)
-            for qid in waits:
-                question = self.questions.get(qid)
-                if question is not None and entry not in question.setdefault("withholds", []):
-                    question["withholds"].append(entry)
+            self._withhold(entry, waits)
+            if declared.get("span"):
+                # Point 32: a stage that may hold a record not decided counts its end toward
+                # "ended before today" only when that end is known.
+                saved = self._snapshot()
+                self.maybe_ends.append(
+                    self._when(declared["span"]["ends"], record, record, _Trace())
+                )
+                self._restore(saved)
         return list(chosen)
+
+    def _withhold(self, output: str, waits: Iterable[str]) -> None:
+        """Each question an output waits on lists it in withholds (point 34)."""
+        for qid in waits:
+            question = self.questions.get(qid)
+            if question is not None and output not in question.setdefault("withholds", []):
+                question["withholds"].append(output)
+
+    def withhold_outputs(self) -> None:
+        """Every output shown waiting, named by the questions it waits on (point 34)."""
+        for entry in self.stages:
+            self._withhold(entry[ID], entry.get("waits_on", []))
+            for window in entry["windows"]:
+                self._withhold(window[ID], window.get("waits_on", []))
+        for item in self.computed:
+            self._withhold(item[ID], item.get("waits_on", []))
 
     def _waits(self, tr: _Trace) -> list[str]:
         """What an output not known waits on (SPEC-W2-UNKNOWN point 34): question ids, named
@@ -1200,8 +1251,8 @@ class _Run:
         places nothing."""
         if not span:
             windows = [w for w in windows if w["opens"] or w["closes"] or w.get("waits_on")]
-            opens = [d for w in windows if (d := _as_date(w["opens"])) is not None]
-            closes = [d for w in windows if (d := _as_date(w["closes"])) is not None]
+            opens = [d for w in windows if (d := as_date(w["opens"])) is not None]
+            closes = [d for w in windows if (d := as_date(w["closes"])) is not None]
             starts = min(opens) if windows and len(opens) == len(windows) else None
             ends = max(closes) if windows and len(closes) == len(windows) else None
         if starts is not None and starts > self.today:
@@ -1296,10 +1347,6 @@ class _Run:
         done_tr = _Trace()
         done_values = [self._read(p, record, record, done_tr) for p in window.get("done_when", [])]
         done = any(v not in (ABSENT, NONE, NOT_YET, False) for v in done_values)
-        if not done and ABSENT in done_values and not is_next:
-            self._need(done_tr)
-        else:
-            done_tr = _Trace()
         suffix = "" if rid is None else f".{rid}"
         dates: dict[str, date | None] = {}
         waits: dict[str, list[str]] = {}
@@ -1314,6 +1361,12 @@ class _Run:
             self._need(tr)
             if dates[end] is None and day is not NONE and not waits[end]:
                 self._engine_gap(f"{window[ID]}.{end}{suffix}")
+        # Whether a window closed before today is done changes nothing shown (point 8).
+        over = dates["closes"] is not None and dates["closes"] < self.today
+        if not done and ABSENT in done_values and not is_next and not over:
+            self._need(done_tr)
+        else:
+            done_tr = _Trace()
         # A window either of whose days a product setting moves is a planning window, and so
         # are both its items (SPEC-W2 point 46, N1).
         planning = any(tr.planning for tr in traces.values())
@@ -1459,6 +1512,15 @@ class _Run:
                 item["waits_on"] = _unique([*item.get("waits_on", []), *doubted])
             for held in [*shown_entry["windows"], *self.upcoming[len(saved["upcoming"]) :]]:
                 held["waits_on"] = _unique([*held.get("waits_on", []), *doubted])
+        if waiting:
+            # Point 34: whether the stage is still open rests on a close not known, so an output
+            # of it that is withheld waits on that gap as well as on its own.
+            for item in self.computed[len(saved["computed"]) :]:
+                if item["value"] is None:
+                    item["waits_on"] = _unique([*item.get("waits_on", []), *waiting])
+            for held in shown_entry["windows"]:
+                if held["opens"] is None or held["closes"] is None:
+                    held["waits_on"] = _unique([*held.get("waits_on", []), *waiting])
         waiting = _unique([*doubted, *waiting])
         if waiting:
             shown_entry["state"] = "unknown"
@@ -1516,7 +1578,7 @@ class _Run:
         known and past; a close not known keeps it, with what it waits on (point 31)."""
         filing = [w.get("done_when") for w in stage.get("windows", [])]
         windows = [w for w, d in zip(entry["windows"], filing, strict=True) if d]
-        known = [c for w in windows if (c := _as_date(w["closes"])) is not None]
+        known = [c for w in windows if (c := as_date(w["closes"])) is not None]
         waiting = [
             name
             for w in windows
@@ -1539,7 +1601,7 @@ class _Run:
             qid = f"step.{checklist[ID]}.{step[ID]}"
             given = self.confirmations.get(qid)
             yes = isinstance(given, dict) and given.get("answer") is True
-            on = _as_date(given.get("on")) if isinstance(given, dict) else None
+            on = as_date(given.get("on")) if isinstance(given, dict) else None
             confirmed = on if on is not None and on <= self.today and yes else None
             if confirmed is not None:
                 self.answers_read.append(qid)
@@ -1575,10 +1637,13 @@ class _Run:
             for name, value in record["fields"].items():
                 if not self._decl(record, name).get("happened"):
                     continue
-                _, day = self._read_own(record, name)
+                state, day = self._read_own(record, name)
                 qid = f"{record[ID]}.{name}"
                 if isinstance(day, date) and day > self.today:
                     self._conflict(f"{qid}.after_today", {qid: value}, record[ID])
+                elif state == "undecided":
+                    # Point 32: a day not known could be after today, so it is asked.
+                    self._need(_Trace(unsure=[(qid, record[ID])]))
         for check in self.path.get("checks", []):
             for target in self._each(check):
                 self._check(check, target)
@@ -1590,7 +1655,11 @@ class _Run:
         applies = self._all(check.get("only_if", []), record, record, tr)
         if applies is False:
             return
-        holds = self._all(check["holds"], record, record, tr) if applies else None
+        holds = None
+        if applies:
+            self.holding = True
+            holds = self._all(check["holds"], record, record, tr)
+            self.holding = False
         self._rules(check["rule_ids"])
         if holds is False:
             if check.get("kind") == "judgement":
@@ -1599,6 +1668,7 @@ class _Run:
                 self._conflict(cid, dict(tr.inputs), rid)
         elif holds is None:
             self._need(tr)
+            self._withhold(cid, self._waits(tr))
 
     # Counters.
 
@@ -1621,15 +1691,29 @@ class _Run:
                     if second_over is not None and second_over != first_over:
                         self._judge(f"{first[ID]}.bars_disagree.{key}")
 
-    def _stated(self, kind: str) -> bool:
-        """The person said the list of this kind is whole, on a day that still covers today."""
+    def _stated(self, kind: str, selector: Json | None = None, outer: Json | None = None) -> bool:
+        """The person said the list of this kind is whole, on a day on or before today that
+        still covers it (SPEC-W2-UNKNOWN point 14). `<kind>:<id>` states whole only the
+        records linked to <id>, so it covers only a selection held by a same_as from one of
+        the kind's links to that record."""
         stated: Json = self.case.get("complete", {}) or {}
         grows = bool(self.kinds.get(kind, {}).get("grows_with_time", False))
         for key, statement in stated.items():
-            if key != kind and not key.startswith(f"{kind}:"):
+            if key != kind and not self._linked_to(kind, key, selector, outer):
                 continue
-            on = _as_date(statement.get("on")) if isinstance(statement, dict) else None
-            if on is not None and not (grows and on < self.today):
+            on = as_date(statement.get("on")) if isinstance(statement, dict) else None
+            if on is not None and on <= self.today and not (grows and on < self.today):
+                return True
+        return False
+
+    def _linked_to(self, kind: str, key: str, selector: Json | None, outer: Json | None) -> bool:
+        head, _, rid = key.partition(":")
+        if head != kind or not rid or selector is None:
+            return False
+        for c in selector.get("where", []):
+            name = str(c.get("field", "")).removeprefix(f"{THIS}.")
+            link = self.fields.get(kind, {}).get(name, {}).get("kind") == "link"
+            if link and "same_as" in c and self._resolve(c["same_as"], None, outer)[0] == rid:
                 return True
         return False
 
@@ -1659,6 +1743,11 @@ class _Run:
                 # gap is asked even when no group is left to withhold.
                 self._need(ktr)
                 held.setdefault(None, _Trace()).merge(ktr)
+                if scope["group"] == "same_value":
+                    # Each group it could join is shown withheld, never left out (point 24).
+                    decl = self._decl_at(scope.get("value_of", ""), record, None)
+                    for choice in decl.get("choices", []):
+                        groups.setdefault(str(choice), [])
             else:
                 groups.setdefault(key, []).append(record)
         for record, sub in undecided:
@@ -1678,7 +1767,7 @@ class _Run:
             if shown is False:
                 continue
             ltr = _Trace()
-            limit = _number(self._rule_value(counter["limit_rule"], self.today, ltr))
+            limit = as_number(self._rule_value(counter["limit_rule"], self.today, ltr))
             value, unit, counted = self._calculate(counter, members, gtr)
             for could in (None, key):
                 if could in held:
@@ -1825,7 +1914,7 @@ class _Run:
         known (point 21): an hours rule not in force filters nothing (point 23)."""
         hours_limit = None
         if "hours_rule" in counter:
-            hours_limit = _number(self._rule_value(counter["hours_rule"], self.today, tr))
+            hours_limit = as_number(self._rule_value(counter["hours_rule"], self.today, tr))
             if hours_limit is None:
                 return None
         jobs = self._covered(counter["qualifying"], record, starts, ends, hours_limit, tr)
@@ -1858,7 +1947,7 @@ class _Run:
             counts = sub is None
             if counts and hours_limit is not None:
                 hours = self._read(f"{THIS}.{PERIOD_HOURS}", record, outer, rtr)
-                if hours is not ABSENT and (_number(hours) or 0) < hours_limit:
+                if hours is not ABSENT and (as_number(hours) or 0) < hours_limit:
                     tr.inputs.update(rtr.inputs)
                     continue
                 counts = hours is not ABSENT
@@ -1911,12 +2000,8 @@ class _Run:
 
     def complete_questions(self) -> list[str]:
         open_lists = []
-        stated: Json = self.case.get("complete", {})
         for kind in self.used_kinds:
-            statement = stated.get(kind)
-            on = _as_date(statement.get("on")) if isinstance(statement, dict) else None
-            grows = bool(self.kinds.get(kind, {}).get("grows_with_time", False))
-            if on is None or (grows and on < self.today):
+            if not self._stated(kind):
                 qid = f"complete.{kind}"
                 open_lists.append(qid)
                 self._ask(qid, f"unconfirmed:{qid}", None, None, (kind, "list"))
@@ -1927,11 +2012,11 @@ class _Run:
         typed: Json = {}
         for record in self.records.values():
             for name, value in record["fields"].items():
-                if self._decl(record, name).get("kind") == "date" and _as_date(value):
+                if self._decl(record, name).get("kind") == "date" and as_date(value):
                     typed[f"{record[ID]}.{name}"] = value
         for fact in self.path.get("facts", []):
             value = self.facts.get(fact[ID])
-            if fact["kind"] == "date" and _as_date(value):
+            if fact["kind"] == "date" and as_date(value):
                 typed[fact[ID]] = value
         if not typed:
             return [NO_DOCUMENTS]
@@ -1953,7 +2038,7 @@ class _Run:
 
     def ends_before_today(self) -> list[str]:
         ends = self.span_ends
-        if not ends or any(e is None or e >= self.today for e in ends):
+        if not ends or any(e is None or e >= self.today for e in [*ends, *self.maybe_ends]):
             return []
         last = max(e for e in ends if e is not None)
         about = {"ends": last.isoformat()}
@@ -2033,7 +2118,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
     records: list[Json] = list(case.get("records", []))
     for record in records:
         if record.get("category", categories[0]) not in categories:
-            raise ValueError("records: a record names a category the case does not list")
+            raise CaseStructureError("records: a record names a category the case does not list")
 
     hard: list[str] = []
     soft: list[str] = []
@@ -2053,6 +2138,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
         run.run_checks()
         run.run_stages()
         run.run_counters()
+        run.withhold_outputs()
         soft += run.ends_before_today()
         hard += run.complete_questions()
     for run in runs:
