@@ -150,3 +150,84 @@ def test_job_start_report_either_side_of_a_month_end(client, start, closes):
         if w.get("record") == "w1" and "opt.report_employer_within_days" in w["rule_ids"]
     ]
     assert found == [closes]
+
+
+# reviews/w2-p1.md finding 3: a card from 2026-10-15, no job. If nothing changes, Oct 15-31 is
+# 17 counted days, Nov 30 47, Dec 31 78, and 12 more reach 90 on 2027-01-12. From 2026-10-16
+# every day is one later: 2027-01-13. Program end 2026-09-15; the card starts inside the 60
+# days after it (to 2026-11-14).
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "limit_day"),
+    [("2026-10-15", "2027-10-14", "2027-01-12"), ("2026-10-16", "2027-10-15", "2027-01-13")],
+)
+def test_limit_day_of_a_card_not_started_yet(client, start, end, limit_day):
+    records = [_program("2026-09-15"), _opt("2026-08-01", "2026-08-10", start, end)]
+    out = _send(client, case(records, LISTS))
+    got = {i["id"]: i["value"] for i in out["computed"]}
+    assert got["unemployment.opt_card.a1.limit_day"] == limit_day
+
+
+# reviews/w2-p1.md finding 1: a STEM card (2026-07-01 to 2028-06-30) and a job with e2 from
+# 2026-08-03 under it. With the card's employer e1 the job is with a new employer, and the new
+# Form I-983 is due by 2026-08-13 (Aug 3 plus 10). With the card's employer left out, Duly
+# cannot tell whether the job is new, so it asks for a2.employer and says cannot_tell.
+
+
+def _stem_case(card_employer: str | None) -> dict[str, Any]:
+    extra = {} if card_employer is None else {"employer": card_employer}
+    stem = rec(
+        "a2",
+        "authorization",
+        type="stem_extension",
+        program="p1",
+        extends="a1",
+        basis_program="p1",
+        decision="approved",
+        dso_on="2026-04-05",
+        filed_on="2026-04-10",
+        card_start="2026-07-01",
+        card_end="2028-06-30",
+        **extra,
+    )
+    program = rec(
+        "p1",
+        "program",
+        where="us_on_f1",
+        level="master",
+        stem_list="on_list",
+        end_date="2025-05-15",
+        state="completed",
+    )
+    records = [
+        program,
+        _opt("2025-04-01", "2025-04-10", "2025-07-01", "2026-06-30"),
+        stem,
+        rec("e1", "employer", name="Employer One", e_verify="yes"),
+        rec("e2", "employer", name="Employer Two", e_verify="yes"),
+        rec("w2", "work", employer="e2", under="a2", start="2026-08-03", hours_per_week=40),
+    ]
+    return case(records, LISTS)
+
+
+def _new_plan_closes(out: dict[str, Any]) -> list[Any]:
+    return [
+        w["closes"]
+        for s in out["stages"]
+        for w in s["windows"]
+        if w.get("record") == "w2" and "stem.new_plan_due_days" in w["rule_ids"]
+    ]
+
+
+def test_new_employer_window_with_the_card_employer_known(client):
+    out = _send(client, _stem_case("e1"))
+    assert _new_plan_closes(out) == ["2026-08-13"]
+
+
+def test_new_employer_window_with_the_card_employer_left_out_is_asked(client):
+    out = _send(client, _stem_case(None))
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:a2.employer" in out["verdict"]["reasons"]
+    assert any("missing:a2.employer" in q["because"] for q in out["questions"])
+    assert set(_new_plan_closes(out)) <= {None}

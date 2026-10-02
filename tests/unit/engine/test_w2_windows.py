@@ -22,6 +22,7 @@ record and the rule. Written before the engine and the pack have them: they cann
 """
 
 import calendar
+import dataclasses
 from datetime import date, timedelta
 from typing import Any
 
@@ -499,6 +500,121 @@ def test_the_employer_the_stem_card_names_is_not_a_new_employer():
     assert report_windows(out, "w1", "stem.new_plan_due_days") == set()
 
 
+# reviews/w2-p1.md finding 4: the STEM report window and "during the extension".
+
+STEM_REPORT = number_in_saved_words(
+    PACK, "stem.report_change_within_days", r"within (\d+) days of the change", TODAY
+)
+
+
+def stem_new_employer_case(start: str) -> dict[str, Any]:
+    # w1 with e1 (the STEM card's own employer) 2026-07-01 to 2026-08-02; w2 with e2 from
+    # `start`. The STEM card a2 runs from 2026-07-01.
+    w1 = rec(
+        "w1",
+        "work",
+        employer="e1",
+        under="a2",
+        start="2026-07-01",
+        end="2026-08-02",
+        hours_per_week=40,
+    )
+    w2 = rec("w2", "work", employer="e2", under="a2", start=start, hours_per_week=40)
+    return stem_jobs_case(w1, w2)
+
+
+def test_a_new_employer_during_stem_gives_the_report_window_from_its_own_rule():
+    # (f)(12)(ii)(A): "Within 10 days of the change ... employer name, employer address". w2
+    # begins 2026-08-03: 2026-08-03 plus 10 is 2026-08-13 (Aug 3 + 10 days, inside August).
+    # Fails if: the report window is dropped, dated from the job's end, or given business days.
+    out = compute(stem_new_employer_case("2026-08-03"), [PACK], TODAY)
+    assert STEM_REPORT == 10
+    assert date(2026, 8, 3) + timedelta(days=STEM_REPORT) == date(2026, 8, 13)
+    assert report_windows(out, "w2", "stem.report_change_within_days") == {
+        ("2026-08-03", "2026-08-13")
+    }
+
+
+def _with_rule_value(rule_id: str, value: int) -> Any:
+    rows = tuple(dict(p, value=value) if p["id"] == rule_id else p for p in PACK.parameters)
+    return dataclasses.replace(PACK, parameters=rows)
+
+
+def test_the_stem_report_window_is_worked_from_the_report_rule_not_the_new_plan_rule():
+    # Finding 4, mutant M5. The shipped stem.report_change_within_days and
+    # stem.new_plan_due_days both say 10, so only a pack where they differ tells which one a
+    # window reads. With the report rule at 11 (a test pack, not the law): the report window
+    # closes 2026-08-03 plus 11, 2026-08-14; the new plan window keeps 10, 2026-08-13.
+    # Fails if: stem_job_start.report closes on stem.new_plan_due_days.
+    pack = _with_rule_value("stem.report_change_within_days", 11)
+    out = compute(stem_new_employer_case("2026-08-03"), [pack], TODAY)
+    assert report_windows(out, "w2", "stem.report_change_within_days") == {
+        ("2026-08-03", "2026-08-14")
+    }
+    assert report_windows(out, "w2", "stem.new_plan_due_days") == {("2026-08-03", "2026-08-13")}
+
+
+@pytest.mark.parametrize(
+    ("start", "expected"),
+    [
+        # The day before the STEM card starts (2026-07-01): not "during his or her 24-month
+        # OPT extension", so no new plan and no new-employer report from this stage.
+        ("2026-06-30", set()),
+        # The card's first day: during the extension. 2026-07-01 plus 10 is 2026-07-11.
+        ("2026-07-01", {("2026-07-01", "2026-07-11")}),
+    ],
+)
+def test_a_new_employer_job_begun_before_the_stem_card_gives_no_new_plan_window(start, expected):
+    # Finding 4, mutant M7: (f)(10)(ii)(C)(7)(iv) "a new employer during his or her 24-month
+    # OPT extension". Fails if: the stem_job_start selection drops this.start on_or_after
+    # this.under.card_start. w2 here is the only job, with e2, not the card's employer e1.
+    w2 = rec("w2", "work", employer="e2", under="a2", start=start, hours_per_week=40)
+    out = compute(stem_jobs_case(w2), [PACK], TODAY)
+    assert report_windows(out, "w2", "stem.new_plan_due_days") == expected
+
+
+# reviews/w2-p1.md finding 1 (blocking): a gap never silently removes a deadline.
+
+
+def test_a_stem_card_with_no_employer_asks_for_it_and_never_drops_the_windows_silently():
+    # The case of the new plan test with employer left off the STEM card a2. Whether w2 (with
+    # e2, from 2026-08-03) is with a new employer turns on a2.employer, which is not known,
+    # so neither the new plan window nor the report window (both to 2026-08-13) can be given
+    # or ruled out. CLAUDE.md: confirm, never assume; missing means cannot_tell. SPEC-W2 45
+    # P3; PRINCIPLES 2. Fails if: the selection's unknown is read as "no such job" and
+    # nothing asks for the card's employer.
+    case = stem_new_employer_case("2026-08-03")
+    stem = next(r for r in case["records"] if r["id"] == "a2")
+    del stem["fields"]["employer"]
+    out = compute(case, [PACK], TODAY)
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:a2.employer" in out["verdict"]["reasons"]
+    assert asks_for(out, "a2.employer")
+    # No date is made up either: a window shown for w2 has no closing day.
+    dated = report_windows(out, "w2", "stem.new_plan_due_days") | report_windows(
+        out, "w2", "stem.report_change_within_days"
+    )
+    assert {closes for _, closes in dated} <= {None}
+
+
+# reviews/w2-p1.md finding 2: a planning date shows its working, the setting and its value.
+
+
+@pytest.mark.parametrize("window_id", ["opt.prepare", "stem.prepare"])
+def test_a_planning_date_names_the_setting_and_its_value_among_its_inputs(window_id):
+    # BOUNDARY A3, show the working. opt.prepare.opens.a1 is 2026-01-14: p1.end_date
+    # 2026-05-15 less 90 days (opt.apply_before_days) is 2026-02-14, less one month
+    # (plan.prepare_months 1) is 2026-01-14. Without the setting the inputs give 2026-02-14.
+    # Fails if: the item's inputs leave the setting out. It is still never a rule.
+    out = compute(PREPARE_CASE, [PACK], TODAY)
+    item = items(out)[f"{window_id}.opens.a1"]
+    assert item["planning"] is True
+    assert item["inputs"].get(SETTING) == PREPARE_MONTHS
+    assert SETTING not in item["rule_ids"]
+    window = one_window(out, window_id)
+    assert window["inputs"].get(SETTING) == PREPARE_MONTHS
+
+
 # The loader: a setting anywhere but the opens or closes of a stage window is refused
 # (rulepack.schema.json, the setting description: "the pack loader (engine/rulepack.py)
 # refuses a setting anywhere else (W2-P1)"). Each pack below passes the schema, so the
@@ -610,6 +726,35 @@ def test_a_setting_in_the_opens_or_closes_of_a_stage_window_loads():
     )
     for window in (PREPARE, closes_too):
         assert validate_pack(toy_pack_dict([toy_stage(window)])).path is not None
+
+
+# reviews/w2-p1.md finding 5: the loader refuses a setting it cannot date from, before any
+# compute. contracts/product_settings.yaml: loop.weekly_budget is "check-ins per week", not
+# days, business days, months or years.
+
+UNDATABLE = {
+    "an unknown setting id": "no.such.setting",
+    "a setting whose unit is not a span of time": "loop.weekly_budget",
+}
+
+
+@pytest.mark.parametrize("where", list(UNDATABLE))
+def test_a_window_on_a_setting_the_engine_cannot_date_from_is_refused(where):
+    # Fails if: validate_pack accepts the pack and compute later raises SettingsError or
+    # gives opens null with no reason.
+    setting = UNDATABLE[where]
+    window = _toy_window(
+        {"fact": "this.end", "add": [{"setting": setting, "sign": -1}]},
+        {"fact": "this.end"},
+    )
+    raw = toy_pack_dict([toy_stage(window)])
+    assert schema_problems(raw) == []
+    assert (setting in SETTING_IDS) is (setting == "loop.weekly_budget")
+    with pytest.raises(RulepackError) as refused:
+        validate_pack(raw)
+    message = str(refused.value)
+    assert setting in message
+    assert "\n" not in message.strip()
 
 
 # N1 on the toy pack: the engine reads the setting's value and unit, and nothing about F-1.

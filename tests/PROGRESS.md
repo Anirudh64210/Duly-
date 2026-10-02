@@ -3173,3 +3173,52 @@ done command runs no mypy.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-982690ed72: W2-P1 fix round, the review veto (reviews/w2-p1.md findings 1 to 5)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p1.md, the stem_job_start stage in
+rulepacks/f1-us/v2026.09/parameters.yaml, engine/rulepack.py (validate_pack), the output
+schema (inputs, questions), contracts/product_settings.yaml (units). Probed the engine on each
+case before writing.
+
+Added (each fails today for the reason the finding names, unless marked):
+- test_w2_windows.py, finding 1: STEM card a2 with no employer, w1 with e1 to 2026-08-02, w2
+  with e2 from 2026-08-03: cannot_tell, "missing:a2.employer" in the reasons, a question whose
+  because holds it, and no closing day shown for w2's new plan or report window. Fails today:
+  the reason is absent (the selection's unknown is read as no job).
+- finding 2: opt.prepare.opens.a1 and stem.prepare.opens.a1 (and their windows) hold
+  plan.prepare_months: 1 in inputs; still not in rule_ids. Fails today: inputs hold only
+  p1.end_date / a1.card_end.
+- finding 4: STEM report window 2026-08-03 to 2026-08-13 from stem.report_change_within_days,
+  the 10 read from the saved words "Within 10 days of the change" (passes today, guards a drop).
+  M5: the shipped pack with that rule set to 11 (dataclasses.replace on the loaded pack): report
+  closes 2026-08-14, new plan stays 2026-08-13. M7: w2 with e2 from 2026-06-30 (day before the
+  card) gives no new plan window; from 2026-07-01 gives 2026-07-01 to 2026-07-11. Both pass on
+  the shipped pack. Checked against the mutants in TMPDIR/mut.py: M7 killed by the 06-30 case,
+  M5 killed.
+- finding 5: a toy window on no.such.setting, and on loop.weekly_budget ("check-ins per week"),
+  each passing the schema, refused by validate_pack with a one-line RulepackError naming the
+  setting. Fails today: DID NOT RAISE.
+- test_w2_limit_day.py, finding 3: card 2026-10-15 to 2027-10-14, no job, today 2026-09-29:
+  limit day 2027-01-12 (Oct 15-31 17, Nov 47, Dec 78, Jan 12 is 90); property: start today + 1
+  to 45 days, limit day start + 89. Fails today: None (the count itself is 0, known).
+- tests/holdout/test_holdout_w2.py: future card pair 2026-10-15 -> 2027-01-12 and 2026-10-16
+  -> 2027-01-13; STEM pair, card employer e1 gives new plan closes 2026-08-13 (passes), card
+  employer left out asks a2.employer (fails today).
+
+Ran: pytest test_w2_windows.py: 5 failed (findings 1, 2 x2, 5 x2), the rest passed.
+test_w2_limit_day.py: 2 failed (finding 3). holdout: 3 failed (finding 3 x2, finding 1).
+Done command: "All checks passed!", "92 files already formatted", collect ok, exit 0.
+
+What makes each new test fail once built: the selection's unknown read as no job again; the
+setting left out of a planning item's inputs; stem_job_start.report closing on
+stem.new_plan_due_days (M5); the on_or_after card_start condition dropped (M7); the loader
+accepting an unknown setting or a non-time unit; a null limit day whenever today is before the
+card start, or start + 90 instead of start + 89.
+
+Not built: no new support helper (the M5 pack is one dataclasses.replace in the test file); no
+test that a business-days setting loads, since the settings file writes "business days" and the
+mission writes business_days, and that spelling is the engine's to settle.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
