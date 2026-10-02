@@ -391,6 +391,9 @@ class _Run:
                 if value is ABSENT:
                     if state == "absent" and not virtual:
                         tr.missing.append((name, record[ID]))
+                    elif virtual:
+                        # Point 31: a field of a record not entered yet comes with it.
+                        tr.named.append(f"future:{record['stage']}.{part}")
                     return ABSENT
             if value is NONE or value is NOT_YET:
                 tr.inputs[name] = self._decl(record, part).get("when_absent")
@@ -524,7 +527,12 @@ class _Run:
             day = self._read(w["fact"], this, outer, tr, on)
             if day is NONE or day is NOT_YET:
                 if day is NOT_YET:
-                    tr.pending.append(self._asked_name(w["fact"], this, outer))
+                    name, owner = self._asked_name(w["fact"], this, outer)
+                    if owner is None and this is not None and id(this) in self.virtual:
+                        # Point 31: a field of a record not entered yet comes with it.
+                        tr.named.append(f"future:{this['stage']}.{w['fact'].split('.')[-1]}")
+                    else:
+                        tr.pending.append((name, owner))
                 return day
             day = _as_date(day) if day is not ABSENT else None
             if day is None:
@@ -695,6 +703,7 @@ class _Run:
             tr.merge(sub)
         if unstated is not None:
             self._use_kind(kind)
+            tr.lists.append(f"complete.{kind}")
         return None
 
     def _all(
@@ -969,14 +978,62 @@ class _Run:
     # Stages.
 
     def run_stages(self) -> None:
+        unknown: list[Json] = []
         for stage in self.path.get("stages", []):
             for record in self._each(stage):
                 tr = _Trace()
                 values = [self._read(p, record, record, tr) for p in stage["entered_when"]]
-                # Point 29: a stated not-yet is a known value; none, or not known, is not
-                # entered (the stages round shows the not-known entry as waiting).
-                if all(v is not ABSENT and v is not NONE and v is not False for v in values):
+                # Point 29: a stated not-yet is a known value; none, or a flag of false, is
+                # not entered; a field not known leaves the entry unknown, its gaps asked.
+                if any(v is NONE or v is False for v in values):
+                    continue
+                if ABSENT not in values:
                     self._enter(stage, record, None)
+                    continue
+                self._need(tr)
+                rid = None if record is None else record[ID]
+                sid = stage[ID] if rid is None else f"{stage[ID]}.{rid}"
+                waits = self._waits(tr)
+                if not waits:
+                    self._engine_gap(sid)
+                if stage.get("span"):
+                    # Point 32: an end not known never reads as "ended before today"; a known
+                    # end still counts toward it.
+                    saved = self._snapshot()
+                    self.span_ends.append(
+                        self._when(stage["span"]["ends"], record, record, _Trace())
+                    )
+                    self._restore(saved)
+                unknown.append(self._unknown_stage(stage, sid, rid, waits))
+        # A stage another names as next is shown once, as next.
+        shown = {entry[ID] for entry in self.stages}
+        self.stages += [entry for entry in unknown if entry[ID] not in shown]
+
+    def _unknown_stage(self, stage: Json, sid: str, rid: str | None, waits: list[str]) -> Json:
+        """A stage entry whose entry or span rests on a value not known (points 29 and 32a):
+        state unknown, no dates, and waits_on naming what it rests on."""
+        entry: Json = {
+            ID: sid,
+            "category": self.pack.category,
+            "label": stage["label"],
+            "state": "unknown",
+            "starts": None,
+            "ends": None,
+            "ends_days_away": None,
+            "days_in": None,
+            "days_total": None,
+            "rule_ids": _unique(stage["rule_ids"]),
+            "items": [],
+            "windows": [],
+            "facts": {},
+            "checklist": None,
+            "waits_on": waits,
+        }
+        if rid is not None:
+            entry["stage"] = stage[ID]
+            entry["record"] = rid
+        self._rules(entry["rule_ids"])
+        return entry
 
     def _each(self, declared: Json) -> list[Json | None]:
         """The records a stage or check is for (SPEC-W2-UNKNOWN point 17). Each decided
@@ -1026,20 +1083,29 @@ class _Run:
         starts = self._when(span["starts"], record, record, tr) if span else None
         ends = self._when(span["ends"], record, record, tr) if span else None
         rule_ids = list(stage["rule_ids"])
+        clash = None
         if next_of is None and span:
             ends = self._ends_also(stage, span, ends, record, rule_ids, tr)
-            self._span_conflicts(sid, span, starts, ends, rid, tr)
-            self.span_ends.append(ends)
+            clash = self._span_conflicts(sid, span, starts, ends, rid, tr)
+            if clash is not None:
+                # Point 32a: a span that does not fit is not shown; the stage waits on it.
+                starts = ends = None
+                tr.named.append(clash)
+            else:
+                # A span in conflict is asked as such; it neither holds back nor raises the
+                # question whether the record ends before today.
+                self.span_ends.append(ends)
         items: list[str] = []
         windows: list[Json] = []
         for window in stage.get("windows", []):
             windows.append(self._window(window, record, rid, items, rule_ids, next_of is not None))
-        if next_of is None:
-            self._need(tr)
-        else:
-            self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed, differ=tr.differ))
+        # Point 31: a next stage asks the gaps of real records like any stage; a field of the
+        # record not entered yet is named future, never asked.
+        self._need(tr)
         self._rules(rule_ids)
         state = "next" if next_of is not None else self._state(span, starts, ends, windows)
+        if clash is not None:
+            state = "unknown"
         entry: Json = {
             ID: sid,
             "category": self.pack.category,
@@ -1059,6 +1125,14 @@ class _Run:
         if rid is not None:
             entry["stage"] = stage[ID]
             entry["record"] = rid
+        # The span of a next stage is the span of a record not entered yet.
+        held = next_of is None and span and (starts is None or ends is None)
+        waiting = self._waits(tr) if held else []
+        if not span and state == "unknown":
+            # Point 33: a stage placed by its windows waits on what they wait on.
+            waiting = _unique([n for w in windows for n in w.get("waits_on", [])])
+        if waiting:
+            entry["waits_on"] = waiting
         if span and (starts is None or ends is None):
             stepped = self._step_backs(span, starts, ends, record)
             if stepped:
@@ -1111,8 +1185,10 @@ class _Run:
     ) -> str:
         """A stage is current only when today falls between two known days (resolutions point
         22): a null day never falls back to current. A stage with no span of its own is placed
-        by its windows."""
+        by its windows. A window null with nothing to wait on does not apply (point 33) and
+        places nothing."""
         if not span:
+            windows = [w for w in windows if w["opens"] or w["closes"] or w.get("waits_on")]
             opens = [d for w in windows if (d := _as_date(w["opens"])) is not None]
             closes = [d for w in windows if (d := _as_date(w["closes"])) is not None]
             starts = min(opens) if windows and len(opens) == len(windows) else None
@@ -1151,6 +1227,7 @@ class _Run:
             if ends is not None and day != ends:
                 rid = "" if record is None else f".{record[ID]}"
                 self._judge(f"{stage[ID]}.end_by_source{rid}")
+                tr.named.append(f"{stage[ID]}.end_by_source{rid}")
                 return None
         return ends
 
@@ -1176,19 +1253,22 @@ class _Run:
         ends: date | None,
         rid: str | None,
         tr: _Trace,
-    ) -> None:
+    ) -> str | None:
+        """The conflict a stage's own span raises, if any (point 32a)."""
         if starts is None or ends is None:
-            return
+            return None
         about = {"starts": starts.isoformat(), "ends": ends.isoformat()}
         if ends < starts:
             self._conflict(f"{sid}.ends_before_starts", about, rid)
-            return
+            return f"{sid}.ends_before_starts"
         longest = span.get("longest")
         if longest is not None:
             limit = self._amount(starts, longest, tr)
             self._rules([longest["rule"]])
             if limit is not None and ends > limit:
                 self._conflict(f"{sid}.longer_than_longest", about, rid)
+                return f"{sid}.longer_than_longest"
+        return None
 
     def _window(
         self,
@@ -1199,9 +1279,16 @@ class _Run:
         stage_rules: list[str],
         is_next: bool,
     ) -> Json:
-        # Point 30: a not-sure answer, a flag of false or a stated absence is never done.
-        done_values = [self._read(p, record, record, _Trace()) for p in window.get("done_when", [])]
+        # Point 30: any field known (a flag only when true) is done; a not-sure answer, a flag
+        # of false or a stated absence never is. Not done and not known: the window keeps its
+        # dates and waits on what done rests on.
+        done_tr = _Trace()
+        done_values = [self._read(p, record, record, done_tr) for p in window.get("done_when", [])]
         done = any(v not in (ABSENT, NONE, NOT_YET, False) for v in done_values)
+        if not done and ABSENT in done_values and not is_next:
+            self._need(done_tr)
+        else:
+            done_tr = _Trace()
         suffix = "" if rid is None else f".{rid}"
         dates: dict[str, date | None] = {}
         waits: dict[str, list[str]] = {}
@@ -1213,15 +1300,13 @@ class _Run:
             day = self._when3(window[end], record, record, tr)
             dates[end] = day if isinstance(day, date) else None
             waits[end] = [] if isinstance(day, date) or day is NONE else self._waits(tr)
-            if is_next:
-                self._need(_Trace(unsure=tr.unsure, lapsed=tr.lapsed, differ=tr.differ))
-            else:
-                self._need(tr)
-                if dates[end] is None and day is not NONE and not waits[end]:
-                    self._engine_gap(f"{window[ID]}.{end}{suffix}")
+            self._need(tr)
+            if dates[end] is None and day is not NONE and not waits[end]:
+                self._engine_gap(f"{window[ID]}.{end}{suffix}")
         # A window either of whose days a product setting moves is a planning window, and so
         # are both its items (SPEC-W2 point 46, N1).
         planning = any(tr.planning for tr in traces.values())
+        undone = self._waits(done_tr)
         for end, tr in traces.items():
             rules = _unique([*window["rule_ids"], *tr.rules])
             all_rules += rules
@@ -1231,6 +1316,9 @@ class _Run:
             self._item(
                 item_id, dates[end], "date", tr.inputs, rules, rid, not done, planning, waits[end]
             )
+            if undone and self.upcoming and self.upcoming[-1][ID] == item_id:
+                # Point 30: a day ahead only while not done, so it waits on what done rests on.
+                self.upcoming[-1]["waits_on"] = undone
         stage_rules += all_rules
         opens, closes = dates["opens"], dates["closes"]
         is_open = opens is not None and closes is not None and opens <= self.today <= closes
@@ -1253,7 +1341,7 @@ class _Run:
             entry["record"] = rid
         if planning:
             entry["planning"] = True
-        waiting = _unique([*waits["opens"], *waits["closes"]])
+        waiting = _unique([*waits["opens"], *waits["closes"], *undone])
         if waiting:
             entry["waits_on"] = waiting
         return entry
@@ -1314,32 +1402,71 @@ class _Run:
         self._need(tr)
         if shown is False:
             return
+        # Point 31: an only_if, a bound value or a match not known leaves the stage unknown.
+        doubt = tr if shown is None else _Trace()
         bound: Json = {}
+        unbound = False
         for name, source in entry.get("bind", {}).items():
             # A path is read; a choice written in the pack is taken as itself.
             head = str(source).split(".")[0]
             if head in (THIS, OUTER, TODAY) or source in self.facts:
-                value, _, _ = self._resolve(source, record, record)
+                value = self._read(source, record, record, doubt)
             else:
                 value = source
-            if value is not ABSENT:
+            unbound = unbound or value is ABSENT
+            if value is not ABSENT and value is not NONE and value is not NOT_YET:
                 bound[name] = value
         selector = stage.get("for_each")
         if selector is not None:
             kind = selector["record"]
             for other in self.records.values():
-                fields = other["fields"]
-                if other["kind"] == kind and all(fields.get(k) == v for k, v in bound.items()):
+                if other["kind"] != kind:
+                    continue
+                # A bound value not known makes the match not known, never fewer keys.
+                if self._matches(other, bound, doubt) is True and not unbound:
                     return
             host = record[ID] if record is not None else stage[ID]
-            virtual: Json | None = {ID: host, "kind": kind, "fields": bound}
+            virtual: Json | None = {ID: host, "kind": kind, "stage": stage[ID], "fields": bound}
             self.virtual.add(id(virtual))
         else:
             virtual = None
+        self._need(doubt)
         saved = self._snapshot()
         self._enter(stage, virtual, entry)
-        if self._closed(stage, self.stages[-1]):
+        shown_entry = self.stages[-1]
+        closed, waiting = self._closed(stage, shown_entry)
+        if closed:
             self._restore(saved)
+            return
+        doubted = self._waits(doubt)
+        if doubted:
+            # Point 33: whether the stage comes at all is not known. Its days are worked from
+            # known values, so a window and a day ahead keep them and wait on the condition;
+            # an item is withheld.
+            for item in self.computed[len(saved["computed"]) :]:
+                item["value"] = None
+                item["waits_on"] = _unique([*item.get("waits_on", []), *doubted])
+            for held in [*shown_entry["windows"], *self.upcoming[len(saved["upcoming"]) :]]:
+                held["waits_on"] = _unique([*held.get("waits_on", []), *doubted])
+        waiting = _unique([*doubted, *waiting])
+        if waiting:
+            shown_entry["state"] = "unknown"
+            shown_entry["waits_on"] = _unique([*shown_entry.get("waits_on", []), *waiting])
+
+    def _matches(self, other: Json, bound: Json, tr: _Trace) -> bool | None:
+        """Whether a record holds every bound value: a field of it not known leaves the match
+        not known, its gap in the trace (point 31)."""
+        result: bool | None = True
+        for name, value in bound.items():
+            state, got = self._read_own(other, name)
+            if state == "known" and got != value:
+                return False
+            if state == "absent":
+                return False
+            if state != "known":
+                self._note(tr, state, f"{other[ID]}.{name}", other[ID])
+                result = None
+        return result
 
     _KEPT = (
         "computed",
@@ -1370,15 +1497,24 @@ class _Run:
         for name, value in saved.items():
             setattr(self, name, value)
 
-    def _closed(self, stage: Json, entry: Json) -> bool:
+    def _closed(self, stage: Json, entry: Json) -> tuple[bool, list[str]]:
         """A next stage is shown only while a window in which something can be filed has not
         closed (resolutions 6 and 15). Such a window names the facts that record the step as
         taken (done_when); a window without them, such as a date to complete by, is no filing
-        and does not keep the stage. A stage with no known close of a filing window is kept."""
+        and does not keep the stage. The stage is closed only when every filing close is
+        known and past; a close not known keeps it, with what it waits on (point 31)."""
         filing = [w.get("done_when") for w in stage.get("windows", [])]
-        closes = [_as_date(w["closes"]) for w, d in zip(entry["windows"], filing, strict=True) if d]
-        known = [c for c in closes if c is not None]
-        return bool(known) and all(c < self.today for c in known)
+        windows = [w for w, d in zip(entry["windows"], filing, strict=True) if d]
+        known = [c for w in windows if (c := _as_date(w["closes"])) is not None]
+        waiting = [
+            name
+            for w in windows
+            if w["closes"] is None
+            for name in w.get("waits_on", [])
+            if not name.startswith("future:")
+        ]
+        closed = not waiting and bool(known) and all(c < self.today for c in known)
+        return closed, _unique(waiting)
 
     def _checklist(self, stage: Json, entry: Json, rid: str | None) -> None:
         name = stage.get("checklist")
@@ -1508,7 +1644,9 @@ class _Run:
             ktr = _Trace()
             key = self._group_key(scope, record, ktr)
             if key is None:
-                # Point 19: a record whose key is not known could join any group.
+                # Point 19: a record whose key is not known could join any group; its key's
+                # gap is asked even when no group is left to withhold.
+                self._need(ktr)
                 held.setdefault(None, _Trace()).merge(ktr)
             else:
                 groups.setdefault(key, []).append(record)

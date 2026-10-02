@@ -1763,3 +1763,94 @@ Status: done.
   for counters).
 
 Status: done.
+
+## l-engine-1459cc274d: SPEC-W2-UNKNOWN engine-stages (points 29 to 31, 32a, 33 in path.py)
+
+- Before any change: R13, R17 and R37 failed (test_w2_unknown_stages.py). I ran the original
+  engine in a shadow tree ($TMPDIR/orig, HEAD's engine/ with every other top folder linked) to
+  get a clean baseline ($TMPDIR/orig_run.txt): exit 1. It had 33 failures, among them
+  test_path.py x8, test_path_reach.py x4, test_w2_windows.py x9, R5, R7 x3, P1/P1w on the toy
+  pack, P1w f1, P2 toy and f1, P4 f1, and the three stage tests.
+- engine/path.py:
+  - Point 29, `run_stages`: if any entered_when field is NONE or false, the stage is not
+    entered. If all are known, it is entered. Otherwise `_unknown_stage` emits state unknown,
+    no dates, no windows, with waits_on, and the gaps are asked (an empty one is engine_gap).
+    A stage another stage shows as next is shown once, as next.
+  - Point 30, `_window`: done_when is read with a trace. Not done and not known: the gaps are
+    asked and named in the window's waits_on, and the dates are kept. Next stages skip this.
+  - Point 31, `_next`: a bind path is read through `_read`. A bound value not known means
+    `unbound`, so a match on fewer keys never hides the stage. `_matches` reads each candidate
+    record's bound fields, and a field not known on one leaves the match unknown and asked.
+    An only_if that is U, a bind that is U, or a filing close that is U (`_closed` now returns
+    the close's waits, future: left out) gives state unknown with waits_on. The stage is closed
+    only when no filing close is U and every known close is past. Next stages now ask the gaps
+    of real records like any stage (the unsure-only `_need` is gone). A field of the virtual
+    record that nothing supplies is `future:<stage>.<field>` in `tr.named`, both in `_read`
+    and for a not-yet `fact:` in `_when3`. The virtual record carries its stage id.
+  - Point 32a: `_span_conflicts` returns the conflict it raises. The stage is then unknown,
+    its dates null, and waits_on names the conflict.
+  - Point 33: an entered stage whose start or end is null names the span trace's waits (not
+    for next stages, whose span is a record not entered yet). An ends_also judgement is named.
+  - `_some`: a list not stated whole now puts `complete.<kind>` in the trace. Without it, an
+    undecided for_each record named nothing and raised engine_gap (P4 f1, `grace.p1`).
+- First done run ($TMPDIR/d1.txt, before the last three fixes): exit 1. Fixed against the
+  baseline: R13, R17, R37, P1 toy, P1w toy. New failures: j02 (next becomes unknown, a
+  dispute), test_path stage-absent (dispute), test_path_reach next-without-for_each (fixed:
+  shown once) and P6 tree (dispute). P4 f1 then passed after the `_some` fix.
+- Final done run: see $TMPDIR/d2.txt and the report.
+- Final done run ($TMPDIR/d2.txt): exit 1, 31 failures (the baseline had 33). Static parts
+  pass: engine_literals, mypy (72 files), ruff check, ruff format. Every failure left is a
+  dispute in REPORT.json, apart from P2 toy and f1. Those failed before this round too, and I
+  did not investigate them.
+- Not built: asking an absent field of an existing record when matching a bind (kept as no
+  match, as before, so journeys get no new questions); ranges (point 60).
+
+Status: blocked (the done command cannot pass without test changes; see disputes).
+
+## l-engine-1459cc274d, attempt 2
+
+- Start: the done command failed with 31 tests, the same as attempt 1. Tests unchanged since.
+- Traced the three I had not traced before (P2 toy and f1, and the talk_to_dso and not_sure
+  count tests in test_path / test_path_reach) with a P2 harness in $TMPDIR that runs every
+  fill of one field. Four engine faults, all fixed in engine/path.py:
+  - Point 19: a scope record whose group key is U asked nothing when no group was left to
+    withhold (toy c1.level not_sure). `_counter` now `_need`s the key's trace.
+  - Point 30: a window whose done_when is U kept its upcoming days as known. Each upcoming day
+    of such a window now carries the done gaps in waits_on (the schema allows a known date
+    whose "still ahead" rests on an answer).
+  - Point 31/33: a next stage whose only_if or bind is U showed its computed items as known
+    (f1 p1.stem_list not_sure). Its items are now null with waits_on, its windows and upcoming
+    days keep their dates with waits_on (the dates rest on known values; whether the stage
+    comes does not). This keeps test_next_with_an_unknown_condition_is_shown_and_never_quiet and
+    test_j02_windows_of_the_mba_card passing, which dropping the windows would break.
+  - Point 32: `ends_before_today` read a stage entry that is unknown, and a span in conflict, as
+    no end at all. An unknown entry now counts its end when that end is known, else None; a
+    span in conflict is left out (it is asked as a conflict). P3 holds on toy c1.start, and
+    test_change_3 keeps its question.
+- Done command ($TMPDIR/d1.txt, copied to .scratch/done-2.log): exit 1, 29 failures (31 before).
+  engine_literals, mypy (72 files), ruff check and ruff format pass. Props P1 to P7 pass.
+- Every one of the 29 is a test that contradicts a SPEC point, or a test id that names no
+  window in the pack; each checked this time (REPORT.json disputes). With end_date_change in
+  LISTS_WHOLE, seven of the nine test_w2_windows failures pass on this engine; the other two
+  expect `missing:w3.start` where point 35 and R4 need `unreadable:`. Under the pack's real id
+  stem_job_end.evaluation_final.w1 the engine gives R7's whole table.
+- Not built: anything to make the disputed tests pass (each would break a SPEC point or a test
+  that holds it, such as R13, U15, R4, P5, P6).
+
+Status: blocked on the disputes (L-tests).
+
+## l-engine-80cf60c2cc: engine-stages, resumed after the tests lane's fix1
+
+- Restored the kept engine/ from lane/L-engine/l-engine-1459cc274d (path.py, PROGRESS.md).
+- Done command as written ($TMPDIR/d1.txt): exit 0. Every test passed (2 xfail that were
+  already there). engine_literals, mypy (72 files), ruff check and ruff format also passed.
+- The tests lane's one request (point 33): stem_job_end.w1 was unknown with null dates and no
+  waits_on in R7's case (W1, w3 ending 2026-07-31). Cause: a stage with no span is placed by
+  its windows, and `_state` read a window that does not apply (null, nothing to wait on) as not
+  known. Fix in `_state`: such a window places nothing. A no-span stage that is still unknown
+  now names its windows' waits_on. The stage now reads done.
+- Done command as written again ($TMPDIR/d2.txt): exit 0.
+- Not built: a state for an entered stage with no span and no window that applies (check_pack's
+  course stage). No point names one; raised in REPORT.json.
+
+Status: done.
