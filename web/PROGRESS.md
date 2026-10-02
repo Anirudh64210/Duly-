@@ -1419,3 +1419,26 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - No change to web source, web tests or samples: nothing failed, so no SPEC-W2-UNKNOWN point
   calls for a change in this round.
+
+## l-web-dd445e3381 (review finding 10, D94), attempt 1
+
+### Tried and ran
+
+- labels.ts EMPTY_WORDS: dropped petition.requested_start and petition.validity_start. D94 made
+  both when_absent ask (CHANGELOG lines 314 and 315), so an empty start is asked, and no words
+  say the petition has none. onboarding.ts: the two start fields no longer carry `empty`; they
+  stay optional, so a person may leave them and the engine asks the start by name.
+- emptyWords.test.ts reads the CHANGELOG in order as the declaration stands: a later
+  `when_absent ask` line takes a field's words away. It asserts neither start has words, in
+  the pack or under the Onboarding fields. fix7.test.ts: requested_start is still in the view,
+  with no words.
+- First done run: samples.test failed (path-stem-next.json and path-window-open.json differ
+  from the engine's output). The L-engine merge now writes each input's when_absent declaration
+  into the output. Regenerated with `uv run python web/samples/make.py`, then prettier.
+- Second run: eslint no-dynamic-delete in the test parser; switched to a Map.
+- Third run of the done command: exit 0. 34 files, 609 tests passed; eslint and copy lint clean.
+
+### Not built
+
+- No notSure on the Onboarding start fields: fieldQuestion already offers it when the engine
+  asks the start, and leaving the field empty leads to that question.

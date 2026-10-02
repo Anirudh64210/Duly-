@@ -1049,7 +1049,6 @@ function petitionViews(held: AppCase): View[] {
             label: "The start date it asks for",
             type: "date",
             optional: true,
-            empty: EMPTY_WORDS["petition.requested_start"],
           },
         ],
       },
@@ -1098,7 +1097,6 @@ function petitionViews(held: AppCase): View[] {
             label: "The approved start date",
             type: "date",
             optional: true,
-            empty: EMPTY_WORDS["petition.validity_start"],
           },
           {
             record: petition.id,

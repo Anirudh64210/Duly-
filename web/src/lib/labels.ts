@@ -266,7 +266,8 @@ export const NOT_COMPUTED = "Not computed";
 
 // SPEC-W2-UNKNOWN point 2: what leaving a field empty means, as the words the pack's
 // CHANGELOG records for each field it declares not_yet or none. Shown under the field, they
-// make an empty field the person's own statement.
+// make an empty field the person's own statement. A field a later CHANGELOG line turns to ask
+// has none: D94 made petition.requested_start and validity_start ask, so empty is asked.
 export const EMPTY_WORDS = {
   "work.end": "Leave empty if you still work there.",
   "authorization.filed_on": "Leave empty if Form I-765 has not been filed yet.",
@@ -281,8 +282,6 @@ export const EMPTY_WORDS = {
   "work.on_campus": "Leave empty if the job is not on campus.",
   "authorization.extends": "Leave empty if this permission does not extend an OPT.",
   "petition.outcome": "Leave empty if no outcome has been given.",
-  "petition.validity_start": "Leave empty if the petition has no approved validity start date.",
-  "petition.requested_start": "Leave empty if the petition asks for no start date.",
   "authorization.employer":
     "Leave empty if no employer is named on the Form I-20 for this permission.",
   "authorization.basis_program": "Leave empty unless this is a STEM extension.",

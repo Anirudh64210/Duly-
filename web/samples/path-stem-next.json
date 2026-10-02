@@ -427,7 +427,45 @@
     },
     {
       "id": "stem.validation_1.opens.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -440,11 +478,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_1.closes.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -457,11 +534,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_2.opens.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -474,11 +590,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_2.closes.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -491,11 +646,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_3.opens.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -508,11 +702,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_3.closes.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -525,11 +758,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_4.opens.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -542,11 +814,50 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.validation_4.closes.a2",
-      "inputs": {},
+      "inputs": {
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "outer.id": "a2",
+        "this.id": "a2",
+        "this.type": "stem_extension"
+      },
       "reading": true,
       "record": "a2",
       "rule_ids": [
@@ -559,12 +870,29 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_end", "future:stem.card_start"]
     },
     {
       "id": "stem.evaluation_12_month.opens.a2",
       "inputs": {
-        "a2.card_start": "2026-02-10"
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        }
       },
       "reading": false,
       "record": "a2",
@@ -581,7 +909,23 @@
     {
       "id": "stem.evaluation_12_month.closes.a2",
       "inputs": {
-        "a2.card_start": "2026-02-10"
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        }
       },
       "reading": false,
       "record": "a2",
@@ -598,7 +942,40 @@
     {
       "id": "stem.evaluation_final.opens.a2",
       "inputs": {
-        "a2.card_start": "2026-02-10"
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        }
       },
       "reading": true,
       "record": "a2",
@@ -612,12 +989,46 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_start"]
     },
     {
       "id": "stem.evaluation_final.closes.a2",
       "inputs": {
-        "a2.card_start": "2026-02-10"
+        "a2.card_end": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        },
+        "a2.card_start": {
+          "else": "ask",
+          "not_yet": [
+            {
+              "any_of": [
+                {
+                  "field": "this.decision",
+                  "present": false
+                },
+                {
+                  "field": "this.decision",
+                  "in": ["pending"]
+                }
+              ]
+            }
+          ]
+        }
       },
       "reading": true,
       "record": "a2",
@@ -631,7 +1042,8 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_start"]
     },
     {
       "id": "opt_job_start.report.opens.w1",
@@ -763,56 +1175,64 @@
       "field": "dso_on",
       "id": "a1.dso_on",
       "record": "a1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["cpt.starts_after_endorsement.a1"]
     },
     {
       "because": ["missing:p1.first_year_before_training"],
       "field": "first_year_before_training",
       "id": "p1.first_year_before_training",
       "record": "p1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["cpt.first_year_done.a1"]
     },
     {
       "because": ["missing:p1.immediate_cpt"],
       "field": "immediate_cpt",
       "id": "p1.immediate_cpt",
       "record": "p1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["cpt.first_year_done.a1"]
     },
     {
       "because": ["missing:p1.full_course_each_term"],
       "field": "full_course_each_term",
       "id": "p1.full_course_each_term",
       "record": "p1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["program.enrollment.p1"]
     },
     {
       "because": ["missing:p1.online_within_limit"],
       "field": "online_within_limit",
       "id": "p1.online_within_limit",
       "record": "p1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["program.enrollment.p1"]
     },
     {
       "because": ["missing:t1.signature_on"],
       "field": "signature_on",
       "id": "t1.signature_on",
       "record": "t1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["trip.signature_for_opt_return.t1"]
     },
     {
       "because": ["missing:t1.job_on_return"],
       "field": "job_on_return",
       "id": "t1.job_on_return",
       "record": "t1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["trip.job_on_return.t1"]
     },
     {
       "because": ["missing:t1.purpose"],
       "field": "purpose",
       "id": "t1.purpose",
       "record": "t1",
-      "state": "absent"
+      "state": "absent",
+      "withholds": ["unemployment.opt_card.a2", "unemployment.opt_card.a2.limit_day"]
     },
     {
       "about": {
@@ -2000,7 +2420,45 @@
           "closes": null,
           "closes_days_away": null,
           "id": "stem.validation_1.a2",
-          "inputs": {},
+          "inputs": {
+            "a2.card_end": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "a2.card_start": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "outer.id": "a2",
+            "this.id": "a2",
+            "this.type": "stem_extension"
+          },
           "label": "First validation report",
           "opens": null,
           "opens_days_away": null,
@@ -2014,13 +2472,52 @@
             "opt.ends_on_release_date",
             "opt.ends_on_transfer_or_new_level"
           ],
-          "status": "guidance"
+          "status": "guidance",
+          "waits_on": ["future:stem.card_end", "future:stem.card_start"]
         },
         {
           "closes": null,
           "closes_days_away": null,
           "id": "stem.validation_2.a2",
-          "inputs": {},
+          "inputs": {
+            "a2.card_end": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "a2.card_start": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "outer.id": "a2",
+            "this.id": "a2",
+            "this.type": "stem_extension"
+          },
           "label": "Second validation report",
           "opens": null,
           "opens_days_away": null,
@@ -2034,13 +2531,52 @@
             "opt.ends_on_release_date",
             "opt.ends_on_transfer_or_new_level"
           ],
-          "status": "guidance"
+          "status": "guidance",
+          "waits_on": ["future:stem.card_end", "future:stem.card_start"]
         },
         {
           "closes": null,
           "closes_days_away": null,
           "id": "stem.validation_3.a2",
-          "inputs": {},
+          "inputs": {
+            "a2.card_end": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "a2.card_start": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "outer.id": "a2",
+            "this.id": "a2",
+            "this.type": "stem_extension"
+          },
           "label": "Third validation report",
           "opens": null,
           "opens_days_away": null,
@@ -2054,13 +2590,52 @@
             "opt.ends_on_release_date",
             "opt.ends_on_transfer_or_new_level"
           ],
-          "status": "guidance"
+          "status": "guidance",
+          "waits_on": ["future:stem.card_end", "future:stem.card_start"]
         },
         {
           "closes": null,
           "closes_days_away": null,
           "id": "stem.validation_4.a2",
-          "inputs": {},
+          "inputs": {
+            "a2.card_end": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "a2.card_start": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "outer.id": "a2",
+            "this.id": "a2",
+            "this.type": "stem_extension"
+          },
           "label": "Fourth validation report",
           "opens": null,
           "opens_days_away": null,
@@ -2074,14 +2649,31 @@
             "opt.ends_on_release_date",
             "opt.ends_on_transfer_or_new_level"
           ],
-          "status": "guidance"
+          "status": "guidance",
+          "waits_on": ["future:stem.card_end", "future:stem.card_start"]
         },
         {
           "closes": null,
           "closes_days_away": null,
           "id": "stem.evaluation_12_month.a2",
           "inputs": {
-            "a2.card_start": "2026-02-10"
+            "a2.card_start": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            }
           },
           "label": "Initial evaluation",
           "opens": null,
@@ -2101,7 +2693,40 @@
           "closes_days_away": null,
           "id": "stem.evaluation_final.a2",
           "inputs": {
-            "a2.card_start": "2026-02-10"
+            "a2.card_end": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            },
+            "a2.card_start": {
+              "else": "ask",
+              "not_yet": [
+                {
+                  "any_of": [
+                    {
+                      "field": "this.decision",
+                      "present": false
+                    },
+                    {
+                      "field": "this.decision",
+                      "in": ["pending"]
+                    }
+                  ]
+                }
+              ]
+            }
           },
           "label": "Concluding evaluation",
           "opens": null,
@@ -2116,7 +2741,8 @@
             "opt.ends_on_release_date",
             "opt.ends_on_transfer_or_new_level"
           ],
-          "status": "guidance"
+          "status": "guidance",
+          "waits_on": ["future:stem.card_start"]
         }
       ]
     },
