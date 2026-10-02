@@ -226,6 +226,65 @@
       "value": "2025-10-31"
     },
     {
+      "id": "opt.last_day.opens.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": [
+        "opt.apply_before_days",
+        "opt.apply_after_days",
+        "opt.file_within_days_of_recommendation"
+      ],
+      "status": "litigated",
+      "unit": "date",
+      "value": "2025-09-14"
+    },
+    {
+      "id": "opt.last_day.closes.a2",
+      "inputs": {
+        "a2.dso_on": "2025-10-01",
+        "p1.end_date": "2025-12-13"
+      },
+      "reading": false,
+      "record": "a2",
+      "rule_ids": [
+        "opt.apply_before_days",
+        "opt.apply_after_days",
+        "opt.file_within_days_of_recommendation"
+      ],
+      "status": "litigated",
+      "unit": "date",
+      "value": "2025-10-31"
+    },
+    {
+      "id": "opt.prepare.opens.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "planning": true,
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.apply_before_days"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2025-08-14"
+    },
+    {
+      "id": "opt.prepare.closes.a2",
+      "inputs": {
+        "p1.end_date": "2025-12-13"
+      },
+      "planning": true,
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["opt.apply_before_days"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2025-09-14"
+    },
+    {
       "id": "opt.complete_by.opens.a2",
       "inputs": {
         "p1.end_date": "2025-12-13"
@@ -292,6 +351,64 @@
       "status": "settled",
       "unit": "date",
       "value": null
+    },
+    {
+      "id": "stem.last_day.opens.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09"
+      },
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.apply_before_expiry_days",
+        "stem.apply_window_closes_rule",
+        "stem.file_within_days_of_recommendation"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": "2026-11-11"
+    },
+    {
+      "id": "stem.last_day.closes.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09"
+      },
+      "reading": true,
+      "record": "a2",
+      "rule_ids": [
+        "stem.apply_before_expiry_days",
+        "stem.apply_window_closes_rule",
+        "stem.file_within_days_of_recommendation"
+      ],
+      "status": "settled",
+      "unit": "date",
+      "value": null
+    },
+    {
+      "id": "stem.prepare.opens.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09"
+      },
+      "planning": true,
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["stem.apply_before_expiry_days"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2026-10-11"
+    },
+    {
+      "id": "stem.prepare.closes.a2",
+      "inputs": {
+        "a2.card_end": "2027-02-09"
+      },
+      "planning": true,
+      "reading": false,
+      "record": "a2",
+      "rule_ids": ["stem.apply_before_expiry_days"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2026-11-11"
     },
     {
       "id": "stem.validation_1.opens.a2",
@@ -504,6 +621,30 @@
       "value": null
     },
     {
+      "id": "opt_job_start.report.opens.w1",
+      "inputs": {
+        "w1.start": "2026-02-15"
+      },
+      "reading": false,
+      "record": "w1",
+      "rule_ids": ["opt.report_employer_within_days"],
+      "status": "guidance",
+      "unit": "date",
+      "value": "2026-02-15"
+    },
+    {
+      "id": "opt_job_start.report.closes.w1",
+      "inputs": {
+        "w1.start": "2026-02-15"
+      },
+      "reading": false,
+      "record": "w1",
+      "rule_ids": ["opt.report_employer_within_days"],
+      "status": "guidance",
+      "unit": "date",
+      "value": "2026-02-25"
+    },
+    {
       "id": "unemployment.opt_card.a2",
       "inputs": {
         "a2.card_end": "2027-02-09",
@@ -523,6 +664,28 @@
       ],
       "status": "guidance",
       "unit": "days",
+      "value": null
+    },
+    {
+      "id": "unemployment.opt_card.a2.limit_day",
+      "inputs": {
+        "a2.card_end": "2027-02-09",
+        "a2.card_start": "2026-02-10",
+        "a2.id": "a2",
+        "w1.hours_per_week": 40,
+        "w1.start": "2026-02-15",
+        "w1.under": "a2"
+      },
+      "reading": true,
+      "rule_ids": [
+        "opt.unemployment_limit_days",
+        "opt.unemployment_each_period",
+        "opt.unemployment_abroad",
+        "opt.ends_on_transfer_or_new_level",
+        "opt.min_hours_per_week"
+      ],
+      "status": "guidance",
+      "unit": "date",
       "value": null
     },
     {
@@ -967,6 +1130,18 @@
       "unit": "flag",
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": true
+    },
+    "opt.report_employer_within_days": {
+      "checked_on": "2026-09-28",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "derivation": "verbatim",
+      "note": "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text.",
+      "plain": "SEVP's guidance says that while on OPT, a student must tell the DSO of any change in name, address or employment information within 10 days. This is agency guidance, not a regulation.",
+      "quote": "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information.",
+      "status": "guidance",
+      "unit": "days",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": 10
     },
     "opt.report_interruption": {
       "checked_on": "2026-09-29",
@@ -1560,6 +1735,10 @@
         "opt.latest_start.closes.a2",
         "opt.file_by.opens.a2",
         "opt.file_by.closes.a2",
+        "opt.last_day.opens.a2",
+        "opt.last_day.closes.a2",
+        "opt.prepare.opens.a2",
+        "opt.prepare.closes.a2",
         "opt.complete_by.opens.a2",
         "opt.complete_by.closes.a2"
       ],
@@ -1625,6 +1804,42 @@
           "status": "settled"
         },
         {
+          "closes": "2025-10-31",
+          "closes_days_away": -396,
+          "id": "opt.last_day.a2",
+          "inputs": {
+            "a2.dso_on": "2025-10-01",
+            "p1.end_date": "2025-12-13"
+          },
+          "label": "Last day to file Form I-765",
+          "opens": "2025-09-14",
+          "opens_days_away": -443,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": [
+            "opt.apply_before_days",
+            "opt.apply_after_days",
+            "opt.file_within_days_of_recommendation"
+          ],
+          "status": "litigated"
+        },
+        {
+          "closes": "2025-09-14",
+          "closes_days_away": -443,
+          "id": "opt.prepare.a2",
+          "inputs": {
+            "p1.end_date": "2025-12-13"
+          },
+          "label": "Time to prepare the Form I-765 filing, a planning date",
+          "opens": "2025-08-14",
+          "opens_days_away": -474,
+          "planning": true,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["opt.apply_before_days"],
+          "status": "settled"
+        },
+        {
           "closes": "2027-02-13",
           "closes_days_away": 74,
           "id": "opt.complete_by.a2",
@@ -1655,6 +1870,10 @@
         "stem.apply_window.closes.a2",
         "stem.file_by.opens.a2",
         "stem.file_by.closes.a2",
+        "stem.last_day.opens.a2",
+        "stem.last_day.closes.a2",
+        "stem.prepare.opens.a2",
+        "stem.prepare.closes.a2",
         "stem.validation_1.opens.a2",
         "stem.validation_1.closes.a2",
         "stem.validation_2.opens.a2",
@@ -1718,6 +1937,41 @@
           "reading": false,
           "record": "a2",
           "rule_ids": ["stem.file_within_days_of_recommendation"],
+          "status": "settled"
+        },
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "stem.last_day.a2",
+          "inputs": {
+            "a2.card_end": "2027-02-09"
+          },
+          "label": "Last day to file Form I-765 for the STEM OPT extension",
+          "opens": "2026-11-11",
+          "opens_days_away": -20,
+          "reading": true,
+          "record": "a2",
+          "rule_ids": [
+            "stem.apply_before_expiry_days",
+            "stem.apply_window_closes_rule",
+            "stem.file_within_days_of_recommendation"
+          ],
+          "status": "settled"
+        },
+        {
+          "closes": "2026-11-11",
+          "closes_days_away": -20,
+          "id": "stem.prepare.a2",
+          "inputs": {
+            "a2.card_end": "2027-02-09"
+          },
+          "label": "Time to prepare the STEM OPT extension filing, a planning date",
+          "opens": "2026-10-11",
+          "opens_days_away": -51,
+          "planning": true,
+          "reading": false,
+          "record": "a2",
+          "rule_ids": ["stem.apply_before_expiry_days"],
           "status": "settled"
         },
         {
@@ -1893,6 +2147,46 @@
       "starts": "2026-05-01",
       "state": "done",
       "windows": []
+    },
+    {
+      "category": "f1",
+      "checklist": null,
+      "days_in": null,
+      "days_total": null,
+      "ends": null,
+      "ends_days_away": null,
+      "facts": {
+        "w1.employer": "e1",
+        "w1.employer_reported": "yes",
+        "w1.hours_per_week": 40,
+        "w1.start": "2026-02-15",
+        "w1.under": "a2"
+      },
+      "id": "opt_job_start.w1",
+      "items": ["opt_job_start.report.opens.w1", "opt_job_start.report.closes.w1"],
+      "label": "Start of a job on post-completion OPT",
+      "record": "w1",
+      "rule_ids": ["opt.report_employer_within_days"],
+      "stage": "opt_job_start",
+      "starts": null,
+      "state": "done",
+      "windows": [
+        {
+          "closes": "2026-02-25",
+          "closes_days_away": -279,
+          "id": "opt_job_start.report.w1",
+          "inputs": {
+            "w1.start": "2026-02-15"
+          },
+          "label": "Report of the new employment information to the DSO",
+          "opens": "2026-02-15",
+          "opens_days_away": -289,
+          "reading": false,
+          "record": "w1",
+          "rule_ids": ["opt.report_employer_within_days"],
+          "status": "guidance"
+        }
+      ]
     }
   ],
   "today": {

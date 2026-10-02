@@ -24,8 +24,6 @@ rounds:
     mission: 'SPEC-W2 point 46, N1 and N2: windows whose amount is a product setting, marked planning: true; and the limit day of each counter (<counter>.<key>.limit_day). All values from the pack and the settings, nothing about F-1 written into engine code. engine/rulepack.py refuses a pack that names a product setting anywhere but the opens or closes of a stage window. Make tests/unit/engine/test_w2_windows.py and test_w2_limit_day.py pass with every journey still passing.'
     done: bash -c 'uv run pytest tests/unit/engine/test_w2_windows.py tests/unit/engine/test_w2_limit_day.py tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
   checks:
-  - name: offline gates
-    run: make test-offline BASE=work/product-2
   - name: hidden tests
     run: uv run pytest tests/holdout -q
 - name: reconcile
@@ -34,6 +32,12 @@ rounds:
     agent: test-author
     mission: 'Bring every test in tests/unit and tests/holdout in line with W2-P1 (SPEC-W2 points 45, 46, 49); write the SPEC point beside each change; never loosen an assertion; escalate any failure no point explains. Then run make samples.'
     done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  # After make samples (the reconcile mission), so web's saved engine samples match the engine.
+  - name: samples
+    run: make samples
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
 - name: review
   lanes:
   - lane: L-review
