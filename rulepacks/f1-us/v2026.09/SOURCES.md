@@ -1,6 +1,6 @@
 # Saved sources, f1-us v2026.09
 
-All copies fetched on 2026-09-28. Files are kept exactly as served. Text files beside a PDF were extracted from that PDF with the macOS PDFKit library, because the quote check reads text; the PDF is the record.
+The copies in the first table were fetched on 2026-09-28; the fetch of 2026-10-02 is recorded under "Fetch of 2026-10-02" below. Files are kept exactly as served. Text files beside a PDF were extracted from that PDF with the macOS PDFKit library, because the quote check reads text; the PDF is the record.
 
 | File in sources/ | What it is | Fetched from | sha256 |
 |---|---|---|---|
@@ -24,6 +24,32 @@ All copies fetched on 2026-09-28. Files are kept exactly as served. Text files b
 | usc-31-1102-2026-09-28.htm | 31 U.S.C. 1102, Fiscal year, laws in effect on 2026-09-28 | https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title31-section1102&num=0&edition=prelim | c8513d7d62a8ebbafae9889d40461c3de7b0847fce597f281cbc5aac07a8da5d |
 | usc-5-6103-2026-09-28.htm | 5 U.S.C. 6103, Holidays, laws in effect on 2026-09-28 | https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim | a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0 |
 
+## Fetch of 2026-10-02
+
+Every source in the first table was fetched again on 2026-10-02 by tools/sources/recheck.py, outside the agents' jail. A second fetch the same day fetched the three copies in the table below, and each came back byte for byte the same. Each result is in recheck-2026-10-02.json in this folder: url, time, status, the sha256 of what came back and of the saved copy, and, for the pinned eCFR texts, the newest version eCFR lists. The fetch saved a copy that came back changed, and the govinfo.gov copies, under sources/recheck-2026-10-02/; the originals are kept. A rule names a copy in sources/ itself, so the copies below were copied byte for byte from that folder to sources/ under their own names.
+
+| File in sources/ | What it is | Fetched from | sha256 |
+|---|---|---|---|
+| sits-f1-opt-2026-10-02.html | Study in the States, F-1 OPT page, as served on 2026-10-02, last updated 2025-05-19; the same bytes as sources/recheck-2026-10-02/sits-f1-opt-2026-09-28.html | https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt | 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761 |
+| govinfo-uscode-2024-title5-sec6103.htm | 5 U.S.C. 6103, Holidays, United States Code, 2024 Edition, from the Government Publishing Office; the same bytes as the copy in sources/recheck-2026-10-02/ | https://www.govinfo.gov/content/pkg/USCODE-2024-title5/html/USCODE-2024-title5-partIII-subpartE-chap61-subchapI-sec6103.htm | 6909183aef19c2e16b1540ff3058f3a1bbb2c5ca13f249dee494f059604ea28f |
+| govinfo-uscode-2024-title31-sec1102.htm | 31 U.S.C. 1102, Fiscal year, United States Code, 2024 Edition, from the Government Publishing Office; the same bytes as the copy in sources/recheck-2026-10-02/ | https://www.govinfo.gov/content/pkg/USCODE-2024-title31/html/USCODE-2024-title31-subtitleII-chap11-sec1102.htm | dcd7e4bb057f8351e61fa327773698e3457a5c05ee5f87ebb919385bed8714dd |
+
+Also in sources/recheck-2026-10-02/, named by no rule:
+
+- courtlistener-docket-74661796-entries-2026-09-28.json: the CourtListener listing of the newest entries on the D. Mass. docket, as returned on 2026-10-02, sha256 15543122312678f4b0101a5cef8739b9c3da7e30651e8a5c0af3d514c2834bec.
+- ecfr-8cfr214.2-2026-09-30.xml: 8 CFR 214.2, point-in-time text of 2026-09-30, from https://www.ecfr.gov/api/versioner/v1/full/2026-09-30/title-8.xml?part=214&section=214.2, sha256 673bc9721fd2fd0553ca1ca8185d67c3893e31005ee026c2fa521158ad3097b8.
+- usc-5-6103-2026-09-28.htm and usc-31-1102-2026-09-28.htm: what uscode.house.gov served on 2026-10-02, a page titled Under Maintenance.
+
+What came back:
+
+- Byte for byte the same: both eCFR texts (2026-09-14 and 2026-09-15), the five Federal Register documents, the three court PDFs and the SEVP policy guidance PDF. Every rule resting on them, or on the text extracted from those PDFs, carries checked_on 2026-10-02, That is 94 parameters and both regimes.
+- eCFR lists a version of 8 CFR 214.2 dated 2026-09-30, newer than both pinned texts. Its paragraph (f), from "(f)" to the start of paragraph (g), is the same, character for character, as paragraph (f) of the 2026-09-15 text. The 2026-09-30 version drops paragraph (h)(6)(xvi), on H-2B, and the effective date note that goes with it. The pinned 2026-09-14 text differs from the newest text in paragraph (f) only by the amendments of 91 FR 44976, which the pack already records under fixed_admission_2026. No rule moves to the 2026-09-30 text.
+- The Study in the States OPT page: the markup changed and the text is the same. With tags taken out and spaces made uniform, the two copies are the same words. Every quote of the seven rules that rest on it is found in the new copy, so the fetch backs them and they carry checked_on 2026-10-02. The new copy is saved as sources/sits-f1-opt-2026-10-02.html, in the table above. The seven rules now name sources/sits-f1-opt-2026-10-02.html and its sha256; the second fetch of 2026-10-02 backs that copy. The copy of 2026-09-28 stays in sources/ and in the first table.
+- The D. Mass. docket listing changed: entries 53, 54 and 55 of 2026-09-30, recorded in claim 2 below and in the note of fixed_admission_2026. The order itself (ECF 51) came back the same. The founder signed off on the docket (D90, accepting SPEC-FEED point 69): the regime stays enjoined and not operative, and its checked_on is 2026-10-02.
+- 5 U.S.C. 6103 and 31 U.S.C. 1102: uscode.house.gov answered with status 200 and a page titled Under Maintenance, not the statute. Those copies are kept in sources/recheck-2026-10-02/ under the names of the originals, and they back nothing; that is why the rules leave uscode.house.gov. The same sections were saved from govinfo.gov, the Government Publishing Office, in the 2024 Edition of the United States Code, current through 2025-01-06 by its own header. Every quote of the three rules resting on these statutes is found in those copies, and the source credits and notes their notes cite (Pub. L. 97-258 of 1982-09-13; Pub. L. 117-17 of 2021-06-17; the 1983 amendment and its effective date note; Executive Order 11582) are in them. So those rules now name the govinfo.gov copies in sources/: url, citation naming the 2024 Edition, snapshot and sha256. The copies of 2026-09-28 from uscode.house.gov stay in sources/ and in the first table. The second fetch of 2026-10-02 fetched both govinfo.gov copies from the urls in the table above and they came back the same, so those three rules carry checked_on 2026-10-02.
+
+No number, quote or plain text changed in this fetch.
+
 ## Claims about the blocked rule
 
 Each claim is one sentence, the exact quote, the url, and the saved copy. Hashes are in the table above.
@@ -32,7 +58,8 @@ Each claim is one sentence, the exact quote, the url, and the saved copy. Hashes
    Quote: "The effective date is September 15, 2026."
    Url: https://www.federalregister.gov/documents/2026/07/17/2026-14439/establishing-a-fixed-time-period-of-admission-and-an-extension-of-stay-procedure-for-nonimmigrant
    Saved copy: sources/fr-2026-14439.xml
-2. On 2026-09-14 the District of Massachusetts postponed the effective date of that final rule and preliminarily enjoined the defendants from implementing it, pending further order or a decision on the merits. Legal status of the order on 2026-09-28: in force; the docket listing saved that day shows a status conference set for 2026-10-02 and no later order; no appeal was found.
+2. On 2026-09-14 the District of Massachusetts postponed the effective date of that final rule and preliminarily enjoined the defendants from implementing it, pending further order or a decision on the merits. Legal status of the order on 2026-09-28: in force; the docket listing saved that day shows a status conference set for 2026-10-02 and no later order. Corrected 2026-10-02: the docket listing fetched that day shows that the defendants filed a notice of appeal on 2026-09-30 (ECF 53, as to document 50, the memorandum and order of 2026-09-14), that the record on appeal was sent to the Court of Appeals the same day (ECF 54), and that the First Circuit case number is 26-2112 (ECF 55). The listing shows no entry for a stay. The order is unchanged in the pack. The founder reviewed the listing (D90): fixed_admission_2026 stays enjoined, with operative false and the same tag.
+   Saved listing: sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json
    Quote: "The effective date of the Final Rule is hereby POSTPONED pending further order of this court or resolution of this proceeding on the merits."
    Quote: "Defendants are preliminarily enjoined from taking any further action to implement the Final Rule pending further order of this court or resolution of this proceeding on the merits."
    Url: https://www.courtlistener.com/docket/74661796/51/presidents-alliance-on-higher-education-and-immigration-v-united-states/
