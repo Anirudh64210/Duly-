@@ -1,0 +1,50 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the W2-P1 review veto (reviews/w2-p1.md): a gap in the record never silently removes a deadline, a planning date shows its working, an unstarted card still has a limit day, and the two surviving mutants are caught. W2-P1, SPEC-W2 points 45, 46 and 49.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-p1.md. Write the tests its findings ask for, in tests/unit/engine/test_w2_windows.py and test_w2_limit_day.py (and tests/holdout/test_holdout_w2.py for a twin): finding 1, a STEM card with no employer and a job with another employer started during the card: the verdict is cannot_tell and a question asks for the card employer (or whatever field the selection read), never a silent drop; finding 3, an OPT card that starts after today with no job has a limit day (the limit-th counted day from the card start, if nothing changes), worked by hand in the comment; finding 4, the STEM report window (stem_job_start.report from stem.report_change_within_days) and the during-the-extension filter (a new-employer job begun before the STEM card start gives no new_plan window), killing mutants M5 and M7 as the review describes; finding 2, a planning item (opt.prepare) names the setting plan.prepare_months and its value among its inputs; finding 5, loading a pack whose window names an unknown setting id, or a setting whose unit is not days, business_days, months or years, is refused with a plain error. Work every date by hand in the comment. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_windows.py tests/unit/engine/test_w2_limit_day.py tests/holdout/test_holdout_w2.py --co -q >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Read reviews/w2-p1.md findings 6 and 7. Finding 6: opt_job_start.report rests on a reading (a new job is a change in employment information); mark it as a reading where the pack marks readings, so the items it gives carry reading: true, with the reading stated in plain words. Finding 7: correct rulepacks/f1-us/v2026.09/CHANGELOG.md so it says the recommendation date is required for the last day (missing means Can''t tell yet), as commit c24c65d and SPEC-W2 point 45 record. No number changes.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-p1.md. Finding 1, generically: when a for_each selection cannot be decided because a field it reads is missing, the engine asks for that field (a question, and the verdict cannot_tell), never drops the stage; nothing about F-1 in engine code. Finding 2: a planning item lists the setting id and its value among its inputs, so the working shows where the month came from. Finding 3: the limit day of a counter whose span has not started yet is the limit-th counted day from the start, if nothing changes. Finding 5: engine/rulepack.py refuses a pack that names an unknown setting id or a setting whose unit cannot date a window. Finding 8: engine/settings.py returns a setting''s value and unit together, read once. Make every test in tests/unit/engine and the journeys pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py tests/holdout/test_holdout_w2.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit and tests/holdout in line with the W2-P1 fixes (reviews/w2-p1.md); write the finding beside each change; never loosen an assertion; escalate any failure no finding explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples (planning items now list their setting among inputs), and make npm test -w web pass, changing only tests the W2-P1 fixes require, with the finding beside each.'
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review W2-P1 after its fixes: everything the plans plan-w2-p1.yaml and plan-w2-p1-fix.yaml changed, against SPEC-W2 points 45, 46 and 49, PRINCIPLES.md, BOUNDARY.md and your own findings in reviews/w2-p1.md. Check each finding is fixed, rerun your mutants M5 and M7, and try hardest again to find a gap in the record that silently removes a deadline. Write reviews/w2-p1.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P1 (plan-w2-p1.yaml and plan-w2-p1-fix.yaml) as your role file describes. Write docs/requirements/audits/w2-p1.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p1.md && uv run python -m tools.requirements.register check'
