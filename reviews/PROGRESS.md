@@ -340,3 +340,17 @@
 - Rendered Home on three variants. With a2 in three checks there are three identical rows and one Why line.
 - All six ui-1 findings are closed for the sample; point 7 is closed in code only, because Electron cannot start in the sandbox.
 - Wrote reviews/ui-1-fix1.md (VETO, mean 3.83), REVIEW.json and REPORT.json, both valid.
+
+## 2026-10-01, run l-review-965441e361 (W2-P1)
+- Read SPEC-W2 points 39 to 49, plan-w2-p1.yaml, PRINCIPLES, BOUNDARY, D89, and the diff 5cd505c..75cbf7f (pack windows, CHANGELOG, engine path.py and rulepack.py, test_w2_windows, test_w2_limit_day, test_holdout_w2, w2_pack, web zod and reconciled tests, samples).
+- Ran: unit and holdout suites without tools and desktop_entry (exit 0). The tools tests fail only on nested sandbox-exec. verify, plain, engine_literals, copy lint, mypy and ruff all exit 0. HEAD copy: web vitest 601 passed, desktop 249 passed, tsc 0, samples --check 0.
+- Hand-checked opt.last_day, stem.last_day, prepare, job-start reports, and limit days against the saved quotes; all match.
+- Probes TMPDIR/rvw2/probe2..7: a STEM card with no employer drops the stem_job_start windows with no question (blocking). Other results: a future card gives limit_day null, an unknown setting id raises SettingsError at compute, and early dso_on inverts the last-day window (conflict already raised).
+- Scratch vitest: Timeline shows planning items with working that omits the setting.
+- Mutants: 7 run, 5 caught; M5 (report rule swap) and M7 (during-STEM filter) survive.
+- Wrote reviews/w2-p1.md (VETO, mean 3.33), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: a for_each where condition that reads an optional field made a stage vanish with no question, while every SPEC-input test passed.
+- Fix: for each new where condition, delete each field it reads in turn and look for a question or reason.
+- Evidence: reviews/w2-p1.md finding 1.
