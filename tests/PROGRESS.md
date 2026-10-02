@@ -3256,3 +3256,49 @@ neighbours leave tests unannotated, so only the new test got "-> None".
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-fb20e63829: W2-P1 re-review, blocking finding 1 and finding 2 (reviews/w2-p1.md)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p1.md (re-review), SPEC-W2 points 45 and 46, the
+stem_job_start and opt_job_start selections and end_date_change.asked_before_end in
+rulepacks/f1-us/v2026.09/parameters.yaml, engine/path.py _select, _need, run_stages, run_checks.
+Probed the engine on S1, O1, S2 and x1 before writing: all reproduce the review (no
+job_start window at all in S1, O1, S2; nothing names w3 in S2; x1 asks missing:x1.change).
+
+Added to tests/unit/engine/test_w2_windows.py (re-review section):
+- S1: stem_new_employer_case plus w3 under a2 from 2026-09-01 with no employer. w2 keeps
+  new plan and report windows 2026-08-03 to 2026-08-13 (Aug 3 plus 10); cannot_tell;
+  missing:w3.employer in reasons and a question; no closing day for w3. Fails today: set().
+- O1: w1 under a1 from 2026-07-01 (report 2026-07-01 to 2026-07-11, Jul 1 plus 10), w2 with no
+  under. w1 keeps its window; missing:w2.under reason and question. Fails today: set().
+- S2, parametrized "2026-13-40" and "08/03/2026": w3 with e2 under a2. w2 keeps both windows;
+  cannot_tell; a reason naming w3.start. Fails today: set().
+- Toy pack (nothing about F-1): one selection, job started on or after its card's start; k1
+  starts 2026-01-05, k2 has none. w1 from 2026-02-10 gets 2026-02-10 to 2026-03-02 (18 days
+  reach Feb 28, 2 more Mar 2); k2.card_start is asked. Plus a property test over w1's start
+  (0 to 260 days after 2026-01-05): window start to start plus 20, k2 still asked. Fail today.
+- Finding 2: end_date_change x1 for p1 (asked 2026-03-01, old end 2026-05-15, new end
+  2026-12-15) with no change asks missing:x1.change, cannot_tell. Twin with change extension:
+  nothing asked about x1.change, no conflict (2026-03-01 is on or before 2026-05-15). Both pass.
+Added to tests/holdout/test_holdout_w2.py: S1 and both S2 inputs through POST /v1/compute on
+the holdout's _stem_case("e1") plus w3, and O1. All four fail today.
+
+What makes each fail once built: the selection dropped whole when one record is undecided
+(S1, O1, toy, S2's window half); an unreadable date compared as unknown with nothing said
+(S2's reason half); run_checks not asking on an unknown selection (M9).
+
+Mutants (copies in TMPDIR, loaded through a pytest plugin, engine/ untouched):
+- M9 (no _need in run_checks): the x1 test FAILS, "missing:x1.change" absent. Killed.
+- A rough fix (_select keeps the known records and asks about the rest at the top level):
+  S1, O1, the toy tests and the x1 pair pass; S2 then keeps w2's windows and fails only on
+  the missing w3.start reason. So the tests ask for nothing beyond the finding.
+
+Done command: "All checks passed!", "92 files already formatted", collect ok, exit 0.
+
+Not built: no new support helper (dated_windows, stem_case_with and the toy stage live in the
+test file, beside their only users); no assertion that an unreadable date is also a question,
+since the mission asks only for a reason naming record and field; no test for finding 3
+(load_settings read once per node is a cost, not behaviour).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

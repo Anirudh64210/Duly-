@@ -231,3 +231,78 @@ def test_new_employer_window_with_the_card_employer_left_out_is_asked(client):
     assert "missing:a2.employer" in out["verdict"]["reasons"]
     assert any("missing:a2.employer" in q["because"] for q in out["questions"])
     assert set(_new_plan_closes(out)) <= {None}
+
+
+# reviews/w2-p1.md re-review, blocking finding 1: a gap in one job never removes another job's
+# known deadline. w2's new Form I-983 and report windows (2026-08-03 plus 10, 2026-08-13) stay
+# whatever a third job w3 lacks, and w3 is named.
+
+
+def _w2_stem_windows(out: dict[str, Any]) -> set[tuple[Any, Any, str]]:
+    return {
+        (w["opens"], w["closes"], rule)
+        for s in out["stages"]
+        for w in s["windows"]
+        if w.get("record") == "w2"
+        for rule in ("stem.new_plan_due_days", "stem.report_change_within_days")
+        if rule in w["rule_ids"]
+    }
+
+
+W2_KEPT = {
+    ("2026-08-03", "2026-08-13", "stem.new_plan_due_days"),
+    ("2026-08-03", "2026-08-13", "stem.report_change_within_days"),
+}
+
+
+def _dated(out: dict[str, Any], record: str) -> set[Any]:
+    return {
+        w["closes"] for s in out["stages"] for w in s["windows"] if w.get("record") == record
+    } - {None}
+
+
+@pytest.mark.parametrize(
+    ("w3", "named"),
+    [
+        # S1: w3 from 2026-09-01 with no employer; new employer or not turns on it.
+        ({"start": "2026-09-01"}, "w3.employer"),
+        # S2: w3 with e2, its start no date at all (month 13, day 40; or month and day unclear).
+        ({"employer": "e2", "start": "2026-13-40"}, "w3.start"),
+        ({"employer": "e2", "start": "08/03/2026"}, "w3.start"),
+    ],
+)
+def test_a_gap_in_one_stem_job_keeps_the_other_job_s_windows(
+    client: TestClient, w3: dict[str, str], named: str
+) -> None:
+    body = _stem_case("e1")
+    body["records"].append(rec("w3", "work", under="a2", hours_per_week=40, **w3))
+    out = _send(client, body)
+    assert _w2_stem_windows(out) == W2_KEPT
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert [r for r in out["verdict"]["reasons"] if named in r], out["verdict"]["reasons"]
+    assert _dated(out, "w3") == set()
+
+
+# O1: w1 under the OPT card a1 from 2026-07-01, report by 2026-07-11 (plus 10, in July); w2
+# names no card. w1's window stays and w2's card is asked.
+
+
+def test_a_job_with_no_card_keeps_the_other_job_s_report_window(client: TestClient) -> None:
+    records = [
+        _program("2026-05-15"),
+        _opt("2026-04-01", "2026-04-10", "2026-06-01", "2027-05-31"),
+        rec("e1", "employer", name="Employer One"),
+        rec("w1", "work", employer="e1", under="a1", start="2026-07-01", hours_per_week=40),
+        rec("w2", "work", employer="e1", start="2026-08-03", hours_per_week=40),
+    ]
+    out = _send(client, case(records, LISTS))
+    found = [
+        (w["opens"], w["closes"])
+        for s in out["stages"]
+        for w in s["windows"]
+        if w.get("record") == "w1" and "opt.report_employer_within_days" in w["rule_ids"]
+    ]
+    assert found == [("2026-07-01", "2026-07-11")]
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert any("missing:w2.under" in q["because"] for q in out["questions"])
+    assert _dated(out, "w2") == set()

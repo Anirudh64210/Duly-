@@ -623,6 +623,189 @@ def test_a_stem_card_with_no_employer_asks_for_it_and_never_drops_the_windows_si
     assert {closes for _, closes in dated} <= {None}
 
 
+# reviews/w2-p1.md re-review, blocking finding 1: a gap in one record never removes another
+# record's known deadline, and the record left undecided is asked about by name. SPEC-W2 45
+# P3, 46; PRINCIPLES 2; CLAUDE.md: confirm, never assume, missing means cannot_tell.
+
+
+def dated_windows(out: dict[str, Any], record: str) -> set[tuple[Any, Any]]:
+    return {(w["opens"], w["closes"]) for w in windows(out) if w.get("record") == record}
+
+
+def stem_case_with(w3: dict[str, Any]) -> dict[str, Any]:
+    # The finding 4 case (STEM card a2 names e1; w1 with e1 2026-07-01 to 2026-08-02; w2 with
+    # e2 from 2026-08-03) plus a third job w3 under a2.
+    case = stem_new_employer_case("2026-08-03")
+    case["records"].append(w3)
+    return case
+
+
+def assert_w2_keeps_both_stem_windows(out: dict[str, Any]) -> None:
+    # Every fact w2's windows need is entered: 2026-08-03 plus 10 (stem.new_plan_due_days,
+    # stem.report_change_within_days, both read as 10 above) is 2026-08-13, inside August.
+    assert date(2026, 8, 3) + timedelta(days=NEW_PLAN) == date(2026, 8, 13)
+    assert date(2026, 8, 3) + timedelta(days=STEM_REPORT) == date(2026, 8, 13)
+    assert report_windows(out, "w2", "stem.new_plan_due_days") == {("2026-08-03", "2026-08-13")}
+    assert report_windows(out, "w2", "stem.report_change_within_days") == {
+        ("2026-08-03", "2026-08-13")
+    }
+
+
+def test_s1_a_job_with_no_employer_never_removes_another_job_s_stem_windows() -> None:
+    # Input S1. w3 under a2 from 2026-09-01 with no employer: whether it is with a new employer
+    # turns on w3.employer, which is not known. w2's two windows stay; w3 is asked about by
+    # name; no date is made up for w3. Fails if: the selection is dropped whole when any one
+    # record is undecided (the engine's `for record in found or []`), or w3 is read as decided.
+    w3 = rec("w3", "work", under="a2", start="2026-09-01", hours_per_week=40)
+    out = compute(stem_case_with(w3), [PACK], TODAY)
+    assert_w2_keeps_both_stem_windows(out)
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:w3.employer" in out["verdict"]["reasons"]
+    assert asks_for(out, "w3.employer")
+    assert {closes for _, closes in dated_windows(out, "w3")} <= {None}
+
+
+def test_o1_a_job_with_no_card_never_removes_another_job_s_report_window() -> None:
+    # Input O1. w1 under the post-completion OPT card a1 from 2026-07-01: report window
+    # 2026-07-01 to 2026-07-11 (2026-07-01 plus 10, opt.report_employer_within_days). w2 with
+    # e1 from 2026-08-03 names no card, so whether it is on post-completion OPT is not known.
+    # w1's window stays; w2 is asked about by name. Fails if: w2's unknown `under` drops the
+    # whole opt_job_start selection, w1 with it.
+    case = opt_job_case(opt_job(start="2026-07-01"))
+    case["records"].append(rec("w2", "work", employer="e1", start="2026-08-03", hours_per_week=40))
+    out = compute(case, [PACK], TODAY)
+    assert date(2026, 7, 1) + timedelta(days=OPT_REPORT) == date(2026, 7, 11)
+    assert report_windows(out, "w1", "opt.report_employer_within_days") == {
+        ("2026-07-01", "2026-07-11")
+    }
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:w2.under" in out["verdict"]["reasons"]
+    assert asks_for(out, "w2.under")
+    assert {closes for _, closes in dated_windows(out, "w2")} <= {None}
+
+
+@pytest.mark.parametrize("unreadable", ["2026-13-40", "08/03/2026"])
+def test_s2_an_unreadable_date_in_one_job_is_named_and_never_removes_another_job_s_windows(
+    unreadable: str,
+) -> None:
+    # Input S2. w3 with e2 under a2, start given as text that is no ISO date: month 13 and day
+    # 40 do not exist; "08/03/2026" could be 3 August or 8 March. The case contract takes any
+    # string, so the engine must say so. Whether w3 began during the extension is not known:
+    # w2's windows stay, the verdict is cannot_tell, and a reason names w3.start. Fails if:
+    # the unreadable date compares as unknown with nothing to ask and nothing said (silence),
+    # or drops w2's windows with it, or is guessed into a date for w3.
+    w3 = rec("w3", "work", employer="e2", under="a2", start=unreadable, hours_per_week=40)
+    out = compute(stem_case_with(w3), [PACK], TODAY)
+    assert_w2_keeps_both_stem_windows(out)
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert [r for r in out["verdict"]["reasons"] if "w3.start" in r], out["verdict"]["reasons"]
+    assert {closes for _, closes in dated_windows(out, "w3")} <= {None}
+
+
+# The same on the toy pack, so the fix is the engine's and nothing about F-1: one selection,
+# two records, one decided and one not. A job is selected when it starts on or after its
+# card's start; its report window closes toy.before_days (20) after the start.
+
+JOB_START = {
+    "id": "job_start",
+    "label": "Job start",
+    "for_each": {
+        "record": "job",
+        "where": [{"field": "this.start", "on_or_after": {"fact": "this.under.card_start"}}],
+    },
+    "entered_when": ["this.start"],
+    "rule_ids": ["toy.definition"],
+    "windows": [
+        {
+            "id": "toy.report",
+            "label": "Report",
+            "opens": {"fact": "this.start"},
+            "closes": {"fact": "this.start", "add": [{"rule": "toy.before_days"}]},
+            "rule_ids": ["toy.before_days"],
+        }
+    ],
+}
+
+
+def toy_two_jobs(w1_start: date) -> dict[str, Any]:
+    # k1 starts 2026-01-05; k2 gives no start. w1 under k1 is decided; w2 under k2 is not.
+    pack = toy_pack([JOB_START])
+    records = [
+        rec("k1", "card", card_start="2026-01-05", card_end="2027-01-04"),
+        rec("k2", "card", card_end="2027-01-04"),
+        rec("w1", "job", under="k1", start=w1_start.isoformat()),
+        rec("w2", "job", under="k2", start="2026-03-02"),
+    ]
+    return compute(toy_case(records, TODAY), [pack], TODAY)
+
+
+def test_one_selection_keeps_the_decided_record_and_asks_about_the_other() -> None:
+    # w1 from 2026-02-10 (after k1's 2026-01-05): 20 days on, 18 reach Feb 28 (February 2026
+    # has 28 days), 2 more 2026-03-02. w2's card start is missing: asked, cannot_tell, and no
+    # date for w2. Fails if: _select gives None for the whole selection when one record's
+    # where condition is unknown, or the unknown record is read as not selected.
+    out = toy_two_jobs(date(2026, 2, 10))
+    assert date(2026, 2, 10) + timedelta(days=20) == date(2026, 3, 2)
+    assert one_window(out, "toy.report")["id"] == "toy.report.w1"
+    assert dated_windows(out, "w1") == {("2026-02-10", "2026-03-02")}
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:k2.card_start" in out["verdict"]["reasons"]
+    assert asks_for(out, "k2.card_start")
+    assert {closes for _, closes in dated_windows(out, "w2")} <= {None}
+
+
+@settings(deadline=None, max_examples=25)
+@given(st.integers(min_value=0, max_value=260))
+def test_the_decided_record_s_window_moves_with_its_start_whatever_the_other_lacks(
+    offset: int,
+) -> None:
+    # w1 starts `offset` days after k1's 2026-01-05 (at most 2026-09-22, before today
+    # 2026-09-29): always selected, its window start to start plus 20, while w2 stays asked.
+    start = date(2026, 1, 5) + timedelta(days=offset)
+    out = toy_two_jobs(start)
+    assert dated_windows(out, "w1") == {
+        (start.isoformat(), (start + timedelta(days=20)).isoformat())
+    }
+    assert asks_for(out, "k2.card_start")
+
+
+# reviews/w2-p1.md re-review, finding 2 (mutant M9): an unknown selection in a check is asked
+# for. The check end_date_change.asked_before_end selects an end_date_change whose change is
+# extension; x1 gives no change, so whether the check applies is not known.
+
+
+def end_date_change_case(**change: str) -> dict[str, Any]:
+    # p1 ends 2026-05-15; x1 asked 2026-03-01 to move it to 2026-12-15.
+    x1 = rec(
+        "x1",
+        "end_date_change",
+        program="p1",
+        requested_on="2026-03-01",
+        old_end="2026-05-15",
+        new_end="2026-12-15",
+        **change,
+    )
+    return f1_case([masters("2026-05-15"), x1])
+
+
+def test_an_end_date_change_with_no_kind_of_change_is_asked() -> None:
+    # Fails if: run_checks skips the record whose selection is unknown without asking (M9).
+    out = compute(end_date_change_case(), [PACK], TODAY)
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:x1.change" in out["verdict"]["reasons"]
+    assert asks_for(out, "x1.change")
+
+
+def test_an_end_date_change_known_to_be_an_extension_is_not_asked_for_its_kind() -> None:
+    # The twin: change extension, asked 2026-03-01, on or before the old end 2026-05-15, so
+    # the check holds and nothing is asked about x1.change. Fails if: the change is asked even
+    # when given, or the check reads requested_on after old_end.
+    out = compute(end_date_change_case(change="extension"), [PACK], TODAY)
+    assert "missing:x1.change" not in out["verdict"]["reasons"]
+    assert not asks_for(out, "x1.change")
+    assert "conflict:end_date_change.asked_before_end.x1" not in out["verdict"]["reasons"]
+
+
 # reviews/w2-p1.md finding 2: a planning date shows its working, the setting and its value.
 
 
