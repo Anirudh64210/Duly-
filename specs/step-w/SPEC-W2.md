@@ -189,7 +189,8 @@ records with their sourced rules, a change that lands first).
     tell yet" is a flag), `machine.ts` (start, take an exit, close, dismiss, reopen, undo up to 5,
     snooze capped at the obligation date, spawn children), `playbooks/` (one typed file per
     playbook, ported from data.js: job-ends, travel, stem-filing, address, lost-paper renamed
-    lost-document, crisis, notice, checkin, report-owed, with their shared step-back steps), and
+    lost-document, crisis, notice, checkin, report-owed, dso-question (D92), with their shared
+    step-back steps), and
     `receipts.ts`. Pure functions, no clock, no date arithmetic: every date a loop shows is an
     engine item, a value the student typed, or a timer date from the engine's scheduler.
     - Checked by: the rules below as tests, plus `test_web_no_date_math.py` over web/src/loops.
@@ -214,7 +215,13 @@ records with their sourced rules, a change that lands first).
       check-ins set the can't-tell flag while deadlines survive; at most the weekly budget of
       check-ins; stem-filing's approval spawns one report-owed loop per report window in the
       engine output; lost-document shows the saved copy first; crisis writes nothing to history
-      and shows no date.
+      and shows no date; dso-question (D92) opens when a not-sure answer could change a date,
+      waits on the DSO by name with the drafted question sent from the student's own mail,
+      checks in after `loop.dso_reply_business_days`, takes the DSO's answer into the field it
+      was asked about (marked as the DSO's, with the day), and closes only on the student's
+      confirmation, showing what the answer changed; no answer drafts a follow-up and checks in
+      again, three unanswered check-ins offer office hours and the neutral attorney pointer, the
+      loop never closes by itself, and Can't tell yet holds until the answer is in.
     - Checked by: these tests, and that they fail when a rule is broken in a fixture playbook (each
       rule has one planted-fault playbook, as `make prove-gates` does for gates).
 21. **Flags the prototype never set are set here or removed:** `beforeLastDay`, `notYetDue` and
