@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Duly API
   version: 0.1.0
-  description: Health, version, stack status, the stateless computations, and approved law updates.
+  description: Health, version, stack status, the stateless computations and schedule, and approved law updates.
 paths:
   /health:
     get:
@@ -85,6 +85,35 @@ paths:
           description: >
             The case does not match the contract, or the pack refuses a record kind or field
             it does not declare. The body names the first problem.
+  /v1/schedule:
+    post:
+      operationId: schedule
+      description: >
+        Stateless. Dates the Loop module's timers, reminders and check-ins: each request
+        names a base (an engine item of the case, a date the person typed, or today), an
+        offset in days, business days, months or a product setting, a sign, and optionally
+        an item that caps it. The engine computes the case as /v1/compute does, works out
+        each date and its days_away, and gives null with the reason when a base or a cap has
+        no date, never a guess. Nothing is stored and nothing from the body is logged. The
+        request and the response follow contracts/schedule.schema.json ($defs request and
+        response).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "schedule.schema.json#/$defs/request"
+      responses:
+        "200":
+          description: One date for each request, in the order sent.
+          content:
+            application/json:
+              schema:
+                $ref: "schedule.schema.json#/$defs/response"
+        "422":
+          description: >
+            The body does not match the contract, or the pack refuses a record kind or field
+            of the case. The body names the first problem.
   /v1/updates:
     get:
       operationId: getUpdates

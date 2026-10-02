@@ -5,7 +5,8 @@ settings:
     value: 14
     unit: days
     decided_in: "duly-plan/06-email-system.md, alerts policy: a deadline enters its 14-day window"
-    meaning: How far ahead a dated item is listed as an open item.
+    meaning: >
+      How far ahead a dated item is listed as an open item. A product setting, not a rule.
   - id: product.opt_start_earliest_years_before_program_end
     value: 1
     unit: years
@@ -13,6 +14,96 @@ settings:
     meaning: >
       An OPT start date earlier than this is treated as a likely typing mistake
       and reported as a conflict between inputs. It says nothing about the law.
+      A product setting, not a rule.
+
+  # Check-ins (specs/step-w/SPEC-W2.md, point 39, K1; D73: computed on the device).
+  - id: checkin.job_days
+    value: 30
+    unit: days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1), the prototype's value (specs/ui-2/prototype/data.js, checkin.jobDays)"
+    meaning: >
+      How many days after the student last confirmed a job and its hours Duly asks again
+      whether they still hold. Until then the facts are shown as of that day. A product
+      setting, not a rule.
+  - id: checkin.petition_days
+    value: 30
+    unit: days
+    decided_in: "DECISIONS.md D66; specs/step-w/SPEC-W2.md, point 39 (K1)"
+    meaning: >
+      How old a "still pending" answer about a petition may be before Duly asks again.
+      The answer is shown as "as of" the day it was given. A product setting, not a rule.
+
+  # Loop timers and reminders (specs/step-w/SPEC-W2.md, point 39, K1; D75; specs/duly-2/BLUEPRINT.md, 2.4).
+  - id: loop.deadline_lead_days
+    value: 3
+    unit: days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1); specs/duly-2/BLUEPRINT.md, 2.4"
+    meaning: >
+      How many days before a dated obligation the first reminder is set. A reminder on the
+      day itself is always set as well. A product setting, not a rule.
+  - id: loop.checkin_days
+    value: 14
+    unit: days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1); specs/duly-2/BLUEPRINT.md, 2.4"
+    meaning: >
+      How many days a loop waits before its next check-in question. A product setting,
+      not a rule.
+  - id: loop.weekly_budget
+    value: 3
+    unit: check-ins per week
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1); specs/duly-2/BLUEPRINT.md, 2.4"
+    meaning: >
+      The most check-in questions Duly asks in one week; the rest move to a later week.
+      Deadline reminders are never counted or moved. A product setting, not a rule.
+  - id: loop.backoff_after
+    value: 3
+    unit: unanswered check-ins
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1); specs/duly-2/BLUEPRINT.md, 2.4"
+    meaning: >
+      After this many check-ins in a row go unanswered, Duly stops asking and marks the
+      loop as can't tell yet. Deadline reminders stay. A product setting, not a rule.
+  - id: loop.dso_reply_business_days
+    value: 5
+    unit: business days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1); specs/duly-2/BLUEPRINT.md, 2.4"
+    meaning: >
+      How many business days after a message to the DSO Duly asks whether the DSO
+      replied. It says nothing about how fast a school must answer. A product setting,
+      not a rule.
+
+  # Travel asks (specs/step-w/SPEC-W2.md, point 39, K1).
+  - id: travel.first_ask_days
+    value: 21
+    unit: days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1), the prototype's value (specs/ui-2/prototype/data.js, travelFirstAskDays)"
+    meaning: >
+      How many days before the day of leaving Duly first asks about the travel signature.
+      A product setting, not a rule.
+  - id: travel.last_ask_days
+    value: 2
+    unit: days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1), the prototype's value (specs/ui-2/prototype/data.js, travelLastAskDays)"
+    meaning: >
+      How many days before the day of leaving Duly asks the last time, about the
+      documents to carry. A product setting, not a rule.
+
+  # Plan (specs/step-w/SPEC-W2.md, point 39, K1; gap map G13).
+  - id: plan.prepare_months
+    value: 1
+    unit: months
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1) and gap map G13"
+    meaning: >
+      How long before a filing window opens the Prepare span starts. It is a planning
+      date, marked as such, and says nothing about the law. A product setting, not a rule.
+
+  # Document watch (specs/step-w/SPEC-W2.md, point 39, K1; gap map G10).
+  - id: watch.close_days
+    value: 30
+    unit: days
+    decided_in: "specs/step-w/SPEC-W2.md, point 39 (K1), the prototype's value (specs/ui-2/prototype/data.js, watch.closeDays)"
+    meaning: >
+      How many days before a document's end date it is shown as close. A product
+      setting, not a rule.
 
 # Product values that are not numbers the engine reads. Decided in specs/design-1/SPEC.md, F8.
 product:

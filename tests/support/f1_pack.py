@@ -176,6 +176,21 @@ SPEC_SETTINGS: tuple[tuple[str, int, str], ...] = (
     ("product.open_item_lookahead_days", 14, "days"),
     ("product.opt_start_earliest_years_before_program_end", 1, "years"),
 )
+# specs/step-w/SPEC-W2.md point 39 (K1): the settings W2 adds. Kept apart from SPEC_SETTINGS,
+# whose ids the F-1 engine must each use today; these are used from W2-P1 on.
+W2_SETTINGS: tuple[tuple[str, int, str], ...] = (
+    ("checkin.job_days", 30, "days"),
+    ("checkin.petition_days", 30, "days"),
+    ("loop.deadline_lead_days", 3, "days"),
+    ("loop.checkin_days", 14, "days"),
+    ("loop.weekly_budget", 3, "check-ins per week"),
+    ("loop.backoff_after", 3, "unanswered check-ins"),
+    ("loop.dso_reply_business_days", 5, "business days"),
+    ("travel.first_ask_days", 21, "days"),
+    ("travel.last_ask_days", 2, "days"),
+    ("plan.prepare_months", 1, "months"),
+    ("watch.close_days", 30, "days"),
+)
 SETTINGS_PATH = REPO_ROOT / "contracts" / "product_settings.yaml"
 
 # A second pack where every number the engine uses differs from the SPEC value. An engine
@@ -388,7 +403,7 @@ def settings_dict(values: dict[str, int] | None = None) -> dict[str, Any]:
                 "decided_in": f"placeholder decision for {setting_id} in test settings",
                 "meaning": f"placeholder meaning for {setting_id} in test settings",
             }
-            for setting_id, value, unit in SPEC_SETTINGS
+            for setting_id, value, unit in (*SPEC_SETTINGS, *W2_SETTINGS)
         ]
     }
 

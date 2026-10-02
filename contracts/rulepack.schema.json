@@ -252,6 +252,20 @@
             "$ref": "#/$defs/checklist"
           },
           "description": "Ordered steps an official source lists for a stage, as pack data. Each step names its rules, and the output reads its confirmation from confirmations under step.<checklist id>.<step id>"
+        },
+        "watch": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/watch"
+          },
+          "description": "The dates on the person's records that run out and are worth watching, such as a card's end. The output lists each as a watch item for every record of the kind that holds the date"
+        },
+        "checkins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/checkin"
+          },
+          "description": "The records whose facts go stale and are asked again. The output lists a check-in for each record of the kind, due a product setting's days after the last confirmed day"
         }
       }
     }
@@ -297,12 +311,26 @@
     "amount": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "rule"
+      "oneOf": [
+        {
+          "required": [
+            "rule"
+          ]
+        },
+        {
+          "required": [
+            "setting"
+          ]
+        }
       ],
       "properties": {
         "rule": {
           "type": "string"
+        },
+        "setting": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$",
+          "description": "The id of a product setting in contracts/product_settings.yaml, in place of a rule. Allowed only in the opens or closes of a stage's window: the window it dates is then a planning window, marked planning in the output, and never shown as law. This schema shares the amount shape with every date, so the pack loader (engine/rulepack.py) refuses a setting anywhere else (W2-P1). Its unit comes from the setting"
         },
         "sign": {
           "enum": [
@@ -312,7 +340,7 @@
           "default": 1
         }
       },
-      "description": "A rule's value, added or taken away. Its unit (days, business_days, months) comes from the rule. A literal number is never allowed: every amount is a sourced rule."
+      "description": "A rule's value, or in a window's dates a product setting's value, added or taken away. Exactly one of rule and setting. Its unit (days, business_days, months) comes from the rule or the setting. A literal number is never allowed: every amount is a sourced rule or a named product setting."
     },
     "when": {
       "type": "object",
@@ -481,7 +509,8 @@
           "items": {
             "type": "string"
           },
-          "minItems": 1
+          "minItems": 1,
+          "description": "The rules behind the window. For a planning window, the rules of the step it prepares for; the setting itself is never a rule"
         },
         "done_when": {
           "type": "array",
@@ -1216,6 +1245,69 @@
           "description": "The step depends on the person's school"
         }
       }
+    },
+    "watch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record",
+        "field",
+        "label",
+        "rule_ids"
+      ],
+      "properties": {
+        "record": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "description": "The record kind in path.records that holds the date"
+        },
+        "field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$",
+          "description": "Its date field to watch, as the person typed it from the document"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the date is, in plain general words, never about a person"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "The rules that make the date matter"
+        }
+      },
+      "description": "One date to watch. The record's own date is shown; when it is near is a product setting, never a rule"
+    },
+    "checkin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record",
+        "field",
+        "setting"
+      ],
+      "properties": {
+        "record": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "description": "The record kind in path.records whose facts are asked again"
+        },
+        "field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,39}$",
+          "description": "Its date field holding the last day the person confirmed the record, such as confirmed_on"
+        },
+        "setting": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$",
+          "description": "The id of the product setting in contracts/product_settings.yaml that gives how long a confirmation holds before it is asked again. A setting, never a rule"
+        }
+      },
+      "description": "One kind of record checked in on. Counts that read the record stop at the last confirmed day"
     }
   }
 }

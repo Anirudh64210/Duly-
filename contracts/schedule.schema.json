@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/schedule.schema.json",
+  "title": "Schedule v1",
+  "description": "POST /v1/schedule and the engine bridge's engine.schedule (specs/step-w/SPEC-W2.md points 5 and 22, gap map G32). The Loop module plans its timers, reminders, check-ins and calendar entries, and the engine dates them: each request names a base date (an engine item, a date the person typed, or today) and an offset (calendar days, business days, months, or a product setting), and the engine gives back the date and its days_away. The screen never adds or counts days itself. Stateless: nothing is stored and nothing from the body is logged. A message is one request body or one response body.",
+  "anyOf": [
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/response" }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.:-]+$",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "The caller's own name for one timer, such as <loop id>.<step>.reminder. Unique within one request. Returned unchanged on its answer."
+    },
+    "item_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.]+$",
+      "description": "The id of a computed item whose unit is date in the engine output for the case, such as opt_job_end.report.closes.<record id>. A window's ends are its .opens and .closes items."
+    },
+    "from_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item"],
+      "properties": {
+        "item": { "$ref": "#/$defs/item_id" }
+      },
+      "description": "Start from the date the engine computes for this item on the case sent."
+    },
+    "from_date": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date"],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "A date the person typed or confirmed, taken as it is. Never a date the screen worked out."
+        }
+      },
+      "description": "Start from a date the person gave."
+    },
+    "from_today": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["today"],
+      "properties": {
+        "today": { "const": true }
+      },
+      "description": "Start from today as the engine reads it: its Clock in the case's time_zone, the same day as the engine output's today.date."
+    },
+    "add_days": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["days"],
+      "properties": {
+        "days": { "type": "integer", "minimum": 0 }
+      },
+      "description": "Whole calendar days."
+    },
+    "add_business_days": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["business_days"],
+      "properties": {
+        "business_days": { "type": "integer", "minimum": 0 }
+      },
+      "description": "Business days: weekends and the federal holidays the engine already counts out (rule calendar.federal_holidays_law) are skipped. The answer names that rule."
+    },
+    "add_months": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["months"],
+      "properties": {
+        "months": { "type": "integer", "minimum": 0 }
+      },
+      "description": "Calendar months. A day the target month does not have becomes that month's last day."
+    },
+    "add_setting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["setting"],
+      "properties": {
+        "setting": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.]+$",
+          "description": "The id of a row in contracts/product_settings.yaml, such as loop.deadline_lead_days. Its value is the amount and its unit (days, business_days or months) is the kind of offset."
+        }
+      },
+      "description": "An amount set by a product setting. A product setting is Duly's own choice, never a rule, and a date from it is a planning date."
+    },
+    "schedule_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "add", "sign"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": {
+          "oneOf": [
+            { "$ref": "#/$defs/from_item" },
+            { "$ref": "#/$defs/from_date" },
+            { "$ref": "#/$defs/from_today" }
+          ],
+          "description": "The base date."
+        },
+        "add": {
+          "oneOf": [
+            { "$ref": "#/$defs/add_days" },
+            { "$ref": "#/$defs/add_business_days" },
+            { "$ref": "#/$defs/add_months" },
+            { "$ref": "#/$defs/add_setting" }
+          ],
+          "description": "The offset from the base date. Always a whole amount of zero or more; sign gives the direction."
+        },
+        "sign": {
+          "enum": [1, -1],
+          "description": "1 counts forward from the base date (a follow-up after a step), -1 counts back from it (a reminder before an obligation date)."
+        },
+        "cap": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["item"],
+          "properties": {
+            "item": { "$ref": "#/$defs/item_id" }
+          },
+          "description": "Optional. The obligation this timer belongs to. The answer is never later than this item's date: a later result is moved back to it, and the answer says capped. A cap item with no date gives no date, never an uncapped one."
+        }
+      },
+      "description": "One timer to date."
+    },
+    "schedule_answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "date", "days_away"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "The date, or null when the engine cannot give one; missing then says why. Never a guess."
+        },
+        "days_away": {
+          "type": ["integer", "null"],
+          "description": "Whole calendar days from today to date, in the case's time zone; negative when the date has passed. Null exactly when date is null."
+        },
+        "missing": {
+          "enum": [
+            "item_not_found",
+            "item_has_no_date",
+            "cap_not_found",
+            "cap_has_no_date",
+            "setting_not_found",
+            "setting_unit_not_a_date_offset"
+          ],
+          "description": "Present only when date is null. item_not_found and cap_not_found: no computed item of unit date has this id in the engine output for the case. item_has_no_date and cap_has_no_date: the item exists but its value is null, so its question stands. setting_not_found: no product setting has this id. setting_unit_not_a_date_offset: the setting's unit is not days, business_days or months."
+        },
+        "capped": {
+          "type": "boolean",
+          "description": "Optional. True when the result fell after the cap item's date and the cap's date was given instead."
+        },
+        "planning": {
+          "type": "boolean",
+          "const": true,
+          "description": "Optional, present only when the amount came from a product setting: a planning date, not a rule. As in engine_output.schema.json."
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional. The rules the date rests on: the base and cap items' rules, and calendar.federal_holidays_law for business days."
+        },
+        "inputs": {
+          "type": "object",
+          "description": "Optional. The values the date and days_away were computed from, as on the engine output's computed items: the base date, the amount and unit, the sign, the cap date and today."
+        }
+      },
+      "description": "The date for one request, in the order the requests were sent."
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case", "requests"],
+      "properties": {
+        "case": {
+          "$ref": "case.schema.json",
+          "description": "The case the item ids are read from. The engine computes it as POST /v1/compute does, and reads today in its time_zone."
+        },
+        "requests": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/schedule_request" },
+          "description": "The timers to date. An empty list gives an empty answer."
+        }
+      },
+      "description": "The body of POST /v1/schedule, and the argument of engine.schedule."
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["today", "dates"],
+      "properties": {
+        "today": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["date", "time_zone"],
+          "properties": {
+            "date": { "type": "string", "format": "date" },
+            "time_zone": { "type": "string" }
+          },
+          "description": "Today as the engine read it, the day every days_away is counted from."
+        },
+        "dates": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/schedule_answer" },
+          "description": "One answer for each request, in the same order and with the same ids."
+        }
+      },
+      "description": "The 200 body of POST /v1/schedule, and the reply of engine.schedule."
+    }
+  }
+}

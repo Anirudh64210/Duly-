@@ -161,6 +161,16 @@
             "type": "string",
             "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
             "description": "The record this belongs to"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "description": "On a count: the last day the count runs through, when it stops before today because a fact it rests on was last confirmed on that day (specs/step-w/SPEC-W2.md N3). Absent, the count runs through today. The screen shows it as \"as of\" this day and never counts on from it"
+          },
+          "planning": {
+            "type": "boolean",
+            "const": true,
+            "description": "Present and true when a date here is set from a product setting in contracts/product_settings.yaml, not from a rule. A planning date is Duly's own choice, never shown as law. Absent on every date that rests on rules alone"
           }
         }
       }
@@ -186,7 +196,7 @@
     },
     "rules": {
       "type": "object",
-      "description": "Every rule named in computed, upcoming, lists, stages, their windows, and checklist steps, keyed by id. A rule named by a stage that is only next is here too.",
+      "description": "Every rule named in computed, upcoming, lists, stages, their windows, checklist steps, and watch, keyed by id. A rule named by a stage that is only next is here too.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
@@ -390,6 +400,11 @@
           "inputs": {
             "type": "object",
             "description": "The values the date and days_away were computed from, as on computed items"
+          },
+          "planning": {
+            "type": "boolean",
+            "const": true,
+            "description": "Present and true when a date here is set from a product setting in contracts/product_settings.yaml, not from a rule. A planning date is Duly's own choice, never shown as law. Absent on every date that rests on rules alone"
           }
         }
       }
@@ -691,6 +706,11 @@
                 "inputs": {
                   "type": "object",
                   "description": "The values the dates were computed from"
+                },
+                "planning": {
+                  "type": "boolean",
+                  "const": true,
+                  "description": "Present and true when a date here is set from a product setting in contracts/product_settings.yaml, not from a rule. A planning date is Duly's own choice, never shown as law. Absent on every date that rests on rules alone"
                 }
               },
               "description": "A window kept from before it opens until the day after it closes, so that its opening date stays while it is open"
@@ -816,6 +836,131 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "checkins": {
+      "type": "array",
+      "description": "Records whose facts the person confirms again at an interval set by a product setting (checkin.job_days, checkin.petition_days), not by a rule. One entry per record that has one. Dates come from the engine; the screen never counts them",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record",
+          "kind",
+          "confirmed_on",
+          "due",
+          "due_days_away",
+          "question"
+        ],
+        "properties": {
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
+          },
+          "kind": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,31}$",
+            "description": "The record's kind, as in the case, such as work or petition"
+          },
+          "confirmed_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The last day the person confirmed this record's facts, or null when never confirmed"
+          },
+          "due": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day the next check-in is due: confirmed_on plus the product setting's days. Null when confirmed_on is null"
+          },
+          "due_days_away": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Whole days from today to due, in the person's zone; zero or less once it is due"
+          },
+          "question": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$",
+            "description": "The id of the question that confirms this record's facts again. It is listed in questions while the check-in is due"
+          }
+        }
+      }
+    },
+    "watch": {
+      "type": "array",
+      "description": "The dates on the person's documents and records that the pack names to watch, such as a card's or a passport's last day, soonest first. Arithmetic only: a date, its rules, and nothing about what the person can or should do",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "date",
+          "days_away",
+          "close",
+          "record",
+          "rule_ids",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.]+$"
+          },
+          "label": {
+            "type": "string",
+            "description": "The pack's label for the date, such as EAD card"
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The date as entered in the record, or null when the record does not give it"
+          },
+          "days_away": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Whole calendar days from today to date, in the person's zone; negative once it has passed. Null when date is null"
+          },
+          "close": {
+            "type": "boolean",
+            "description": "True when days_away is at most the product setting watch.close_days. A product setting, not a rule; false when date is null"
+          },
+          "record": {
+            "type": "string",
+            "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
+            "description": "The record this belongs to"
+          },
+          "rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "status": {
+            "enum": [
+              "settled",
+              "guidance",
+              "litigated",
+              "proposed",
+              "school"
+            ],
+            "description": "The weakest status among the rules used."
           }
         }
       }

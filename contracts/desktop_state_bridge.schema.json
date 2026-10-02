@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/desktop_state_bridge.schema.json",
+  "title": "Desktop state bridge v1",
+  "description": "The calls the page makes through window.duly.state, and the replies from the desktop main process (SPEC-W2 section 5). Main keeps the app's own state in one file, <userData>/state.bin, encrypted with Electron safeStorage like case.bin, and checks it against $defs/state on every read and every write. The state holds what is not a fact of the case: loops and their history, goals, school steps, USCIS cases, task ticks, reminder and appearance settings, the Ask conversation, completions, feedback and which case is shown. A fact a loop learns (a job ended, a report made) is written to the case through window.duly.case, never here. No path, file name or key comes from the page. The event log of ARCHITECTURE Phase 2 later replaces case.bin and state.bin together. Only the app's own page, in the window's main frame, may use the bridge. A message is one call or one reply.",
+  "anyOf": [
+    { "$ref": "#/$defs/read_call" },
+    { "$ref": "#/$defs/write_call" },
+    { "$ref": "#/$defs/clear_call" },
+    { "$ref": "#/$defs/read_reply" },
+    { "$ref": "#/$defs/write_reply" },
+    { "$ref": "#/$defs/clear_reply" }
+  ],
+  "$defs": {
+    "date": { "$ref": "case.schema.json#/$defs/date" },
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.:-]+$",
+      "maxLength": 160
+    },
+    "line": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "playbook", "playbook_version", "state", "step", "history"],
+      "properties": {
+        "id": { "$ref": "#/$defs/key" },
+        "playbook": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,39}$",
+          "description": "The playbook's id, such as job-ends, stem-filing or report-owed."
+        },
+        "playbook_version": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+){0,2}$",
+          "maxLength": 20,
+          "description": "The pinned version of the playbook this loop runs."
+        },
+        "state": {
+          "enum": ["open", "asking", "planned", "waiting", "confirming", "closed", "dismissed"],
+          "description": "D75. Planned is not done: a loop closes only when the student confirms or an outside fact arrives. Reopened is an event in history, not a state."
+        },
+        "step": {
+          "$ref": "#/$defs/key",
+          "description": "The playbook step the loop is on."
+        },
+        "waiting_on": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["date"],
+              "properties": {
+                "date": { "$ref": "#/$defs/date" },
+                "item": {
+                  "$ref": "#/$defs/key",
+                  "description": "The engine item or schedule request the date came from."
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["event"],
+              "properties": { "event": { "$ref": "#/$defs/line" } }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["person"],
+              "properties": { "person": { "$ref": "#/$defs/line" } }
+            }
+          ],
+          "description": "With waiting: what the loop waits on, named. A date is one the engine gave or the student typed, never one the page counted."
+        },
+        "outcome": {
+          "$ref": "#/$defs/key",
+          "description": "With closed: the playbook's outcome id."
+        },
+        "cannot_tell": {
+          "type": "boolean",
+          "description": "The can't tell yet flag, set for example after three unanswered check-ins. Deadlines survive it."
+        },
+        "snoozed_to": {
+          "$ref": "#/$defs/date",
+          "description": "A date from the engine's scheduler, never past the obligation date."
+        },
+        "parent": {
+          "$ref": "#/$defs/key",
+          "description": "The loop that spawned this one, such as the stem-filing loop for a report-owed loop."
+        },
+        "answers": {
+          "type": "object",
+          "maxProperties": 60,
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,39}$" },
+          "additionalProperties": { "$ref": "case.schema.json#/$defs/scalar" },
+          "description": "The playbook's own fields and holes as the student filled them. A fact of the case goes to the case, never here."
+        },
+        "history": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["on", "event"],
+            "properties": {
+              "on": { "$ref": "#/$defs/date" },
+              "event": {
+                "enum": [
+                  "started",
+                  "exit",
+                  "planned",
+                  "waiting",
+                  "confirmed",
+                  "closed",
+                  "dismissed",
+                  "reopened",
+                  "snoozed",
+                  "undone",
+                  "spawned"
+                ]
+              },
+              "step": { "$ref": "#/$defs/key" },
+              "exit": { "$ref": "#/$defs/key" },
+              "receipt": {
+                "$ref": "#/$defs/line",
+                "description": "The one-line receipt shown when the step was taken."
+              }
+            }
+          },
+          "description": "Oldest first. The crisis loop writes nothing here. The on dates are the engine's today when the step was taken."
+        }
+      }
+    },
+    "school_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "placement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/key" },
+        "label": { "$ref": "#/$defs/line" },
+        "placement": {
+          "enum": ["before", "alongside", "after"],
+          "description": "Where the step sits against the federal step it belongs to."
+        },
+        "federal_step": {
+          "$ref": "#/$defs/key",
+          "description": "The engine checklist step it is placed against, such as step.stem.i765. The federal step keeps the engine's dates."
+        },
+        "waiting_on": { "$ref": "#/$defs/line" },
+        "done_on": { "$ref": "#/$defs/date" },
+        "from": {
+          "enum": ["typed", "pasted_text", "dropped_pdf"],
+          "description": "How the step came in. A suggested step is kept only once the student confirms it."
+        }
+      }
+    },
+    "uscis_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt", "form"],
+      "properties": {
+        "receipt": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}[0-9]{10}$",
+          "description": "Three letters and ten digits."
+        },
+        "form": {
+          "type": "string",
+          "pattern": "^I-[0-9]{1,4}[A-Z]?$",
+          "description": "The form type, such as I-765."
+        },
+        "label": { "$ref": "#/$defs/line" },
+        "status": {
+          "$ref": "#/$defs/line",
+          "description": "The status as the student saved it by hand after logging in to USCIS."
+        },
+        "status_on": {
+          "$ref": "#/$defs/date",
+          "description": "The day the status was saved: shown as the status as of this date."
+        },
+        "key_dates": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "date"],
+            "properties": {
+              "label": { "$ref": "#/$defs/line" },
+              "date": { "$ref": "#/$defs/date" }
+            }
+          },
+          "description": "Dates the student typed from USCIS, such as received or approved."
+        },
+        "next_step": { "$ref": "#/$defs/line" }
+      }
+    },
+    "planned_reminder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "on", "title", "body"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/key",
+          "description": "Stable across saves, so the calendar file keeps one id per item."
+        },
+        "on": {
+          "$ref": "#/$defs/date",
+          "description": "A date from engine.schedule, never one the page counted."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "loop": {
+          "$ref": "#/$defs/key",
+          "description": "The loop it belongs to, when it belongs to one."
+        }
+      },
+      "description": "One local notification main shows at the reminder time of day on this date, while Duly runs, with these words."
+    },
+    "ask_turn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question", "on"],
+      "properties": {
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "on": { "$ref": "#/$defs/date" },
+        "answer": { "$ref": "desktop_ask_bridge.schema.json#/$defs/answer" },
+        "guide": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,39}$",
+          "description": "When the question was matched on the device to a guide: the playbook it opened."
+        },
+        "dso_draft": {
+          "type": "boolean",
+          "description": "True when the question ended in the DSO question drafted on the device."
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "slot": {
+          "enum": ["own", "sample"],
+          "description": "Which case is shown: the student's own, from case.bin, or the made-up sample student bundled with the app. The sample is never written to case.bin. Absent means own."
+        },
+        "onboarding": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "finished": { "type": "boolean" },
+            "step": {
+              "$ref": "#/$defs/key",
+              "description": "The step the student was on. The answers themselves are in the case."
+            }
+          }
+        },
+        "loops": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "#/$defs/loop" }
+        },
+        "goals": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["goal", "on"],
+            "properties": {
+              "goal": { "enum": ["own-company", "o1"] },
+              "on": { "$ref": "#/$defs/date" }
+            }
+          }
+        },
+        "school_steps": {
+          "type": "array",
+          "maxItems": 200,
+          "items": { "$ref": "#/$defs/school_step" }
+        },
+        "uscis_cases": {
+          "type": "array",
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/uscis_case" }
+        },
+        "ticks": {
+          "type": "object",
+          "maxProperties": 2000,
+          "propertyNames": { "pattern": "^[a-z0-9_.:-]+$" },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["on"],
+            "properties": { "on": { "$ref": "#/$defs/date" } }
+          },
+          "description": "Task ticks that are not a fact of the case. A checklist step the engine counts is a confirmation in the case, not a tick here."
+        },
+        "reminders": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "on": { "type": "boolean" },
+            "time_of_day": {
+              "type": "string",
+              "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+              "description": "Local time, 24 hours, when the day's reminders are shown."
+            },
+            "planned": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": { "$ref": "#/$defs/planned_reminder" }
+            }
+          }
+        },
+        "appearance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "theme": { "enum": ["system", "light", "dark"] }
+          }
+        },
+        "ask": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "on": {
+              "type": "boolean",
+              "description": "Ask through the local helper is turned on in Settings. Main reads this and slot before it starts the helper."
+            },
+            "conversation": {
+              "type": "array",
+              "maxItems": 200,
+              "items": { "$ref": "#/$defs/ask_turn" }
+            }
+          }
+        },
+        "completions": {
+          "type": "array",
+          "maxItems": 2000,
+          "items": { "$ref": "#/$defs/key" },
+          "description": "The keys of things completed at least once, so confetti fires only the first time."
+        },
+        "feedback": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["on", "text"],
+            "properties": {
+              "on": { "$ref": "#/$defs/date" },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "page": { "$ref": "#/$defs/key" }
+            }
+          },
+          "description": "Kept on this Mac, never sent."
+        }
+      },
+      "description": "The app's own state. Every part is optional: an empty object is a new install."
+    },
+    "read_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "state.read" }
+      },
+      "description": "window.duly.state.read(): the saved state, if any."
+    },
+    "write_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "state"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "state.write" },
+        "state": { "$ref": "#/$defs/state" }
+      },
+      "description": "window.duly.state.write(state): replaces the saved state with this one."
+    },
+    "clear_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "state.clear" }
+      },
+      "description": "window.duly.state.clear(): deletes the saved state, for Delete everything on this Mac."
+    },
+    "refusal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ok", "refused"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "enum": ["state.read", "state.write", "state.clear"] },
+        "ok": { "const": false },
+        "refused": {
+          "enum": ["not_a_state", "cannot_decrypt", "keychain_unavailable", "cannot_store"],
+          "description": "not_a_state: the state sent, or the state on disk, does not match $defs/state. cannot_decrypt: the file on disk cannot be read with the keychain's key. keychain_unavailable: safeStorage cannot encrypt on this computer, so nothing is written. cannot_store: the file could not be written or deleted."
+        },
+        "first_problem": {
+          "type": "string",
+          "maxLength": 240,
+          "description": "For not_a_state: where the state first fails the contract, as a path and the rule it breaks. Never a value from the state."
+        }
+      }
+    },
+    "read_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "state"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "state.read" },
+            "ok": { "const": true },
+            "state": {
+              "anyOf": [{ "$ref": "#/$defs/state" }, { "type": "null" }],
+              "description": "The saved state, or null when none is saved."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "write_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "state.write" },
+            "ok": { "const": true }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "clear_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "state.clear" },
+            "ok": { "const": true }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    }
+  }
+}

@@ -32,6 +32,18 @@ export default tseslint.config(
     files: ["desktop/**/*.ts"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
+  {
+    // The tests lane's web tests (specs/step-w/SPEC-W2.md, point 48), run by web's vitest.
+    files: ["tests/web/**/*.{ts,tsx}"],
+    languageOptions: { globals: globals.browser },
+    plugins: { "react-hooks": reactHooks },
+    rules: { ...reactHooks.configs.recommended.rules },
+  },
+  {
+    // The tests lane's desktop tests (specs/step-w/SPEC-W2.md, point 48), run by desktop's vitest.
+    files: ["tests/desktop/**/*.ts"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
   { files: ["*.mjs"], languageOptions: { globals: globals.node } },
   {
     // A CommonJS package that appdmg requires (the image-size shim).

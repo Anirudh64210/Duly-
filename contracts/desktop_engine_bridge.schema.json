@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/desktop_engine_bridge.schema.json",
+  "title": "Desktop engine bridge v1",
+  "description": "The calls the page makes through window.duly.engine, and the replies from the desktop main process (SPEC-W2 section 2). Main checks each call against this contract, forwards it to the bundled engine over the private socket of SPEC-W1 with the token, and checks the engine's answer against this contract before the page sees it. The page never fetches api/ and never names a socket, a path, a port or a token. Every date the page shows comes from one of these replies, as an ISO date with a days_away integer; the page never adds, subtracts or counts days. Only the app's own page, in the window's main frame, may use the bridge. A message is one call or one reply.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/compute_call"
+    },
+    {
+      "$ref": "#/$defs/schedule_call"
+    },
+    {
+      "$ref": "#/$defs/updates_call"
+    },
+    {
+      "$ref": "#/$defs/compute_reply"
+    },
+    {
+      "$ref": "#/$defs/schedule_reply"
+    },
+    {
+      "$ref": "#/$defs/updates_reply"
+    }
+  ],
+  "$defs": {
+    "compute_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "case"],
+      "properties": {
+        "version": {
+          "const": "v1"
+        },
+        "call": {
+          "const": "engine.compute"
+        },
+        "case": {
+          "$ref": "case.schema.json"
+        }
+      },
+      "description": "window.duly.engine.compute(case): the engine output for this case, as POST /v1/compute gives it. The case is any case: the student's own, the sample student's, or a copy changed for Try a change. Nothing is stored."
+    },
+    "schedule_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "case", "requests"],
+      "properties": {
+        "version": {
+          "const": "v1"
+        },
+        "call": {
+          "const": "engine.schedule"
+        },
+        "case": {
+          "$ref": "case.schema.json",
+          "description": "The case whose engine items and today the requests are dated from. A request that starts from an item needs the engine output of this case, and a request from today needs its time zone."
+        },
+        "requests": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "schedule.schema.json#/$defs/schedule_request"
+          },
+          "description": "The timers to date, as contracts/schedule.schema.json (K3) gives them. An empty list gives an empty answer."
+        }
+      },
+      "description": "window.duly.engine.schedule(case, requests): dates for the Loop module's timers, reminders, check-ins, digest and calendar file. Main forwards {case, requests} as the body of POST /v1/schedule (schedule.schema.json $defs/request). The engine dates every request; the page only names what to count from and by how much."
+    },
+    "updates_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": {
+          "const": "v1"
+        },
+        "call": {
+          "const": "engine.updates"
+        }
+      },
+      "description": "window.duly.engine.updates(): the published updates bundled with the app, as GET /v1/updates gives them with no query. The page matches each update's affects selector against the engine's stages on the device; nothing about the case is sent."
+    },
+    "refusal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ok", "refused"],
+      "properties": {
+        "version": {
+          "const": "v1"
+        },
+        "call": {
+          "enum": ["engine.compute", "engine.schedule", "engine.updates"]
+        },
+        "ok": {
+          "const": false
+        },
+        "refused": {
+          "enum": [
+            "not_a_case",
+            "engine_unavailable",
+            "engine_refused",
+            "engine_failed",
+            "not_an_answer"
+          ],
+          "description": "not_a_case: the case sent does not match case.schema.json, so nothing is forwarded. engine_unavailable: the engine is not running or its socket does not answer. engine_refused: the engine refused the call (for example a record kind or field the pack does not declare). engine_failed: the engine gave an error or no answer in time. not_an_answer: the engine's answer does not match this contract, so the page never sees it."
+        },
+        "first_problem": {
+          "type": "string",
+          "maxLength": 240,
+          "description": "For not_a_case, engine_refused and not_an_answer: where the message first fails, as a path and the rule it breaks. Never a value from the case."
+        }
+      }
+    },
+    "compute_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "output"],
+          "properties": {
+            "version": {
+              "const": "v1"
+            },
+            "call": {
+              "const": "engine.compute"
+            },
+            "ok": {
+              "const": true
+            },
+            "output": {
+              "$ref": "engine_output.schema.json"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/refusal"
+        }
+      ]
+    },
+    "schedule_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "today", "dates"],
+          "properties": {
+            "version": {
+              "const": "v1"
+            },
+            "call": {
+              "const": "engine.schedule"
+            },
+            "ok": {
+              "const": true
+            },
+            "today": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["date", "time_zone"],
+              "properties": {
+                "date": {
+                  "$ref": "case.schema.json#/$defs/date"
+                },
+                "time_zone": {
+                  "type": "string"
+                }
+              },
+              "description": "Today as the engine read it for this case, the day every days_away is counted from."
+            },
+            "dates": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "schedule.schema.json#/$defs/schedule_answer"
+              },
+              "description": "One answer for each request, in the order sent: the 200 body of POST /v1/schedule (schedule.schema.json $defs/response)."
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/refusal"
+        }
+      ]
+    },
+    "updates_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "updates"],
+          "properties": {
+            "version": {
+              "const": "v1"
+            },
+            "call": {
+              "const": "engine.updates"
+            },
+            "ok": {
+              "const": true
+            },
+            "updates": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "$ref": "update.schema.json"
+              },
+              "description": "Published updates only: each one passed publish_blockers. An update with no saved source never reaches this list."
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/refusal"
+        }
+      ]
+    }
+  }
+}

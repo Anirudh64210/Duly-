@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/desktop_ask_bridge.schema.json",
+  "title": "Desktop ask bridge v1",
+  "description": "The calls the page makes through window.duly.ask, and the replies from the desktop main process (SPEC-W2 section 8). Main starts the local helper (assistant/local_ask) only when Ask is turned on in Settings and the sample student is shown, on its own Unix socket in <userData>/run/ with mode 0600 and the W1 token rule, never on a TCP port. The helper builds its facts from the engine output for the bundled sample case and that case's own fields; no call carries a case, so the student's own record never reaches the helper (D79, D86). While the student's own case is shown, every call that would reach the helper is refused as own_case, and the page answers on the device: a guide matched by the Loop module, otherwise the DSO question drafted. Crisis and enforcement questions are caught on the device before any call (D80); main runs the same list again and refuses a match as kept_on_device. The helper is only in the founder's build (DULY_BUILD=founder); a public build refuses with not_in_this_build. Main checks every call and every reply against this contract. Only the app's own page, in the window's main frame, may use the bridge. A message is one call or one reply.",
+  "anyOf": [
+    { "$ref": "#/$defs/status_call" },
+    { "$ref": "#/$defs/start_call" },
+    { "$ref": "#/$defs/stop_call" },
+    { "$ref": "#/$defs/ask_call" },
+    { "$ref": "#/$defs/status_reply" },
+    { "$ref": "#/$defs/ask_reply" }
+  ],
+  "$defs": {
+    "helper_state": {
+      "enum": [
+        "off",
+        "own_case",
+        "not_set_up",
+        "not_in_this_build",
+        "starting",
+        "ready",
+        "stopped_with_error"
+      ],
+      "description": "off: Ask is not turned on in Settings. own_case: the student's own case is shown, so the helper is not used. not_set_up: no claude command on this Mac; Ask says it is not set up and offers the guides. not_in_this_build: a public build, which holds no helper. starting: main is starting the helper. ready: the helper answers. stopped_with_error: the helper stopped on its own; start may be asked again."
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lead", "applies", "plan", "watch", "dso", "sources", "actions", "answer"],
+      "properties": {
+        "lead": {
+          "type": "string",
+          "maxLength": 600,
+          "description": "The direct answer first, in one or two sentences."
+        },
+        "applies": {
+          "type": "array",
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/text" },
+          "description": "What applies to you."
+        },
+        "plan": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["now", "stem", "after"],
+          "properties": {
+            "now": {
+              "type": "array",
+              "maxItems": 2,
+              "items": { "$ref": "#/$defs/text" },
+              "description": "Before STEM OPT."
+            },
+            "stem": {
+              "type": "array",
+              "maxItems": 2,
+              "items": { "$ref": "#/$defs/text" },
+              "description": "At STEM OPT."
+            },
+            "after": {
+              "type": "array",
+              "maxItems": 2,
+              "items": { "$ref": "#/$defs/text" },
+              "description": "After STEM OPT."
+            }
+          },
+          "description": "Your plan."
+        },
+        "watch": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/text" },
+          "description": "Watch out for."
+        },
+        "dso": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["ask", "draft"],
+              "properties": {
+                "ask": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "description": "What only the DSO can judge, in one line."
+                },
+                "draft": {
+                  "type": "string",
+                  "maxLength": 900,
+                  "description": "A short message in the student's voice, asking, never arguing (D57)."
+                }
+              }
+            },
+            { "type": "null" }
+          ],
+          "description": "Only the personal judgement; null when nothing needs one."
+        },
+        "sources": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "href"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 40
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "href": {
+                "type": "string",
+                "pattern": "^https://[^\\s]+$",
+                "maxLength": 400
+              }
+            }
+          },
+          "description": "Only sources from the helper's own list, by id, so a link on screen is always one of Duly's."
+        },
+        "actions": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "kind", "label"],
+                "properties": {
+                  "type": { "const": "loop" },
+                  "kind": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,39}$",
+                    "description": "A playbook id the Loop module holds, such as job-ends."
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 48
+                  }
+                },
+                "description": "Starts that loop."
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "fact", "label"],
+                "properties": {
+                  "type": { "const": "save" },
+                  "fact": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 48
+                  }
+                },
+                "description": "Offers to save a fact the student stated in the conversation."
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "goal", "label"],
+                "properties": {
+                  "type": { "const": "goal" },
+                  "goal": { "enum": ["own-company", "o1"] },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 48
+                  }
+                },
+                "description": "Adds that goal to the plan."
+              }
+            ]
+          }
+        },
+        "answer": {
+          "type": "string",
+          "maxLength": 4000,
+          "description": "The same answer as plain text, for the conversation kept in state and for screen readers."
+        }
+      },
+      "description": "The helper's answer, in the shape of the prototype's ask_server.py. The helper takes every date and count from the engine output; the answer holds no other."
+    },
+    "status_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "ask.status" }
+      },
+      "description": "window.duly.ask.status(): whether the helper can answer."
+    },
+    "start_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "ask.start" }
+      },
+      "description": "window.duly.ask.start(): after Ask is turned on in Settings, main starts the helper if this build holds it, the claude command is on this Mac and the sample student is shown. The reply is the state after the attempt."
+    },
+    "stop_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "ask.stop" }
+      },
+      "description": "window.duly.ask.stop(): main stops the helper and removes its socket. Also done by main when Ask is turned off or the own case is shown."
+    },
+    "ask_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "question"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "ask.ask" },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "history": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["question", "answer"],
+            "properties": {
+              "question": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 800
+              },
+              "answer": {
+                "type": "string",
+                "maxLength": 2400
+              }
+            }
+          },
+          "description": "The earlier turns of this conversation, oldest first, as plain text."
+        },
+        "saved": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "description": "Facts the student stated in the conversation and saved."
+        },
+        "goals": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "enum": ["own-company", "o1"] }
+        }
+      },
+      "description": "window.duly.ask.ask(question, context): the helper's answer for the sample student."
+    },
+    "status_reply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ok", "state"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "enum": ["ask.status", "ask.start", "ask.stop"] },
+        "ok": { "const": true },
+        "state": { "$ref": "#/$defs/helper_state" }
+      }
+    },
+    "refusal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ok", "refused"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "ask.ask" },
+        "ok": { "const": false },
+        "refused": {
+          "enum": [
+            "off",
+            "own_case",
+            "not_set_up",
+            "not_in_this_build",
+            "kept_on_device",
+            "no_answer_in_time",
+            "helper_failed",
+            "not_an_answer"
+          ],
+          "description": "off, own_case, not_set_up, not_in_this_build: as in helper_state; nothing is sent. kept_on_device: the question matched the crisis and enforcement list; nothing is sent and the page opens the crisis screen. no_answer_in_time: the helper gave no answer within its time limit. helper_failed: the helper or the claude command gave an error. not_an_answer: the helper's reply does not match $defs/answer, so the page never sees it."
+        }
+      }
+    },
+    "ask_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "answer"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "ask.ask" },
+            "ok": { "const": true },
+            "answer": { "$ref": "#/$defs/answer" }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    }
+  }
+}

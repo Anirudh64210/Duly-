@@ -1,0 +1,577 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duly.local/contracts/desktop_documents_bridge.schema.json",
+  "title": "Desktop documents bridge v1",
+  "description": "The calls the page makes through window.duly.documents, and the replies from the desktop main process (SPEC-W2 section 4). Main keeps each document as <userData>/files/<id>, encrypted with AES-256-GCM in 1 MiB chunks under its own random file key, and keeps the index (names, kinds, typed fields, labels, versions, removed flags, history) in <userData>/documents.bin under the document key, which is wrapped by safeStorage in <userData>/keys.bin. No key, file key or stored path ever reaches the page. The page never sends a path: a file is added from main's own file dialog, or from a real drop, where the preload turns each dropped File into its path with webUtils.getPathForFile before the message is sent; a string from the page is never taken as a path. The student's original file is never moved or deleted. Main checks every call and every reply against this contract. Only the app's own page, in the window's main frame, may use the bridge. A message is one call or one reply.",
+  "anyOf": [
+    { "$ref": "#/$defs/add_call" },
+    { "$ref": "#/$defs/list_call" },
+    { "$ref": "#/$defs/open_call" },
+    { "$ref": "#/$defs/versions_call" },
+    { "$ref": "#/$defs/update_call" },
+    { "$ref": "#/$defs/remove_call" },
+    { "$ref": "#/$defs/restore_call" },
+    { "$ref": "#/$defs/delete_call" },
+    { "$ref": "#/$defs/export_call" },
+    { "$ref": "#/$defs/clear_call" },
+    { "$ref": "#/$defs/add_reply" },
+    { "$ref": "#/$defs/list_reply" },
+    { "$ref": "#/$defs/open_reply" },
+    { "$ref": "#/$defs/versions_reply" },
+    { "$ref": "#/$defs/update_reply" },
+    { "$ref": "#/$defs/done_reply" },
+    { "$ref": "#/$defs/export_reply" }
+  ],
+  "$defs": {
+    "document_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$",
+      "description": "Made by main at random when the file is added; also the name of its encrypted file in files/. Says nothing about the document."
+    },
+    "kind": {
+      "enum": ["i20", "ead_card", "i797", "i94", "passport", "visa", "i983", "other"],
+      "description": "What the document is. Each kind but other asks only its own fields, which are the pack's record fields (SPEC-W2 point 28)."
+    },
+    "group": {
+      "enum": ["status_and_permits", "work", "school", "identity", "other"],
+      "description": "The label chip the document sits under on Documents. Finer groups are the student's labels."
+    },
+    "short_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "typed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record", "kind", "fields"],
+      "properties": {
+        "record": {
+          "$ref": "case.schema.json#/$defs/record_id",
+          "description": "The record in the case these fields were written to."
+        },
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "description": "The record's kind, as the pack names it, such as authorization."
+        },
+        "fields": {
+          "type": "object",
+          "maxProperties": 40,
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,39}$" },
+          "additionalProperties": { "$ref": "case.schema.json#/$defs/scalar" },
+          "description": "The values the student typed from this document, named as the pack names the record's fields, such as card_start and card_end. The same values are written to the case, where the engine reads them; these are kept so the document page can show what came from this paper."
+        }
+      },
+      "description": "What the student typed from this document into one record of the case."
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "label",
+        "group",
+        "media_type",
+        "size",
+        "added_on",
+        "removed"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/document_id" },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "The original file's name, without its folder."
+        },
+        "kind": { "$ref": "#/$defs/kind" },
+        "label": {
+          "$ref": "#/$defs/short_text",
+          "description": "What the document is called in Duly, such as I-20 for OPT. Starts as the file's name."
+        },
+        "group": { "$ref": "#/$defs/group" },
+        "labels": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "description": "The student's own labels, for the finer groups and search."
+        },
+        "typed": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/typed" }
+        },
+        "replaces": {
+          "anyOf": [{ "$ref": "#/$defs/document_id" }, { "type": "null" }],
+          "description": "The earlier version this document replaces, such as a reissued I-20 replacing the one before it. The chain through replaces is the document's versions."
+        },
+        "change": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "What this version changed, in the student's words, such as Travel signature added."
+        },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[a-z]+/[a-z0-9.+-]+$",
+          "maxLength": 100,
+          "description": "The file's media type as main found it, such as application/pdf or image/jpeg."
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The original file's size in bytes."
+        },
+        "added_on": {
+          "$ref": "case.schema.json#/$defs/date",
+          "description": "The day main added this version, in this Mac's time zone."
+        },
+        "removed": {
+          "type": "boolean",
+          "description": "True while the document is in Removed. Put back clears it."
+        },
+        "removed_on": {
+          "$ref": "case.schema.json#/$defs/date",
+          "description": "The day it was moved to Removed, while it is there."
+        }
+      }
+    },
+    "history_line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["on", "event"],
+      "properties": {
+        "on": { "$ref": "case.schema.json#/$defs/date" },
+        "event": {
+          "enum": ["added", "updated", "replaced", "removed", "restored", "deleted", "exported"],
+          "description": "The page words each event; the words for deleted are A document was deleted for good."
+        },
+        "document": {
+          "$ref": "#/$defs/document_id",
+          "description": "The document the line is about. Never on a deleted line: when a document is deleted for good, main takes its id off every line, so history keeps that something was deleted but not what."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "For exported: how many documents were in the copy."
+        }
+      }
+    },
+    "add_call": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "from"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.add" },
+            "from": { "const": "dialog" },
+            "replaces": { "$ref": "#/$defs/document_id" }
+          },
+          "description": "window.duly.documents.add({from: 'dialog'}): main opens its own file dialog and adds what the student picks."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "from", "dropped"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.add" },
+            "from": { "const": "drop" },
+            "dropped": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "items": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "description": "Written by the preload, never by the page: the path webUtils.getPathForFile gives for each File of a real drop. The page passes File objects; a File made in the page has no path, so it gives an empty string and is refused as not_dropped. Main also refuses a folder, a file inside the app's data folder, a file over the size limit and a file already held."
+            },
+            "replaces": { "$ref": "#/$defs/document_id" }
+          },
+          "description": "window.duly.documents.add({from: 'drop', files}): adds the files of a real drop."
+        }
+      ]
+    },
+    "list_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.list" }
+      },
+      "description": "window.duly.documents.list(): every document, Removed ones included, and the history."
+    },
+    "open_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "id"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.open" },
+        "id": { "$ref": "#/$defs/document_id" }
+      },
+      "description": "window.duly.documents.open(id): the document to show inside Duly, when its kind can be shown. Main decrypts it and checks every chunk before anything is sent; a PDF is never handed to Chromium's own viewer and never reaches a file: or blob: URL."
+    },
+    "versions_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "id"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.versions" },
+        "id": { "$ref": "#/$defs/document_id" }
+      },
+      "description": "window.duly.documents.versions(id): every version in this document's chain, newest first."
+    },
+    "update_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "id"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.update" },
+        "id": { "$ref": "#/$defs/document_id" },
+        "kind": { "$ref": "#/$defs/kind" },
+        "label": { "$ref": "#/$defs/short_text" },
+        "group": { "$ref": "#/$defs/group" },
+        "labels": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        "typed": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/typed" }
+        },
+        "replaces": {
+          "anyOf": [{ "$ref": "#/$defs/document_id" }, { "type": "null" }]
+        },
+        "change": {
+          "type": "string",
+          "maxLength": 120
+        }
+      },
+      "description": "window.duly.documents.update(id, changes): sets the fields given and keeps the rest. The page writes the same typed values to the case through window.duly.case, and the case raises the D59 check for each date."
+    },
+    "remove_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "id"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.remove" },
+        "id": { "$ref": "#/$defs/document_id" }
+      },
+      "description": "window.duly.documents.remove(id): moves the document to Removed. Nothing is deleted."
+    },
+    "restore_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "id"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.restore" },
+        "id": { "$ref": "#/$defs/document_id" }
+      },
+      "description": "window.duly.documents.restore(id): Put back, from Removed."
+    },
+    "delete_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "id"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.delete" },
+        "id": { "$ref": "#/$defs/document_id" }
+      },
+      "description": "window.duly.documents.delete(id): Delete for good, only from Removed. Main destroys the file key and the encrypted file, and the index keeps no name for it."
+    },
+    "export_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ids", "as"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.export" },
+        "ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": { "$ref": "#/$defs/document_id" }
+        },
+        "as": {
+          "enum": ["folder", "zip"],
+          "description": "folder: decrypted copies into a folder the student picks in the system dialog. zip: one .zip the student names in the system save dialog. One id saved to a folder is Save a copy."
+        }
+      },
+      "description": "window.duly.documents.export(ids, as): decrypted copies for Share or Save a copy. Main writes plaintext only where the student picked through the system dialog."
+    },
+    "clear_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": { "const": "documents.clear" }
+      },
+      "description": "window.duly.documents.clear(): part of Delete everything on this Mac, after the page's inline confirm. Deletes files/, documents.bin and keys.bin. The page clears case.bin and state.bin through their own bridges."
+    },
+    "skipped": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refused"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 255,
+          "description": "The file's name without its folder, when it has one."
+        },
+        "refused": {
+          "enum": [
+            "not_dropped",
+            "not_a_file",
+            "inside_data_folder",
+            "too_large",
+            "duplicate",
+            "cannot_store"
+          ],
+          "description": "not_dropped: no path came with the File, so it was not from a real drop. not_a_file: a folder or something else that is not a plain file. inside_data_folder: the file is inside Duly's own data folder. too_large: over the size limit. duplicate: the same bytes are already held, as existing. cannot_store: the encrypted copy could not be written and checked; nothing half added remains."
+        },
+        "existing": {
+          "$ref": "#/$defs/document_id",
+          "description": "For duplicate: the document already held."
+        }
+      }
+    },
+    "refusal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "call", "ok", "refused"],
+      "properties": {
+        "version": { "const": "v1" },
+        "call": {
+          "enum": [
+            "documents.add",
+            "documents.list",
+            "documents.open",
+            "documents.versions",
+            "documents.update",
+            "documents.remove",
+            "documents.restore",
+            "documents.delete",
+            "documents.export",
+            "documents.clear"
+          ]
+        },
+        "ok": { "const": false },
+        "refused": {
+          "enum": [
+            "keychain_unavailable",
+            "cannot_decrypt",
+            "index_damaged",
+            "file_damaged",
+            "unknown_document",
+            "not_in_removed",
+            "bad_replaces",
+            "cannot_store"
+          ],
+          "description": "keychain_unavailable: safeStorage cannot unwrap or wrap the document key on this computer, so nothing is read or written. cannot_decrypt: keys.bin cannot be read with the keychain's key. index_damaged: documents.bin fails its check or this contract; it is kept as it is, never deleted. file_damaged: a chunk of the file fails its check (reordered, dropped or cut); nothing of it is shown. unknown_document: no document has this id. not_in_removed: delete was asked for a document not in Removed. bad_replaces: replaces names the document itself, an unknown document, or would make the chain loop. cannot_store: the index or a file could not be written or deleted."
+        },
+        "first_problem": {
+          "type": "string",
+          "maxLength": 240,
+          "description": "For index_damaged: where the index first fails the contract, as a path and the rule it breaks. Never a value from it."
+        }
+      }
+    },
+    "add_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "added", "skipped"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.add" },
+            "ok": { "const": true },
+            "added": {
+              "type": "array",
+              "maxItems": 50,
+              "items": { "$ref": "#/$defs/document" }
+            },
+            "skipped": {
+              "type": "array",
+              "maxItems": 50,
+              "items": { "$ref": "#/$defs/skipped" }
+            },
+            "cancelled": {
+              "const": true,
+              "description": "The student closed the file dialog without picking; added and skipped are empty."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "list_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "documents", "history"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.list" },
+            "ok": { "const": true },
+            "documents": {
+              "type": "array",
+              "maxItems": 5000,
+              "items": { "$ref": "#/$defs/document" }
+            },
+            "history": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": { "$ref": "#/$defs/history_line" },
+              "description": "Newest first."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "open_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "id", "shown"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.open" },
+            "ok": { "const": true },
+            "id": { "$ref": "#/$defs/document_id" },
+            "shown": {
+              "enum": ["image", "pages", "none"],
+              "description": "image: one image, in data_url. pages: a PDF's pages drawn as images by a sandboxed viewer with no network and no keys, only once the founder has approved that viewer (SPEC-W2 point 62). none: this kind is not shown inside Duly; the page offers Save a copy through documents.export."
+            },
+            "data_url": {
+              "type": "string",
+              "pattern": "^data:image/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+={0,2}$",
+              "description": "With image: the decrypted image as a data: URL."
+            },
+            "pages": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 500,
+              "items": {
+                "type": "string",
+                "pattern": "^data:image/png;base64,[A-Za-z0-9+/]+={0,2}$"
+              },
+              "description": "With pages: each page as a PNG data: URL, in order."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "versions_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "versions"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.versions" },
+            "ok": { "const": true },
+            "versions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 200,
+              "items": { "$ref": "#/$defs/document" },
+              "description": "The whole chain the id belongs to, newest first."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "update_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "document"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.update" },
+            "ok": { "const": true },
+            "document": { "$ref": "#/$defs/document" }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "done_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": {
+              "enum": [
+                "documents.remove",
+                "documents.restore",
+                "documents.delete",
+                "documents.clear"
+              ]
+            },
+            "ok": { "const": true }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    },
+    "export_reply": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "call", "ok", "exported"],
+          "properties": {
+            "version": { "const": "v1" },
+            "call": { "const": "documents.export" },
+            "ok": { "const": true },
+            "exported": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "How many documents were written. 0 with cancelled."
+            },
+            "cancelled": {
+              "const": true,
+              "description": "The student closed the system dialog; nothing was written."
+            }
+          }
+        },
+        { "$ref": "#/$defs/refusal" }
+      ]
+    }
+  }
+}
