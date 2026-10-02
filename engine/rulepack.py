@@ -106,7 +106,7 @@ def validate_pack(raw: dict[str, Any]) -> Rulepack:
         if end is not None and end < p["effective_from"]:
             raise RulepackError(f"{p['id']}: ends before it starts")
     _reject_overlaps(data["parameters"])
-    _reject_misplaced_settings(data.get("path"), ())
+    _reject_misplaced_settings(data.get("path"), (), load_settings())
 
     return Rulepack(
         category=data["category"],
@@ -129,13 +129,14 @@ def _reject_overlaps(parameters: list[dict[str, Any]]) -> None:
                 raise RulepackError(f"{pid}: effective dates overlap")
 
 
-def _reject_misplaced_settings(node: Any, trail: tuple[Any, ...]) -> None:
+def _reject_misplaced_settings(node: Any, trail: tuple[Any, ...], settings: dict[str, Any]) -> None:
     """A product setting may move only the opens or closes of a stage's window, which makes
     it a planning window (contracts/rulepack.schema.json, setting). The schema shares the
-    amount shape with every date, so the refusal anywhere else is here."""
+    amount shape with every date, so the refusal anywhere else is here. The settings are read
+    once per pack, by the caller."""
     if isinstance(node, list):
         for index, child in enumerate(node):
-            _reject_misplaced_settings(child, (*trail, index))
+            _reject_misplaced_settings(child, (*trail, index), settings)
         return
     if not isinstance(node, dict):
         return
@@ -150,12 +151,12 @@ def _reject_misplaced_settings(node: Any, trail: tuple[Any, ...]) -> None:
     if is_amount:
         # Refused here, not at the first compute: an unknown id, or a unit no date moves by.
         try:
-            dating_setting(load_settings(), node["setting"])
+            dating_setting(settings, node["setting"])
         except SettingsError as refused:
             where = "/".join(str(step) for step in ("path", *trail))
             raise RulepackError(f"{where}: {refused}") from refused
     for key, child in node.items():
-        _reject_misplaced_settings(child, (*trail, key))
+        _reject_misplaced_settings(child, (*trail, key), settings)
 
 
 def load_pack(path: Path) -> Rulepack:

@@ -165,26 +165,28 @@ class _Run:
                 if name not in self.fields[kind]:
                     raise ValueError(f"records: the field {name} is not declared for {kind}")
 
-    def ask_unknown_choices(self) -> None:
-        """A choice value outside the pack's list is missing and asked, never taken in silence
-        (resolutions point 24)."""
+    def ask_unreadable(self) -> None:
+        """A choice value outside the pack's list, or a date that does not parse, is missing
+        and asked again, never taken in silence (resolutions point 24, reviews/w2-p1.md)."""
         for record in self.records.values():
             for name, value in record["fields"].items():
-                if self._outside_choices(record, name, value):
+                if self._unreadable(record, name, value):
                     self._need(_Trace(missing=[(f"{record[ID]}.{name}", record[ID])]))
 
-    def _outside_choices(self, record: Json, name: str, value: Any) -> bool:
+    def _unreadable(self, record: Json, name: str, value: Any) -> bool:
         decl = self._decl(record, name)
-        if decl.get("kind") != "choice" or value is ABSENT or value is None:
+        if value is ABSENT or value is None or value == NOT_SURE:
             return False
-        return value not in decl.get("choices", []) and value != NOT_SURE
+        if decl.get("kind") == DATE_KIND:
+            return _as_date(value) is None
+        return decl.get("kind") == "choice" and value not in decl.get("choices", [])
 
     def _decl(self, record: Json, name: str) -> Json:
         return self.fields.get(record["kind"], {}).get(name, {})
 
     def _field(self, record: Json, name: str, on: date | None) -> Any:
         value = self._as_given(record, name, on)
-        return ABSENT if self._outside_choices(record, name, value) else value
+        return ABSENT if self._unreadable(record, name, value) else value
 
     def _as_given(self, record: Json, name: str, on: date | None) -> Any:
         value = record["fields"].get(name, ABSENT)
@@ -398,19 +400,27 @@ class _Run:
     # Conditions: True, False or None for unknown.
 
     def _select(self, selector: Json, outer: Json | None, tr: _Trace) -> list[Json] | None:
+        chosen, undecided = self._split(selector, outer, tr)
+        return None if undecided else chosen
+
+    def _split(
+        self, selector: Json, outer: Json | None, tr: _Trace
+    ) -> tuple[list[Json], list[Json]]:
+        """The records the where condition holds for, and those a gap leaves undecided. The
+        trace holds what the undecided ones read."""
         kind = selector["record"]
         self._use_kind(kind)
         chosen: list[Json] = []
-        unknown = False
+        undecided: list[Json] = []
         for record in self.records.values():
             if record["kind"] != kind:
                 continue
             held = self._all(selector.get("where", []), record, outer, tr)
             if held is None:
-                unknown = True
+                undecided.append(record)
             elif held:
                 chosen.append(record)
-        return None if unknown else chosen
+        return chosen, undecided
 
     def _all(
         self, conditions: list[Json], this: Json | None, outer: Json | None, tr: _Trace
@@ -608,12 +618,15 @@ class _Run:
         for stage in self.path.get("stages", []):
             selector = stage.get("for_each")
             tr = _Trace()
-            found = self._select(selector, None, tr) if selector else [None]
-            if found is None:
-                # A selection a gap leaves undecided is asked for, never read as none
-                # (PRINCIPLES 2): the stage is not dropped in silence.
+            found: list[Json | None] = [None]
+            undecided: list[Json] = []
+            if selector:
+                found[:], undecided = self._split(selector, None, tr)
+            if undecided:
+                # A record a gap leaves undecided is asked about, never read as not selected,
+                # and never takes the decided records with it (PRINCIPLES 2).
                 self._need(tr)
-            for record in found or []:
+            for record in found:
                 entered = all(
                     self._resolve(p, record, record)[0] not in (ABSENT, None)
                     for p in stage["entered_when"]
@@ -1019,10 +1032,13 @@ class _Run:
         for check in self.path.get("checks", []):
             selector = check.get("for_each")
             tr = _Trace()
-            found = self._select(selector, None, tr) if selector else [None]
-            if found is None:
+            found: list[Json | None] = [None]
+            undecided: list[Json] = []
+            if selector:
+                found[:], undecided = self._split(selector, None, tr)
+            if undecided:
                 self._need(tr)
-            for target in found or []:
+            for target in found:
                 self._check(check, target)
 
     def _check(self, check: Json, record: Json | None) -> None:
@@ -1377,7 +1393,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
         own = [r for r in records if r.get("category", categories[0]) == category]
         run = _Run(case, pack, today, own, settings)
         run._refuse_undeclared()
-        run.ask_unknown_choices()
+        run.ask_unreadable()
         runs.append(run)
     for run in runs:
         run.run_checks()
