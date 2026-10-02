@@ -1,140 +1,47 @@
 {
- "run_id": "l-review-965441e361",
- "reviewed_commit": "75cbf7f6e5921cedd049a985b26d3b0dfe78ca83",
+ "run_id": "l-review-9aa72ce4c6",
+ "reviewed_commit": "41990c1a5c8e56e81771cf246974680a1fc4d26b",
  "scores": {
-  "correct": {
-   "score": 3,
-   "evidence": "Every SPEC input, checked by hand against the saved words, is right: opt.last_day 2026-10-17 to 2027-03-16 for program end 2027-01-15, prepare 2026-09-17, new plan 2026-08-13, limit day 2026-12-27. Beside them: a STEM card with no employer drops both new-employer windows (blocking 1), and a card that starts after today gets limit_day null where 2027-01-12 is due."
-  },
-  "sourced": {
-   "score": 4,
-   "evidence": "Every value used matches its saved quote, status and regime, and the prepare setting is never under rule_ids. The opt_job_start reading is not marked (reading false), and CHANGELOG.md:250 still calls the dso_on member skipped."
-  },
-  "never_assumes": {
-   "score": 2,
-   "evidence": "Blocking 1: a2 with no employer, w2 with e2 from 2026-08-03. There is no stem_job_start stage and no question, and no reason names a2.employer. dso_on, w.employer and card_start are each asked when missing."
-  },
-  "inside_the_boundary": {
-   "score": 4,
-   "evidence": "The labels name dates only, and prepare labels say 'a planning date'. limit_day carries no words. The working shown for opt.prepare.opens.a2 (program end and the 90-day rule) gives 2025-09-14, not the 2025-08-14 shown, because the setting is not in inputs."
-  },
-  "secure": {
-   "score": 4,
-   "evidence": "A pack naming an unknown setting id loads and then raises SettingsError on every compute. A non-date setting unit gives a quiet null opens. The overflow at card_end 9999-12-31 was already there at 5cd505c. Bounded spans compute in 0.03 s."
-  },
-  "tested": {
-   "score": 3,
-   "evidence": "Seven mutants: five caught (limit index, item and upcoming planning, setting sign, the new-employer filter). M7 (drop the during-STEM filter) and M5 (report from new_plan rule) survive. No test covers blocking 1."
-  }
+  "correct": {"score": 3, "evidence": "Every SPEC input and every input the first review named is right by hand: future card limit day 2027-01-12, opt.prepare.opens.a2 2025-08-14 (2025-12-13 less 90 days less one month), new plan 2026-08-13, STEM report 2026-08-13, card-start boundary 2026-07-11. Beside them: a second job with a gap (S1, O1) removes the first job's fully known job-start windows (blocking 1)."},
+  "sourced": {"score": 5, "evidence": "opt.job_start_is_employment_change quotes the saved SEVP page, sources verify finds it, derivation reading, and both opt_job_start.report items carry reading true. CHANGELOG.md:250 now matches c24c65d. No new number in the pack."},
+  "never_assumes": {"score": 2, "evidence": "Blocking 1: _stem_case('e1') plus w3 with no employer drops w2's windows 2026-08-03 to 2026-08-13; only missing:w3.employer is asked. With w3.start '2026-13-40' nothing is asked and nothing names w2 or w3. The single-record case (a2 with no employer) is fixed and asked."},
+  "inside_the_boundary": {"score": 4, "evidence": "Labels state dates only; prepare says 'a planning date'. The Working panel now shows the setting, as 'Plan prepare months: 1' under Inputs used, with no mark that it is Duly's setting (note)."},
+  "secure": {"score": 4, "evidence": "Unknown setting ids and non-date units are refused at load with one plain line. Any string passes the contract as a date and feeds blocking 1. The 9999-12-31 overflow predates this plan."},
+  "tested": {"score": 4, "evidence": "M5 and M7 now caught; 8 of 9 mutants caught (M8, M10 to M14 on the fixes). M9 (no ask in run_checks) survives though x1 with no change shows it matters. No test has two records under one selection with one unknown."}
  },
  "findings": [
   {
    "severity": "blocking",
-   "title": "STEM card with no employer drops the new-employer windows and asks nothing",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2059; engine/path.py:610",
-   "input": "test_a_new_employer_during_stem_gives_the_new_plan_window's case with employer removed from a2; w1 e1 2026-07-01 to 2026-08-02, w2 e2 from 2026-08-03; today 2026-09-29",
-   "what_happens": "No stem_job_start stage, no new_plan or report window, no question for a2.employer, and no reason names it. With employer e1 the windows are 2026-08-03 to 2026-08-13. differs_from on a missing field is unknown, and run_stages reads the unknown selection as [] and drops its trace.",
+   "title": "a gap in one job removes another job's known job-start deadline, and nothing names that job",
+   "file": "engine/path.py:400 (_select); engine/path.py:616 (run_stages)",
+   "input": "S1: tests/holdout _stem_case('e1') (a2 STEM card, employer e1, from 2026-07-01; w2 with e2 from 2026-08-03) plus w3 work under a2 from 2026-09-01 with no employer, POST /v1/compute, today 2026-09-29. O1: OPT a1, w1 under a1 from 2026-07-01, plus w2 with no under. S2: as S1 with w3 employer e2 and start '2026-13-40'.",
+   "what_happens": "S1: no stem_job_start stage; w2's new I-983 and report windows 2026-08-03 to 2026-08-13 are gone, only missing:w3.employer is asked. O1: w1's report window 2026-07-01 to 2026-07-11 is gone, only missing:w2.under is asked. S2: w2's windows are gone and no reason or question names w2 or w3 (200 from the API). _select returns None for the whole selection when any one record is unknown, and run_stages iterates found or []. Same at 75cbf7f.",
    "kind": "other",
    "spec_point": "SPEC-W2 45 P3; 8 CFR 214.2(f)(10)(ii)(C)(7)(iv); PRINCIPLES 2"
   },
   {
    "severity": "should_fix",
-   "title": "planning date's working leaves out the setting",
-   "file": "engine/path.py:276",
-   "input": "web/samples/path-stem-next.json item opt.prepare.opens.a2",
-   "what_happens": "inputs {p1.end_date: 2025-12-13} and rule_ids [opt.apply_before_days] give 2025-09-14, but the value is 2025-08-14. How Duly counted shows no setting. Put plan.prepare_months and its value in inputs.",
-   "kind": "spec_gap",
-   "spec_point": "BOUNDARY A3"
+   "title": "no test pins the ask on an unknown check selection",
+   "file": "engine/path.py:1024",
+   "input": "Mutant M9 (drop self._need(tr) in run_checks). Case: masters p1 end 2026-05-15, OPT a1, end_date_change x1 for p1 requested 2026-03-01, old end 2026-05-15, new end 2026-12-15, no change.",
+   "what_happens": "HEAD asks missing:x1.change; under M9 nothing asks and end_date_change.asked_before_end is skipped. Every test passes under M9.",
+   "kind": "missing_test"
   },
   {
    "severity": "should_fix",
-   "title": "no limit day for a card that has not started",
-   "file": "engine/path.py:1194",
-   "input": "OPT card 2026-10-15 to 2027-10-14, no job, today 2026-09-29",
-   "what_happens": "limit_day is null; if nothing changes the count reaches 90 on 2027-01-12. Null also stands for never reached and not known.",
-   "kind": "wrong_date",
-   "spec_point": "SPEC-W2 46 N2"
-  },
-  {
-   "severity": "should_fix",
-   "title": "STEM report window and during-STEM filter untested",
-   "file": "tests/unit/engine/test_w2_windows.py",
-   "input": "mutant M7 removes parameters.yaml:2058; mutant M5 dates stem_job_start.report from stem.new_plan_due_days",
-   "what_happens": "Both pass every W2 unit and holdout test. Under M7, a new-employer job begun before the STEM card gets a new I-983 window.",
-   "kind": "missing_negative_test"
-  },
-  {
-   "severity": "should_fix",
-   "title": "unknown setting id loads, then compute raises",
-   "file": "engine/rulepack.py:130",
-   "input": "toy pack window opens {setting: no.such.setting, sign: -1}; or {setting: loop.weekly_budget}",
-   "what_happens": "validate_pack accepts both. Compute raises SettingsError on the first, and gives opens null with no reason on the second.",
-   "kind": "other"
-  },
-  {
-   "severity": "should_fix",
-   "title": "job-start report is a reading shown as verbatim",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2040",
-   "input": "web/samples/path-stem-next.json opt_job_start.report.closes.w1",
-   "what_happens": "The CHANGELOG calls 'a new job is a change in employment information' a reading, but the items carry reading false.",
-   "kind": "wrong_source",
-   "spec_point": "PRINCIPLES 1"
-  },
-  {
-   "severity": "should_fix",
-   "title": "CHANGELOG contradicts the founder fix",
-   "file": "rulepacks/f1-us/v2026.09/CHANGELOG.md:250",
-   "input": "the opt.last_day bullet",
-   "what_happens": "It says the recommendation member is 'skipped while dso_on is not entered'. Since c24c65d it is required and asked.",
-   "kind": "wording"
-  },
-  {
-   "severity": "should_fix",
-   "title": "setting looked up twice",
-   "file": "engine/path.py:282",
-   "input": "any setting amount",
-   "what_happens": "next(...) scans settings again for the unit after whole_setting scanned it for the value. engine/settings.py could return both.",
+   "title": "the loader parses the settings file once per setting node",
+   "file": "engine/rulepack.py:153",
+   "input": "Any pack with setting amounts, e.g. the f1 pack's opt.prepare and stem.prepare",
+   "what_happens": "load_settings() reparses contracts/product_settings.yaml for each node. Load once in validate_pack and pass it down, or functools.cache.",
    "kind": "overbuilt"
   },
   {
    "severity": "note",
-   "title": "last-day window carries an opens item under 'Last day' words",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1734",
-   "input": "path-stem-next Timeline row opt_post.a2",
-   "what_happens": "It reads 'Last day to file Form I-765: opens Sep 14, 2025', and upcoming lists opt.last_day.opens beside opt.apply_window.opens.",
+   "title": "the setting is shown as a generic input name",
+   "file": "web/src/lib/labels.ts:174",
+   "input": "web/samples/path-stem-next.json item opt.prepare.opens.a2",
+   "what_happens": "inputName('plan.prepare_months') gives 'Plan prepare months', shown under Inputs used beside the person's dates, with nothing marking it as Duly's planning setting. The item label says 'a planning date'.",
    "kind": "wording"
-  },
-  {
-   "severity": "note",
-   "title": "planning items carry status settled",
-   "file": "engine/path.py:873",
-   "input": "path-stem-next upcoming stem.prepare.opens.a2",
-   "what_happens": "status 'settled' beside planning: true.",
-   "kind": "wording"
-  },
-  {
-   "severity": "note",
-   "title": "limit-day words test is vacuous",
-   "file": "tests/unit/engine/test_w2_limit_day.py",
-   "input": "test_the_limit_day_s_words_never_say_what_follows_that_day",
-   "what_happens": "The item has no words, so the test reads only id, unit and status.",
-   "kind": "missing_test"
-  },
-  {
-   "severity": "note",
-   "title": "early recommendation gives an inverted last-day window",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1734",
-   "input": "program end 2026-05-15, dso_on 2026-01-02, filed 2026-01-05",
-   "what_happens": "Opens 2026-02-14 and closes 2026-02-01. opt_post.filed_in_window already raises a conflict.",
-   "kind": "other"
-  },
-  {
-   "severity": "note",
-   "title": "job-start row marked Done by date alone",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2040",
-   "input": "a work record with no employer_reported, window passed",
-   "what_happens": "The stage state is done once its window has passed, as opt_job_end already does.",
-   "kind": "other"
   }
  ],
  "decision": "VETO"

@@ -354,3 +354,16 @@
 - Failure: a for_each where condition that reads an optional field made a stage vanish with no question, while every SPEC-input test passed.
 - Fix: for each new where condition, delete each field it reads in turn and look for a question or reason.
 - Evidence: reviews/w2-p1.md finding 1.
+
+## 2026-10-01, run l-review-9aa72ce4c6 (W2-P1 re-review after the fix round)
+- Read reviews/w2-p1.md (first review), plan-w2-p1-fix.yaml, SPEC-W2 45, 46, 49, PRINCIPLES 2, and the diff 75cbf7f..41990c1 (engine path, rulepack, settings; the reading row and CHANGELOG; new tests in test_w2_windows, test_w2_limit_day, test_holdout_w2; samples).
+- Ran: unit and holdout suites without tools and desktop_entry (exit 0); verify, plain, engine_literals, copy lint, mypy, ruff (all 0). HEAD copy TMPDIR/rvw2f/src: samples --check 0, web vitest 601 passed, desktop vitest 249 passed.
+- All eight first-review findings are fixed for the inputs named. Limit day 2027-01-12 and prepare 2025-08-14 checked by hand.
+- Mutants TMPDIR/rvw2f/mut.py: 9 run, 8 caught (M5 and M7 now caught). M9 (no ask in run_checks) survives; x1 end_date_change with no change shows it matters.
+- Probes probe1..6: one job with a gap (no employer, no under, or start "2026-13-40") drops every other job's job-start windows in the same stage. With the bad date nothing is asked. Same at 75cbf7f.
+- Wrote reviews/w2-p1.md (VETO, mean 3.67), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: a fix asked for the missing field on the one record the test named, but an unknown on any record still voided the whole selection, so known records' deadlines vanished.
+- Fix: for each for_each, probe two records, one known and one with a gap, and check that the known one keeps its dates.
+- Evidence: reviews/w2-p1.md finding 1 (S1, O1, S2).
