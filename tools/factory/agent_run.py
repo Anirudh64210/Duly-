@@ -989,7 +989,7 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
             )
         if cause == "infra":
             if waits and attempt < contract.max_attempts:  # it passes on its own: wait
-                time.sleep(waits.pop(0))
+                backoff_sleep(waits.pop(0))
         elif failure == last_failure and fix != last_fix:
             # Twice means two different fixes that ended in the same failure. The same code
             # failing again is not a second failure.
@@ -1015,6 +1015,13 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     return finish(
         "failed", f"{contract.max_attempts} attempts, none accepted: {last_failure}"[:400]
     )
+
+
+def backoff_sleep(seconds: float) -> None:
+    """The wait before retrying an infra failure. Its own name, so a test can record these
+    waits alone: patching time.sleep caught every short lock wait in the process too, and the
+    retry test failed on CI's slower machine (2026-10-02)."""
+    time.sleep(seconds)
 
 
 # Every kept attempt also lives under its own ref here, so no retry can lose it.
