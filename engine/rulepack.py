@@ -104,6 +104,7 @@ def validate_pack(raw: dict[str, Any]) -> Rulepack:
         if end is not None and end < p["effective_from"]:
             raise RulepackError(f"{p['id']}: ends before it starts")
     _reject_overlaps(data["parameters"])
+    _reject_misplaced_settings(data.get("path"), ())
 
     return Rulepack(
         category=data["category"],
@@ -124,6 +125,28 @@ def _reject_overlaps(parameters: list[dict[str, Any]]) -> None:
             end = earlier.get("effective_to")
             if end is None or end >= later["effective_from"]:
                 raise RulepackError(f"{pid}: effective dates overlap")
+
+
+def _reject_misplaced_settings(node: Any, trail: tuple[Any, ...]) -> None:
+    """A product setting may move only the opens or closes of a stage's window, which makes
+    it a planning window (contracts/rulepack.schema.json, setting). The schema shares the
+    amount shape with every date, so the refusal anywhere else is here."""
+    if isinstance(node, list):
+        for index, child in enumerate(node):
+            _reject_misplaced_settings(child, (*trail, index))
+        return
+    if not isinstance(node, dict):
+        return
+    is_amount = "setting" in node and set(node) <= {"setting", "sign"}
+    # path/stages/<n>/windows/<n>/(opens|closes)/...
+    in_window = trail[:1] == ("stages",) and trail[2:3] == ("windows",)
+    if is_amount and not (in_window and trail[4:5] in (("opens",), ("closes",))):
+        where = "/".join(str(step) for step in ("path", *trail))
+        raise RulepackError(
+            f"{where}: the setting {node['setting']} may date only a stage window's opens or closes"
+        )
+    for key, child in node.items():
+        _reject_misplaced_settings(child, (*trail, key))
 
 
 def load_pack(path: Path) -> Rulepack:
