@@ -61,8 +61,9 @@ def body() -> dict[str, Any]:
 
 def test_the_f1_pack_holds_checked_dates() -> None:
     # The working the tests below stand on: the shipped F-1 pack was checked, on
-    # 2026-09-28, the oldest date among its rules.
-    assert checked_on_by_category()["f1"] == "2026-09-28"
+    # 2026-10-02, the oldest date among its rules (FEED-PA moved every rule the fetch of
+    # 2026-10-02 backs; SPEC-FEED point 55).
+    assert checked_on_by_category()["f1"] == "2026-10-02"
 
 
 def test_the_status_names_each_packs_rules_checked_on(body: dict[str, Any]) -> None:
