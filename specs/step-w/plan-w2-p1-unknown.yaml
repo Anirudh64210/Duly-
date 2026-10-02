@@ -1,0 +1,92 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'One rule for unknown values across the engine (SPEC-W2-UNKNOWN): four value states, three truth values for every operator, selections that keep decided records, counters that withhold only the groups an undecided record could join, every unknown that could change an output asked by record and field, nothing derived from an unknown shown as known, and a boundary that refuses only structure. Clears the third W2-P1 veto (reviews/w2-p1.md findings 1 to 5) for the class, not the inputs. Generic: nothing about F-1 in engine code.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read specs/step-w/SPEC-W2-UNKNOWN.md, the maps in specs/step-w/maps/ and the three W2-P1 reviews (git log -p reviews/w2-p1.md). Write tests/support/gaps.py and tests/support/unknown_toy.py (point 44); P6 in tests/unit/engine/test_unknown_logic.py; tests/unit/engine/test_readers.py (point 41); tests/unit/engine/test_unknown_generic.py (point 12); the point 11 and 7a faults in tests/unit/engine/test_rulepack.py; tests/unit/engine/test_when_absent.py (points 2 and 14, pack data only, no new engine name); tests/unit/engine/test_toy_pack_coverage.py (point 50b); P1 to P5 and P7 in tests/unit/engine/test_w2_unknown_props.py; the regressions in the four files point 51 names, with twins and P2j in tests/holdout/test_holdout_w2_unknown.py; tests/unit/api/test_case_structure.py (point 39); tests/web/unknown.test.ts (point 38) and tests/web/records-typed.test.ts (point 43); and every other Checked-by test of points 1 to 43 not marked founder lane, including test_verdict.py for point 37. Import every name the SPEC adds inside the test, never at module level. Keep the example counts and time budget of section 9. Bring every existing test in tests/unit and tests/holdout whose expectation the SPEC changes in line, the point beside each (point 54). Work every date and count by hand in the comment; a value in the SPEC is a claim to check. Inject the clock. The new tests cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_unknown_logic.py tests/unit/engine/test_readers.py tests/unit/engine/test_unknown_generic.py tests/unit/engine/test_rulepack.py tests/unit/engine/test_when_absent.py tests/unit/engine/test_toy_pack_coverage.py tests/unit/engine/test_w2_unknown.py tests/unit/engine/test_w2_unknown_counts.py tests/unit/engine/test_w2_unknown_stages.py tests/unit/engine/test_w2_unknown_props.py tests/unit/engine/test_w2_unknown_f1.py tests/unit/api/test_case_structure.py tests/holdout/test_holdout_w2_unknown.py --co -q >/dev/null && npx eslint tests/web --max-warnings 0'
+- name: pack
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'SPEC-W2-UNKNOWN points 2, 2a and 14: give each field of the F-1 pack whose absence the screen states as not yet or none a when_absent declaration, conditional where it depends on the record; every other field stays ask (the default). Start from the list in point 61 as the founder recorded it in DECISIONS.md. Add a complete_label to every kind a history, a first or a count reads that has none. Record each in CHANGELOG.md with the screen words that make an empty field the person''s statement. No rule, number or source changes. Make tests/unit/engine/test_when_absent.py pass.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -c "from engine.rulepack import load_all; load_all()" && uv run pytest tests/unit/engine/test_when_absent.py -q'
+- name: engine-core
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN points 1 to 5, 2a, 7a, 11, 12 and 41: engine/unknown.py and engine/readers.py with exactly the interface of point 12, pure and generic; validate_pack refuses every fault of points 7a and 11; the pack loader keeps when_absent. Do not change engine/path.py yet beyond what these tests need. Make the done command pass.'
+    done: bash -c 'uv run pytest tests/unit/engine/test_unknown_logic.py tests/unit/engine/test_readers.py tests/unit/engine/test_unknown_generic.py tests/unit/engine/test_rulepack.py tests/unit/engine/test_when_absent.py -q && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: engine-reads
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN points 6 to 10, 13 to 17, 25 to 28, 32, 34 to 37 and 39 in engine/path.py: every value read through engine/readers.py, every operator, selection, first, earliest_of and latest_of, fact, as of, history and check through engine/unknown.py; NOT_YET and NONE kept apart; questions with field, state and withholds; withheld outputs with waits_on; engine_gap for an unknown with no gap; compute decides through engine/verdict.decide; CaseStructureError for the faults of point 39. Generic, nothing about F-1 in engine code. Make the done command pass.'
+    done: bash -c 'uv run pytest tests/unit/engine/test_unknown_logic.py tests/unit/engine/test_readers.py tests/unit/engine/test_unknown_generic.py tests/unit/engine/test_rulepack.py tests/unit/engine/test_when_absent.py tests/unit/engine/test_w2_unknown.py tests/unit/engine/test_verdict.py -q && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: engine-counts
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN points 18 to 23 and 22a, and point 24 in engine/path.py: counter scopes as selections, unknown group keys, whole over every kind read, unknown records that could count, spans with NOT_YET ends running through today, span conflicts, N spans on counted records, rules a count reads, and a withheld count emitted with waits_on. Generic. Make the done command pass.'
+    done: bash -c 'uv run pytest tests/unit/engine/test_unknown_logic.py tests/unit/engine/test_readers.py tests/unit/engine/test_rulepack.py tests/unit/engine/test_when_absent.py tests/unit/engine/test_w2_unknown.py tests/unit/engine/test_w2_unknown_counts.py tests/unit/engine/test_verdict.py -q && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: engine-stages
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN points 29 to 31, 32a and 33 in engine/path.py: entered_when, done_when, bind, next stages (gaps on real records asked, future gaps named, only_if U as state unknown, closed only when every close is known and past), span conflicts making a stage unknown, and nothing derived from an unknown shown as known. Then make the properties of points 45 to 50b and every test in tests/unit/engine except test_w2_unknown_f1.py, and the journeys, pass. Generic.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q --ignore=tests/unit/engine/test_w2_unknown_f1.py && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: engine-f1
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN point 24 in engine/f1.py: no default of 0 for an unknown number, a check resting on an unknown number gives its missing reason, and a not_sure or unreadable job end is never read as still working (R25, P2f). Make every test in tests/unit/engine and the journeys pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: edges
+  lanes:
+  - lane: L-api
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN point 39: api/local_routes.py and api/main.py answer CaseStructureError with 422 CASE_STRUCTURE in its own plain words (api/case.py), never repeating what was sent; schema faults keep the first_problem detail as today; NOT_IN_THE_PACK is retired. Make tests/unit/api pass.'
+    done: bash -c 'uv run pytest tests/unit/api -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  - lane: L-web
+    agent: builder
+    mission: 'SPEC-W2-UNKNOWN points 2, 38 and 43: the zod engine output schema takes waits_on, field, state and withholds; labels.ts exports unreadableLine, undecidedLine and waitingLine as point 38 says, and the question line uses them; a withheld number or date shows what it waits for, never a number; each field the pack declares not_yet or none carries the screen words recorded for it in rulepacks/f1-us/v2026.09/CHANGELOG.md, with a test in web/src; records.ts sends a value as typed and an empty one as absent (cleanField and caseRecord drop nothing else, NUMBER_FIELDS goes). Make npm test -w web pass.'
+    done: bash -c 'npm run typecheck -w web && npm test -w web && npx eslint web --max-warnings 0 && npx prettier --check "web/**/*.{ts,tsx,css,html,json}" && uv run python -m tools.copy_lint.lint'
+- name: samples
+  steps:
+  - lane: L-web
+    run: make samples
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with SPEC-W2-UNKNOWN; write the point beside each change; never loosen an assertion, never remove a fill from the set in tests/support/gaps.py; cover every new engine branch so the engine diff coverage of gate 6 holds; escalate any failure no point explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web && make gate-6 BASE=work/product-2'
+  - lane: L-web
+    agent: builder
+    mission: 'Make the tests in web/src pass after the samples round regenerated web/samples, changing only what SPEC-W2-UNKNOWN requires, with the point beside each. Tests under tests/web are the tests lane''s.'
+    done: bash -c 'npm run typecheck -w web && npm test -w web -- src/ && npx eslint web --max-warnings 0'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+  - name: desktop
+    run: npm test -w desktop
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review everything plan-w2-p1-unknown.yaml changed against SPEC-W2-UNKNOWN, PRINCIPLES.md, BOUNDARY.md, the maps in specs/step-w/maps/ and the three W2-P1 reviews. Rerun S1, O1, S2, D4, C, the w3 end table, the hours table and R1 to R40, and every mutant of point 52 (M9, M15, M16, M18, M19, M20, U1 to U27) as point 52 says. Try hardest to find any operator, reader or output where an unknown is read as false, empty, absent, zero, today, done or ongoing, NOT_YET read as NONE, any gap not asked that could change an output, any field asked that nothing reads, and any withholding no fill justifies. Report how many journey outputs are withheld before and after, and the time tests/unit takes. Write reviews/w2-unknown.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-unknown.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P1 with plan-w2-p1-unknown.yaml (plan-w2-p1.yaml, plan-w2-p1-fix.yaml, plan-w2-p1-fix2.yaml, plan-w2-p1-unknown.yaml) as your role file describes, with the register rows SPEC-W2-UNKNOWN names under Covers. Write docs/requirements/audits/w2-unknown.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-unknown.md && uv run python -m tools.requirements.register check'

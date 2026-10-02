@@ -30,6 +30,7 @@ from typing import Any
 
 import yaml
 
+from engine.clocks import SystemClock
 from tools.sources import verify
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -233,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     pack = (REPO_ROOT / args.pack) if not Path(args.pack).is_absolute() else Path(args.pack)
     if args.fetch:
-        out = fetch(pack, dt.datetime.now(dt.UTC))
+        out = fetch(pack, SystemClock().now())
         rows = json.loads(out.read_text())["rows"]
         changed = [r["file"] for r in rows if r["status"] == 200 and not r["same"]]
         failed = [f"{r['file']} ({r['status']})" for r in rows if r["status"] != 200]
