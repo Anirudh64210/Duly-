@@ -3671,3 +3671,31 @@ as _field exists only in fix7); no holdout twin beyond the one already there.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+### Attempt 1 (l-tests-607e8ada11)
+
+Ran the done command's parts on HEAD 431c071 (the merge of the D94 test round) before changing
+anything:
+- ruff check tests: All checks passed. ruff format --check tests: 110 files already formatted.
+- pytest tests/unit tests/holdout --ignore=tests/unit/tools, with tests/unit/desktop_entry
+  deselected and -x: every test passed (100%, no F, no E).
+- tests/unit/desktop_entry alone: each failure is [Errno 1] Operation not permitted (socket
+  bind, sandbox only, as the contract says).
+- npm test -w web -- tests/web: vitest stops before any test on EPERM mkdir web/coverage (the
+  sandbox refuses writes to web/coverage). The same files without coverage
+  (npx vitest run tests/web in web/): 2 files, 9 tests passed.
+- Gate 6, engine part: pytest -q --cov=engine --cov-branch over the whole suite (desktop_main
+  deselected), then diff-cover --include 'engine/*' --compare-branch=main: 97% of 3008 changed
+  engine lines (floor 95). The tests/unit/tools/test_phase.py failures in that run are sandbox
+  only and outside the done command.
+
+Changed: nothing in tests/ but this log and REPORT.json. No test's expectation differs from
+SPEC-W2-UNKNOWN as the engine stands at HEAD, so no point needed a change, and no new test
+was written (each would be a duplicate of a regression or property already present).
+
+Not built: no new engine branch tests, since the engine diff coverage already holds at 97%; no
+extra web test, since tests/web/unknown.test.ts and records-typed.test.ts pass against L-web's
+merged code.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
