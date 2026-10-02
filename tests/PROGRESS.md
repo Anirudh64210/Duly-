@@ -3222,3 +3222,37 @@ mission writes business_days, and that spelling is the engine's to settle.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-551fa68ae8: W2-P1 fix round, tests in line with the fixes (reviews/w2-p1.md)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p1.md, the L-engine fix 097c2ac (path.py: an unknown
+for_each selection is asked for; the setting goes among inputs; _days_without counts a span not
+yet started; settings.dating_setting; rulepack.py refuses an unknown setting or a non-dating unit)
+and the L-content fix 31c20ef (new row opt.job_start_is_employment_change, derivation reading,
+named in the rule_ids of opt_job_start and its report window; CHANGELOG corrected).
+
+Ran the done command first: ruff "All checks passed!", "92 files already formatted"; pytest
+15 failed, all in tests/unit/desktop_entry/test_desktop_main.py on bind with Errno 1 (the
+sandbox socket wall). Every test the last run wrote for findings 1 to 5 (test_w2_windows.py,
+test_w2_limit_day.py, tests/holdout/test_holdout_w2.py) now passes on the fixed engine and pack;
+none needed a change.
+
+Found: no test guarded finding 6. Added to tests/unit/engine/test_w2_windows.py
+test_the_job_start_report_is_marked_a_reading_wherever_it_is_shown (finding 6, PRINCIPLES 1):
+the job-start report window and both its computed items carry reading: true, dates 2026-07-01
+to 2026-07-11 (2026-07-01 plus 10). Fails if: the reading row is taken out of the stage's and
+window's rule_ids (checked: a dataclasses.replace mutant of PACK.path doing so is KILLED), or the
+engine stops carrying reading onto the window or its items. The module docstring no longer says
+the tests cannot pass yet. Assertions only added; none loosened.
+
+Done command after: ruff "All checks passed!", "92 files already formatted"; pytest the same 15
+socket failures and nothing else.
+
+Not built: no test for finding 7 (CHANGELOG words, not behaviour) or 8 (a refactor with no
+behaviour of its own; findings 5's refusal tests already exercise dating_setting). No check
+that opt_job_end.report stays reading: false: nothing asks for it. No new helper or file. The
+mypy hook flags the file's existing unannotated tests; the done command runs no mypy, and the
+neighbours leave tests unannotated, so only the new test got "-> None".
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
