@@ -89,6 +89,10 @@ const alternatesSchema = z
   )
   .optional();
 // The regime the value was computed under, and its legal status from the pack.
+// SPEC-W2-UNKNOWN point 34: a question id, a lapse or conflict reason, pending:<record>.<field>
+// or future:<stage>.<field>.
+const waitsOnSchema = z.array(z.string().min(1)).min(1).optional();
+
 const operativeSchema = z.strictObject({ regime: z.string(), legal_status: z.string() }).optional();
 // The record an entry belongs to, as the case named it (contracts/case.schema.json).
 const recordSchema = z
@@ -115,6 +119,8 @@ const windowSchema = z.strictObject({
   inputs: z.record(z.string(), z.unknown()).optional(),
   // SPEC-W2 N1: present when a date here comes from a product setting, never from a rule.
   planning: z.literal(true).optional(),
+  // SPEC-W2-UNKNOWN points 33 and 34: present only when this is withheld, naming what it waits on.
+  waits_on: waitsOnSchema,
 });
 
 // design-1 RQ-P3: one entry for each stage entered and each stage that may come next.
@@ -138,6 +144,8 @@ const stageSchema = z.strictObject({
   checklist: z.string().nullable().optional(),
   facts: z.record(z.string(), z.unknown()).optional(),
   reasons: z.array(z.string()).optional(),
+  // SPEC-W2-UNKNOWN points 33 and 34: present only when this is withheld, naming what it waits on.
+  waits_on: waitsOnSchema,
 });
 
 // design-1 RQ-P4: the steps an official source lists, with the person's own confirmations.
@@ -187,6 +195,8 @@ export const engineOutputSchema = z
         record: recordSchema,
         // SPEC-W2 N1: present when a date here comes from a product setting, never from a rule.
         planning: z.literal(true).optional(),
+        // SPEC-W2-UNKNOWN points 33 and 34: present only when this is withheld, naming what it waits on.
+        waits_on: waitsOnSchema,
       }),
     ),
     rulepacks: z.array(z.strictObject({ category: z.string(), version: z.string() })),
@@ -213,6 +223,13 @@ export const engineOutputSchema = z
         because: z.array(z.string()).min(1),
         about: z.record(z.string(), z.unknown()).optional(),
         record: recordSchema,
+        // SPEC-W2-UNKNOWN point 34: the field asked, why it is unknown, and what it holds back.
+        field: z
+          .string()
+          .regex(/^[a-z0-9_]+$/)
+          .optional(),
+        state: z.enum(["absent", "unreadable", "undecided", "list", "conflict"]).optional(),
+        withholds: z.array(z.string()).optional(),
       }),
     ),
     today: z.strictObject({ date: z.string().regex(ISO_DAY), time_zone: z.string() }),
@@ -231,6 +248,8 @@ export const engineOutputSchema = z
         inputs: z.record(z.string(), z.unknown()).optional(),
         // SPEC-W2 N1: present when a date here comes from a product setting, never from a rule.
         planning: z.literal(true).optional(),
+        // SPEC-W2-UNKNOWN points 33 and 34: present only when this is withheld, naming what it waits on.
+        waits_on: waitsOnSchema,
       }),
     ),
     lists: z.array(

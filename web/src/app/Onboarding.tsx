@@ -120,13 +120,18 @@ export function Onboarding() {
   const view = views[at] as View;
 
   const first = view.kind === "questions" && !store.busy ? questions[0] : undefined;
-  const asked = first === undefined ? null : fieldQuestion(held, first.id);
+  // SPEC-W2-UNKNOWN point 43: a field is sent as typed, so each keystroke is computed. The
+  // view being answered stays while it is, rather than the busy line taking its place.
+  const [answering, setAnswering] = useState<string | null>(null);
+  const askedId = first?.id ?? (view.kind === "questions" && store.busy ? answering : null);
+  const asked = askedId === null ? null : fieldQuestion(held, askedId);
   const whole = first === undefined || asked !== null ? null : listQuestion(first.id);
   // A question about a record's field is answered in the view that asks for that field.
   const shown = asked ?? view;
 
   const update = (changed: AppCase) => {
     setProblems({});
+    setAnswering(asked === null ? null : askedId);
     store.save(changed);
   };
   const go = (index: number) => {
@@ -354,6 +359,7 @@ export function Onboarding() {
                 value={shown}
                 problem={problems[id]}
                 onChange={onChange}
+                empty={spec.empty}
                 {...notSure}
               />
             ) : (
@@ -424,7 +430,7 @@ export function Onboarding() {
       } else if (whole !== null) {
         body = (
           <>
-            <p className="because">{becauseLine(question.because)}</p>
+            <p className="because">{becauseLine(question.because, question.about)}</p>
             <OptionCards
               label={whole.title}
               options={[
@@ -449,7 +455,7 @@ export function Onboarding() {
       } else {
         body = (
           <>
-            <p className="because">{becauseLine(question.because)}</p>
+            <p className="because">{becauseLine(question.because, question.about)}</p>
             <OptionCards
               label={copy?.ask ?? "Duly's question"}
               options={[

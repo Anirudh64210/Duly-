@@ -1,5 +1,5 @@
 import type { AppCase } from "../../app/caseStore";
-import { formatDate, levelName } from "../labels";
+import { EMPTY_WORDS, formatDate, levelName } from "../labels";
 import { isDateField, nextId, type DraftRecord, type RecordKind } from "../records";
 
 // path-1 programs.md section 18: the onboarding, one question per view, in five steps,
@@ -37,6 +37,8 @@ export type FieldSpec = {
   pattern?: RegExp;
   /** A day the student may not know: "I'm not sure" leaves it out, and the engine asks later. */
   notSure?: boolean;
+  /** SPEC-W2-UNKNOWN point 2: what leaving it empty states, from the pack (EMPTY_WORDS). */
+  empty?: string;
 };
 
 export type View = {
@@ -605,6 +607,7 @@ function grantViews(held: AppCase, id: string, section: number): View[] {
           label: "The day your I-765 was filed",
           type: "date",
           optional: true,
+          empty: EMPTY_WORDS["authorization.filed_on"],
         },
       ],
     },
@@ -1045,6 +1048,8 @@ function petitionViews(held: AppCase): View[] {
             name: "requested_start",
             label: "The start date it asks for",
             type: "date",
+            optional: true,
+            empty: EMPTY_WORDS["petition.requested_start"],
           },
         ],
       },
@@ -1093,6 +1098,7 @@ function petitionViews(held: AppCase): View[] {
             label: "The approved start date",
             type: "date",
             optional: true,
+            empty: EMPTY_WORDS["petition.validity_start"],
           },
           {
             record: petition.id,
@@ -1168,8 +1174,9 @@ function earlierViews(held: AppCase): View[] {
           name: "release_date",
           label: "The release date",
           type: "date",
-          optional: !transfer,
+          optional: true,
           notSure: transfer,
+          empty: EMPTY_WORDS["move.release_date"],
         },
         {
           record: move.id,
@@ -1185,7 +1192,9 @@ function earlierViews(held: AppCase): View[] {
           name: "contacted_new_dso_on",
           label: "The day you contacted the new DSO",
           type: "date",
+          optional: true,
           notSure: true,
+          empty: EMPTY_WORDS["move.contacted_new_dso_on"],
         });
       }
       views.push({
@@ -1708,8 +1717,10 @@ export function fieldQuestion(held: AppCase, question: string): View | null {
     .flatMap((v) => v.fields ?? [])
     .find((f) => f.record === id && f.name === field);
   if (spec !== undefined) {
-    // A day asked later may still not be known: "I'm not sure" leaves it out again.
-    const field = { ...spec, optional: false, notSure: spec.type === "date" };
+    // A day asked later may still not be known: "I'm not sure" leaves it out again. The engine
+    // asks it, so an empty field states nothing here and carries no words for empty.
+    const field: FieldSpec = { ...spec, optional: false, notSure: spec.type === "date" };
+    delete field.empty;
     return { ...base, kind: "fields", title: spec.label, fields: [field] };
   }
   const known = ASKED_CHOICES[`${record.kind}.${field}`];

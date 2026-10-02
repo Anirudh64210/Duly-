@@ -74,16 +74,7 @@ const WHY_LINES = [
   "Trip abroad 1: Day of the DSO's travel signature on that Form I-20",
   "Trip abroad 1: Was there a job to return to?",
   "Trip abroad 1: What was the trip?",
-  "Is this every CPT, OPT and other work permission?",
-  "Is this every change of a program end date?",
-  "Is this every program of study, in the US or not?",
-  "Is this every move between programs?",
-  "Is this every job, through today?",
-  "Is this every trip outside the US in the time asked?",
-  "Is this every H-1B petition filed for this person?",
-  "Is this every withdrawal from classes?",
   "A court paused a change to a rule that applies here, and the two rules give different dates.",
-  "The rule Duly would use was not yet in force on the day this counts from, so Duly does not compute the date. This is a question for your DSO.",
   "Something in what you entered needs an answer.",
 ];
 
@@ -91,7 +82,7 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
   it("says under the headline how many answers are open", async () => {
     mount({ path: "/" });
     const hero = await screen.findByRole("region", { name: "Verdict" });
-    expect(lines(hero)).toEqual(["17 answers would let Duly go on with your dates."]);
+    expect(lines(hero)).toEqual(["9 answers would let Duly go on with your dates."]);
   });
 
   it("shows each reason once under Why, in its own words", async () => {
@@ -118,13 +109,14 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     mount({ path: "/" });
     const section = await screen.findByRole("region", { name: "QUESTIONS FOR YOU" });
     const titles = [...section.querySelectorAll(".row-title")].map((t) => t.textContent);
-    expect(new Set(titles).size).toBe(17);
+    expect(new Set(titles).size).toBe(9);
     expect(
       within(section).getAllByText("Asked because nothing is entered for it yet."),
     ).toHaveLength(8);
+    // The sample states every list whole, so no list question waits (SPEC-W2-UNKNOWN point 14).
     expect(
-      within(section).getAllByText("Asked because Duly waits for your answer before it goes on."),
-    ).toHaveLength(8);
+      within(section).queryAllByText("Asked because Duly waits for your answer before it goes on."),
+    ).toHaveLength(0);
     expect(
       within(section).getByText("Asked because some dates you typed are not checked yet."),
     ).toBeInTheDocument();
@@ -135,7 +127,7 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     const hero = await screen.findByRole("region", { name: "Verdict" });
     const order = [
       within(hero).getByRole("heading", { level: 1 }),
-      within(hero).getByText(/^17 answers/),
+      within(hero).getByText(/^9 answers/),
       screen.getByRole("region", { name: "Counts" }),
       screen.getByRole("region", { name: "YOUR NEXT MOVE" }),
       screen.getByRole("region", { name: "QUESTIONS FOR YOU" }),

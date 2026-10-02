@@ -156,6 +156,7 @@
     {
       "id": "opt.apply_window.opens.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -168,6 +169,7 @@
     {
       "id": "opt.apply_window.closes.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -180,6 +182,7 @@
     {
       "id": "opt.latest_start.opens.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -192,6 +195,7 @@
     {
       "id": "opt.latest_start.closes.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -228,6 +232,7 @@
     {
       "id": "opt.last_day.opens.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -245,6 +250,7 @@
       "id": "opt.last_day.closes.a2",
       "inputs": {
         "a2.dso_on": "2025-10-01",
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -261,6 +267,7 @@
     {
       "id": "opt.prepare.opens.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13",
         "plan.prepare_months": 1
       },
@@ -275,6 +282,7 @@
     {
       "id": "opt.prepare.closes.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "planning": true,
@@ -288,6 +296,7 @@
     {
       "id": "opt.complete_by.opens.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -300,6 +309,7 @@
     {
       "id": "opt.complete_by.closes.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13"
       },
       "reading": false,
@@ -341,7 +351,8 @@
       "rule_ids": ["stem.file_within_days_of_recommendation"],
       "status": "settled",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.dso_on"]
     },
     {
       "id": "stem.file_by.closes.a2",
@@ -351,7 +362,8 @@
       "rule_ids": ["stem.file_within_days_of_recommendation"],
       "status": "settled",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.dso_on"]
     },
     {
       "id": "stem.last_day.opens.a2",
@@ -383,7 +395,8 @@
       ],
       "status": "settled",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.dso_on"]
     },
     {
       "id": "stem.prepare.opens.a2",
@@ -551,8 +564,7 @@
     {
       "id": "stem.evaluation_12_month.opens.a2",
       "inputs": {
-        "a2.id": "a2",
-        "outer.id": "a2"
+        "a2.card_start": "2026-02-10"
       },
       "reading": false,
       "record": "a2",
@@ -563,13 +575,13 @@
       ],
       "status": "settled",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_start"]
     },
     {
       "id": "stem.evaluation_12_month.closes.a2",
       "inputs": {
-        "a2.id": "a2",
-        "outer.id": "a2"
+        "a2.card_start": "2026-02-10"
       },
       "reading": false,
       "record": "a2",
@@ -580,13 +592,13 @@
       ],
       "status": "settled",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["future:stem.card_start"]
     },
     {
       "id": "stem.evaluation_final.opens.a2",
       "inputs": {
-        "a2.id": "a2",
-        "outer.id": "a2"
+        "a2.card_start": "2026-02-10"
       },
       "reading": true,
       "record": "a2",
@@ -605,8 +617,7 @@
     {
       "id": "stem.evaluation_final.closes.a2",
       "inputs": {
-        "a2.id": "a2",
-        "outer.id": "a2"
+        "a2.card_start": "2026-02-10"
       },
       "reading": true,
       "record": "a2",
@@ -651,10 +662,11 @@
       "inputs": {
         "a2.card_end": "2027-02-09",
         "a2.card_start": "2026-02-10",
-        "a2.id": "a2",
+        "t1.left_on": "2026-05-01",
+        "t1.returned_on": "2026-05-15",
+        "w1.end": "not_yet",
         "w1.hours_per_week": 40,
-        "w1.start": "2026-02-15",
-        "w1.under": "a2"
+        "w1.start": "2026-02-15"
       },
       "reading": true,
       "rule_ids": [
@@ -666,17 +678,19 @@
       ],
       "status": "guidance",
       "unit": "days",
-      "value": null
+      "value": null,
+      "waits_on": ["t1.purpose", "pending:w1.end"]
     },
     {
       "id": "unemployment.opt_card.a2.limit_day",
       "inputs": {
         "a2.card_end": "2027-02-09",
         "a2.card_start": "2026-02-10",
-        "a2.id": "a2",
+        "t1.left_on": "2026-05-01",
+        "t1.returned_on": "2026-05-15",
+        "w1.end": "not_yet",
         "w1.hours_per_week": 40,
-        "w1.start": "2026-02-15",
-        "w1.under": "a2"
+        "w1.start": "2026-02-15"
       },
       "reading": true,
       "rule_ids": [
@@ -688,13 +702,14 @@
       ],
       "status": "guidance",
       "unit": "date",
-      "value": null
+      "value": null,
+      "waits_on": ["t1.purpose", "pending:w1.end"]
     },
     {
       "id": "opt.months_at_level.master",
       "inputs": {
+        "a2.card_end": "2027-02-09",
         "a2.card_start": "2026-02-10",
-        "a2.id": "a2",
         "days": 0
       },
       "reading": true,
@@ -745,75 +760,59 @@
   "questions": [
     {
       "because": ["missing:a1.dso_on"],
+      "field": "dso_on",
       "id": "a1.dso_on",
-      "record": "a1"
+      "record": "a1",
+      "state": "absent"
     },
     {
       "because": ["missing:p1.first_year_before_training"],
+      "field": "first_year_before_training",
       "id": "p1.first_year_before_training",
-      "record": "p1"
+      "record": "p1",
+      "state": "absent"
     },
     {
       "because": ["missing:p1.immediate_cpt"],
+      "field": "immediate_cpt",
       "id": "p1.immediate_cpt",
-      "record": "p1"
+      "record": "p1",
+      "state": "absent"
     },
     {
       "because": ["missing:p1.full_course_each_term"],
+      "field": "full_course_each_term",
       "id": "p1.full_course_each_term",
-      "record": "p1"
+      "record": "p1",
+      "state": "absent"
     },
     {
       "because": ["missing:p1.online_within_limit"],
+      "field": "online_within_limit",
       "id": "p1.online_within_limit",
-      "record": "p1"
+      "record": "p1",
+      "state": "absent"
     },
     {
       "because": ["missing:t1.signature_on"],
+      "field": "signature_on",
       "id": "t1.signature_on",
-      "record": "t1"
+      "record": "t1",
+      "state": "absent"
     },
     {
       "because": ["missing:t1.job_on_return"],
+      "field": "job_on_return",
       "id": "t1.job_on_return",
-      "record": "t1"
+      "record": "t1",
+      "state": "absent"
     },
     {
       "because": ["missing:t1.purpose"],
+      "field": "purpose",
       "id": "t1.purpose",
-      "record": "t1"
-    },
-    {
-      "because": ["unconfirmed:complete.authorization"],
-      "id": "complete.authorization"
-    },
-    {
-      "because": ["unconfirmed:complete.end_date_change"],
-      "id": "complete.end_date_change"
-    },
-    {
-      "because": ["unconfirmed:complete.program"],
-      "id": "complete.program"
-    },
-    {
-      "because": ["unconfirmed:complete.move"],
-      "id": "complete.move"
-    },
-    {
-      "because": ["unconfirmed:complete.work"],
-      "id": "complete.work"
-    },
-    {
-      "because": ["unconfirmed:complete.trip"],
-      "id": "complete.trip"
-    },
-    {
-      "because": ["unconfirmed:complete.petition"],
-      "id": "complete.petition"
-    },
-    {
-      "because": ["unconfirmed:complete.withdrawal"],
-      "id": "complete.withdrawal"
+      "record": "t1",
+      "state": "absent"
     },
     {
       "about": {
@@ -1777,6 +1776,7 @@
           "closes_days_away": -230,
           "id": "opt.apply_window.a2",
           "inputs": {
+            "a2.filed_on": "2025-10-10",
             "p1.end_date": "2025-12-13"
           },
           "label": "Filing window for Form I-765",
@@ -1792,6 +1792,7 @@
           "closes_days_away": -230,
           "id": "opt.latest_start.a2",
           "inputs": {
+            "a2.filed_on": "2025-10-10",
             "p1.end_date": "2025-12-13"
           },
           "label": "Latest start date that may be requested",
@@ -1823,6 +1824,7 @@
           "id": "opt.last_day.a2",
           "inputs": {
             "a2.dso_on": "2025-10-01",
+            "a2.filed_on": "2025-10-10",
             "p1.end_date": "2025-12-13"
           },
           "label": "Last day to file Form I-765",
@@ -1842,6 +1844,7 @@
           "closes_days_away": -380,
           "id": "opt.prepare.a2",
           "inputs": {
+            "a2.filed_on": "2025-10-10",
             "p1.end_date": "2025-12-13",
             "plan.prepare_months": 1
           },
@@ -1859,6 +1862,7 @@
           "closes_days_away": 137,
           "id": "opt.complete_by.a2",
           "inputs": {
+            "a2.filed_on": "2025-10-10",
             "p1.end_date": "2025-12-13"
           },
           "label": "Practical training completed after the completion of study",
@@ -1952,7 +1956,8 @@
           "reading": false,
           "record": "a2",
           "rule_ids": ["stem.file_within_days_of_recommendation"],
-          "status": "settled"
+          "status": "settled",
+          "waits_on": ["future:stem.dso_on"]
         },
         {
           "closes": null,
@@ -1971,7 +1976,8 @@
             "stem.apply_window_closes_rule",
             "stem.file_within_days_of_recommendation"
           ],
-          "status": "settled"
+          "status": "settled",
+          "waits_on": ["future:stem.dso_on"]
         },
         {
           "closes": "2026-11-11",
@@ -2075,8 +2081,7 @@
           "closes_days_away": null,
           "id": "stem.evaluation_12_month.a2",
           "inputs": {
-            "a2.id": "a2",
-            "outer.id": "a2"
+            "a2.card_start": "2026-02-10"
           },
           "label": "Initial evaluation",
           "opens": null,
@@ -2088,15 +2093,15 @@
             "stem.evaluation_due_days",
             "stem.reporting_required"
           ],
-          "status": "settled"
+          "status": "settled",
+          "waits_on": ["future:stem.card_start"]
         },
         {
           "closes": null,
           "closes_days_away": null,
           "id": "stem.evaluation_final.a2",
           "inputs": {
-            "a2.id": "a2",
-            "outer.id": "a2"
+            "a2.card_start": "2026-02-10"
           },
           "label": "Concluding evaluation",
           "opens": null,
@@ -2173,7 +2178,7 @@
       "ends_days_away": null,
       "facts": {
         "w1.employer": "e1",
-        "w1.employer_reported": "yes",
+        "w1.employer_reported": true,
         "w1.hours_per_week": 40,
         "w1.start": "2026-02-15",
         "w1.under": "a2"
@@ -2287,6 +2292,7 @@
       "days_away": 137,
       "id": "opt.complete_by.closes.a2",
       "inputs": {
+        "a2.filed_on": "2025-10-10",
         "p1.end_date": "2025-12-13",
         "today": "2026-09-29"
       },
@@ -2308,16 +2314,7 @@
       "missing:t1.signature_on",
       "missing:t1.job_on_return",
       "missing:t1.purpose",
-      "unconfirmed:complete.authorization",
-      "unconfirmed:complete.end_date_change",
-      "unconfirmed:complete.program",
-      "unconfirmed:complete.move",
-      "unconfirmed:complete.work",
-      "unconfirmed:complete.trip",
-      "unconfirmed:complete.petition",
-      "unconfirmed:complete.withdrawal",
       "rule_in_litigation",
-      "rule_not_in_force_on_event_day",
       "rule_copy_not_saved_for_event_day",
       "opt.months_at_level.at_or_over_limit.master"
     ],

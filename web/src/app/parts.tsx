@@ -350,6 +350,8 @@ export function DateField(props: {
   onChange: (value: string) => void;
   /** A day the student may not know: a quiet "I'm not sure" beside the parts. */
   notSure?: { pressed: boolean; onPress: () => void };
+  /** What leaving it empty states (SPEC-W2-UNKNOWN point 2). */
+  empty?: string | undefined;
 }) {
   const [month, day, year] = splitDate(props.value);
   const set = (part: 0 | 1 | 2, text: string) => {
@@ -377,6 +379,7 @@ export function DateField(props: {
           </label>
         ))}
       </div>
+      {props.empty !== undefined && <p className="meta">{props.empty}</p>}
       {props.notSure !== undefined && (
         <p className="not-sure">
           <button

@@ -1364,3 +1364,45 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not built
 
 - No change to web source, web tests or samples: none is required by the re-review fixes.
+
+## l-web-7d79b07ed4 (W2-P1 unknown, SPEC-W2-UNKNOWN points 2, 38 and 43), attempt 1
+
+### Tried and ran
+
+- compute.ts: `waits_on` (min 1) on computed items, upcoming, stage windows and stages;
+  `field`, `state` and `withholds` on questions, as contracts/engine_output.schema.json has them.
+- labels.ts: `unreadableLine`, `undecidedLine`, `waitingLine` (point 38). `becauseLine` takes the
+  question's `about` and words `unreadable:` and `undecided:` reasons with them; `missing:` reads
+  as before. `shownValue` shows a withheld item as "Waiting for <gap>" (or "After <gap>" when
+  every entry is pending), never a number; Home, Timeline and Result use it for computed items.
+- records.ts (point 43): `cleanField` and `caseRecord` send every value as typed and an empty
+  one as absent. The date check, the link check and LEFT_WHEN_NOT_SURE went (a not sure outcome
+  is now sent as not_sure). typedDates lists only ISO days, so an unreadable date is not put to
+  the "did you type these from your documents" check.
+- Sending a half-typed date ("5//") recomputes on each keystroke, and the asked field view gave
+  way to the busy line mid-typing (Onboarding.test "asks for a date field"). Onboarding keeps
+  the view being answered while its answer computes.
+- EMPTY_WORDS in labels.ts: the 16 lines of the pack CHANGELOG (point 2). Shown under the date
+  fields Onboarding lets be left empty: authorization.filed_on, petition.requested_start and
+  validity_start, move.release_date and contacted_new_dso_on (now optional). fieldQuestion drops
+  the words: a field the engine asks is not a statement when empty.
+- Samples: `make samples` made both samples mostly withheld (their cases stated no list whole,
+  point 14) and `unreadable:w1.employer_reported` ("yes" in a flag). The case files now state
+  every list on the sample's own day and give `employer_reported: true`. ui1.test counts 9
+  questions, not 17, and no list line.
+- Tests added: src/lib/emptyWords.test.ts (the words equal the CHANGELOG's, fields carry their
+  own), src/lib/unknownWords.test.ts (question line, waiting, pending). Updated: records.test,
+  fix7.test (outcome not_sure sent; requested_start carries its words), OnboardingWalk.test
+  (release date and new DSO contact may be left empty), ui1.test.
+- Done command: exit 0. web 36 files, 618 tests passed; eslint, prettier and copy lint clean.
+  `tsc -p ../tests/web` also passes. One Onboarding test ("leaves a list unstated") failed once
+  in a full run and passed on two reruns: timing under load.
+
+### Not built
+
+- No `when_absent` words on choice views (decision, outcome, under/on_campus, extends,
+  employer, basis_program): their options already state the answer. work.end: its view shows
+  only after "It ended". card_start and card_end: the pack says ask once a decision is in, which
+  is when the view shows. registered_on and report.made_on: no Onboarding view asks them.
+- caseStore.tsx's older f1 form still defaults hours to 0 (`|| "0"`) and setField drops a not
+  sure basis_program: neither is records.ts, which point 43 names; left for a later round.

@@ -231,22 +231,24 @@ describe("point 26: Onboarding does not require the petition's outcome", () => {
     expect(why).toContain("DSO");
   });
 
-  it("sends no outcome when the student is not sure", () => {
-    // An outcome left is not known (programs.md section 10). "not_sure" is not one of the
-    // pack's outcomes, and point 24 would ask it back.
-    // Kills: the not-sure marker sent to the engine as the outcome.
+  it("sends not_sure when the student is not sure of the outcome", () => {
+    // SPEC-W2-UNKNOWN points 4 and 43: not sure is undecided on every field, and is sent as
+    // typed. Left out, the pack's when_absent none would read it as no outcome given.
+    // Kills: the not-sure answer dropped and read as a statement the student did not make.
     const held = setField(withPetition(), "h1", "outcome", NOT_SURE);
     const petition = caseBody(held)?.records.find((record) => record.id === "h1");
     expect(petition).toBeDefined();
-    expect(petition?.fields.outcome).toBeUndefined();
+    expect(petition?.fields.outcome).toBe("not_sure");
   });
 
-  it("still asks the requested start, which point 23 needs", () => {
-    // Kills: the requested start made optional along with the outcome.
+  it("still asks the requested start, which point 23 needs, and says what empty means", () => {
+    // SPEC-W2-UNKNOWN point 2: the pack declares requested_start when_absent none, so left
+    // empty it states the petition asks for no start date, in the pack's recorded words.
+    // Kills: the requested start dropped from the view, or empty with no words.
     const fields = step(withPetition(), "petition:h1").fields ?? [];
     const start = fields.find((field) => field.name === "requested_start");
     expect(start).toBeDefined();
-    expect(start?.optional).not.toBe(true);
+    expect(start?.empty).toBe("Leave empty if the petition asks for no start date.");
     expect(start?.notSure).not.toBe(true);
   });
 });

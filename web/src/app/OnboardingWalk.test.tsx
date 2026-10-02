@@ -297,12 +297,15 @@ describe("Days a student may not know (finding 5)", () => {
     await walkTo(held, "The dates of that move");
     expect(why()).not.toBe("");
     next();
+    // SPEC-W2-UNKNOWN point 2: the pack declares the release date and the contact with the new
+    // DSO when_absent not_yet, so either may be left empty: the words say what that states.
     expect(problems()).toEqual([
       "Enter the day you told the school.",
-      "Enter the release date.",
       "Enter the new I-20's date.",
-      "Enter the day you contacted the new DSO.",
     ]);
+    expect(
+      screen.getByText("Leave empty if your record has not been released in SEVIS yet."),
+    ).toBeInTheDocument();
     for (const label of [
       "The day you told the school",
       "The release date",
