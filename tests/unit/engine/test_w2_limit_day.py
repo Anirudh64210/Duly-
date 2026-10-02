@@ -210,6 +210,41 @@ def test_the_limit_day_moves_with_the_days_counted(idle_since_job):
     assert limit_day_value(out, "unemployment.opt_card", "a1") == expected.isoformat()
 
 
+# reviews/w2-p1.md finding 3: a card that has not started yet still has a limit day. If nothing
+# changes, no job ever covers a day, so day 1 is the card's first day and the limit-th counted
+# day is card start + (L - 1). Null would read as "never reached" or "not known", and neither
+# is so here (point 46 N2).
+
+
+def future_card_case(start: date) -> dict[str, Any]:
+    # Program end 2026-09-15; recommended 2026-08-01, filed 2026-08-10 (inside the window,
+    # 2026-06-17 to 2026-11-14). The card runs a year from `start`, no job.
+    program = dict(PROGRAM, fields=dict(PROGRAM["fields"], end_date="2026-09-15"))
+    card = opt_card(end=(start + timedelta(days=364)).isoformat())
+    card["fields"].update(dso_on="2026-08-01", filed_on="2026-08-10", card_start=start.isoformat())
+    return f1_case([program, card, EMPLOYER])
+
+
+def test_a_card_that_starts_after_today_has_a_limit_day():
+    # Card 2026-10-15 to 2027-10-14, today 2026-09-29. Counted if nothing changes: Oct 15-31
+    # is 17, Nov 47, Dec 78, Jan 1-12 is 12 more, 90. The count reaches 90 on 2027-01-12.
+    # Fails if: the engine gives null whenever today is before the card's start.
+    out = compute(future_card_case(date(2026, 10, 15)), [PACK], TODAY)
+    assert date(2026, 10, 15) + timedelta(days=OPT_LIMIT - 1) == date(2027, 1, 12)
+    assert limit_day_value(out, "unemployment.opt_card", "a1") == "2027-01-12"
+
+
+@settings(deadline=None, max_examples=25)
+@given(st.integers(min_value=1, max_value=45))
+def test_a_future_card_s_limit_day_moves_with_its_start(ahead):
+    # The card starts `ahead` days after today (2026-09-30 to 2026-11-13, inside the 60 days
+    # after the program end). Its first day is day 1, so day 90 is start + 89.
+    start = TODAY + timedelta(days=ahead)
+    out = compute(future_card_case(start), [PACK], TODAY)
+    expected = start + timedelta(days=OPT_LIMIT - 1)
+    assert limit_day_value(out, "unemployment.opt_card", "a1") == expected.isoformat()
+
+
 # STEM: the total count over the OPT card and its extension, with its own limit.
 
 
