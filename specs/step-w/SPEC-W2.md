@@ -412,7 +412,9 @@ with tests first. Codes as used in the gap map.
     count.
 41. K3, `contracts/schedule.schema.json` and `POST /v1/schedule` in openapi.yaml: requests
     `{id, from: {item} | {date} | {today}, add: {days} | {business_days} | {months} |
-    {setting}, sign, cap: {item}?}` in, `{id, date, days_away}` out. No other route changes.
+    {setting}, sign, cap: {item}?}` in; out `{today, dates: [{id, date, days_away}]}`, each answer
+    optionally carrying `missing`, `capped`, `planning` (only when a setting set it), `rule_ids`
+    and `inputs` (as built in W2-P0). No other route changes.
 42. K4, the desktop bridges: `desktop_engine_bridge.schema.json`, `desktop_documents_bridge.
     schema.json`, `desktop_state_bridge.schema.json`, `desktop_ask_bridge.schema.json`.
     desktop_case_bridge.schema.json is unchanged.
