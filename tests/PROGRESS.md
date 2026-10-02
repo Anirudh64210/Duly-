@@ -3137,3 +3137,39 @@ three files, since test_path_reach's helpers are private to it.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-9700f0e0e1: W2-P1 in line after the engine and the founder decisions (SPEC-W2 45, 46, 49)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 point 45 as amended in c24c65d (founder decisions
+2026-10-01: no recommendation date means Can't tell yet and the date is asked; no report window
+on an hours change), the c24c65d test change, the L-engine merge 5f6170f.
+
+Ran the done command first: ruff clean, "92 files already formatted"; pytest 15 failed, all in
+tests/unit/desktop_entry/test_desktop_main.py on bind with Errno 1 (the sandbox socket wall);
+every W2 test in tests/unit/engine/test_w2_windows.py, test_w2_limit_day.py and
+tests/holdout/test_holdout_w2.py passed.
+
+Found: test_opt_last_day_with_no_recommendation_date_is_no_date could not fail if the engine
+stopped asking for the date: the case is cannot_tell for other reasons (missing
+p1.full_course_each_term, unconfirmed typed dates, and more). The docstring and a section comment
+still promised an hours-change report window.
+
+Changed (tests/unit/engine/test_w2_windows.py only):
+- the OPT test now also asserts "missing:a1.dso_on" in the verdict reasons and a question whose
+  because holds it (point 45, founder decision). Fails if: the engine treats dso_on as optional
+  again, or gives the window close alone as the last day.
+- new test_stem_last_day_with_no_recommendation_date_is_no_date: the same for a2 on the STEM
+  card (card end 2026-06-30 never shown alone). Fails if: stem.last_day closes on the card end
+  with no dso_on, or a2.dso_on is not asked.
+- the module docstring and the P3 section comment say an hours change gets no window.
+Assertions only added; none loosened.
+
+Done command after: ruff "All checks passed!", "92 files already formatted"; pytest the same 15
+socket failures and nothing else.
+
+Not built: no helper beyond asks_for (used by both tests), no new file. Did not add "-> None"
+across the file for the mypy hook: the file and its neighbours leave tests unannotated, and the
+done command runs no mypy.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
