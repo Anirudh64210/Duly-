@@ -1406,3 +1406,16 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   is when the view shows. registered_on and report.made_on: no Onboarding view asks them.
 - caseStore.tsx's older f1 form still defaults hours to 0 (`|| "0"`) and setField drops a not
   sure basis_program: neither is records.ts, which point 43 names; left for a later round.
+
+## l-web-4e473132a9 (SPEC-W2-UNKNOWN, web/src against the regenerated samples), attempt 1
+
+### Tried and ran
+
+- Done command (`npm run typecheck -w web && npm test -w web -- src/ && npx eslint web
+  --max-warnings 0`) on the branch as received (HEAD 2788bc7, samples last changed in 4e5e9db):
+  exit 0. 34 test files, 609 tests passed; typecheck and eslint clean.
+
+### Not built
+
+- No change to web source, web tests or samples: nothing failed, so no SPEC-W2-UNKNOWN point
+  calls for a change in this round.
