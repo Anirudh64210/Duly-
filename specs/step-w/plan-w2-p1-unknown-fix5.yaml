@@ -46,7 +46,14 @@ rounds:
       any3, not3 on Unknown values) and read dates and numbers through engine/readers.py, removing path.py''s
       own copies, with no change in what any test expects. Finding 6, engine side: an undeclared category
       raises CaseStructureError, never a plain ValueError. Generic, nothing about F-1 in engine code.
-      Make every test in tests/unit/engine and the journeys pass.'
+      Make every test in tests/unit/engine and the journeys pass. Resume note (2026-10-02): your kept
+      work (lane/L-engine/l-engine-c27fd187fc, commit 710a960) already passes all but four tests and one
+      lint: tests/unit/engine/test_f1_translation.py::test_change_3_a_record_that_ends_before_today_is_asked_about,
+      tests/unit/engine/test_unknown_logic.py::test_a_read_once_tree_is_known_exactly_when_every_completion_agrees,
+      tests/unit/engine/test_w2_unknown_props.py::test_the_properties_saw_each_output_kind_known_and_changed,
+      tests/unit/acceptance/test_journeys.py::test_j07_opt_is_next_for_the_bachelors_at_school_b, and
+      ruff SIM102 at engine/path.py:746. Carry that work forward and finish these; the full done command
+      takes about two and a half minutes, so run single tests while you work.'
     done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run
       python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff
       format --check engine'
