@@ -171,6 +171,15 @@
             "type": "boolean",
             "const": true,
             "description": "Present and true when a date here is set from a product setting in contracts/product_settings.yaml, not from a rule. A planning date is Duly's own choice, never shown as law. Absent on every date that rests on rules alone"
+          },
+          "waits_on": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Present only when this item is withheld: its value is null, and on a count so are its limit day and its at-or-over judgement, because a value the engine could not read or the person has not given could change it. The screen shows it as waiting, never as a number and never as 0. A null value with no waits_on means only that the item does not apply (specs/step-w/SPEC-W2-UNKNOWN.md points 33 and 34). Each entry is a question id in questions, a named lapse or conflict reason in the verdict (such as a rule_not_in_force reason or a span conflict), pending:<record>.<field> (a not yet event compared with a later day: the answer comes with time, shown as after that event) or future:<stage>.<field> (a field of a record not entered yet, read by a next stage). Pending and future entries are never questions and never block the verdict."
           }
         }
       }
@@ -277,12 +286,34 @@
           },
           "about": {
             "type": "object",
-            "description": "The values of the inputs that raised the question. The screen sends them back with the answer, so that an answer is never carried over to values it was not given for."
+            "description": "The values of the inputs that raised the question. The screen sends them back with the answer, so that an answer is never carried over to values it was not given for. For an unreadable value, it holds the value as entered under the question id, so the screen can show it back (specs/step-w/SPEC-W2-UNKNOWN.md point 34)."
           },
           "record": {
             "type": "string",
             "pattern": "^[a-z]{1,3}[0-9]{1,4}$",
             "description": "The record this belongs to"
+          },
+          "field": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$",
+            "description": "The field the question asks about: a field of record, a fact's name for a facts.<name> question, or the kind for a complete.<kind> question (specs/step-w/SPEC-W2-UNKNOWN.md point 34). The question id is <record>.<field>, facts.<name>, complete.<kind>, or span_order.<record> for a conflict"
+          },
+          "state": {
+            "enum": [
+              "absent",
+              "unreadable",
+              "undecided",
+              "list",
+              "conflict"
+            ],
+            "description": "Why the value is unknown (specs/step-w/SPEC-W2-UNKNOWN.md points 1 and 5). absent: the field is left out and the pack does not say what its absence means. unreadable: a value is present but does not read against the field's kind. undecided: the person entered not_sure. list: a list not stated whole. conflict: facts that do not fit, such as an end before its start. Lapse, pending and future gaps are never asked, so they never appear here"
+          },
+          "withholds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids of the outputs this question holds back until it is answered: computed items, windows, stages, upcoming items, and a record's entry into a stage or check (<stage>.<record>, <check>.<record>) that is left out until then (specs/step-w/SPEC-W2-UNKNOWN.md points 17 and 34). Each names an output that is absent or carries waits_on"
           }
         }
       }
@@ -405,6 +436,15 @@
             "type": "boolean",
             "const": true,
             "description": "Present and true when a date here is set from a product setting in contracts/product_settings.yaml, not from a rule. A planning date is Duly's own choice, never shown as law. Absent on every date that rests on rules alone"
+          },
+          "waits_on": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Present when this item's date is known but whether it still lies ahead rests on an answer not given, such as whether the step it closes was done. upcoming never holds a date that rests on an unknown; such an item is left out and named in a question's withholds (specs/step-w/SPEC-W2-UNKNOWN.md points 33 and 34). Each entry is a question id in questions, a named lapse or conflict reason in the verdict (such as a rule_not_in_force reason or a span conflict), pending:<record>.<field> (a not yet event compared with a later day: the answer comes with time, shown as after that event) or future:<stage>.<field> (a field of a record not entered yet, read by a next stage). Pending and future entries are never questions and never block the verdict."
           }
         }
       }
@@ -711,6 +751,15 @@
                   "type": "boolean",
                   "const": true,
                   "description": "Present and true when a date here is set from a product setting in contracts/product_settings.yaml, not from a rule. A planning date is Duly's own choice, never shown as law. Absent on every date that rests on rules alone"
+                },
+                "waits_on": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "description": "Present when this window rests on a value not yet known. Dates that rest on it are null and shown as waiting; a window whose dates are known but whose done step is not yet known keeps its dates and stays open with waits_on (specs/step-w/SPEC-W2-UNKNOWN.md points 33 and 34). Each entry is a question id in questions, a named lapse or conflict reason in the verdict (such as a rule_not_in_force reason or a span conflict), pending:<record>.<field> (a not yet event compared with a later day: the answer comes with time, shown as after that event) or future:<stage>.<field> (a field of a record not entered yet, read by a next stage). Pending and future entries are never questions and never block the verdict."
                 }
               },
               "description": "A window kept from before it opens until the day after it closes, so that its opening date stays while it is open"
@@ -740,6 +789,15 @@
               "type": "string"
             },
             "description": "The verdict reasons that rest on this stage's items or facts"
+          },
+          "waits_on": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Present only when this stage entry is withheld: its state is unknown and its dates are null, because whether or when it is entered, its next stage's condition or close, or a conflict on its own span rests on a value not yet known. A stage is never current, done or next on a guess (specs/step-w/SPEC-W2-UNKNOWN.md points 33 and 34). Each entry is a question id in questions, a named lapse or conflict reason in the verdict (such as a rule_not_in_force reason or a span conflict), pending:<record>.<field> (a not yet event compared with a later day: the answer comes with time, shown as after that event) or future:<stage>.<field> (a field of a record not entered yet, read by a next stage). Pending and future entries are never questions and never block the verdict."
           }
         }
       }

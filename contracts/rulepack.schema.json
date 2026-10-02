@@ -351,10 +351,12 @@
           "type": "string"
         },
         "window_opens": {
-          "type": "string"
+          "type": "string",
+          "description": "The open day of a window already computed, by window id. Refused at pack load until the engine works it (SPEC-W2-UNKNOWN point 11)"
         },
         "window_closes": {
-          "type": "string"
+          "type": "string",
+          "description": "The close day of a window already computed, by window id. Refused at pack load until the engine works it (SPEC-W2-UNKNOWN point 11)"
         },
         "month_day_rule": {
           "type": "string",
@@ -386,11 +388,11 @@
         "optional": {
           "type": "boolean",
           "default": false,
-          "description": "Inside earliest_of or latest_of: skipped when its fact is absent. Any other absent member makes the date missing"
+          "description": "Inside earliest_of or latest_of: passed over only when its value is known to be none. An optional member that is unknown, or whose rule is not in force on the day it is read for, makes the whole date unknown and keeps its gaps; it is never read as no cut-off. A member that is not optional and is none makes the date none: the output does not apply. A member that is not yet takes part as the condition's ordering says (in latest_of it is later than every day up to today) (SPEC-W2-UNKNOWN point 16)"
         },
         "as_of": {
           "$ref": "#/$defs/when",
-          "description": "Read `fact`, a field with history, as it stood on this day. When this day's own fact is absent, today"
+          "description": "Read `fact`, a field with history, as it stood on this day. When this day is unknown, the read is unknown, unless no change record could apply to that field of that record, in which case the value is the same on every day and is known; no change record could apply only when the change kind is stated whole. When this day is not yet (the event has not happened), the value as it stands today. Never today in place of an unknown day (SPEC-W2-UNKNOWN point 26)"
         },
         "in_fiscal_year_of": {
           "type": "string",
@@ -430,7 +432,7 @@
               ]
             }
           },
-          "description": "The earliest or latest value of a date field over the records a selector finds. None found: absent"
+          "description": "The earliest or latest known value of a date field over the decided records a selector chooses. A chosen record whose date is none is passed over; one whose date is not yet is ordered after every day up to today and compared with later days as the condition says. A record that is undecided, or chosen with an unknown date, leaves the found value standing only when its date is known and cannot beat it (not before it for earliest, not after it for latest); otherwise the result is unknown with its gaps. A found value also needs the list stated whole, since a record not entered could beat it. Nothing chosen: none when no record is undecided and the list is stated whole, else unknown (SPEC-W2-UNKNOWN points 14 and 15)"
         }
       }
     },
@@ -594,10 +596,11 @@
           "items": {
             "type": "string"
           },
-          "description": "Stages this one comes after. The engine checks each for a gap or an overlap the rules do not allow"
+          "description": "Stages this one comes after. The engine checks each for a gap or an overlap the rules do not allow. Refused at pack load until the engine works it (SPEC-W2-UNKNOWN point 11)"
         },
         "gap_allowed": {
-          "$ref": "#/$defs/amount"
+          "$ref": "#/$defs/amount",
+          "description": "The gap the rules allow between this stage and one it follows. Refused at pack load until the engine works it (SPEC-W2-UNKNOWN point 11)"
         },
         "windows": {
           "type": "array",
@@ -640,7 +643,8 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/$defs/condition"
-                    }
+                    },
+                    "description": "Conditions under which the list applies to this stage. Refused at pack load until the engine works it (SPEC-W2-UNKNOWN point 11)"
                   }
                 }
               }
@@ -808,8 +812,68 @@
         },
         "history": {
           "$ref": "#/$defs/history"
+        },
+        "when_absent": {
+          "anyOf": [
+            {
+              "enum": [
+                "ask",
+                "not_yet",
+                "none"
+              ]
+            },
+            {
+              "$ref": "#/$defs/absence_by_record"
+            }
+          ],
+          "default": "ask",
+          "description": "What this field left out or null means (SPEC-W2-UNKNOWN point 2). ask, the default: absence is unknown and is asked. not_yet: the event has happened on no day up to and including today (a job's end, a return from a trip, a filing); read as the known value not yet, never as none, and listed among an item's inputs as not yet. none: there is none (an outcome not yet given, a job that is not on campus); read as the known value none, listed as none. An object makes absence depend on this record (point 2a). The screen words the empty field from this declaration, so leaving it empty is the person's statement, not a guess. The values an unknown could take are, for ask and none, every readable value and none, and for not_yet, every readable value and not yet"
         }
       }
+    },
+    "absence_by_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "not_yet"
+          ]
+        },
+        {
+          "required": [
+            "none"
+          ]
+        }
+      ],
+      "properties": {
+        "not_yet": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 1,
+          "description": "Conditions that, all true, make absence the known value not yet. Read first"
+        },
+        "none": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 1,
+          "description": "Conditions that, all true, make absence the known value none. Read after not_yet"
+        },
+        "else": {
+          "enum": [
+            "ask",
+            "not_yet",
+            "none"
+          ],
+          "default": "ask",
+          "description": "What absence means when every list is false"
+        }
+      },
+      "description": "Absence that depends on the record (SPEC-W2-UNKNOWN point 2a), such as a card's dates that are not yet while no decision has come. Each list of conditions reads this record's own fields only (this.<field>). The lists are read in the order not_yet, then none: the first list that is true gives the state, and else applies when every list is false. When a list is unknown before any is true, absence is unknown, and both the condition's gaps and this field's absent gap are asked. A condition may not read a field whose own when_absent is an object: refused at pack load (point 11)"
     },
     "history": {
       "type": "object",
@@ -892,7 +956,7 @@
           }
         }
       },
-      "description": "The records of one kind for which every condition is true. Inside, this is the record tested and outer is the record of the stage, check or counter that uses the selector. A record for which a condition is unknown makes the selection unknown"
+      "description": "Records whose conditions are true are chosen; records with an unknown condition are undecided and asked; a decided record is never dropped for an undecided one. A record with a false condition is left out. Inside, this is the record tested and outer is the record of the stage, check or counter that uses the selector. While the kind's list is not stated whole, a record not entered could still be chosen (SPEC-W2-UNKNOWN points 13 and 14)"
     },
     "condition": {
       "type": "object",
@@ -901,7 +965,7 @@
       "properties": {
         "field": {
           "type": "string",
-          "description": "The path the test reads"
+          "description": "The path the test reads. With no operator: a flag gives its value (false is false); a field of any other kind reads as present: true"
         },
         "in": {
           "type": "array",
@@ -1003,7 +1067,7 @@
           "$ref": "#/$defs/condition"
         }
       },
-      "description": "One test, true, false or unknown. Unknown when a field it reads is absent or not_sure. A list of conditions holds when all are true. Amounts are rules, never literal numbers"
+      "description": "One test, true, false or unknown (SPEC-W2-UNKNOWN points 6 to 8). A value read is known (K), the known value none (N) or not yet (Y) that a field's when_absent gives, or unknown (U): absent on a field whose when_absent is ask, unreadable against its kind, or not_sure. A path through a link that is N or Y gives N; through a link that is U it gives U, naming the link. A test is true or false only when every value the unknowns could take gives that same answer. By operator. Field alone: a flag gives its value (false is false); any other kind as present: true. present true or false: K gives true or false; N or Y gives false or true; U gives U and is asked. in: K tests membership; N or Y false; U unknown. on_or_before, on_or_after, before, after: both sides K are compared; Y is later than a known day on or before today, and against a known day after today the test is unknown with a pending gap, not asked; either side N false; else either side U unknown. level_above, level_same, level_below: both sides K and ranked are compared; N or Y false; U unknown. same_as, differs_from: both sides K are compared; either side N or Y false (a join on nothing is no join; for both none use present: false); else either side U unknown. month_day_is: K compared; N or Y false; U unknown. at_most: a K number compared with the rule value; N or Y false; U unknown. exists: true if a decided record is chosen; false if no record is chosen, none is undecided and the list is stated whole; else unknown. none: the negation of exists. count_below n, with k chosen and u undecided: false if k is n or more; true if the list is stated whole and k + u is below n; else unknown. count_at_most n: false if k is above n; true if the list is stated whole and k + u is n or less; else unknown. all_of: false if any is false; true if all are true; else unknown. any_of: true if any is true; false if all are false; else unknown. not: true and false swap; unknown stays unknown. A list of conditions reads as all_of. A test settled by one member asks nothing for the others; a test that is unknown asks every gap it rests on. Amounts are rules, never literal numbers"
     },
     "next_step": {
       "type": "object",

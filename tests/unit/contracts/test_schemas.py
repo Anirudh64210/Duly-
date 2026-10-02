@@ -85,3 +85,42 @@ def test_todays_engine_output_for_each_journey_still_validates(
     validator = Draft202012Validator(OUTPUT_SCHEMA, format_checker=FormatChecker())
     errors = [f"{list(e.absolute_path)}: {e.message}" for e in validator.iter_errors(res.json())]
     assert errors == []
+
+
+# SPEC-W2-UNKNOWN point 42 (W2-U0): the case contract takes in any number and any string a
+# person typed in a value, so the engine can read it and ask about it, and refuses only
+# structure. A typed -1, 200000 hours, "forty" or "2026-13-40" is taken in, never a 422.
+def _case_with(facts: dict[str, Any], periods: list[dict[str, Any]]) -> dict[str, Any]:
+    body = dict(JOURNEYS[sorted(JOURNEYS)[0]]())
+    body["facts"] = {**body.get("facts", {}), **facts}
+    body["records"] = [
+        *body.get("records", []),
+        {"id": "p9", "kind": "program", "fields": {"periods": periods}},
+    ]
+    return body
+
+
+def _case_errors(body: dict[str, Any]) -> list[str]:
+    schema = json.loads((REPO_ROOT / "contracts" / "case.schema.json").read_text())
+    return [e.message for e in Draft202012Validator(schema).iter_errors(body)]
+
+
+@pytest.mark.parametrize(
+    ("facts", "periods"),
+    [
+        ({"credits": -1}, []),
+        ({"credits": 200000}, []),
+        ({}, [{"start": "2026-01-02", "hours_per_week": 200000}]),
+        ({}, [{"start": "2026-01-02", "hours_per_week": "forty"}]),
+        ({}, [{"start": "2026-13-40", "hours_per_week": 20}]),
+    ],
+)
+def test_the_case_contract_takes_in_any_typed_value(
+    facts: dict[str, Any], periods: list[dict[str, Any]]
+) -> None:
+    assert _case_errors(_case_with(facts, periods)) == []
+
+
+@pytest.mark.parametrize("value", ["", "x" * 121])
+def test_the_case_contract_still_refuses_an_empty_or_overlong_value(value: str) -> None:
+    assert _case_errors(_case_with({"note": value}, [])) != []

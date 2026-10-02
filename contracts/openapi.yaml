@@ -64,8 +64,11 @@ paths:
         records the person entered. Nothing is stored and nothing from the body is logged.
         The request body follows contracts/case.schema.json and the response follows
         contracts/engine_output.schema.json. It gives the same refusals as /v1/compute/f1
-        (NOT_A_NUMBER, NOT_JSON, NOT_YET, and first_problem for a case that does not match).
-        A category whose pack has no path gives cannot_tell with category_not_covered:<id>.
+        (NOT_A_NUMBER, NOT_JSON, NOT_YET, and first_problem for a case that does not match),
+        and CASE_STRUCTURE for a case whose structure the pack refuses. Only structure is
+        refused: a value the person typed is read against the pack's declared kind, and one
+        that cannot be read is asked, never refused. A category whose pack has no path gives
+        cannot_tell with category_not_covered:<id>.
         /v1/compute/f1 stays, and translates its case into this one.
       requestBody:
         required: true
@@ -83,8 +86,14 @@ paths:
                 type: object
         "422":
           description: >
-            The case does not match the contract, or the pack refuses a record kind or field
-            it does not declare. The body names the first problem.
+            The case is refused, before any date is computed. The detail is one of:
+            NOT_JSON (the body is not JSON); NOT_A_NUMBER (a number is NaN, Infinity or too large to hold);
+            first_problem's words (the case does not match contracts/case.schema.json; they
+            name the schema path); NOT_YET (an answer is dated after the person's own day);
+            CASE_STRUCTURE (the pack refuses the case's structure: a category, record kind,
+            field or fact it does not declare, two records with one id, a record id that does
+            not match its kind's id_prefix, or more records of a kind than its max_records).
+            The CASE_STRUCTURE words are plain and never repeat what was sent.
   /v1/schedule:
     post:
       operationId: schedule
@@ -112,8 +121,8 @@ paths:
                 $ref: "schedule.schema.json#/$defs/response"
         "422":
           description: >
-            The body does not match the contract, or the pack refuses a record kind or field
-            of the case. The body names the first problem.
+            The body does not match the contract, or the pack refuses the structure of the
+            case (CASE_STRUCTURE, as /v1/compute gives it). The body names the first problem.
   /v1/updates:
     get:
       operationId: getUpdates

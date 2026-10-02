@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://duly.local/contracts/case.schema.json",
   "title": "A case, for any category",
-  "description": "What a person entered: facts about the person, and records of what happened, each named by the category's rule pack. The engine reads the pack to know what each fact, record kind and field means, and refuses a record whose kind or field the pack does not declare. A field left out is not known: it is never read as no, none or zero. Dates run from 1950 through 2099. Numbers must be finite; NaN and Infinity are refused before validation.",
+  "description": "What a person entered: facts about the person, and records of what happened, each named by the category's rule pack. The engine reads the pack to know what each fact, record kind and field means, and refuses a record whose kind or field the pack does not declare. This contract holds the shape only and stays open for values: a value is read against the pack's declared kind; one that cannot be read is asked, never refused, never dropped, never read as no, none or zero. A field left out is not known: it is never read as no, none or zero. Dates run from 1950 through 2099. Numbers must be finite; NaN and Infinity are refused before validation.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -112,14 +112,13 @@
       "description": "Made on the person's computer: the kind's prefix from the pack, then a number, such as p1, a3, mv1, w12"
     },
     "scalar": {
+      "description": "Any value a person could type in a fact or field: a date, any finite number, a flag, text of 1 to 120 characters, or null for absent. The screen sends an empty value as absent, never as an empty string. A value is read against the pack's declared kind; one that cannot be read is asked, never refused, never dropped, never read as no, none or zero. So a typed -1 or 200000 is taken in and asked, and so is forty or 40 as text where the pack declares a number.",
       "anyOf": [
         {
           "$ref": "#/$defs/date"
         },
         {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 100000
+          "type": "number"
         },
         {
           "type": "boolean"
@@ -137,12 +136,14 @@
     "period": {
       "type": "object",
       "additionalProperties": false,
+      "description": "One period of a record's periods. Its start and hours_per_week take any scalar, read as a date and a number of hours, so one period with a value that cannot be read is asked, never refuses the whole case.",
       "required": [
         "start"
       ],
       "properties": {
         "start": {
-          "$ref": "#/$defs/date"
+          "$ref": "#/$defs/scalar",
+          "description": "The day the period starts, read as a date. A value that cannot be read as a date is asked."
         },
         "end": {
           "anyOf": [
@@ -155,9 +156,8 @@
           ]
         },
         "hours_per_week": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 168
+          "$ref": "#/$defs/scalar",
+          "description": "The hours worked each week in the period, read as a number. A value that cannot be read as hours, such as forty, is asked, never read as no job or zero hours."
         },
         "full_time": {
           "type": "boolean",

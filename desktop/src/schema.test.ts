@@ -97,7 +97,7 @@ describe("checking a value", () => {
 
   it("follows anyOf, numbers and lists", () => {
     const high = { ...good, facts: { credits: 100001 } };
-    expect(checker.problem(CASE_ID, high)).toBe("/facts/*: anyOf");
+    expect(checker.problem(CASE_ID, high)).toBeNull();
     const hours = {
       ...good,
       records: [
@@ -108,7 +108,9 @@ describe("checking a value", () => {
         },
       ],
     };
-    expect(checker.problem(CASE_ID, hours)).toBe("/records/0/fields/*: anyOf");
+    expect(checker.problem(CASE_ID, hours)).toBeNull();
+    // anyOf still refuses: an empty string is no value a person typed (W2-U0 check).
+    expect(checker.problem(CASE_ID, { ...good, facts: { x: "" } })).toBe("/facts/*: anyOf");
   });
 
   it("refuses NaN and a class before any rule", () => {

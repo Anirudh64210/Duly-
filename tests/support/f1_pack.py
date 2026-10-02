@@ -177,8 +177,10 @@ SPEC_SETTINGS: tuple[tuple[str, int, str], ...] = (
     ("product.opt_start_earliest_years_before_program_end", 1, "years"),
 )
 # specs/step-w/SPEC-W2.md point 39 (K1): the settings W2 adds. Kept apart from SPEC_SETTINGS,
-# whose ids the F-1 engine must each use today; these are used from W2-P1 on.
-W2_SETTINGS: tuple[tuple[str, int, str], ...] = (
+# whose ids the F-1 engine must each use today; these are used from W2-P1 on. The last two
+# are specs/step-w/SPEC-W2-UNKNOWN.md point 53 (W2-U0): the readable dates of point 41,
+# held as strings in the case schema's date form.
+W2_SETTINGS: tuple[tuple[str, int | str, str], ...] = (
     ("checkin.job_days", 30, "days"),
     ("checkin.petition_days", 30, "days"),
     ("loop.deadline_lead_days", 3, "days"),
@@ -190,6 +192,8 @@ W2_SETTINGS: tuple[tuple[str, int, str], ...] = (
     ("travel.last_ask_days", 2, "days"),
     ("plan.prepare_months", 1, "months"),
     ("watch.close_days", 30, "days"),
+    ("dates.earliest_readable", "1950-01-01", "date"),
+    ("dates.latest_readable", "2099-12-31", "date"),
 )
 SETTINGS_PATH = REPO_ROOT / "contracts" / "product_settings.yaml"
 

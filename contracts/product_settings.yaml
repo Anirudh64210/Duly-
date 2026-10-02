@@ -105,6 +105,27 @@ settings:
       How many days before a document's end date it is shown as close. A product
       setting, not a rule.
 
+  # Readable dates (specs/step-w/SPEC-W2-UNKNOWN.md, points 41 and 53, W2-U0; D92). The
+  # values are quoted so that they stay strings in the case schema's date form.
+  - id: dates.earliest_readable
+    value: "1950-01-01"
+    unit: date
+    decided_in: "specs/step-w/SPEC-W2-UNKNOWN.md, points 41 and 53 (W2-U0); DECISIONS.md D92; the first day contracts/case.schema.json takes ($defs.date)"
+    meaning: >
+      The earliest day the engine reads as a known date. A value entered before it
+      cannot be read, so it is asked, never refused and never read as absent. It is the
+      first day the case schema takes, and says nothing about the law. A product setting,
+      not a rule.
+  - id: dates.latest_readable
+    value: "2099-12-31"
+    unit: date
+    decided_in: "specs/step-w/SPEC-W2-UNKNOWN.md, points 41 and 53 (W2-U0); DECISIONS.md D92; the last day contracts/case.schema.json takes ($defs.date)"
+    meaning: >
+      The latest day the engine reads as a known date. A value entered after it cannot
+      be read, so it is asked, never refused and never read as absent. It is the last day
+      the case schema takes, and keeps date arithmetic clear of the end of the calendar.
+      It says nothing about the law. A product setting, not a rule.
+
 # Product values that are not numbers the engine reads. Decided in specs/design-1/SPEC.md, F8.
 product:
   # The address "Write an email" opens on the Feedback screen. Null: the screen offers only
