@@ -5,15 +5,26 @@ rule it reads comes from the pack; every date is a fact moved by the pack's sour
 amounts. Nothing here names a category, a record kind, a field or a rule of any pack.
 """
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from functools import partial
 from typing import Any
 
 from engine.clocks import Clock, day_in_zone
 from engine.dates import add_months, add_years, is_business_day
+from engine.readers import read
 from engine.rulepack import Rulepack
 from engine.settings import dating_setting, load_settings
+from engine.unknown import (
+    NONE,
+    NOT_YET,
+    Gap,
+    Unknown,
+    count_at_most3,
+    count_below3,
+    exists3,
+)
 from engine.verdict import RULES_STALE_AFTER, VerdictState
 
 Json = dict[str, Any]
@@ -47,6 +58,13 @@ class _Absent:
 
 
 ABSENT = _Absent()
+
+# What a field left empty means (contracts/rulepack.schema.json, when_absent).
+STATED_ABSENCE = {"not_yet": NOT_YET, "none": NONE}
+
+
+class CaseStructureError(ValueError):
+    """A case whose structure the pack does not declare: no question could fix it."""
 
 
 def _as_date(value: Any) -> date | None:
@@ -85,6 +103,17 @@ def _judgement_id(check: Json, record: Json | None) -> str | None:
     return f"{record[ID]}.{name}" if name and kind == record["kind"] else None
 
 
+def _gaps(tr: "_Trace", record: str) -> list[Gap]:
+    """What an undecided record's conditions rest on, as gaps on that record. Only the count
+    of undecided records is read from them; the questions come from the trace itself."""
+    gaps = [Gap(record, name, "absent") for name, _ in tr.missing]
+    gaps += [Gap(record, name, "undecided") for name, _ in tr.unsure]
+    gaps += [Gap(record, name, "lapse") for name in tr.lapsed]
+    # Any other unknown with nothing on the record to ask holds the record undecided on its
+    # conditions as a whole.
+    return gaps or [Gap(record, "where", "undecided")]
+
+
 def _add_business_days(day: date, n: int) -> date:
     step = ONE_DAY if n >= 0 else -ONE_DAY
     left = abs(n)
@@ -101,6 +130,8 @@ class _Trace:
 
     missing: list[tuple[str, str | None]] = field(default_factory=list)
     unsure: list[tuple[str, str | None]] = field(default_factory=list)
+    # A not-yet event compared with a day after today: the answer comes with time, never asked.
+    pending: list[tuple[str, str | None]] = field(default_factory=list)
     rules: list[str] = field(default_factory=list)
     inputs: Json = field(default_factory=dict)
     lapsed: list[str] = field(default_factory=list)
@@ -111,6 +142,7 @@ class _Trace:
     def merge(self, other: "_Trace") -> None:
         self.missing += other.missing
         self.unsure += other.unsure
+        self.pending += other.pending
         self.rules += other.rules
         self.inputs.update(other.inputs)
         self.lapsed += other.lapsed
@@ -135,6 +167,7 @@ class _Run:
             kind: {f[ID]: f for f in decl["fields"]} for kind, decl in self.kinds.items()
         }
         self.records: dict[str, Json] = {r[ID]: r for r in records}
+        self.run_kinds: dict[str, str] = {r[ID]: r["kind"] for r in records}
         self.stage_decls: dict[str, Json] = {s[ID]: s for s in self.path.get("stages", [])}
         self.computed: list[Json] = []
         self.upcoming: list[Json] = []
@@ -142,6 +175,7 @@ class _Run:
         self.checklists: list[Json] = []
         self.questions: dict[str, Json] = {}
         self.missing: list[str] = []
+        self.undecided: list[str] = []
         self.conflicts: list[str] = []
         self.judgements: list[str] = []
         self.open_items: list[str] = []
@@ -160,14 +194,16 @@ class _Run:
         for record in self.records.values():
             kind = record["kind"]
             if kind not in self.kinds:
-                raise ValueError(f"records: the kind {kind} is not declared by the pack")
+                raise CaseStructureError(f"records: the kind {kind} is not declared by the pack")
             for name in record["fields"]:
                 if name not in self.fields[kind]:
-                    raise ValueError(f"records: the field {name} is not declared for {kind}")
+                    raise CaseStructureError(
+                        f"records: the field {name} is not declared for {kind}"
+                    )
 
     def ask_unreadable(self) -> None:
-        """A choice value outside the pack's list, or a date that does not parse, is missing
-        and asked again, never taken in silence (resolutions point 24, reviews/w2-p1.md)."""
+        """A value that does not read against its declared kind is asked, read or not, never
+        taken in silence (SPEC-W2-UNKNOWN points 3 and 36)."""
         for record in self.records.values():
             for name, value in record["fields"].items():
                 if self._unreadable(record, name, value):
@@ -175,14 +211,21 @@ class _Run:
 
     def _unreadable(self, record: Json, name: str, value: Any) -> bool:
         decl = self._decl(record, name)
-        if value is ABSENT or value is None or value == NOT_SURE:
+        if value is ABSENT or not decl:
             return False
-        if decl.get("kind") == DATE_KIND:
-            return _as_date(value) is None
-        return decl.get("kind") == "choice" and value not in decl.get("choices", [])
+        return read(decl, value, self.run_kinds)[0] == "unreadable"
 
     def _decl(self, record: Json, name: str) -> Json:
         return self.fields.get(record["kind"], {}).get(name, {})
+
+    def _decl_at(self, path: str, this: Json | None, outer: Json | None) -> Json:
+        """The declaration of the field a path ends on, or {} for a fact or an id."""
+        head, *rest = path.split(".")
+        record = this if head == THIS else outer if head == OUTER else None
+        for part in rest[:-1]:
+            link = None if record is None else record["fields"].get(part)
+            record = self.records.get(link) if isinstance(link, str) else None
+        return {} if record is None or not rest else self._decl(record, rest[-1])
 
     def _field(self, record: Json, name: str, on: date | None) -> Any:
         value = self._as_given(record, name, on)
@@ -232,18 +275,69 @@ class _Run:
         return ABSENT, None, None
 
     def _read(self, path: str, this: Json | None, outer: Json | None, tr: _Trace) -> Any:
-        """A value for a condition: ABSENT or not_sure is noted in the trace."""
-        value, asked, owner = self._resolve(path, this, outer)
-        if value is ABSENT or value is None:
-            if asked is not None:
-                tr.missing.append((asked, owner))
-            return ABSENT
-        if value == NOT_SURE:
-            if asked is not None:
-                tr.unsure.append((asked, owner))
-            return ABSENT
-        tr.inputs[asked or path] = value
-        return value
+        """A value for a condition: as given when known, NONE or NOT_YET when the field's
+        when_absent says what its absence means, or ABSENT with the gap in the trace
+        (SPEC-W2-UNKNOWN points 1 to 4). Through a link that is NONE or NOT_YET, NONE."""
+        head, *rest = path.split(".")
+        value: Any
+        if path == TODAY or head not in (THIS, OUTER) or not rest:
+            value, asked, _ = self._resolve(path, this, outer)
+            if value is ABSENT or value is None or value == NOT_SURE:
+                gaps = tr.unsure if value == NOT_SURE else tr.missing
+                gaps.append((path, None))
+                return ABSENT
+            tr.inputs[asked or path] = value
+            return value
+        record = this if head == THIS else outer
+        for index, part in enumerate(rest):
+            if record is None:
+                return ABSENT
+            last = index == len(rest) - 1
+            name = f"{record[ID]}.{part}"
+            virtual = id(record) in self.virtual
+            if part == ID:
+                value = record[ID]
+            else:
+                raw = record["fields"].get(part)
+                state, _ = read(self._decl(record, part), raw, self.run_kinds)
+                value = raw if state == "known" else ABSENT
+                if state == "absent":
+                    value = self._absence(record, part, tr)
+                elif state != "known" and not virtual:
+                    gaps = tr.unsure if state == "undecided" else tr.missing
+                    gaps.append((name, record[ID]))
+                if value is ABSENT:
+                    if state == "absent" and not virtual:
+                        tr.missing.append((name, record[ID]))
+                    return ABSENT
+            if value is NONE or value is NOT_YET:
+                tr.inputs[name] = self._decl(record, part).get("when_absent")
+                return value if last else NONE
+            if last:
+                tr.inputs[path if virtual else name] = value
+                return value
+            if value not in self.records:
+                return ABSENT
+            record = self.records[value]
+        return ABSENT
+
+    def _absence(self, record: Json, name: str, tr: _Trace) -> Any:
+        """NONE, NOT_YET or ABSENT for a field left empty, as its when_absent declares
+        (SPEC-W2-UNKNOWN points 2 and 2a). A conditional declaration reads this record's own
+        fields: an unknown condition before any true one leaves absence unknown, its gaps
+        kept with the field's own."""
+        declared = self._decl(record, name).get("when_absent", "ask")
+        if isinstance(declared, dict):
+            for state in ("not_yet", "none"):
+                if state not in declared:
+                    continue
+                held = self._all(declared[state], record, None, tr)
+                if held is None:
+                    return ABSENT
+                if held:
+                    return STATED_ABSENCE[state]
+            declared = declared.get("else", "ask")
+        return STATED_ABSENCE.get(declared, ABSENT)
 
     # Rules.
 
@@ -400,6 +494,7 @@ class _Run:
     # Conditions: True, False or None for unknown.
 
     def _select(self, selector: Json, outer: Json | None, tr: _Trace) -> list[Json] | None:
+        self._use_kind(selector["record"])
         chosen, undecided = self._split(selector, outer, tr)
         return None if undecided else chosen
 
@@ -408,19 +503,52 @@ class _Run:
     ) -> tuple[list[Json], list[Json]]:
         """The records the where condition holds for, and those a gap leaves undecided. The
         trace holds what the undecided ones read."""
-        kind = selector["record"]
-        self._use_kind(kind)
+        chosen, undecided = self._choose(selector, outer)
+        for _, sub in undecided:
+            tr.merge(sub)
+        return chosen, [record for record, _ in undecided]
+
+    def _choose(
+        self, selector: Json, outer: Json | None
+    ) -> tuple[list[Json], list[tuple[Json, _Trace]]]:
+        """The chosen records, and each undecided record with what it read."""
         chosen: list[Json] = []
-        undecided: list[Json] = []
+        undecided: list[tuple[Json, _Trace]] = []
         for record in self.records.values():
-            if record["kind"] != kind:
+            if record["kind"] != selector["record"]:
                 continue
-            held = self._all(selector.get("where", []), record, outer, tr)
+            sub = _Trace()
+            held = self._all(selector.get("where", []), record, outer, sub)
             if held is None:
-                undecided.append(record)
+                undecided.append((record, sub))
             elif held:
                 chosen.append(record)
         return chosen, undecided
+
+    def _some(
+        self,
+        selector: Json,
+        outer: Json | None,
+        tr: _Trace,
+        decide: Callable[[int, Sequence[Unknown], Unknown | None], bool | Unknown],
+    ) -> bool | None:
+        """A list operator (exists, none, a count) by SPEC-W2-UNKNOWN point 7: the decided
+        records, the undecided ones and whether the list is stated whole. A settled answer
+        asks nothing; an unknown one asks every gap it rests on (point 8)."""
+        kind = selector["record"]
+        chosen, undecided = self._choose(selector, outer)
+        unstated = None
+        if not self._stated(kind):
+            unstated = Unknown(frozenset({Gap(None, f"complete.{kind}", "list")}))
+        pending = [Unknown(frozenset(_gaps(sub, record[ID]))) for record, sub in undecided]
+        got = decide(len(chosen), pending, unstated)
+        if not isinstance(got, Unknown):
+            return got
+        for _, sub in undecided:
+            tr.merge(sub)
+        if unstated is not None:
+            self._use_kind(kind)
+        return None
 
     def _all(
         self, conditions: list[Json], this: Json | None, outer: Json | None, tr: _Trace
@@ -440,18 +568,22 @@ class _Run:
         return None if unknown else True
 
     def _cond(self, c: Json, this: Json | None, outer: Json | None, tr: _Trace) -> bool | None:
+        # SPEC-W2-UNKNOWN point 7: a known value is compared; NONE or NOT_YET (stated
+        # absence) is false in every comparison but the dates NOT_YET orders; ABSENT is unknown.
         results: list[bool | None] = []
-        value: Any = ABSENT
-        if "field" in c:
-            if "present" in c:
-                raw, _, _ = self._resolve(c["field"], this, outer)
-                there = raw is not ABSENT and raw is not None
-                results.append(there == c["present"])
-            else:
-                value = self._read(c["field"], this, outer, tr)
+        sub = _Trace()
+        value: Any = self._read(c["field"], this, outer, sub) if "field" in c else ABSENT
+        if "present" in c and value is ABSENT and self._only_absent(sub):
+            # An absent `ask` field still reads as not there under present; the engine-reads
+            # round makes it unknown and asked (point 7, mutant U21) with the outputs that wait.
+            value, sub = NONE, _Trace()
+        tr.merge(sub)
         known = value is not ABSENT
+        stated = value is NONE or value is NOT_YET
+        if "present" in c:
+            results.append((not stated) == c["present"] if known else None)
         if "in" in c:
-            results.append(str(value) in c["in"] if known else None)
+            results.append(not stated and value in c["in"] if known else None)
         for key in ("on_or_before", "on_or_after", "before", "after"):
             if key in c:
                 results.append(self._compare_dates(key, value, c[key], this, outer, tr))
@@ -461,31 +593,34 @@ class _Run:
         for key in ("same_as", "differs_from"):
             if key in c:
                 other = self._read(c[key], this, outer, tr)
-                same = None if not known or other is ABSENT else value == other
-                results.append(same if same is None or key == "same_as" else not same)
+                if stated or other is NONE or other is NOT_YET:
+                    results.append(False)  # a join on nothing is no join
+                elif not known or other is ABSENT:
+                    results.append(None)
+                else:
+                    results.append((value == other) == (key == "same_as"))
         if "month_day_is" in c:
             day = _as_date(value)
             text = None if day is None else self._rule_value(c["month_day_is"], day, tr)
             placed = None if day is None else _month_day(text, day.year)
-            results.append(None if placed is None or day is None else placed == day)
+            results.append(False if stated else None if placed is None else placed == day)
         if "at_most" in c:
             number = _number(value)
             limit = _number(self._rule_value(c["at_most"]["rule"], self.today, tr))
-            results.append(None if number is None or limit is None else number <= limit)
+            fits = None if number is None or limit is None else number <= limit
+            results.append(False if stated else fits)
         for key in ("exists", "none"):
             if key in c:
-                found = self._select(c[key], this, tr)
-                results.append(None if found is None else bool(found) == (key == "exists"))
+                found = self._some(c[key], this, tr, exists3)
+                results.append(None if found is None else found == (key == "exists"))
         for key in ("count_below", "count_at_most"):
             if key in c:
-                found = self._select(c[key]["of"], this, tr)
                 limit = _number(self._rule_value(c[key]["rule"], self.today, tr))
-                if found is None or limit is None:
+                if limit is None:
                     results.append(None)
-                elif key == "count_below":
-                    results.append(len(found) < limit)
-                else:
-                    results.append(len(found) <= limit)
+                    continue
+                count = count_below3 if key == "count_below" else count_at_most3
+                results.append(self._some(c[key]["of"], this, tr, partial(count, int(limit))))
         if "any_of" in c:
             results.append(self._any(c["any_of"], this, outer, tr))
         if "all_of" in c:
@@ -494,7 +629,9 @@ class _Run:
             inner = self._cond(c["not"], this, outer, tr)
             results.append(None if inner is None else not inner)
         if not results:
-            results.append(None if not known else True)
+            # A field alone: a flag is its value; any other kind reads as present: true.
+            flag = self._decl_at(c["field"], this, outer).get("kind") == "flag"
+            results.append(None if not known else value is True if flag else not stated)
         if False in results:
             return False
         return None if None in results else True
@@ -519,8 +656,16 @@ class _Run:
     def _compare_dates(
         self, key: str, value: Any, w: Json, this: Json | None, outer: Json | None, tr: _Trace
     ) -> bool | None:
-        day = _as_date(value)
+        if value is NONE:
+            return False
         other = self._when(w, this, outer, tr)
+        if value is NOT_YET and other is not None:
+            # Not yet is later than every day up to today; against a later day it is pending.
+            if other > self.today:
+                tr.pending.append((str(w.get("fact", key)), None))
+                return None
+            return key in ("after", "on_or_after")
+        day = _as_date(value)
         if day is None or other is None:
             return None
         if key == "on_or_before":
@@ -542,6 +687,8 @@ class _Run:
         tr: _Trace,
     ) -> bool | None:
         name = field_path.rsplit(".", 1)[-1]
+        if value is NONE or value is NOT_YET:
+            return False
         for order in self.path.get("order", []):
             if order["field"] != name:
                 continue
@@ -549,7 +696,15 @@ class _Run:
             ranks: list[str] = list(order["ascending"])
             # The other side is one of the listed choices itself, or a path to read.
             other = other_path if other_path in ranks else self._read(other_path, this, outer, tr)
+            if other is NONE or other is NOT_YET:
+                return False
             if value not in ranks or other not in ranks:
+                # An order may leave a choice unranked (D93): the comparison is unknown, and
+                # the unranked side is asked as undecided on its record (point 11).
+                for side, path in ((value, field_path), (other, other_path)):
+                    _, asked, owner = self._resolve(path, this, outer)
+                    if side is not ABSENT and side not in ranks and asked and owner:
+                        tr.unsure.append((asked, owner))
                 return None
             here: int = ranks.index(value)
             there: int = ranks.index(other)
@@ -566,13 +721,46 @@ class _Run:
         if kind not in self.used_kinds:
             self.used_kinds.append(kind)
 
-    def _ask(self, qid: str, because: str, about: Json | None, record: str | None) -> None:
+    def _ask(
+        self,
+        qid: str,
+        because: str,
+        about: Json | None,
+        record: str | None,
+        gap: tuple[str, str] | None = None,
+    ) -> None:
         question: Json = {ID: qid, "because": [because]}
         if about is not None:
             question["about"] = about
         if record is not None:
             question["record"] = record
+        if gap is not None:
+            question["field"], question["state"] = gap
         self.questions.setdefault(qid, question)
+
+    def _only_absent(self, tr: _Trace) -> bool:
+        """Whether every gap a read left is a field left empty."""
+        gaps = [self._gap_of(name, record) for name, record in tr.missing]
+        return not tr.unsure and all(gap is not None and gap[1] == "absent" for gap in gaps)
+
+    def _gap_of(self, name: str, record: str | None) -> tuple[str, str] | None:
+        """The field and state of a gap on a record's field (SPEC-W2-UNKNOWN point 34)."""
+        if record is None or record not in self.records:
+            return None
+        part = name[len(record) + 1 :]
+        raw = self.records[record]["fields"].get(part)
+        if raw == NOT_SURE or self._unranked(self.records[record], part, raw):
+            return part, "undecided"
+        return part, "absent" if raw is None else "unreadable"
+
+    def _unranked(self, record: Json, part: str, raw: Any) -> bool:
+        """Whether a given choice is one the pack's order of its field leaves unranked."""
+        if raw not in self._decl(record, part).get("choices", []):
+            return False
+        return any(
+            o["record"] == record["kind"] and o["field"] == part and raw not in o["ascending"]
+            for o in self.path.get("order", [])
+        )
 
     def _need(self, tr: _Trace) -> None:
         for rule_id in tr.differ:
@@ -581,9 +769,18 @@ class _Run:
         for name, record in tr.missing:
             if name not in self.missing:
                 self.missing.append(name)
-            self._ask(name, f"missing:{name}", None, record)
-        for name, _ in tr.unsure:
+            gap = self._gap_of(name, record)
+            about = None
+            if gap is not None and gap[1] == "unreadable" and record is not None:
+                about = {name: self.records[record]["fields"].get(gap[0])}
+            self._ask(name, f"missing:{name}", about, record, gap)
+        for name, record in tr.unsure:
             self._judge(f"{name}.{NOT_SURE}")
+            if record is not None:
+                # Point 35: a not-sure answer an unsettled read rests on is asked, and blocks.
+                if name not in self.undecided:
+                    self.undecided.append(name)
+                self._ask(name, f"undecided:{name}", None, record, self._gap_of(name, record))
         for lapse in tr.lapsed:
             self._judge(lapse)
 
@@ -621,6 +818,7 @@ class _Run:
             found: list[Json | None] = [None]
             undecided: list[Json] = []
             if selector:
+                self._use_kind(selector["record"])
                 found[:], undecided = self._split(selector, None, tr)
             if undecided:
                 # A record a gap leaves undecided is asked about, never read as not selected,
@@ -948,6 +1146,7 @@ class _Run:
         "stages",
         "checklists",
         "missing",
+        "undecided",
         "conflicts",
         "judgements",
         "open_items",
@@ -1035,6 +1234,7 @@ class _Run:
             found: list[Json | None] = [None]
             undecided: list[Json] = []
             if selector:
+                self._use_kind(selector["record"])
                 found[:], undecided = self._split(selector, None, tr)
             if undecided:
                 self._need(tr)
@@ -1265,7 +1465,7 @@ class _Run:
             if on is None or (grows and on < self.today):
                 qid = f"complete.{kind}"
                 open_lists.append(qid)
-                self._ask(qid, f"unconfirmed:{qid}", None, None)
+                self._ask(qid, f"unconfirmed:{qid}", None, None, (kind, "list"))
         return open_lists
 
     def typed_dates(self) -> list[str]:
@@ -1410,10 +1610,12 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
     known = [d for d in checked if d is not None]
     rules_checked_on = min(known) if known and len(known) == len(checked) else None
     missing = [m for run in runs for m in run.missing]
+    undecided = [u for run in runs for u in run.undecided]
     conflicts = [c for run in runs for c in run.conflicts]
     judgements = _unique(j for run in runs for j in run.judgements)
     open_items = [o for run in runs for o in run.open_items]
     blockers = [f"missing:{m}" for m in missing] + [f"conflict:{c}" for c in conflicts]
+    blockers += [f"undecided:{u}" for u in undecided]
     blockers += [f"unconfirmed:{q}" for q in hard if not q.startswith(NOT_COVERED)]
     blockers += [q for q in hard if q.startswith(NOT_COVERED)]
     if rules_checked_on is None:

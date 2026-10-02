@@ -1604,3 +1604,77 @@ Status: done.
 - tests/unit without tools and desktop_entry: exit 0. tests/holdout is unreadable in my sandbox.
 
 Status: done.
+
+## l-engine-65533955a3: SPEC-W2-UNKNOWN engine-core (points 1 to 5, 2a, 7a, 11, 12, 41)
+
+- Before any change: tests/unit/engine and tests/unit/acceptance gave 165 failures, all in the
+  new SPEC-W2-UNKNOWN files (readers 63, unknown_logic 23, rulepack 23, generic 6, the w2_unknown
+  regressions and props); the journeys and every older test passed.
+- engine/unknown.py: Gap, Unknown (frozen, refuses an empty gap set), NONE and NOT_YET,
+  all3/any3/not3, exists3, count_below3, count_at_most3 with point 12's signatures. Pure.
+- engine/readers.py: read(decl, raw, run) per point 41's table; the ISO pattern matched before
+  date.fromisoformat; the date bounds read from contracts/product_settings.yaml through
+  engine.settings; periods read part by part without naming a pack word.
+- engine/rulepack.py: _PathCheck walks the path with this and outer in scope and refuses
+  every fault of points 7a and 11, each with a one-line RulepackError naming the path. Commit
+  b9b8a97 has every refusal on. With it, the shipped F-1 pack does not load:
+  (1) path/order/0 leaves secondary, language_training, professional and other unranked;
+  (2) checks/0 (program.opt_start_not_too_early) adds `rule:
+  product.opt_start_earliest_years_before_program_end`, a product setting, not a rule;
+  (3) checks/17 (stem.extends_post_completion_opt) compares this.extends.type, and extends is
+  `none` when absent. Point 11 says the engine lane stops and escalates, so commit 426f3fa holds
+  those three refusals back (revert it once L-content fixes the pack). Two of my first checks
+  were too strict and are fixed: first.field may be a path through a link
+  (to_program.start_date), and the 7a lint knows a conditional none is ruled out by the
+  record's own selection (checks 19 to 21 choose stem_extension only).
+- engine/path.py, only what the P6 tests through the toy pack need: CaseStructureError; every
+  value read through readers.read (ask_unreadable now asks every kind); condition reads apply
+  when_absent (NONE, NOT_YET, the conditional form of 2a); point 7's table for present, in,
+  the date operators (NOT_YET later than every day up to today, pending past it), level_*,
+  same_as/differs_from, month_day_is, at_most and a field alone (a flag is its value);
+  exists/none/count_* through engine.unknown with the list's wholeness, asking nothing when
+  settled; questions carry field and state; a not-sure answer an unsettled read rests on is
+  asked as `undecided:` and blocks; complete.<kind> questions carry state list.
+- Done command as written, output to $TMPDIR/done.txt: exit 1. 6 failures: the 5 refusal tests
+  held back above, and test_every_operator_is_drawn_at_least_five_times, which counts the
+  test's own tables (dispute). mypy, ruff check and ruff format clean.
+
+Status: escalated.
+- Wider run after the change (tests/unit/engine and tests/unit/acceptance, output to
+  $TMPDIR/after.txt): 45 tests that passed in the baseline now fail. Causes found:
+  (a) point 14 in my own done tests: `none`/`exists` with nothing chosen is unknown while the
+  list is not stated whole. Journey j11's grace stage selects programs with `none` over moves
+  and complete.move is not stated, so grace.p1 is gone; the same pattern holds back counts and
+  report windows in j01, j04, j08, j15, j19 and test_fix7/test_fix8. The journeys need their
+  lists stated (point 54 says the tests round brings them in line; it has not for these).
+  (b) the `undecided:` blocker (point 35) turns 3 talk_to_dso expectations into cannot_tell.
+  (c) a "pending" literal tripped test_path's no-pack-words test (the F-1 pack has the choice
+  pending): removed. (d) present on an absent ask field read as unknown (U21) broke the older
+  toy tests in test_path_reach; it now keeps today's decided reading until the engine-reads
+  round, while not_sure and unreadable values read unknown as P6 needs.
+- Done command as written again, output to $TMPDIR/done2.txt: exit 1, the same 6 failures.
+
+## l-engine-6a60d7d24a: SPEC-W2-UNKNOWN engine-core, resumed after D93
+
+- Restored the kept work: path.py, readers.py, unknown.py and PROGRESS.md from 076f9bf,
+  rulepack.py from b9b8a97 (every refusal on, the hold-back of 426f3fa dropped).
+- Point 11 as amended (D93), engine/rulepack.py: `order` no longer refuses an unranked choice;
+  `_reject_misplaced_settings` lets a setting stand in a check as well as a window's opens or
+  closes, and still refuses it anywhere else (a counter's scope, a span, gap_allowed). The
+  rule-id refusal and the point 7a lint are on.
+- engine/path.py `_level`: a comparison reaching an unranked choice is unknown and puts the
+  unranked side, by record and field, in the trace's unsure gaps, so it is asked with state
+  undecided and gives the reason undecided:<record>.<field> (cannot_tell). `_gap_of` calls a
+  declared choice the order leaves unranked undecided (`_unranked`), not unreadable.
+- Done command as written, output to $TMPDIR/l6a-done1.txt: exit 1, one failure
+  (test_point_11_a_comparison_reaching_an_unranked_choice_is_undecided: nothing asked). After the
+  `_level` change, $TMPDIR/l6a-done2.txt: exit 0 (mypy 72 files clean, ruff clean, 11 formatted).
+- Wider run, tests/unit/engine and tests/unit/acceptance ($TMPDIR/l6a-wide-after.txt): 53
+  failures outside the done command: test_w2_unknown*.py (later rounds of SPEC-W2-UNKNOWN),
+  test_fix7 x4, test_fix8 x2, test_path_reach x3, test_verdict point 37 (verdict.decide, a later
+  round). The journeys pass. The base engine (668ba78) cannot load the current F-1 pack at all
+  (it refuses the setting in checks/0), so the w2_unknown files error at collection there.
+  test_path_reach's never-checked toy names rule toy.order the pack does not hold: refused by
+  point 11 (dispute in REPORT.json).
+
+Status: done.
