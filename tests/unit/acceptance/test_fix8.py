@@ -25,7 +25,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app, get_clock
+from api.main import app, get_clock  # type: ignore[attr-defined]
 from tests.support.api_client import CheckedClient
 from tests.support.records_case import (
     CLOCK,
@@ -140,16 +140,19 @@ def test_point_22b_no_stage_with_a_null_start_or_end_is_current(
 # null and the stage is unknown.
 
 
-def test_point_22b_j01_the_transfer_keeps_its_start_and_its_question(client: TestClient) -> None:
+def test_point_22b_j01_the_transfer_keeps_its_start_and_its_items(client: TestClient) -> None:
     # J01 mv1: release_date 2024-07-15, contacted_new_dso_on not entered. So starts 2024-07-15,
     # ends null, state unknown; the contact-new-DSO window opens 2024-07-15 and closes null;
-    # mv1.contacted_new_dso_on is asked; no step back (no petition).
-    # Kills: an unknown stage stripped of its known start, or its items, or its question.
+    # no step back (no petition).
+    # D92 (SPEC-W2-UNKNOWN point 61, accepted as written): move.contacted_new_dso_on is
+    # not_yet, so the empty field reads "not contacted yet" and is not asked; point 22b's
+    # "its question" no longer exists for this field.
+    # Kills: an unknown stage stripped of its known start, or its items; a not_yet field asked.
     out = _send(client, journeys.j01())
     assert _row(out, "transfer.mv1") == ("2024-07-15", None, "unknown")
     assert window(out, "transfer.contact_new_dso.mv1") == ("2024-07-15", None)
     assert stage(out, "transfer.mv1")["items"] != []
-    assert "mv1.contacted_new_dso_on" in question_ids(out)
+    assert "mv1.contacted_new_dso_on" not in question_ids(out)  # D92
     assert STEP_BACK not in (stage(out, "transfer.mv1").get("reasons") or [])
 
 
@@ -309,15 +312,26 @@ def test_point_22b_j19_twin_b_only_the_grace_carries_the_step_back(client: TestC
     _assert_only_the_grace(out)
 
 
-def test_point_22b_j19_twin_g_no_start_only_the_grace_carries_the_step_back(
+def test_point_22b_j19_twin_g_no_start_withholds_the_step_back_and_the_grace_waits(
     client: TestClient,
 ) -> None:
-    # Twin G: approved, neither start entered. Point 23a asks h9.validity_start and point 19
-    # steps back until it is answered, so grace.p2 is nulled by the petition member.
-    # Kills: the step back on the transfers while the start is asked.
+    # Twin G: approved, neither start entered. Point 23a asks h9.validity_start.
+    # D94 (SPEC-W2-UNKNOWN points 32, 33, 35, superseding 23a's step back here): while it is
+    # unanswered cap_gap.for_dso is withheld, so no stage carries it; grace.p2, which the
+    # petition could extend, is null, unknown and waits on the start by name; the transfers of
+    # 2021 and 2023 keep their rows; the verdict is cannot_tell.
+    # Kills: the step back on the transfers while the start is asked; (D94) the step back
+    # given on a start not known, or grace.p2 dated as if the petition could not extend it.
     out = _send(client, _j19_twin(filed_on="2026-04-01", outcome="approved"))
-    assert "h9.validity_start" in question_ids(out)
-    _assert_only_the_grace(out)
+    asked = [q for q in out["questions"] if q["id"] == "h9.validity_start"]
+    assert [q.get("field") for q in asked] == ["validity_start"]  # D94
+    assert STEP_BACK not in reasons(out)  # D94
+    assert _carrying_the_step_back(out) == []  # D94
+    assert _row(out, "grace.p2") == (None, None, "unknown")
+    assert "h9.validity_start" in (stage(out, "grace.p2").get("waits_on") or [])  # D94
+    assert _row(out, "transfer.mv1") == ("2021-08-06", None, "unknown")
+    assert _row(out, "transfer.mv2") == ("2023-06-15", None, "unknown")
+    assert out["verdict"]["state"] == "cannot_tell"  # D94
 
 
 def test_point_22b_j19_a_2020_petition_puts_the_step_back_on_no_stage(client: TestClient) -> None:

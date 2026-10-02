@@ -23,7 +23,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app, get_clock
+from api.main import app, get_clock  # type: ignore[attr-defined]
 from tests.support.api_client import CheckedClient
 from tests.support.records_case import (
     CLOCK,
@@ -74,6 +74,11 @@ def _with_petition(body: dict[str, Any], **fields: Any) -> dict[str, Any]:
     ]
     body["complete"].update(whole("petition"))
     return body
+
+
+def _field(out: dict[str, Any], qid: str) -> Any:
+    """The field a question asks (SPEC-W2-UNKNOWN point 34), or None if it is not asked."""
+    return next((q.get("field") for q in out["questions"] if q["id"] == qid), None)
 
 
 def _current(out: dict[str, Any]) -> list[str]:
@@ -227,10 +232,16 @@ def test_point_23_a_2020_petition_keeps_j19s_late_filing_conflict(client: TestCl
     assert LATE_FILING in reasons(out)
 
 
-def test_point_23_a_2020_petition_leaves_a2_filed_on_asked(client: TestClient) -> None:
-    # Plain J19 gives no a2.filed_on, and asks it. The same 2020 petition cannot extend a1 or
-    # a2, so the question stays (point 23 names a2.filed_on). The fix6 run stopped asking it.
-    # Kills (point 25): the point 23 skip removed, any petition dropping the question.
+def test_point_23_a_2020_petition_leaves_j19s_questions_asked(client: TestClient) -> None:
+    # Plain J19 gives no a2.filed_on. The same 2020 petition cannot extend a1 or a2, so its
+    # questions stay (point 23). The fix6 run stopped asking one.
+    # D92 (SPEC-W2-UNKNOWN point 61, accepted as written): authorization.filed_on is not_yet,
+    # so an empty a2.filed_on reads "not filed yet" and is no longer asked; the question it fed
+    # is now the late-filing conflict's own, stem.filed_while_opt_in_force.a2. So the test asks
+    # that the petition takes no question away from plain J19, that one included.
+    # Kills (point 25): the point 23 skip removed, any petition dropping a question.
+    plain = question_ids(_send(client, journeys.j19()))
+    assert "stem.filed_while_opt_in_force.a2" in plain
     out = _send(
         client,
         _with_petition(
@@ -244,7 +255,7 @@ def test_point_23_a_2020_petition_leaves_a2_filed_on_asked(client: TestClient) -
             validity_start="2020-10-01",
         ),
     )
-    assert "a2.filed_on" in question_ids(out)
+    assert sorted(set(plain) - set(question_ids(out))) == []  # D92
 
 
 def test_point_23_a_2020_petition_takes_no_report_from_a2(client: TestClient) -> None:
@@ -376,11 +387,17 @@ def test_point_23_a_denied_petition_is_judged_by_its_requested_start(client: Tes
     assert LATE_FILING in reasons(out)
 
 
-def test_point_23_a_petition_with_no_start_is_asked_and_steps_back(client: TestClient) -> None:
-    # "When the start needed to decide this is missing, it is asked, and point 19 steps back
-    # until it is answered." Pending, filed 2026-07-01, requested_start left out. a2's
-    # validation_1 closes 2026-12-23, after the filing, so it is null while the step back holds.
-    # Kills: a missing start read as "cannot extend" (PRINCIPLES 2), or not asked.
+def test_point_23_a_petition_with_no_start_is_asked_and_withholds_the_step_back(
+    client: TestClient,
+) -> None:
+    # "When the start needed to decide this is missing, it is asked." Pending, filed
+    # 2026-07-01, requested_start left out. a2's validation_1 closes 2026-12-23, after the
+    # filing, so it is null while the start is unanswered.
+    # D94 (SPEC-W2-UNKNOWN points 32, 33, 35, superseding 23a's step back here): the start is
+    # asked by name, cap_gap.for_dso is withheld, not given, and the outputs it would null
+    # wait on the start; the verdict is cannot_tell.
+    # Kills: a missing start read as "cannot extend" (PRINCIPLES 2), or not asked; (D94) the
+    # step back given on a start not known.
     out = _send(
         client,
         _with_petition(
@@ -392,7 +409,9 @@ def test_point_23_a_petition_with_no_start_is_asked_and_steps_back(client: TestC
         ),
     )
     assert "h9.requested_start" in question_ids(out)
-    assert STEP_BACK in reasons(out)
+    assert _field(out, "h9.requested_start") == "requested_start"  # D94
+    assert STEP_BACK not in reasons(out)  # D94
+    assert "h9.requested_start" in (stage(out, "grace.p2").get("waits_on") or [])  # D94
     assert out["verdict"]["state"] == "cannot_tell"
     assert window(out, "stem.validation_1.a2") == (None, None)
 
@@ -480,15 +499,22 @@ def test_point_23a_j06s_program_grace_is_null_for_a_start_on_its_first_day(
 # until it is answered. Point 21's strict xfail (approved, requested_start entered,
 # validity_start missing) stays: nothing is asked there." The J19 late twin as above: a2 filed
 # 2026-07-20, after a1's end 2026-06-08.
+# D94 amends this: petition.requested_start and petition.validity_start are each asked when
+# empty, and while one is unanswered the step back is withheld (points 32, 33 and 35 supersede
+# 23a's step back), so an approved petition with no validity_start no longer falls back to
+# requested_start, and point 21's xfail is lifted (test_journeys.py J19).
 
 
-def test_point_23a_approved_with_no_validity_start_is_judged_by_its_requested_start(
+def test_point_23a_approved_with_no_validity_start_asks_it_and_withholds(
     client: TestClient,
 ) -> None:
-    # Approved, validity_start left out, requested_start 2020-10-01: the start used is
-    # 2020-10-01, before a1's start 2025-06-09, so the late-filing conflict stays and nothing
-    # is asked. Kills: an approved petition with no validity_start read as "could extend", or
-    # its validity_start asked.
+    # Approved, validity_start left out, requested_start 2020-10-01. D94 (SPEC-W2-UNKNOWN
+    # points 32, 33, 35, superseding 23a here): an empty validity_start is asked, not filled
+    # from requested_start, so the start used is not known. Both the late-filing conflict and
+    # cap_gap.for_dso rest on it and are withheld; grace.p2 waits on the start by name; the
+    # verdict is cannot_tell. requested_start, entered, is not asked.
+    # Kills: (D94) the requested start read in place of an empty validity start, the step back
+    # or the conflict given on a start not known.
     out = _send(
         client,
         _j19_late(
@@ -500,18 +526,22 @@ def test_point_23a_approved_with_no_validity_start_is_judged_by_its_requested_st
             outcome_on="2020-06-01",
         ),
     )
-    assert LATE_FILING in reasons(out)
+    assert _field(out, "h9.validity_start") == "validity_start"  # D94
+    assert LATE_FILING not in reasons(out)  # D94
     assert STEP_BACK not in reasons(out)
-    assert "h9.validity_start" not in question_ids(out)
+    assert "h9.validity_start" in (stage(out, "grace.p2").get("waits_on") or [])  # D94
     assert "h9.requested_start" not in question_ids(out)
+    assert out["verdict"]["state"] == "cannot_tell"  # D94
 
 
-def test_point_23a_approved_with_no_validity_start_and_a_later_requested_start_steps_back(
+def test_point_23a_approved_with_no_validity_start_and_a_later_requested_start_withholds(
     client: TestClient,
 ) -> None:
-    # The other side: requested_start 2026-10-01, after a1's start 2025-06-09, so it could
-    # extend a1: the step back holds, the conflict is skipped, and nothing is asked.
-    # Kills: requested_start ignored for an approved petition.
+    # The other side: requested_start 2026-10-01, after a1's start 2025-06-09. Before D94 it
+    # was the start used and the step back held. D94: the empty validity_start is asked and
+    # the step back is withheld for it all the same, whatever requested_start says; the
+    # conflict stays skipped; grace.p2 waits on the start by name; cannot_tell.
+    # Kills: (D94) the requested start read in place of an empty validity start.
     out = _send(
         client,
         _j19_late(
@@ -523,9 +553,11 @@ def test_point_23a_approved_with_no_validity_start_and_a_later_requested_start_s
             outcome_on="2026-06-20",
         ),
     )
-    assert STEP_BACK in reasons(out)
+    assert _field(out, "h9.validity_start") == "validity_start"  # D94
+    assert STEP_BACK not in reasons(out)  # D94
     assert LATE_FILING not in reasons(out)
-    assert "h9.validity_start" not in question_ids(out)
+    assert "h9.validity_start" in (stage(out, "grace.p2").get("waits_on") or [])  # D94
+    assert out["verdict"]["state"] == "cannot_tell"  # D94
 
 
 def test_point_23a_approved_with_no_requested_start_is_judged_by_its_validity_start(
@@ -550,12 +582,16 @@ def test_point_23a_approved_with_no_requested_start_is_judged_by_its_validity_st
     assert "h9.requested_start" not in question_ids(out)
 
 
-def test_point_23a_approved_with_neither_start_asks_the_validity_start_and_steps_back(
+def test_point_23a_approved_with_neither_start_asks_the_validity_start_and_withholds(
     client: TestClient,
 ) -> None:
-    # Approved, both starts left out: validity_start is asked, and point 19 steps back until
-    # it is answered, so the verdict waits and the conflict is skipped.
-    # Kills: a missing start read as "cannot extend" (PRINCIPLES 2), or nothing asked.
+    # Approved, both starts left out: validity_start is asked, so the verdict waits and the
+    # conflict is not raised. D94 (SPEC-W2-UNKNOWN points 32, 33, 35, superseding 23a's step
+    # back here): while the start is unanswered both cap_gap.for_dso and the late-filing
+    # conflict rest on it, so neither is raised, and grace.p2, which either could change,
+    # waits on the start by name.
+    # Kills: a missing start read as "cannot extend" (PRINCIPLES 2), or nothing asked; (D94)
+    # the step back given on a start not known.
     out = _send(
         client,
         _j19_late(
@@ -567,7 +603,9 @@ def test_point_23a_approved_with_neither_start_asks_the_validity_start_and_steps
         ),
     )
     assert "h9.validity_start" in question_ids(out)
-    assert STEP_BACK in reasons(out)
+    assert _field(out, "h9.validity_start") == "validity_start"  # D94
+    assert STEP_BACK not in reasons(out)  # D94
+    assert "h9.validity_start" in (stage(out, "grace.p2").get("waits_on") or [])  # D94
     assert LATE_FILING not in reasons(out)
     assert out["verdict"]["state"] == "cannot_tell"
 

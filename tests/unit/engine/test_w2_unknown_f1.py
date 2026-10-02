@@ -12,7 +12,15 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from engine import f1
-from tests.support.f1_pack import build_pack, case_problems, clock_on, job
+from tests.support.f1_pack import (
+    build_pack,
+    case_problems,
+    clock_on,
+    dated_on_the_day,
+    job,
+    refuse_placeholders,
+    with_the_about_asked,
+)
 from tests.support.gaps import UNIT_EXAMPLES
 from tests.unit.engine.test_f1 import CASE_A
 
@@ -22,8 +30,15 @@ UNIT = settings(max_examples=UNIT_EXAMPLES, deadline=None, derandomize=True)
 
 def _run(case: dict[str, Any], **pack: Any) -> dict[str, Any]:
     assert case_problems(case) == []
+    built = build_pack(TODAY, **pack)
     clock = clock_on(TODAY)
-    return f1.compute_f1(f1.parse_case(case, clock), build_pack(TODAY, **pack), clock)
+
+    def compute(sent: dict[str, Any]) -> dict[str, Any]:
+        return f1.compute_f1(f1.parse_case(refuse_placeholders(sent), clock), built, clock)
+
+    # As test_f1._run: SPEC-resolutions.md points 2 and 7, an answer dated on the case's day
+    # and sent with the about it was asked with.
+    return compute(with_the_about_asked(dated_on_the_day(case, clock), compute))
 
 
 def _with_jobs(*jobs: dict[str, Any]) -> dict[str, Any]:
