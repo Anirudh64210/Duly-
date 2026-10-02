@@ -33,4 +33,10 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   { files: ["*.mjs"], languageOptions: { globals: globals.node } },
+  {
+    // A CommonJS package that appdmg requires (the image-size shim).
+    files: ["tools/npm/**/*.js"],
+    languageOptions: { sourceType: "commonjs", globals: globals.node },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
 );

@@ -8,7 +8,15 @@ import {
 import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 
 import { insideTheApp } from "./about";
-import { COPY_PATH, RETRY_PATH, details, statusPage, type EngineView } from "./pages";
+import {
+  COPY_PATH,
+  RETRY_PATH,
+  details,
+  statusPage,
+  withFlash,
+  type EngineView,
+  type PageNote,
+} from "./pages";
 
 /** Sent with every answer the app scheme gives, from a file, from the engine or refused. */
 export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
@@ -211,6 +219,10 @@ export async function readInside(
 export interface AppDeps {
   webDist: string;
   engine: () => EngineView;
+  /** The wordmark font as a data URL, for the flash. */
+  flashFont?: string | undefined;
+  /** True once, when the screen is first served after the flash: its page opens on the flash. */
+  takeFlash?: () => boolean;
   fetch: SocketFetch;
   readFile: (root: string, relativePath: string) => Promise<Uint8Array<ArrayBuffer> | null>;
   /** Files under web/dist this handler never serves. */
@@ -236,6 +248,10 @@ function plain(status: number, sentence: string): Response {
 }
 
 /** The handler for the app scheme. It takes a request and gives an answer; nothing else. */
+function flashNote(deps: AppDeps): PageNote {
+  return { font: deps.flashFont };
+}
+
 export function createAppHandler(deps: AppDeps): (request: Request) => Promise<Response> {
   return async (request) => {
     const route = routeRequest(request.url);
@@ -255,7 +271,7 @@ export function createAppHandler(deps: AppDeps): (request: Request) => Promise<R
         }
       }
       const now = deps.engine();
-      return now.state === "ready" ? html(REFRESH) : html(statusPage(now));
+      return now.state === "ready" ? html(REFRESH) : html(statusPage(now, flashNote(deps)));
     }
     if (route.kind === "engine") {
       if (view.state !== "ready") return plain(503, "Duly's engine is not running.");
@@ -281,9 +297,14 @@ export function createAppHandler(deps: AppDeps): (request: Request) => Promise<R
         { status: answer.status, headers: responseHeaders(answer.headers.get("Content-Type")) },
       );
     }
-    if (route.relative === "index.html" && view.state !== "ready") return html(statusPage(view));
+    if (route.relative === "index.html" && view.state !== "ready") {
+      return html(statusPage(view, flashNote(deps)));
+    }
     const bytes = await deps.readFile(deps.webDist, route.relative);
     if (bytes === null) return plain(404, "Not found.");
+    if (route.relative === "index.html" && deps.takeFlash?.() === true) {
+      return html(withFlash(new TextDecoder().decode(bytes), deps.flashFont));
+    }
     return new Response(bytes, {
       status: 200,
       headers: responseHeaders(contentType(route.relative)),

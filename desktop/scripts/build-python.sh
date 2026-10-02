@@ -72,6 +72,10 @@ fi
 run rm -rf "$build/python"
 run tar -xzf "$download" -C "$build"
 if [[ $dry -eq 0 && ! -x "$python" ]]; then fail "the runtime has no bin/python3"; fi
+# Tools and docs the engine never runs: fewer files to sign, nothing that links elsewhere.
+run rm -rf "$build/python/share" "$build/python/lib/pkgconfig"
+run find "$build/python/bin" -mindepth 1 \( -name '2to3*' -o -name 'idle3*' -o -name 'pydoc3*' \
+  -o -name 'python3*-config' \) -exec rm -f {} +
 
 echo "step 2: the desktop dependency group, wheels only"
 requirements="$build/requirements.txt"

@@ -32,9 +32,12 @@ only in assistant/providers and pipeline/models, never in a release artefact, AR
 ## 1. The slim desktop engine entrypoint
 
 1. **A new entrypoint, `api/desktop_main.py`, serves the engine and the local routes only.** Its
-   app has exactly three routes: `GET /health`, `GET /version` and `POST /v1/compute`, with the
-   same request and response shapes as openapi.yaml. It does not serve `/v1/compute/f1` (only the
-   old bench uses it), `/v1/status` (it needs Postgres) or `/ops/*`.
+   app has exactly four routes: `GET /health`, `GET /version`, `POST /v1/compute` and
+   `GET /v1/status`, with the same request and response shapes as openapi.yaml. It does not serve
+   `/v1/compute/f1` (only the old bench uses it) or `/ops/*`. Amended 2026-10-01: the first
+   packaged build showed the onboarding cannot list the statuses without `/v1/status`. Its body
+   is shared through `api/local_routes.py`; the desktop reports `database: ok`, since it has no
+   server database to reach.
    - Checked by: `tests/unit/desktop_entry/test_desktop_main.py` lists the app's routes and fails
      on any other.
 2. **The compute route is shared, not copied.** The body of today's `POST /v1/compute` in

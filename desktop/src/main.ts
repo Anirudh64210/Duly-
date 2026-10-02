@@ -7,6 +7,7 @@ import {
   BrowserWindow,
   clipboard,
   ipcMain,
+  nativeTheme,
   protocol,
   safeStorage,
   session,
@@ -27,7 +28,7 @@ import {
 } from "./guard";
 import { LAUNCH_FILE, Milestones, launchedBefore, readLaunches, recordLaunch } from "./launch";
 import { checkRuntime } from "./manifest";
-import { GROUND } from "./pages";
+import { FLASH_GROUND, FLASH_MS, GROUND, GROUND_DARK } from "./pages";
 import { appPaths, engineCommand, repoOnly, repoRoot, verifyStart, webDist } from "./paths";
 import { createAppHandler, fetchOverSocket, readInside } from "./protocol";
 import { smokeFolder } from "./screen";
@@ -134,11 +135,19 @@ function launch(folder: string | null, verify: boolean): void {
       return;
     }
 
+    const flashFont = wordmarkFont(paths.web);
+    let flashPending = true;
     protocol.handle(
       APP_SCHEME,
       createAppHandler({
         webDist: paths.web,
         engine: () => engine.view(),
+        flashFont,
+        takeFlash: () => {
+          const take = flashPending;
+          flashPending = false;
+          return take;
+        },
         fetch: fetchOverSocket,
         readFile: readInside,
         refuse: refusedInApp,
@@ -165,7 +174,8 @@ function launch(folder: string | null, verify: boolean): void {
 
     const shown = new BrowserWindow({
       ...WINDOW,
-      backgroundColor: GROUND,
+      // Black from the first frame, so the flash is never preceded by a blank window.
+      backgroundColor: FLASH_GROUND,
       webPreferences: webPreferences(join(__dirname, "preload.js"), version),
     });
     window = shown;
@@ -184,10 +194,26 @@ function launch(folder: string | null, verify: boolean): void {
     };
     await show();
     marks.mark("window_shown");
+    const flashShown = Date.now();
     await engine.ready;
+    // The intro plays whole; the screen then picks up its last frame (web launchFlash.ts).
+    let flashing = true;
+    const leaveFlash = async () => {
+      if (!flashing) return;
+      flashing = false;
+      const left = FLASH_MS - (Date.now() - flashShown);
+      if (left > 0) await new Promise((done) => setTimeout(done, left));
+    };
     const reload = async () => {
+      if (engine.view().state === "ready") await leaveFlash();
       await show();
-      if (engine.view().state === "ready") marks.mark("first_page_loaded");
+      if (engine.view().state === "ready") {
+        marks.mark("first_page_loaded");
+        // Behind the screen from now on, e.g. while the window is resized.
+        if (!shown.isDestroyed()) {
+          shown.setBackgroundColor(nativeTheme.shouldUseDarkColors ? GROUND_DARK : GROUND);
+        }
+      }
     };
     engine.onChange(() => void reload());
     await reload();
@@ -254,4 +280,21 @@ if (folder === "bad" || shots === "bad") {
   app.exit(folder === null ? 0 : 1);
 } else {
   launch(folder, verifyStart(process.argv));
+}
+
+/**
+ * The screen's Instrument Sans 700, for the flash, as a data URL so it is drawn in the first
+ * frame. Its built file name carries a hash.
+ */
+function wordmarkFont(web: string): string | undefined {
+  try {
+    const assets = join(web, "assets");
+    const name = fs
+      .readdirSync(assets)
+      .find((file) => /^instrument-sans-latin-700-normal-.*\.woff2$/.test(file));
+    if (name === undefined) return undefined;
+    return `data:font/woff2;base64,${fs.readFileSync(join(assets, name)).toString("base64")}`;
+  } catch {
+    return undefined;
+  }
 }

@@ -1,5 +1,4 @@
 from collections.abc import Awaitable, Callable
-from datetime import date
 from functools import lru_cache
 from typing import Annotated, Any
 
@@ -16,14 +15,13 @@ from api.case_f1 import (
     read_body,
 )
 from api.db import database_reachable, make_engine
-from api.local_routes import API_VERSION, get_body, get_clock, router
+from api.local_routes import API_VERSION, get_body, get_clock, router, status_body
 from api.local_token import NOT_FROM_THE_APP, TOKEN_HEADER, expected_token, request_allowed
 from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
 from engine.clocks import Clock
 from engine.f1 import compute_f1, parse_case
 from engine.rulepack import Rulepack, load_all
-from engine.verdict import VerdictInputs, decide
 
 app = FastAPI(title="Duly API", version=API_VERSION, docs_url=None, redoc_url=None)
 # /health, /version and /v1/compute, shared with the desktop engine (SPEC-W1 point 2).
@@ -48,43 +46,12 @@ def get_db(settings: Annotated[Settings, Depends(get_settings)]) -> Engine:
     return _engines[settings.database_url]
 
 
-def _iso(day: date | None) -> str | None:
-    return None if day is None else day.isoformat()
-
-
 @app.get("/v1/status")
 def status(
     db: Annotated[Engine, Depends(get_db)],
     clock: Annotated[Clock, Depends(get_clock)],
 ) -> dict[str, Any]:
-    packs = load_all()
-    # SPEC-resolutions point 35: the packs' own dates. The oldest among the packs that
-    # hold rules, so a stale pack is never hidden by a fresh one.
-    checked_on = [p.rules_checked_on for p in packs if p.rules_checked_on is not None]
-    empty_case = VerdictInputs(
-        documents_count=0,
-        missing_inputs=(),
-        conflicting_inputs=(),
-        rules_checked_on=min(checked_on, default=None),
-        depends_on_litigated_rule=False,
-        judgement_items=(),
-        open_items=(),
-    )
-    verdict = decide(empty_case, clock)
-    return {
-        "database": "ok" if database_reachable(db) else "unreachable",
-        "rulepacks": [
-            {
-                "category": p.category,
-                "version": p.version,
-                "parameters": len(p.parameters),
-                "rules_checked_on": _iso(p.rules_checked_on),
-            }
-            for p in packs
-        ],
-        "verdict": {"state": verdict.state.value, "reasons": list(verdict.reasons)},
-        "checked_at": clock.now().isoformat(),
-    }
+    return status_body(load_all(), clock, "ok" if database_reachable(db) else "unreachable")
 
 
 @lru_cache

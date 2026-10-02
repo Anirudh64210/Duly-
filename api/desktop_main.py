@@ -17,7 +17,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
-from api.local_routes import API_VERSION, router
+from api.local_routes import API_VERSION, desktop_router, router
 from api.local_token import NOT_FROM_THE_APP, TOKEN_HEADER
 
 # macOS: sun_path is 104 bytes with its closing NUL, so 103 bytes is the longest path.
@@ -29,7 +29,7 @@ class RefusedError(Exception):
 
 
 def create_app(token: str) -> FastAPI:
-    """The three local routes. Every one, /health included, requires the launch token."""
+    """The four local routes. Every one, /health included, requires the launch token."""
     app = FastAPI(
         title="Duly engine",
         version=API_VERSION,
@@ -50,6 +50,7 @@ def create_app(token: str) -> FastAPI:
         return await call_next(request)
 
     app.include_router(router)
+    app.include_router(desktop_router)
     return app
 
 

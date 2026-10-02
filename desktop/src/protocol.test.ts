@@ -293,6 +293,31 @@ describe("the app handler", () => {
     expectSecurityHeaders(response);
   });
 
+  it("serves the screen once with the flash's last frame drawn in, then as built", async () => {
+    let pending = true;
+    const handler = handlerWith(READY, vi.fn(), {
+      takeFlash: () => {
+        const take = pending;
+        pending = false;
+        return take;
+      },
+    });
+    const first = await handler(new Request("duly://app/index.html"));
+    expect(first.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
+    expectSecurityHeaders(first);
+    // The fixture page has no head or body tags, so withFlash leaves its bytes as they are.
+    expect(await first.text()).toBe("<h1>screen</h1>");
+    expect(pending).toBe(false);
+    const again = await handler(new Request("duly://app/index.html"));
+    expect(await again.text()).toBe("<h1>screen</h1>");
+  });
+
+  it("does not take the flash for any file but the screen's page", async () => {
+    const takeFlash = vi.fn(() => true);
+    await handlerWith(READY, vi.fn(), { takeFlash })(new Request("duly://app/assets/app.js"));
+    expect(takeFlash).not.toHaveBeenCalled();
+  });
+
   it("refuses with 404 every path that would leave web/dist", async () => {
     const handler = handlerWith(READY);
     for (const address of [...LEAVING, "duly://app/linked.txt", "duly://evil/index.html"]) {

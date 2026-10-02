@@ -512,13 +512,13 @@ def run_eval():
         cases = json.load(f)['questions']
 
     def one(c):
-        t0 = time.time()
+        t0 = time.perf_counter()
         try:
             r = ask(c['question'], c.get('history') or [], c.get('saved') or [], c.get('goals') or [])
             err = None
         except Exception as e:  # noqa: BLE001  saved with the result
             r, err = None, str(e)[:400]
-        out = {'id': c['id'], 'question': c['question'], 'ideal': c['ideal'], 'seconds': round(time.time() - t0, 1)}
+        out = {'id': c['id'], 'question': c['question'], 'ideal': c['ideal'], 'seconds': round(time.perf_counter() - t0, 1)}
         if r is None:
             out['error'] = err
             return out

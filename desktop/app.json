@@ -1,4 +1,4 @@
 {
-  "appId": "org.getduly.desktop",
-  "note": "Permanent bundle id (SPEC-W1 point 31), chosen 2026-10-01 from getduly.org. Changing it later loses keychain access to everything stored under it."
+  "appId": "co.tryduly.desktop",
+  "note": "Permanent bundle id (SPEC-W1 point 31), chosen 2026-10-01 from tryduly.co. Changing it later loses keychain access to everything stored under it."
 }

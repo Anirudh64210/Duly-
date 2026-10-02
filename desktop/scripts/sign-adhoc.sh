@@ -10,7 +10,9 @@
 #
 # Ad hoc (--sign -) unless DULY_SIGN_IDENTITY names a code-signing identity in the login
 # keychain (point 22). Hardened runtime, no timestamp. The .app bundles carry
-# desktop/build/entitlements.plist (allow-jit for V8); nothing else carries entitlements.
+# desktop/build/entitlements.plist (allow-jit for V8, and library validation off because an ad hoc
+# or self-made signature has no team); the interpreter carries python-entitlements.plist (library
+# validation off). The Developer ID build drops both library-validation keys.
 #
 # --dry-run prints the codesign order and changes nothing.
 set -euo pipefail
@@ -29,10 +31,13 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 app="$(cd "$1" && pwd)"
 identity="${DULY_SIGN_IDENTITY:--}"
 entitlements="$here/../build/entitlements.plist"
-[[ -f "$entitlements" ]] || {
-  echo "sign-adhoc: no $entitlements" >&2
-  exit 1
-}
+python_entitlements="$here/../build/python-entitlements.plist"
+for f in "$entitlements" "$python_entitlements"; do
+  [[ -f "$f" ]] || {
+    echo "sign-adhoc: no $f" >&2
+    exit 1
+  }
+done
 
 run() {
   echo "+ $*"
@@ -58,10 +63,41 @@ deepest_first() {
 
 resources="$app/Contents/Resources"
 
+echo "step 0: the runtime's links, relative again"
+# Forge copies extraResource with each link made absolute, into desktop/build/python, and
+# codesign refuses a link whose target is outside the app. Point each one back inside, relative;
+# a link that still leads outside Resources/python stops the build.
+if [[ -d "$resources/python" ]]; then
+  run node -e '
+    const fs = require("node:fs"), path = require("node:path");
+    const base = fs.realpathSync(process.argv[1]);
+    const walk = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isSymbolicLink()) {
+          const t = fs.readlinkSync(p);
+          if (!path.isAbsolute(t)) continue;
+          const i = t.lastIndexOf("/python/");
+          const inside = i < 0 ? null : path.join(base, t.slice(i + "/python/".length));
+          if (!inside || !fs.existsSync(inside)) { console.error("sign-adhoc: link leaves the app: " + p + " -> " + t); process.exit(1); }
+          fs.unlinkSync(p);
+          fs.symlinkSync(path.relative(path.dirname(p), inside), p);
+        } else if (e.isDirectory()) walk(p);
+      }
+    };
+    walk(base);
+  ' "$resources/python"
+fi
+
 echo "step 1: the bundled runtime"
 if [[ -d "$resources/python" ]]; then
   while IFS= read -r file; do
-    if macho "$file"; then sign "$file"; fi
+    if ! macho "$file"; then continue; fi
+    case "$file" in
+      *.so | *.dylib) sign "$file" ;;
+      # The interpreter loads its own ad hoc signed libraries, which have no team (threat model).
+      *) sign --entitlements "$python_entitlements" "$file" ;;
+    esac
   done < <(
     find "$resources/python" -type f \( -name '*.so' -o -name '*.dylib' \) | deepest_first
     find "$resources/python" -type f -not -name '*.so' -not -name '*.dylib' | deepest_first

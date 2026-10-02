@@ -3,8 +3,10 @@
 specs/step-w/SPEC-W1.md sections 1 and 2 (points 1 to 5, 7 and 9; points 6, 8, 10 and 11 are
 main's side and are checked in desktop/src):
 
-- Point 1: the app has exactly three routes, GET /health, GET /version and POST /v1/compute,
-  with the shapes of openapi.yaml. Not /v1/compute/f1, /v1/status or /ops/*.
+- Point 1: the app has exactly four routes, GET /health, GET /version, POST /v1/compute and
+  GET /v1/status, with the shapes of openapi.yaml. Not /v1/compute/f1 or /ops/*. /v1/status
+  was added on 2026-10-01: the onboarding lists the statuses from it, and the packaged app
+  could not start a case without it.
 - Point 2: the compute route is shared, not copied. Its body lives in api/local_routes.py,
   which imports only fastapi, api.case, api.local_token and engine/, and never api.settings,
   api.db or pydantic_settings. The twenty journeys of specs/path-1/journeys.json, sent to both
@@ -55,6 +57,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
@@ -126,17 +129,40 @@ def _served(routes: list[Any], prefix: str = "") -> list[tuple[str, frozenset[st
     return served
 
 
-def test_point_1_the_app_has_exactly_the_three_routes() -> None:
-    # Fails on any other route: /v1/compute/f1, /v1/status, /ops/*, and FastAPI's own
+def test_point_1_the_app_has_exactly_the_four_routes() -> None:
+    # Fails on any other route: /v1/compute/f1, /ops/*, and FastAPI's own
     # /openapi.json, /docs and /redoc, which an app serves unless they are turned off.
     app: FastAPI = _desktop_main().create_app(TOKEN)
     served = _served(app.routes)
     assert sorted((path, sorted(methods)) for path, methods, _ in served) == [
         ("/health", ["GET"]),
         ("/v1/compute", ["POST"]),
+        ("/v1/status", ["GET"]),
         ("/version", ["GET"]),
     ]
     assert all(endpoint is not None for _, _, endpoint in served)
+
+
+@pytest.mark.usefixtures("no_server_token")
+def test_point_1_status_lists_the_packs_as_the_server_app_does() -> None:
+    # The onboarding's first question lists the categories of /v1/status. Fails if the desktop
+    # engine lists other packs, another verdict or another check time than api.main. The
+    # database field is left out: the server reads Postgres, the desktop has none.
+    with _both_apps() as (server, desktop):
+        api.main.app.dependency_overrides[api.main.get_db] = lambda: None
+        try:
+            with patch.object(api.main, "database_reachable", lambda _db: True):
+                a = server.get("/v1/status")
+        finally:
+            api.main.app.dependency_overrides.pop(api.main.get_db, None)
+        b = desktop.get("/v1/status")
+    assert (a.status_code, b.status_code) == (200, 200)
+    ours, theirs = b.json(), a.json()
+    assert ours["database"] == "ok"
+    assert {k: v for k, v in ours.items() if k != "database"} == {
+        k: v for k, v in theirs.items() if k != "database"
+    }
+    assert "f1" in {pack["category"] for pack in ours["rulepacks"]}
 
 
 def test_point_1_the_route_listing_sees_the_server_apps_other_routes() -> None:

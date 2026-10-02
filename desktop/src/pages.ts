@@ -12,8 +12,33 @@ export const TRY_AGAIN = "Try again";
 export const COPY_DETAILS = "Copy details";
 export const COPIED = "Details copied.";
 
-/** The canvas ground, also the window's colour before its first page is drawn. */
+/** The canvas ground of the web screen, light and dark (web/src/design/tokens.css). */
 export const GROUND = "#F8F7F4";
+export const GROUND_DARK = "#161513";
+
+/**
+ * The flash: white "Duly" on black, the accent dot, in the screen's own font. The screen picks
+ * up this exact frame and carries the wordmark to its own (web/src/app/launchFlash.ts keeps
+ * the same numbers).
+ */
+export const FLASH_GROUND = "#000000";
+export const FLASH_INK = "#FFFFFF";
+export const FLASH_DOT = "#8FA8E6";
+export const FLASH_SIZE_PX = 64;
+const LINE_INK = "rgba(255,255,255,.72)";
+const LINE_FONT = "15px/1.5 -apple-system,system-ui,sans-serif";
+/** The line hangs this far below the centre, on the flash page and in the first frame. */
+const LINE_BELOW_PX = 56;
+
+/** Said under the wordmark on every launch, until the wordmark leaves for the corner. */
+export const LINE = "Your F-1 journey, duly kept.";
+
+/**
+ * The intro plays whole before the screen takes over: the word rises, the dot drops and
+ * settles, the line comes in and has time to be read. Starting the engine takes most of
+ * this anyway.
+ */
+export const FLASH_MS = 2_000;
 
 /** The two actions, posted to the app scheme. */
 export const RETRY_PATH = "__duly/retry";
@@ -74,6 +99,99 @@ function button(path: string, words: string, go: boolean): string {
 
 export interface PageNote {
   copied?: boolean;
+  /** The screen's wordmark font (Instrument Sans 700), as a data URL. */
+  font?: string | undefined;
+}
+
+const FLASH_STYLE = [
+  "html,body{height:100%;margin:0}",
+  `body{background:${FLASH_GROUND};color:${FLASH_INK};overflow:hidden;`,
+  `font:${LINE_FONT};-webkit-font-smoothing:antialiased;`,
+  "-webkit-user-select:none;cursor:default}",
+  // The word sits at the exact centre; everything else hangs below it, out of the layout.
+  ".stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}",
+  ".h{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}",
+  `.word{position:relative;margin:0;font:700 ${FLASH_SIZE_PX}px/1 var(--wordmark);letter-spacing:-0.01em;`,
+  "opacity:0;transform:translateY(14px);animation:rise .8s cubic-bezier(.16,1,.3,1) .1s forwards}",
+  `.dot{display:inline-block;color:${FLASH_DOT};opacity:0;transform:translateY(-1.1em);`,
+  "animation:drop .85s linear .55s forwards}",
+  `.under{position:absolute;left:50%;top:calc(50% + ${LINE_BELOW_PX}px);transform:translateX(-50%);`,
+  "text-align:center;white-space:nowrap}",
+  `.line{margin:0;color:${LINE_INK};opacity:0;transform:translateY(4px);animation:say .6s ease .95s forwards}`,
+  ".mark{width:120px;height:2px;margin:18px auto 0;border-radius:1px;background:rgba(255,255,255,.16);",
+  "overflow:hidden;opacity:0;animation:fade .3s ease-out 2.8s forwards}",
+  ".mark i{display:block;width:40%;height:100%;background:rgba(255,255,255,.7);",
+  "animation:slide 1.6s ease-in-out infinite alternate}",
+  ".slow{margin:14px 0 0;color:rgba(255,255,255,.6);visibility:hidden;",
+  `animation:appear 0s linear ${SLOW_AFTER_MS / 1000}s forwards}`,
+  "@keyframes rise{to{opacity:1;transform:none}}",
+  // A drop that lands, rebounds twice and settles, eased per leg like a ball.
+  "@keyframes drop{0%{opacity:0;transform:translateY(-1.1em);animation-timing-function:cubic-bezier(.5,0,1,1)}",
+  "48%{opacity:1;transform:none;animation-timing-function:cubic-bezier(0,0,.5,1)}",
+  "64%{transform:translateY(-.22em);animation-timing-function:cubic-bezier(.5,0,1,1)}",
+  "80%{transform:none;animation-timing-function:cubic-bezier(0,0,.5,1)}",
+  "90%{transform:translateY(-.06em);animation-timing-function:cubic-bezier(.5,0,1,1)}",
+  "100%{opacity:1;transform:none}}",
+  "@keyframes say{to{opacity:1;transform:none}}",
+  "@keyframes fade{to{opacity:1}}",
+  "@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}",
+  "@keyframes appear{to{visibility:visible}}",
+  "@media (prefers-reduced-motion:reduce){.word,.dot{animation:none;opacity:1;transform:none}",
+  ".line{animation:none;opacity:1;transform:none}.mark{display:none}}",
+].join("");
+
+/**
+ * The wordmark's face. A data URL, so the word is never drawn in a stand-in font for a
+ * frame, on the flash page or on the screen's first frame.
+ */
+const FLASH_FAMILY = '"Duly Flash",-apple-system,system-ui,sans-serif';
+
+function fontFace(font: string | undefined): string {
+  return font === undefined
+    ? ""
+    : `@font-face{font-family:"Duly Flash";font-weight:700;font-display:block;src:url("${escapeHtml(font)}")}`;
+}
+
+/**
+ * The flash's last frame, drawn into the screen's own page the first time it is served, so
+ * the page's first paint is already that frame and there is no blink between the two. The
+ * screen (web/src/app/launchFlash.ts) carries it to the logo and removes it.
+ */
+export function withFlash(index: string, font: string | undefined): string {
+  const style = `<style id="launch-flash-style">${fontFace(font)}html,body{background:${FLASH_GROUND}}</style>`;
+  const overlay = [
+    '<div class="launch-flash" aria-hidden="true" style="position:fixed;inset:0;',
+    'z-index:2147483647;display:flex;align-items:center;justify-content:center;pointer-events:none">',
+    `<div style="position:absolute;inset:0;background:${FLASH_GROUND};will-change:opacity"></div>`,
+    `<p style="position:relative;margin:0;font:700 ${FLASH_SIZE_PX}px/1 ${FLASH_FAMILY.replaceAll('"', "'")};`,
+    `letter-spacing:-0.01em;color:${FLASH_INK};white-space:nowrap;-webkit-font-smoothing:antialiased">`,
+    `Duly<span style="display:inline-block;color:${FLASH_DOT}">.</span></p>`,
+    `<p class="launch-line" style="position:absolute;left:50%;top:calc(50% + ${LINE_BELOW_PX}px);`,
+    `transform:translateX(-50%);margin:0;white-space:nowrap;font:${LINE_FONT};color:${LINE_INK};`,
+    `-webkit-font-smoothing:antialiased">${escapeHtml(LINE)}</p></div>`,
+  ].join("");
+  return index.replace(/<head>/i, `<head>${style}`).replace(/<body>/i, `<body>${overlay}`);
+}
+
+/** The brand flash, shown while the engine starts, on every launch. */
+function flashPage(font: string | undefined): string {
+  const face = `${fontFace(font)}:root{--wordmark:${FLASH_FAMILY}}`;
+  return [
+    "<!doctype html>",
+    '<html lang="en">',
+    '<head><meta charset="utf-8"><title>Duly</title>',
+    `<style>${face}${FLASH_STYLE}</style></head>`,
+    '<body><div class="stage">',
+    `<h1 class="h">${escapeHtml(STARTING)}</h1>`,
+    '<p class="word" aria-hidden="true">Duly<span class="dot">.</span></p>',
+    '<div class="under">',
+    `<p class="line">${escapeHtml(LINE)}</p>`,
+    '<div class="mark" aria-hidden="true"><i></i></div>',
+    `<p class="slow">${escapeHtml(SLOW)}</p>`,
+    "</div>",
+    "</div></body>",
+    "</html>",
+  ].join("\n");
 }
 
 /**
@@ -85,15 +203,7 @@ export function statusPage(
   view: Exclude<EngineView, { state: "ready" }>,
   note: PageNote = {},
 ): string {
-  if (view.state === "starting") {
-    return page(
-      [
-        `<h1>${escapeHtml(STARTING)}</h1>`,
-        '<div class="mark" aria-hidden="true"><i></i></div>',
-        `<p class="slow">${escapeHtml(SLOW)}</p>`,
-      ].join(""),
-    );
-  }
+  if (view.state === "starting") return flashPage(note.font);
   return page(
     [
       `<h1>${escapeHtml(COULD_NOT_START)}</h1>`,

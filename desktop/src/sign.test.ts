@@ -100,10 +100,14 @@ describe("sign-adhoc.sh --dry-run (point 21)", () => {
     );
   });
 
-  it("gives the entitlements to the app bundles only", () => {
+  it("gives the app entitlements to the app bundles, and the interpreter its own", () => {
+    // An ad hoc or self-made signature has no team, so library validation is off for the
+    // app and for python3 (security/threat-model.md); libraries carry no entitlements.
     for (const line of out.split("\n").filter((l) => l.startsWith("+ codesign --force"))) {
-      const bundle = line.endsWith(".app") || line.endsWith("Duly.app");
-      expect(line.includes("--entitlements"), line).toBe(bundle);
+      const bundle = line.endsWith(".app");
+      const interpreter = /\/Resources\/python\/bin\/[^/]+$/.test(line);
+      expect(line.includes("/build/entitlements.plist"), line).toBe(bundle);
+      expect(line.includes("/build/python-entitlements.plist"), line).toBe(interpreter);
     }
   });
 
