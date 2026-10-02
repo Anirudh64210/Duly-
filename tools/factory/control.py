@@ -106,7 +106,12 @@ def status(repo: Path) -> int:
 
 def lost_commits(repo: Path) -> list[tuple[str, dict[str, Any]]]:
     """Commits the ledger names that no branch holds: work a cleanup may have thrown away."""
-    reachable = set(worktree.git(["rev-list", "--branches", "--remotes"], repo).split())
+    # Kept attempts hold a ref under refs/factory/kept (agent_run.KEPT_REFS), not a branch.
+    reachable = set(
+        worktree.git(
+            ["rev-list", "--branches", "--remotes", "--glob=refs/factory/kept/*"], repo
+        ).split()
+    )
     kept = re.compile(r"kept on \S+ at ([0-9a-f]{7,40})")
     lost: list[tuple[str, dict[str, Any]]] = []
     seen: set[str] = set()

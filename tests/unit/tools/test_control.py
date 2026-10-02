@@ -133,6 +133,9 @@ def test_doctor_reports_ledger_commits_on_no_branch(tmp_path, capsys):
     assert [sha for sha, _ in control.lost_commits(repo)] == [lost[:10]]
     assert control.doctor(repo, "skill-curator") == 1
     assert f"LOST    commit {lost[:10]}" in capsys.readouterr().out
+    # A retry resets the lane branch; the attempt's own kept ref still holds it.
+    mini.git(repo, "update-ref", f"refs/factory/kept/r-1/{lost[:12]}", lost)
+    assert control.lost_commits(repo) == []
 
 
 def test_a_cleanup_keeps_a_branch_holding_work_no_other_branch_holds(tmp_path):

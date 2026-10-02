@@ -195,6 +195,9 @@ def test_work_cut_off_by_the_budget_is_kept_on_its_branch_and_not_merged(tmp_pat
     assert "tests/cheat.py" not in kept  # nothing outside the lane is kept
     assert out.head_commit == ""
     assert mini.git(repo, "rev-parse", "phase-x") == out.base_commit  # nothing was merged
+    # Its own ref keeps it when a retry resets the branch (make doctor saw LOST otherwise).
+    refs = mini.git(repo, "for-each-ref", "--format=%(objectname)", "refs/factory/kept/")
+    assert out.kept_commit in refs.split()
 
 
 def test_writes_outside_the_lane_are_never_accepted(tmp_path, monkeypatch):

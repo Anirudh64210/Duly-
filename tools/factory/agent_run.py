@@ -1017,6 +1017,10 @@ def run(task: Task, clock: Clock | None = None, cwd: Path | None = None) -> Outc
     )
 
 
+# Every kept attempt also lives under its own ref here, so no retry can lose it.
+KEPT_REFS = "refs/factory/kept"
+
+
 def keep_unaccepted(tree: worktree.Tree, lane: Lane, task: Task, status: str, repo: Path) -> str:
     """Save the work of an attempt or a run not accepted, on the run's own branch only.
 
@@ -1048,6 +1052,19 @@ def keep_unaccepted(tree: worktree.Tree, lane: Lane, task: Task, status: str, re
         )
         return ""
     if sha:
+        # A retry resets the run's branch, which used to leave this commit on no branch for
+        # make doctor to call lost. A ref of its own keeps every attempt (KEPT_REFS).
+        try:
+            worktree.git(["update-ref", f"{KEPT_REFS}/{task.run_id}/{sha[:12]}", sha], repo)
+        except worktree.WorktreeError as err:
+            ledger.append(
+                task.lane,
+                "orchestrator",
+                "step",
+                f"kept ref not made: {err}"[:400],
+                repo,
+                run_id=task.run_id,
+            )
         ledger.append(
             task.lane,
             "orchestrator",
