@@ -10,6 +10,8 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
+from engine.settings import SettingsError, dating_setting, load_settings
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "contracts" / "rulepack.schema.json"
 PACKS_DIR = REPO_ROOT / "rulepacks"
@@ -145,6 +147,13 @@ def _reject_misplaced_settings(node: Any, trail: tuple[Any, ...]) -> None:
         raise RulepackError(
             f"{where}: the setting {node['setting']} may date only a stage window's opens or closes"
         )
+    if is_amount:
+        # Refused here, not at the first compute: an unknown id, or a unit no date moves by.
+        try:
+            dating_setting(load_settings(), node["setting"])
+        except SettingsError as refused:
+            where = "/".join(str(step) for step in ("path", *trail))
+            raise RulepackError(f"{where}: {refused}") from refused
     for key, child in node.items():
         _reject_misplaced_settings(child, (*trail, key))
 
