@@ -1,0 +1,21 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Fix the three engine faults the hidden gap property found after the engine rounds: a stage date shown while a record it rests on is undecided, a blanked field nobody asks for, and a known date that changes to another known date when an unrelated field goes absent. Point 6: an output is shown only when every value the unknowns could take gives the same one. SPEC-W2-UNKNOWN points 6, 8, 13, 29 to 33 and 45 to 50.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Write visible regression tests in tests/unit/engine/test_w2_unknown_regressions.py for three faults found on 2026-10-02 by the hidden journey property (point 47, P2 on the journeys of tests/unit/acceptance/test_journeys.py), each worked by hand in its comment and each failing today: (1) journeys j01 and j03 with the move mv1''s from_program made undecided (not_sure): the STEM stage of a2 (j01) or a4 (j03) still shows a next date (2024-07-15 in j01, 2024-07-22 in j03); point 6 and 33 say the stage''s dates rest on the move and must be withheld with waits_on naming mv1.from_program; (2) journeys j12 and j13 with w1''s start left out: no question asks for w1.start; point 8 says a gap that can change an output is asked, with field start and the record; (3) journey j15 with w4''s under left out: computed stem.evaluation_final.opens.a2 changes from 2025-10-31 to 2027-06-14; point 6 says an output that differs across the values the unknown could take is withheld with waits_on, never replaced by another date. Name the point beside each. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_unknown_regressions.py --co -q >/dev/null'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Make tests/unit/engine/test_w2_unknown_regressions.py pass by fixing the class, not the cases: a stage''s dates and next step rest on every record its entry, binding and selection read, so an undecided one withholds them (points 29 to 33); a blanked field that can change an output is always asked (point 8); and no output is shown when its value differs across the values an unknown could take (point 6), wherever a selection, a first or an earliest_of reads an unknown record. Generic, nothing about F-1 in engine code. Every test in tests/unit/engine and the journeys must keep passing.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
