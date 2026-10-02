@@ -1558,3 +1558,27 @@ Status: done.
   "Operation not permitted" (the sandbox refuses unix sockets); none in engine.
 
 Status: done.
+
+## l-engine-fe5f51dcf6: clear the W2-P1 veto (reviews/w2-p1.md findings 1, 2, 3, 5, 8)
+
+- Before any change: the done command as written, output to $TMPDIR/lfe5-done.txt: exit 1, 7
+  failures (future-card limit day x2, STEM card with no employer, planning inputs x2, undatable
+  setting x2).
+- Finding 1, engine/path.py `run_stages` and `run_checks`: when a for_each selection is
+  unknown, `_need` asks for what it read (missing:<record>.<field>, so cannot_tell), never
+  `or []` in silence. Generic: no F-1 word. Counters already did this.
+- Finding 2, `_amount`: the setting id and its value go into the trace inputs, so the item, the
+  window and the upcoming entry show them. Still never a rule.
+- Finding 3, `_days_without`: dropped the early `return []` when today is before the span start,
+  so a span not yet started counts its days ahead; the count through today stays 0.
+- Finding 8, engine/settings.py: `dating_setting` returns value and unit together from one read
+  (`_whole_entry`), the unit in the engine's names; `whole_setting` kept for f1.py and the tests.
+- Finding 5, engine/rulepack.py `_reject_misplaced_settings`: each setting amount is checked with
+  `dating_setting`; an unknown id or a unit outside days, business days, months, years is refused
+  in one line naming the setting.
+- Done command as written, output to $TMPDIR/lfe5-done3.txt: exit 0 (2 xfailed as before;
+  engine literals clean; mypy 68 files clean; ruff clean; 9 files formatted). A first run failed
+  only on ruff E501 in a docstring I had lengthened; rewrapped.
+- tests/unit without tools and desktop_entry: exit 0.
+
+Status: done.

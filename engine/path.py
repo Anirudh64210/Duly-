@@ -13,7 +13,7 @@ from typing import Any
 from engine.clocks import Clock, day_in_zone
 from engine.dates import add_months, add_years, is_business_day
 from engine.rulepack import Rulepack
-from engine.settings import load_settings, whole_setting
+from engine.settings import dating_setting, load_settings
 from engine.verdict import RULES_STALE_AFTER, VerdictState
 
 Json = dict[str, Any]
@@ -277,10 +277,12 @@ class _Run:
         if "setting" in amount:
             # A product setting dates a planning window only (the loader refuses it elsewhere).
             # It is never a rule: nothing goes under rule_ids.
+            # Its id and value go among the inputs, so the working shows where the date came
+            # from (BOUNDARY A3).
             setting_id = amount["setting"]
-            value: float | None = whole_setting(self.settings, setting_id)
-            entry = next(e for e in self.settings["settings"] if e.get(ID) == setting_id)
-            unit = str(entry["unit"]).replace(" ", "_")
+            whole, unit = dating_setting(self.settings, setting_id)
+            value: float | None = whole
+            tr.inputs[setting_id] = whole
             tr.planning = True
         else:
             row = self._row(amount["rule"], day, tr)
@@ -606,10 +608,12 @@ class _Run:
         for stage in self.path.get("stages", []):
             selector = stage.get("for_each")
             tr = _Trace()
-            records: list[Json | None] = (
-                list(self._select(selector, None, tr) or []) if selector else [None]
-            )
-            for record in records:
+            found = self._select(selector, None, tr) if selector else [None]
+            if found is None:
+                # A selection a gap leaves undecided is asked for, never read as none
+                # (PRINCIPLES 2): the stage is not dropped in silence.
+                self._need(tr)
+            for record in found or []:
                 entered = all(
                     self._resolve(p, record, record)[0] not in (ABSENT, None)
                     for p in stage["entered_when"]
@@ -1015,10 +1019,10 @@ class _Run:
         for check in self.path.get("checks", []):
             selector = check.get("for_each")
             tr = _Trace()
-            records: list[Json | None] = (
-                list(self._select(selector, None, tr) or []) if selector else [None]
-            )
-            for target in records:
+            found = self._select(selector, None, tr) if selector else [None]
+            if found is None:
+                self._need(tr)
+            for target in found or []:
                 self._check(check, target)
 
     def _check(self, check: Json, record: Json | None) -> None:
@@ -1189,10 +1193,8 @@ class _Run:
         self, counter: Json, record: Json, starts: date, ends: date, tr: _Trace
     ) -> list[date] | None:
         """Days in the span no qualifying record covers, the days after today as they stand
-        while nothing in the record changes. None when it is not known which records
-        qualify: an unknown selection is never read as none."""
-        if self.today < starts:
-            return []
+        while nothing in the record changes, a span not yet started as well. None when it is
+        not known which records qualify: an unknown selection is never read as none."""
         covered: set[date] = set()
         hours_limit = None
         if "hours_rule" in counter:
