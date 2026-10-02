@@ -367,3 +367,16 @@
 - Failure: a fix asked for the missing field on the one record the test named, but an unknown on any record still voided the whole selection, so known records' deadlines vanished.
 - Fix: for each for_each, probe two records, one known and one with a gap, and check that the known one keeps its dates.
 - Evidence: reviews/w2-p1.md finding 1 (S1, O1, S2).
+
+## 2026-10-01, run l-review-dfd22d72bf (W2-P1 third review, after fix 2)
+- Read reviews/w2-p1.md (re-review), plan-w2-p1-fix2.yaml, SPEC-W2 45, 46, 49, PRINCIPLES, and the diff 88bc479..5e76463 (engine/path.py _split, run_stages, run_checks, _unreadable, ask_unreadable; engine/rulepack.py; new tests in test_w2_windows.py and test_holdout_w2.py). No web/samples change.
+- Ran: unit and holdout suites without tools and desktop_entry (exit 0); sources verify, plain, engine_literals, mypy, ruff check, ruff format (all 0). Output in TMPDIR/rvw2g/gates.txt.
+- Old probes TMPDIR/rvw2f/probe1..6 on HEAD: S1, O1, S2 fixed in the engine and through POST /v1/compute; x1 asks missing:x1.change.
+- New probes TMPDIR/rvw2g/p1..p6, each also on a 41990c1 copy: D4 (w3 end not_sure nulls w1's concluding evaluation though w2 settles the exists); C (a3 with no type removes a1's unemployment count and limit day); p3 (w3 end 2026-13-40 read as no end, w1 window dated; null at 41990c1, so a fix 2 regression); p4 (hours "40", "forty" or absent: count 121, limit day 2026-08-29, at-or-over reason; strings never asked).
+- Mutants TMPDIR/rvw2g/mut.py: 15 run, 12 caught; M16, M18, M20 survive, with inputs for M16 and M18 in p6.py.
+- Wrote reviews/w2-p1.md (VETO, mean 3.5), REVIEW.json and REPORT.json.
+
+## Lesson
+- Failure: a fix split the top-level selection into decided and undecided records, but exists, none, counts and counter scopes still read the all-or-nothing selection, and the new unreadable-as-absent rule made `present` a guess.
+- Fix: list every caller of the selection helper and of the field reader, and probe each with one decided witness plus one undecided record, and with each field kind given an unreadable value.
+- Evidence: reviews/w2-p1.md findings 1 to 4.
