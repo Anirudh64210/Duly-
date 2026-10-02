@@ -207,6 +207,8 @@ class _Run:
         self.virtual: set[int] = set()
         self.lists: list[Json] = []
         self.differ: list[str] = []
+        # How deep the conditions read now sit inside a selection's where.
+        self.selecting = 0
 
     # Reading the record.
 
@@ -673,7 +675,11 @@ class _Run:
             if record["kind"] != selector["record"]:
                 continue
             sub = _Trace()
-            held = self._all(selector.get("where", []), record, outer, sub)
+            self.selecting += 1
+            try:
+                held = self._all(selector.get("where", []), record, outer, sub)
+            finally:
+                self.selecting -= 1
             if held is None:
                 undecided.append((record, sub))
             elif held:
@@ -729,9 +735,10 @@ class _Run:
         results: list[bool | None] = []
         sub = _Trace()
         value: Any = self._read(c["field"], this, outer, sub) if "field" in c else ABSENT
-        if "present" in c and value is ABSENT and self._only_absent(sub):
-            # An absent `ask` field still reads as not there under present; the engine-reads
-            # round makes it unknown and asked (point 7, mutant U21) with the outputs that wait.
+        if "present" in c and value is ABSENT and not self.selecting and self._only_absent(sub):
+            # A check still reads an absent `ask` field as not there under present, and asks
+            # it through its own conflict. A selection never does: a record it would drop on
+            # a guess is undecided, its gap asked (points 2, 6 and 8).
             value, sub = NONE, _Trace()
         tr.merge(sub)
         known = value is not ABSENT
@@ -1125,9 +1132,13 @@ class _Run:
         if rid is not None:
             entry["stage"] = stage[ID]
             entry["record"] = rid
-        # The span of a next stage is the span of a record not entered yet.
-        held = next_of is None and span and (starts is None or ends is None)
+        # A null day of the span names what it waits on. The span of a next stage is the span
+        # of a record not entered yet: it waits on a real record's gap, never on its own
+        # future fields (points 31 and 33).
+        held = span and (starts is None or ends is None)
         waiting = self._waits(tr) if held else []
+        if next_of is not None:
+            waiting = [name for name in waiting if not name.startswith("future:")]
         if not span and state == "unknown":
             # Point 33: a stage placed by its windows waits on what they wait on.
             waiting = _unique([n for w in windows for n in w.get("waits_on", [])])

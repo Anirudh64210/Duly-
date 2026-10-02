@@ -1877,3 +1877,28 @@ Status: done.
 - Done command as written ($TMPDIR/d2.txt): exit 0 (2 xfail already there).
 
 Status: done.
+
+## l-engine-f54d1560e5: W2-P1 unknown fix2, three faults the hidden gap property found
+
+- Start: the done command failed on the five tests of test_w2_unknown_regressions.py only.
+- Faults 2 and 3 (points 2, 6, 8): `_cond` read an absent `ask` field under `present` as not
+  there. Inside a selection that dropped the record on a guess: j12/j13 w1 with no start left
+  opt_job_start with nothing asked; j15 w4 with no `under` was read as not under a2, so
+  stem.evaluation_final.opens moved to 2025-10-31.
+  - Tried first: removing the shortcut everywhere. Fixed j12, j13, j15, but broke
+    test_path_reach::test_any_of_holds_when_one_part_holds and
+    ::test_a_check_whose_only_if_is_false_does_not_apply, which want a check's `holds` to read
+    the absent field as not there and raise its conflict (a dispute in REPORT.json).
+  - Kept: the shortcut never applies while a selection's `where` is read (`_Run.selecting`,
+    set in `_choose`). Every selection, `first`, `exists`, `none`, count and for_each goes
+    through `_choose`, so an undecided record there is undecided and its gap asked.
+- Fault 1 (points 31, 33): `_enter` never set `waits_on` on a null span day of a next stage,
+  so stem.a2's end, null because mv1.from_program is not_sure, read as "does not apply". A null
+  span day now names its trace's waits for every stage; for a next stage the `future:` entries
+  are left out (test_j02_stem_on_the_earlier_bachelors_is_next holds it to the real gap).
+- Done command as written ($TMPDIR/d1.txt): exit 0. engine_literals, mypy (72 files), ruff
+  check and ruff format pass.
+- Not built: no new helper or module; a state change for a next stage whose end is unknown
+  (no test or point needs it; whether the stage comes does not rest on the move).
+
+Status: done.
