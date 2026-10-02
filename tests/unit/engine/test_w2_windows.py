@@ -773,13 +773,14 @@ def test_the_decided_record_s_window_moves_with_its_start_whatever_the_other_lac
 
 # reviews/w2-p1.md re-review, finding 2 (mutant M9): an unknown selection in a check is asked
 # for. The check end_date_change.asked_before_end selects an end_date_change whose change is
-# extension; x1 gives no change, so whether the check applies is not known.
+# extension; ec1 gives no change, so whether the check applies is not known. The id is ec1,
+# not x1: the end_date_change prefix is ec (SPEC-W2-UNKNOWN point 39, brought in line, point 54).
 
 
 def end_date_change_case(**change: str) -> dict[str, Any]:
-    # p1 ends 2026-05-15; x1 asked 2026-03-01 to move it to 2026-12-15.
-    x1 = rec(
-        "x1",
+    # p1 ends 2026-05-15; ec1 asked 2026-03-01 to move it to 2026-12-15.
+    ec1 = rec(
+        "ec1",
         "end_date_change",
         program="p1",
         requested_on="2026-03-01",
@@ -787,25 +788,25 @@ def end_date_change_case(**change: str) -> dict[str, Any]:
         new_end="2026-12-15",
         **change,
     )
-    return f1_case([masters("2026-05-15"), x1])
+    return f1_case([masters("2026-05-15"), ec1])
 
 
 def test_an_end_date_change_with_no_kind_of_change_is_asked() -> None:
     # Fails if: run_checks skips the record whose selection is unknown without asking (M9).
     out = compute(end_date_change_case(), [PACK], TODAY)
     assert out["verdict"]["state"] == "cannot_tell"
-    assert "missing:x1.change" in out["verdict"]["reasons"]
-    assert asks_for(out, "x1.change")
+    assert "missing:ec1.change" in out["verdict"]["reasons"]
+    assert asks_for(out, "ec1.change")
 
 
 def test_an_end_date_change_known_to_be_an_extension_is_not_asked_for_its_kind() -> None:
     # The twin: change extension, asked 2026-03-01, on or before the old end 2026-05-15, so
-    # the check holds and nothing is asked about x1.change. Fails if: the change is asked even
+    # the check holds and nothing is asked about ec1.change. Fails if: the change is asked even
     # when given, or the check reads requested_on after old_end.
     out = compute(end_date_change_case(change="extension"), [PACK], TODAY)
-    assert "missing:x1.change" not in out["verdict"]["reasons"]
-    assert not asks_for(out, "x1.change")
-    assert "conflict:end_date_change.asked_before_end.x1" not in out["verdict"]["reasons"]
+    assert "missing:ec1.change" not in out["verdict"]["reasons"]
+    assert not asks_for(out, "ec1.change")
+    assert "conflict:end_date_change.asked_before_end.ec1" not in out["verdict"]["reasons"]
 
 
 # reviews/w2-p1.md finding 2: a planning date shows its working, the setting and its value.

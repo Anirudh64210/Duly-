@@ -960,10 +960,11 @@ def test_point_9_create_app_in_process_refuses_without_the_right_token(
 
 def test_point_2_a_record_the_pack_does_not_declare_is_refused_without_its_words() -> None:
     # case.schema.json: a record whose kind the pack does not declare is refused; api/case.py
-    # shows NOT_IN_THE_PACK, not the engine's words, which name what was sent. "vessel" is no
+    # shows CASE_STRUCTURE (SPEC-W2-UNKNOWN point 39 retires NOT_IN_THE_PACK, point 54), not
+    # the engine's words, which name what was sent. "vessel" is no
     # kind of the f1 pack (tests/unit/engine/test_path.py refuses the same kind). Fails if the
     # route answers 200, or a 500, or echoes the kind.
-    from api.case import NOT_IN_THE_PACK
+    from api.case import CASE_STRUCTURE
 
     body = {
         **H1B_CASE,
@@ -973,7 +974,7 @@ def test_point_2_a_record_the_pack_does_not_declare_is_refused_without_its_words
     with _desktop_client() as client:
         res = client.post("/v1/compute", json=body)
     assert res.status_code == 422
-    assert res.json() == {"detail": NOT_IN_THE_PACK}
+    assert res.json() == {"detail": CASE_STRUCTURE}
     assert "vessel" not in res.text
 
 
