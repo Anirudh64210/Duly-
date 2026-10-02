@@ -150,6 +150,8 @@ class _Trace:
     inputs: Json = field(default_factory=dict)
     lapsed: list[str] = field(default_factory=list)
     differ: list[str] = field(default_factory=list)
+    # A conflict or a judgement an output waits on (SPEC-W2-UNKNOWN points 22 and 22a).
+    named: list[str] = field(default_factory=list)
     optional_used: bool = False
     planning: bool = False
 
@@ -158,6 +160,7 @@ class _Trace:
         self.unsure += other.unsure
         self.pending += other.pending
         self.lists += other.lists
+        self.named += other.named
         self.rules += other.rules
         self.inputs.update(other.inputs)
         self.lapsed += other.lapsed
@@ -652,21 +655,6 @@ class _Run:
 
     # Conditions: True, False or None for unknown.
 
-    def _select(self, selector: Json, outer: Json | None, tr: _Trace) -> list[Json] | None:
-        self._use_kind(selector["record"])
-        chosen, undecided = self._split(selector, outer, tr)
-        return None if undecided else chosen
-
-    def _split(
-        self, selector: Json, outer: Json | None, tr: _Trace
-    ) -> tuple[list[Json], list[Json]]:
-        """The records the where condition holds for, and those a gap leaves undecided. The
-        trace holds what the undecided ones read."""
-        chosen, undecided = self._choose(selector, outer)
-        for _, sub in undecided:
-            tr.merge(sub)
-        return chosen, [record for record, _ in undecided]
-
     def _choose(
         self, selector: Json, outer: Json | None
     ) -> tuple[list[Json], list[tuple[Json, _Trace]]]:
@@ -968,13 +956,15 @@ class _Run:
         self.answers_read.append(qid)
         return bool(given["answer"])
 
-    def _conflict(self, cid: str, about: Json, record: str | None) -> None:
+    def _conflict(
+        self, cid: str, about: Json, record: str | None, gap: tuple[str, str] | None = None
+    ) -> None:
         if self._answer(cid, about) is True:
             self._judge(cid)
             return
         if cid not in self.conflicts:
             self.conflicts.append(cid)
-        self._ask(cid, f"conflict:{cid}", about, record)
+        self._ask(cid, f"conflict:{cid}", about, record, gap)
 
     # Stages.
 
@@ -1018,6 +1008,7 @@ class _Run:
                 *(name for name, _ in tr.unsure),
                 *tr.lists,
                 *tr.lapsed,
+                *tr.named,
                 *(f"pending:{name}" for name, _ in tr.pending),
             ]
         )
@@ -1496,24 +1487,38 @@ class _Run:
         return False
 
     def _counter(self, counter: Json) -> dict[str, bool]:
-        """The counter's items. Gives, for each group with a known count, whether it is at or
-        over the limit."""
+        """The counter's items (SPEC-W2-UNKNOWN points 18 to 24). Gives, for each group whose
+        count and limit are known, whether it is at or over the limit."""
         result: dict[str, bool] = {}
-        tr = _Trace()
         scope = counter["scope"]
-        found = self._select(scope["of"], None, tr)
-        self._need(tr)
-        if found is None:
-            return result
-        # A count over a list the person has not stated whole is not known (PRINCIPLES 2):
-        # every list the count reads, trips as well as work (product-2 resolution 13).
+        kind = scope["of"]["record"]
+        self._use_kind(kind)
+        chosen, undecided = self._choose(scope["of"], None)
+        # Point 20: whole means every kind the counter reads, the scope's own as well.
+        lists = _Trace()
         read = [counter[k]["record"] for k in ("qualifying", "not_qualifying") if k in counter]
-        whole = all(self._stated(kind) for kind in read)
+        for name in _unique([kind, *read]):
+            if not self._stated(name):
+                self._use_kind(name)
+                lists.lists.append(f"complete.{name}")
+        # What holds a group back, by its key; under None, what holds back every group.
+        held: dict[str | None, _Trace] = {}
         groups: dict[str, list[Json]] = {}
-        for record in found:
-            key = self._group_key(scope, record)
-            if key is not None:
+        for record in chosen:
+            ktr = _Trace()
+            key = self._group_key(scope, record, ktr)
+            if key is None:
+                # Point 19: a record whose key is not known could join any group.
+                held.setdefault(None, _Trace()).merge(ktr)
+            else:
                 groups.setdefault(key, []).append(record)
+        for record, sub in undecided:
+            # Point 18: an undecided record withholds only the groups it could join, none of
+            # another record's when the counter groups by record.
+            self._need(sub)
+            if scope["group"] != "record":
+                key = self._group_key(scope, record, sub)
+                held.setdefault(key, _Trace()).merge(sub)
         if scope["group"] == "all":
             groups.setdefault("all", [])
         for key, members in groups.items():
@@ -1523,65 +1528,121 @@ class _Run:
             shown = self._all(counter.get("only_if", []), head, head, gtr)
             if shown is False:
                 continue
-            limit = _number(self._rule_value(counter["limit_rule"], self.today, gtr))
-            value, unit, over, counted = self._calculate(counter, members, limit, gtr)
-            if not whole or shown is None:
-                value, over = None, False
+            ltr = _Trace()
+            limit = _number(self._rule_value(counter["limit_rule"], self.today, ltr))
+            value, unit, counted = self._calculate(counter, members, gtr)
+            for could in (None, key):
+                if could in held:
+                    gtr.merge(held[could])
+                    value = None
+            gtr.merge(lists)
+            if lists.lists or shown is None:
+                value = None
             self._need(gtr)
-            rules = _unique([*counter["rule_ids"], counter["limit_rule"], *gtr.rules])
+            self._need(ltr)
+            rules = _unique([*counter["rule_ids"], counter["limit_rule"], *gtr.rules, *ltr.rules])
             item_id = f"{counter[ID]}.{key}"
-            self._item(item_id, value, unit, gtr.inputs, rules, None)
+            # Point 24: a withheld count is still shown, null, with what it waits on.
+            waits = [] if value is not None else self._waits(gtr)
+            if value is None and not waits:
+                self._engine_gap(item_id)
+            self._item(item_id, value, unit, gtr.inputs, rules, None, waits=waits)
             if counted is not None:
                 # SPEC-W2 point 46, N2: the day the count would reach its limit if nothing in
-                # the record changes, the limit-th day counted. None when the count is not
-                # known or never gets there.
+                # the record changes, the limit-th day counted. Past today it waits on every
+                # not-yet end it runs through (point 22).
                 reached = None
-                if value is not None and limit is not None and 0 < limit <= len(counted):
-                    reached = sorted(counted)[int(limit) - 1]
-                self._item(f"{item_id}.limit_day", reached, "date", gtr.inputs, rules, None)
+                if value is None:
+                    day_waits = waits
+                elif limit is None:
+                    day_waits = self._waits(ltr)
+                else:
+                    if 0 < limit <= len(counted):
+                        reached = sorted(counted)[int(limit) - 1]
+                    day_waits = []
+                    if gtr.pending and (reached is None or reached > self.today):
+                        reached, day_waits = None, self._waits(_Trace(pending=gtr.pending))
+                self._item(
+                    f"{item_id}.limit_day",
+                    reached,
+                    "date",
+                    gtr.inputs,
+                    rules,
+                    None,
+                    waits=day_waits,
+                )
             if value is not None and limit is not None:
-                result[key] = over
-            if over:
-                self._judge(f"{counter[ID]}.at_or_over_limit.{key}")
+                result[key] = value >= limit
+                if result[key]:
+                    self._judge(f"{counter[ID]}.at_or_over_limit.{key}")
         return result
 
-    def _group_key(self, scope: Json, record: Json) -> str | None:
+    def _group_key(self, scope: Json, record: Json, tr: _Trace) -> str | None:
+        """The group a record joins, or None when its key is not known (point 19). A chain
+        link that is absent or stated none starts a chain."""
         group = scope["group"]
         if group == "record":
             return str(record[ID])
         if group == "chain":
-            link = record["fields"].get(scope.get("chain_link", ""))
-            return str(link) if isinstance(link, str) and link in self.records else record[ID]
+            name = scope.get("chain_link", "")
+            if self._read_own(record, name)[0] == "absent":
+                return str(record[ID])
+            link = self._read(f"{THIS}.{name}", record, None, tr)
+            return link if isinstance(link, str) and link in self.records else None
         if group == "same_value":
-            tr = _Trace()
             value = self._read(scope.get("value_of", ""), record, None, tr)
-            self._need(tr)
             return None if value is ABSENT else str(value)
         return "all"
 
-    def _span_of(self, counter: Json, record: Json, tr: _Trace) -> tuple[date, date] | None:
-        span = counter.get("span")
-        if span is None:
-            return None
-        starts = self._when(span["starts"], record, None, tr)
-        ends = self._when(span["ends"], record, None, tr)
-        if starts is None or ends is None or ends < starts:
-            return None
+    def _span_of(self, counter: Json, record: Json, tr: _Trace) -> Any:
+        span = counter["span"]
+        starts = self._when3(span["starts"], record, None, tr)
+        ends = self._when3(span["ends"], record, None, tr)
+        name = str(span["ends"].get("fact", span["starts"].get("fact", ""))).split(".")[-1]
+        return self._dated(record, starts, ends, name, self.today, tr)
+
+    def _dated(
+        self, record: Json, starts: Any, ends: Any, name: str, runs_to: date, tr: _Trace
+    ) -> Any:
+        """A span as (first day, last day), NONE when it does not apply, or ABSENT when not
+        known (SPEC-W2-UNKNOWN point 22). A not-yet end runs to runs_to, named pending by its
+        read; an end before its start is the conflict span_order.<record>."""
+        if starts is NONE or ends is NONE:
+            return NONE
+        if not isinstance(starts, date):
+            return ABSENT
+        if ends is NOT_YET:
+            ends = max(runs_to, starts - ONE_DAY)
+        if not isinstance(ends, date):
+            return ABSENT
+        if ends < starts:
+            cid = f"span_order.{record[ID]}"
+            about = {"starts": starts.isoformat(), "ends": ends.isoformat()}
+            self._conflict(cid, about, record[ID], (name, "conflict"))
+            tr.named.append(cid)
+            return ABSENT
         return starts, ends
 
     def _calculate(
-        self, counter: Json, members: list[Json], limit: float | None, tr: _Trace
-    ) -> tuple[float | None, str, bool, list[date] | None]:
-        """The count, its unit, whether it is at or over the limit, and for a count of days
-        every day it counts or would count while nothing in the record changes."""
+        self, counter: Json, members: list[Json], tr: _Trace
+    ) -> tuple[float | None, str, list[date] | None]:
+        """The count, its unit, and for a count of days every day it counts or would count
+        while nothing in the record changes. None when not known, its gaps in the trace."""
         calculator = counter["calculator"]
         if calculator == "count_of_records":
-            count = len(members)
-            return count, "count", limit is not None and count >= limit, None
+            return len(members), "count", None
+        unit = "months" if calculator == "sum_of_months" else "days"
+        counted: list[date] | None = None if unit == "months" else []
         spans = [self._span_of(counter, r, tr) for r in members]
-        if any(s is None for s in spans):
-            return None, "days", False, []
-        known = [s for s in spans if s is not None]
+        for record, span in zip(members, spans, strict=True):
+            if span is NONE:
+                # Point 22a: a counted record whose span does not apply adds days not known.
+                judgement = f"{counter[ID]}.span_not_known.{record[ID]}"
+                self._judge(judgement)
+                tr.named.append(judgement)
+        known = [s for s in spans if isinstance(s, tuple)]
+        if len(known) != len(spans):
+            return None, unit, counted
         if calculator == "sum_of_months":
             months, days = 0, 0
             for starts, ends in known:
@@ -1592,50 +1653,85 @@ class _Run:
                 months += whole
                 days += (after - add_months(starts, whole)).days
             tr.inputs["days"] = days
-            return months, "months", limit is not None and months >= limit, None
+            return months, unit, None
         if calculator == "sum_of_days":
             covered: set[date] = set()
             for starts, ends in known:
                 covered |= {starts + timedelta(days=n) for n in range((ends - starts).days + 1)}
-            total = len(covered)
-            return total, "days", limit is not None and total >= limit, list(covered)
-        counted: list[date] = []
-        for record, (starts, ends) in zip(members, known, strict=True):
-            without = self._days_without(counter, record, starts, ends, tr)
-            if without is None:
-                return None, "days", False, []
-            counted += without
-        total_days = sum(1 for day in counted if day <= self.today)
-        over = limit is not None and total_days >= limit
-        return total_days, "days", over, counted
+            return len(covered), unit, list(covered)
+        all_without: list[list[date] | None] = [
+            self._days_without(counter, record, starts, ends, tr)
+            for record, (starts, ends) in zip(members, known, strict=True)
+        ]
+        found = [day for without in all_without if without is not None for day in without]
+        if any(without is None for without in all_without):
+            return None, unit, []
+        return sum(1 for day in found if day <= self.today), unit, found
 
     def _days_without(
         self, counter: Json, record: Json, starts: date, ends: date, tr: _Trace
     ) -> list[date] | None:
         """Days in the span no qualifying record covers, the days after today as they stand
-        while nothing in the record changes, a span not yet started as well. None when it is
-        not known which records qualify: an unknown selection is never read as none."""
-        covered: set[date] = set()
+        while nothing in the record changes, a span not yet started as well. None when not
+        known (point 21): an hours rule not in force filters nothing (point 23)."""
         hours_limit = None
         if "hours_rule" in counter:
             hours_limit = _number(self._rule_value(counter["hours_rule"], self.today, tr))
-        jobs = self._select(counter["qualifying"], record, tr)
-        if jobs is None:
-            return None
-        for job in jobs:
-            if hours_limit is not None:
-                hours = _number(self._read(f"{THIS}.{PERIOD_HOURS}", job, record, tr))
-                if hours is None or hours < hours_limit:
-                    continue
-            covered |= self._days_of(job, starts, ends, tr)
-        if "not_qualifying" in counter:
-            others = self._select(counter["not_qualifying"], record, tr)
-            if others is None:
+            if hours_limit is None:
                 return None
-            for other in others:
-                covered -= self._days_of(other, starts, ends, tr)
+        jobs = self._covered(counter["qualifying"], record, starts, ends, hours_limit, tr)
+        others: set[date] | None = set()
+        if "not_qualifying" in counter:
+            others = self._covered(counter["not_qualifying"], record, starts, ends, None, tr)
+        if jobs is None or others is None:
+            return None
         days = (starts + timedelta(days=n) for n in range((ends - starts).days + 1))
-        return [day for day in days if day not in covered]
+        return [day for day in days if day not in jobs - others]
+
+    def _covered(
+        self,
+        selector: Json,
+        outer: Json,
+        starts: date,
+        ends: date,
+        hours_limit: float | None,
+        tr: _Trace,
+    ) -> set[date] | None:
+        """The days from starts to ends the selected records cover, or None when a record
+        that could count is undecided or its hours or days are not known (point 21). Its
+        known days lying wholly outside exempt it. Unknown hours never mean no job."""
+        self._use_kind(selector["record"])
+        chosen, undecided = self._choose(selector, outer)
+        covered: set[date] = set()
+        known = True
+        for record, sub in [*((r, None) for r in chosen), *undecided]:
+            rtr = sub or _Trace()
+            counts = sub is None
+            if counts and hours_limit is not None:
+                hours = self._read(f"{THIS}.{PERIOD_HOURS}", record, outer, rtr)
+                if hours is not ABSENT and (_number(hours) or 0) < hours_limit:
+                    tr.inputs.update(rtr.inputs)
+                    continue
+                counts = hours is not ABSENT
+            days = self._days_of(record, starts, ends, rtr)
+            if counts and days is not None:
+                covered |= days
+                tr.merge(rtr)
+            elif rtr.named or not self._outside(record, starts, ends):
+                tr.merge(rtr)
+                known = False
+        return covered if known else None
+
+    def _outside(self, record: Json, starts: date, ends: date) -> bool:
+        """Whether a record's known first or last day puts it wholly outside the days."""
+        span = self._span_fields(record["kind"])
+        if span is None:
+            return True
+        first_state, first = self._read_own(record, span[0])
+        last_state, last = self._read_own(record, span[1])
+        return (first_state == "known" and isinstance(first, date) and first > ends) or (
+            last_state == "known" and isinstance(last, date) and last < starts
+        )
 
     def _span_fields(self, kind: str) -> tuple[str, str] | None:
         """The fields that hold a record's first and last day: the first two date fields
@@ -1646,15 +1742,20 @@ class _Run:
         first, last = dates[:1], dates[1:][:1]
         return (first[0], last[0]) if first and last else None
 
-    def _days_of(self, record: Json, starts: date, ends: date, tr: _Trace) -> set[date]:
+    def _days_of(self, record: Json, starts: date, ends: date, tr: _Trace) -> set[date] | None:
+        """The days from starts to ends a record covers, or None when not known. A not-yet
+        end runs to ends, as it stands while nothing changes."""
         span = self._span_fields(record["kind"])
         if span is None:
             return set()
-        first = _as_date(self._read(f"{THIS}.{span[0]}", record, None, tr))
-        last = _as_date(record["fields"].get(span[1])) or ends
-        if first is None:
+        first = self._when3({"fact": f"{THIS}.{span[0]}"}, record, None, tr)
+        last = self._when3({"fact": f"{THIS}.{span[1]}"}, record, None, tr)
+        dated = self._dated(record, first, last, span[1], ends, tr)
+        if dated is NONE:
             return set()
-        first, last = max(first, starts), min(last, ends)
+        if not isinstance(dated, tuple):
+            return None
+        first, last = max(dated[0], starts), min(dated[1], ends)
         return {first + timedelta(days=n) for n in range((last - first).days + 1)}
 
     # Lists, typed dates and the end of the record.
