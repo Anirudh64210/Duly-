@@ -1,46 +1,83 @@
 {
- "run_id": "l-review-9aa72ce4c6",
- "reviewed_commit": "41990c1a5c8e56e81771cf246974680a1fc4d26b",
+ "run_id": "l-review-dfd22d72bf",
+ "reviewed_commit": "5e7646331f424ebd136bd08df2ea52b5c1437cfb",
  "scores": {
-  "correct": {"score": 3, "evidence": "Every SPEC input and every input the first review named is right by hand: future card limit day 2027-01-12, opt.prepare.opens.a2 2025-08-14 (2025-12-13 less 90 days less one month), new plan 2026-08-13, STEM report 2026-08-13, card-start boundary 2026-07-11. Beside them: a second job with a gap (S1, O1) removes the first job's fully known job-start windows (blocking 1)."},
-  "sourced": {"score": 5, "evidence": "opt.job_start_is_employment_change quotes the saved SEVP page, sources verify finds it, derivation reading, and both opt_job_start.report items carry reading true. CHANGELOG.md:250 now matches c24c65d. No new number in the pack."},
-  "never_assumes": {"score": 2, "evidence": "Blocking 1: _stem_case('e1') plus w3 with no employer drops w2's windows 2026-08-03 to 2026-08-13; only missing:w3.employer is asked. With w3.start '2026-13-40' nothing is asked and nothing names w2 or w3. The single-record case (a2 with no employer) is fixed and asked."},
-  "inside_the_boundary": {"score": 4, "evidence": "Labels state dates only; prepare says 'a planning date'. The Working panel now shows the setting, as 'Plan prepare months: 1' under Inputs used, with no mark that it is Duly's setting (note)."},
-  "secure": {"score": 4, "evidence": "Unknown setting ids and non-date units are refused at load with one plain line. Any string passes the contract as a date and feeds blocking 1. The 9999-12-31 overflow predates this plan."},
-  "tested": {"score": 4, "evidence": "M5 and M7 now caught; 8 of 9 mutants caught (M8, M10 to M14 on the fixes). M9 (no ask in run_checks) survives though x1 with no change shows it matters. No test has two records under one selection with one unknown."}
+  "correct": {
+   "score": 3,
+   "evidence": "S1, O1, S2 and every SPEC input are right by hand: w2 2026-08-03 to 2026-08-13, w1 2026-07-01 to 2026-07-11, limit day 2027-01-12, prepare 2025-08-14, toy 2026-02-10 plus 20 is 2026-03-02. Beside them: D4 nulls w1's concluding evaluation 2026-08-02 to 2026-08-12 (finding 1); a3 with no type removes a1's count 121 and limit day 2026-08-29 (2); an unreadable end dates a window on a guess (3); hours '40' as a string gives 121 days and limit day 2026-08-29 (4)."
+  },
+  "sourced": {
+   "score": 5,
+   "evidence": "No new rule or number in fix 2. 2026-08-02 plus 10 matches the saved quote of 8 CFR 214.2(f)(10)(ii)(C)(9)(i); sources verify finds every quote; engine_literals clean."
+  },
+  "never_assumes": {
+   "score": 2,
+   "evidence": "Findings 1 to 4: exists with a decided witness goes unknown when another record is undecided; a counter scope goes unknown for every card; an unreadable end is read as no end and a date shown on it; unreadable hours read as no job with nothing asked, and missing hours still give a count and a limit day."
+  },
+  "inside_the_boundary": {
+   "score": 4,
+   "evidence": "Every string stays on the information side. The at-or-over reason in finding 4 is worded within the line but rests on a guessed fact."
+  },
+  "secure": {
+   "score": 4,
+   "evidence": "Any string passes the case contract as a number field and reaches the unemployment count unasked (finding 4). No probe crashed or stalled; the API answered 200 on every input."
+  },
+  "tested": {
+   "score": 3,
+   "evidence": "12 of 15 mutants caught (M5, M7 to M15, M17, M19). M16 (run_checks drops all on one undecided), M18 (no up-front ask of unreadable values) and M20 (bad choice read as given) survive. No test has exists, none or a counter scope over one decided and one undecided record."
+  }
  },
  "findings": [
   {
    "severity": "blocking",
-   "title": "a gap in one job removes another job's known job-start deadline, and nothing names that job",
-   "file": "engine/path.py:400 (_select); engine/path.py:616 (run_stages)",
-   "input": "S1: tests/holdout _stem_case('e1') (a2 STEM card, employer e1, from 2026-07-01; w2 with e2 from 2026-08-03) plus w3 work under a2 from 2026-09-01 with no employer, POST /v1/compute, today 2026-09-29. O1: OPT a1, w1 under a1 from 2026-07-01, plus w2 with no under. S2: as S1 with w3 employer e2 and start '2026-13-40'.",
-   "what_happens": "S1: no stem_job_start stage; w2's new I-983 and report windows 2026-08-03 to 2026-08-13 are gone, only missing:w3.employer is asked. O1: w1's report window 2026-07-01 to 2026-07-11 is gone, only missing:w2.under is asked. S2: w2's windows are gone and no reason or question names w2 or w3 (200 from the API). _select returns None for the whole selection when any one record is unknown, and run_stages iterates found or []. Same at 75cbf7f.",
+   "title": "exists and none still go unknown for the whole selection, so a gap in one job removes another job's concluding evaluation window",
+   "file": "engine/path.py:475 (_cond exists/none via _select); engine/path.py:479 (count_below, count_at_most)",
+   "input": "D4: STEM card a2 (stem_jobs_case); w1 under a2 2026-07-01 to 2026-08-02; w2 under a2 from 2026-08-03 with no end; w3 under a2 from 2026-09-01 with end not_sure. Today 2026-09-29, engine and POST /v1/compute.",
+   "what_happens": "Without w3, stem_job_end.evaluation_final.w1 is 2026-08-02 to 2026-08-12 (plus 10, stem.evaluation_due_days). With w3 it is null and w1's stage state is unknown, though w2 alone already makes the exists true. Nothing names w1 or says why; the only trace is the judgement w3.end.not_sure.",
    "kind": "other",
-   "spec_point": "SPEC-W2 45 P3; 8 CFR 214.2(f)(10)(ii)(C)(7)(iv); PRINCIPLES 2"
+   "spec_point": "SPEC-W2 45; PRINCIPLES 2; 8 CFR 214.2(f)(10)(ii)(C)(9)(i)"
+  },
+  {
+   "severity": "blocking",
+   "title": "a counter's scope with one undecided record drops every other record's count and limit day",
+   "file": "engine/path.py:1100 (_counter)",
+   "input": "Masters p1 ending 2026-05-15, post-completion OPT a1 2026-06-01 to 2027-05-31, no job; then add a3, authorization for p1, card 2026-06-01 to 2026-12-31, no type.",
+   "what_happens": "Without a3: unemployment.opt_card.a1 121 and limit_day 2026-08-29 (30 + 31 + 29 = 90). With a3: both items and the judgement unemployment.opt_card.at_or_over_limit.a1 vanish, though the counter groups by record and a3 cannot change a1's count. a3 is asked; nothing says a1's count is withheld. Same at 41990c1.",
+   "kind": "other",
+   "spec_point": "SPEC-W2 46 N2; PRINCIPLES 2"
+  },
+  {
+   "severity": "blocking",
+   "title": "an unreadable end is read as no end, and another job's date is shown on that guess",
+   "file": "engine/path.py:187 (_field gives ABSENT for an unparseable date); engine/path.py:446 (present reads through _resolve)",
+   "input": "STEM card a2; w1 under a2 2026-07-01 to 2026-08-02; w3 under a2 from 2026-07-15 with end '2026-13-40'.",
+   "what_happens": "w1's concluding evaluation is 2026-08-02 to 2026-08-12, the value for w3 still working; with w3 end 2026-07-31 or not_sure it is null. The unreadable end takes the 'end present: false' branch. At 41990c1 the same input gave null. missing:w3.end is asked and the verdict is cannot_tell, but a date built on an assumed fact is shown with no mark.",
+   "kind": "regression",
+   "spec_point": "PRINCIPLES 2"
+  },
+  {
+   "severity": "blocking",
+   "title": "a job with unreadable or missing hours is counted as no job, giving a count, a limit day and an at-or-over reason",
+   "file": "engine/path.py:1222 (_days_without skips a job whose hours are None); engine/path.py:176 (_unreadable covers dates and choices only)",
+   "input": "Masters p1 ending 2026-05-15, OPT a1 2026-06-01 to 2027-05-31, w1 under a1 from 2026-07-01 with employer e1 and hours_per_week '40' (a string), 'forty', or absent.",
+   "what_happens": "With 40: count 30, limit_day null. With '40' or 'forty': count 121, limit_day 2026-08-29, reason unemployment.opt_card.at_or_over_limit.a1 (web: 'This is at or over the limit'), and nothing asks about w1. With hours absent, w1.hours_per_week is asked but the same 121, 2026-08-29 and at-or-over reason are stated. Same at 41990c1.",
+   "kind": "wrong_date",
+   "spec_point": "SPEC-W2 46 N2; PRINCIPLES 2"
   },
   {
    "severity": "should_fix",
-   "title": "no test pins the ask on an unknown check selection",
-   "file": "engine/path.py:1024",
-   "input": "Mutant M9 (drop self._need(tr) in run_checks). Case: masters p1 end 2026-05-15, OPT a1, end_date_change x1 for p1 requested 2026-03-01, old end 2026-05-15, new end 2026-12-15, no change.",
-   "what_happens": "HEAD asks missing:x1.change; under M9 nothing asks and end_date_change.asked_before_end is skipped. Every test passes under M9.",
+   "title": "three mutants on the fix 2 code survive",
+   "file": "engine/path.py:1041 (run_checks loop); engine/path.py:1396 (ask_unreadable call); engine/path.py:182 (choice branch of _unreadable)",
+   "input": "M16 on x1 end_date_change with no change plus x2 change extension requested 2026-06-01 against old end 2026-05-15. M18 on finding 3's case with w3 end '2026-13-40'. M20 on any suite.",
+   "what_happens": "HEAD gives conflict:end_date_change.asked_before_end.x2; under M16 it is gone. HEAD asks w3.end; under M18 nothing names w3. Every test passes under M16, M18 and M20.",
    "kind": "missing_test"
   },
   {
-   "severity": "should_fix",
-   "title": "the loader parses the settings file once per setting node",
-   "file": "engine/rulepack.py:153",
-   "input": "Any pack with setting amounts, e.g. the f1 pack's opt.prepare and stem.prepare",
-   "what_happens": "load_settings() reparses contracts/product_settings.yaml for each node. Load once in validate_pack and pass it down, or functools.cache.",
-   "kind": "overbuilt"
-  },
-  {
    "severity": "note",
-   "title": "the setting is shown as a generic input name",
-   "file": "web/src/lib/labels.ts:174",
-   "input": "web/samples/path-stem-next.json item opt.prepare.opens.a2",
-   "what_happens": "inputName('plan.prepare_months') gives 'Plan prepare months', shown under Inputs used beside the person's dates, with nothing marking it as Duly's planning setting. The item label says 'a planning date'.",
+   "title": "an unreadable value is asked as missing",
+   "file": "engine/path.py:174 (ask_unreadable)",
+   "input": "w3 start '08/03/2026'",
+   "what_happens": "The question and reason are missing:w3.start, though the person entered a value. Words like 'Duly could not read' would be truer; a later web plan.",
    "kind": "wording"
   }
  ],
