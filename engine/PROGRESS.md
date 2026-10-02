@@ -1582,3 +1582,25 @@ Status: done.
 - tests/unit without tools and desktop_entry: exit 0.
 
 Status: done.
+
+## l-engine-3a9dfe7ba7: second W2-P1 veto (reviews/w2-p1.md re-review, findings 1 and 3)
+
+- Before any change: the done command failed on 6 tests of test_w2_windows.py (S1, O1, S2 x2,
+  the toy two-jobs pair): a selection with one undecided record dropped every record.
+- Finding 1, engine/path.py: `_split` gives the records the where condition holds for and the
+  ones a gap leaves undecided, the trace holding what those read. `_select` is `_split` with
+  None when any is undecided, so exists, none, counts, first and counters keep their meaning.
+  `run_stages` and `run_checks` enter or check every decided record and `_need` the trace when
+  any is undecided. Generic: no F-1 word.
+- Unreadable value: `_outside_choices` became `_unreadable`, also true for a field the pack
+  declares a date whose present value does not parse (2026-13-40, 08/03/2026). `_field` reads it
+  as absent, so a condition or a date that reads it asks `missing:<record>.<field>`, and
+  `ask_unknown_choices` (now `ask_unreadable`) asks it up front even when nothing reads it.
+- Finding 3, engine/rulepack.py: `validate_pack` loads the settings once and passes them down
+  `_reject_misplaced_settings`.
+- Done command as written, output to $TMPDIR/l-engine-3a9-done.txt: exit 0 (2 xfailed as before;
+  engine literals clean; mypy 68 files clean; ruff clean; 9 files formatted). A first run failed
+  on mypy (list[None] against list[Json]) and then on ruff format; both fixed.
+- tests/unit without tools and desktop_entry: exit 0. tests/holdout is unreadable in my sandbox.
+
+Status: done.
