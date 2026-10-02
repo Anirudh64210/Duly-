@@ -406,3 +406,16 @@
 - Failure: none new. The schema test added after the first review checks shape but not formats.
 - Fix: when a test validates a contract, mutate one format field too.
 - Evidence: reviews/feed-pa.md note 4.
+
+## 2026-10-02, run l-review-d82408c575 (W2-UNKNOWN review, plan-w2-p1-unknown.yaml and fixes 0 to 4)
+- Read SPEC-W2-UNKNOWN, the plan and its five fix plans, the third W2-P1 review, and the diff c8dcfb2..8acde5a (engine/unknown.py, readers.py, path.py, f1.py, verdict.py, api, web labels and records, the new tests).
+- Ran: tests/unit without tools and desktop_entry, exit 0 in 105 s (new unit files 22 s); tests/holdout, exit 0 in 90 s; mypy, ruff, engine_literals, sources verify, copy lint all 0.
+- Probes TMPDIR/rvu: third-review p1 to p4 fixed; R16 B, R34 and R36 fail; toy months.level vanishes when online is absent; J01 p1.conferred_on not_sure is not asked; POST /v1/compute with a record category h1b gives 500.
+- Mutants TMPDIR/rvu/mut.py: 35 run on the point 52 set, 27 caught; U10, U11, U17 (no-op), U18 (equivalent), U21b, U24, U25 and U26 survive. The props-only run reached M19 when time ran out. pkill is refused in the sandbox, so the leftover mutant jobs end on their own timeouts.
+- Journeys: 358 of 1024 outputs null before, 396 of 1039 after, 327 with waits_on.
+- Wrote reviews/w2-unknown.md (VETO, mean 2.5), REVIEW.json and REPORT.json.
+
+## Lesson
+- Failure: regression rows the tests round left as "not built" were never built by a later round, and three of them fail on the final engine.
+- Fix: first list every R row and mutant the SPEC names, grep the test files for each, and run every missing one by hand.
+- Evidence: reviews/w2-unknown.md findings 1 to 3 and 7.
