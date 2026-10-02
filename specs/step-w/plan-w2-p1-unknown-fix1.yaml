@@ -1,0 +1,12 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Clear the engine-stages escalation of the unknown-values plan: the older engine tests and the W2 test cases follow the one rule for unknown values (D92) where the rule explains their failure, and every failure the rule does not explain is reported as an engine fault for the engine-stages round to fix. SPEC-W2-UNKNOWN points 2, 14, 29 to 33 and 54.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Run bash -c "uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q --ignore=tests/unit/engine/test_w2_unknown_f1.py" on the merged engine of the engine-stages lane: git merge lane/L-engine/l-engine-1459cc274d first, read-only for engine/ (you never edit engine/), and drop that merge before you commit (git reset --hard to your base, then make only your test edits). For each of the 29 failures decide, by the point of SPEC-W2-UNKNOWN that explains it: (a) the test encodes the old reading (an absent value read as none or skipped, an optional member skipped when absent, a list taken as complete, talk_to_dso where point 35 asks with state undecided, a field or kind refusal moved to point 39''s CaseStructureError): update the test to the new rule with the point beside the change, and where a case leaves a list unstated that the expectation rests on, state it whole as onboarding will ask it (D92 point 58), never loosening an expected date or count; (b) the failure is not explained by any point (for example the read-once property, or a date that changed): leave the test as it is and list it in your REPORT requests as an engine fault, with the input, the expected and the actual output. Done when every (a) failure passes against that engine and every (b) failure is listed.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine --co -q >/dev/null'
