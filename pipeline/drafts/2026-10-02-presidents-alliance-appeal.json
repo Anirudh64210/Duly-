@@ -1,0 +1,88 @@
+{
+  "id": "2026-10-02-presidents-alliance-appeal",
+  "draft": true,
+  "visa": "F-1",
+  "regime": "fixed_admission_2026",
+  "title": "The government appealed the September 14, 2026 order on the fixed admission period rule",
+  "body": "On September 30, 2026, the government filed a notice of appeal (ECF 53) from the memorandum and order of September 14, 2026 (ECF 50) in Presidents' Alliance on Higher Education and Immigration v. United States Department of Homeland Security, No. 1:26-cv-13799 (D. Mass.). The First Circuit case number is 26-2112. The order of September 14, 2026 (ECF 51) postponed the effective date of the final rule of July 17, 2026 (FR Doc. 2026-14439) and enjoined the defendants from implementing it, pending further order of the court or a decision on the merits. The docket listing fetched on October 2, 2026 shows no entry that stays that order. The order remains in force. The final rule changes the admission period in the F, J, and I classifications from duration of status to a fixed time period.",
+  "legal_status": "appealed",
+  "status_as_of": "2026-10-02",
+  "status_detail": "Order of 2026-09-14 in force; notice of appeal filed 2026-09-30; no stay on the docket listing fetched 2026-10-02T06:09:39+00:00.",
+  "claims": [
+    {
+      "text": "The final rule of July 17, 2026 changes the admission period in the F, J, and I classifications from duration of status to a fixed time period.",
+      "quote": "The Department of Homeland Security (DHS) is amending its regulations to change the admission period in the F, J, and I classifications from duration of status to an admission for a fixed time period",
+      "source_url": "https://www.federalregister.gov/documents/full_text/xml/2026/07/17/2026-14439.xml",
+      "saved_copy": "rulepacks/f1-us/v2026.09/sources/fr-2026-14439.xml",
+      "source_kind": "primary",
+      "snapshot_sha256": "f9c196f7df36c005f0db288511077ef81229a303ff45cb2fb1061ba6c84befd5",
+      "quote_found": true
+    },
+    {
+      "text": "On September 30, 2026, the defendants filed a notice of appeal from the memorandum and order of September 14, 2026 (ECF 50).",
+      "quote": "NOTICE OF APPEAL as to 50 Memorandum & ORDER,, by Mullin Markwayne, United States Department of Homeland Security, United States Immigration and Customs Enforcement, David Venturella.",
+      "docket_entry": 53,
+      "entry_date_filed": "2026-09-30",
+      "source_url": "https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74661796&type=rd&order_by=entry_date_filed%20desc",
+      "saved_copy": "rulepacks/f1-us/v2026.09/sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json",
+      "fetched_at": "2026-10-02T06:09:39+00:00",
+      "source_kind": "primary",
+      "snapshot_sha256": "15543122312678f4b0101a5cef8739b9c3da7e30651e8a5c0af3d514c2834bec",
+      "quote_found": true
+    },
+    {
+      "text": "The First Circuit case number for the appeal is 26-2112.",
+      "quote": "USCA Case Number 26-2112 for 53 Notice of Appeal",
+      "docket_entry": 55,
+      "entry_date_filed": "2026-09-30",
+      "source_url": "https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74661796&type=rd&order_by=entry_date_filed%20desc",
+      "saved_copy": "rulepacks/f1-us/v2026.09/sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json",
+      "fetched_at": "2026-10-02T06:09:39+00:00",
+      "source_kind": "primary",
+      "snapshot_sha256": "15543122312678f4b0101a5cef8739b9c3da7e30651e8a5c0af3d514c2834bec",
+      "quote_found": true
+    },
+    {
+      "text": "On September 14, 2026, the court entered a preliminary injunction order postponing the effective date of the final rule (ECF 51).",
+      "quote": "PRELIMINARY INJUNCTION ORDER POSTPONING EFFECTIVE DATE OF FINAL RULE.",
+      "docket_entry": 51,
+      "entry_date_filed": "2026-09-14",
+      "source_url": "https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74661796&type=rd&order_by=entry_date_filed%20desc",
+      "saved_copy": "rulepacks/f1-us/v2026.09/sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json",
+      "fetched_at": "2026-10-02T06:09:39+00:00",
+      "source_kind": "primary",
+      "snapshot_sha256": "15543122312678f4b0101a5cef8739b9c3da7e30651e8a5c0af3d514c2834bec",
+      "quote_found": true
+    },
+    {
+      "text": "The order of September 14, 2026 enjoins the defendants from implementing the final rule until the court orders otherwise or decides the merits.",
+      "quote": "Defendants are preliminarily enjoined from taking any further action to implement the Final Rule pending further order of this court or resolution of this proceeding on the merits.",
+      "docket_entry": 51,
+      "entry_date_filed": "2026-09-14",
+      "source_url": "https://storage.courtlistener.com/recap/gov.uscourts.mad.305059/gov.uscourts.mad.305059.51.0_1.pdf",
+      "saved_copy": "rulepacks/f1-us/v2026.09/sources/mad-1-26-cv-13799-doc51-order.txt",
+      "source_kind": "primary",
+      "snapshot_sha256": "c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399",
+      "quote_found": true
+    }
+  ],
+  "absence_checks": [
+    {
+      "statement": "The docket listing shows no stay of the order of September 14, 2026.",
+      "method": "Searched the description and short_description of every entry in the saved listing for the word stay, case insensitive. No entry matched.",
+      "covers": "The first page of the listing, newest first: 20 of 114 entries, filed 2026-08-31 to 2026-09-30, which includes every entry filed after the order.",
+      "saved_copy": "rulepacks/f1-us/v2026.09/sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json",
+      "snapshot_sha256": "15543122312678f4b0101a5cef8739b9c3da7e30651e8a5c0af3d514c2834bec",
+      "not_checked": "The First Circuit docket for case 26-2112 itself is not saved and was not read."
+    }
+  ],
+  "checks": {
+    "independent_check_passed": false,
+    "refutation_survived": false
+  },
+  "approval": {
+    "approved": false,
+    "approved_by": null,
+    "approved_at": null
+  }
+}
