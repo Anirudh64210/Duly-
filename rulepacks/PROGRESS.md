@@ -1191,3 +1191,31 @@ done command (as written, no pipe): exit 0
 
 - test_point_24_the_pack_words_say_a_petition_to_change_your_status still asks for "your" in the pack words; point 24a says the test checks only the kinds named and the absence of "An H-1B petition". It is left out of the done command; the test itself is for L-tests.
 - No network was used. No instruction was found in any data.
+
+## 2026-10-01, run l-content-5bf5944629, attempt 1 (SPEC-W2 point 45, P1 to P3)
+
+### What was tried
+
+- Read SPEC-W2 sections 9 to 11, plan-w2-p1.yaml, the K1 and K6 contracts (a0913d8), engine/rulepack.py (schema only, so `{setting}` loads) and engine/path.py `_amount` (reads `amount["rule"]` only: N1 is L-engine's).
+- Searched the saved sources for days on a job start and an hours change: the SEVP OPT page (sits-f1-opt-2026-09-28.html) and the 2026-09-14 eCFR text.
+- Added windows opt.last_day, opt.prepare, stem.last_day, stem.prepare; stages opt_job_start (window report) and stem_job_start (windows new_plan, report). No rule row added or changed.
+
+### What ran
+
+```
+done command (as written): exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+uv run python -m tools.copy_lint.lint: copy lint: clean
+pytest tests/unit/acceptance/test_journeys.py, plain engine: J01 fails, KeyError 'rule' at engine/path.py:271 (the setting amount; N1 not built yet)
+same, with a TMPDIR plugin that reads a setting amount from contracts/product_settings.yaml: every test passes (2 xfail as before)
+  opt.last_day.a1 2023-02-11 to 2023-03-31 (dso_on + 30 before program end + 60); opt.prepare.a1 2023-01-11 to 2023-02-11
+  opt_job_start.report.w1 on 2023-08-07 closes null: opt.report_employer_within_days starts 2025-05-19 (the same as opt_job_end.report)
+direct compute of a STEM case: w1 (I-983 employer) no stage; w2 (new employer, start 2026-09-14) new_plan and report close 2026-09-24
+```
+
+### Seen and not worked around
+
+- Hours change: no saved source gives days; its window waits (REPORT missing).
+- Until L-engine builds N1, every compute that reaches opt_post or stem fails on the setting amount.
+- No network was used. No instruction was found in any data.
