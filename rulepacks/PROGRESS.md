@@ -1243,3 +1243,83 @@ direct compute: opt_job_start.report.w1 2026-07-01 to 2026-07-11, guidance, read
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-55b90b0cb7, attempt 1 (SPEC-FEED point 55, FEED-PA)
+
+### What was tried
+
+- Read recheck-2026-10-02.json, tools/sources/recheck.py (check matches a fetch row to a rule by the file name of its snapshot) and the copies in sources/recheck-2026-10-02/.
+- Checked by hand: the five changed or new copies hash to the values in the record; paragraph (f) of the 2026-09-30 eCFR text equals that of 2026-09-15 (87532 characters, from "(f)" to "(g)"; the version drops (h)(6)(xvi), H-2B); the SITS page with tags out is the same words; every quote of the ten rows on SITS and the US Code is in the new SITS copy and the govinfo.gov copies; the docket listing (20 newest of 114 entries) has ECF 53, 54, 55 of 2026-09-30 and no entry with the word stay.
+- First try named sources/recheck-2026-10-02/sits-f1-opt-2026-09-28.html as snapshot: the engine schema refuses it (snapshot must be ^sources/[a-z0-9._-]+$).
+- Second try copied the new SITS page to sources/sits-f1-opt-2026-10-02.html and named it: recheck --check refused opt.job_start_is_employment_change (checked_on 2026-10-01), because the record knows the page only as sits-f1-opt-2026-09-28.html.
+- Kept: the seven SITS rows name the 2026-09-28 copy (same words) and carry 2026-10-02, backed by the changed copy with the quote. The new copy is saved and listed in SOURCES.md. The three US Code rows name the govinfo.gov copies copied to sources/ and keep their dates: no fetch row backs those copies.
+- Regime fixed_admission_2026: appeal recorded in its note (the schema has no history field); legal_status, operative, tag and checked_on unchanged.
+
+### What ran
+
+```
+done command: exit 1 at the cliff assertion, AssertionError: 2026-09-28
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+pytest tests/unit/engine tests/unit/tools/test_recheck.py: all pass
+pytest tests/unit/acceptance: pass (1 xfail)
+copy lint: clean
+checked_on 2026-10-02: 101 parameters and ds_2012; kept: capgap.fiscal_year_start_month_day (2026-09-28), calendar.federal_holidays_law (2026-09-28 and 2026-09-29), fixed_admission_2026 (2026-09-28)
+```
+
+### Seen and not worked around
+
+- The cliff cannot move inside this lane: the record of 2026-10-02 has no row for the govinfo.gov copies, so the three US Code rows keep 2026-09-28 and 2026-09-29. A recorded fetch of the govinfo.gov urls, now in SOURCES.md, lets them move.
+- No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-55b90b0cb7, attempt 2 (SPEC-FEED point 55, FEED-PA)
+
+### What was tried
+
+- Read the failure of attempt 1 (.scratch/done-1.log: AssertionError 2026-09-28), tools/sources/recheck.py, recheck-2026-10-02.json and engine/rulepack.py (rules_checked_on is the oldest checked_on among parameters only; regimes do not count).
+- The parameters still below 2026-10-02: capgap.fiscal_year_start_month_day (2026-09-28) and calendar.federal_holidays_law (2026-09-28, 2026-09-29). Both name the govinfo.gov copies (byte for byte the same as those in sources/recheck-2026-10-02/, checked with cmp). The fetch record has no row for any govinfo.gov file, and the uscode.house.gov rows hold a maintenance page that backs nothing.
+- Looked for a fix inside the lane that rests on the record and found none. Writing a fetch row into recheck-2026-10-02.json would claim a fetch this lane did not make (no fetched_at, status or url the lane can attest to). Pointing the rules at another document would choose a source to pass a gate. Neither was done. The govinfo.gov copies hold no url of their own (only http://www.gpo.gov), so the urls in the pack stay a claim for the founder to confirm.
+- Status escalated: attempt 1 tried two different fixes (snapshot in the recheck folder; new SITS copy under its own name) and this attempt ends in the same failure with no further honest fix.
+
+### What ran
+
+```
+done command: fails at the cliff assertion, AssertionError: 2026-09-28
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+pytest tests/unit/engine -q: all pass
+```
+
+### Seen and not worked around
+
+- The cliff moves once the founder fetches again (SOURCES.md now lists the govinfo.gov copies, so recheck --fetch records them). No pack file changed in this attempt.
+- No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-fef235f0ff, attempt 1 (SPEC-FEED point 55, FEED-PA)
+
+### What was tried
+
+- Merged the kept work of lane/L-content/l-content-55b90b0cb7 (075561a): clean.
+- Read e48886e: recheck now also matches a fetch to a rule by snapshot_sha256, and a second fetch of 2026-10-02 recorded sits-f1-opt-2026-10-02.html and both govinfo.gov copies as fetched and the same. Checked the three files in sources/ hash to those values.
+- The seven SITS rows now name sources/sits-f1-opt-2026-10-02.html (sha256 481433f6...). capgap.fiscal_year_start_month_day and both calendar.federal_holidays_law rows carry 2026-10-02. fixed_admission_2026 carries 2026-10-02 after the founder's sign-off (D90): enjoined, operative false, tag unchanged; its note says so.
+- SOURCES.md: second fetch recorded; sentences that said the rows could not move were corrected; the heading "Claims about the blocked rule", dropped by accident in the kept work, is back. CHANGELOG entry rewritten for this run.
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  rules_checked_on 2026-10-02
+  pytest tests/unit/engine -q: all pass
+copy lint: clean
+pytest tests/unit/tools/test_recheck.py tests/unit/acceptance -q: pass (2 xfail)
+checked_on 2026-10-02 on all 104 parameters and both regimes
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.

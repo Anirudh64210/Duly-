@@ -7,11 +7,11 @@ regimes:
   - id: ds_2012
     legal_status: effective
     operative: true
-    note: "Duration of status, the rule in force before 91 FR 44976. Read from the point-in-time text of 2026-09-14, the last day before the effective date stated in that final rule."
+    note: "Duration of status, the rule in force before 91 FR 44976. Read from the point-in-time text of 2026-09-14, the last day before the effective date stated in that final rule. On 2026-10-02 eCFR listed a newer version of 8 CFR 214.2, dated 2026-09-30, saved as sources/recheck-2026-10-02/ecfr-8cfr214.2-2026-09-30.xml. Its paragraph (f) is the same, character for character, as paragraph (f) of the 2026-09-15 text; the change in that version is outside paragraph (f), in paragraph (h)(6)(xvi), on H-2B. The 2026-09-14 text pinned here came back the same on 2026-10-02."
     source:
       citation: "8 CFR 214.2(f)(5)(i), text of 2026-09-14"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "Duration of status is defined as the time during which an F-1 student is pursuing a full course of study at an educational institution certified by SEVP for attendance by foreign students, or engaging in authorized practical training following completion of studies"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -19,11 +19,11 @@ regimes:
   - id: fixed_admission_2026
     legal_status: enjoined
     operative: false
-    note: "Final rule: 91 FR 44976 (FR Doc. 2026-14439), published 2026-07-17, stated effective date 2026-09-15, saved as sources/fr-2026-14439.xml. Order of 2026-09-14, document 51 in Presidents Alliance on Higher Education and Immigration v. United States Department of Homeland Security, No. 1:26-cv-13799 (D. Mass.): paragraph 3 postpones the effective date under 5 U.S.C. 705 and paragraph 4 is quoted here. The snapshot is text extracted from the saved PDF beside it. Status as of 2026-09-28: the docket listing saved that day shows no later order, and no appeal was found. The 2026-09-15 point-in-time text carries the amendments even though the effective date is postponed. Paragraph 1(a) of the order names the Final Rule by its title, Establishing a Fixed Time Period of Admission and an Extension of Stay Procedure for Nonimmigrant Academic Students, Exchange Visitors, and Representatives of Foreign Information Media. Paragraph 3 says the effective date of the Final Rule is postponed pending further order of this court or resolution of this proceeding on the merits."
+    note: "Final rule: 91 FR 44976 (FR Doc. 2026-14439), published 2026-07-17, stated effective date 2026-09-15, saved as sources/fr-2026-14439.xml. Order of 2026-09-14, document 51 in Presidents Alliance on Higher Education and Immigration v. United States Department of Homeland Security, No. 1:26-cv-13799 (D. Mass.): paragraph 3 postpones the effective date under 5 U.S.C. 705 and paragraph 4 is quoted here. The snapshot is text extracted from the saved PDF beside it. Status as of 2026-09-28: the docket listing saved that day shows no later order, and no appeal was found. The 2026-09-15 point-in-time text carries the amendments even though the effective date is postponed. Paragraph 1(a) of the order names the Final Rule by its title, Establishing a Fixed Time Period of Admission and an Extension of Stay Procedure for Nonimmigrant Academic Students, Exchange Visitors, and Representatives of Foreign Information Media. Paragraph 3 says the effective date of the Final Rule is postponed pending further order of this court or resolution of this proceeding on the merits. History from the docket listing fetched 2026-10-02, saved as sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json: on 2026-09-30 the defendants filed a notice of appeal as to document 50, the memorandum and order of 2026-09-14 (ECF 53); the record on appeal was sent to the Court of Appeals the same day (ECF 54); and the First Circuit case number is 26-2112 (ECF 55). The listing shows no entry for a stay of the order. The words Status as of 2026-09-28 above are kept as written that day; the appeal is recorded here, The founder reviewed this docket listing (D90, accepting SPEC-FEED point 69): legal_status stays enjoined and operative stays false, since no order of a court has changed the order of 2026-09-14, and the status tag is unchanged."
     source:
       citation: "Preliminary Injunction Order Postponing Effective Date of Final Rule, No. 1:26-cv-13799 (D. Mass. Sept. 14, 2026), ECF No. 51"
       url: "https://www.courtlistener.com/docket/74661796/51/presidents-alliance-on-higher-education-and-immigration-v-united-states/"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "Defendants are preliminarily enjoined from taking any further action to implement the Final Rule pending further order of this court or resolution of this proceeding on the merits."
       snapshot: sources/mad-1-26-cv-13799-doc51-order.txt
       snapshot_sha256: c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399
@@ -37,7 +37,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(B)(2)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -54,7 +54,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(B)(2), text of 2026-09-14"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 60 days after his or her program end date"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -71,7 +71,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(B)(2), text of 2026-09-15, as amended by 91 FR 44976"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "the student may properly file his or her Form I-765 or successor form up to 90 days prior to his or her program end date and no later than 30 days after his or her program end date"
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
@@ -88,7 +88,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(D), text of 2026-09-14"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "A student may not request a start date that is more than 60 days after the student's program end date."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -105,7 +105,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(D), text of 2026-09-15, as amended by 91 FR 44976"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "A student may not request a start date that is more than 30 days after the student's program end date."
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
@@ -121,7 +121,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(B)(2)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "The student must also file his or her Form I-765 or successor form with USCIS within 30 days of the date the DSO enters the recommendation for OPT into his or her SEVIS record."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -137,7 +137,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "A student may be authorized 12 months of practical training, and becomes eligible for another 12 months of practical training when they change to a higher educational level."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -153,7 +153,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(A)(3)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "A student must complete all practical training within a 14-month period following the completion of study, except that a 24-month extension pursuant to paragraph (f)(10)(ii)(C) of this section does not need to be completed within such 14-month period."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -169,10 +169,10 @@ parameters:
     source:
       citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
       url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "Post-Completion OPT: Any portion of OPT used after the student's Program End Date."
-      snapshot: sources/sits-f1-opt-2026-09-28.html
-      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+      snapshot: sources/sits-f1-opt-2026-10-02.html
+      snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761
     derivation: verbatim
     note: "Agency guidance, not regulation. The quote is SEVP's definition in the table of OPT types on the saved page; the next sentence says it must be at least 20 hours per week or full-time, and the row before it defines pre-completion OPT as any portion of OPT used before the student's Program End Date. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. Taking the end of the OPT card as the test of whether any post-completion OPT exists is Duly's reading (SPEC-resolutions point 27), not these words. The flag records what the guidance says. It says nothing about any one person."
     plain: "SEVP's guidance says post-completion OPT is any portion of OPT used after the program end date. This is agency guidance, not a regulation."
@@ -185,7 +185,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(E)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "Students may not accrue an aggregate of more than 90 days of unemployment during any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B)."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -201,7 +201,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(E)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "may not accrue an aggregate of more than 150 days of unemployment during a total OPT period, including any post-completion OPT period described in 8 CFR 274a.12(c)(3)(i)(B) and any subsequent 24-month extension period"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -217,7 +217,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "An extension will be for 24 months for the first qualifying degree for which the student has completed all course requirements (excluding thesis or equivalent), including any qualifying degree as part of a dual degree program"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -233,7 +233,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(C)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "A student meeting the eligibility requirements for a 24-month OPT extension under paragraph (f)(10)(ii)(C) of this section may request an extension of employment authorization by filing Form I-765 or successor form, with the required fee and supporting documents, up to 90 days prior to the expiration date of the student's current OPT employment authorization."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -249,7 +249,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -265,7 +265,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(11)(i)(C)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "The student seeking such 24-month OPT extension must properly file his or her Form I-765 or successor form with USCIS within 60 days of the date the DSO enters the recommendation for the OPT extension into his or her SEVIS record."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -281,7 +281,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(8)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "A student may not engage in practical training for less than 20 hours per week, excluding time off taken consistent with leave-related policies applicable to the employer's similarly situated U.S. workers in the area of employment."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -297,7 +297,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(12)(ii)(B)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "The student must complete a validation report, confirming that the information required by paragraph (f)(12)(ii)(A) of this section has not changed, every six months."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -313,7 +313,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(12)(ii)(B)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "The validation report is due to the student's DSO within 10 business days of each reporting date."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -329,7 +329,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(9)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The student is responsible for ensuring the DSO receives his or her 12-month evaluation and final evaluation no later than 10 days following the conclusion of the reporting period or conclusion of his or her practical training opportunity, respectively."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -345,7 +345,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -361,7 +361,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -378,7 +378,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(iv), text of 2026-09-14"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "An F-1 student who has completed a course of study and any authorized practical training following completion of studies will be allowed an additional 60-day period to prepare for departure from the United States or to transfer in accordance with paragraph (f)(8) of this section."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -395,7 +395,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(v), text of 2026-09-15, as amended by 91 FR 44976"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "An F-1 student who has completed a course of study and any authorized practical training will be allowed an additional 30-day period from the program end date or the 4 year maximum period of admission, or the end date of the approved employment authorization for post-completion OPT or STEM OPT, as applicable, to prepare for departure from the United States, or to otherwise seek to maintain lawful status"
       snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml
       snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947
@@ -411,10 +411,10 @@ parameters:
     source:
       citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
       url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "Post-Completion OPT: Any portion of OPT used after the student's Program End Date. It must be at least 20 hours per week or full-time."
-      snapshot: sources/sits-f1-opt-2026-09-28.html
-      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+      snapshot: sources/sits-f1-opt-2026-10-02.html
+      snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761
     derivation: verbatim
     note: "Agency guidance, not regulation. Start date from SEVP Policy Guidance 1004-03 of 2010-04-23, section 7.2.1, which says a student must work at least 20 hours per week in a qualifying position to be considered employed. Saved as sources/ice-sevp-policy-guidance-1004-03.pdf, with extracted text beside it, from https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf."
     plain: "SEVP's guidance says post-completion OPT must be at least 20 hours per week or full time. This is agency guidance, not a regulation."
@@ -428,7 +428,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(vi)(A), as amended by 73 FR 18944"
       url: "https://www.federalregister.gov/documents/full_text/xml/2008/04/08/E8-7427.xml"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) and (C), of an F-1 student who is the beneficiary of an H-1B petition and request for change of status shall be automatically extended until October 1 of the fiscal year for which such H-1B visa is being requested where such petition:"
       snapshot: sources/fr-e8-7427.xml
       snapshot_sha256: dbfc074987138fe7e80be4f0a47c6810fb03a4bb1a49ffa7e8a53a8ba35698ea
@@ -444,7 +444,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(vi)(A)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The duration of status, and any employment authorization granted under 8 CFR 274a.12(c)(3)(i)(B) or (C), of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier, where such petition:"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -460,7 +460,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(9)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "All STEM practical training opportunities require an initial evaluation within 12 months of the approved starting date on the employment authorization document granted pursuant to the student's 24-month OPT extension application, and a concluding evaluation."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -476,7 +476,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(12)(ii)(B)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-30
+      checked_on: 2026-10-02
       quote: "The requirement for validation reporting starts on the date the 24-month OPT extension begins and ends when the student's F-1 status expires or the 24-month OPT extension concludes, whichever is first."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -492,7 +492,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(7)(iv)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-30
+      checked_on: 2026-10-02
       quote: "If a student initiates a new practical training opportunity with a new employer during his or her 24-month OPT extension, the student must submit, within 10 days of beginning the new practical training opportunity, a new Form I-983 or successor form to the student's DSO, and subsequently obtain a new DSO recommendation."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -508,7 +508,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "Students who have received one year or more of full time curricular practical training are ineligible for post-completion academic training."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -522,12 +522,12 @@ parameters:
     status: settled
     effective_from: 1982-09-13
     source:
-      citation: "31 U.S.C. 1102"
-      url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title31-section1102&num=0&edition=prelim"
-      checked_on: 2026-09-28
+      citation: "31 U.S.C. 1102, United States Code, 2024 Edition"
+      url: "https://www.govinfo.gov/content/pkg/USCODE-2024-title31/html/USCODE-2024-title31-subtitleII-chap11-sec1102.htm"
+      checked_on: 2026-10-02
       quote: "The fiscal year of the Treasury begins on October 1 of each year and ends on September 30 of the following year."
-      snapshot: sources/usc-31-1102-2026-09-28.htm
-      snapshot_sha256: c8513d7d62a8ebbafae9889d40461c3de7b0847fce597f281cbc5aac07a8da5d
+      snapshot: sources/govinfo-uscode-2024-title31-sec1102.htm
+      snapshot_sha256: dcd7e4bb057f8351e61fa327773698e3457a5c05ee5f87ebb919385bed8714dd
     derivation: reading
     note: "Reading: the statute says the fiscal year of the Treasury begins on October 1, and Duly reads the fiscal year named in the cap-gap paragraph as that fiscal year. Start date is the date of Pub. L. 97-258, 1982-09-13, named in the source credit of the saved copy, which enacted title 31 in this form. The October 1 start is older than that. The statute speaks of the fiscal year of the Treasury. The cap-gap paragraph, 8 CFR 214.2(f)(5)(vi)(A) in the 2026-09-14 text, says fiscal year and does not define it or name a start date. That the fiscal year in the cap-gap paragraph is the one in 31 U.S.C. 1102 is a reading, not the words of either source. The saved copy of 81 FR 13040 says in a footnote that an approved change to H-1B status takes effect on October 1. The 2026-09-15 text moves the cap-gap paragraph to (f)(5)(vii)(A) and keeps the words fiscal year."
     plain: "The fiscal year of the Treasury begins on October 1 and ends on September 30 of the next year. Duly reads the fiscal year in the cap-gap rule as this one. This is how Duly reads the rule, not its exact words."
@@ -540,10 +540,10 @@ parameters:
     source:
       citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
       url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
-      checked_on: 2026-09-28
+      checked_on: 2026-10-02
       quote: "While on OPT, the student must report to the DSO within 10 days any changes in the student's name or address, and employment information."
-      snapshot: sources/sits-f1-opt-2026-09-28.html
-      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+      snapshot: sources/sits-f1-opt-2026-10-02.html
+      snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761
     derivation: verbatim
     note: "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text."
     plain: "SEVP's guidance says that while on OPT, a student must tell the DSO of any change in name, address or employment information within 10 days. This is agency guidance, not a regulation."
@@ -556,10 +556,10 @@ parameters:
     source:
       citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
       url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
-      checked_on: 2026-10-01
+      checked_on: 2026-10-02
       quote: "When the student is hired, the student reports the employer information to the DSO."
-      snapshot: sources/sits-f1-opt-2026-09-28.html
-      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+      snapshot: sources/sits-f1-opt-2026-10-02.html
+      snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761
     derivation: reading
     note: "Reading: the saved page says that when the student is hired, the student reports the employer information to the DSO, and gives no number of days in that sentence. The note under it gives 10 days for any changes in employment information (opt.report_employer_within_days). Duly reads the start of a new job as a change in employment information, so the start opens the window of opt_job_start.report and the 10 days of that note apply. That the 10 days apply to a new job is a reading, not the words of the page (reviews/w2-p1.md finding 6). Agency guidance, not regulation. Start date as for opt.report_employer_within_days."
     plain: "SEVP's guidance says that when a student on OPT is hired, the student reports the employer information to the DSO. Duly reads a new job as a change in employment information, which the student reports within 10 days. This is Duly's reading, not the guidance's exact words."
@@ -572,7 +572,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(12)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "An F-1 student who is granted employment authorization by USCIS to engage in optional practical training is required to report any change of name or address, or interruption of such employment to the DSO for the duration of the optional practical training."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -588,7 +588,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(12)(ii)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "Compliance with these reporting requirements is required to maintain F-1 status."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -602,12 +602,12 @@ parameters:
     status: settled
     effective_from: 2021-06-17
     source:
-      citation: "5 U.S.C. 6103(a)"
-      url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim"
-      checked_on: 2026-09-28
+      citation: "5 U.S.C. 6103(a), United States Code, 2024 Edition"
+      url: "https://www.govinfo.gov/content/pkg/USCODE-2024-title5/html/USCODE-2024-title5-partIII-subpartE-chap61-subchapI-sec6103.htm"
+      checked_on: 2026-10-02
       quote: "The following are legal public holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Juneteenth National Independence Day, June 19. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25."
-      snapshot: sources/usc-5-6103-2026-09-28.htm
-      snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
+      snapshot: sources/govinfo-uscode-2024-title5-sec6103.htm
+      snapshot_sha256: 6909183aef19c2e16b1540ff3058f3a1bbb2c5ca13f249dee494f059604ea28f
     derivation: reading
     note: "Reading: the statute lists the legal public holidays, and Duly reads that list as the days that are not business days under 8 CFR 214.2(f). Eleven holidays. Start date is the date of Pub. L. 117-17, 2021-06-17, which added Juneteenth National Independence Day; the date and the amendment are in the source credit and notes of the saved copy. Before that date the list had ten holidays, recorded in the row of this id that ends 2021-06-16, read from this saved copy and its amendment note. Business days skip the days 6103(a) lists, on those days, and not observed days. Subsection (b) in the saved copy begins with the words 'For the purpose of statutes relating to pay and leave of employees', and only then moves a holiday that falls on a Saturday to the Friday before; the day off for a holiday on a Sunday is in Executive Order 11582, printed in the notes of the saved copy, which applies it in administering the provisions of law relating to pay and leave of absence. 8 CFR 214.2(f) is not a statute relating to pay and leave of employees, so Duly does not skip an observed day. The words of 6103(b) are in the note and not in the quote, which stays the list in (a). Subsection (c) names Inauguration Day for employees in the Washington area; it is not in the list in (a). 8 CFR 214.2(f) uses the words business days and does not define them or point to this statute. That the list in 5 U.S.C. 6103(a) sets which days are not business days under 8 CFR 214.2(f) is a reading, not the words of either source."
     plain: "The law lists eleven legal public holidays, including Juneteenth National Independence Day on June 19. Duly skips these days when it counts business days, on the holiday itself and not on a weekday off in its place. This is Duly's reading, not the rule's exact words."
@@ -620,7 +620,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "Consistent with paragraph (f)(11)(i)(C) of this section, a qualified student may apply for an extension of OPT while in a valid period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B)."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -636,7 +636,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "In order to qualify for an extension of post-completion OPT based upon a STEM degree, all of the following requirements must be met."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -652,7 +652,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(1)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The degree that is the basis for the 24-month OPT extension is from a U.S. educational institution accredited by an accrediting agency recognized by the Department of Education at the time of application."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -668,7 +668,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(2)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The degree that is the basis for the 24-month OPT extension is a bachelor's, master's, or doctoral degree in a field determined by the Secretary, or his or her designee, to qualify within a science, technology, engineering, or mathematics field."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -684,7 +684,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(2)(iii)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "At the time the DSO recommends a 24-month OPT extension under this paragraph (f)(10)(ii)(C) in SEVIS, the degree that is the basis for the application for the OPT extension must be contained within a category on the STEM Designated Degree Program List."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -700,7 +700,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(3)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "If an application for a 24-month OPT extension under this paragraph (f)(10)(ii)(C) is based upon a degree obtained previous to the degree that provided the basis for the period of post-completion OPT authorized under 8 CFR 274a.12(c)(3)(i)(B), that previously obtained degree must have been conferred from a U.S. educational institution that is accredited and SEVP-certified at the time the student's DSO recommends the student for the 24-month OPT extension and must be in a degree program category included on the current STEM Designated Degree Program List at the time of the DSO recommendation. That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -716,7 +716,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(4)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The STEM practical training opportunity that is the basis for the 24-month OPT extension under this paragraph (f)(10)(ii)(C) must be directly related to the degree that qualifies the student for such extension"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -732,7 +732,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(5)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The student's employer is enrolled in E-Verify, as evidenced by either a valid E-Verify Company Identification number or, if the employer is using an employer agent to create its E-Verify cases, a valid E-Verify Client Company Identification number, and the employer remains a participant in good standing with E-Verify, as determined by USCIS. An employer must also have an employer identification number (EIN) used for tax purposes."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -748,7 +748,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(6)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "unless the employer agrees, by signing the Training Plan for STEM OPT Students, Form I-983 or successor form, to report the termination or departure of an OPT student to the DSO at the student's school, if the termination or departure is prior to the end of the authorized period of OPT."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -764,7 +764,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(7)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "A student must fully complete an individualized Form I-983 or successor form and obtain requisite signatures from an appropriate individual in the employer's organization on the form, consistent with form instructions, before the DSO may recommend a 24-month OPT extension"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -780,7 +780,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(8)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The terms and conditions of a STEM practical training opportunity during the period of the 24-month OPT extension, including duties, hours, and compensation, must be commensurate with terms and conditions applicable to the employer's similarly situated U.S. workers in the area of employment."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -796,7 +796,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(9)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "unless the student submits a self-evaluation of the student's progress toward the training goals described in the Form I-983 or successor form."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -812,7 +812,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(10)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "A student may only participate in a STEM practical training opportunity in which the employer attests, including by signing the Form I-983 or successor form, that:"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -828,7 +828,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(10)(i)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The employer has sufficient resources and personnel available and is prepared to provide appropriate training in connection with the specified opportunity at the location(s) specified in the Form I-983 or successor form;"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -844,7 +844,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(10)(ii)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The student on a STEM OPT extension will not replace a full- or part-time, temporary or permanent U.S. worker; and"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -860,7 +860,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(10)(ii)(C)(10)(iii)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "The student's opportunity assists the student in reaching his or her training goals."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -876,7 +876,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(12)(ii)(A)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "Within 10 days of the change, the student must report to the student's DSO a change of legal name, residential or mailing address, employer name, employer address, and/or loss of employment."
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -891,12 +891,12 @@ parameters:
     effective_from: 1986-01-01
     effective_to: 2021-06-16
     source:
-      citation: "5 U.S.C. 6103(a), amendment note for 2021"
-      url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title5-section6103&num=0&edition=prelim"
-      checked_on: 2026-09-29
+      citation: "5 U.S.C. 6103(a), amendment note for 2021, United States Code, 2024 Edition"
+      url: "https://www.govinfo.gov/content/pkg/USCODE-2024-title5/html/USCODE-2024-title5-partIII-subpartE-chap61-subchapI-sec6103.htm"
+      checked_on: 2026-10-02
       quote: "Pub. L. 117-17 inserted item relating to Juneteenth National Independence Day."
-      snapshot: sources/usc-5-6103-2026-09-28.htm
-      snapshot_sha256: a46f0e023a3ecd05fdbe7b18d8b4dd170b75b3d8173d382a27b55f1842023ae0
+      snapshot: sources/govinfo-uscode-2024-title5-sec6103.htm
+      snapshot_sha256: 6909183aef19c2e16b1540ff3058f3a1bbb2c5ca13f249dee494f059604ea28f
     derivation: reading
     note: "Reading: the list of legal public holidays in force before 2021-06-17 is the list of 6103(a) in the saved copy without Juneteenth National Independence Day, June 19. Ten holidays: New Year's Day, January 1. Birthday of Martin Luther King, Jr., the third Monday in January. Washington's Birthday, the third Monday in February. Memorial Day, the last Monday in May. Independence Day, July 4. Labor Day, the first Monday in September. Columbus Day, the second Monday in October. Veterans Day, November 11. Thanksgiving Day, the fourth Thursday in November. Christmas Day, December 25. The saved copy holds no text of the list as it stood before; the list is read from the current list and the amendment notes. The notes say, under Amendments, 2021, Subsec. (a), that Pub. L. 117-17 inserted the Juneteenth item, and the source credit dates Pub. L. 117-17 June 17, 2021; the saved copy gives no other effective date for it, so the row ends 2021-06-16. The notes list no other amendment of subsection (a) after 1983; the 1996 and 1998 amendments are to subsections (d) and (b)(3). Start date: the 1983 amendment, Pub. L. 98-144, inserted the Birthday of Martin Luther King, Jr., and the note Effective Date of 1983 Amendment says it took effect on the first January 1 that occurs after the two-year period following the date of enactment, Nov. 2, 1983; Duly reads that day as 1986-01-01. No row is recorded for the list before that date. Business days skip these days, on those days, and not observed days, as in the row that starts 2021-06-17 (SPEC-resolutions points 24 and 40). That this list sets which days are not business days under 8 CFR 214.2(f) is a reading, as in that row."
     plain: "From January 1, 1986 to June 16, 2021, Duly reads the list of legal public holidays as ten days: the list of today without Juneteenth National Independence Day. Duly skips those days, on the holiday itself, when it counts business days in that time. This is Duly's reading, not the rule's exact words."
@@ -910,7 +910,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(vi)(A)(2), as amended by 73 FR 18944"
       url: "https://www.federalregister.gov/documents/full_text/xml/2008/04/08/E8-7427.xml"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "states that the employment start date for the F-1 student is October 1 of the following fiscal year."
       snapshot: sources/fr-e8-7427.xml
       snapshot_sha256: dbfc074987138fe7e80be4f0a47c6810fb03a4bb1a49ffa7e8a53a8ba35698ea
@@ -927,7 +927,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(vi)(A)(2), as amended by 81 FR 13040"
       url: "https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml"
-      checked_on: 2026-09-29
+      checked_on: 2026-10-02
       quote: "requests an H-1B employment start date of October 1 of the following fiscal year."
       snapshot: sources/fr-2016-04828.xml
       snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794
@@ -941,7 +941,7 @@ parameters:
     status: guidance
     effective_from: 2025-05-19
     effective_from_basis: earliest_saved_copy
-    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-09-29, quote: Twelve months of Regular OPT is available for each higher level of study. (for example a student may have 12 months for a bachelor's degree and another 12 months for a master's degree.), snapshot: sources/sits-f1-opt-2026-09-28.html, snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288}
+    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-10-02, quote: Twelve months of Regular OPT is available for each higher level of study. (for example a student may have 12 months for a bachelor's degree and another 12 months for a master's degree.), snapshot: sources/sits-f1-opt-2026-10-02.html, snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761}
     derivation: reading
     note: Reading. Agency guidance, not regulation. The quote is from the table of OPT types on the saved page. It gives one example of a higher level of study, a master's degree after a bachelor's degree. 8 CFR 214.2(f)(10), recorded as opt.max_months, says a student becomes eligible for another 12 months when they change to a higher educational level, and gives no order of levels. The full order of levels in path.order (associate, bachelor, master, doctorate) is Duly's reading, not the words of either source; secondary, language_training, professional and other have no place in it, and a comparison with one of them is unknown. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.
     plain: SEVP's guidance says 12 months of regular OPT is open for each higher level of study, such as a master's after a bachelor's. The full order of levels is Duly's reading. This is agency guidance, not a regulation.
@@ -952,7 +952,7 @@ parameters:
     status: settled
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'Practical training may be authorized to an F-1 student who has been lawfully enrolled on a full-time basis, in an approved SEVP-certified college, university, conservatory, or seminary for one full academic year.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'Practical training may be authorized to an F-1 student who has been lawfully enrolled on a full-time basis, in an approved SEVP-certified college, university, conservatory, or seminary for one full academic year.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The quote is the first sentence of paragraph (f)(10), headed Practical training. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly never computes a school's academic year; the path asks the school's date as first_year_done_on and the answer first_year_before_training. The flag records what the regulation says. It says nothing about any one person.
     plain: An F-1 student may be given practical training after one full academic year. In that year the student must have been lawfully enrolled full time. It must be at a SEVP-certified school of the kinds the rule lists.
@@ -962,7 +962,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'students who, during their course of study, were enrolled in a study abroad program, if the student had spent at least one full academic term enrolled in a full course of study in the United States prior to studying abroad.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'students who, during their course of study, were enrolled in a study abroad program, if the student had spent at least one full academic term enrolled in a full course of study in the United States prior to studying abroad.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence begins This paragraph (f)(10) also includes; the quote starts after those words. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.
     plain: The rule on practical training also counts a student who went to study abroad. Before that, the student must have spent at least one full academic term in a full course of study in the United States.
@@ -972,7 +972,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Students in English language training programs are ineligible for practical training., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: Students in English language training programs are ineligible for practical training., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The plain check refuses the word ineligible, so the plain words say cannot have. The flag records what the regulation says. It says nothing about any one person.
     plain: A student in an English language training program can not have practical training. The rule says so for all such students.
@@ -982,7 +982,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Exceptions to the one academic year requirement are provided for students enrolled in graduate studies that require immediate participation in curricular practical training., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: Exceptions to the one academic year requirement are provided for students enrolled in graduate studies that require immediate participation in curricular practical training., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a program requires immediate participation is the school's fact; the path asks it as immediate_cpt and never computes it. The flag records what the regulation says. It says nothing about any one person.
     plain: The rule of one academic year has an exception. It is for graduate studies that need the student to start curricular practical training at once.
@@ -993,7 +993,7 @@ parameters:
     status: settled
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A student may begin curricular practical training only after receiving their Form I-20 or successor form with the DSO endorsement., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: A student may begin curricular practical training only after receiving their Form I-20 or successor form with the DSO endorsement., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The path reads this as a check that a CPT card starts on or after dso_on, the day the DSO signed the Form I-20 for it. The flag records what the regulation says. It says nothing about any one person.
     plain: A student may begin curricular practical training only after getting a Form I-20 with the DSO endorsement. The DSO signs the form first.
@@ -1003,7 +1003,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'The DSO will indicate whether the training is full-time or part-time, the employer and location, and the employment start and end date.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'The DSO will indicate whether the training is full-time or part-time, the employer and location, and the employment start and end date.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The path asks full or part time for each CPT as the DSO marked it, and never works it out. The flag records what the regulation says. It says nothing about any one person.
     plain: The DSO will indicate whether the training is full-time or part-time. The DSO also gives the employer and location, and the start and end date of the work.
@@ -1014,7 +1014,7 @@ parameters:
     status: guidance
     effective_from: 2025-05-19
     effective_from_basis: earliest_saved_copy
-    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-09-29, quote: Full-time CPT at a previous school at the same program level counts toward the CPT 12month total affecting OPT. CPT at another program level does not affect OPT., snapshot: sources/sits-f1-opt-2026-09-28.html, snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288}
+    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-10-02, quote: Full-time CPT at a previous school at the same program level counts toward the CPT 12month total affecting OPT. CPT at another program level does not affect OPT., snapshot: sources/sits-f1-opt-2026-10-02.html, snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761}
     derivation: verbatim
     note: Agency guidance, not regulation. The saved page prints 12month with no space or hyphen. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports. The flag records what the guidance says. It says nothing about any one person.
     plain: SEVP's guidance says full-time CPT at a previous school at the same program level counts toward the 12 month CPT total that affects OPT. CPT at another program level does not. This is agency guidance, not a regulation.
@@ -1024,7 +1024,7 @@ parameters:
     unit: days
     status: settled
     effective_from: 2008-04-08
-    source: {citation: 8 CFR 214.2(f)(11)(i)(B)(1), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'For pre-completion OPT, the student may properly file his or her Form I-765 or successor form up to 90 days before being enrolled for one full academic year, provided that the period of employment will not start prior to the completion of the full academic year.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(11)(i)(B)(1), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'For pre-completion OPT, the student may properly file his or her Form I-765 or successor form up to 90 days before being enrolled for one full academic year, provided that the period of employment will not start prior to the completion of the full academic year.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The plain words say properly file as file. The day the first full academic year is done is the school's fact, asked as first_year_done_on.
     plain: For pre-completion OPT, a student may file Form I-765 up to 90 days before being enrolled for one full academic year. The work may not start before that full academic year is done.
@@ -1034,7 +1034,7 @@ parameters:
     unit: hours_per_week
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(10)(ii)(A)(2), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'while school is in session, provided that practical training does not exceed 20 hours a week while school is in session', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(A)(2), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'while school is in session, provided that practical training does not exceed 20 hours a week while school is in session', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The quote is paragraph (f)(10)(ii)(A)(2), one of the times listed in (f)(10)(ii)(A) at which optional practical training may be authorized; OPT used before the program end date is pre-completion OPT. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime.
     plain: OPT while school is in session may not be more than 20 hours a week.
@@ -1044,7 +1044,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(10)(ii)(B), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Authorization to engage in optional practical training employment is automatically terminated when the student transfers to another school or begins study at another educational level., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(B), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: Authorization to engage in optional practical training employment is automatically terminated when the student transfers to another school or begins study at another educational level., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. For a change of level, Duly takes the end as the day before the new program starts. For a transfer the words name no day; Duly reads it as the release date, and that is a reading. The plain check refuses the words engage in and terminated, so the plain words say ends on its own.
     plain: Permission for OPT work ends on its own when the student transfers to another school or begins study at another educational level. The rule names no day for a transfer. Duly reads it as the release date, and that is Duly's reading.
@@ -1054,7 +1054,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2010-04-23
-    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.10', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: Any OPT authorization ends on the transfer release date for a student who requests a transfer to another SEVP-certified school or a change of education level to continue at the same school., snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.10', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-10-02, quote: Any OPT authorization ends on the transfer release date for a student who requests a transfer to another SEVP-certified school or a change of education level to continue at the same school., snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
     derivation: verbatim
     note: Agency guidance, not regulation. The snapshot is text extracted from the saved PDF, sources/ice-sevp-policy-guidance-1004-03.pdf. Start date is the date of the guidance. Where this and 8 CFR 214.2(f)(10)(ii)(B) give different days, Duly shows both and asks the DSO.
     plain: SEVP's guidance says any OPT authorization ends on the transfer release date. This is for a student who asks for a transfer, or a change of education level at the same school. This is agency guidance, not a regulation.
@@ -1065,7 +1065,7 @@ parameters:
     status: guidance
     effective_from: 2025-05-19
     effective_from_basis: earliest_saved_copy
-    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-09-29, quote: A student can split their OPT time between degree programs at the same education level, snapshot: sources/sits-f1-opt-2026-09-28.html, snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288}
+    source: {citation: 'SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19', url: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt', checked_on: 2026-10-02, quote: A student can split their OPT time between degree programs at the same education level, snapshot: sources/sits-f1-opt-2026-10-02.html, snapshot_sha256: 481433f6367575379045129e5acf7ef0b4544433cbe0e8f0bab0d6893234c761}
     derivation: verbatim
     note: Agency guidance, not regulation. The sentence goes on with an example of six months after one master's degree and six after another. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports.
     plain: SEVP's guidance says a student can split OPT time between degree programs at the same education level. This is agency guidance, not a regulation.
@@ -1075,7 +1075,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2010-04-23
-    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.6', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: the six months of part-time OPT used by the student would account for three months of the total amount available at that education level, snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 6.6', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-10-02, quote: the six months of part-time OPT used by the student would account for three months of the total amount available at that education level, snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
     derivation: reading
     note: Reading. Agency guidance, not regulation. The snapshot is text extracted from the saved PDF, sources/ice-sevp-policy-guidance-1004-03.pdf. Start date is the date of the guidance. The quote ends an example in the answer to question 6.6, part-time pre-completion OPT from January 02, 2008, to January 01, 2009, with study finished on June 1, 2008, which leaves nine months. The example counts part-time pre-completion OPT against the total at the education level, at half its months. No saved source states a general rule or a number for the part-time deduction; 8 CFR 214.2(f)(10), recorded as opt.max_months, and (f)(11)(iii)(A), recorded as opt.post_completion_remaining_time, name none. So Duly does not compute it (IMPL-017). A level whose count holds a pre-completion card not marked full time has no count, and the judgement opt.months_at_level.part_time goes to the DSO. The flag records what the guidance says. It says nothing about any one person.
     plain: SEVP's guidance gives an example where six months of part-time OPT count as three months of the total at that education level. It states no general rule. This is agency guidance, not a regulation.
@@ -1085,7 +1085,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2008-04-08
-    source: {citation: 8 CFR 214.2(f)(11)(iii)(A), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'the employment authorization period for post-completion OPT begins on the requested date of commencement or the date the Form I-765 or successor form is approved, whichever is later, and ends at the conclusion of the remaining time period of post-completion OPT eligibility.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(11)(iii)(A), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'the employment authorization period for post-completion OPT begins on the requested date of commencement or the date the Form I-765 or successor form is approved, whichever is later, and ends at the conclusion of the remaining time period of post-completion OPT eligibility.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence begins If granted. Start date from 73 FR 18944 (FR Doc. E8-7427), effective 2008-04-08, saved as sources/fr-e8-7427.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The words name no length for the remaining time. Duly takes the card end as printed and does not compute the time left (IMPL-017). The flag records what the regulation says. It says nothing about any one person.
     plain: Post-completion OPT starts on the start date asked for or the day Form I-765 is approved, whichever is later. It ends when the time left for post-completion OPT runs out.
@@ -1095,7 +1095,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(6)(iii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A student who drops below a full course of study without the prior approval of the DSO will be considered out of status., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(6)(iii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: A student who drops below a full course of study without the prior approval of the DSO will be considered out of status., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly does not check terms in this round; the path asks full_course_each_term for each program, and an answer of no or not sure is the judgement program.enrollment for the DSO. The plain check refuses the words out of status, so the plain words say having lost status. The flag records what the regulation says. It says nothing about any one person.
     plain: A student may not drop below a full course of study without the DSO's approval first. The rule treats a student who does so as having lost status.
@@ -1105,7 +1105,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(6)(i)(G), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'no more than the equivalent of one class or three credits per session, term, semester, trimester, or quarter may be counted toward the full course of study requirement if the class is taken on-line or through distance education and does not require the student''s physical attendance for classes, examination or other purposes integral to completion of the class.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(6)(i)(G), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'no more than the equivalent of one class or three credits per session, term, semester, trimester, or quarter may be counted toward the full course of study requirement if the class is taken on-line or through distance education and does not require the student''s physical attendance for classes, examination or other purposes integral to completion of the class.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence begins For F-1 students enrolled in classes for credit or classroom hours. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Duly does not count classes or credits in this round; the path asks online_within_limit for each program, and an answer of no or not sure is the judgement program.enrollment. Whether one online class can be the whole load of a final term with a reduced course load is not settled by the saved words (J17). The flag records what the regulation says. It says nothing about any one person.
     plain: In each term, at most one class or three credits taken online or through distance education may count toward the full course of study. This is for classes that need no attendance in person.
@@ -1115,7 +1115,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(6)(i)(G), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'If the F-1 student''s course of study is in a language study program, no on-line or distance education classes may be considered to count toward a student''s full course of study requirement.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(6)(i)(G), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'If the F-1 student''s course of study is in a language study program, no on-line or distance education classes may be considered to count toward a student''s full course of study requirement.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The flag records what the regulation says. It says nothing about any one person.
     plain: This rule is for a language study program. There, no online or distance education class counts toward the full course of study.
@@ -1125,7 +1125,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(6)(iii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'The DSO may authorize a reduced course load in the student''s final term, semester, or session if fewer courses are needed to complete the course of study.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(6)(iii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'The DSO may authorize a reduced course load in the student''s final term, semester, or session if fewer courses are needed to complete the course of study.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Whether a final term was approved is the school's fact; Duly holds reduced_load records and does not compute them in this round. The flag records what the regulation says. It says nothing about any one person.
     plain: The DSO may allow a reduced course load in the last term. This is when fewer courses are needed to complete the course of study.
@@ -1135,7 +1135,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2010-04-23
-    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.4', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: 'For each new period of post-completion OPT, the student will have the full 90-day period of unemployment.', snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.4', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-10-02, quote: 'For each new period of post-completion OPT, the student will have the full 90-day period of unemployment.', snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
     derivation: reading
     note: Reading. Agency guidance, not regulation. The question it answers is about a student who splits OPT between two degrees at the same level. The preamble of 81 FR 13040, saved as sources/fr-2016-04828.xml, says a student who pursues a second period of OPT at a higher educational level will benefit from the 90- and 150-day periods of unemployment (as appropriate) at both educational levels. That each post-completion OPT, with the STEM extensions that extend it, starts its own count is Duly's reading of both. The snapshot is text extracted from the saved PDF.
     plain: SEVP's guidance says each new period of post-completion OPT comes with the full 90-day period of unemployment. Duly reads this as a new count for each period. This is Duly's reading of agency guidance.
@@ -1145,7 +1145,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2010-04-23
-    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.8', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: Time spent outside the United States during an approved period of post- completion OPT counts as unemployment against the 90/120-day limits, snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 7.1.8', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-10-02, quote: Time spent outside the United States during an approved period of post- completion OPT counts as unemployment against the 90/120-day limits, snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
     derivation: reading
     note: 'Reading. Agency guidance, not regulation. The saved text breaks post-completion across a line, and the quote keeps that. The sentence goes on: unless the student is either employed during a period of leave authorized by an employer, or traveling as part of his or her employment. The 120 days were the limit for the 17-month extension of 2008; the limit for a 24-month extension is 150 days (stem.unemployment_limit_days). Using this guidance for the 150 days is Duly''s reading. The snapshot is text extracted from the saved PDF.'
     plain: SEVP's guidance says time outside the United States during approved post-completion OPT counts as unemployment. It does not count on leave the employer allowed, or on travel for the job. Duly also uses this for the 150-day limit, as a reading.
@@ -1155,7 +1155,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2010-04-23
-    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.3', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: 'Yes, the 90 day limitation on unemployment continues during the cap gap extension.', snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.3', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-10-02, quote: 'Yes, the 90 day limitation on unemployment continues during the cap gap extension.', snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
     derivation: reading
     note: 'Reading. Agency guidance, not regulation. The question it answers is: do the limits on unemployment time apply to a student with a cap gap extension? Using this guidance for the 150-day limit of stem.unemployment_limit_days is Duly''s reading. The snapshot is text extracted from the saved PDF.'
     plain: SEVP's guidance says the 90 day limit on unemployment goes on during the cap gap extension. Duly also uses it for the 150-day limit, as a reading. This is agency guidance, not a regulation.
@@ -1165,7 +1165,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2010-04-23
-    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.2', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-09-29, quote: USCIS will consider a change-of-status application to be abandoned if the applicant leaves the country while the application remains pending., snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
+    source: {citation: 'SEVP Policy Guidance 1004-03, Update to Optional Practical Training, 2010-04-23, section 9.4.2', url: 'https://www.ice.gov/doclib/sevis/pdf/opt_policy_guidance_042010.pdf', checked_on: 2026-10-02, quote: USCIS will consider a change-of-status application to be abandoned if the applicant leaves the country while the application remains pending., snapshot: sources/ice-sevp-policy-guidance-1004-03.txt, snapshot_sha256: 727b24d88ed37a8872c8295340996c1e674c1bd29145077820f18809dca7ed73}
     derivation: verbatim
     note: Agency guidance, not regulation. The sentence begins SEVP recommends that a student not travel outside the United States during the cap gap extension, if possible, as. The path raises a trip while a change of status is pending as a judgement item for the DSO; it never says what the trip means. The snapshot is text extracted from the saved PDF.
     plain: SEVP's guidance says USCIS will take a change-of-status application as abandoned if the person leaves the country while it is still open. This is guidance, not a rule.
@@ -1175,7 +1175,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(5)(vi)(B), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'shall automatically terminate upon the rejection, denial, revocation, or withdrawal of the H-1B petition filed on such F-1 student''s behalf or upon the denial or withdrawal of the request for change of nonimmigrant status', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(5)(vi)(B), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'shall automatically terminate upon the rejection, denial, revocation, or withdrawal of the H-1B petition filed on such F-1 student''s behalf or upon the denial or withdrawal of the request for change of nonimmigrant status', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence begins The automatic extension of an F-1 student's duration of status and employment authorization under paragraph (f)(5)(vi)(A) of this section; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The 2026-09-15 text numbers it (f)(5)(vii)(B). The preamble of 89 FR 103054 calls the extension the cap-gap extension. The plain check refuses the word terminate, so the plain words say ends on its own.
     plain: For an F-1 student with an H-1B petition, the extra time ends on its own if the H-1B petition is rejected, denied, revoked or withdrawn. It also ends if the change of status is denied or withdrawn.
@@ -1188,7 +1188,7 @@ parameters:
     source:
       citation: "81 FR 13040 (preamble), FR Doc. 2016-04828"
       url: "https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml"
-      checked_on: 2026-09-30
+      checked_on: 2026-10-02
       quote: "If an H-1B change-of-status petition requesting a start date of October 1 has been approved, the F-1 status will expire on the same day as the H-1B status begins."
       snapshot: sources/fr-2016-04828.xml
       snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794
@@ -1204,7 +1204,7 @@ parameters:
     source:
       citation: "8 CFR 214.2(f)(5)(vi)(A)"
       url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2"
-      checked_on: 2026-09-30
+      checked_on: 2026-10-02
       quote: "of an F-1 student who is the beneficiary of an H-1B petition subject to section 214(g)(1)(A) of the Act (8 U.S.C. 1184(g)(1)(A)) requesting a change of status will be automatically extended until April 1 of the fiscal year for which such H-1B status is being requested or until the validity start date of the approved petition, whichever is earlier"
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
@@ -1217,7 +1217,7 @@ parameters:
     unit: count
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: In no event may a student be authorized for more than two lifetime STEM OPT extensions., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: In no event may a student be authorized for more than two lifetime STEM OPT extensions., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word two.
     plain: A student may not be authorized for more than two lifetime STEM OPT extensions.
@@ -1227,7 +1227,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: Any subsequent application for an additional 24-month OPT extension under this paragraph (f)(10)(ii)(C) must be based on a degree at a higher degree level than the degree that was the basis for the student's first OPT extension., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: Any subsequent application for an additional 24-month OPT extension under this paragraph (f)(10)(ii)(C) must be based on a degree at a higher degree level than the degree that was the basis for the student's first OPT extension., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. Which level is higher follows path.order, Duly's reading (levels.higher_order).
     plain: A second 24-month OPT extension must rest on a degree at a higher degree level. It is higher than the degree for the first one.
@@ -1237,7 +1237,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'is considered to have been authorized for one STEM OPT extension, and may be eligible for only one more STEM OPT extension.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'is considered to have been authorized for one STEM OPT extension, and may be eligible for only one more STEM OPT extension.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence begins A student who was granted a 17-month OPT extension under the rule issued at 73 FR 18944, whether or not such student requests an additional 7-month period of STEM OPT under 8 CFR 214.16; the quote starts after those words. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 214.16 is not saved and was not read. The plain check refuses the word eligible.
     plain: A student granted a 17-month OPT extension under the older rule counts as having had one STEM OPT extension. That student may be able to have only one more.
@@ -1247,7 +1247,7 @@ parameters:
     unit: years
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(10)(ii)(C)(3), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(10)(ii)(C)(3), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: That previously obtained degree must have been conferred within the 10 years preceding the date the DSO recommends the student for the 24-month OPT extension., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The same sentence is in the quote of stem.requires.previously_obtained_degree. How 10 years are added to a date, with 29 February becoming 28 February, is Duly's reading.
     plain: An older degree can be the basis for a 24-month OPT extension. It must have been conferred in the 10 years before the DSO recommends the student.
@@ -1257,7 +1257,7 @@ parameters:
     unit: flag
     status: guidance
     effective_from: 2016-05-10
-    source: {citation: '81 FR 13040 (preamble), FR Doc. 2016-04828', url: 'https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml', checked_on: 2026-09-29, quote: the subsequently earned degree would not qualify the student for an extension of his or her current OPT period, snapshot: sources/fr-2016-04828.xml, snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794}
+    source: {citation: '81 FR 13040 (preamble), FR Doc. 2016-04828', url: 'https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml', checked_on: 2026-10-02, quote: the subsequently earned degree would not qualify the student for an extension of his or her current OPT period, snapshot: sources/fr-2016-04828.xml, snapshot_sha256: 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794}
     derivation: reading
     note: Reading. The words are from the preamble of the 2016 rule, the agency explaining the rule, not the regulation. The sentence before says the rule limits eligibility to degrees obtained previous to the degree that provided the 12-month OPT period. The path uses it to leave out a degree conferred after the OPT's own program was done as a basis; that use is Duly's reading.
     plain: The notes that came with the 2016 rule say a degree earned later does not support an extension of the current OPT period. This is Duly's reading of the agency's notes, not the rule's text.
@@ -1267,7 +1267,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(11)(i)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: is extended automatically pursuant to the terms and conditions specified in 8 CFR 274a.12(b)(6)(iv)., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(11)(i)(C), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: is extended automatically pursuant to the terms and conditions specified in 8 CFR 274a.12(b)(6)(iv)., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence says that where a student timely files for the 24-month extension and the card in hand expires before the decision, the card is extended automatically; the quote is its last part. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 274a.12(b)(6)(iv) is not saved and was not read, so the pack states no length for the extension and Duly computes none.
     plain: If the card ends while the application for the extension is still open, the card is extended automatically. The terms are in a rule Duly has not saved. So Duly gives no length.
@@ -1279,7 +1279,7 @@ parameters:
     regime: ds_2012
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: '8 CFR 214.2(f)(8)(i), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'an F-1 student is not permitted to remain in the United States when transferring between schools or programs unless the student will begin classes at the transfer school or program within five months of transferring out of the current school or within 5 months of the program completion date on their current Form I-20 or successor form, whichever is earlier.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(8)(i), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'an F-1 student is not permitted to remain in the United States when transferring between schools or programs unless the student will begin classes at the transfer school or program within five months of transferring out of the current school or within 5 months of the program completion date on their current Form I-20 or successor form, whichever is earlier.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text keeps 5 months at (f)(8)(i)(G), recorded under fixed_admission_2026.
     plain: Under the rule in force today, a student who transfers must begin classes at the new school within five months of leaving the old one. The limit is 5 months from the program completion date on the Form I-20 if that is earlier.
@@ -1290,7 +1290,7 @@ parameters:
     status: litigated
     regime: fixed_admission_2026
     effective_from: 2026-09-15
-    source: {citation: '8 CFR 214.2(f)(8)(i)(G), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'the student will begin classes at the transfer school or program within 5 months of transferring out of the current school or within 5 months of the program completion date on his or her current Form I-20, or successor form, whichever is earlier', snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    source: {citation: '8 CFR 214.2(f)(8)(i)(G), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'the student will begin classes at the transfer school or program within 5 months of transferring out of the current school or within 5 months of the program completion date on his or her current Form I-20, or successor form, whichever is earlier', snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
     derivation: verbatim
     note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime. In the 2026-09-15 text this is one of the requirements listed for a student changing educational objectives or transferring.
     plain: The paused rule would also have classes at the new school begin within 5 months of the transfer or of the program completion date, whichever is earlier. A court has paused this rule, so it does not apply today.
@@ -1301,7 +1301,7 @@ parameters:
     status: litigated
     regime: ds_2012
     effective_from: 2003-01-01
-    source: {citation: '8 CFR 214.2(f)(8)(i), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'the student must be able resume classes within 5 months of transferring out of the school that recommended OPT or the date the OPT authorization ends, whichever is earlier.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(8)(i), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'the student must be able resume classes within 5 months of transferring out of the school that recommended OPT or the date the OPT authorization ends, whichever is earlier.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence begins In the case of an F-1 student authorized to engage in post-completion optional practical training (OPT); the quote starts after those words. The source says be able resume. Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated.
     plain: Under the rule in force today, a student on post-completion OPT who transfers must be able to resume classes within 5 months. The time runs from leaving the school that recommended OPT, or from the end of the OPT if that is earlier.
@@ -1312,7 +1312,7 @@ parameters:
     status: litigated
     regime: fixed_admission_2026
     effective_from: 2026-09-15
-    source: {citation: '8 CFR 214.2(f)(8)(i)(H), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'must be able to begin or resume classes within 5 months of transferring out of the school that recommended the post-completion or STEM OPT or the date the post-completion or STEM OPT authorization ends, whichever is earlier', snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    source: {citation: '8 CFR 214.2(f)(8)(i)(H), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'must be able to begin or resume classes within 5 months of transferring out of the school that recommended the post-completion or STEM OPT or the date the post-completion or STEM OPT authorization ends, whichever is earlier', snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
     derivation: verbatim
     note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime.
     plain: The paused rule would also cover STEM OPT. Classes would have to begin or resume within 5 months of leaving the school that recommended the OPT, or of its end, whichever is earlier. A court has paused this rule, so it does not apply today.
@@ -1324,7 +1324,7 @@ parameters:
     regime: ds_2012
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: '8 CFR 214.2(f)(8)(ii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: The student is then required to contact the DSO at the transfer-in school within 15 days of the program start date listed on the Form I-20 or successor form., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(8)(ii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: The student is then required to contact the DSO at the transfer-in school within 15 days of the program start date listed on the Form I-20 or successor form., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text of (f)(8)(ii) names no number of days for this, so no row is recorded under fixed_admission_2026.
     plain: Under the rule in force today, after the release date the student contacts the DSO at the transfer-in school. This must be within 15 days of the program start date on the Form I-20. The paused rule leaves this out.
@@ -1336,7 +1336,7 @@ parameters:
     regime: ds_2012
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: '8 CFR 214.2(f)(5)(ii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'An F-1 student who continues from one educational level to another is considered to be maintaining status, provided that the transition to the new educational level is accomplished according to transfer procedures outlined in paragraph', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(5)(ii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'An F-1 student who continues from one educational level to another is considered to be maintaining status, provided that the transition to the new educational level is accomplished according to transfer procedures outlined in paragraph', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence ends (f)(8) of this section; the quote stops before the number. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated.
     plain: Under the rule in force today, a student may go on from one educational level to the next. The student is then maintaining status if the move follows the steps for a transfer.
@@ -1347,7 +1347,7 @@ parameters:
     status: litigated
     regime: fixed_admission_2026
     effective_from: 2026-09-15
-    source: {citation: '8 CFR 214.2(f)(8)(iii), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A change of education level can be accomplished according to the transfer procedures outlined in paragraph, snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    source: {citation: '8 CFR 214.2(f)(8)(iii), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: A change of education level can be accomplished according to the transfer procedures outlined in paragraph, snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
     derivation: verbatim
     note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime. The sentence ends (f)(8)(ii) of this section; the quote stops before the number.
     plain: The paused rule says a change of education level can follow the transfer procedures. A court has paused this rule, so it does not apply today.
@@ -1357,7 +1357,7 @@ parameters:
     unit: flag
     status: settled
     effective_from: 2003-01-01
-    source: {citation: 8 CFR 214.2(f)(9)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'In the case of a transfer in SEVIS, the student may only engage in on-campus employment at the school having jurisdiction over the student''s SEVIS record.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(9)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'In the case of a transfer in SEVIS, the student may only engage in on-campus employment at the school having jurisdiction over the student''s SEVIS record.', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The school that holds the record is worked out from the move's release date. The plain words say engage in on-campus employment as work on campus.
     plain: During a transfer in SEVIS, a student may only work on campus at one school. It is the school that has the student's SEVIS record.
@@ -1368,7 +1368,7 @@ parameters:
     status: settled
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: 8 CFR 214.2(f)(9)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: 'Otherwise, an F-1 student may not engage in on-campus employment after completing a course of study, except employment for practical training as authorized under paragraph', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(9)(i), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: 'Otherwise, an F-1 student may not engage in on-campus employment after completing a course of study, except employment for practical training as authorized under paragraph', snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence before says a student who has been issued a Form I-20 to begin a new program and who intends to enroll for the next term at the institution that issued it may continue on-campus employment incident to status. The quote stops before the number (f)(10). No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. 8 CFR 214.3(k), named beside it, is not saved.
     plain: An F-1 student may not work on campus after completing a course of study, apart from practical training. There is an exception for a student going on to a new program at the same school.
@@ -1379,7 +1379,7 @@ parameters:
     status: litigated
     regime: ds_2012
     effective_from: 2003-01-01
-    source: {citation: '8 CFR 214.2(f)(7)(iii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A DSO may not grant an extension if the student did not apply for an extension until after the program end date noted on the Form I-20 or successor form., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(7)(iii), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: A DSO may not grant an extension if the student did not apply for an extension until after the program end date noted on the Form I-20 or successor form., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text replaces the program extension by the DSO with an extension of stay filed with USCIS, and has no such sentence, so no row is recorded under fixed_admission_2026.
     plain: Under the rule in force today, a DSO may not grant a program extension if the student asked for it only after the program end date on the Form I-20. The paused rule would replace this with a filing to USCIS.
@@ -1391,7 +1391,7 @@ parameters:
     regime: ds_2012
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: '8 CFR 214.2(f)(7)(iv), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: A DSO may grant a program extension only by updating SEVIS and issuing a new Form I-20 or successor form reflecting the current program end date., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(7)(iv), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: A DSO may grant a program extension only by updating SEVIS and issuing a new Form I-20 or successor form reflecting the current program end date., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text has no such sentence, so no row is recorded under fixed_admission_2026.
     plain: Under the rule in force today, a DSO grants a program extension by updating SEVIS and issuing a new Form I-20. The new form shows the current program end date.
@@ -1402,7 +1402,7 @@ parameters:
     status: settled
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: 8 CFR 214.2(f)(4), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(4), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents.
     plain: An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted. This is to attend an SEVP-certified school, with the papers the rule lists.
@@ -1413,7 +1413,7 @@ parameters:
     status: settled
     effective_from: 2026-09-14
     effective_from_basis: earliest_saved_copy
-    source: {citation: 8 CFR 214.2(f)(4)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An updated Form I-20 or successor form if there has been a substantive change in the information on the student's most recent Form I-20 or successor form, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(4)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: An updated Form I-20 or successor form if there has been a substantive change in the information on the student's most recent Form I-20 or successor form, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: 'The quote is one of the two things a returning student may present under (f)(4). The paragraph goes on with examples: a student who has changed the major area of study, who intends to transfer, or who has advanced to a higher level. No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime.'
     plain: After a substantive change in the facts on the latest Form I-20, a returning student presents an updated Form I-20. A new major, a planned transfer and a move to a higher level are examples.
@@ -1423,7 +1423,7 @@ parameters:
     unit: months
     status: settled
     effective_from: 2016-05-10
-    source: {citation: 8 CFR 214.2(f)(13)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: endorsed for reentry by the DSO within the last six months, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: 8 CFR 214.2(f)(13)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: endorsed for reentry by the DSO within the last six months, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six.
     plain: A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.
@@ -1434,7 +1434,7 @@ parameters:
     status: litigated
     regime: ds_2012
     effective_from: 2003-01-01
-    source: {citation: '8 CFR 214.2(f)(5)(iv), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An F-1 student authorized by the DSO to withdraw from classes will be allowed a 15-day period for departure from the United States., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    source: {citation: '8 CFR 214.2(f)(5)(iv), text of 2026-09-14', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: An F-1 student authorized by the DSO to withdraw from classes will be allowed a 15-day period for departure from the United States., snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
     note: Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text words it differently at (f)(5)(v), recorded under fixed_admission_2026.
     plain: Under the rule in force today, the DSO may let an F-1 student withdraw from classes. The student then has 15 days to leave the United States.
@@ -1445,7 +1445,7 @@ parameters:
     status: litigated
     regime: fixed_admission_2026
     effective_from: 2026-09-15
-    source: {citation: '8 CFR 214.2(f)(5)(v), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-09-29, quote: An F-1 student authorized by the designated school official to withdraw from classes will be allowed a 15-day period from the date of the withdrawal to depart the United States., snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
+    source: {citation: '8 CFR 214.2(f)(5)(v), text of 2026-09-15, as amended by 91 FR 44976', url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: An F-1 student authorized by the designated school official to withdraw from classes will be allowed a 15-day period from the date of the withdrawal to depart the United States., snapshot: sources/ecfr-8cfr214.2-2026-09-15.xml, snapshot_sha256: d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947}
     derivation: verbatim
     note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime.
     plain: The paused rule would give a student allowed to withdraw from classes 15 days from the date of the withdrawal to leave. A court has paused this rule, so it does not apply today.

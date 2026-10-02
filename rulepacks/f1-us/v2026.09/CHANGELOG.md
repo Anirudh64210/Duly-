@@ -259,3 +259,13 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - Finding 6: new row opt.job_start_is_employment_change (flag, guidance, derivation reading), quoting the saved SEVP page: "When the student is hired, the student reports the employer information to the DSO." It records the reading that a new job is a change in employment information, so the 10 days of opt.report_employer_within_days apply. It is named in rule_ids of the stage `opt_job_start` and the window `opt_job_start.report`, so their items carry reading: true. opt_job_end.report is unchanged.
 - Finding 7: the P1 entry above said the recommendation member of `opt.last_day` was skipped while dso_on is not entered. Corrected: after c24c65d it is required for both last-day windows, and missing means Can't tell yet.
 - No value, quote or plain text of an existing row changed. No network was used.
+
+### 2026-10-02, lane L-content, run l-content-fef235f0ff (SPEC-FEED point 55, FEED-PA; carries forward run l-content-55b90b0cb7)
+
+- The fetch of 2026-10-02 (recheck-2026-10-02.json, both fetches of that day) is added to SOURCES.md, with a table of the copies saved under sources/recheck-2026-10-02/.
+- checked_on is 2026-10-02 on all 104 parameters and both regimes. 94 rest on copies that came back byte for byte the same (both eCFR texts, the Federal Register documents, the SEVP policy guidance PDF behind its extracted text); the other ten name the copies below, which the second fetch of that day found the same.
+- The Study in the States OPT page came back with new markup and the same words. Its seven rows now name sources/sits-f1-opt-2026-10-02.html and its sha256; every quote is in the new copy. The 2026-09-28 copy is kept.
+- capgap.fiscal_year_start_month_day and both rows of calendar.federal_holidays_law name the govinfo.gov copies of 31 U.S.C. 1102 and 5 U.S.C. 6103, 2024 Edition: url, citation, snapshot and sha256. uscode.house.gov served a maintenance page on 2026-10-02; the old copies are kept and SOURCES.md says why.
+- eCFR version 2026-09-30 of 8 CFR 214.2 recorded in the note of ds_2012 and in SOURCES.md: paragraph (f) is the same as in the 2026-09-15 text.
+- The appeal recorded in the note of fixed_admission_2026 from the docket listing fetched 2026-10-02: ECF 53 notice of appeal, ECF 54, ECF 55 First Circuit case 26-2112, all 2026-09-30, no stay entry. Claim 2 of SOURCES.md corrected; it said no appeal was found. The founder signed off on the docket (D90): legal_status stays enjoined, operative stays false, the tag is unchanged, and checked_on is 2026-10-02.
+- No value, quote, plain text or plain_terms changed. No network was used by the lane.
