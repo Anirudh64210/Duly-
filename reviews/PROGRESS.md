@@ -392,3 +392,17 @@
 - Failure: an update draft passed publish_blockers and the pipeline tests but not the update contract the device validates.
 - Fix: validate every new draft against contracts/update.schema.json.
 - Evidence: reviews/feed-pa.md finding 1.
+
+## 2026-10-01, run l-review-33527354a3 (FEED-PA re-review after the fix round)
+- Read reviews/feed-pa.md (first review), plan-feed-pa-fix.yaml, SPEC-FEED 28, 29, 55, 69, update.schema.json, and the diff b604402..170889f (draft, pack notes, SOURCES, CHANGELOG, D90/D91, recheck.py:186, test_update_files.py, test_recheck.py).
+- Ran: verify, plain, recheck --check, copy lint (repo and drafts), pytest engine + pipeline + test_recheck: all exit 0. rules_checked_on 2026-10-02. Output in TMPDIR/fpa2/gates.txt.
+- TMPDIR/fpa2/draft.py: draft validates with FormatChecker (0 errors); 5 quotes found in snapshots by sha; blockers are the three approval ones; 7 numbers in plain are in no quote.
+- TMPDIR/fpa/cmp.py on b604402 vs HEAD: only four notes changed; 106 blocks at 2026-10-02, all sha good.
+- Mutants on TMPDIR/fpa2/src: maintenance copy by sha now refused by recheck (exit 1); reverting recheck.py:186 fails the new test; headline renamed fails test_update_files; history on "30 September 2026" passes it (no FormatChecker).
+- Side B patterns over every new string: no hit in the draft.
+- Wrote reviews/feed-pa.md (APPROVE, mean 4.33), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: none new. The schema test added after the first review checks shape but not formats.
+- Fix: when a test validates a contract, mutate one format field too.
+- Evidence: reviews/feed-pa.md note 4.

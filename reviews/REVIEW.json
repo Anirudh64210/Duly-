@@ -1,98 +1,89 @@
 {
- "run_id": "l-review-ce6e9b0757",
- "reviewed_commit": "b604402739d34aadc2738426bf631747b57f9d1b",
+ "run_id": "l-review-33527354a3",
+ "reviewed_commit": "170889fbc004798ac1b0769d6e5bae388a4d48fe",
  "scores": {
   "correct": {
-   "score": 3,
-   "evidence": "Pack right on every input tried: 106 source blocks at 2026-10-02, each sha and quote checked by hand, each matched to a status-200 same row; no leaf other than checked_on, notes and the ten moved snapshots changed. The update draft fails contracts/update.schema.json with 9 errors (finding 1, SPEC-FEED 28)."
+   "score": 4,
+   "evidence": "Draft validates against update.schema.json with FormatChecker (0 errors); publish_blockers holds it as a draft; pack notes true against saved copies (currentthrough:20250106) and recheck rows (06:09:39Z, 06:25:56Z, same sha). Claim 0 text carries an ECF 51 fact its FR source cannot show (finding 2)."
   },
   "sourced": {
    "score": 4,
-   "evidence": "Every quote found in the copy named (my own walk plus verify); paragraph (f) of eCFR 2026-09-30 equals 2026-09-15 character for character; docket entries 53, 54, 55 as stated. D90 is cited in the pack but absent from DECISIONS.md (finding 5)."
+   "evidence": "All 5 claim quotes found in the snapshots named by sha; 106 pack source blocks sha-correct, verify exit 0; D90 now in DECISIONS.md and covers point 69. Seven numbers in plain are in no claim quote, though each is correct in a saved copy (finding 1)."
   },
   "never_assumes": {
    "score": 4,
-   "evidence": "Finding 3: the govinfo 2024 Edition, current through 2025-01-06, backs checked_on 2026-10-02 for federal holidays. Finding 4: the docket was fetched at 02:09 Boston time, before the status conference set for 2026-10-02 12:00."
+   "evidence": "Pack notes now state the 2024 Edition limit and the pre-conference fetch time. The draft's status_as_of 2026-10-02 and plain do not say the fetch preceded the 12:00 PM status conference (finding 3)."
   },
   "inside_the_boundary": {
-   "score": 4,
-   "evidence": "No word in the draft addresses the student or tells anyone what to do; copy lint clean; grep for you/should/must/advise empty. 'The order remains in force' states a reading as fact while the First Circuit docket was not read (finding 2)."
+   "score": 5,
+   "evidence": "SECOND_PERSON, boundary _CONCLUSION/_JUDGEMENT/_MODAL and instructs() over headline, plain, claims, history note and the four changed pack notes: no hit in the draft; only pre-existing 'Start date' labels in notes. By hand: nothing addressed, instructed, predicted or concluded."
   },
   "secure": {
-   "score": 4,
-   "evidence": "Lanes changed data only. The founder's recheck --check passes a rule pointed at the house.gov maintenance page by sha match (recheck.py:185); verify refuses it with quote not found, so the pack is guarded (note 8)."
+   "score": 5,
+   "evidence": "Data plus one tool line changed. Maintenance-page mutant (rule pointed at usc-5-6103 maintenance copy by its sha) passed recheck at b604402 and now exits 1. No input found that gets a changed copy past recheck."
   },
   "tested": {
-   "score": 3,
-   "evidence": "tests/unit/pipeline passes on a draft that fails the update contract; no test validates pipeline/drafts against update.schema.json (findings 1 and 7). recheck --check does catch a checked_on moved to 2026-10-03."
+   "score": 4,
+   "evidence": "Reverting recheck.py:186 fails the new recheck test; renaming headline fails test_update_files. That test misses format errors (history on '30 September 2026' passes, note 4); recheck --check still does not read the ecfr rows (note 5)."
   }
  },
  "findings": [
   {
-   "severity": "blocking",
+   "severity": "should_fix",
    "kind": "spec_gap",
-   "spec_point": "SPEC-FEED 28 and 55; contracts/update.schema.json",
-   "title": "The appeal draft is not an update in the contract's shape",
-   "file": "pipeline/drafts/2026-10-02-presidents-alliance-appeal.json:6",
-   "input": "jsonschema Draft 2020-12 validation of the draft against contracts/update.schema.json",
-   "what_happens": "9 errors: headline, categories, history missing; title, body, draft, visa, regime, status_detail, absence_checks not allowed; claims carry saved_copy, docket_entry, entry_date_filed, fetched_at. Point 29 drops any update that fails the schema, so approved as written it can never be shown, while publish_blockers would return nothing."
+   "title": "Numbers in plain that no claim quote holds",
+   "file": "pipeline/drafts/2026-10-02-presidents-alliance-appeal.json:4",
+   "input": "numbers in headline and plain compared with the five claim quotes",
+   "what_happens": "2026, 30, 14, 17, 51, 1:26-cv-13799 and 2026-14439 are in no quote; update.schema.json describes plain as 'Every number in it appears in a claim's quote.' Each number is correct in a saved copy; the rule is a description, not validated."
   },
   {
    "severity": "should_fix",
    "kind": "wording",
-   "title": "Draft states 'The order remains in force' as fact; the First Circuit docket was not read",
-   "file": "pipeline/drafts/2026-10-02-presidents-alliance-appeal.json:7",
-   "input": "body sentence 'The order remains in force.' with absence_checks.not_checked naming the unread 26-2112 docket",
-   "what_happens": "A stay pending appeal entered by the First Circuit would not be in the district listing searched. Also 'The final rule changes' is present tense for an enjoined rule."
-  },
-  {
-   "severity": "should_fix",
-   "kind": "wrong_source",
-   "title": "checked_on 2026-10-02 on a U.S. Code copy current through 2025-01-06",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:599",
-   "input": "calendar.federal_holidays_law (lines 599, 887) and capgap.fiscal_year_start_month_day (519) naming the govinfo 2024 Edition",
-   "what_happens": "The date claims a 2026-10-02 check, but no fetch shows 5 USC 6103 unamended after 2025-01-06; a new holiday would be missed in business-day counts. The gap is in SOURCES.md:49 only, not on the rows."
+   "title": "Claim 0 states an ECF 51 fact its Federal Register source cannot show",
+   "file": "pipeline/drafts/2026-10-02-presidents-alliance-appeal.json:10",
+   "input": "claim 0 text 'The order of September 14, 2026 (ECF 51) enjoins its implementation.' with quote and snapshot from fr-2026-14439.xml",
+   "what_happens": "The claim says more than its source; the fact belongs to claim 4, which carries it from the order."
   },
   {
    "severity": "should_fix",
    "kind": "other",
-   "title": "Docket fetched before a hearing set for the same day",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:22",
-   "input": "ECF 52: Status Conference set for 10/2/2026 12:00 PM; listing fetched 2026-10-02T06:09:39Z",
-   "what_happens": "fixed_admission_2026 carries checked_on 2026-10-02 though any order from that conference is not in the listing; say so or fetch again before the rebuild."
-  },
-  {
-   "severity": "should_fix",
-   "kind": "spec_gap",
-   "title": "The pack cites D90, which DECISIONS.md does not hold",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:22",
-   "input": "grep -n D90 DECISIONS.md",
-   "what_happens": "No match; DECISIONS.md ends at D89. The sign-off exists only in plan-feed-pa.yaml (founder commit e48886e)."
-  },
-  {
-   "severity": "note",
-   "kind": "wording",
-   "title": "Comma splices in readable text",
-   "file": "rulepacks/f1-us/v2026.09/SOURCES.md:45",
-   "input": "'carries checked_on 2026-10-02, That is 94 parameters'; parameters.yaml:22 'recorded here, The founder reviewed'",
-   "what_happens": "Two sentences run together."
-  },
-  {
-   "severity": "note",
-   "kind": "missing_test",
-   "title": "No test validates pipeline/drafts against update.schema.json",
-   "file": "tests/unit/pipeline",
-   "input": "the draft of finding 1",
-   "what_happens": "uv run pytest tests/unit/pipeline -q passes."
+   "title": "Draft does not say its status rests on a fetch before the 2026-10-02 status conference",
+   "file": "pipeline/drafts/2026-10-02-presidents-alliance-appeal.json:6",
+   "input": "status_as_of 2026-10-02 and plain 'fetched on October 2, 2026'; listing fetched 06:09Z, ECF 52 conference 12:00 PM (16:00Z)",
+   "what_happens": "The pack note says so; the text a person would read does not. Recorded only in pipeline/PROGRESS.md."
   },
   {
    "severity": "note",
    "kind": "missing_negative_test",
-   "title": "recheck --check backs a rule by sha match alone, ignores the eCFR versions row, and saves one docket page",
-   "file": "tools/sources/recheck.py:185",
-   "input": "calendar.federal_holidays_law pointed at sources/recheck-2026-10-02/usc-5-6103-2026-09-28.htm with its sha256 (scratch copy)",
-   "what_happens": "recheck --check prints every later checked_on has a fresh fetch; verify then reports quote not found. Also row['ecfr'] is never read, and the docket row holds 20 of 114 entries though point 55 asks for the full list."
+   "title": "test_update_files validates without FormatChecker",
+   "file": "tests/unit/pipeline/test_update_files.py:22",
+   "input": "history on '30 September 2026' in the draft (scratch copy)",
+   "what_happens": "Test passes; api/case_f1.py:50 and engine/rulepack.py:85 use FormatChecker."
+  },
+  {
+   "severity": "note",
+   "kind": "missing_negative_test",
+   "title": "recheck --check still ignores row ecfr, and the docket row is page one only",
+   "file": "tools/sources/recheck.py:205",
+   "input": "recheck-2026-10-02.json rows with ecfr.newer, and the docket row with next set (20 of 114)",
+   "what_happens": "Point 55's versions condition is checked only by hand; correct today because entries are newest first."
+  },
+  {
+   "severity": "note",
+   "kind": "wording",
+   "title": "CourtListener copy called the district court docket listing; 'in Boston' is a reading",
+   "file": "pipeline/drafts/2026-10-02-presidents-alliance-appeal.json:4",
+   "input": "source_url on courtlistener.com; ECF 52 text says Courtroom 1, not Boston",
+   "what_happens": "Words read as the court's own PACER docket and as the docket's own words."
+  },
+  {
+   "severity": "note",
+   "kind": "overbuilt",
+   "title": "Fetched.sha256 is set and never read",
+   "file": "tools/sources/recheck.py:168",
+   "input": "grep for .sha256 reads of Fetched",
+   "what_happens": "Set at :180, never read; drop the field (founder code from e48886e)."
   }
  ],
- "decision": "VETO"
+ "decision": "APPROVE"
 }
