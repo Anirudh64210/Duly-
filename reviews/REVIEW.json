@@ -1,20 +1,141 @@
 {
-  "run_id": "l-review-8bdafbf964",
-  "reviewed_commit": "734d70a3c89dff7eebc4c8a1e54a5c1af26eda40",
-  "scores": {
-    "correct": {"score": 2, "evidence": "Points 6, 7 and 8 are met, and point 5 for fields, lists and typed dates. A reversed trip or CPT date makes the engine ask <stage>.<record>.ends_before_starts, and Home shows 'Duly has a question about what you entered.' with 'Asked because of: Conflict trip t1 ends before starts.'. Three checks on a2 show three identical rows and one Why line."},
-    "sourced": {"score": 5, "evidence": "No rule, number or quote added; FIELD_WORDS and RECORD_KINDS follow the pack's label and complete_label."},
-    "never_assumes": {"score": 4, "evidence": "Every gap stays a question and the verdict stays cannot_tell. Different conflicts on one record share one title and cannot be told apart."},
-    "inside_the_boundary": {"score": 5, "evidence": "questionTitle and becauseLine read for 42 engine question ids plus 8 more forms; none is advice or a conclusion about the person."},
-    "secure": {"score": 5, "evidence": "No new input path. measuredWidths races a timeout, and fitsWindows fails closed on a window not measured or not at its width."},
-    "tested": {"score": 2, "evidence": "The ends_before_starts id leak passes all 591 web tests. labels.test reads the pack's records but not path.stages or path.checks, and the Home id test runs on path-stem-next only."}
+ "run_id": "l-review-965441e361",
+ "reviewed_commit": "75cbf7f6e5921cedd049a985b26d3b0dfe78ca83",
+ "scores": {
+  "correct": {
+   "score": 3,
+   "evidence": "Every SPEC input, checked by hand against the saved words, is right: opt.last_day 2026-10-17 to 2027-03-16 for program end 2027-01-15, prepare 2026-09-17, new plan 2026-08-13, limit day 2026-12-27. Beside them: a STEM card with no employer drops both new-employer windows (blocking 1), and a card that starts after today gets limit_day null where 2027-01-12 is due."
   },
-  "findings": [
-    {"severity": "blocking", "title": "span conflict question shows its id on Home", "file": "web/src/lib/labels.ts", "input": "web/samples/path-stem-next.case.json with t1 returned_on 2026-04-20, or a1 card_end 2024-05-01; engine.path.compute at 2026-09-30", "what_happens": "The engine asks trip.t1.ends_before_starts (engine/path.py:763). pathTitle (labels.ts:700) returns null for <stage>.<record>.ends_before_starts, so Home shows 'Duly has a question about what you entered.' and 'Asked because of: Conflict trip t1 ends before starts.' (labels.ts:788). This applies to all ten stages with a span."},
-    {"severity": "should_fix", "title": "different checks on one record share one title; Why folds them", "file": "web/src/lib/labels.ts", "input": "path-stem-next.case.json with a2 filed_on 2025-01-02, card_start 2025-11-01, card_end 2028-02-09", "what_happens": "opt_post.filed_in_window.a2, opt_post.card_fits_max_months.a2 and opt_post.starts_after_program_end.a2 show as three rows 'Permission to work 2: Some facts entered do not fit together.' (labels.ts:721). Why shows one line for all three while the count says 20."},
-    {"severity": "should_fix", "title": "pack test does not read stages or checks", "file": "web/src/lib/labels.test.ts", "input": "questionTitle('trip.t2.ends_before_starts') and becauseLine(['conflict:trip.t2.ends_before_starts'])", "what_happens": "Gives the generic title and a because with the id in spaces, and every test passes. Reading path.stages and path.checks from parameters.yaml as packRecords does would catch it. The Home id test runs on one sample."},
-    {"severity": "note", "title": "field words copied by hand from the pack's labels", "file": "web/src/lib/labels.ts", "input": "FIELD_WORDS and RECORD_KINDS against parameters.yaml label and complete_label", "what_happens": "The SPEC asks for the copy in labels.ts and the test catches a missing kind, field or prefix. A pack label changed later will not follow."},
-    {"severity": "note", "title": "after_today because line", "file": "web/src/lib/labels.ts", "input": "t1.left_on.after_today", "what_happens": "Title says the date is after today; the because says 'the dates entered do not fit together.'"}
-  ],
-  "decision": "VETO"
+  "sourced": {
+   "score": 4,
+   "evidence": "Every value used matches its saved quote, status and regime, and the prepare setting is never under rule_ids. The opt_job_start reading is not marked (reading false), and CHANGELOG.md:250 still calls the dso_on member skipped."
+  },
+  "never_assumes": {
+   "score": 2,
+   "evidence": "Blocking 1: a2 with no employer, w2 with e2 from 2026-08-03. There is no stem_job_start stage and no question, and no reason names a2.employer. dso_on, w.employer and card_start are each asked when missing."
+  },
+  "inside_the_boundary": {
+   "score": 4,
+   "evidence": "The labels name dates only, and prepare labels say 'a planning date'. limit_day carries no words. The working shown for opt.prepare.opens.a2 (program end and the 90-day rule) gives 2025-09-14, not the 2025-08-14 shown, because the setting is not in inputs."
+  },
+  "secure": {
+   "score": 4,
+   "evidence": "A pack naming an unknown setting id loads and then raises SettingsError on every compute. A non-date setting unit gives a quiet null opens. The overflow at card_end 9999-12-31 was already there at 5cd505c. Bounded spans compute in 0.03 s."
+  },
+  "tested": {
+   "score": 3,
+   "evidence": "Seven mutants: five caught (limit index, item and upcoming planning, setting sign, the new-employer filter). M7 (drop the during-STEM filter) and M5 (report from new_plan rule) survive. No test covers blocking 1."
+  }
+ },
+ "findings": [
+  {
+   "severity": "blocking",
+   "title": "STEM card with no employer drops the new-employer windows and asks nothing",
+   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2059; engine/path.py:610",
+   "input": "test_a_new_employer_during_stem_gives_the_new_plan_window's case with employer removed from a2; w1 e1 2026-07-01 to 2026-08-02, w2 e2 from 2026-08-03; today 2026-09-29",
+   "what_happens": "No stem_job_start stage, no new_plan or report window, no question for a2.employer, and no reason names it. With employer e1 the windows are 2026-08-03 to 2026-08-13. differs_from on a missing field is unknown, and run_stages reads the unknown selection as [] and drops its trace.",
+   "kind": "other",
+   "spec_point": "SPEC-W2 45 P3; 8 CFR 214.2(f)(10)(ii)(C)(7)(iv); PRINCIPLES 2"
+  },
+  {
+   "severity": "should_fix",
+   "title": "planning date's working leaves out the setting",
+   "file": "engine/path.py:276",
+   "input": "web/samples/path-stem-next.json item opt.prepare.opens.a2",
+   "what_happens": "inputs {p1.end_date: 2025-12-13} and rule_ids [opt.apply_before_days] give 2025-09-14, but the value is 2025-08-14. How Duly counted shows no setting. Put plan.prepare_months and its value in inputs.",
+   "kind": "spec_gap",
+   "spec_point": "BOUNDARY A3"
+  },
+  {
+   "severity": "should_fix",
+   "title": "no limit day for a card that has not started",
+   "file": "engine/path.py:1194",
+   "input": "OPT card 2026-10-15 to 2027-10-14, no job, today 2026-09-29",
+   "what_happens": "limit_day is null; if nothing changes the count reaches 90 on 2027-01-12. Null also stands for never reached and not known.",
+   "kind": "wrong_date",
+   "spec_point": "SPEC-W2 46 N2"
+  },
+  {
+   "severity": "should_fix",
+   "title": "STEM report window and during-STEM filter untested",
+   "file": "tests/unit/engine/test_w2_windows.py",
+   "input": "mutant M7 removes parameters.yaml:2058; mutant M5 dates stem_job_start.report from stem.new_plan_due_days",
+   "what_happens": "Both pass every W2 unit and holdout test. Under M7, a new-employer job begun before the STEM card gets a new I-983 window.",
+   "kind": "missing_negative_test"
+  },
+  {
+   "severity": "should_fix",
+   "title": "unknown setting id loads, then compute raises",
+   "file": "engine/rulepack.py:130",
+   "input": "toy pack window opens {setting: no.such.setting, sign: -1}; or {setting: loop.weekly_budget}",
+   "what_happens": "validate_pack accepts both. Compute raises SettingsError on the first, and gives opens null with no reason on the second.",
+   "kind": "other"
+  },
+  {
+   "severity": "should_fix",
+   "title": "job-start report is a reading shown as verbatim",
+   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2040",
+   "input": "web/samples/path-stem-next.json opt_job_start.report.closes.w1",
+   "what_happens": "The CHANGELOG calls 'a new job is a change in employment information' a reading, but the items carry reading false.",
+   "kind": "wrong_source",
+   "spec_point": "PRINCIPLES 1"
+  },
+  {
+   "severity": "should_fix",
+   "title": "CHANGELOG contradicts the founder fix",
+   "file": "rulepacks/f1-us/v2026.09/CHANGELOG.md:250",
+   "input": "the opt.last_day bullet",
+   "what_happens": "It says the recommendation member is 'skipped while dso_on is not entered'. Since c24c65d it is required and asked.",
+   "kind": "wording"
+  },
+  {
+   "severity": "should_fix",
+   "title": "setting looked up twice",
+   "file": "engine/path.py:282",
+   "input": "any setting amount",
+   "what_happens": "next(...) scans settings again for the unit after whole_setting scanned it for the value. engine/settings.py could return both.",
+   "kind": "overbuilt"
+  },
+  {
+   "severity": "note",
+   "title": "last-day window carries an opens item under 'Last day' words",
+   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1734",
+   "input": "path-stem-next Timeline row opt_post.a2",
+   "what_happens": "It reads 'Last day to file Form I-765: opens Sep 14, 2025', and upcoming lists opt.last_day.opens beside opt.apply_window.opens.",
+   "kind": "wording"
+  },
+  {
+   "severity": "note",
+   "title": "planning items carry status settled",
+   "file": "engine/path.py:873",
+   "input": "path-stem-next upcoming stem.prepare.opens.a2",
+   "what_happens": "status 'settled' beside planning: true.",
+   "kind": "wording"
+  },
+  {
+   "severity": "note",
+   "title": "limit-day words test is vacuous",
+   "file": "tests/unit/engine/test_w2_limit_day.py",
+   "input": "test_the_limit_day_s_words_never_say_what_follows_that_day",
+   "what_happens": "The item has no words, so the test reads only id, unit and status.",
+   "kind": "missing_test"
+  },
+  {
+   "severity": "note",
+   "title": "early recommendation gives an inverted last-day window",
+   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1734",
+   "input": "program end 2026-05-15, dso_on 2026-01-02, filed 2026-01-05",
+   "what_happens": "Opens 2026-02-14 and closes 2026-02-01. opt_post.filed_in_window already raises a conflict.",
+   "kind": "other"
+  },
+  {
+   "severity": "note",
+   "title": "job-start row marked Done by date alone",
+   "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2040",
+   "input": "a work record with no employer_reported, window passed",
+   "what_happens": "The stage state is done once its window has passed, as opt_job_end already does.",
+   "kind": "other"
+  }
+ ],
+ "decision": "VETO"
 }
