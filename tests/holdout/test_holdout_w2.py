@@ -61,7 +61,19 @@ def _opt(dso_on: str, filed_on: str, start: str, end: str) -> dict[str, Any]:
     )
 
 
-LISTS = whole("program", "authorization", "work", "trip", "move", "petition", "withdrawal")
+# SPEC-W2-UNKNOWN points 14 and 58: an end "as of" a filing day needs the end_date_change list
+# whole, and the report list is asked like the rest, so both are stated with the others.
+LISTS = whole(
+    "program",
+    "authorization",
+    "work",
+    "trip",
+    "move",
+    "petition",
+    "withdrawal",
+    "end_date_change",
+    "report",
+)
 
 
 # G5: program end 2026-04-15; the window closes 60 days on: 15 of April reach Apr 30, 31 of
@@ -262,17 +274,19 @@ def _dated(out: dict[str, Any], record: str) -> set[Any]:
 
 
 @pytest.mark.parametrize(
-    ("w3", "named"),
+    ("w3", "named", "reason"),
     [
         # S1: w3 from 2026-09-01 with no employer; new employer or not turns on it.
-        ({"start": "2026-09-01"}, "w3.employer"),
+        ({"start": "2026-09-01"}, "w3.employer", "missing"),
         # S2: w3 with e2, its start no date at all (month 13, day 40; or month and day unclear).
-        ({"employer": "e2", "start": "2026-13-40"}, "w3.start"),
-        ({"employer": "e2", "start": "08/03/2026"}, "w3.start"),
+        # SPEC-W2-UNKNOWN points 3, 34 and 35: a value entered that does not read is asked as
+        # unreadable:, no longer missing:.
+        ({"employer": "e2", "start": "2026-13-40"}, "w3.start", "unreadable"),
+        ({"employer": "e2", "start": "08/03/2026"}, "w3.start", "unreadable"),
     ],
 )
 def test_a_gap_in_one_stem_job_keeps_the_other_job_s_windows(
-    client: TestClient, w3: dict[str, str], named: str
+    client: TestClient, w3: dict[str, str], named: str, reason: str
 ) -> None:
     body = _stem_case("e1")
     body["records"].append(rec("w3", "work", under="a2", hours_per_week=40, **w3))
@@ -281,7 +295,7 @@ def test_a_gap_in_one_stem_job_keeps_the_other_job_s_windows(
     assert out["verdict"]["state"] == "cannot_tell"
     assert [r for r in out["verdict"]["reasons"] if named in r], out["verdict"]["reasons"]
     # The re-review's mission: the record left undecided is asked about by name.
-    assert any(f"missing:{named}" in q["because"] for q in out["questions"]), out["questions"]
+    assert any(f"{reason}:{named}" in q["because"] for q in out["questions"]), out["questions"]
     assert _dated(out, "w3") == set()
 
 

@@ -3547,3 +3547,40 @@ records_case like its siblings); no holdout twins (not asked by the mission).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-a5a1bded5f: the hidden tests brought in line with D92 (W2-P1 unknown fix3)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2-UNKNOWN points 1 to 5, 8, 14, 31, 34, 35, 58, and the
+fix0 pattern in tests/unit/acceptance/test_journeys.py (ASKED_LISTS).
+
+Ran `uv run pytest tests/holdout -q`: 26 failed (20 in test_holdout_journeys.py, 6 in
+test_holdout_w2.py). Every one is an (a) failure, an old reading a point changes. None is (b).
+- test_holdout_journeys.py, 19 twins (points 14, 58): each stated only some lists whole (e.g.
+  j10 left authorization and work open), so windows, counts and grace came back null. Added
+  ASKED_LISTS (the eight kinds with a complete_label, as fix0 did for acceptance) to every
+  case; the per-program `authorization:pN` statements stay (point 14). j08's open-trip twin
+  keeps trip open (all the others stated). No expected date or count moved. Fails if: a
+  list not stated whole is read as "none found" (the open-trip j08 twin still asserts null), or
+  any worked date or count moves.
+- test_holdout_journeys.py j16 twin (point 31): the STEM only_if reads p1.coursework_done_on,
+  which the twin left out; stem.a2 was unknown, waits_on [p1.coursework_done_on], asked. Stated
+  2026-05-15 (the program end, as the visible j16 does). Still asserts next. Fails if: a U only_if
+  gives next (U25), or the basis window works out wrong.
+- test_holdout_w2.py LISTS, 4 tests (points 14, 58): end_date_change and report were unstated, so
+  opt.last_day closes and the planning window came back null or empty. Added both. Dates unchanged
+  (2026-06-13/14, 2026-02-28/03-01).
+- test_holdout_w2.py S2 x2 (points 3, 34, 35): w3.start "2026-13-40" and "08/03/2026" are asked
+  as `unreadable:w3.start`, no longer `missing:`. The parametrize carries the reason; S1 stays
+  `missing:w3.employer`. Fails if: an unreadable value is asked as missing, or not asked.
+- Also: `# type: ignore[attr-defined]` on the get_clock import in test_holdout_journeys.py, as
+  test_holdout_w2.py has, for the edit hook's mypy note. No assertion touched.
+
+After: tests/holdout all pass but one strict xfail that was already there (point 21, cap-gap round).
+Done command: ruff check, ruff format --check, pytest --co: exit 0.
+
+Not built: no shared ASKED_LISTS in tests/support (two files hold their own tuple, as the
+acceptance file does; moving it would edit a visible file this mission did not name); no mutant
+runs (each "fails if" above is reasoned, not run).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

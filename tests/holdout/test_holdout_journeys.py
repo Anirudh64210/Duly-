@@ -17,7 +17,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app, get_clock
+from api.main import app, get_clock  # type: ignore[attr-defined]
 from tests.support.api_client import CheckedClient
 from tests.support.records_case import (
     CLOCK,
@@ -141,6 +141,24 @@ def _null_or_absent(out: dict[str, Any], item_id: str) -> bool:
     return all(i["value"] is None for i in out["computed"] if i["id"] == item_id)
 
 
+# SPEC-W2-UNKNOWN points 14 and 58 (D92): a list not stated whole withholds what an unlisted
+# record could change, and onboarding asks "any others?" in the step that adds each list. Each
+# twin is the whole of the person's story, so it states every list the screen asks (each kind
+# of the F-1 pack with a complete_label) whole, as tests/unit/acceptance/test_journeys.py does;
+# a statement for one program's authorizations no longer covers the others (point 14), so the
+# per-program statements stay. The j08 twin keeps its trip list open on request.
+ASKED_LISTS = (
+    "program",
+    "move",
+    "end_date_change",
+    "authorization",
+    "work",
+    "report",
+    "trip",
+    "petition",
+)
+
+
 # J01 twin: the master's card moved.
 
 
@@ -155,7 +173,7 @@ def test_twin_j01_masters_card_windows_and_count(client: TestClient) -> None:
             rec("e1", "employer", name="Employer H", e_verify="yes"),
             rec("w1", "work", employer="e1", under="a1", start="2026-08-24", hours_per_week=40),
         ],
-        whole("program", "authorization:p1", "move", "work", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
     out = _send(client, body)
     assert window(out, "opt.apply_window.a1") == ("2026-03-14", "2026-08-11")
@@ -188,7 +206,7 @@ def test_twin_j02_a_basis_older_than_ten_years_gives_no_stem_step(client: TestCl
             _masters("2025-12-12", start_date="2024-08-26"),
             _opt("a1", "p1", "2026-01-20", "2027-01-19"),
         ],
-        whole("program", "authorization:p0", "authorization:p1"),
+        whole(*ASKED_LISTS, "authorization:p0", "authorization:p1"),
     )
     out = _send(client, body)
     assert all(s["state"] != "next" for s in out["stages"] if s["id"] == "stem.a1")
@@ -233,7 +251,7 @@ def test_twin_j03_cpt_at_two_schools_at_one_level(client: TestClient) -> None:
                 card_end="2025-08-22",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
     out = _send(client, body)
     assert value(out, "cpt.full_time_days_at_level.master") == 164
@@ -265,7 +283,7 @@ def _j06_like(last_end: str) -> dict[str, Any]:
                 for rid, s, e in spans
             ],
         ],
-        whole("program", "authorization:p1"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -326,7 +344,9 @@ def _j08_like(trips_whole: bool) -> dict[str, Any]:
                 hours_per_week=40,
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "work", *trips),
+        whole(
+            *(k for k in ASKED_LISTS if k != "trip"), "authorization:p1", "authorization:p2", *trips
+        ),
     )
 
 
@@ -364,7 +384,7 @@ def _j09_like(requested_on: str) -> dict[str, Any]:
             ),
             _opt("a1", "p1", "2026-02-01", "2027-01-31", filed_on="2025-11-01"),
         ],
-        whole("program", "authorization:p1", "end_date_change", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -391,7 +411,7 @@ def test_twin_j10_without_a_move_grace_is_60_days(client: TestClient) -> None:
     # p1 end 2025-05-16, no card. Plus 60: 05-31 (15), 06-30 (45), 07-15 (60).
     body = case(
         [_masters("2025-05-16", start_date="2023-08-21")],
-        whole("program", "authorization:p1", "move"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
     out = _send(client, body)
     assert stage(out, "grace.p1")["ends"] == "2025-07-15"
@@ -439,7 +459,7 @@ def test_twin_j11_personal_days_abroad_during_a_job_count(client: TestClient) ->
                 job_on_return="no",
             ),
         ],
-        whole("program", "authorization:p1", "work", "trip", "petition"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
     out = _send(client, body)
     assert value(out, "unemployment.opt_card.a1") == 105
@@ -477,7 +497,7 @@ def _no_petition_case(card: tuple[str, str]) -> dict[str, Any]:
             rec("e1", "employer", name="Employer M"),
             rec("w1", "work", employer="e1", under="a1", start=card[0], hours_per_week=40),
         ],
-        whole("program", "authorization:p1", "work", "petition", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -610,7 +630,7 @@ def _j04_like() -> dict[str, Any]:
                 card_end="2024-01-10",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
 
 
@@ -672,7 +692,7 @@ def _j14_like() -> dict[str, Any]:
                 hours_per_week=40,
             ),
         ],
-        whole("program", "authorization:p1", "work", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -705,7 +725,7 @@ def test_twin_j14_validations_go_on_past_the_jobs_end_to_the_card_end(
 def _no_opt_yet(end: str) -> dict[str, Any]:
     # Without a start_date this run built no opt_post.p1 stage, so the twin gives one.
     program = _masters(end, start_date="2024-08-26")
-    return case([program], whole("program", "authorization:p1", "trip"))
+    return case([program], whole(*ASKED_LISTS, "authorization:p1"))
 
 
 def test_twin_j06_opt_is_not_next_once_its_filing_window_closed(client: TestClient) -> None:
@@ -747,7 +767,7 @@ def test_twin_j15_first_validation_skips_thanksgiving(client: TestClient) -> Non
                 card_end="2027-05-19",
             ),
         ],
-        whole("program", "authorization:p1", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2025-11-20", "2025-12-05")
@@ -777,7 +797,7 @@ def test_twin_j19_validation_skips_juneteenth(client: TestClient) -> None:
                 card_end="2027-12-11",
             ),
         ],
-        whole("program", "authorization:p1", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2026-06-12", "2026-06-29")
@@ -790,6 +810,9 @@ def test_twin_j16_a_us_degree_on_the_list_makes_stem_next(client: TestClient) ->
     # p0 us_other_status, bachelor, on_list, conferred 2021-06-30. a2 ends 2027-06-14: the
     # window opens 2027-03-16; minus 60 days 2027-01-15; minus 10 years 2017-01-15.
     # 2021-06-30 is after it and before p1 was done: a candidate basis, so stem.a2 is next.
+    # SPEC-W2-UNKNOWN point 31: the STEM only_if reads the day p1's coursework was done, so the
+    # twin states it (2026-05-15, the program end, as the visible j16 does); left out, the
+    # stage is unknown and waits on p1.coursework_done_on, never next.
     body = case(
         [
             rec(
@@ -803,10 +826,10 @@ def test_twin_j16_a_us_degree_on_the_list_makes_stem_next(client: TestClient) ->
                 state="completed",
                 conferred_on="2021-06-30",
             ),
-            _masters("2026-05-15", start_date="2024-08-26"),
+            _masters("2026-05-15", start_date="2024-08-26", coursework_done_on="2026-05-15"),
             _opt("a2", "p1", "2026-06-15", "2027-06-14"),
         ],
-        whole("program", "authorization:p0", "authorization:p1"),
+        whole(*ASKED_LISTS, "authorization:p0", "authorization:p1"),
     )
     out = _send(client, body)
     assert stage(out, "stem.a2")["state"] == "next"
@@ -857,7 +880,7 @@ def test_twin_j19_validation_skips_christmas(client: TestClient) -> None:
                 card_end="2028-06-14",
             ),
         ],
-        whole("program", "authorization:p1", "authorization:p2", "move", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
     out = _send(client, body)
     assert window(out, "stem.validation_1.a2") == ("2026-12-15", "2026-12-30")
@@ -907,7 +930,7 @@ def _twin_j19_with_petition(outcome: str | None = "approved", **fields: Any) -> 
                 **fields,
             ),
         ],
-        whole("program", "authorization:p1", "petition", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -1100,7 +1123,7 @@ def _stem_next_case(start: str, end: str) -> dict[str, Any]:
             _masters("2024-05-17", stem_list="on_list", start_date="2022-08-22"),
             _opt("a1", "p1", start, end),
         ],
-        whole("program", "authorization:p1", "move", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
@@ -1185,7 +1208,7 @@ def _j15_like() -> dict[str, Any]:
                 hours_per_week=40,
             ),
         ],
-        whole("program", "authorization:p1", "work", "trip"),
+        whole(*ASKED_LISTS, "authorization:p1"),
     )
 
 
