@@ -1,0 +1,10 @@
+{
+  "name": "image-size",
+  "version": "0.7.99-duly",
+  "private": true,
+  "description": "The old sizeOf(path, callback) of image-size 0.7, which appdmg calls, over the patched image-size 2 (GHSA-w3rx-r6r6-pgpr). Build tool only: it reads the DMG background.",
+  "main": "index.js",
+  "dependencies": {
+    "image-size-patched": "npm:image-size@2.0.4"
+  }
+}
