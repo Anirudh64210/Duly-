@@ -261,7 +261,8 @@
     {
       "id": "opt.prepare.opens.a2",
       "inputs": {
-        "p1.end_date": "2025-12-13"
+        "p1.end_date": "2025-12-13",
+        "plan.prepare_months": 1
       },
       "planning": true,
       "reading": false,
@@ -387,7 +388,8 @@
     {
       "id": "stem.prepare.opens.a2",
       "inputs": {
-        "a2.card_end": "2027-02-09"
+        "a2.card_end": "2027-02-09",
+        "plan.prepare_months": 1
       },
       "planning": true,
       "reading": false,
@@ -625,9 +627,9 @@
       "inputs": {
         "w1.start": "2026-02-15"
       },
-      "reading": false,
+      "reading": true,
       "record": "w1",
-      "rule_ids": ["opt.report_employer_within_days"],
+      "rule_ids": ["opt.report_employer_within_days", "opt.job_start_is_employment_change"],
       "status": "guidance",
       "unit": "date",
       "value": "2026-02-15"
@@ -637,9 +639,9 @@
       "inputs": {
         "w1.start": "2026-02-15"
       },
-      "reading": false,
+      "reading": true,
       "record": "w1",
-      "rule_ids": ["opt.report_employer_within_days"],
+      "rule_ids": ["opt.report_employer_within_days", "opt.job_start_is_employment_change"],
       "status": "guidance",
       "unit": "date",
       "value": "2026-02-25"
@@ -1057,6 +1059,18 @@
       "unit": "days",
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": 30
+    },
+    "opt.job_start_is_employment_change": {
+      "checked_on": "2026-10-01",
+      "citation": "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19",
+      "derivation": "reading",
+      "note": "Reading: the saved page says that when the student is hired, the student reports the employer information to the DSO, and gives no number of days in that sentence. The note under it gives 10 days for any changes in employment information (opt.report_employer_within_days). Duly reads the start of a new job as a change in employment information, so the start opens the window of opt_job_start.report and the 10 days of that note apply. That the 10 days apply to a new job is a reading, not the words of the page (reviews/w2-p1.md finding 6). Agency guidance, not regulation. Start date as for opt.report_employer_within_days.",
+      "plain": "SEVP's guidance says that when a student on OPT is hired, the student reports the employer information to the DSO. Duly reads a new job as a change in employment information, which the student reports within 10 days. This is Duly's reading, not the guidance's exact words.",
+      "quote": "When the student is hired, the student reports the employer information to the DSO.",
+      "status": "guidance",
+      "unit": "flag",
+      "url": "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt",
+      "value": true
     },
     "opt.latest_start_after_days": {
       "checked_on": "2026-09-28",
@@ -1828,7 +1842,8 @@
           "closes_days_away": -380,
           "id": "opt.prepare.a2",
           "inputs": {
-            "p1.end_date": "2025-12-13"
+            "p1.end_date": "2025-12-13",
+            "plan.prepare_months": 1
           },
           "label": "Time to prepare the Form I-765 filing, a planning date",
           "opens": "2025-08-14",
@@ -1963,7 +1978,8 @@
           "closes_days_away": 43,
           "id": "stem.prepare.a2",
           "inputs": {
-            "a2.card_end": "2027-02-09"
+            "a2.card_end": "2027-02-09",
+            "plan.prepare_months": 1
           },
           "label": "Time to prepare the STEM OPT extension filing, a planning date",
           "opens": "2026-10-11",
@@ -2166,7 +2182,7 @@
       "items": ["opt_job_start.report.opens.w1", "opt_job_start.report.closes.w1"],
       "label": "Start of a job on post-completion OPT",
       "record": "w1",
-      "rule_ids": ["opt.report_employer_within_days"],
+      "rule_ids": ["opt.report_employer_within_days", "opt.job_start_is_employment_change"],
       "stage": "opt_job_start",
       "starts": null,
       "state": "done",
@@ -2181,9 +2197,9 @@
           "label": "Report of the new employment information to the DSO",
           "opens": "2026-02-15",
           "opens_days_away": -226,
-          "reading": false,
+          "reading": true,
           "record": "w1",
-          "rule_ids": ["opt.report_employer_within_days"],
+          "rule_ids": ["opt.report_employer_within_days", "opt.job_start_is_employment_change"],
           "status": "guidance"
         }
       ]
@@ -2200,6 +2216,7 @@
       "id": "stem.prepare.opens.a2",
       "inputs": {
         "a2.card_end": "2027-02-09",
+        "plan.prepare_months": 1,
         "today": "2026-09-29"
       },
       "planning": true,

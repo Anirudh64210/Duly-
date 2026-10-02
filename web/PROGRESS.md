@@ -1330,3 +1330,23 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 - No Plan screen use of `planning`, `limit_day` or the job-start row's words: the mission asks
   only that the samples and the web tests follow the engine; the screen is a later plan.
 - No `as_of` (N3) in the web schema: no sample carries it yet and no test needs it.
+
+## l-web-ccf272f6a6 (W2-P1, SPEC-W2 points 45, 46, 49), attempt 1
+
+### Tried and ran
+
+- `make samples`: exit 0. Changed web/samples/path-stem-next.json and path-window-open.json:
+  the planning windows (opt.prepare.opens.a2, stem.prepare.opens.a2) now list
+  `plan.prepare_months` among inputs (point 46 N1, the planning date shows its working); the
+  job-start report window reads as a reading with rule opt.job_start_is_employment_change
+  (reviews/w2-p1.md finding 6), and that source is in the sources block.
+- `npm test -w web`: exit 0, 32 files, 601 tests passed. No web test needed a change.
+- `npm test -w desktop`: exit 1, `EPERM mkdir desktop/coverage` (the sandbox refuses writes
+  outside web/). Without coverage: 248 of 249 pass; buildpython.test.ts dry-run gets an empty
+  copy list. The same script run by hand in the sandbox with the same fixture prints all five
+  copies, and desktop/ is unchanged on this branch, so this is the sandbox, as attempt
+  l-web-c8b9218bf3 found.
+
+### Not built
+
+- No change to web source or web tests: the new samples pass as they are.
