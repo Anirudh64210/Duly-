@@ -28,3 +28,18 @@ Ran and printed:
 
 Changed: 101 rows re-audited (59 not_started to met, 24 partial to met, 17 not_started to partial, 1 met to partial by drift: WB06-050), evidence moved for 3, and 5 rows added for D62. Covered rows: 85 of 129 met.
 Not run: make test, make design-shots, make prove-gates, the founder's walk-through.
+
+## 2026-10-02, run l-audit-9a4aa22c50, attempt 1
+
+Tried: audit FEED-PA (specs/step-w/plan-feed-pa.yaml and plan-feed-pa-fix.yaml, SPEC-FEED points 28, 29, 55) against commit b8368f6 (docs/requirements/audits/feed-pa.md).
+
+Ran and printed:
+- sources verify, plain --require f1, recheck --check, copy lint: all exit 0. load_all F-1 rules_checked_on 2026-10-02.
+- pytest tests/unit/engine tests/unit/pipeline tests/unit/tools/test_recheck.py: 1350 passed.
+- Draft against update.schema.json with FormatChecker: 0 errors. publish_blockers holds it (no independent check, no refutation, not approved). 5 of 5 claim quotes found by sha256.
+- Mutants on a scratch copy: checked_on 2026-10-03 fails recheck; a quote not in its copy passes recheck but fails verify (the done command runs both).
+- Drift tests 106 passed; web contrast test 68 passed; test_phase seed-plan test fails with sandbox-exec Operation not permitted (cannot nest here).
+- register build and check: 2489 requirements, whole; 438 of 2127 met, 21%.
+
+Changed: DEC-D02-007 partial to met; DEC-D44-001 partial to superseded (D68); PLAN11-036 met to superseded (drift, D68); 28 rows added for D63 to D91 (no D77, replaced by D79); 15 notes updated. Covered rows of SPEC-FEED: 4 met, 8 partial, 12 not started.
+Not run: make test, make desktop-package, the founder's 2026-10-07 check.
