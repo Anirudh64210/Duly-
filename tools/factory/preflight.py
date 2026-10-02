@@ -149,6 +149,13 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
                 found.append(f"{where}: the done command needs {path}, but {why}")
             if re.search(r"\bgit\s+(add|commit|push)\b", done):
                 found.append(f"{where}: the done command changes git; it runs in the jail")
+            # agent_run hides tests/holdout from implementation lanes, so such a lane can never
+            # pass a done command that reads it (W2-P1 fix: three attempts lost this way).
+            if lane.kind == "implementation" and "tests/holdout" in done:
+                found.append(
+                    f"{where}: the done command reads tests/holdout, which is hidden from "
+                    "implementation lanes; run the hidden tests as a round check"
+                )
             for m in POINT.finditer(mission):
                 for n in _numbers(m.group(1), m.group(2)):
                     if known and n not in known:

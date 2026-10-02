@@ -19,7 +19,7 @@ rounds:
   - lane: L-engine
     agent: builder
     mission: 'Read reviews/w2-p1.md. Finding 1, generically: when a for_each selection cannot be decided because a field it reads is missing, the engine asks for that field (a question, and the verdict cannot_tell), never drops the stage; nothing about F-1 in engine code. Finding 2: a planning item lists the setting id and its value among its inputs, so the working shows where the month came from. Finding 3: the limit day of a counter whose span has not started yet is the limit-th counted day from the start, if nothing changes. Finding 5: engine/rulepack.py refuses a pack that names an unknown setting id or a setting whose unit cannot date a window. Finding 8: engine/settings.py returns a setting''s value and unit together, read once. Make every test in tests/unit/engine and the journeys pass.'
-    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py tests/holdout/test_holdout_w2.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
   checks:
   - name: hidden tests
     run: uv run pytest tests/holdout -q

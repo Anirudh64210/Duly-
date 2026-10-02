@@ -197,3 +197,17 @@ def test_a_founder_gate_failing_before_any_agent_is_found(tmp_path):
     found = preflight.baseline(tmp_path, (ok, bad))
     assert len(found) == 1
     assert "copy lint: 7 problem(s)" in found[0]
+
+
+def test_a_builder_held_to_the_hidden_tests_is_found(tmp_path):
+    # agent_run hides tests/holdout from implementation lanes; W2-P1's fix plan lost three
+    # attempts to a builder's done command that named a hidden test file.
+    repo = mini.build(tmp_path)
+    done = "uv run pytest tests/test_a.py tests/holdout/test_h.py -q"
+    path = plan(repo, [{"name": "A", "lanes": [lane("L-engine", "builder", "Pass.", done)]}])
+    assert any(
+        "reads tests/holdout, which is hidden from implementation lanes" in p
+        for p in preflight.problems(path, repo)
+    )
+    tests = [{"name": "A", "lanes": [lane("L-tests", "test-author", "Write tests.", done)]}]
+    assert not any("hidden from" in p for p in preflight.problems(plan(repo, tests), repo))
