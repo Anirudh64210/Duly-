@@ -38,12 +38,15 @@ describe("timelineView (design-1 section 7)", () => {
       "stem.a2",
       "grace.p1",
       "trip.t1",
+      // SPEC-W2 point 45 P3: the report window on a job's start is a stage of its own.
+      "opt_job_start.w1",
     ]);
   });
 
   it("marks each row by the engine's state, with the accessible names of 7", () => {
     const marks = timelineView(NEXT, null).rows.map((entry) => MARK_NAMES[entry.mark]);
-    expect(marks).toEqual(["Done", "Done", "Now", "Next", "Later", "Done"]);
+    // SPEC-W2 point 45 P3: the job-start report row is done.
+    expect(marks).toEqual(["Done", "Done", "Now", "Next", "Later", "Done", "Done"]);
   });
 
   it("puts the question mark in place of NOW while a reason rests on the current stage", () => {

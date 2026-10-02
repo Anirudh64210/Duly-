@@ -113,6 +113,8 @@ const windowSchema = z.strictObject({
   alternates: alternatesSchema,
   operative: operativeSchema,
   inputs: z.record(z.string(), z.unknown()).optional(),
+  // SPEC-W2 N1: present when a date here comes from a product setting, never from a rule.
+  planning: z.literal(true).optional(),
 });
 
 // design-1 RQ-P3: one entry for each stage entered and each stage that may come next.
@@ -183,6 +185,8 @@ export const engineOutputSchema = z
         // True when a rule the item used is Duly's reading of the source.
         reading: z.boolean(),
         record: recordSchema,
+        // SPEC-W2 N1: present when a date here comes from a product setting, never from a rule.
+        planning: z.literal(true).optional(),
       }),
     ),
     rulepacks: z.array(z.strictObject({ category: z.string(), version: z.string() })),
@@ -225,6 +229,8 @@ export const engineOutputSchema = z
         // design-1 RQ-E1: whole days in the person's zone, with the working in inputs.
         days_away: z.number().int().optional(),
         inputs: z.record(z.string(), z.unknown()).optional(),
+        // SPEC-W2 N1: present when a date here comes from a product setting, never from a rule.
+        planning: z.literal(true).optional(),
       }),
     ),
     lists: z.array(
