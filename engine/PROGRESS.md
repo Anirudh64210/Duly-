@@ -1902,3 +1902,15 @@ Status: done.
   (no test or point needs it; whether the stage comes does not rest on the move).
 
 Status: done.
+
+## l-engine-e89bd58566 (W2-P1 unknown fix3, engine round)
+
+- Read .factory/runs/result-step-w_tests_L-tests.json (main checkout; this worktree has no
+  .factory/runs). The tests round (l-tests-a5a1bded5f) reports status done, "No (b) engine
+  fault was found", and its `requests` list is empty.
+- So, as the mission says for an empty list: no engine change.
+- Done command as written ($TMPDIR/done.log): exit 0. pytest passes (2 xfail already there),
+  engine_literals, mypy (72 files), ruff check and ruff format pass.
+- Not built: anything. No finding names a fault.
+
+Status: done.
