@@ -82,7 +82,12 @@ def test_a_workflows_tokens_are_logged_and_totalled_by_day(tmp_path):
 
 def test_make_offers_both_commands_and_the_runbook_names_them():
     def dry(*args: str) -> str:
-        done = subprocess.run(["make", "-n", *args], cwd=mini.REAL, capture_output=True, text=True)
+        done = subprocess.run(
+            ["make", "--no-print-directory", "-n", *args],
+            cwd=mini.REAL,
+            capture_output=True,
+            text=True,
+        )
         return done.stdout.strip()
 
     assert dry("handled", "ALERT=ab12", "CAUSE=spec", "UPHELD=yes", "NOTE=read it") == (

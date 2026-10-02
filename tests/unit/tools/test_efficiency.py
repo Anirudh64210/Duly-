@@ -473,7 +473,12 @@ def test_make_weekly_prints_the_latest_scorecards_and_drift_has_no_target_of_its
     import subprocess
 
     def dry(target: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(["make", "-n", target], cwd=REPO_ROOT, capture_output=True, text=True)
+        return subprocess.run(
+            ["make", "--no-print-directory", "-n", target],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
 
     assert dry("weekly").stdout.strip() == "uv run python -m tools.factory.efficiency --latest 3"
     assert dry("drift").returncode != 0
