@@ -1,0 +1,64 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Clear the review veto of the unknown-values plan (reviews/w2-unknown.md, findings 1 to 14): every regression row of point 51 is a test, every SPEC input the review names gives what the SPEC says, the engine works the three-valued logic through engine/unknown.py and the readers, a category fault is a 422, and the screen words follow D94. SPEC-W2-UNKNOWN points 2, 7, 8, 12, 14, 24, 26, 31 to 34, 39, 44 to 52 and D94.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-unknown.md in full. Write, each failing today where the review shows a fault, with the point beside it and each date worked by hand: (a) finding 7: every regression row point 51 places and no file holds: R3, R14, R21, R22 and R39 in tests/unit/engine/test_w2_unknown_counts.py; R15, R16 (both cases), R24, R29, R33, R34 and R35 in tests/unit/engine/test_w2_unknown.py; R36 in tests/unit/engine/test_w2_unknown_stages.py; R38 visible beside its holdout twin; and the mutants profile point 52 names; (b) one test per engine finding with the review''s input: 1 (R16 B shown, the same for every filing day), 2 (a statement for one record''s list or one dated after today never states the whole kind; the count waits on complete.<kind>), 3 (R36: the STEM next stage in state unknown with waits_on a1.card_end), 4 (on the toy pack of tests/support/unknown_toy.py, present on an absent ask field outside a selection is unknown and asked; the count is emitted withheld), 5 (a not_sure happened date that could raise the after-today conflict is asked, with undecided), 8 (the STEM next stage''s validation and concluding-evaluation windows wait on future:stem.card_start, never null without waits_on), 12 (a question''s withholds names every output that waits on it), 14 (a known past day after NOT_YET is false); (c) tests/unit/api: a record whose category the case does not list gives 422 CASE_STRUCTURE (finding 6); (d) finding 11: the F-1 seed covers every journey and R1 to R40, the non-vacuity counts are asserted, P1(b) is built, and P2(b) and (c) compare reasons, stage states and upcoming dates; keep the gate-5 time budget of point 44. Never loosen an existing assertion. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine tests/unit/api --co -q >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Review note 13 (reviews/w2-unknown.md): a part-time pre-completion OPT card already goes to the DSO through opt.months_at_level.part_time, so leave such cards out of the months-at-level counter''s scope, as a scope condition on the card''s hours, saying why in the counter''s note. No number changes.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-unknown.md. Fix findings 1, 2, 3, 4, 5, 8, 12 and 14 in engine/path.py by the class, as points 2, 7, 8, 14, 26, 31 to 34 say: as_of decides when no change record could apply; a list is stated whole only by a statement for the whole kind dated on or before today; a stage left unknown by entered_when still gets its next stages in state unknown with waits_on; present on an absent ask field is unknown everywhere, never none; happened over an unknown date is asked; the STEM next stage''s windows carry future: gaps; withholds lists every output; a known past day after NOT_YET is false. Finding 9: work the three-valued logic through engine/unknown.py (all3, any3, not3 on Unknown values) and read dates and numbers through engine/readers.py, removing path.py''s own copies, with no change in what any test expects. Finding 6, engine side: an undeclared category raises CaseStructureError, never a plain ValueError. Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: edges
+  lanes:
+  - lane: L-api
+    agent: builder
+    mission: 'Finding 6 (reviews/w2-unknown.md): api/local_routes.py and api/main.py answer every CaseStructureError, the undeclared category included, with 422 CASE_STRUCTURE, never a 500; the tests in tests/unit/api pass.'
+    done: bash -c 'uv run pytest tests/unit/api tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  - lane: L-web
+    agent: builder
+    mission: 'Finding 10 (reviews/w2-unknown.md): web/src/lib/labels.ts EMPTY_WORDS for petition.requested_start and petition.validity_start follow D94: an empty start is asked, never a statement that the petition has none; web/src/lib/emptyWords.test.ts reads the declaration as it stands after D94 (when_absent ask), not the older CHANGELOG lines. npm test -w web passes.'
+    done: bash -c 'npm run typecheck -w web && npm test -w web -- src/ && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+- name: samples
+  steps:
+  - lane: L-web
+    run: make samples
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with the fixes of plan-w2-p1-unknown-fix5.yaml; write the finding beside each change; never loosen an assertion; escalate any failure no finding or point explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and make npm test -w web pass, changing only tests the fixes of plan-w2-p1-unknown-fix5.yaml require, with the finding beside each.'
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review the unknown-values work (plan-w2-p1-unknown.yaml and its fixes 0 to 5) against SPEC-W2-UNKNOWN, D92 to D94, PRINCIPLES.md and BOUNDARY.md and your findings in reviews/w2-unknown.md. Rerun every input you named, every R row, every mutant of point 52 against the named files, and the withheld-output count over the journeys. Write reviews/w2-unknown.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-unknown.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the unknown-values work (plan-w2-p1-unknown.yaml and its fixes) as your role file describes. Write docs/requirements/audits/w2-unknown.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-unknown.md && uv run python -m tools.requirements.register check'
