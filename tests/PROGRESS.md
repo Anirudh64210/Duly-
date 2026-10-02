@@ -3081,3 +3081,59 @@ Not built: no helper module, no conftest; the run_dir fixture, _request and _ans
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-88111ef528: W2-P1, the dates Plan needs (SPEC-W2 points 45, 46, 49), tests first
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W2.md, specs/step-w/plan-w2-p1.yaml, CLAUDE.md,
+the W2-P0 diff (contracts/rulepack.schema.json amount.setting, engine_output planning,
+product_settings.yaml K1), engine/rulepack.py, engine/settings.py, tools/sources/verify.py, the
+F-1 pack's path (windows, counters, records), tests/unit/engine/test_path_reach.py,
+tests/unit/acceptance/test_journeys.py, tests/support/records_case.py.
+
+Wrote:
+- tests/support/w2_pack.py: a toy j1 pack (course, card, job; toy.* rules), the case and output
+  contract checks, and number_in_saved_words: it finds a rule's number in its quote and in the
+  saved copy (tools.sources.verify.plain), and checks it equals the pack value in force. Every
+  date in the W2 tests is worked from that number.
+- tests/unit/engine/test_w2_windows.py: P1 opt.last_day and stem.last_day (each side of the
+  "earliest of", a property test, rules named, no date when dso_on is missing); P2/N1 prepare
+  windows in opt_post and stem (opens one month, plan.prepare_months, before the filing window
+  opens; closes no later than it; planning on the window, its items and upcoming entries and
+  nowhere else; rule_ids within the filing window's; no setting id in rules; month-end clamp);
+  P3 report windows (OPT job start and an hours change, start plus 10 from the SEVP guidance,
+  tagged guidance; STEM new employer gives stem.new_plan_due_days, start plus 10; the STEM
+  card's own employer gives none); the loader refusing a setting in six places outside a
+  window, each pack passing the schema first; N1 on the toy pack (months, clamp property, a
+  setting in days).
+- tests/unit/engine/test_w2_limit_day.py: N2. limit_day = today + (limit - used) while nothing
+  covers the days; today at the limit; no date while a job runs on, when the span ends first,
+  for an unknown count, for a ended span, for a count of records; STEM total; a toy counter;
+  the item's words hold none of a list of what-follows words.
+- tests/holdout/test_holdout_w2.py: four journey pairs through POST /v1/compute (last day either
+  side of the window close, prepare either side of a month end, limit day one idle day apart,
+  job start report across a month end).
+
+Ran:
+- done command: "All checks passed!", "92 files already formatted", collect ok, exit 0.
+- pytest test_w2_windows.py: 26 failed, the rest passed. Passing: the saved-words test (90, 60,
+  30, 90, 60, 10, 10; plan.prepare_months 1), the six schema guards, the window-setting load,
+  "no start, no report date", "own employer, no new plan window". Every failure is "no such
+  window", "DID NOT RAISE RulepackError" or KeyError 'rule' (the engine reads no setting yet).
+- pytest test_w2_limit_day.py: 8 failed, all on the absent limit_day item; the counts worked
+  by hand (59, 30, 90, toy 10) matched the engine before the failing line.
+- pytest tests/holdout/test_holdout_w2.py: 8 failed for the same reasons.
+- A probe of every case: no conflict reason in any (only the D59 and enrolment questions).
+
+What makes each fail once built: a last day that takes the later limit, or the window close
+alone when dso_on is missing; a prepare window computed in days, from the close, or not
+clamped; planning left off an item or put on a rule-only window; a setting listed in rules; a
+report window from the job end or plus 10 business days; a new plan window for the I-983's own
+employer; a loader that lets a setting into a span, longest, gap_allowed, at_most, a condition
+date or a counter; a limit day of today + limit - used - 1, or given while a job runs, after the
+span end or for a null count.
+
+Not built: no conftest, no new dependency; the toy pack is in one support module used by
+three files, since test_path_reach's helpers are private to it.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
