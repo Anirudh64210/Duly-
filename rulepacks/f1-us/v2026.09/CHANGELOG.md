@@ -269,3 +269,10 @@ Empty pack. Rules enter in Phase 2, each with a primary source and a status tag.
 - eCFR version 2026-09-30 of 8 CFR 214.2 recorded in the note of ds_2012 and in SOURCES.md: paragraph (f) is the same as in the 2026-09-15 text.
 - The appeal recorded in the note of fixed_admission_2026 from the docket listing fetched 2026-10-02: ECF 53 notice of appeal, ECF 54, ECF 55 First Circuit case 26-2112, all 2026-09-30, no stay entry. Claim 2 of SOURCES.md corrected; it said no appeal was found. The founder signed off on the docket (D90): legal_status stays enjoined, operative stays false, the tag is unchanged, and checked_on is 2026-10-02.
 - No value, quote, plain text or plain_terms changed. No network was used by the lane.
+
+### 2026-10-02, lane L-content, run l-content-8120a53a8f (reviews/feed-pa.md findings 3, 4 and 6)
+
+- Finding 3: the notes of capgap.fiscal_year_start_month_day and both rows of calendar.federal_holidays_law say the govinfo.gov copy is the 2024 Edition, current through 2025-01-06, that uscode.house.gov served a maintenance page on 2026-10-02, and that any amendment after 2025-01-06 is not covered by the copy. SOURCES.md says the same.
+- Finding 4: the note of fixed_admission_2026 says the docket listing was fetched at 2026-10-02T06:09Z and 06:25Z, before the status conference set for 2026-10-02 at 12:00 PM (ECF 52), so any order from it is not covered.
+- Finding 6: two run-on sentences fixed, in the note of fixed_admission_2026 and in SOURCES.md.
+- No value, status, date, quote, plain text or plain_terms changed. No network was used.

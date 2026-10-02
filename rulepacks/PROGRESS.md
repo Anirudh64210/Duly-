@@ -1323,3 +1323,28 @@ checked_on 2026-10-02 on all 104 parameters and both regimes
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-8120a53a8f, attempt 1 (reviews/feed-pa.md findings 3, 4 and 6)
+
+### What was tried
+
+- Finding 3: checked both govinfo.gov copies carry currentthrough:20250106 in their header and both uscode.house.gov copies of 2026-10-02 are titled Under Maintenance. The notes of capgap.fiscal_year_start_month_day and both calendar.federal_holidays_law rows now say the copy is the 2024 Edition, current through 2025-01-06, that uscode.house.gov served a maintenance page on 2026-10-02, and that any amendment after 2025-01-06 is not covered. SOURCES.md says the same. Dates kept.
+- Finding 4: checked recheck-2026-10-02.json (docket fetched 2026-10-02T06:09:39Z and 06:25:56Z, same sha256) and ECF 52 in the saved listing (Status Conference set for 10/2/2026 12:00 PM). The note of fixed_admission_2026 says the listing predates the conference and any order from it is not covered.
+- Finding 6: "recorded here, The founder" and "2026-10-02, That is" now end their sentences.
+- D90 is in DECISIONS.md (founder accepts SPEC-FEED points 68 to 86 as written, which includes point 69). The pack's citation stands.
+- CHANGELOG entry added. No number, status, date, quote or plain text changed.
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  copy lint: clean
+  pytest tests/unit/engine -q: all pass
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
