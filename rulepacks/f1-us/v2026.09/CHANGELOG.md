@@ -308,3 +308,10 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - Check stem.extends_post_completion_opt: holds now opens with {field: this.extends, present: true}, the guard point 7a requires, since authorization.extends is when_absent none.
 - The notes are YAML comments: contracts/rulepack.schema.json gives order and check no note or reason field.
 - No number, rule, source, quote or plain text changed.
+
+### 2026-10-02, lane L-content, run l-content-a822a0bfbf (D94, SPEC-W2-UNKNOWN points 2, 32, 33, 35 and 61 as amended)
+
+- petition.requested_start: when_absent ask, was none (D94). An empty start is asked, never read as none.
+- petition.validity_start: when_absent ask, was none (D94).
+- capgap.petition_for_dso note: says an empty start is asked, never read as a petition that cannot extend a period, and while it is unanswered cap_gap.for_dso is withheld and the verdict is Can't tell yet with the start asked by name.
+- No number, rule, source, quote or plain text changed.

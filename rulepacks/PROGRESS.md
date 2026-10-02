@@ -1405,3 +1405,30 @@ pytest tests/unit/engine -k "sourcing or rulepack" on HEAD's engine: collection 
 
 - Until the engine round lets a check name a setting (D93, point 11 as amended), HEAD's engine refuses to load the F-1 pack. The mission asks for the setting form, so it stays; see requests.
 - No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-a822a0bfbf, attempt 1 (D94, SPEC-W2-UNKNOWN points 2, 32, 33, 35 and 61 as amended)
+
+### What was tried
+
+- petition.requested_start and petition.validity_start: when_absent none became when_absent ask (D94). Declared explicitly, not dropped to the default, so the choice can be seen.
+- capgap.petition_for_dso note: added the D94 sentence: an empty start is asked, never read as none or as a petition that cannot extend a period; while it is unanswered cap_gap.for_dso is withheld and the verdict is Can't tell yet with the start asked by name (points 32, 33 and 35 supersede 23a's step back here).
+- CHANGELOG: one entry. No number, rule, source, quote or plain text changed.
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  load_all: ok
+copy lint over rulepacks: 107 problems, all in saved source HTML under sources/; none in parameters.yaml, CHANGELOG.md or PROGRESS.md
+pytest tests/unit/engine/test_when_absent.py -q: 3 failed, all for the two D94 fields:
+  test_point_61_these_fields_are_none_when_left_empty[petition-validity_start], [petition-requested_start]
+  test_point_2_a_field_read_as_absent_declares_none_or_not_yet: ['petition.requested_start', 'petition.validity_start']
+```
+
+### Seen and not worked around
+
+- The tests still carry the pre-D94 point 61 list (NONE holds both petition starts, and point 2 wants every field read under present: false to declare none or not_yet, with only trip.returned_on exempt). DECISIONS.md wins; put under disputes, not changed (tests/ is not this lane).
+- No network was used. No instruction was found in any data.
