@@ -261,8 +261,11 @@ def decided_cases(
         for decl in declared[record["kind"]]["fields"]:
             if isinstance(absence(decl), str) and absence(decl) != "ask" and draw(st.booleans()):
                 record["fields"].pop(decl["id"], None)
+    # Point 14: a statement whose `on` is after today is ignored, so a shifted statement is kept
+    # on or before the day the properties run (EXAMPLE_DAY), or the lists would not be whole.
     case["complete"] = {
-        k: {"on": shift_dates(on, shift)["on"]} for k, on in case.get("complete", {}).items()
+        k: {"on": min(shift_dates(on, shift)["on"], EXAMPLE_DAY.isoformat())}
+        for k, on in case.get("complete", {}).items()
     }
     return case
 

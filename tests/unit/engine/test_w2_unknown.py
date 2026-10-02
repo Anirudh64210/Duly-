@@ -261,6 +261,35 @@ def test_r30_a_not_sure_program_end_withholds_every_opt_post_window():
         assert "p1.end_date" in w.get("waits_on", [])
 
 
+@pytest.mark.parametrize("end", ["not_sure", None])
+def test_the_file_by_window_of_a_next_opt_waits_on_the_program_end_too(end):
+    # Points 31, 33 and 34, the P2 draw the engine lane named (window:opt.file_by.p1 waiting
+    # only on future:opt_post.dso_on). p1 a master in progress, no OPT card, its end not sure
+    # or left out. opt_post.p1 is a next stage whose filing closes rest on p1.end_date, so it
+    # is shown in state unknown (point 31), and its window opt.file_by.p1 (dso_on to dso_on
+    # plus a rule amount) is null and waits on every gap it rests on (point 34): the bound
+    # dso_on, never entered (future:opt_post.dso_on), and p1.end_date, which is asked. With an
+    # end entered (2026-12-18), the same case shows opt_post.p1 next and file_by.p1 waiting
+    # only on future:opt_post.dso_on (probed on HEAD 5340950). Fails if the window names the
+    # future entry alone, or if the stage or the window is dropped on the guess.
+    p1 = masters("2026-12-18")
+    p1["fields"].update(start_date="2024-08-20", state="in_progress")
+    if end is None:
+        p1["fields"].pop("end_date")
+    else:
+        p1["fields"]["end_date"] = end
+    out = compute(f1_case([p1]), [PACK], TODAY)
+    assert "p1.end_date" in {q["id"] for q in out["questions"]}
+    stages = {s["id"]: s for s in out["stages"]}
+    assert "opt_post.p1" in stages
+    assert stages["opt_post.p1"]["state"] == "unknown"
+    shown = {w["id"]: w for w in stages["opt_post.p1"]["windows"]}
+    assert "opt.file_by.p1" in shown
+    file_by = shown["opt.file_by.p1"]
+    assert (file_by["opens"], file_by["closes"]) == (None, None)
+    assert {"p1.end_date", "future:opt_post.dso_on"} <= set(file_by.get("waits_on", []))
+
+
 def test_r31_a_filing_not_yet_made_raises_no_conflict_while_the_window_is_open():
     # R31: p1 ends 2026-08-15; a1 dso_on 2026-08-01, filed_on and decision left out (not_yet).
     # The apply window closes 60 days after the end: 16 days reach Aug 31, 30 reach Sep 30, so

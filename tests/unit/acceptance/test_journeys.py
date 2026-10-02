@@ -1647,7 +1647,14 @@ def test_j07_opt_is_next_for_the_bachelors_at_school_b(client: TestClient) -> No
     out = _send(client, j07())
     assert stage(out, "opt_post.p2")["state"] == "next"
     assert window(out, "opt.apply_window.p2")[0] == "2027-02-13"
-    assert "opt_post.p1" not in stage_ids(out)
+    # SPEC-W2-UNKNOWN points 31 and 33, review finding 3 (R36): j07 leaves out p1.end_date, so
+    # the close of p1's OPT filing (p1's end plus a rule amount) is unknown. A next stage is
+    # closed only when every filing close is known and past, and a stage is never dropped on a
+    # guess: opt_post.p1 is shown in state unknown, waiting on p1.end_date, which is asked.
+    p1 = stage(out, "opt_post.p1")
+    assert p1["state"] == "unknown"
+    assert "p1.end_date" in (p1.get("waits_on") or [])
+    assert "p1.end_date" in question_ids(out)
 
 
 # J08

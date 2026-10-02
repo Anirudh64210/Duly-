@@ -246,12 +246,15 @@ def test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks(name, pa
     # Finding 11: (b) and (c) compare the reasons (other than those that only ask), the stage
     # states and the upcoming dates as well as the values, which is how a not-sure happened
     # date that could raise a conflict went unasked (finding 5).
-    first = gaps.outputs(filled_outs[0])
+    # An output one fill shows and another leaves out has changed too: the output contract
+    # leaves out an upcoming entry that rests on an unknown (point 33), so the keys are the
+    # union over every fill, and shown or not is part of the value.
+    shown = [gaps.outputs(out) for out in filled_outs]
     changed = {
         key
-        for out in filled_outs
-        for key, value in gaps.outputs(out).items()
-        if key != "reasons" and value != first.get(key)
+        for key in set().union(*shown)
+        if key != "reasons"
+        and any((key in s, s.get(key)) != (key in shown[0], shown[0].get(key)) for s in shown)
     }
     if any(_shown_reasons(out) != _shown_reasons(filled_outs[0]) for out in filled_outs):
         changed.add("reasons")

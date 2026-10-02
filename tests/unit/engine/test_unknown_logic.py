@@ -244,6 +244,8 @@ def _leaf(op: str, field: str, cond: dict[str, Any], values: list[Any], truth: A
 
 
 ARRIVED = {"fact": "arrived_on"}
+# The toy course fields declared `happened: true` (tests/support/unknown_toy.py).
+HAPPENED = {"joined_on"}
 
 LEAVES: list[dict[str, Any]] = [
     # A flag alone: its value; false is F (point 9).
@@ -435,7 +437,10 @@ def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
         event("tree:F")
     elif results == {True}:
         assert not conflict, (cond, raw)
-        assert not (asked & set(unknown)), (cond, raw)
+        # Point 32: `happened` over a date that is U is asked whatever the tree gives, so a
+        # happened field's own question (joined_on, declared happened in the toy pack) is not
+        # one the settled tree asked; every other unknown leaf stays unasked (point 8).
+        assert not (asked & (set(unknown) - HAPPENED)), (cond, raw)
         event("tree:T")
     else:
         assert not conflict, (cond, raw)
