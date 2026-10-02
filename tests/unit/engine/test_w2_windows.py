@@ -8,8 +8,10 @@ as W2-P0 left them, and contracts/product_settings.yaml (K1, plan.prepare_months
 - P2, N1, G13: a window whose amount names a product setting is a planning window, marked
   planning: true on the window, its computed items and its upcoming entries; its rule_ids are
   the rules of the step it prepares for; the setting is never a rule.
-- P3, G7: a report window on a job's start and on an hours change, each only where a saved rule
-  gives the days.
+- P3, G7: a report window on a job's start, only where a saved rule gives the days. An hours
+  change gets none: no saved source gives its days (founder decision 2026-10-01, point 45).
+- P1: with no recommendation date the last day is not known; the date is asked (founder
+  decision 2026-10-01, point 45).
 - The loader refuses a setting anywhere but the opens or closes of a stage window.
 
 Every number a date is worked from is first read from the saved words of its source
@@ -217,14 +219,22 @@ def test_opt_last_day_names_both_rules_and_is_no_planning_date():
     assert "planning" not in last
 
 
+def asks_for(out: dict[str, Any], field: str) -> bool:
+    return any(f"missing:{field}" in q["because"] for q in out["questions"])
+
+
 def test_opt_last_day_with_no_recommendation_date_is_no_date():
     # The earliest of a known day and an unknown one is not known (CLAUDE.md: missing means
-    # cannot_tell). The window close alone is never shown as the last day.
+    # cannot_tell). The window close alone is never shown as the last day. SPEC-W2 point 45,
+    # founder decision 2026-10-01: the recommendation date is not optional, it is asked. The
+    # case is cannot_tell for other reasons too, so the reason and the question are named.
     card = opt_card("2026-04-01", "2026-04-10", "2026-06-01", "2027-05-31")
     del card["fields"]["dso_on"]
     out = compute(f1_case([masters("2026-05-15"), card]), [PACK], TODAY)
     assert [w["closes"] for w in windows_named(out, "opt.last_day")] in ([], [None])
     assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:a1.dso_on" in out["verdict"]["reasons"]
+    assert asks_for(out, "a1.dso_on")
 
 
 # OPT card 2025-07-01 to 2026-06-30 (program end 2025-05-15). The STEM window closes with the
@@ -255,6 +265,18 @@ def test_stem_last_day_is_the_card_end_when_it_comes_first():
         last["rule_ids"]
     )
     assert "planning" not in last
+
+
+def test_stem_last_day_with_no_recommendation_date_is_no_date():
+    # SPEC-W2 point 45, founder decision 2026-10-01, as for OPT above: the card's end
+    # 2026-06-30 alone is never shown as the last day; the recommendation date is asked.
+    case = stem_last_day_case("2026-04-05", "2026-04-10")
+    del case["records"][2]["fields"]["dso_on"]
+    out = compute(case, [PACK], TODAY)
+    assert [w["closes"] for w in windows_named(out, "stem.last_day")] in ([], [None])
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert "missing:a2.dso_on" in out["verdict"]["reasons"]
+    assert asks_for(out, "a2.dso_on")
 
 
 @settings(deadline=None, max_examples=25)
@@ -366,7 +388,7 @@ def test_a_prepare_window_lands_on_the_month_s_last_day_when_it_has_no_such_day(
     assert planning_windows(stage)[0]["opens"] == "2026-02-28"
 
 
-# P3, G7: report windows on a job's start and on an hours change.
+# P3, G7: report windows on a job's start; none on an hours change (point 45, 2026-10-01).
 
 EMPLOYER = rec("e1", "employer", name="Employer One", e_verify="yes")
 OTHER_EMPLOYER = rec("e2", "employer", name="Employer Two", e_verify="yes")
