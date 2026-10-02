@@ -1,6 +1,8 @@
 """What absence means, in the shipped F-1 pack's data: specs/step-w/SPEC-W2-UNKNOWN.md points 2,
 2a and 14, with the list of point 61 as DECISIONS.md D92 accepted it ("A trip with no return
-date is asked, not assumed": trip.returned_on stays ask). Pack data only: no engine name.
+date is asked, not assumed": trip.returned_on stays ask) and D94 amended it
+(petition.requested_start and petition.validity_start are asked when empty). Pack data only: no
+engine name.
 
 - Every field whose when_absent is not ask is named in the pack CHANGELOG with the screen
   words that make leaving it empty the person's statement (point 2).
@@ -51,8 +53,6 @@ NONE = [
     ("work", "on_campus"),
     ("authorization", "extends"),
     ("petition", "outcome"),
-    ("petition", "validity_start"),
-    ("petition", "requested_start"),
 ]
 CARD_DATES = [("authorization", "card_start"), ("authorization", "card_end")]
 NONE_BUT_ON_STEM = [("authorization", "employer"), ("authorization", "basis_program")]
@@ -61,7 +61,16 @@ ASKED = [
     ("work", "under"),
     ("program", "start_date"),
     ("program", "level"),
+    # D94: "An empty petition start is asked", not read as none (point 61 as amended).
+    ("petition", "validity_start"),
+    ("petition", "requested_start"),
 ]
+# Fields DECISIONS.md decides are asked though the pack reads them under present: false.
+DECIDED_ASKED = {
+    ("trip", "returned_on"),  # D92
+    ("petition", "validity_start"),  # D94
+    ("petition", "requested_start"),  # D94
+}
 
 
 def _absence(kind: str, field: str) -> Any:
@@ -69,19 +78,21 @@ def _absence(kind: str, field: str) -> Any:
 
 
 @pytest.mark.parametrize(("kind", "field"), NOT_YET)
-def test_point_61_these_fields_are_not_yet_when_left_empty(kind, field):
+def test_point_61_these_fields_are_not_yet_when_left_empty(kind: str, field: str) -> None:
     # Fails if the pack leaves the field ask (a job end left empty would be asked, though the
     # screen says "Leave empty if you still work there") or declares none (U20).
     assert _absence(kind, field) == "not_yet"
 
 
 @pytest.mark.parametrize(("kind", "field"), NONE)
-def test_point_61_these_fields_are_none_when_left_empty(kind, field):
+def test_point_61_these_fields_are_none_when_left_empty(kind: str, field: str) -> None:
     assert _absence(kind, field) == "none"
 
 
 @pytest.mark.parametrize(("kind", "field"), CARD_DATES)
-def test_point_61_card_dates_are_not_yet_only_while_no_decision_has_come(kind, field):
+def test_point_61_card_dates_are_not_yet_only_while_no_decision_has_come(
+    kind: str, field: str
+) -> None:
     # Point 2a and 61: {not_yet: [any_of decision absent, decision pending], else: ask}.
     declared = _absence(kind, field)
     assert isinstance(declared, dict)
@@ -91,7 +102,9 @@ def test_point_61_card_dates_are_not_yet_only_while_no_decision_has_come(kind, f
 
 
 @pytest.mark.parametrize(("kind", "field"), NONE_BUT_ON_STEM)
-def test_point_61_employer_and_basis_program_are_none_on_every_type_but_stem(kind, field):
+def test_point_61_employer_and_basis_program_are_none_on_every_type_but_stem(
+    kind: str, field: str
+) -> None:
     # Point 61: none on every type but stem_extension, else ask. Written as a none list that
     # holds on the other types: not (type in stem_extension).
     declared = _absence(kind, field)
@@ -101,7 +114,7 @@ def test_point_61_employer_and_basis_program_are_none_on_every_type_but_stem(kin
 
 
 @pytest.mark.parametrize(("kind", "field"), ASKED)
-def test_point_61_everything_else_is_asked(kind, field):
+def test_point_61_everything_else_is_asked(kind: str, field: str) -> None:
     # D92: a trip with no return date is asked; work.under, program dates and levels stay ask.
     assert _absence(kind, field) == "ask"
 
@@ -110,7 +123,7 @@ def _declared() -> list[tuple[str, str]]:
     return sorted(key for key, f in FIELDS.items() if f.get("when_absent", "ask") != "ask")
 
 
-def test_point_2_every_declared_absence_is_in_the_changelog_with_its_screen_words():
+def test_point_2_every_declared_absence_is_in_the_changelog_with_its_screen_words() -> None:
     # Point 2: "The screen words the empty field from the same declaration ... so leaving it
     # empty is the person's statement." Fails if a field declares none or not_yet and the
     # CHANGELOG gives no words for it.
@@ -201,16 +214,17 @@ def _must_declare() -> set[tuple[str, str]]:
     return found
 
 
-def test_point_2_a_field_read_as_absent_declares_none_or_not_yet():
+def test_point_2_a_field_read_as_absent_declares_none_or_not_yet() -> None:
     # Point 2: every field read under present: false, as a chain_link, or through an optional
     # member of earliest_of or latest_of declares none or not_yet (a conditional declaration
     # counts when one of its lists gives none or not_yet). Fails if such a field is ask: the
     # read could never be F or N, so the output would wait for good.
     wrong = []
     # D92 decides trip.returned_on stays ask ("A trip with no return date is asked, not
-    # assumed"), though the pack reads it under present: false. DECISIONS.md wins over the SPEC
-    # (CLAUDE.md); the conflict is under disputes in tests/REPORT.json for the founder.
-    for kind, field in sorted(_must_declare() - {("trip", "returned_on")}):
+    # assumed"), and D94 decides the two petition starts are asked when empty, though the pack
+    # reads each under present: false. DECISIONS.md wins over the SPEC (CLAUDE.md); the
+    # conflict is under disputes in tests/REPORT.json for the founder.
+    for kind, field in sorted(_must_declare() - DECIDED_ASKED):
         declared = _absence(kind, field)
         ok = declared in ("none", "not_yet") or (
             isinstance(declared, dict) and ("none" in declared or "not_yet" in declared)
@@ -240,7 +254,7 @@ def _kinds_read_as_lists() -> set[str]:
     return found
 
 
-def test_point_14_every_kind_a_history_a_first_or_a_count_reads_has_a_complete_label():
+def test_point_14_every_kind_a_history_a_first_or_a_count_reads_has_a_complete_label() -> None:
     # Point 14: "Every kind a history, a first or a count reads carries a complete_label, so the
     # screen can ask it (L-content adds the missing ones, e.g. end_date_change)." Fails today
     # on end_date_change.
@@ -250,5 +264,5 @@ def test_point_14_every_kind_a_history_a_first_or_a_count_reads_has_a_complete_l
     assert not missing, missing
 
 
-def test_the_changelog_is_the_pack_s_own():
+def test_the_changelog_is_the_pack_s_own() -> None:
     assert Path(F1_DIR / "CHANGELOG.md").exists()

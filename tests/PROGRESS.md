@@ -3584,3 +3584,90 @@ runs (each "fails if" above is reasoned, not run).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-190133b32f: D94, an empty petition start is asked and the step back waits (W2-P1 unknown fix4)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2-UNKNOWN points 2, 32 to 35, 61, DECISIONS.md D94, the
+L-content D94 diff (petition.requested_start and validity_start when_absent ask), the contract's
+waits_on and withholds.
+
+Ran the done command on HEAD (da8b6ad) and on a copy of HEAD~2 (pre-D94) in $TMPDIR to tell D94
+failures from older ones. Probed /v1/compute on each empty-start case: each empty start is asked
+(field and state absent), no cap_gap.for_dso and no late-filing conflict is raised, grace.p2 is
+null, unknown, with waits_on [h9.validity_start, h9.requested_start], and the verdict is
+cannot_tell. No output item names a withheld check, so "withheld (waits_on names the start)" is
+asserted as: the reason is not raised, and grace.p2 (the stage the step back would null) waits
+on the start by name.
+
+Changed (D94 beside each):
+- test_fix7.py, the no-start case (pending, J19): renamed ..._withholds_the_step_back; the
+  question's field is requested_start; STEP_BACK not raised; grace.p2 waits_on names
+  h9.requested_start. Kept: asked, cannot_tell, validation_1 null.
+- test_fix7.py, the neither-start case (approved, J19 late twin): renamed ..._withholds; field
+  validity_start; STEP_BACK not raised; grace.p2 waits on h9.validity_start. Kept: asked, no
+  late-filing conflict, cannot_tell. Added one local _field helper (two uses).
+- test_fix8.py twin G: renamed ..._withholds_the_step_back_and_the_grace_waits; field
+  validity_start; STEP_BACK not raised and no stage carries it; grace.p2 null unknown and waits
+  on h9.validity_start; the transfers' rows as before; cannot_tell.
+- test_when_absent.py: the two petition starts moved from NONE to ASKED (point 61 as amended),
+  and with trip.returned_on (D92) into DECIDED_ASKED, exempt from point 2's present: false rule.
+  Type notes added (the edit hook's mypy).
+- test_w2_unknown_f1.py: _run now passes its case through dated_on_the_day,
+  with_the_about_asked and refuse_placeholders, as test_f1._run does (test_placeholders failed
+  on HEAD before D94). No assertion moved.
+
+Fails if: run on the pre-D94 tree (starts when_absent none), the three D94 tests and the two
+ASKED cases fail (ran: 5 failed). Each fails if the step back is given on an unknown start, if
+the start is not asked by its field, if grace.p2 is dated or null without waits_on, or if the
+verdict leaves cannot_tell.
+
+Done command after: ruff check and format pass; pytest 8 failed (plus the desktop socket tests,
+sandbox only):
+- 6 from D94 on a case the mission did not name (approved, requested_start entered,
+  validity_start empty): fix7 x2, test_journeys j19 x2 (one a strict xfail now XPASS), holdout
+  twin x2. The engine now asks h9.validity_start and withholds every card date; resolutions 23a,
+  which D94 cites, says nothing is asked and the requested start is used. Not changed: disputes.
+- 2 failing before D94: fix7 a2.filed_on asked, fix8 j01 mv1.contacted_new_dso_on asked. Both
+  fields are not_yet under D92's point 61 list, so neither is asked. Not changed: disputes.
+
+Not built: no withholds assertion naming stem.filed_while_opt_in_force.a2 (the contract allows
+`<check>.<record>` but no engine round is in this plan; put under requests); no holdout twin of
+the D94 cases (not asked).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
+
+### Attempt 2 (l-tests-190133b32f)
+
+Not accepted in attempt 1: 8 failed (.scratch/done-1.log). Probed /v1/compute: with approved,
+requested_start entered and validity_start empty, the engine asks h9.validity_start (field
+validity_start), raises neither cap_gap.for_dso nor the late-filing conflict, gives grace.p2
+waits_on [h9.validity_start], and the verdict is cannot_tell. D94 says points 32, 33 and 35
+supersede 23a's step back, so these cases follow D94.
+
+Changed (D94 or D92 beside each):
+- test_fix7.py 23a x2 (requested_start 2020-10-01 and 2026-10-01): validity_start asked by
+  field, STEP_BACK and LATE_FILING not raised, grace.p2 waits on h9.validity_start,
+  cannot_tell; requested_start not asked. The 23a header notes D94's amendment.
+- test_journeys.py J19: the step-back test now expects _not_the_step_back == ["no cap_gap.for_dso"]
+  (every other part of the step back still asserted) and grace.p2 waiting on the start; the
+  asked test loses point 21's strict xfail and checks the field. Type note on the get_clock
+  import (edit hook).
+- test_holdout_journeys.py twin J19: the same, on grace.p1 (the twin's program is p1).
+- test_fix7.py a2.filed_on (D92, point 61 not_yet): now the 2020 petition takes no question
+  from plain J19, which holds stem.filed_while_opt_in_force.a2.
+- test_fix8.py j01 (D92): mv1.contacted_new_dso_on not asked.
+
+Fails if: an empty validity start is filled from requested_start (step back or conflict given,
+or grace dated); the start is not asked or asked under another field; the verdict leaves
+cannot_tell; a cap_gap stage or question appears (kept in _not_the_step_back); a petition drops
+any J19 question; a not_yet contacted_new_dso_on is asked. Reasoned, not mutant-run.
+
+Done command: ruff check and format pass; the only pytest failures are the 15 desktop socket
+tests (Operation not permitted, sandbox only). Log: .scratch/done-3.log.
+
+Not built: no new helper (the question-field lookup is inline twice in the journey files,
+as _field exists only in fix7); no holdout twin beyond the one already there.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

@@ -24,7 +24,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app, get_clock
+from api.main import app, get_clock  # type: ignore[attr-defined]
 from tests.support.api_client import CheckedClient
 from tests.support.records_case import (
     CLOCK,
@@ -2233,26 +2233,32 @@ def _j19_approved_with_no_validity_start() -> dict[str, Any]:
     )
 
 
-def test_j19_an_approved_petition_with_no_validity_start_steps_back(
+def test_j19_an_approved_petition_with_no_validity_start_withholds_the_step_back(
     client: TestClient,
 ) -> None:
-    # Point 19 steps back for any petition whatever its outcome; point 21 keeps these step-back
-    # assertions as a passing test. Not knowing the validity start leaves cannot_tell.
+    # Point 19 steps back for any petition whatever its outcome. Not knowing the validity
+    # start leaves cannot_tell.
+    # D94 (SPEC-W2-UNKNOWN points 32, 33, 35, superseding 23a's step back here): while the
+    # empty validity start is unanswered cap_gap.for_dso is withheld, and grace.p2, which the
+    # step back would null, waits on the start by name. Every other part of the step back
+    # holds: no cap_gap stage or question, no conflict naming h9.
     out = _send(client, _j19_approved_with_no_validity_start())
     assert out["verdict"]["state"] == "cannot_tell"
-    assert _not_the_step_back(out, "h9") == []
+    assert _not_the_step_back(out, "h9") == ["no " + STEP_BACK]  # D94
+    assert "h9.validity_start" in (stage(out, "grace.p2").get("waits_on") or [])  # D94
 
 
-@pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")
 def test_j19_an_approved_petition_with_no_validity_start_is_asked_for_it(
     client: TestClient,
 ) -> None:
     # Point 18 (fix 4 finding 4b): "When the facts that decide it (the outcome, the validity
-    # start) are missing, Duly asks for them" (PRINCIPLES 2). Point 21: while cap-gap is
-    # deferred the validity start decides nothing and is not asked, so this assertion waits
-    # for the cap-gap round (strict: it fails the run the day the engine asks again early).
+    # start) are missing, Duly asks for them" (PRINCIPLES 2).
+    # D94: petition.validity_start is asked when empty (when_absent ask), so point 21's strict
+    # xfail is lifted: the question is asked now, by its field.
     out = _send(client, _j19_approved_with_no_validity_start())
     assert "h9.validity_start" in question_ids(out)
+    fields = [q.get("field") for q in out["questions"] if q["id"] == "h9.validity_start"]
+    assert fields == ["validity_start"]  # D94
 
 
 def _j19_with_no_outcome() -> dict[str, Any]:

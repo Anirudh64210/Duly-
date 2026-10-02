@@ -1095,23 +1095,26 @@ def _twin_j19_approved_with_no_validity_start() -> dict[str, Any]:
     )
 
 
-def test_twin_j19_an_approved_petition_with_no_validity_start_steps_back(
+def test_twin_j19_an_approved_petition_with_no_validity_start_withholds_the_step_back(
     client: TestClient,
 ) -> None:
-    # Point 19 steps back whatever the outcome; point 21 keeps these assertions passing.
+    # Point 19 steps back whatever the outcome. D94 (SPEC-W2-UNKNOWN points 32, 33, 35): while
+    # the empty validity start is unanswered cap_gap.for_dso is withheld and grace.p1 waits on
+    # the start by name (the twin's program is p1); the rest of the step back holds.
     out = _send(client, _twin_j19_approved_with_no_validity_start())
     assert out["verdict"]["state"] == "cannot_tell"
-    assert _not_the_step_back(out, "h9") == []
+    assert _not_the_step_back(out, "h9") == ["no " + STEP_BACK]  # D94
+    assert "h9.validity_start" in (stage(out, "grace.p1").get("waits_on") or [])  # D94
 
 
-@pytest.mark.xfail(strict=True, reason="point 21: asked again in the cap-gap round")
 def test_twin_j19_an_approved_petition_with_no_validity_start_is_asked(
     client: TestClient,
 ) -> None:
-    # Point 18: a missing validity start is asked (PRINCIPLES 2). Point 21: not asked while
-    # cap-gap is deferred, so this waits for the cap-gap round.
+    # Point 18: a missing validity start is asked (PRINCIPLES 2). D94: asked when empty, so
+    # point 21's strict xfail is lifted.
     out = _send(client, _twin_j19_approved_with_no_validity_start())
-    assert "h9.validity_start" in question_ids(out)
+    fields = [q.get("field") for q in out["questions"] if q["id"] == "h9.validity_start"]
+    assert fields == ["validity_start"]  # D94
 
 
 # Resolutions point 16: a next STEM stage, before any STEM card, carries no report dates.
