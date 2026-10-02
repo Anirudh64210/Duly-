@@ -380,3 +380,15 @@
 - Failure: a fix split the top-level selection into decided and undecided records, but exists, none, counts and counter scopes still read the all-or-nothing selection, and the new unreadable-as-absent rule made `present` a guess.
 - Fix: list every caller of the selection helper and of the field reader, and probe each with one decided witness plus one undecided record, and with each field kind given an unreadable value.
 - Evidence: reviews/w2-p1.md findings 1 to 4.
+
+## 2026-10-01, run l-review-ce6e9b0757 (FEED-PA review, SPEC-FEED point 55)
+- Read SPEC-FEED 28, 29, 55, 69, plan-feed-pa.yaml, recheck.py, recheck-2026-10-02.json, the L-content diff e48886e..b604402 and the L-pipeline draft.
+- Ran: verify, plain, recheck --check (all 0); rules_checked_on 2026-10-02; pytest engine, test_recheck, pipeline (pass); copy lint on drafts (clean).
+- TMPDIR/fpa/cmp.py: no leaf changed but checked_on, notes and the ten moved snapshots; 106 source blocks, every sha and quote good, each backed by a same 200 row. eCFR (f) 2026-09-30 == 2026-09-15. Docket ECF 53/54/55, no stay.
+- Mutants: checked_on 2026-10-03 refused; maintenance page by sha passes recheck, refused by verify.
+- Draft fails contracts/update.schema.json with 9 errors: blocking under SPEC-FEED 28. Wrote reviews/feed-pa.md (VETO, mean 3.67), REVIEW.json, REPORT.json.
+
+## Lesson
+- Failure: an update draft passed publish_blockers and the pipeline tests but not the update contract the device validates.
+- Fix: validate every new draft against contracts/update.schema.json.
+- Evidence: reviews/feed-pa.md finding 1.
