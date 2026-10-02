@@ -6,6 +6,7 @@ case: the properties compare outputs across fills, so no expected date is copied
 """
 
 import copy
+from collections import Counter
 from datetime import date
 from typing import Any
 
@@ -55,12 +56,69 @@ TOY_SEED = toy.case(
 F1_SEED = f1_case(r6_case(), TODAY)
 
 
-def _packs() -> list[tuple[str, Rulepack, dict[str, Any]]]:
-    return [("toy", toy.pack(), TOY_SEED), ("f1", f1_pack(), F1_SEED)]
+def _f1_seeds() -> list[dict[str, Any]]:
+    """Point 44: the F-1 seeds are every journey of tests/unit/acceptance/test_journeys.py and
+    the decided form of each F-1 case of R1 to R40 (each row's gap given a known value: the
+    fill its own test works by hand). The toy rows (R28, R32, R33, R39) seed the toy pack
+    through TOY_SEED and their own tests."""
+    from tests.unit.acceptance import test_journeys as journeys
+    from tests.unit.engine import test_w2_unknown as reads
+    from tests.unit.engine import test_w2_unknown_counts as counts
+
+    found = [
+        getattr(journeys, n)() for n in sorted(dir(journeys)) if n[0] == "j" and n[1:].isdigit()
+    ]
+    w3 = toy_free_rec("w3", "work", employer="e2", under="a2", start="2026-09-01", end="2026-09-20")
+    p1_in = toy_free_rec(
+        "p1",
+        "program",
+        where="us_on_f1",
+        level="master",
+        stem_list="on_list",
+        start_date="2025-08-20",
+        end_date="2027-05-15",
+        state="in_progress",
+    )
+    trip = toy_free_rec(
+        "t1", "trip", left_on="2026-06-15", returned_on="2026-06-30", purpose="personal"
+    )
+    rows: list[list[dict[str, Any]]] = [
+        r6_case(),  # R6, R15, R23, R30, R36
+        reads.stem_jobs(reads.W1, reads.W2),  # R1, R2
+        reads.stem_jobs(reads.W1, reads.W2, w3),  # R4, R5, R7, R11
+        r6_case(counts.job(start="2026-07-01", end="2026-08-31", hours_per_week=40)),  # R8, R18
+        counts.r14_move(from_program="p1"),  # R14
+        r6_case(trip),  # R21
+        r6_case(reads.A2_PENDING),  # R34
+        [p1_in],  # R13
+    ]
+    found.extend(f1_case(r) for r in rows)
+    found.append(reads.r16_case("2026-03-01", reads.R16_EC1))  # R16
+    return found
+
+
+def toy_free_rec(record_id: str, kind: str, **fields: Any) -> dict[str, Any]:
+    return {"id": record_id, "kind": kind, "fields": dict(fields)}
+
+
+F1_SEEDS = _f1_seeds()
+
+
+def _packs() -> list[tuple[str, Rulepack, list[dict[str, Any]]]]:
+    return [("toy", toy.pack(), [TOY_SEED]), ("f1", f1_pack(), F1_SEEDS)]
 
 
 PACKS = _packs()
 IDS = [name for name, _, _ in PACKS]
+# Point 44, non-vacuity: (pack, output kind) for each output known in C and changed by a fill.
+SEEN: Counter[tuple[str, str]] = Counter()
+OUTPUT_KINDS = ("computed", "window", "stage", "upcoming", "reasons")
+# The gap reasons (point 35) and the typed-date reasons say what is asked, not what is shown.
+ASKING = ("missing:", "undecided:", "unreadable:", "unconfirmed:")
+
+
+def _shown_reasons(out: dict[str, Any]) -> frozenset[str]:
+    return frozenset(r for r in out["verdict"]["reasons"] if not r.startswith(ASKING))
 
 
 def _same_known(held: dict[str, Any], filled: dict[str, Any], skip: str = "") -> None:
@@ -82,7 +140,7 @@ def test_a_gap_in_a_new_record_never_changes_or_removes_another_records_output(
     # P1 (point 45 a): a sibling R, a copy of a record of C with its links kept and its dates
     # shifted within 10 days, given one gap. Every output not keyed to R known in C + R equals
     # its value in C + R(F) for each drawn fill F. Fails on 07196cd for D4 and C (U1).
-    case = data.draw(gaps.decided_cases(pack, [seed]))
+    case = data.draw(gaps.decided_cases(pack, seed))
     source = data.draw(st.sampled_from(case["records"]))
     sibling = copy.deepcopy(source)
     prefix = gaps.kinds(pack)[source["kind"]]["id_prefix"]
@@ -103,13 +161,28 @@ def test_a_gap_in_a_new_record_never_changes_or_removes_another_records_output(
     base = compute(case, [pack], TODAY)
     values = gaps.fills(decl, case, base, pack, run)
     keep = gaps.must_fill(sibling["fields"][field], values, [])
+    filled_outs = []
     for fill in data.draw(gaps.drawn_fills(values, keep)):
         filled = copy.deepcopy(case)
         filled["records"].append(
             gaps.with_field({"records": [sibling]}, sibling["id"], field, fill)["records"][0]
         )
-        _same_known(held, compute(filled, [pack], TODAY), skip=f".{sibling['id']}")
+        filled_outs.append(compute(filled, [pack], TODAY))
+        _same_known(held, filled_outs[-1], skip=f".{sibling['id']}")
     event(f"P1:{name}:{state}")
+    if name != "toy":
+        return
+    # P1 (b), toy pack only (point 45): every output known in C, not keyed to R, and withheld
+    # in C + R names R's gap in waits_on, and some two drawn fills give it different values.
+    # Fails for an engine that withholds what R's gap cannot change.
+    qid = f"{sibling['id']}.{field}"
+    known_before = gaps.known_outputs(base)
+    for key in gaps.withheld(held):
+        if f".{sibling['id']}" in key or key not in known_before:
+            continue
+        assert qid in gaps.waits_on(held, key), (key, gaps.waits_on(held, key))
+        seen = {repr(gaps.outputs(out).get(key)) for out in filled_outs}
+        assert len(seen) > 1, (key, seen)
 
 
 @pytest.mark.parametrize(("name", "pack", "seed"), PACKS, ids=IDS)
@@ -120,7 +193,7 @@ def test_a_list_not_stated_whole_never_shows_what_an_unseen_record_could_change(
 ):
     # P1w (point 45): remove one complete statement; every output known in the result equals
     # its value in C and in C plus one decided sibling of that kind.
-    case = data.draw(gaps.decided_cases(pack, [seed]))
+    case = data.draw(gaps.decided_cases(pack, seed))
     kind = data.draw(st.sampled_from(sorted(case["complete"])))
     partial = copy.deepcopy(case)
     del partial["complete"][kind]
@@ -146,7 +219,7 @@ def test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks(name, pa
     # unreadable value as entered; (c) an output that differs between two fills is withheld
     # naming X.f; (d) then the verdict is cannot_tell. P3: every judgement and conflict raised
     # in C_g other than about X.f is raised in every C_v'.
-    case = data.draw(gaps.decided_cases(pack, [seed]))
+    case = data.draw(gaps.decided_cases(pack, seed))
     present = gaps.present_fields(pack, case)
     rid, field = data.draw(st.sampled_from(present))
     kind = gaps.run_of(case)[rid]
@@ -170,12 +243,22 @@ def test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks(name, pa
                 continue
             if reason.startswith("conflict:") or "." in reason:
                 assert reason in out["verdict"]["reasons"], reason
+    # Finding 11: (b) and (c) compare the reasons (other than those that only ask), the stage
+    # states and the upcoming dates as well as the values, which is how a not-sure happened
+    # date that could raise a conflict went unasked (finding 5).
+    first = gaps.outputs(filled_outs[0])
     changed = {
         key
         for out in filled_outs
         for key, value in gaps.outputs(out).items()
-        if key != "reasons" and value != gaps.outputs(filled_outs[0]).get(key)
+        if key != "reasons" and value != first.get(key)
     }
+    if any(_shown_reasons(out) != _shown_reasons(filled_outs[0]) for out in filled_outs):
+        changed.add("reasons")
+    known_in_c = gaps.known_outputs(base)
+    for key in changed:
+        if key in known_in_c or key == "reasons":
+            SEEN[(name, key.partition(":")[0])] += 1
     if changed or state == "unreadable":
         q = gaps.question(held, qid)
         assert q is not None, qid
@@ -184,10 +267,30 @@ def test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks(name, pa
             assert q["about"][qid] == raw
         assert held["verdict"]["state"] == "cannot_tell"
         event(f"P2:{name}:changed")
-    for key in changed:
-        if key in gaps.outputs(held) and key.startswith(("computed:", "window:")):
+    shown_held = gaps.outputs(held)
+    q = gaps.question(held, qid)
+    for key in changed - {"reasons"}:
+        if key in shown_held:
             assert key in gaps.withheld(held), key
             assert qid in gaps.waits_on(held, key), key
+        elif key.startswith("stage:"):
+            # A record's entry into a stage, left out: named in the question's withholds.
+            assert q is not None, key
+            assert key.partition(":")[2] in q.get("withholds", []), key
+
+
+def test_the_properties_saw_each_output_kind_known_and_changed():
+    # Point 44, non-vacuity: P2 on the F-1 pack, run here, saw each output kind (computed
+    # values, windows, stage states and dates, upcoming dates, the reason set) known in C and
+    # changed by some drawn fill at least 5 times, so a property that passes only on null
+    # outputs fails. Fails if the seeds or the fills never move an output of some kind. The
+    # P2 run above fills SEEN (point 44's time budget); run alone, this test runs P2 itself.
+    name, pack, seeds = next(p for p in PACKS if p[0] == "f1")
+    p2: Any = test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks
+    if not any(key[0] == name for key in SEEN):
+        p2(name=name, pack=pack, seed=seeds)
+    counts = {kind: SEEN[(name, kind)] for kind in OUTPUT_KINDS}
+    assert all(n >= 5 for n in counts.values()), counts
 
 
 @pytest.mark.parametrize(("name", "pack", "seed"), PACKS, ids=IDS)
@@ -198,7 +301,7 @@ def test_every_unknown_is_named(name, pack, seed, data):
     # names a question, a lapse or conflict reason, or a pending:/future: entry; every
     # question's withholds names outputs absent or withheld; the output validates; the
     # verdict is cannot_tell whenever a gap question is open.
-    case = data.draw(gaps.decided_cases(pack, [seed]))
+    case = data.draw(gaps.decided_cases(pack, seed))
     run = gaps.run_of(case)
     record = data.draw(st.sampled_from(case["records"]))
     names = sorted(record["fields"])
@@ -242,7 +345,7 @@ SCALARS = st.one_of(
 def test_the_boundary_is_total(name, pack, seed, data):
     # P5 (point 49): any scalar the case schema takes in any declared field: compute returns an
     # output, never an exception; a value that does not read is asked as unreadable:.
-    case = copy.deepcopy(seed)
+    case = copy.deepcopy(data.draw(st.sampled_from(seed)))
     record = data.draw(st.sampled_from(case["records"]))
     decl = data.draw(st.sampled_from(gaps.kinds(pack)[record["kind"]]["fields"]))
     raw = data.draw(SCALARS)

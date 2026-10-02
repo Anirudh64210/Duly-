@@ -1,8 +1,9 @@
 """Regression examples of the reads round: specs/step-w/SPEC-W2-UNKNOWN.md point 51 (R1, R2, R4,
-R5, R7, R9 to R12, R26, R30, R31, R32, R40 here; the rest of this file's list is under "not
-built" in tests/REPORT.json for the next attempt). Today 2026-09-29, lists stated whole unless
-named, on the shipped F-1 pack unless the row says toy pack. Every date is worked by hand
-beside its assertion; a value in the SPEC's table is a claim checked here, never copied.
+R5, R7, R9 to R12, R15, R16, R24, R26, R29 to R35, R40 here), and one test per engine finding of
+reviews/w2-unknown.md that is not a row of its own (findings 2, 4, 5, 12 and 14). Today
+2026-09-29, lists stated whole unless named, on the shipped F-1 pack unless the row says toy
+pack. Every date is worked by hand beside its assertion; a value in the SPEC's table is a claim
+checked here, never copied.
 
 CaseStructureError is imported inside the test (section 9).
 """
@@ -337,3 +338,363 @@ def test_r1_no_new_plan_window_on_a_guess():
     assert any(h.startswith("stem_job_start.") for h in q.get("withholds", []))
     assert not any(s["id"] == "stem_job_start.w2" for s in out["stages"])
     assert out["verdict"]["state"] == "cannot_tell"
+
+
+def test_r15_a_not_sure_card_end_withholds_grace():
+    # R15, points 15 and 33: grace for p1 (R6's case) runs from the day after a1's card end.
+    # card_end not_sure: grace.p1 withheld, dates null, waits_on a1.card_end (shown before
+    # W2-U as 2026-05-16 to 2026-07-14, done). card_end 2027-05-31: grace opens the next day,
+    # 2027-06-01, and its 60 days (the grace period) end on day 60: June gives 30 (to
+    # 2027-06-30), July 30 more, so 2027-07-30.
+    p1, a1 = r6_case()
+    a1["fields"]["card_end"] = "not_sure"
+    held = compute(f1_case([p1, a1]), [PACK], TODAY)
+    grace = [s for s in held["stages"] if s["id"] == "grace.p1"]
+    assert len(grace) == 1
+    assert grace[0]["state"] == "unknown"
+    assert grace[0].get("starts") is None
+    assert grace[0].get("ends") is None
+    assert "a1.card_end" in grace[0].get("waits_on", [])
+    known = compute(f1_case(r6_case()), [PACK], TODAY)
+    assert date(2027, 6, 1) + timedelta(days=59) == date(2027, 7, 30)
+    grace = [s for s in known["stages"] if s["id"] == "grace.p1"]
+    assert [(s["starts"], s["ends"]) for s in grace] == [("2027-06-01", "2027-07-30")]
+
+
+def r16_case(filed_on: str, *changes: dict[str, Any]) -> dict[str, Any]:
+    """R16: p1 master ending 2026-05-15; a1 opt_post_completion for p1, dso_on 2026-04-01,
+    decision pending, filed_on as given."""
+    p1 = masters("2026-05-15")
+    p1["fields"]["start_date"] = "2024-08-20"
+    a1 = rec(
+        "a1",
+        "authorization",
+        type="opt_post_completion",
+        program="p1",
+        dso_on="2026-04-01",
+        filed_on=filed_on,
+        decision="pending",
+    )
+    return f1_case([p1, a1, *changes])
+
+
+def apply_window(out: dict[str, Any]) -> list[tuple[Any, Any, list[str]]]:
+    return [
+        (w["opens"], w["closes"], list(w.get("waits_on", [])))
+        for w in windows_named(out, "opt.apply_window")
+        if w["id"].endswith(".a1")
+    ]
+
+
+R16_EC1 = ec(
+    "ec1",
+    change="extension",
+    requested_on="2026-03-01",
+    old_end="2026-05-15",
+    new_end="2026-08-15",
+    granted_on="2026-03-10",
+)
+
+
+def test_r16_a_a_change_that_could_apply_withholds_the_filing_window():
+    # R16 case A, points 26 and 27: the window is read from p1's end as it stood on the filing
+    # day. ec1 moves the end to 2026-08-15 from 2026-03-10. A filing before 2026-03-10 reads
+    # 2026-05-15: 90 days back (14 to May 1, 30 to Apr 1, 31 to Mar 1, 15 more) is 2026-02-14,
+    # 60 on (16 to May 31, 30 to Jun 30, 14 more) is 2026-07-14 (the 2026-03-01 filing below).
+    # A filing on or after it could read 2026-08-15, so with filed_on not_sure: withheld,
+    # waits_on a1.filed_on. Fails if "as of" falls back to today (U10).
+    assert date(2026, 5, 15) - timedelta(days=90) == date(2026, 2, 14)
+    held = apply_window(compute(r16_case("not_sure", R16_EC1), [PACK], TODAY))
+    assert held
+    assert all(o is None and c is None and "a1.filed_on" in w for o, c, w in held), held
+    early = apply_window(compute(r16_case("2026-03-01", R16_EC1), [PACK], TODAY))
+    assert [(o, c) for o, c, _ in early] == [("2026-02-14", "2026-07-14")]
+
+
+@pytest.mark.parametrize("filed_on", ["not_sure", "2026-03-01", "2026-05-01", "2026-07-01"])
+def test_r16_b_with_no_change_record_the_window_is_the_same_on_every_filing_day(filed_on):
+    # R16 case B, point 26, review finding 1: no end_date_change and the list stated whole, so
+    # no change record could apply and p1's end is 2026-05-15 on every day. The window is
+    # 2026-02-14 to 2026-07-14 (worked in case A) whatever the filing day, so it is shown,
+    # known, with no waits_on, filed_on not_sure included. Fails today: path.py `_when3`
+    # returns absent for an unknown day without asking whether a change could apply.
+    shown = apply_window(compute(r16_case(filed_on), [PACK], TODAY))
+    assert shown == [("2026-02-14", "2026-07-14", [])], shown
+
+
+def test_r16_c_a_not_sure_grant_day_asks_the_change_never_the_program_end():
+    # R16 case C, point 27: as A with ec1.granted_on not_sure. The question is ec1.granted_on
+    # (state undecided), never p1.end_date, which the person did enter.
+    ec1 = dict(R16_EC1, fields=dict(R16_EC1["fields"], granted_on="not_sure"))
+    out = compute(r16_case("not_sure", ec1), [PACK], TODAY)
+    q = question(out, "ec1.granted_on")
+    assert q is not None
+    assert q.get("state") == "undecided"
+    assert question(out, "p1.end_date") is None
+    assert not any(r.endswith(":p1.end_date") for r in reasons(out))
+
+
+def test_r24_an_unreadable_part_time_figure_neither_raises_nor_passes_the_hours_check():
+    # R24, points 32 and 34: p1 master in progress (2025-08-20 to 2027-05-15); a1
+    # opt_pre_completion part time, approved, card 2026-06-01 to 2026-08-31; w7 under a1 from
+    # 2026-06-01 with hours "30" (a string). "30" is not 30 (point 41), so whether w7 keeps
+    # within the part-time hours is unknown: `unreadable:w7.hours_per_week` with "30" in
+    # about; the conflict opt_pre.part_time_hours.w7 not raised (30 as a number raises it, the
+    # control below) and not shown as passed: the question names it in withholds. Fails if
+    # "30" reads as 30, or as no hours.
+    p1 = rec(
+        "p1",
+        "program",
+        where="us_on_f1",
+        level="master",
+        stem_list="on_list",
+        start_date="2025-08-20",
+        end_date="2027-05-15",
+        state="in_progress",
+    )
+    a1 = rec(
+        "a1",
+        "authorization",
+        type="opt_pre_completion",
+        program="p1",
+        time="part_time",
+        decision="approved",
+        card_start="2026-06-01",
+        card_end="2026-08-31",
+    )
+
+    def run(hours: Any) -> dict[str, Any]:
+        w7 = rec("w7", "work", under="a1", start="2026-06-01", hours_per_week=hours)
+        return compute(f1_case([p1, a1, w7]), [PACK], TODAY)
+
+    assert "conflict:opt_pre.part_time_hours.w7" in reasons(run(30))
+    out = run("30")
+    assert "unreadable:w7.hours_per_week" in reasons(out)
+    assert "conflict:opt_pre.part_time_hours.w7" not in reasons(out)
+    q = question(out, "w7.hours_per_week")
+    assert q is not None
+    assert q["about"]["w7.hours_per_week"] == "30"
+    assert "opt_pre.part_time_hours.w7" in q.get("withholds", []), q
+
+
+def test_r29_an_unreadable_release_date_withholds_the_move_span():
+    # R29, points 16 and 28: mv1 (transfer p1 to p2, I-20 issued 2026-12-01) with release_date
+    # "2026-13-40" (month 13). The move stage and its begin_classes window withheld with
+    # waits_on mv1.release_date (shown before W2-U as from i20_issued_on alone); asked as
+    # unreadable with the value as entered. Fails if the unreadable member is passed over (U8).
+    p1 = rec(
+        "p1",
+        "program",
+        where="us_on_f1",
+        level="bachelor",
+        start_date="2022-08-20",
+        end_date="2026-12-15",
+        state="in_progress",
+    )
+    p2 = rec("p2", "program", where="us_on_f1", level="master", start_date="2027-01-15")
+    mv1 = rec(
+        "mv1",
+        "move",
+        how="transfer",
+        from_program="p1",
+        to_program="p2",
+        i20_issued_on="2026-12-01",
+        release_date="2026-13-40",
+    )
+    out = compute(f1_case([p1, p2, mv1]), [PACK], TODAY)
+    stage = [s for s in out["stages"] if s["id"] == "move.mv1"]
+    assert len(stage) == 1
+    assert stage[0]["state"] == "unknown"
+    assert stage[0].get("starts") is None
+    assert "mv1.release_date" in stage[0].get("waits_on", [])
+    for w in windows_named(out, "move.begin_classes"):
+        assert w["opens"] is None
+        assert "mv1.release_date" in w.get("waits_on", [])
+    assert "unreadable:mv1.release_date" in reasons(out)
+    assert question(out, "mv1.release_date")["about"]["mv1.release_date"] == "2026-13-40"
+
+
+def test_r33_toy_a_lapsed_optional_member_withholds_the_date():
+    # R33, toy pack, points 10 and 16: course.cutoff closes on the earliest of the course end
+    # and today plus toy.lapsing (optional, in force in 2026 only). On 2026-09-29 the member is
+    # 2026-09-29 + 40 (1 to Sep 30, 31 to Oct 31, 8 more) = 2026-11-08, before the end
+    # 2027-06-30, so it closes 2026-11-08. On 2027-03-01 the rule has no row: the close is
+    # withheld with the lapse named, never the end 2027-06-30 (U19).
+    from tests.support.unknown_toy import case, pack
+    from tests.support.unknown_toy import rec as toy_rec
+
+    c1 = toy_rec("c1", "course", level="mid", start="2026-09-01", end="2027-06-30")
+    assert date(2026, 9, 29) + timedelta(days=40) == date(2026, 11, 8)
+    shown = items(compute(case([c1], TODAY), [pack()], TODAY))["course.cutoff.closes.c1"]
+    assert shown["value"] == "2026-11-08"
+    day = date(2027, 3, 1)
+    held = items(compute(case([c1], day), [pack()], day))["course.cutoff.closes.c1"]
+    assert held["value"] is None
+    assert any("rule_not_in_force" in w for w in held.get("waits_on", []))
+
+
+A2_PENDING = rec(
+    "a2",
+    "authorization",
+    type="stem_extension",
+    program="p1",
+    extends="a1",
+    basis_program="p1",
+    decision="pending",
+    dso_on="2026-09-01",
+    filed_on="2026-09-10",
+)
+
+
+@pytest.mark.parametrize("statement", ["one_record", "after_today"])
+def test_r34_a_one_record_or_future_statement_never_states_the_whole_kind(statement):
+    # R34, point 14, review finding 2 (U23): R6's case plus a2 stem_extension extending a1.
+    # `complete` holds only authorization:p1 (whole only the cards linked to p1, and
+    # stem.extensions.all selects by type, not by a same_as to p1), or complete.authorization
+    # dated 2026-10-15, after today 2026-09-29, which is ignored. Either way an unlisted STEM
+    # card could make the count 2: stem.extensions.all withheld, waits_on
+    # complete.authorization, and the list asked. Fails today: it shows 1.
+    case = f1_case(r6_case(A2_PENDING))
+    if statement == "one_record":
+        del case["complete"]["authorization"]
+        case["complete"]["authorization:p1"] = {"on": TODAY.isoformat()}
+    else:
+        case["complete"]["authorization"] = {"on": "2026-10-15"}
+    out = compute(case, [PACK], TODAY)
+    shown = items(out)["stem.extensions.all"]
+    assert shown["value"] is None, shown
+    assert "complete.authorization" in shown.get("waits_on", [])
+    assert question(out, "complete.authorization") is not None
+    assert (
+        items(compute(f1_case(r6_case(A2_PENDING)), [PACK], TODAY))["stem.extensions.all"]["value"]
+        == 1
+    )
+
+
+def test_r35_an_open_move_list_withholds_the_card_end_then_the_move_ends_it():
+    # R35, points 14 and 15: R6's case plus mv1 (a transfer from p1 to p2, a master at another
+    # school, so no change of level; release 2026-12-01). With the
+    # move list not stated whole, an unlisted move could end a1 sooner: opt_post.a1's end
+    # withheld, waits_on complete.move. Stated whole: mv1 ends the card, and the pack's two
+    # sources name different days for a transfer (opt.ends_on_release_date, guidance, the
+    # release date 2026-12-01, before the card end 2027-05-31; the regulation names none), so
+    # the pack steps back to the DSO: the end waits on the judgement opt_post.end_by_source.a1,
+    # raised, and no longer on complete.move.
+    p2 = rec("p2", "program", where="us_on_f1", level="master", start_date="2027-01-11")
+    mv1 = rec(
+        "mv1",
+        "move",
+        how="transfer",
+        from_program="p1",
+        to_program="p2",
+        i20_issued_on="2026-11-15",
+        release_date="2026-12-01",
+    )
+    case = f1_case(r6_case(p2, mv1))
+    del case["complete"]["move"]
+    held = [s for s in compute(case, [PACK], TODAY)["stages"] if s["id"] == "opt_post.a1"]
+    assert len(held) == 1
+    assert held[0].get("ends") is None
+    assert "complete.move" in held[0].get("waits_on", [])
+    out = compute(f1_case(r6_case(p2, mv1)), [PACK], TODAY)
+    whole = [s for s in out["stages"] if s["id"] == "opt_post.a1"]
+    assert len(whole) == 1
+    assert "complete.move" not in whole[0].get("waits_on", [])
+    assert "opt_post.end_by_source.a1" in whole[0].get("waits_on", [])
+    assert "opt_post.end_by_source.a1" in reasons(out)
+    assert date(2026, 12, 1) < date(2027, 5, 31)
+
+
+def test_finding_4_toy_present_on_an_absent_ask_field_is_unknown_and_asked():
+    # Review finding 4, points 2 and 24, toy pack: months.level counts only cards whose course
+    # has `online` present (only_if). c1.online is an `ask` flag. True or false: the only_if is
+    # T and months.level.mid is 5 (k1 2026-02-02 to 2026-07-31: Feb 2 to Jul 2 is 5 whole
+    # months, Jul 2 to Jul 31 is not a sixth). Left out, `present` is U (its fill domain is
+    # every value and NONE), so the count is still emitted, value null, waits_on c1.online,
+    # and c1.online asked as absent. Fails today: the item vanishes and nothing asks (U21).
+    from tests.support import unknown_toy as toy
+    from tests.support.gaps import with_field
+    from tests.unit.engine.test_w2_unknown_props import TOY_SEED
+
+    for flag in (True, False):
+        out = compute(with_field(TOY_SEED, "c1", "online", flag), [toy.pack()], TODAY)
+        assert items(out)["months.level.mid"]["value"] == 5
+    out = compute(with_field(TOY_SEED, "c1", "online", None), [toy.pack()], TODAY)
+    shown = items(out).get("months.level.mid")
+    assert shown is not None, sorted(items(out))
+    assert shown["value"] is None
+    assert "c1.online" in shown.get("waits_on", [])
+    q = question(out, "c1.online")
+    assert q is not None
+    assert q.get("state") == "absent"
+
+
+def test_finding_5_a_not_sure_happened_date_that_could_conflict_is_asked():
+    # Review finding 5, point 32: journey J01 with p1.conferred_on not_sure. The fill
+    # 2026-12-01 (after today 2026-09-29) raises conflict:p1.conferred_on.after_today, so the
+    # gap changes an output (point 8): the question p1.conferred_on (state undecided) and the
+    # reason undecided:p1.conferred_on, beside the judgement p1.conferred_on.not_sure. Fails
+    # today: only the judgement.
+    from engine import path
+    from engine.rulepack import load_all
+    from tests.support.gaps import with_field
+    from tests.support.records_case import CLOCK
+    from tests.unit.acceptance.test_journeys import j01
+
+    after = path.compute(with_field(j01(), "p1", "conferred_on", "2026-12-01"), load_all(), CLOCK)
+    assert "conflict:p1.conferred_on.after_today" in after["verdict"]["reasons"]
+    out = path.compute(with_field(j01(), "p1", "conferred_on", "not_sure"), load_all(), CLOCK)
+    q = question(out, "p1.conferred_on")
+    assert q is not None
+    assert q.get("state") == "undecided"
+    assert "undecided:p1.conferred_on" in out["verdict"]["reasons"]
+    assert "p1.conferred_on.not_sure" in out["verdict"]["reasons"]
+    assert out["verdict"]["state"] == "cannot_tell"
+
+
+def test_finding_12_a_question_withholds_every_output_that_waits_on_it():
+    # Review finding 12, point 34: D4 without w2 (w1 2026-07-01 to 2026-08-02, w3 from
+    # 2026-09-01 with end not_sure). w1's concluding evaluation and the stem_job_end.w1 stage
+    # wait on w3.end as well as stem_job_end.w3, so the question w3.end lists each stage and
+    # window whose waits_on names it. Fails today: withholds holds only stem_job_end.w3.
+    w3 = rec(
+        "w3",
+        "work",
+        employer="e2",
+        under="a2",
+        start="2026-09-01",
+        end="not_sure",
+        hours_per_week=40,
+    )
+    out = compute(f1_case(stem_jobs(W1, w3)), [PACK], TODAY)
+    q = question(out, "w3.end")
+    assert q is not None
+    waiting = {s["id"] for s in out["stages"] if "w3.end" in s.get("waits_on", [])}
+    waiting |= {
+        w["id"] for s in out["stages"] for w in s["windows"] if "w3.end" in w.get("waits_on", [])
+    }
+    assert "stem_job_end.evaluation_final.w1" in waiting
+    assert waiting <= set(q.get("withholds", [])), (waiting, q.get("withholds"))
+
+
+@pytest.mark.parametrize(
+    ("condition", "conflict"), [("joined_after_left", True), ("left_after_joined", False)]
+)
+def test_finding_14_toy_a_known_past_day_against_not_yet_is_decided(condition, conflict):
+    # Review finding 14, point 7, toy pack: c1 joined 2026-01-05, left_on left out (not_yet,
+    # NOT_YET). NOT_YET is later than every day up to today 2026-09-29, and 2026-01-05 is on or
+    # before today, so "joined_on after left_on" is F (the check's conflict is raised) and
+    # "left_on after joined_on" is T (none raised). Neither is pending. Fails today for the
+    # first: path.py `_compare_dates` leaves NOT_YET on the right as pending.
+    from tests.support.unknown_toy import case, check_pack
+    from tests.support.unknown_toy import rec as toy_rec
+
+    left, right = ("joined_on", "left_on")
+    if condition == "left_after_joined":
+        left, right = right, left
+    cond = {"field": f"this.{left}", "after": {"fact": f"this.{right}"}}
+    c1 = toy_rec("c1", "course", start="2026-01-05", joined_on="2026-01-05")
+    out = compute(case([c1], TODAY), [check_pack(cond)], TODAY)
+    assert date(2026, 1, 5) <= TODAY
+    assert ("conflict:tree.c1" in reasons(out)) is conflict
+    assert question(out, "c1.left_on") is None
