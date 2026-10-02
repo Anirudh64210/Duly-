@@ -106,3 +106,46 @@ def test_litigated_rule_cannot_tell():
 def test_missing_and_conflicting_inputs_are_named():
     verdict = decide(clean(missing_inputs=("ead",), conflicting_inputs=("program_end",)), NOW)
     assert verdict.reasons == ("missing:ead", "conflict:program_end")
+
+
+# specs/step-w/SPEC-W2-UNKNOWN.md point 37: one verdict function. engine/path.py compute decides
+# through engine/verdict.decide, and the new reason prefixes (missing:, unreadable:,
+# undecided:, point 35) are blockers there: a verdict is never no_open_items, needs_you or
+# talk_to_dso while any question is open.
+
+
+def test_point_37_path_compute_decides_through_verdict_decide():
+    # Fails while path.py decides on its own (path.py:1412-1436 at 07196cd).
+    import ast
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[3] / "engine" / "path.py").read_text()
+    tree = ast.parse(source)
+    imports = {
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module == "engine.verdict"
+        for alias in node.names
+    }
+    assert "decide" in imports
+    assert any(
+        isinstance(n, ast.Call) and getattr(n.func, "id", "") == "decide" for n in ast.walk(tree)
+    )
+
+
+@given(inputs, st.sampled_from(["unreadable:w1.hours_per_week", "undecided:p1.end_date"]))
+def test_point_37_the_new_prefixes_are_blockers(i, question):
+    # Point 35: unreadable: and undecided: are blockers like missing:, so the verdict is
+    # cannot_tell. Passed to decide as an open question (VerdictInputs.open_questions; the
+    # SPEC fixes no other field for them), the reasons still name the record and field.
+    from dataclasses import replace
+
+    verdict = decide(replace(i, open_questions=(question,)), NOW)
+    assert verdict.state == VerdictState.CANNOT_TELL
+    assert any(question.split(":", 1)[1] in r for r in verdict.reasons)
+
+
+def test_point_37_an_open_question_never_leaves_a_quiet_or_dso_verdict():
+    for q in ("missing:p1.start_date", "unreadable:a1.type", "undecided:w3.end"):
+        verdict = decide(clean(open_questions=(q,), judgement_items=("e1.e_verify.not_sure",)), NOW)
+        assert verdict.state == VerdictState.CANNOT_TELL

@@ -3340,3 +3340,42 @@ neither the review nor the mission asks for it, so it would pin a design choice)
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-38db5e4dee: SPEC-W2-UNKNOWN tests round (attempt 1)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/SPEC-W2-UNKNOWN.md (whole), DECISIONS.md D92,
+contracts/rulepack.schema.json (W2-U0), engine/path.py and rulepack.py signatures, the F-1 pack.
+The maps and the three reviews were not re-read this attempt (time); the SPEC quotes them.
+
+Wrote:
+- tests/support/unknown_toy.py: toy pack j1 (course, card, job, change, employer), every
+  operator, when shape, calculator, group, history, optional, ends_also, bind, next, conditional
+  when_absent, facts, toy.lapsing rows in force 2026 only. Loads on today's engine.
+- tests/support/gaps.py: decided_cases, gap, fills, must_fill, drawn_fills, outputs, withheld.
+- test_unknown_logic.py (P6): module tests by brute-force completion; toy check pack trees.
+- test_readers.py (point 41), test_unknown_generic.py (point 12), test_rulepack.py (23 faults of
+  points 11 and 7a), test_when_absent.py (points 2, 2a, 14, 61 per D92), test_toy_pack_coverage.py
+  (50b), test_w2_unknown.py, _counts.py, _stages.py, _f1.py (R1, R2, R4 to R13, R17 to R20, R23,
+  R25 to R28, R30 to R32, R37, R40), test_w2_unknown_props.py (P1, P1w, P2/P3, P4, P5, P7),
+  tests/unit/api/test_case_structure.py (39, 40), holdout twins and P2j, test_verdict.py (37),
+  tests/web/unknown.test.ts (38), tests/web/records-typed.test.ts (43).
+- Point 54: test_w2_windows.py x1 -> ec1; test_desktop_main.py NOT_IN_THE_PACK -> CASE_STRUCTURE.
+
+What makes them fail once built (mutants by name): U1 (R2, R6, P1), U2 (exists rows, P6), U3/U4
+(P6 trees), U5 (R8), U6 (R18), U7 (R19), U13 (R23), U15 (R13), U16 (R17), U17 (empty Unknown),
+U20 (filed_on NOT_YET leaves, R31), U22 (same_as N/N row, R32), U27 (readers, R38 twin), M9 (R9),
+M16 (R10), M18 (R11), M20 (R12). Not run as mutants this attempt.
+
+Ran: done command, exit 0 ("All checks passed!", "109 files already formatted", collect ok,
+eslint ok). Today's engine: test_rulepack faults all "DID NOT RAISE"; test_when_absent fails on
+the missing declarations; toy coverage passes; P2f passes (guard); test_unknown_logic fails on
+ModuleNotFoundError and on flag-false read as present. A full run of the regression and property
+files did not finish in 600 s (failing Hypothesis tests shrink): the section 9 budget is not
+yet measured.
+
+Not built (next attempt): R3, R14, R15, R16, R21, R22, R24, R29, R33 to R36, R38 (unit), R39;
+the non-vacuity test of point 44; @example seeding with every journey in decided_cases; P2(b)
+for the toy read-once branch of P1; the mutant run of point 52.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
