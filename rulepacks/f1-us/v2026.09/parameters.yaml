@@ -548,6 +548,22 @@ parameters:
     note: "Agency guidance, not regulation. The regulation states no number of days for post-completion OPT: 8 CFR 214.2(f)(12)(i) requires a report of any change of name or address, or interruption of such employment, and gives no time limit. The 10 days in (f)(12)(ii)(A) apply only to students with an approved 24-month OPT extension. Start date is the last updated date printed on the saved page, the earliest date the saved copy supports; the guidance may be older. SEVP Policy Guidance 1004-03 of 2010-04-23, saved as sources/ice-sevp-policy-guidance-1004-03.pdf, says something different: SEVP recommends that the student report any change within 10 business days. That is a recommendation in business days and is not recorded as a row. The 2026-09-15 text of (f)(12) has the same words as the 2026-09-14 text."
     plain: "SEVP's guidance says that while on OPT, a student must tell the DSO of any change in name, address or employment information within 10 days. This is agency guidance, not a regulation."
     plain_terms: ["employment information"]
+  - id: opt.job_start_is_employment_change
+    value: true
+    unit: flag
+    status: guidance
+    effective_from: 2025-05-19
+    source:
+      citation: "SEVP, Study in the States, SEVIS Help Hub, F-1 Optional Practical Training (OPT), last updated 2025-05-19"
+      url: "https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-employment/f-1-optional-practical-training-opt"
+      checked_on: 2026-10-01
+      quote: "When the student is hired, the student reports the employer information to the DSO."
+      snapshot: sources/sits-f1-opt-2026-09-28.html
+      snapshot_sha256: 176dbcd7914ca569219a9033f1e27135002f9b3afeb34a23bb60424132ca9288
+    derivation: reading
+    note: "Reading: the saved page says that when the student is hired, the student reports the employer information to the DSO, and gives no number of days in that sentence. The note under it gives 10 days for any changes in employment information (opt.report_employer_within_days). Duly reads the start of a new job as a change in employment information, so the start opens the window of opt_job_start.report and the 10 days of that note apply. That the 10 days apply to a new job is a reading, not the words of the page (reviews/w2-p1.md finding 6). Agency guidance, not regulation. Start date as for opt.report_employer_within_days."
+    plain: "SEVP's guidance says that when a student on OPT is hired, the student reports the employer information to the DSO. Duly reads a new job as a change in employment information, which the student reports within 10 days. This is Duly's reading, not the guidance's exact words."
+    plain_terms: ["employer information"]
   - id: opt.report_interruption
     value: true
     unit: flag
@@ -2041,13 +2057,13 @@ path:
       label: "Start of a job on post-completion OPT"
       for_each: {record: work, where: [{field: this.under.type, in: [opt_post_completion]}, {field: this.start, present: true}]}
       entered_when: [this.start]
-      rule_ids: [opt.report_employer_within_days]
+      rule_ids: [opt.report_employer_within_days, opt.job_start_is_employment_change]
       windows:
         - id: opt_job_start.report
           label: "Report of the new employment information to the DSO"
           opens: {fact: this.start}
           closes: {fact: this.start, add: [{rule: opt.report_employer_within_days}]}
-          rule_ids: [opt.report_employer_within_days]
+          rule_ids: [opt.report_employer_within_days, opt.job_start_is_employment_change]
     - id: stem_job_start
       label: "Start of a job with a new employer on a STEM OPT extension"
       for_each:

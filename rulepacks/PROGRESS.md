@@ -1219,3 +1219,27 @@ direct compute of a STEM case: w1 (I-983 employer) no stage; w2 (new employer, s
 - Hours change: no saved source gives days; its window waits (REPORT missing).
 - Until L-engine builds N1, every compute that reaches opt_post or stem fails on the setting amount.
 - No network was used. No instruction was found in any data.
+
+## 2026-10-01, run l-content-7cbb5d276b, attempt 1 (reviews/w2-p1.md findings 6 and 7)
+
+### What was tried
+
+- Finding 6: engine/path.py `_reading` marks an item reading when any of its rule_ids names a row with derivation reading. So, following stem.apply_window_closes_rule, added a flag row opt.job_start_is_employment_change (guidance, derivation reading) that quotes the saved SEVP page "When the student is hired, the student reports the employer information to the DSO." and states the reading in note and plain words. Named it in rule_ids of stage opt_job_start and window opt_job_start.report. No value changed.
+- Finding 7: CHANGELOG P1 entry corrected: the recommendation date is required for both last-day windows; missing means Can't tell yet (c24c65d, SPEC-W2 point 45). New dated CHANGELOG entry for this run.
+
+### What ran
+
+```
+done command, first try: exit 1, "term 'employment information' is not in the quote"
+plain_terms changed to "employer information": exit 1, "term ... is not kept in the plain words"
+plain words now say "reports the employer information to the DSO": exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+copy lint: clean
+pytest tests/unit/engine/test_w2_windows.py tests/unit/acceptance: all pass (2 xfail as before)
+direct compute: opt_job_start.report.w1 2026-07-01 to 2026-07-11, guidance, reading True
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
