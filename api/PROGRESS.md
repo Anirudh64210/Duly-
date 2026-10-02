@@ -307,3 +307,15 @@ Goal: answer CaseStructureError with 422 CASE_STRUCTURE; retire NOT_IN_THE_PACK.
 - Done command, run as written: exit 0. mypy "Success: no issues found in 72 source files",
   ruff "All checks passed!", "12 files already formatted". Copy lint on api: clean.
   tests/unit/desktop_entry point_2_a_record test (uses CASE_STRUCTURE): passed.
+
+## Run l-api-d3a3021304 (review w2-unknown finding 6, attempt 1)
+Goal: every CaseStructureError, the undeclared category included, is 422 CASE_STRUCTURE.
+- First run of tests/unit/api: all passed. The engine lane's merge (8d98d66) makes path.py:2121
+  raise CaseStructureError for a record in a category the case does not list, and
+  local_routes.py:75 already answers it 422 CASE_STRUCTURE. The finding 6 test passes.
+- api/main.py: /v1/compute/f1 runs compute_f1, which calls path.compute (engine/f1.py:1872), so
+  it could raise CaseStructureError uncaught (a 500). It now answers 422 CASE_STRUCTURE too.
+- Done command, run as written: exit 1. 15 failed, all in tests/unit/desktop_entry/
+  test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
+  sandbox). tests/unit/api all pass. mypy "Success: no issues found in 72 source files", ruff
+  "All checks passed!", "12 files already formatted". Copy lint on api: clean.

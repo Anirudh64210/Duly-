@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.engine import Engine
 
+from api.case import CASE_STRUCTURE
 from api.case_f1 import (
     NOT_A_NUMBER,
     NOT_JSON,
@@ -21,6 +22,7 @@ from api.ops_guard import caller_allowed
 from api.settings import Settings, get_settings
 from engine.clocks import Clock
 from engine.f1 import compute_f1, parse_case
+from engine.path import CaseStructureError
 from engine.rulepack import Rulepack, load_all
 
 app = FastAPI(title="Duly API", version=API_VERSION, docs_url=None, redoc_url=None)
@@ -85,7 +87,12 @@ def compute_f1_case(
         # answer dated after the person's own day. The engine's words are not shown: they
         # name what was sent.
         raise HTTPException(status_code=422, detail=NOT_YET) from None
-    return compute_f1(case, pack, clock)
+    try:
+        return compute_f1(case, pack, clock)
+    except CaseStructureError:
+        # SPEC-W2-UNKNOWN point 39, review w2-unknown finding 6: compute_f1 runs path.compute,
+        # so a structure the pack does not declare is a 422, never a 500.
+        raise HTTPException(status_code=422, detail=CASE_STRUCTURE) from None
 
 
 @app.get("/ops/v1/status")
