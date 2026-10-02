@@ -827,7 +827,7 @@ def test_r1_m6_an_attempt_no_signature_names_stays_unknown(tmp_path, monkeypatch
 
 def test_r2_an_infra_failure_waits_and_tries_again(tmp_path, monkeypatch):
     slept = []
-    monkeypatch.setattr(agent_run.time, "sleep", slept.append)
+    monkeypatch.setattr(agent_run, "backoff_sleep", slept.append)
     done = (
         "test -f .scratch/tried || { mkdir -p .scratch; touch .scratch/tried; "
         "echo 'ssh: Could not resolve host: github.com'; exit 1; }; test -f engine/new.py"
@@ -842,7 +842,7 @@ def test_r2_an_infra_failure_waits_and_tries_again(tmp_path, monkeypatch):
 
 def test_r2_infra_failing_on_every_attempt_backs_off_and_never_escalates(tmp_path, monkeypatch):
     slept = []
-    monkeypatch.setattr(agent_run.time, "sleep", slept.append)
+    monkeypatch.setattr(agent_run, "backoff_sleep", slept.append)
     done = "echo 'fatal: Could not read from remote repository.'; exit 128"
     fixes = [mini.good([f"engine/f{n}.py"]) for n in range(3)]
     for n, steps in enumerate(fixes):  # each attempt keeps the files before it in its report
