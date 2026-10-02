@@ -730,6 +730,19 @@ def landed_tasks(repo: Path, plan_path: Path) -> set[str]:
     return {m.strip() for m in re.findall(r"^Factory-Task: (.+)$", text, re.M)}
 
 
+# Every lane's Bash sandbox refuses Unix socket binds by design (allowing them would expose
+# system sockets such as docker.sock). The orchestrator runs the done command in its jail,
+# which allows a socket inside the worktree, so a lane must not escalate for that alone. Two
+# lanes stopped on it (W1 L-api, W2-P1 L-tests); every briefing now says so.
+SANDBOX_NOTE = (
+    "Your own Bash sandbox refuses Unix socket binds by design, so tests that bind one (for "
+    "example tests/unit/desktop_entry/test_desktop_main.py) fail for you with Operation not "
+    "permitted. That is not a fault in the code: do not escalate for it. Finish your work, make "
+    "every other part of the done command pass, and report done; the orchestrator runs the done "
+    "command in its jail, where those sockets are allowed, and tells you if anything fails there."
+)
+
+
 def briefing(plan: dict[str, Any], rnd: dict[str, Any], job: dict[str, Any]) -> str:
     """A lane's mission with the whole picture before it: what the plan is for, and what the
     lanes beside it are doing. A lane that sees only its own slice solves it in full, even
@@ -744,6 +757,7 @@ def briefing(plan: dict[str, Any], rnd: dict[str, Any], job: dict[str, Any]) -> 
     )
     if beside:
         parts.append("Beside you in this round: " + " | ".join(beside))
+    parts.append(SANDBOX_NOTE)
     parts.append("Your part: " + " ".join(str(job["mission"]).split()))
     return "\n\n".join(parts)
 
