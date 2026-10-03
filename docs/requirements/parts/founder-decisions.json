@@ -724,9 +724,9 @@
   "source": "DECISIONS.md D32",
   "text": "A missing DSO recommendation date blocks the verdict only while it can still matter; it stops blocking once a filing date or an EAD is recorded.",
   "kind": "engine",
-  "status": "met",
-  "evidence": "engine/f1.py _add_file_by; tests/unit/engine/test_f1_context.py::test_a_recommendation_date_does_not_block_once_the_ead_start_alone_is_recorded",
-  "note": "Built and the direct tests pass; one sibling test fails on this branch for the contract reason. On work/product-1 324 engine and api tests fail, because the round 1 contract and tests landed before the engine work."
+  "status": "partial",
+  "evidence": "engine/f1.py _add_file_by; tests/unit/engine/test_f1_context.py::test_a_recommendation_date_does_not_block_once_the_ead_start_alone_is_recorded; tests/unit/engine/test_w2_windows.py::test_opt_last_day_with_no_recommendation_date_is_no_date",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): met to partial. Drift. True of compute_f1 (the old form; the test_f1_context tests pass). Not true of the path engine that POST /v1/compute and the desktop app run: an OPT card filed 2026-04-10 and approved, card 2026-06-01 to 2027-05-31, dso_on left out, today 2026-09-29, gives missing:a1.dso_on as a reason and a question, and opt.last_day closes null. The W2-P1 test asserts this, from SPEC-W2 point 45 (founder decision 2026-10-01, commit c24c65d), which DECISIONS.md does not record. Put to the founder as a dispute."
  },
  {
   "id": "DEC-D33-001",
