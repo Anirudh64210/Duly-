@@ -1460,3 +1460,30 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not built
 
 - No change to web source, web tests or samples. Nothing failed in web, so no finding needed one.
+
+## l-web-31eaa198fe (W2-P2, SPEC-W2 points 45, 46 and 50: make samples and web tests), attempt 1
+
+### Tried and ran
+
+- `make samples` on HEAD 2b4e087: exit 0, no change under web/samples (the factory step 2b4e087
+  had already committed the regenerated path-stem-next.json and path-window-open.json).
+- `npm test -w web` on the samples as received: exit 1, 40 failed. Cause: the samples carry
+  `checkins` and `watch` (point 46, N3 and N4), which the strict engineOutputSchema refused.
+- compute.ts: added `checkins` and `watch` to the mirror of contracts/engine_output.schema.json,
+  both optional as the contract has them; a watch item's rule_ids join the "every rule has a
+  source" check. Then 13 failed.
+- labels.ts: RECORD_KINDS gains passport (pp), visa (vi) and address (ad); FIELD_WORDS gains their
+  fields and work.confirmed_on and petition.confirmed_on (point 45, P4 and P7); EMPTY_WORDS gains
+  address.previous and address.reported_on, with the CHANGELOG's words that emptyWords.test reads.
+- Tests changed for W2-P2, the point beside each: labels.test.ts (record kinds), timeline.test.ts
+  and fix7.test.ts (stage trip_opt.t1, unknown, no mark: P5), ui1.test.tsx (10 answers, the
+  address list question and its waiting line: P4).
+- Done command: web 36 files, 618 passed. `npm test -w desktop` fails in this sandbox only: EPERM
+  on mkdir desktop/coverage; with coverage off, 248 of 249 pass, the one failure being
+  buildpython.test.ts, the here-document temp file the sandbox refuses (seen in l-web-5b5121079f).
+  Typecheck, eslint --max-warnings 0 and copy lint on web: clean.
+
+### Not built
+
+- No screen for watch or check-ins: no web test or point in this round asks for one; the schema
+  only accepts them so the samples parse.

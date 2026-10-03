@@ -38,6 +38,8 @@ describe("timelineView (design-1 section 7)", () => {
       "stem.a2",
       "grace.p1",
       "trip.t1",
+      // SPEC-W2 points 45 P5 and 50 (W2-P2): the trip's signature window is a stage of its own.
+      "trip_opt.t1",
       // SPEC-W2 point 45 P3: the report window on a job's start is a stage of its own.
       "opt_job_start.w1",
     ]);
@@ -45,8 +47,10 @@ describe("timelineView (design-1 section 7)", () => {
 
   it("marks each row by the engine's state, with the accessible names of 7", () => {
     const marks = timelineView(NEXT, null).rows.map((entry) => MARK_NAMES[entry.mark]);
-    // SPEC-W2 point 45 P3: the job-start report row is done.
-    expect(marks).toEqual(["Done", "Done", "Now", "Next", "Later", "Done", "Done"]);
+    // SPEC-W2 point 45 P3: the job-start report row is done. SPEC-W2 points 45 P5 and 50
+    // (W2-P2): the trip's signature window waits on the signature day, so it is unknown and
+    // carries no mark (resolutions point 23a).
+    expect(marks).toEqual(["Done", "Done", "Now", "Next", "Later", "Done", "", "Done"]);
   });
 
   it("puts the question mark in place of NOW while a reason rests on the current stage", () => {

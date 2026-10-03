@@ -285,6 +285,8 @@ export const EMPTY_WORDS = {
   "authorization.employer":
     "Leave empty if no employer is named on the Form I-20 for this permission.",
   "authorization.basis_program": "Leave empty unless this is a STEM extension.",
+  "address.previous": "Leave empty if this is the first address in the US on this F-1 record.",
+  "address.reported_on": "Leave empty if you have not reported this change of address yet.",
 } as const satisfies Record<string, string>;
 
 // SPEC-W2-UNKNOWN point 38: the words for a value Duly could not read, one the person was
@@ -600,6 +602,14 @@ const RECORD_KINDS: ReadonlyMap<string, { prefix: string; name: string; whole: s
       name: "H-1B petition",
       whole: "Is this every H-1B petition filed for this person?",
     },
+    // SPEC-W2 point 45 (P4 to P7, D74): passport, visa and address records.
+    passport: { prefix: "pp", name: "Passport", whole: "Is this every passport?" },
+    visa: { prefix: "vi", name: "Visa", whole: "Is this every visa?" },
+    address: {
+      prefix: "ad",
+      name: "Address in the US",
+      whole: "Is this every address in the US, through today?",
+    },
     withdrawal: {
       prefix: "wd",
       name: "Withdrawal from classes",
@@ -677,6 +687,7 @@ const FIELD_WORDS: ReadonlyMap<string, string> = new Map(
     "work.end": "Last day of the job",
     "work.hours_per_week": "Hours a week",
     "work.hours_changes": "Times the hours a week changed",
+    "work.confirmed_on": "Last day the job and its hours were confirmed",
     "report.type": "Kind of report",
     "report.about": "Permission or job the report is about",
     "report.made_on": "Day the report was made",
@@ -698,6 +709,16 @@ const FIELD_WORDS: ReadonlyMap<string, string> = new Map(
     "petition.outcome_on": "Day of the outcome",
     "petition.validity_start": "Validity start date of the approved petition",
     "petition.h1b_began_on": "Day H-1B status began",
+    "petition.confirmed_on": "Last day the petition's state was confirmed",
+    "passport.country": "Country that issued the passport",
+    "passport.issued_on": "Date of issue, as printed on the passport",
+    "passport.expires_on": "Date of expiry, as printed on the passport",
+    "visa.issued_on": "Issue date, as printed on the visa",
+    "visa.expires_on": "Expiration date, as printed on the visa",
+    "address.lines": "Address where you live",
+    "address.since": "First day living at this address",
+    "address.previous": "Address moved from",
+    "address.reported_on": "Day the change of address was reported to the DSO",
     "withdrawal.program": "Program withdrawn from",
     "withdrawal.on": "Day of the withdrawal",
     "withdrawal.dso_authorized": "Did the DSO authorize the withdrawal?",
