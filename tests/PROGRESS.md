@@ -3950,3 +3950,63 @@ as amended holds them by their examples. No change to P1 to P3 or to gaps.py.
 
 ### Seen in data, not followed
 Nothing read asked for an action.
+
+## l-tests-d30af94bb6: W2-P2 tests first (SPEC-W2 point 50; P4 to P7, N3, N4; G8, G9, G10, G17)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 (whole), SPEC-W2-UNKNOWN points 1 to 5, 24 to 36, 41,
+42, 61, 64, plan-w2-p2.yaml, PRINCIPLES, BOUNDARY, DECISIONS D73, D74, D89, D92 to D94,
+reviews/w2-p1.md finding 1, contracts (engine_output checkins[], watch[], as_of; rulepack
+path.watch, path.checkins, when_absent; product_settings K1), the saved 8 CFR 214.2 copy of
+2026-09-14 for (f)(4), (f)(13)(ii) and (f)(17).
+
+Added tests/unit/engine/test_w2_records.py (36 tests collected). Saved words first: (f)(4)
+"temporary absence of five months or less" (5), (f)(13)(ii) "within the last six months" (6),
+(f)(17) "any change of address, within 10 days of the change" (10; the rule is found by its
+citation, its id is L-content's); K1 settings 30, 30, 30 read from the file. Each test and what
+change makes it fail:
+- saved-words pin: a pack value the quote does not state; a quote not in the saved copy.
+- pack declarations (P4, P6, P7): passport, visa, address kinds missing; path.watch without
+  card_end, end_date, passport and visa ends; path.checkins not work and petition with
+  confirmed_on and the K1 settings.
+- address report: moved 2026-09-25 closes 2026-10-05, 3 away. Fails on a different day count, a
+  setting in place of the rule, a planning mark. Move day not_sure / 2026-09-31 / left out:
+  fails if the window keeps a date, has no waits_on, or the gap is not asked by name and state.
+- trips: left 2026-09-30, limit 2027-02-28 (month clamp); signature 2026-03-31 covers to
+  2026-09-30 (clamp). Fails on day-based months, no clamp, a wrong rule. No return date is
+  asked (D92); no signature day withholds the window and is asked; left_on not_sure gives no
+  date and is asked; off OPT no signature window. Fails if absence is read as none.
+- watch: passport 2026-11-01 (30, close: the edge), visa 2026-11-02 (31, not close), card
+  2027-02-13 (134). Fails on `<` for `<=`, a number of the engine's own, an off-by-one in
+  days_away, rule_ids or label not the pack's. Passed visa -2 and close; soonest first.
+  not_sure, 2027-02-29, left out: date, days_away null, close false, asked. Property with the
+  clock injected: days_away == offset and close == offset <= 30 (fails on system time).
+- check-ins: confirmed 2026-08-31, due 2026-09-30, -2, question open, count 30 as of
+  2026-08-31; confirmed 2026-09-20, due 2026-10-20, 18, not open, as of 2026-09-20; confirmed
+  today, due 2026-11-01, 30, no as_of; petition 2026-09-10, due 2026-10-10, 8; never confirmed:
+  nulls; not_sure withholds the count and limit day, asked. Property over today and back: due,
+  due_days_away == 30 - back, question open iff back >= 30, as_of iff back > 0. Fails if due is
+  counted from today, if the count runs past the confirmed day, if as_of is always set.
+- hours (reviews/w2-p1.md finding 1): -5, -40, -0.5 and a property over every negative int
+  and float: count and limit day null, waits_on w1.hours_per_week, asked unreadable with the
+  value in about, no at-or-over reason. A negative period hours figure asked too. 40 counted
+  (30). Fails if as_number keeps reading a negative figure (today: 124, nothing asked).
+
+Added tests/holdout/test_holdout_w2_records.py (12 tests): pairs either side of a line through
+POST /v1/compute on 2026-09-29: address 09-20/09-21 -> 09-30/10-01; absence 09-27/09-29 ->
+2027-02-27/02-28; signature 03-29/03-31 -> 09-29/09-30; watch 10-29/10-30 -> 30 close / 31
+not; check-in 08-30/08-31 -> due today and open / tomorrow and not; hours 40/-40 -> 30 /
+withheld and asked.
+
+Ran: done command, exit 0 (ruff check: All checks passed; format: 113 files already formatted;
+--co exit 0). mypy over both new files: no error in them. On HEAD every new test fails, each
+for a missing feature: "a field not declared for work" (confirmed_on), no passport kind or
+path.watch, no (f)(17) rule, no trip windows. Checked on HEAD without confirmed_on: 40 hours
+gives 30 (my hand count), -5 gives 124 unasked (the finding).
+
+Not built: no shared helper module (the few pack lookups live in the two files that use them);
+no bound above which hours are impossible (more than 168 a week): no SPEC point or source
+names one, so it is left to the founder; no test of what a never-confirmed job does to the
+count (the contract says only that due is null).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
