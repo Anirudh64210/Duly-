@@ -2225,3 +2225,26 @@ Status: done.
   the windows" rule (the empty-return trip tests pin the opposite).
 
 Status: done, with one dispute (below in REPORT.json).
+
+## l-engine-fab1b935eb (W2-P2 fix3, a span conflict comes only from entered dates)
+
+### Attempt 1
+
+- test_review4b failed for j07, j11, j16: with t1.returned_on left out, trip.absence_limit.t1
+  waited on t1.returned_on as well as rule_copy_not_saved_for_event_day; its dates and both items
+  were already the same as with the return entered.
+- Traced (by wrapping `_window`): the withheld trace was empty, so no span order conflict was
+  raised from the empty return (`ask_out_of_order`, `_span_conflicts` and `_order_rests_on` read
+  only entered days already). The extra wait came from point 30: done_when [this.returned_on]
+  read ABSENT, and the closing day is withheld (copy not saved), so "over" could not clear it.
+- Fix, engine/path.py `_window`: a done_when field of the record left empty and asked (read
+  ABSENT, so when_absent ask), not a flag and not taking not sure, is known whatever the answer,
+  so done is the same in every fill (point 55) and the window is done, waiting on nothing. The
+  field is still asked by the reads that rest on it. Fields that may still be undone are declared
+  when_absent not_yet in the pack and read NOT_YET, so they are untouched; not-sure answers
+  (R17) and flags still wait.
+- Done command as written ($TMPDIR/done.log): exit 0 (1 xfail already there).
+- Not built: no change to the span order code (it already reads entered dates only); no new
+  helper (one use, inline).
+
+Status: done.
