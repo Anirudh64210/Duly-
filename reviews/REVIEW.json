@@ -1,56 +1,38 @@
 {
- "run_id": "l-review-f924676928",
- "reviewed_commit": "b120cf2",
+ "run_id": "l-review-e327e7c346",
+ "reviewed_commit": "cdff52f",
  "scores": {
-  "correct": {
-   "score": 5,
-   "evidence": "No engine, api or web change since 76a47db; 40 of 40 R rows pass; tests/unit and tests/holdout exit 0; the 20 journeys are byte-identical to 76a47db (1077 outputs, 434 null or unknown, 410 with waits_on)."
-  },
-  "sourced": {
-   "score": 5,
-   "evidence": "No rule, number or quote changed; sources verify clean (4 packs); the hand-worked R16 C (2026-05-17 to 2026-10-14, 8 CFR 214.2(f)(11)(i)(B)), R36 and U25 dates stay asserted by passing tests."
-  },
-  "never_assumes": {
-   "score": 5,
-   "evidence": "P6 now asserts that every unknown leaf in each gap state (absent on an ask field, unreadable, not_sure) is asked once with its own state and raises no conflict, alone and in a tree; the engine passes it, and U21 and U21b are caught by P6."
-  },
-  "inside_the_boundary": {
-   "score": 5,
-   "evidence": "No person-facing string changed this round; copy lint clean."
-  },
-  "secure": {
-   "score": 5,
-   "evidence": "No code path changed; P6 now drives unreadable samples of every field kind through compute without a crash."
-  },
-  "tested": {
-   "score": 4,
-   "evidence": "Under --hypothesis-profile mutants, every operator and reader mutant point 52 lists (U1 to U9, U14, U21, M9, M15, M16, M18 to M20) is killed by a property and every named mutant by an example, with both baselines passing (TMPDIR/rvu4/mut_props.txt, mut_examples.txt). The reviewer's mutant Y1 was equivalent. U22 and U24 have no property (note 1)."
-  }
+  "correct": {"score": 5, "evidence": "Every SPEC input and every earlier finding's input (S1, O1, S2, D4, C, the w3 end table, the hours table, the M16 and M18 inputs, the future card, card end 9999-12-31) gives the right date, worked by hand: opt.last_day 2026-09-16 to 2026-10-25, prepare 2026-08-16, stem.last_day opens 2027-03-02, reports 2026-07-11 and 2026-08-13, evaluation 2026-08-12, limit days 2026-08-29, 2026-09-29, 2027-01-12."},
+  "sourced": {"score": 5, "evidence": "No rule, number or quote changed since the third review; sources verify finds every quote in its snapshot; each day count used is in its saved quote; the job-start report stays marked a reading."},
+  "never_assumes": {"score": 4, "evidence": "The third review's four blocking classes are fixed by the class (exists witness, counter groups, unreadable present, unknown hours). A negative hours figure is still read as fact and gives an at-or-over line with nothing asked (finding 1)."},
+  "inside_the_boundary": {"score": 4, "evidence": "Labels name the step and say a planning date; the limit day carries no words about what follows. The planning setting's working shows a generic name with no not-law mark (note 1)."},
+  "secure": {"score": 5, "evidence": "No input crashed or stalled: 2026-13-40, 08/03/2026, 9999-12-31, hours True, 1e9 and forty, dangling links; a wrong id prefix is refused with CaseStructureError."},
+  "tested": {"score": 4, "evidence": "Ten mutants, all caught with a passing baseline: M5, M7, M9, M15, M16, M18, M20, H1, H2 and E1 (the old code of the third review's findings 1 and 4). No test enters a negative number (finding 1)."}
  },
  "findings": [
   {
+   "severity": "should_fix",
+   "kind": "missing_negative_test",
+   "title": "A negative hours figure is read as a real one and gives an at-or-over unemployment line",
+   "file": "engine/readers.py:47",
+   "input": "masters p1 ending 2026-05-15, OPT a1 2026-06-01 to 2027-05-31, w1 under a1 from 2026-07-01 with employer e1 and hours_per_week -5; today 2026-09-29",
+   "what_happens": "unemployment.opt_card.a1 is 121, its limit day 2026-08-29, and unemployment.opt_card.at_or_over_limit.a1 is raised; nothing asks about w1's hours (with 40 the count is 30). as_number takes any finite number; a minimum of 0 on the field or a negative read as unreadable would ask it, as 'forty' is asked."
+  },
+  {
    "severity": "note",
-   "kind": "spec_gap",
-   "title": "U22 (same_as) and U24 (first) are left to their examples by the amended point 52 list",
-   "file": "specs/step-w/SPEC-W2-UNKNOWN.md:662",
-   "input": "TMPDIR/rvu4/mut.py props set, --hypothesis-profile mutants: U22 (NONE equal NONE in same_as, path.py) and U24 (first ignoring whether the list is whole).",
-   "what_happens": "Both leave both property files green; R32 and R35's examples kill them. The amended text names the property set and leaves both out, so this meets the point; name them or say why they count as positions at the next amendment."
+   "kind": "wording",
+   "title": "The planning setting shows under a generic name in the working",
+   "file": "web/src/lib/labels.ts:120",
+   "input": "web/samples/path-stem-next.json item opt.prepare.opens.a2, inputs plan.prepare_months 1",
+   "what_happens": "SETTING_NAMES names two product settings but not plan.prepare_months, so the working falls back to plain(id). The label 'a planning date' and planning true carry the mark."
   },
   {
    "severity": "note",
    "kind": "other",
-   "title": "Two test_path_reach assertions reversed, rightly (carried)",
-   "file": "tests/unit/engine/test_path_reach.py:765, 825",
-   "input": "A low course with left_on (an ask field in that file's pack) left out.",
-   "what_happens": "Expectation moved from a conflict to missing:c1.left_on; point 2 makes it right."
-  },
-  {
-   "severity": "note",
-   "kind": "spec_gap",
-   "title": "A part-time pre-completion OPT always withholds the months-at-level count (carried)",
-   "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
-   "input": "R24's case.",
-   "what_happens": "opt.months_at_level.span_not_known.a1 is raised, as point 22a says. For L-content."
+   "title": "An empty hours figure becomes 0 in the facts a drafted DSO question may state",
+   "file": "web/src/app/caseStore.tsx:106",
+   "input": "a work record with start and no hours_per_week",
+   "what_happens": "sentFacts gives hours_per_week 0. Predates W2-P1 (78b7d69) and is outside its diff; flagged for the web lane."
   }
  ],
  "decision": "APPROVE"
