@@ -2188,3 +2188,40 @@ Status: blocked on L-tests (test_f1_translation vs review1).
 - Not built: no confirmed_on in f1.to_records (the hand-written-records test pins the table).
 
 Status: done.
+
+## l-engine-8954ae482d (W2-P2 review veto, findings 3, 4, 8, 9, 10 and the hours note)
+
+### Attempt 1 (timed out, kept as ec41298)
+
+- engine/path.py: `ask_out_of_order` asks a record's last day before its first and a chain link
+  (address `previous`) to a record that did not begin before it, itself included, as conflicts
+  by name (finding 9). `_clash`/`clashed`: a record with dates out of order withholds every
+  window dated from it, waiting on the conflict (finding 4). `_each(stage, shown)`: an
+  undecided record's stage entry is shown unknown with its windows withheld, not left out
+  (findings 3 and 10). `run_watch` reads each kind through `_use_kind`, so a list not stated
+  whole is asked as complete.<kind> (finding 8).
+- engine/readers.py: an hours figure above the hours in a week (timedelta(weeks=1) in hours) is
+  unreadable (hours note).
+- test_w2_records.py passed whole; the run timed out before the full suite was read.
+
+### Attempt 2
+
+- The full suite, split in four groups in parallel to save time: one failure,
+  test_w2_unknown_props.py::test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks[toy]
+  (P2, point 46): c1.end not_sure showed course.renew (dated from start); the fill end
+  2026-01-04, before start, made the dates out of order and withheld it.
+- Fix: `_order_rests_on`. When a stage's span starts on the record's first day and one of the
+  record's two days is answered not sure or unreadable while the other is a day, every window
+  of the stage waits on that question (point 33: whether the order fits rests on it).
+  First try took any unknown day: test_a_trip_with_no_return_date_is_asked_not_assumed and
+  test_the_absence_limit_is_five_months_from_leaving failed (an empty return asked must still
+  show the absence limit), so an empty day is left out. Second try took any stage: r16_b failed
+  (authorization's first two dates are dso_on and filed_on, not the stage's span), so the rule
+  needs the stage span to start on the first day.
+- `_window` takes a withheld trace in place of a list of conflict names.
+- Done command as written ($TMPDIR/done.log): exit 0 (1 xfail already there). engine_literals,
+  mypy (72 files), ruff check, ruff format: pass.
+- Not built: no change to the pack or tests (not owned); no general "any unknown day withholds
+  the windows" rule (the empty-return trip tests pin the opposite).
+
+Status: done, with one dispute (below in REPORT.json).
