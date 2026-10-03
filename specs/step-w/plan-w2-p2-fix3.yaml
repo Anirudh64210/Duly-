@@ -1,0 +1,21 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Undo the over-withholding the hidden gap property found after the W2-P2 records round: a span''s order conflict is decided only by dates the person entered, so a trip with its return left out still shows the windows that rest on its departure, and the return is asked (D92). SPEC-W2 point 46; SPEC-W2-UNKNOWN''s rules on span conflicts and on showing an output when every value agrees.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Write a visible regression in tests/unit/engine/test_w2_records.py named test_review4b_...: journeys j07, j11 and j16 of tests/unit/acceptance/test_journeys.py with the trip t1''s returned_on left out: computed trip.absence_limit.opens.t1 and its closing keep the values they have with the return entered (the window rests on left_on only; every return day on or after the departure gives the same dates), and t1.returned_on is asked (D92). Keep the review4 test: a return entered before the departure still withholds the windows. Work the dates by hand in the comment. It fails today.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_records.py --co -q >/dev/null'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'engine/path.py: a span''s order conflict (an end before its start) is raised only from dates the person entered; an end left out or not yet is no possible conflict, so it never withholds the windows that rest on the start alone, while the end itself is asked as SPEC-W2-UNKNOWN says. The review4 behaviour stays: an entered end before the start withholds every window of the stage. Generic, nothing about F-1 in engine code. Make test_review4b and every test in tests/unit/engine and the journeys pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
