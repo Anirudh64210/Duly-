@@ -6436,7 +6436,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "tests/unit/engine/test_verdict.py::test_the_quiet_state_is_never_a_fallback; test_not_knowing_wins_over_everything",
-  "note": "Property tests hold the rule in the verdict function.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. Both named tests pass; path.compute now decides through engine/verdict.decide (engine/path.py:29).",
   "part": "founder-decisions"
  },
  {
@@ -7046,7 +7046,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py::test_empty_case_cannot_tell",
-  "note": "Held by the verdict function.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. test_empty_case_cannot_tell passes. A not_sure value raises <record>.<field>.not_sure (talk_to_dso) beside undecided: (probe: p1.level professional gives undecided:p1.level and p1.level.not_sure).",
   "part": "founder-decisions"
  },
  {
@@ -7135,8 +7135,8 @@
   "text": "A student with no OPT, STEM OPT or cap-gap entered is asked first; no quiet verdict until the person says there is nothing more to record.",
   "kind": "engine",
   "status": "met",
-  "evidence": "engine/f1.py (NOTHING_MORE, compute_f1); tests/unit/engine/test_f1_product.py::test_review_4_the_body_with_nothing_entered_asks_twice_and_cannot_tell; tests/unit/engine/test_f1_product.py::test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_answer",
-  "note": "Audit product-1: with no OPT, STEM or cap-gap the shipped pack gives cannot_tell with unconfirmed:nothing_more_to_record; yes with its about gives the verdict on what was entered, no gives missing:training, yes with no about stays open. The suite passes (1710 engine, api and holdout tests).",
+  "evidence": "engine/f1.py (NOTHING_MORE, compute_f1); engine/path.py (lists not stated whole); tests/unit/engine/test_f1_product.py::test_review_4_the_body_with_nothing_entered_asks_twice_and_cannot_tell; tests/unit/engine/test_f1_product.py::test_point_7_an_answer_to_nothing_more_to_record_with_no_about_is_not_an_answer; tests/unit/engine/test_w2_unknown_props.py::test_a_list_not_stated_whole_never_shows_what_an_unseen_record_could_change",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. Named tests pass. Point 14 adds lists to the path: probe of R6's case with the authorization list not stated whole gives stem.extensions.all null with waits_on complete.authorization (R23).",
   "part": "founder-decisions"
  },
  {
@@ -7415,8 +7415,8 @@
   "text": "Duly never assumes a person did or did not do something; a gap becomes a plain question and Duly waits.",
   "kind": "engine",
   "status": "partial",
-  "evidence": "engine/f1.py (three questions); tests/unit/engine/test_f1_context.py",
-  "note": "Three questions exist for F-1; the no-training and CPT questions are not built and several proving tests fail on this branch.",
+  "evidence": "engine/readers.py; engine/unknown.py; engine/path.py; tests/unit/engine/test_w2_unknown_props.py::test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks; tests/unit/engine/test_w2_unknown.py; tests/unit/engine/test_w2_unknown_counts.py",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept partial. Absent, unreadable and not_sure values are now asked by record and field and the output waits (P2 and R1 to R40 pass; probe of R8 with hours \"40\", \"forty\", true, absent and not_sure: count and limit day null, each asked with its state). Not whole: a typed hours figure of -1 is read as known, nothing is asked, and the job counts as no job (unemployment.opt_card.a1 121, limit day 2026-08-29, probe at 2026-09-29), though SPEC-W2-UNKNOWN points 42 and 64 say such a figure is read and asked. The no-training question of the earlier note now exists (DEC-D41-001).",
   "part": "founder-decisions"
  },
  {
@@ -7434,9 +7434,9 @@
   "source": "PRINCIPLES.md section 2",
   "text": "STEM OPT dates with no OPT dates: Duly asks and guesses neither way.",
   "kind": "engine",
-  "status": "partial",
+  "status": "met",
   "evidence": "engine/f1.py HELD_OPT; tests/unit/engine/test_f1_context.py::test_stem_without_opt_asks_whether_the_person_held_opt",
-  "note": "The code is there; its test fails on this branch because the output no longer meets the contract.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): partial to met. The named test passes on 72d31f2 (tests/unit/engine run, exit 0). The earlier note's contract failure is gone.",
   "part": "founder-decisions"
  },
  {
@@ -7444,9 +7444,9 @@
   "source": "PRINCIPLES.md section 2",
   "text": "Until the person answers, the verdict is Can't tell yet.",
   "kind": "engine",
-  "status": "partial",
-  "evidence": "engine/verdict.py open_questions; tests/unit/engine/test_f1_context.py::test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict",
-  "note": "The verdict function holds the rule; the property test over whole cases fails on this branch.",
+  "status": "met",
+  "evidence": "engine/verdict.py open_questions; engine/path.py compute through verdict.decide; tests/unit/engine/test_f1_context.py::test_an_open_question_is_cannot_tell_and_a_gap_never_gets_the_quiet_verdict; tests/unit/engine/test_w2_unknown_props.py::test_every_unknown_is_named; tests/unit/engine/test_verdict.py::test_point_37_the_new_prefixes_are_blockers",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): partial to met. The property over whole cases now passes, and P4 asserts cannot_tell whenever a gap question is open, on the toy and F-1 packs. Every probe with a gap asked gave cannot_tell.",
   "part": "founder-decisions"
  },
  {
@@ -7566,7 +7566,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py",
-  "note": "Held in the verdict function.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. tests/unit/engine/test_verdict.py passes; the new prefixes missing:, unreadable:, undecided: are blockers (test_point_37_the_new_prefixes_are_blockers).",
   "part": "founder-decisions"
  },
  {
@@ -8105,8 +8105,8 @@
   "text": "Dates that contradict each other never get the quiet verdict and raise a question. Blocking.",
   "kind": "engine",
   "status": "met",
-  "evidence": "engine/f1.py _facts, _window_facts, _conflicts; tests/unit/engine/test_f1_product.py::test_facts_that_do_not_fit_are_cannot_tell_with_the_reason; tests/unit/engine/test_f1_product.py::test_one_day_to_the_safe_side_the_facts_fit; tests/unit/engine/test_f1_product.py::test_the_answer_yes_sends_the_person_to_the_dso",
-  "note": "Audit product-1: every row of SPEC section 1 and resolutions 11, 14, 15, 16, 27 and 43 gives cannot_tell with conflict:<id> and a question; a yes gives talk_to_dso. Probed through the shipped pack for after_today, after_card, card_longer_than_rule, before_recommendation, after_file_by, not_after_program_end and period_outside_cards. Facts outside the table can still go unasked; see PRIN-011.",
+  "evidence": "engine/f1.py _facts, _window_facts, _conflicts; engine/path.py span_order conflict; tests/unit/engine/test_f1_product.py::test_facts_that_do_not_fit_are_cannot_tell_with_the_reason; tests/unit/engine/test_w2_unknown_counts.py::test_r20_an_end_before_its_start_is_a_conflict_and_withholds_the_count",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. Named tests pass. New on the path: a job end before its start raises span_order.w1 (asked, state conflict) and withholds the count (probe R20).",
   "part": "founder-decisions"
  },
  {
@@ -8136,7 +8136,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "engine/f1.py CPT_USED; tests/unit/engine/test_f1_product.py::test_cpt_days_not_entered_asks_whether_full_time_cpt_was_used; tests/unit/engine/test_f1_product.py::test_the_answer_no_makes_the_cpt_days_zero_as_the_persons_own_statement",
-  "note": "Audit product-1: with cpt_full_time_days absent the shipped pack raises full_time_cpt_used and the verdict is cannot_tell.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. test_cpt_days_not_entered_asks_whether_full_time_cpt_was_used passes.",
   "part": "founder-decisions"
  },
  {
@@ -8176,7 +8176,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "engine/verdict.py; engine/f1.py",
-  "note": "Audit product-1: every behaviour holds for F-1 OPT, STEM and cap-gap, but the H-1B, O-1 and EB-1A packs hold no rules and nothing is computed for them; the F-1 gap in PRIN-011 also stands.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept partial. The unknown-values rule holds for every pack with a path, and the engine modules are generic (test_unknown_generic.py passes). H-1B, O-1 and EB-1A still hold no rules and nothing is computed for them.",
   "part": "founder-decisions"
  },
  {
@@ -8196,7 +8196,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "engine/path.py (after_today, ends_before_starts); pack path.checks",
-  "note": "Audit product-2 (l-audit-fa433c825a, 2026-09-30): not_started to partial. after_today and ends_before_starts are general over every dated fact of a pack with a path. Span longer than its rule and gap or overlap are F-1 pack checks, not general ones. Only the F-1 pack has a path.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept partial. End before start is now also general over every counted span (span_order.<record>, point 22) and every stage span (point 32a, R37). Span longer than its rule and gap or overlap are still F-1 pack checks, and overlapping jobs are out of SPEC-W2-UNKNOWN by its own words.",
   "part": "founder-decisions"
  },
  {
@@ -8496,7 +8496,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "engine/verdict.py; tests/unit/engine/test_verdict.py::test_missing_and_conflicting_inputs_are_named; test_rules_on_the_stale_edge; test_litigated_rule_cannot_tell",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): kept met. Re-run: tests/unit/engine passed (in 1350 passed with pipeline and test_recheck). The 7-day rule in engine/verdict.py:51 and engine/path.py:1421 is unchanged. FEED-PA only moved the input date.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept met. The three named tests pass on 72d31f2. Missing, unreadable and undecided are now named apart (missing:, unreadable:, undecided:).",
   "part": "founder-decisions"
  },
  {
@@ -9344,9 +9344,9 @@
   "source": "DECISIONS.md D59",
   "text": "A typed date is used only when it is checked and nothing contradicts it; otherwise the verdict is cannot_tell.",
   "kind": "engine",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Audit product-1: the engine uses every typed date as entered; only the conflicts of product round 1 stop it.",
+  "status": "partial",
+  "evidence": "engine/path.py typed_dates (typed_dates.from_documents, typed_dates.checked.*); tests/unit/engine/test_typed_dates.py",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): not_started to partial. The verdict half is built: while a typed date is unchecked the reason unconfirmed:typed_dates keeps the verdict cannot_tell (test_typed_dates.py passes, including the property test_never_quiet_while_a_typed_date_is_unchecked). The other half is not: an unchecked typed date is still used to compute and shown as known (probe of R6's case: unemployment.opt_card.a1 121 and limit day 2026-08-29 with no waits_on while typed_dates.from_documents is open). This was built in product-2, not in this plan.",
   "part": "founder-decisions"
  },
  {
@@ -9697,6 +9697,86 @@
   "status": "not_started",
   "evidence": "none",
   "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. No daily check exists.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D92-001",
+  "source": "DECISIONS.md D92",
+  "text": "A date or count is shown only when every value the unknowns could take gives the same one; otherwise the item waits and the one question that settles it is asked; a gap that changes nothing is never asked.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/unknown.py; engine/readers.py; engine/path.py; tests/unit/engine/test_w2_unknown_props.py (P1, P1w, P2, P3, P4, P5, P7); tests/unit/engine/test_unknown_logic.py (P6); tests/unit/engine/test_w2_unknown.py::test_r40*",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. Both property files pass (17 and the P6 file), the regression files and tests/holdout/test_holdout_w2_unknown.py pass. Two mutants of my own on scratch copies (present on an unknown value read as absent at engine/path.py:735; any3 reading every unknown as false) were each killed by a property under --hypothesis-profile mutants. Exactness is held only on read-once toy trees, as point 6 says.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D92-002",
+  "source": "DECISIONS.md D92",
+  "text": "A not sure answer that could change a date makes the verdict Can't tell yet with the DSO named.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/path.py (undecided:, <id>.not_sure); tests/unit/engine/test_w2_unknown.py; tests/unit/engine/test_verdict.py::test_point_37_the_new_prefixes_are_blockers",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. Probe R8 with hours not_sure and R18 with end not_sure: undecided:w1.* asked, count withheld, cannot_tell; the judgement <id>.not_sure (talk_to_dso) stays among the reasons.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D92-003",
+  "source": "DECISIONS.md D92",
+  "text": "A not sure answer opens the DSO-question loop, which carries the DSO's answer back into the record and closes only when the student confirms it (SPEC-W2 point 19).",
+  "kind": "engine",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, not_started. web/src/lib/drafts.ts drafts the DSO email; nothing carries an answer back or closes a loop on confirmation. No loop exists (see D75).",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D92-004",
+  "source": "DECISIONS.md D92",
+  "text": "Lists not stated whole withhold what an unlisted record could change, and onboarding asks any others in the step that adds them.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/path.py _stated; tests/unit/engine/test_w2_unknown_props.py::test_a_list_not_stated_whole_never_shows_what_an_unseen_record_could_change; tests/unit/engine/test_w2_unknown.py (R34, R35); web/src/lib/views/onboarding.ts auth-all",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, partial. The engine half passes (P1w, R23, R34, R35). Onboarding asks \"Is that all the CPT and OPT for <program>?\" and states authorization:<program> (onboarding.ts:1539), which point 14 no longer counts as the whole authorization list, so stem.extensions.all still waits on complete.authorization after that answer (read in the code; not walked through the screen). Every kind carries a complete_label in the pack.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D92-005",
+  "source": "DECISIONS.md D92",
+  "text": "A trip with no return date is asked, not assumed.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (trip.returned_on, no when_absent); tests/unit/engine/test_when_absent.py",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. test_when_absent.py passes; probe of R6's case plus t1 with no returned_on: question t1.returned_on (absent), missing:t1.returned_on, cannot_tell.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D93-001",
+  "source": "DECISIONS.md D93",
+  "text": "An ordered field may leave choices unranked when no source ranks them; a comparison reaching one is Can't tell yet with the DSO named, never a refused pack and never an invented rank.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/path.py:872 and :920 (_unranked); tests/unit/engine/test_rulepack.py::test_point_11_an_ordered_field_may_leave_a_choice_unranked",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. Test passes; probe of p1 in progress with level professional and other: opt_post.p1 state unknown with waits_on p1.level, undecided:p1.level and p1.level.not_sure, cannot_tell; with master the stage is next. Note: the question carries state undecided, so the screen's undecidedLine would say the person was not sure about a level they did enter.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D93-002",
+  "source": "DECISIONS.md D93",
+  "text": "A check may compare against a product setting, written as a setting; its reason says it rests on Duly's setting, not the law.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml program.opt_start_not_too_early ({setting: product.opt_start_earliest_years_before_program_end}); engine/path.py setting amounts",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, partial. The pack check reads the setting and the engine loads it. The words that it rests on Duly's setting are a note in the pack and CHANGELOG; no test under tests/ names program.opt_start_not_too_early, so nothing proves the reason shown says so.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D94-001",
+  "source": "DECISIONS.md D94",
+  "text": "petition.requested_start and petition.validity_start are asked when empty; while unanswered the cap-gap step back is withheld and the verdict is Can't tell yet with the start asked by name.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (when_absent: ask on both); tests/unit/engine/test_when_absent.py; tests/unit/acceptance/test_fix8.py::test_point_22b_j19_twin_g_no_start_withholds_the_step_back_and_the_grace_waits",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. Both tests pass (tests/unit/acceptance run, exit 0).",
   "part": "founder-decisions"
  },
  {
@@ -16315,8 +16395,8 @@
   "text": "Gate 5: pytest plus Hypothesis on all date and deadline math, with the clock injected and frozen.",
   "kind": "testing",
   "status": "partial",
-  "evidence": "tests/unit/engine/test_dates.py; tests/unit/engine/test_f1.py; tests/unit/engine/test_verdict.py",
-  "note": "Many property tests exist, but not every date function has one.",
+  "evidence": "tests/unit/engine/test_dates.py; tests/unit/engine/test_w2_unknown_props.py; tests/unit/engine/test_unknown_logic.py; tests/holdout/test_holdout_w2_unknown.py",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept partial. The unknown-values plan adds Hypothesis properties with a FixedClock over every path output (P1 to P7, today drawn 2025 to 2028). engine/dates.py add_years has no test at all, and _nth_weekday and _last_weekday only through federal_holidays, so not every date function has a property.",
   "part": "research-backend-market"
  },
  {

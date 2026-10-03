@@ -824,8 +824,8 @@
   "text": "Gate 5: pytest plus Hypothesis on all date and deadline math, with the clock injected and frozen.",
   "kind": "testing",
   "status": "partial",
-  "evidence": "tests/unit/engine/test_dates.py; tests/unit/engine/test_f1.py; tests/unit/engine/test_verdict.py",
-  "note": "Many property tests exist, but not every date function has one."
+  "evidence": "tests/unit/engine/test_dates.py; tests/unit/engine/test_w2_unknown_props.py; tests/unit/engine/test_unknown_logic.py; tests/holdout/test_holdout_w2_unknown.py",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): kept partial. The unknown-values plan adds Hypothesis properties with a FixedClock over every path output (P1 to P7, today drawn 2025 to 2028). engine/dates.py add_years has no test at all, and _nth_weekday and _last_weekday only through federal_holidays, so not every date function has a property."
  },
  {
   "id": "RBACK-093",

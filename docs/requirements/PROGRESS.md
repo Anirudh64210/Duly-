@@ -43,3 +43,19 @@ Ran and printed:
 
 Changed: DEC-D02-007 partial to met; DEC-D44-001 partial to superseded (D68); PLAN11-036 met to superseded (drift, D68); 28 rows added for D63 to D91 (no D77, replaced by D79); 15 notes updated. Covered rows of SPEC-FEED: 4 met, 8 partial, 12 not started.
 Not run: make test, make desktop-package, the founder's 2026-10-07 check.
+
+## 2026-10-02, run l-audit-2c3af22d65, attempt 1
+
+Tried: audit the unknown-values work (plan-w2-p1-unknown.yaml and fixes 0 to 8, SPEC-W2-UNKNOWN Covers, D92 to D94) at 72d31f2 (docs/requirements/audits/w2-unknown.md).
+
+Ran and printed:
+- pytest tests/unit/engine, acceptance, api, contracts, holdout -x: all dots, one xfail, 3 min 30 s.
+- The section 9 unit files: exit 0 in 35.9 s. Props file: 17 passed, none skipped. Holdout twin: exit 0. tests/web unknown and records-typed: 9 passed.
+- engine_literals, copy lint, sources verify, mypy, ruff: all exit 0.
+- Two own mutants (present unknown read as absent at path.py:735; any3 reads unknown as false) on scratch copies, mutants profile: each killed by a property.
+- Probes of R6, R8, R18, R20, R23, R38, a trip with no return, unranked levels: as the SPEC says, except hours -1 and 200000 read as known and not asked (points 42 and 64 say asked).
+- Drift: 20 met rows (seed 20261002, the same seed as the feed-pa audit; change it next time), no change.
+- register build and check: 2497 requirements, whole; 445 of 2135 met, 21%.
+
+Changed: PRIN-012 and PRIN-013 partial to met; DEC-D59-002 not_started to partial; 8 rows added for D92 to D94 (5 met, 2 partial, 1 not started); notes on the other 11 covered rows. Covered rows: 9 of 14 met, not the 14 the SPEC claims.
+Not run: make test, make test-offline, gate-6, prove-gates, tests/unit/tools and desktop_entry (sandbox).
