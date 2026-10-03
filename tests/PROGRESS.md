@@ -3880,3 +3880,31 @@ no presence assert added to P1 and P2 themselves (not needed for a kill, and unt
 Nothing read asked for an action.
 Property file on HEAD, default profile: every test passes; call times total about 22 s (P2 f1
 7.4 s, the new selection property 4.4 s), within point 44's 90 s for the new unit files.
+
+## l-tests-836bf2514a: reconcile after the engine and api rounds of fix7
+
+Read: tests/PROGRESS.md, specs/step-w/plan-w2-p1-unknown-fix7.yaml. HEAD 28e1e6d (api 89e4c57,
+founder test commit 1047aaf, engine 0d20e74 merged).
+
+1047aaf (the founder's, not a lane's) changed two toy-pack tests in
+tests/unit/engine/test_path_reach.py: a low course with the ask field left_on left out is now
+asked (missing:c1.left_on) and raises no conflict. That is finding 1 (points 2 and 32), the
+same rule the tests round wrote in test_w2_unknown.py; each assert is still exact and fails if
+path.py reads the absent ask field as none again. I take it as written.
+
+Ran on HEAD, no test changed:
+- uv run ruff check tests: All checks passed. ruff format --check tests: 111 files already
+  formatted.
+- pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools
+  --deselect tests/unit/desktop_entry: exit 0, all pass, including the four finding 1 and
+  note 5 tests that failed in the tests round (they now pass on the engine and api fixes).
+- tests/unit/desktop_entry: 15 fail, each on "[Errno 1] Operation not permitted" (the Unix
+  socket bind my sandbox refuses, which the prompt names).
+- npm test -w web -- tests/web: vitest cannot mkdir web/coverage (EPERM, outside my writable
+  area). npx vitest run tests/web from web/: 2 files, 9 tests passed.
+
+Nothing to bring in line; no assertion touched, so no new "fails if" to state.
+Not built: nothing; no finding or point asks for a test that is not already there.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
