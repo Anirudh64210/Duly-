@@ -1565,3 +1565,33 @@ probes (today 2026-10-02 as in test_w2_records):
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-03, run l-content-1637cd418a, attempt 1 (W2-P2 fix4: second review finding 2, notes A10 and A14)
+
+### What was tried
+
+- Three conflict checks in parameters.yaml, after oncampus.ends_after_completion: address.one_first_in_us (none other address marked first), address.first_names_no_previous (previous present: false on an address marked first), address.one_move_from_each (none other address with previous same_as outer.previous). All rest on address.report_change_within_days. No count rule was used for "more than one" because no rule holds the number one; none over the other records says it without a number.
+- Screen words as YAML comments above each check (the check schema has no label or note field) and in the CHANGELOG.
+
+### What ran
+
+```
+done command: exit 0 on the first run
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  load_all: ok
+copy lint: clean
+pytest tests/unit/engine tests/unit/acceptance/test_journeys.py: all pass, 1 xfailed
+probes (today 2026-10-02, p1 in progress to 2027-05-15, lists stated):
+  A9 ad1 and ad2 both first: conflict:address.one_first_in_us.ad1 and .ad2, both asked; no report window.
+  A10 ad2 first and previous ad1: one_first_in_us.ad1, .ad2 and first_names_no_previous.ad2 asked;
+    address.report.ad2 2026-09-25 to 2026-10-05 still shown, with no waits_on.
+  A14 ad2 and ad3 both previous ad1: one_move_from_each.ad2 and .ad3 asked; both report windows still shown.
+  ad1 first, ad2 from ad1, ad3 from ad2: nothing asked about addresses.
+```
+
+### Seen and not worked around
+
+- A conflict raised by a pack check does not make the record's windows wait (engine _clash covers only span and link conflicts, point 32a). So in A10 and A14 the report is still shown with no waits_on. That is an engine change; it is listed under requests.
+- No network was used. No instruction was found in any data.
