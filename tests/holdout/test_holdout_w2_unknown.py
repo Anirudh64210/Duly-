@@ -139,6 +139,20 @@ def test_p2j_every_journey_every_field_every_gap(name, build):
         filled = [
             path_compute(gaps.with_field(case, rid, field, v), packs, CLOCK) for v in fill_set
         ]
+        # Point 6 compares the values a fact can take consistently with the rest of the record.
+        # A fill that makes a new conflict on this record (a return in 1950 before the trip
+        # left) is a contradiction, not such a value; conflicts have their own tests.
+        before = {r for r in base["verdict"]["reasons"] if r.startswith("conflict:")}
+        filled = [
+            out
+            for out in filled
+            if not any(
+                r.startswith("conflict:")
+                and r not in before
+                and (f".{rid}." in r or r.endswith(f".{rid}"))
+                for r in out["verdict"]["reasons"]
+            )
+        ]
         for state, raw in gaps.gap(decl, run):
             held = path_compute(gaps.with_field(case, rid, field, raw), packs, CLOCK)
             for out in filled:

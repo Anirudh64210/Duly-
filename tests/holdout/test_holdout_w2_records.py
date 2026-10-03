@@ -166,7 +166,9 @@ def test_absence_limit_either_side_of_the_end_of_february(
 def test_signature_covers_either_side_of_a_short_month(
     client: TestClient, signed: str, closes: str
 ) -> None:
-    trip = rec("t1", "trip", left_on="2026-09-20", signature_on=signed)
+    # The signature stage follows the student who returns ((f)(13)(ii), plan-w2-p2-fix2), so the
+    # trip has its return, within the OPT card and before today (2026-09-29).
+    trip = rec("t1", "trip", left_on="2026-09-10", returned_on="2026-09-20", signature_on=signed)
     out = _send(client, _on_opt(_job(confirmed_on="2026-09-29"), trip))
     assert [w["closes"] for w in _windows(out, "trip.signature_covers.")] == [closes]
 
