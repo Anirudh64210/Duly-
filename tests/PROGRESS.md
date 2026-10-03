@@ -4055,3 +4055,28 @@ key); no lines field on the addresses (no date reads it, and its id is pack data
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-43214be596: W2-P2 reconcile (SPEC-W2 points 45, 46, 50)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 points 45, 46, 48 to 51 and gap rows G8, G9, G10, G17.
+
+Ran, at HEAD 2b4e087 (L-engine N3 and N4 and the L-web samples merged):
+- uv run ruff check tests: All checks passed. ruff format --check tests: 113 files already formatted.
+- pytest tests/unit tests/holdout (--ignore=tests/unit/tools --ignore=tests/unit/desktop_entry): no
+  failure, one strict xfail (tests/unit/acceptance/test_journeys.py:2290, point 21, the cap-gap
+  round, P8, not W2-P2). test_w2_records.py and test_holdout_w2_records.py: 52 passed; the 29
+  that waited on L-content P6 and L-engine N3, N4 at the last run now pass with no assertion changed.
+- tests/unit/desktop_entry: 15 fail, every one on a Unix socket bind ([Errno 1] Operation not
+  permitted), the sandbox the contract names. Not a code fault.
+- npm test -w web -- tests/web: refused by the sandbox at mkdir web/coverage (EPERM; web/ is not
+  mine to write). npx vitest run tests/web without coverage: 2 files, 9 tests passed.
+- No skip or todo left in tests/ waits on W2-P2 (grep for skip, importorskip, todo).
+
+Changed no test: every W2-P2 point (P4 to P7, N3, N4) already has its tests, written in earlier
+runs with the working beside each date, and they pass now. So no new "what makes it fail" entry.
+
+Not built: no new test. No SPEC point names a behaviour without one, and adding more would be
+building for its own sake.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
