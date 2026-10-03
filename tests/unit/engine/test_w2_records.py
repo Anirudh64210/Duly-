@@ -191,6 +191,34 @@ def test_the_pack_names_the_dates_to_watch() -> None:
             assert pack().value(rule_id, TODAY) is not None, rule_id
 
 
+@pytest.mark.parametrize(
+    ("kind", "citation", "snapshot"),
+    [
+        ("passport", "8 CFR 214.1(a)(3)", "ecfr-8cfr214.1-"),
+        ("visa", "22 CFR 41.112(a)", "ecfr-22cfr41.112-"),
+    ],
+)
+def test_the_passport_and_visa_watch_rest_on_the_saved_sources(
+    kind: str, citation: str, snapshot: str
+) -> None:
+    # SPEC-W2 point 45 (P6: "a rule with no saved source is reported missing, and its feature
+    # waits"): the passport row rests on 8 CFR 214.1(a)(3) and the visa row on 22 CFR
+    # 41.112(a), each fetched 2026-10-03 (rulepacks/f1-us/v2026.09/SOURCES.md), with the rule's
+    # quote found in that saved copy. Fails on a row with no rule, a rule citing another
+    # source, or a quote the saved copy does not hold.
+    rules = [pack().value(rule_id, TODAY) for rule_id in watched(kind)["rule_ids"]]
+    resting = [
+        r
+        for r in rules
+        if r is not None
+        and r["source"]["citation"].startswith(citation)
+        and r["source"]["snapshot"].rsplit("/", 1)[-1].startswith(snapshot)
+    ]
+    assert resting, [r["source"] for r in rules if r is not None]
+    for rule in resting:
+        assert plain(rule["source"]["quote"]) in saved_text(rule), rule["id"]
+
+
 def test_the_pack_names_the_check_ins_with_the_k1_settings() -> None:
     # SPEC-W2 point 45 (P7) and G8: confirmed_on on work and petition, each with its setting.
     got = {(c["record"], c["field"], c["setting"]) for c in pack().path.get("checkins", [])}
@@ -205,20 +233,40 @@ def test_the_pack_names_the_check_ins_with_the_k1_settings() -> None:
 # The cases, on the shipped F-1 pack. A field the case does not give is left out.
 
 
+# SPEC-W2-UNKNOWN points 14 and 58 (D92): onboarding asks each list whole in the step that adds
+# it ("Any other addresses?"), so every case states each list by name, address among them (P4),
+# and no expected date or count rests on a list the case does not state. Named here by hand, not
+# read from the pack, so a kind the pack adds is a list these cases have not stated (pinned
+# below). A list is asked even with no complete_label: complete.withdrawal.
+LISTS = [
+    *("program", "move", "end_date_change", "authorization", "employer", "work", "report"),
+    *("trip", "petition", "passport", "visa", "address", "withdrawal", "term"),
+    *("reduced_load", "reinstatement"),
+]
+
+
+def test_the_cases_state_every_list_the_pack_keeps_and_the_address_list_is_asked() -> None:
+    # SPEC-W2 point 45 (P4) and D92 point 58: the address list is a list onboarding asks whole,
+    # with the pack's own words for the question (SPEC-W2-UNKNOWN point 14, complete_label).
+    assert sorted(LISTS) == sorted(r["id"] for r in pack().path["records"])
+    assert record_decl("address").get("complete_label")
+
+
 def f1_case(records: list[dict[str, Any]], on: date = TODAY) -> dict[str, Any]:
-    # SPEC-W2-UNKNOWN points 14 and 58 (D92): every record kind of the pack is stated whole (a
-    # list is asked even with no complete_label: complete.withdrawal), so no list gap is in
-    # play unless a test makes one.
-    stated = {"on": on.isoformat()}
-    lists = [r["id"] for r in pack().path["records"]]
     return {
         "categories": ["f1"],
         "time_zone": "UTC",
         "facts": {},
         "records": records,
-        "complete": dict.fromkeys(lists, stated),
+        "complete": {kind: {"on": on.isoformat()} for kind in LISTS},
         "confirmations": {},
     }
+
+
+def home() -> dict[str, Any]:
+    """The student's address since 2025-08-15, moved from no other (the list's first record):
+    no change, so no report (8 CFR 214.2(f)(17) is about "any change of address")."""
+    return rec(rid("address"), "address", since="2025-08-15")
 
 
 def masters(end: str = "2026-05-15", state: str = "completed") -> dict[str, Any]:
@@ -259,8 +307,8 @@ def job(**extra: Any) -> dict[str, Any]:
 
 
 def on_opt(*more: dict[str, Any]) -> list[dict[str, Any]]:
-    """Program end 2026-05-15; OPT card 2026-06-01 to 2027-05-31; employer e1."""
-    return [masters(), opt_card(), rec("e1", "employer", name="Employer One"), *more]
+    """Program end 2026-05-15; OPT card 2026-06-01 to 2027-05-31; employer e1; one address."""
+    return [masters(), opt_card(), rec("e1", "employer", name="Employer One"), home(), *more]
 
 
 def question(out: dict[str, Any], qid: str) -> dict[str, Any]:
@@ -297,25 +345,57 @@ def assert_withheld(out: dict[str, Any], window_id: str, gap: str) -> None:
 
 # Moved 2026-09-25. "Within 10 days of the change": 5 days reach Sep 30, 5 more 2026-10-05,
 # three days after today (Oct 3, 4, 5).
+# D92 point 58: each case states the address list whole as onboarding asks it, the address the
+# student moved from (home, since 2025-08-15) and the one moved to, linked by the field the pack
+# declares for "moved from"; the first address is no change, so it has no report.
+
+
+def moved_from() -> str:
+    """The address field that links a move to the address it left (pack data, K6)."""
+    found: list[str] = [
+        f["id"]
+        for f in record_decl("address")["fields"]
+        if f["kind"] == "link" and f.get("to") == ["address"]
+    ]
+    assert len(found) == 1, found
+    return found[0]
 
 
 def address(**fields: Any) -> dict[str, Any]:
-    return rec(rid("address"), "address", **fields)
+    return rec(rid("address", 2), "address", **{moved_from(): rid("address")}, **fields)
+
+
+def address_case(**fields: Any) -> dict[str, Any]:
+    return f1_case([masters(state="in_progress", end="2027-05-15"), home(), address(**fields)])
 
 
 def test_the_address_report_closes_ten_days_after_the_move() -> None:
+    # One report, the move's: a report on the first address (no change) fails it.
     window_id, moved = address_window()
-    out = compute(
-        f1_case([masters(state="in_progress", end="2027-05-15"), address(**{moved: "2026-09-25"})]),
-        [pack()],
-        TODAY,
-    )
+    out = compute(address_case(**{moved: "2026-09-25"}), [pack()], TODAY)
     assert date(2026, 9, 25) + timedelta(days=address_days()) == date(2026, 10, 5)
     w = one_window(out, window_id)
     assert (w["closes"], w["closes_days_away"]) == ("2026-10-05", 3)
     assert address_rule() in w["rule_ids"]
     assert "planning" not in w  # a rule, never a setting
     assert "waits_on" not in w
+
+
+def test_an_address_list_not_stated_whole_is_asked() -> None:
+    # D92 point 58, SPEC-W2-UNKNOWN point 14: with the address list not stated, a move not
+    # entered could have a report still open, so the list is asked by its own question,
+    # complete.address with state list, and the verdict is cannot_tell. The move entered is
+    # dated from its own record, never from the list, so its report still closes 2026-10-05
+    # (point 14: no F, none, count, "none found", first or as_of is read).
+    window_id, moved = address_window()
+    case = address_case(**{moved: "2026-09-25"})
+    del case["complete"]["address"]
+    out = compute(case, [pack()], TODAY)
+    assert question(out, "complete.address").get("state") == "list"
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert one_window(out, window_id)["closes"] == "2026-10-05"
+    stated = compute(address_case(**{moved: "2026-09-25"}), [pack()], TODAY)
+    assert "complete.address" not in {q["id"] for q in stated["questions"]}
 
 
 @pytest.mark.parametrize(
@@ -326,17 +406,12 @@ def test_an_unknown_move_day_withholds_the_address_report_and_is_asked(
 ) -> None:
     # SPEC-W2-UNKNOWN points 3, 4, 33, 34. September has 30 days, so 2026-09-31 is no day.
     window_id, moved = address_window()
-    out = compute(
-        f1_case([masters(state="in_progress", end="2027-05-15"), address(**{moved: entered})]),
-        [pack()],
-        TODAY,
-    )
-    assert_withheld(out, window_id, f"{rid('address')}.{moved}")
-    assert_asked(out, rid("address"), moved, state)
+    out = compute(address_case(**{moved: entered}), [pack()], TODAY)
+    gap = f"{rid('address', 2)}.{moved}"
+    assert_withheld(out, window_id, gap)
+    assert_asked(out, rid("address", 2), moved, state)
     if state == "unreadable":
-        assert question(out, f"{rid('address')}.{moved}")["about"] == {
-            f"{rid('address')}.{moved}": entered
-        }
+        assert question(out, gap)["about"] == {gap: entered}
 
 
 def test_a_left_out_move_day_is_asked_never_read_as_none() -> None:
@@ -344,11 +419,9 @@ def test_a_left_out_move_day_is_asked_never_read_as_none() -> None:
     # absence is a gap, asked, and the report waits on it.
     window_id, moved = address_window()
     assert field_decl("address", moved).get("when_absent", "ask") == "ask"
-    out = compute(
-        f1_case([masters(state="in_progress", end="2027-05-15"), address()]), [pack()], TODAY
-    )
-    assert_withheld(out, window_id, f"{rid('address')}.{moved}")
-    assert_asked(out, rid("address"), moved, "absent")
+    out = compute(address_case(), [pack()], TODAY)
+    assert_withheld(out, window_id, f"{rid('address', 2)}.{moved}")
+    assert_asked(out, rid("address", 2), moved, "absent")
 
 
 # P5, G9: the trip windows.
@@ -423,7 +496,7 @@ def test_no_signature_window_off_opt() -> None:
     # (f)(13)(ii) is about a student on post-completion training. A student in their program
     # with no permission to work (the list stated whole) has no such window: none with a date,
     # none waiting (a null with no waits_on means "does not apply", point 33).
-    records = [masters(state="in_progress", end="2027-05-15"), trip(left_on="2026-09-30")]
+    records = [masters(state="in_progress", end="2027-05-15"), home(), trip(left_on="2026-09-30")]
     out = compute(f1_case(records), [pack()], TODAY)
     for w in windows_named(out, "trip.signature_covers"):
         assert w["closes"] is None
@@ -453,6 +526,7 @@ def documents_case(passport_end: Any, visa_end: Any, on: date = TODAY) -> dict[s
         [
             masters("2025-12-15"),
             card,
+            home(),
             passport(**{watched("passport")["field"]: passport_end}),
             visa(**{watched("visa")["field"]: visa_end}),
         ],
