@@ -330,3 +330,13 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - path.watch: authorization.card_end and program.end_date, with their rule ids (P6). Passport and visa expiry are not listed: no saved primary source states a rule on them.
 - work.confirmed_on and petition.confirmed_on added, and path.checkins names checkin.job_days and checkin.petition_days (P7).
 - No existing number, rule, source, quote or plain text changed.
+
+### 2026-10-03, lane L-content, run l-content-cebc208973 (W2-P2: SPEC-W2 point 45, P6; point 50)
+
+- Added passport.valid_beyond_stay_months, 6 months, settled, verbatim (six months), from 8 CFR 214.1(a)(3)(i), text of 2026-09-30, checked_on 2026-10-03. 91 FR 44976 does not amend (a)(3)(i), so it sits under no regime.
+- Added passport.maintain_validity_on_extension, flag, settled, verbatim, the extension-of-stay sentence of the same paragraph.
+- Added visa.validity_is_for_admission, flag, settled, verbatim, from 22 CFR 41.112(a), text of 2026-09-30, checked_on 2026-10-03. Its plain words say a visa's validity is about entry, not about the stay.
+- All three start on 2026-09-30 with effective_from_basis earliest_saved_copy: no older copy is saved.
+- path.watch: passport.expires_on ("Date of expiry on a passport") and visa.expires_on ("Expiration date on a visa"), resting on those rules.
+- Regime fixed_admission_2026: history adds ECF 56, the clerk's notes of the status conference held 2026-10-02, in the docket's own words, from the listing fetched 2026-10-03; checked_on 2026-10-02 to 2026-10-03. legal_status, operative and the status tag unchanged.
+- No existing number, rule, quote or plain text changed.

@@ -1467,3 +1467,34 @@ copy lint over rulepacks: 107 problems, all in saved source HTML, as before.
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-03, run l-content-cebc208973, attempt 1 (W2-P2: SPEC-W2 point 45, P6; point 50)
+
+### What was tried
+
+- Read sources/ecfr-8cfr214.1-2026-09-30.xml and sources/ecfr-22cfr41.112-2026-09-30.xml (both listed in SOURCES.md, same bytes in recheck-2026-10-03.json).
+- 8 CFR 214.1(a)(3)(i): passport.valid_beyond_stay_months (6, months, verbatim from "six months", settled) from the admission sentence; passport.maintain_validity_on_extension (flag) from the extension-of-stay sentence. The agreement to maintain the passport's validity is in the extension sentence, not the admission one; the mission's summary joined them, and the rows keep each with its own words.
+- Injunction check: the pinned 2026-09-30 text of 214.1 is the version eCFR dates 2026-09-15 and carries 91 FR 44976's (a)(4) and (m). Amendatory instruction 2 in fr-2026-14439.xml lists the paragraphs it changes; (a)(3)(i) is not among them, so both rows sit under no regime. Recorded in the notes.
+- 22 CFR 41.112(a): visa.validity_is_for_admission (flag), latest eCFR version 2021-11-08, not touched by the final rule.
+- All three: effective_from 2026-09-30, earliest_saved_copy.
+- path.watch rows for passport.expires_on and visa.expires_on. The labels state the date only.
+- fixed_admission_2026: ECF 56 quoted from the 2026-10-03 listing (the court reporter's email left out), the unnumbered Status Conference entry noted, checked_on 2026-10-03.
+
+### What ran
+
+```
+done command: first run failed on plain words (reading grade 13.9 and 9.2; two plain_terms not kept); rewritten; then exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  load_all: ok
+copy lint over rulepacks: 111 problems, all in saved sources (the 4 new ones in sources/recheck-2026-10-03/*.html); none in parameters.yaml, CHANGELOG.md or PROGRESS.md
+pytest tests/unit/engine -k "w2_records or rulepack or sourc or when_absent or translation", HEAD pack vs this pack:
+  HEAD 31 failed, this 30 failed; the one fixed is test_w2_records.py::test_the_pack_names_the_dates_to_watch.
+  No new failure. The rest: 3 in test_f1_translation.py (the address list, L-tests' work this round),
+  27 in test_w2_records.py (engine side: watch[] comes back empty, check-ins, negative hours; N3, N4).
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
