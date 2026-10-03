@@ -458,3 +458,16 @@
 - Failure: a mutant of my own survived every test, and it would have read as a gap if I had not probed it.
 - Fix: diff HEAD and the mutant's output on one input before calling a survivor a finding.
 - Evidence: reviews/w2-unknown.md, own probe of P6.
+
+## 2026-10-02, run l-review-e327e7c346 (W2-P1 final review, after the unknown-values work)
+- Read the three W2-P1 reviews from git (3eb17d3, 88bc479, 19890c7), plan-w2-p1-final.yaml, SPEC-W2 45, 46, 49, D92 to D94, and the engine code that replaced _select (_choose, _some, _each, _counter, _covered, readers.py).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0; sources verify, plain, engine_literals, mypy, ruff check, ruff format, samples --check, copy lint all 0.
+- Old probes TMPDIR/rvw2f and rvw2g on HEAD: S1, O1, S2, D4, C, w3 end table, hours table all fixed. p6 needed ecN ids (TMPDIR/rvw2h/q2.py): M16 and M18 inputs right.
+- New probes TMPDIR/rvw2h/q1..q5: last day, prepare, stem last day, limit days all right by hand; litigated 60/30 split follows the operative regime; hours -5 gives 121 days and an at-or-over line unasked (should fix); 9999-12-31 now unreadable.
+- Mutants TMPDIR/rvw2h/mut.py, full copies, 4 parallel, baseline passes: M5, M7, M9, M15, M16, M18, M20, H1, H2, E1 all caught.
+- Wrote reviews/w2-p1.md (APPROVE, mean 4.5), REVIEW.json and REPORT.json.
+
+## Lesson
+- Failure: old probe scripts raised on a new id prefix rule, which could have read as a regression.
+- Fix: read the exception first and fix the probe's ids before judging the engine.
+- Evidence: reviews/w2-p1.md, What ran.
