@@ -1498,3 +1498,29 @@ pytest tests/unit/engine -k "w2_records or rulepack or sourc or when_absent or t
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-90229349f7, attempt 1 (W2-P2: trip_opt by departure; SPEC-W2 points 45, 46; SPEC-W2-UNKNOWN 1, 6, 24)
+
+### What was tried
+
+- Stage trip_opt: the card test now uses outer.left_on in place of outer.returned_on, so a planned trip, or one still under way, is selected.
+- Stage trip_opt: entered_when changed from this.signature_on to this.left_on. With signature_on as the entry, a trip on OPT with no signature day never entered the stage, so no window was withheld and nothing was asked (test_a_trip_on_opt_with_no_signature_day_withholds_the_signature_window). Same stage, no number.
+- The reading is written as a YAML comment above the stage, because contracts/rulepack.schema.json gives a stage no note field (additionalProperties false), and in the note of travel.opt_signature_months. The first note used "Reading:" in an unquoted scalar and YAML refused it; reworded to "As a reading,".
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  load_all: ok
+pytest tests/unit/engine -q, HEAD pack vs this pack (file swapped in place):
+  HEAD 26 failed, this 24 failed. Fixed: test_the_signature_covers_six_months_from_the_signature_on_opt,
+  test_a_trip_on_opt_with_no_signature_day_withholds_the_signature_window. No new failure.
+  The 24 left are all in test_w2_records.py: address window, watch, check-ins, negative hours (engine side).
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
