@@ -52,7 +52,14 @@ rounds:
       and the journeys pass; the whole command takes about two and a half minutes, so run single tests
       while you work. Resume note (2026-10-03): your kept work (watch[] and checkins[] built) is on lane/L-engine/l-engine-1a23821960;
       the tests now state their lists whole and the pack names the passport and visa watch rows (plan-w2-p2-fix0.yaml).
-      Carry the work forward and make every test pass.'
+      Carry the work forward and make every test pass. Second resume note (2026-10-03): your kept work
+      is on lane/L-engine/l-engine-3d4e5894cf and fails only five tests. The two trip_opt signature tests
+      pass once the pack selects by left_on (plan-w2-p2-fix1.yaml, landed before this round). The three
+      negative-hours tests fail on the verdict reason unemployment_at_or_over_limit, which comes from
+      engine/f1.py (_judgement_items reading work.numbers, around line 1449), not from path.py: engine/f1.py
+      must read every hours figure through engine/readers.py, so a negative or impossible figure is unreadable,
+      the days it would decide are not counted (SPEC-W2-UNKNOWN point 24: no default for an unknown number),
+      and no at-or-over reason is raised on it.'
     done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run
       python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff
       format --check engine'

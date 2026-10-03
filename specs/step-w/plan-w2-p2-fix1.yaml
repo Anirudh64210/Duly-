@@ -1,0 +1,12 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the last two W2-P2 engine failures: the OPT travel signature window rests on the trip''s departure, which a planned trip has, and a negative hours figure never reaches the older F-1 count. SPEC-W2 points 45 and 46, SPEC-W2-UNKNOWN points 1, 6 and 24.'
+merge: local
+audited: false
+rounds:
+- name: pack
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'In rulepacks/f1-us/v2026.09/parameters.yaml, the stage trip_opt selects its trips by an authorization on post-completion OPT or STEM whose card covers outer.returned_on, so a trip with no return date yet (a planned trip, or one still under way) leaves the stage undecided and the signature window waits on the return. The signature window itself rests on the signature day and on the student travelling while on OPT. Select instead by a card that covers outer.left_on, and say in the stage''s note that this is Duly''s reading (the travel signature applies to a student on OPT who travels; the card covering the departure is how Duly reads that), marked as a reading. No number changes; recheck --check must pass.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
