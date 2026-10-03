@@ -8,12 +8,17 @@ import { engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { ASKING, OUTPUT, STATUS } from "../lib/fixtures";
 import type { RecordsCase } from "../lib/records";
 import { applyFlow, onboardingSteps, setField } from "../lib/views/onboarding";
-import { CaseProvider, newCase, type AppCase } from "./caseStore";
+import { CaseProvider, newCase, useStore, type AppCase } from "./caseStore";
 import { createAppRouter } from "./Shell";
 
 // design-1 section 5: a student walks Onboarding from the first view to Home.
 
 const parse = (output: unknown): EngineOutput => engineOutputSchema.parse(output);
+
+/** Shows once the engine's answer has reached the store. */
+function Computed() {
+  return useStore().output === undefined ? null : <span data-testid="computed" />;
+}
 
 function mount(props: {
   compute?: (body: RecordsCase) => Promise<EngineOutput>;
@@ -34,6 +39,7 @@ function mount(props: {
         initial={props.held ?? null}
         {...(props.compute === undefined ? {} : { compute: props.compute })}
       >
+        <Computed />
         <RouterProvider router={router} />
       </CaseProvider>
     </QueryClientProvider>,
@@ -499,7 +505,9 @@ describe("Duly's questions after Onboarding (programs.md sections 10 and 12)", (
       Promise.resolve(asking(ids)),
     );
     mount({ compute, held: answered() });
-    await settle();
+    // The questions view is built from the engine's answer, and one tick does not always
+    // bring it on a slow runner: wait until it is in the store.
+    await screen.findByTestId("computed");
     for (let n = 0; n < 40 && screen.queryByText("Step 5 of 5") === null; n += 1) next();
     for (let n = 0; n < 5 && title() !== "Your time zone"; n += 1) next();
     next();
