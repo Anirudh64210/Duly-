@@ -463,6 +463,25 @@ def test_r16_c_a_not_sure_grant_day_asks_the_change_never_the_program_end():
     assert not any(r.endswith(":p1.end_date") for r in reasons(out))
 
 
+def test_r16_c_with_a_known_filing_day_a_not_sure_grant_day_withholds_the_window():
+    # R16 case C with filed_on 2026-05-01 known, points 26 and 27, review w2-unknown finding 2
+    # (U11). ec1 moves p1's end from 2026-05-15 to 2026-08-15 from its grant day. With
+    # granted_on not_sure the grant could fall on or before the filing day, so the end read
+    # as of 2026-05-01 could be 2026-08-15 (90 days back: 30 to Jul 16, 30 to Jun 16, 30 to
+    # May 17, so 2026-05-17; 60 on: 30 to Sep 14, 30 to Oct 14, so 2026-10-14), or after it,
+    # so 2026-05-15 (2026-02-14 to 2026-07-14, worked in case A). opt.apply_window.a1 is
+    # withheld and waits on ec1.granted_on, which is asked. Fails if an undated change is
+    # skipped (U11): the window is then shown from 2026-05-15.
+    assert date(2026, 8, 15) - timedelta(days=90) == date(2026, 5, 17)
+    assert date(2026, 8, 15) + timedelta(days=60) == date(2026, 10, 14)
+    ec1 = dict(R16_EC1, fields=dict(R16_EC1["fields"], granted_on="not_sure"))
+    out = compute(r16_case("2026-05-01", ec1), [PACK], TODAY)
+    held = apply_window(out)
+    assert held
+    assert all(o is None and c is None and "ec1.granted_on" in w for o, c, w in held), held
+    assert question(out, "ec1.granted_on") is not None
+
+
 def test_r24_an_unreadable_part_time_figure_neither_raises_nor_passes_the_hours_check():
     # R24, points 32 and 34: p1 master in progress (2025-08-20 to 2027-05-15); a1
     # opt_pre_completion part time, approved, card 2026-06-01 to 2026-08-31; w7 under a1 from
@@ -727,3 +746,33 @@ def test_finding_14_toy_a_known_past_day_against_not_yet_is_decided(condition, c
     assert date(2026, 1, 5) <= TODAY
     assert ("conflict:tree.c1" in reasons(out)) is conflict
     assert question(out, "c1.left_on") is None
+
+
+@pytest.mark.parametrize(
+    "condition",
+    [
+        {"field": "this.online", "present": True},
+        {"field": "this.online", "present": False},
+        {"not": {"field": "this.online", "present": True}},
+    ],
+    ids=["present_true", "present_false", "not_present_true"],
+)
+def test_finding_1_toy_a_check_s_present_on_an_absent_ask_flag_is_unknown_and_asked(condition):
+    # Review w2-unknown finding 1, points 2 and 32 (U21b), toy pack: a check on c1 whose holds
+    # is `present` over c1.online, an `ask` flag, with c1.online left out. Its fill domain is
+    # true, false and NONE (point 2), so `present` is U: the check raises neither its conflict
+    # nor its judgement, and c1.online is asked (state absent), as not_sure already is
+    # (state undecided). No date. Fails today: path.py `holds_alone` reads the absent flag as
+    # NONE, so present: true raises conflict:tree.c1 and the other two pass quietly unasked.
+    from tests.support.gaps import with_field
+    from tests.support.unknown_toy import check_pack
+    from tests.unit.engine.test_w2_unknown_props import TOY_SEED
+
+    pack = check_pack(condition)
+    for raw, state in ((None, "absent"), ("not_sure", "undecided")):
+        out = compute(with_field(TOY_SEED, "c1", "online", raw), [pack], TODAY)
+        assert not any("tree.c1" in r or "c1.tree" in r for r in reasons(out)), reasons(out)
+        q = question(out, "c1.online")
+        assert q is not None, raw
+        assert q.get("state") == state
+        assert out["verdict"]["state"] == "cannot_tell"
