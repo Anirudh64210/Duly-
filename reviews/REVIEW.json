@@ -1,39 +1,26 @@
 {
- "run_id": "l-review-e327e7c346",
- "reviewed_commit": "cdff52f",
- "scores": {
-  "correct": {"score": 5, "evidence": "Every SPEC input and every earlier finding's input (S1, O1, S2, D4, C, the w3 end table, the hours table, the M16 and M18 inputs, the future card, card end 9999-12-31) gives the right date, worked by hand: opt.last_day 2026-09-16 to 2026-10-25, prepare 2026-08-16, stem.last_day opens 2027-03-02, reports 2026-07-11 and 2026-08-13, evaluation 2026-08-12, limit days 2026-08-29, 2026-09-29, 2027-01-12."},
-  "sourced": {"score": 5, "evidence": "No rule, number or quote changed since the third review; sources verify finds every quote in its snapshot; each day count used is in its saved quote; the job-start report stays marked a reading."},
-  "never_assumes": {"score": 4, "evidence": "The third review's four blocking classes are fixed by the class (exists witness, counter groups, unreadable present, unknown hours). A negative hours figure is still read as fact and gives an at-or-over line with nothing asked (finding 1)."},
-  "inside_the_boundary": {"score": 4, "evidence": "Labels name the step and say a planning date; the limit day carries no words about what follows. The planning setting's working shows a generic name with no not-law mark (note 1)."},
-  "secure": {"score": 5, "evidence": "No input crashed or stalled: 2026-13-40, 08/03/2026, 9999-12-31, hours True, 1e9 and forty, dangling links; a wrong id prefix is refused with CaseStructureError."},
-  "tested": {"score": 4, "evidence": "Ten mutants, all caught with a passing baseline: M5, M7, M9, M15, M16, M18, M20, H1, H2 and E1 (the old code of the third review's findings 1 and 4). No test enters a negative number (finding 1)."}
- },
- "findings": [
-  {
-   "severity": "should_fix",
-   "kind": "missing_negative_test",
-   "title": "A negative hours figure is read as a real one and gives an at-or-over unemployment line",
-   "file": "engine/readers.py:47",
-   "input": "masters p1 ending 2026-05-15, OPT a1 2026-06-01 to 2027-05-31, w1 under a1 from 2026-07-01 with employer e1 and hours_per_week -5; today 2026-09-29",
-   "what_happens": "unemployment.opt_card.a1 is 121, its limit day 2026-08-29, and unemployment.opt_card.at_or_over_limit.a1 is raised; nothing asks about w1's hours (with 40 the count is 30). as_number takes any finite number; a minimum of 0 on the field or a negative read as unreadable would ask it, as 'forty' is asked."
+  "run_id": "l-review-9fa957435a",
+  "reviewed_commit": "92830258aae89c444056a061178c2865b254dd29",
+  "scores": {
+    "correct": {"score": 2, "evidence": "Hand-checked address (2026-09-25 + 10 = 2026-10-05), absence (2027-09-30 + 5 months = 2028-02-29) and signature (2026-03-31 + 6 months = 2026-09-30) dates are right. Blocking finding 2: with job w1 ended 2026-08-01 and confirmed 2026-07-15 the count is 30 as of 2026-07-15 but limit_day is 2026-09-30, a past day counted beyond the last confirmed day (N3)."},
+    "sourced": {"score": 4, "evidence": "Every new rule (address.report_change_within_days, passport.*, visa.validity_is_for_admission) is verbatim with a saved snapshot; sources verify, recheck --check and plain pass. Two labels copy the five and six months by hand (finding 7); two unmarked readings in notes."},
+    "never_assumes": {"score": 2, "evidence": "Blocking findings 1, 3 and 4: a job with no confirmed_on (declared ask) is counted through today with nothing asked; two addresses with no previous are both read as the first, dropping a move whose report closes 2026-10-05; a trip with returned_on before left_on still shows trip.absence_limit dated (point 32a)."},
+    "inside_the_boundary": {"score": 4, "evidence": "No modal, status or outcome words in watch, check-ins or windows; close and due are settings and say so. The check-in question shows as 'Some facts entered do not fit together.' (finding 6) and two trip labels begin 'Return ...' as instructions (finding 7)."},
+    "secure": {"score": 5, "evidence": "Tried a dangling link (ad9), a self link, 2026-09-31 and 2026-02-30, not_sure, future confirmed and signature days, negative and fractional hours: no crash or stall; each becomes a question or a value, and every output validates against the schema."},
+    "tested": {"score": 3, "evidence": "Suite exit 0; mutants M2 to M6 caught. Mutant M1 (count runs through today instead of the last confirmed day) survives every W2-P2 test, and none of blocking findings 1 to 4 has a test (finding 5)."}
   },
-  {
-   "severity": "note",
-   "kind": "wording",
-   "title": "The planning setting shows under a generic name in the working",
-   "file": "web/src/lib/labels.ts:120",
-   "input": "web/samples/path-stem-next.json item opt.prepare.opens.a2, inputs plan.prepare_months 1",
-   "what_happens": "SETTING_NAMES names two product settings but not plan.prepare_months, so the working falls back to plain(id). The label 'a planning date' and planning true carry the mark."
-  },
-  {
-   "severity": "note",
-   "kind": "other",
-   "title": "An empty hours figure becomes 0 in the facts a drafted DSO question may state",
-   "file": "web/src/app/caseStore.tsx:106",
-   "input": "a work record with start and no hours_per_week",
-   "what_happens": "sentFacts gives hours_per_week 0. Predates W2-P1 (78b7d69) and is outside its diff; flagged for the web lane."
-  }
- ],
- "decision": "APPROVE"
+  "findings": [
+    {"severity": "blocking", "title": "A job never confirmed is counted through today, and nothing is asked", "file": "engine/path.py:1985", "input": "on_opt(job()): OPT card 2026-06-01 to 2027-05-31, w1 from 2026-07-01 at 40 hours, no confirmed_on; today 2026-10-02", "what_happens": "unemployment.opt_card.a1 = 30 with no as_of and no waits_on; checkin confirmed_on/due null; no question. work.confirmed_on is when_absent ask by default, but _confirmed reads its absence as confirmed through today; the count differs by fill, so it must be withheld and asked, or the pack must declare none with screen words.", "kind": "spec_gap", "spec_point": "SPEC-W2-UNKNOWN points 2 and 6; SPEC-W2 46 (N3)"},
+    {"severity": "blocking", "title": "The limit day counts past the last confirmed day", "file": "engine/path.py:1807", "input": "on_opt(job(end=\"2026-08-01\", confirmed_on=\"2026-07-15\")), today 2026-10-02", "what_happens": "Count 30 with as_of 2026-07-15, but limit_day 2026-09-30 (past, no waits_on), the 90th day of days counted through today. The two outputs contradict each other; a check-in is also asked on the ended job.", "kind": "wrong_date", "spec_point": "SPEC-W2 46 (N2, N3)"},
+    {"severity": "blocking", "title": "Two addresses with no link are both read as the first, and the move is dropped", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2169", "input": "lists stated; ad1 since 2025-08-15 and ad2 since 2026-09-25, neither with previous", "what_happens": "No address.report window, no question, no conflict. previous is declared none ('the first address in the US'), which two records cannot both be; a move by 2026-09-25 with a report closing 2026-10-05 is read as none.", "kind": "spec_gap", "spec_point": "SPEC-W2-UNKNOWN point 2; D92; D74"},
+    {"severity": "blocking", "title": "A trip whose span does not fit still shows dated windows", "file": "engine/path.py:1165", "input": "trip t1 left_on 2026-09-20, returned_on 2026-09-01, signature_on 2026-06-01, on OPT", "what_happens": "Stage trip.t1 is unknown and span_order.t1 is asked, but trip.absence_limit.t1 shows closes 2027-02-20 with no waits_on, resting on a left_on the record contradicts.", "kind": "spec_gap", "spec_point": "SPEC-W2-UNKNOWN point 32a"},
+    {"severity": "should_fix", "title": "The core of N3 is untested", "file": "tests/unit/engine/test_w2_records.py:628", "input": "mutant M1: through = self.today in place of min([self.today, *tr.as_of])", "what_happens": "All W2-P2 unit and holdout tests pass: no case has a day without work after the confirmed day. None of the blocking findings has a test.", "kind": "missing_test"},
+    {"severity": "should_fix", "title": "The check-in question is worded as a conflict", "file": "web/src/lib/labels.ts:414", "input": "on_opt(job(confirmed_on=\"2026-08-31\")), question checkin.w1", "what_happens": "questionTitle gives 'Job 1: Some facts entered do not fit together.'; nothing conflicts, and the check-in words of G8 are missing.", "kind": "wording"},
+    {"severity": "should_fix", "title": "Trip window labels copy the numbers by hand and read as instructions", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2142", "input": "any trip: 'Return from a temporary absence of five months or less', 'Return with a Form I-20 endorsed for reentry within the last six months' (line 2163)", "what_happens": "The five and six copy travel.absence_months and travel.opt_signature_months; other window labels say 'the rule's days'. 'Return ...' is an instruction where fix0 asked for labels that state the date only.", "kind": "wording"},
+    {"severity": "should_fix", "title": "Watch reads passport and visa lists never asked whole", "file": "engine/path.py:2125", "input": "case with complete.passport and complete.visa removed", "what_happens": "No passport or visa row and no complete question; watch[] is soonest first and G10 will read its first row, a first over a list not stated whole (point 14). Neither kind has a complete_label.", "kind": "spec_gap"},
+    {"severity": "should_fix", "title": "Date order conflicts in the new records are not asked", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:1670", "input": "ad2 since 2026-09-25 moved from ad1 since 2026-09-28; ad2.previous = ad2; visa issued 2026-01-01 expiring 2025-01-01; reported_on 2026-09-01 before a move on 2026-09-25", "what_happens": "Each is accepted with no question: the window or watch row is shown as for a record that fits.", "kind": "other"},
+    {"severity": "should_fix", "title": "A trip leaving before the card and returning on it has no signature window", "file": "rulepacks/f1-us/v2026.09/parameters.yaml:2158", "input": "trip left 2026-05-20, returned 2026-06-10, signature 2026-05-01, OPT card from 2026-06-01", "what_happens": "No trip_opt stage, while the check trip.signature_for_opt_return (selected by the return) still judges the trip; the stage and the check select different trips.", "kind": "spec_gap"},
+    {"severity": "note", "title": "Smaller points", "file": "engine/path.py:2118", "input": "replaced passport expired 2026-01-01; pending OPT application; trip on OPT; hours 200", "what_happens": "A passed date stays close and sorts first; a pending card end gives a null watch row with nothing asked (declared not_yet); (f)(17) counted from since and (f)(4) applied on OPT are unmarked readings; hours above 168 are counted.", "kind": "other"}
+  ],
+  "decision": "VETO"
 }
