@@ -1,0 +1,67 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the W2-P2 review veto (reviews/w2-p2.md, findings 1 to 11): no count runs on an unconfirmed job, the limit day stops where the count stops, two unlinked addresses are a question, a trip whose span does not fit shows no dates, contradictory dates in the new records are asked, and the trip signature stage follows the student who returns, as (f)(13)(ii) says. SPEC-W2 points 45 and 46, SPEC-W2-UNKNOWN points 2, 6, 14 and 32a, D74, D92.'
+merge: local
+audited: false
+rounds:
+- name: tests-and-content
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-p2.md. Write tests named test_review<N>_... for each finding, failing today, each date worked by hand, with the point beside it: review1, a job with no confirmed_on: the count is withheld with waits_on w1.confirmed_on and confirmed_on is asked (state absent), never counted through today; review2, a job that ended 2026-08-01, confirmed 2026-07-15: the count is 30 as of 2026-07-15 and the limit day is withheld or dated within the confirmed days, never a past day the count does not reach (also mutant M1 of the review: a case where the count grows after the confirmed day); review3, two addresses with no previous link: a question (conflict) and no report shown as settled; review4, a trip with returned_on before left_on: its windows are withheld with waits_on the conflict; review8, passport and visa lists not stated whole: complete.passport and complete.visa asked and the watch waits on them; review9, each contradiction the review lists (a move before the address it left began, previous naming itself, a visa that expires before it was issued, a report before its move): each asked as a conflict; review10, a trip that leaves before the OPT card and returns during it gets the signature window, and a trip with no return date has the window waiting on the return (asked, D92); review_hours, an hours figure above 168 a week is unreadable and asked. Update every other test whose case leaves confirmed_on out but expects a count: give it confirmed_on, as the app will write it. Never loosen an assertion. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_records.py --co -q >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Read reviews/w2-p2.md findings 3, 7, 8 and 10 and the notes. (3) address.previous: when_absent ask, not none, so an address with no link is asked unless the person states it is the first (keep the first-address statement as an explicit choice if the pack has a way, else ask); (7) the trip window labels state the date only and never write the rule''s number by hand: name the rule''s months instead (as every other window label does), no instruction to the person; (8) give passport and visa a complete_label, so their lists are asked whole; (10) the stage trip_opt selects by an OPT or STEM card that covers outer.returned_on again, as (f)(13)(ii) speaks of the student who returns (this reverses plan-w2-p2-fix1; a trip with no return date is asked, D92); notes: mark as readings, with plain words, that the (f)(17) report counts from the first day at the new address and that the absence limit of (f)(4) is applied to a student on OPT. Declare work.confirmed_on and petition.confirmed_on as ask, with labels that say the app records the day the person confirmed the record. No number changes; recheck --check must pass.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+  checks:
+  - name: sources
+    run: uv run python -m tools.sources.verify rulepacks
+- name: engine-counts
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-p2.md findings 1, 2 and 5. engine/path.py: _confirmed reads an absent confirmed_on as unknown and asks it (point 2), so a count resting on it is withheld with waits_on, never counted through today; the limit day of a counter stops where the count stops (N3): it never counts days after the last confirmed day, and is withheld when the count is. Generic, nothing about F-1 in engine code. Make the review1, review2 and review5 tests and every other engine test except the review3, review4, review8, review9, review10 and review_hours tests pass; the whole command takes about two and a half minutes, so run single tests while you work.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q -k "not review3 and not review4 and not review8 and not review9 and not review10 and not review_hours" && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: engine-records
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-p2.md findings 3, 4, 8, 9 and 10 and the hours note. engine/path.py: a stage whose span conflicts withholds every window it dates (point 32a), not only its own dates; run_watch reads each list through the whole-list rule (point 14: a list not stated whole leaves the soonest date unknown and asks complete.<kind>); a date order that does not fit in a record or between linked records (the four the review lists) is a conflict asked by name; an hours figure above the hours in a week is unreadable. Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - lane: L-web
+    agent: builder
+    mission: 'reviews/w2-p2.md finding 6: web/src/lib/labels.ts gives the check-in question (id checkin.<record>) its own words, a check-in in the gap map''s words (for a job: still with this employer and about these hours a week, with the record''s own values), never the conflict fallback; a test in web/src/lib beside the others. Copy rules hold.'
+    done: bash -c 'npm run typecheck -w web && npm test -w web -- src/ && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: samples
+  steps:
+  - lane: L-web
+    run: make samples
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with plan-w2-p2-fix2.yaml (reviews/w2-p2.md); write the finding beside each change; never loosen an assertion; escalate any failure no finding explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and make npm test -w web pass, changing only tests plan-w2-p2-fix2.yaml requires, with the finding beside each.'
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review W2-P2 (plan-w2-p2.yaml and its fixes 0 to 2) against SPEC-W2 points 45, 46 and 50, SPEC-W2-UNKNOWN, D74, D92 to D94, PRINCIPLES.md and BOUNDARY.md and your findings in reviews/w2-p2.md. Rerun every input you named and mutant M1. Write reviews/w2-p2.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p2.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P2 (plan-w2-p2.yaml and its fixes) as your role file describes. Write docs/requirements/audits/w2-p2.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p2.md && uv run python -m tools.requirements.register check'
