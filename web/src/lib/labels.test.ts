@@ -816,6 +816,10 @@ describe("questions the pack can ask (ui-1 point 5)", () => {
       "report",
       "trip",
       "petition",
+      // SPEC-W2 point 45 (P4 to P7): the pack adds passport, visa and address records.
+      "passport",
+      "visa",
+      "address",
       "withdrawal",
       "term",
       "reduced_load",

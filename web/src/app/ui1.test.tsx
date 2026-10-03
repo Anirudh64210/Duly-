@@ -66,6 +66,8 @@ function idForms(): string[] {
 const WHY_LINES = [
   "No document is attached to these dates yet.",
   "Did you type these dates from your documents?",
+  // SPEC-W2 points 45 P4 and 50 (W2-P2): the sample's address list is not yet stated whole.
+  "Is this every address in the US, through today?",
   "Permission to work 1: Day the DSO signed or entered the recommendation",
   "Program of study 1: Was one full academic year done before the training began?",
   "Program of study 1: Does the program require CPT from the start?",
@@ -82,7 +84,8 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
   it("says under the headline how many answers are open", async () => {
     mount({ path: "/" });
     const hero = await screen.findByRole("region", { name: "Verdict" });
-    expect(lines(hero)).toEqual(["9 answers would let Duly go on with your dates."]);
+    // SPEC-W2 points 45 P4 and 50 (W2-P2): the sample's address list is not yet stated whole.
+    expect(lines(hero)).toEqual(["10 answers would let Duly go on with your dates."]);
   });
 
   it("shows each reason once under Why, in its own words", async () => {
@@ -109,14 +112,16 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     mount({ path: "/" });
     const section = await screen.findByRole("region", { name: "QUESTIONS FOR YOU" });
     const titles = [...section.querySelectorAll(".row-title")].map((t) => t.textContent);
-    expect(new Set(titles).size).toBe(9);
+    // SPEC-W2 points 45 P4 and 50 (W2-P2): the sample's address list is not yet stated whole.
+    expect(new Set(titles).size).toBe(10);
     expect(
       within(section).getAllByText("Asked because nothing is entered for it yet."),
     ).toHaveLength(8);
-    // The sample states every list whole, so no list question waits (SPEC-W2-UNKNOWN point 14).
+    // A list not stated whole waits (SPEC-W2-UNKNOWN point 14). SPEC-W2 points 45 P4 and 50
+    // (W2-P2): the sample states every list whole but the address list, so one waits.
     expect(
       within(section).queryAllByText("Asked because Duly waits for your answer before it goes on."),
-    ).toHaveLength(0);
+    ).toHaveLength(1);
     expect(
       within(section).getByText("Asked because some dates you typed are not checked yet."),
     ).toBeInTheDocument();
@@ -127,7 +132,8 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     const hero = await screen.findByRole("region", { name: "Verdict" });
     const order = [
       within(hero).getByRole("heading", { level: 1 }),
-      within(hero).getByText(/^9 answers/),
+      // SPEC-W2 points 45 P4 and 50 (W2-P2): one more answer, the address list.
+      within(hero).getByText(/^10 answers/),
       screen.getByRole("region", { name: "Counts" }),
       screen.getByRole("region", { name: "YOUR NEXT MOVE" }),
       screen.getByRole("region", { name: "QUESTIONS FOR YOU" }),

@@ -277,6 +277,34 @@ export const engineOutputSchema = z
     answers_read: z.array(z.string().regex(/^[a-z0-9_.:]+$/)).optional(),
     stages: z.array(stageSchema).optional(),
     checklists: z.array(checklistSchema).optional(),
+    // SPEC-W2 point 46 (N3, N4): records the person confirms again, dated by the engine.
+    checkins: z
+      .array(
+        z.strictObject({
+          record: z.string().regex(/^[a-z]{1,3}[0-9]{1,4}$/),
+          kind: z.string().regex(/^[a-z][a-z0-9_]{0,31}$/),
+          confirmed_on: dayOrNull,
+          due: dayOrNull,
+          due_days_away: z.number().int().nullable(),
+          question: z.string().regex(STAGE_ID),
+        }),
+      )
+      .optional(),
+    // SPEC-W2 point 45 (G10): the dates on the person's records to watch, soonest first.
+    watch: z
+      .array(
+        z.strictObject({
+          id: z.string().regex(STAGE_ID),
+          label: z.string(),
+          date: dayOrNull,
+          days_away: z.number().int().nullable(),
+          close: z.boolean(),
+          record: z.string().regex(/^[a-z]{1,3}[0-9]{1,4}$/),
+          rule_ids: z.array(z.string()).min(1),
+          status: z.enum(ITEM_STATUSES),
+        }),
+      )
+      .optional(),
   })
   // An item is never shown without the source of every rule it used.
   .refine(
@@ -288,6 +316,7 @@ export const engineOutputSchema = z
         ...(output.stages ?? []),
         ...(output.stages ?? []).flatMap((stage) => stage.windows ?? []),
         ...(output.checklists ?? []).flatMap((list) => list.steps),
+        ...(output.watch ?? []),
       ].every((entry) => entry.rule_ids.every((id) => Object.hasOwn(output.rules, id))),
     { message: "an item, a date ahead, or a list names a rule that has no source" },
   )
