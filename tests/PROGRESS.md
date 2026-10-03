@@ -4195,3 +4195,50 @@ Not built: nothing new; the mission asks for alignment, and every test already a
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-3368781d2d: W2-P2 fix4, tests for the second review (reviews/w2-p2.md)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p2.md, specs/step-w/plan-w2-p2-fix4.yaml,
+SPEC-W2-UNKNOWN points 5, 14, 30, 32a, 33, 34, contracts/engine_output.schema.json (window,
+watch, checkins, questions.withholds), pack address fields first_in_us and previous.
+
+Probed the engine on each review input (scratch scripts in $TMPDIR, not kept): the outputs match
+the review (trip window with no waits_on and its closing not in upcoming; A9 no question and no
+report window; A10, A14 reports dated, nothing asked; no complete.passport/visa with no record;
+watch.vi1 2025-01-01 -639 and watch.pp1 2026-01-01 -274 dated beside span_order conflicts; a job
+confirmed 2026-06-10 before its 2026-07-01 start counted 10 as of 2026-06-10, nothing asked). The
+M9 case is right on HEAD: 72 as of 2026-09-10, limit day null waiting on checkin.w1, which is
+asked with withholds naming the limit day.
+
+New tests in tests/unit/engine/test_w2_records.py, and what change would make each fail:
+- test_review2_1_...: trip.absence_limit.t1 2026-09-20 to 2027-02-20 (141 days away), waits_on
+  t1.returned_on, trip.absence_limit.closes.t1 in upcoming, stage trip.t1 not done, return
+  asked. Fails today; fails again if fix3's done_when block (M12's opposite) comes back.
+- test_review2_2_...[A9, A10, A14]: a question on the records at odds, asked as a conflict (state
+  conflict or conflict:<id> in the reasons), cannot_tell, every address.report window shown has
+  closes null and waits_on. Fails today; fails if the pack checks are dropped or a report is
+  dated beside the conflict.
+- test_review2_3_...: passes today; fails under M9 (checkin.w1 not asked, or not withholding the
+  limit day), or if the count runs past 2026-09-10.
+- test_review2_4_...: complete.passport and complete.visa asked (state list) with no record of
+  either kind. Fails today; fails if _use_kind is called only inside the loop over records.
+- test_review2_5_..._watch[visa, passport]: span_order.<id> asked as a conflict, watch row date
+  and days_away null, close false, the row id in the conflict question's withholds. Fails today;
+  fails if run_watch stops reading the clash.
+- test_review2_5_a_job_confirmed_before_it_began_is_a_conflict: a conflict question on w1. Fails
+  today; fails if the confirmed-before-start check is taken out.
+Changed: test_review4b, per finding 1 and point 30: with the return left out, the window's
+waits_on is the entered one plus t1.returned_on; dates and both items still equal the entered
+case. No other assertion touched.
+
+Ran: done command, exit 0 (ruff: All checks passed; 113 files already formatted; --co ok).
+pytest tests/unit/engine/test_w2_records.py: 11 failed (the 3 review4b cases and the 8 new
+failing cases above), every other test passed, review2_3 among them.
+
+Not built: no waits_on assertion on a watch row (the contract has none; the link is shown through
+withholds, see requests); no "watch waits on the list" assertion for finding 4, since with no
+record there is no row and the contract has no field to carry it; no new helper module (two small
+helpers sit beside their tests).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
