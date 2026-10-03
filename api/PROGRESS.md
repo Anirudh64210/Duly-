@@ -319,3 +319,15 @@ Goal: every CaseStructureError, the undeclared category included, is 422 CASE_ST
   test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
   sandbox). tests/unit/api all pass. mypy "Success: no issues found in 72 source files", ruff
   "All checks passed!", "12 files already formatted". Copy lint on api: clean.
+
+## Run l-api-0a1ee17b48 (review w2-unknown note 5, attempt 1)
+Goal: the 422 CASE_STRUCTURE words name the category, never the sent value.
+- tests/unit/api/test_case_structure.py::test_the_words_for_an_undeclared_category_name_the_category
+  needs "category" in the detail, and still never "h1b".
+- api/case.py: CASE_STRUCTURE now opens its list with "a category the case lists". One string
+  changed; no new detail, no per-fault words (point 39 keeps one detail that repeats nothing sent).
+- Copy lint: clean. tests/unit/api alone: exit 0.
+- Done command, run as written: exit 1. 15 failed, all in tests/unit/desktop_entry/
+  test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
+  sandbox). mypy "Success: no issues found in 72 source files", ruff "All checks passed!",
+  "12 files already formatted".
