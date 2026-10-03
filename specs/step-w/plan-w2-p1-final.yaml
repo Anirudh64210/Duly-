@@ -1,0 +1,18 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Close W2-P1: re-review the dates the Plan screen needs (SPEC-W2 points 45, 46 and 49) on the engine as the unknown-values work left it (SPEC-W2-UNKNOWN, approved), checking every finding of the three W2-P1 reviews, and audit it.'
+merge: local
+audited: false
+rounds:
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Final review of W2-P1: everything plan-w2-p1.yaml, plan-w2-p1-fix.yaml and plan-w2-p1-fix2.yaml changed, as it now stands after the unknown-values work (SPEC-W2-UNKNOWN, approved in reviews/w2-unknown.md), against SPEC-W2 points 45, 46 and 49, D92 to D94, PRINCIPLES.md and BOUNDARY.md. Read the three earlier W2-P1 reviews in the git history of reviews/w2-p1.md and check each finding by its input (S1, O1, S2, D4, C, the w3 end table, the hours table, M5, M7, M9, M16, M18, M20). Work the dates by hand against the saved words. Write reviews/w2-p1.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p1.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P1 (plan-w2-p1.yaml and its fixes, and the unknown-values work it rests on) as your role file describes. Write docs/requirements/audits/w2-p1.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p1.md && uv run python -m tools.requirements.register check'
