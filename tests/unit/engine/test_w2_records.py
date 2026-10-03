@@ -983,9 +983,11 @@ def test_review4b_a_trip_with_its_return_left_out_still_shows_the_absence_limit(
     # The absence limit rests on left_on only: every return day on or after the departure
     # (the departure itself, the journey's own return, 2099-12-31) gives the same window. A
     # span's order conflict comes only from entered dates, so a return left out is no possible
-    # conflict: the window keeps its values and waits on nothing more, and t1.returned_on is
-    # asked. The review4 test keeps the other side: a return entered before the departure
-    # withholds the window. Today the window waits on t1.returned_on.
+    # conflict: the window keeps its dates and t1.returned_on is asked. The review4 test keeps
+    # the other side: a return entered before the departure withholds the window.
+    # Changed for reviews/w2-p2.md (second review) finding 1 and SPEC-W2-UNKNOWN point 30: the
+    # window's done step rests on the return, so with it left out the window is not done and
+    # its waits_on names t1.returned_on as well; its dates and both items stay as entered.
     def run(returned_on: str | None) -> dict[str, Any]:
         case = getattr(test_journeys, journey)()
         t1 = next(r for r in case["records"] if r["id"] == "t1")["fields"]
@@ -1005,7 +1007,8 @@ def test_review4b_a_trip_with_its_return_left_out_still_shows_the_absence_limit(
     for back in (left, "2099-12-31"):
         assert absence_of_t1(run(back)) == entered, back
     left_out = run(None)
-    assert absence_of_t1(left_out) == entered
+    waiting = sorted({*window[2], "t1.returned_on"})
+    assert absence_of_t1(left_out) == ((window[0], window[1], waiting), opens, closing)
     assert_asked(left_out, "t1", "returned_on", "absent")
 
 
@@ -1135,3 +1138,195 @@ def test_review_hours_a_whole_week_of_hours_is_counted() -> None:
     )
     assert items(out)["unemployment.opt_card.a1"]["value"] == 30
     assert "w1.hours_per_week" not in {q["id"] for q in out["questions"]}
+
+
+# reviews/w2-p2.md, the second review (VETO), findings 1 to 5 and its notes (plan-w2-p2-fix4).
+# Each case gives the input the review ran; written before the fix, so each fails today but
+# review2_3, which pins what HEAD already does and fails only under the review's mutant M9.
+
+
+def test_review2_1_a_trip_with_no_return_keeps_its_absence_window_open_and_upcoming() -> None:
+    # Finding 1 (blocking); SPEC-W2-UNKNOWN point 30 ("All N: not done. Otherwise the window
+    # keeps its dates ..., stays in upcoming and open items, and carries waits_on naming the
+    # gap"), point 33, D92 (point 61). Program p1 in progress to 2027-05-15, home address, t1
+    # left 2026-09-20, no return; today 2026-10-02. Five months on (8 CFR 214.2(f)(4), "five"):
+    # Oct, Nov, Dec, Jan, Feb: 2027-02-20. Days away: 29 reach Oct 31, 59 Nov 30, 90 Dec 31,
+    # 121 Jan 31, 141 Feb 20. The return is not known, so the window is not done: it keeps both
+    # dates, waits on t1.returned_on (asked), and its closing day is in upcoming. Today it shows
+    # no waits_on and the closing day is not in upcoming (read as done on a guess).
+    assert months_after(date(2026, 9, 20), absence_months()) == date(2027, 2, 20)
+    assert date(2027, 2, 20) - TODAY == timedelta(days=141)
+    records = [masters(state="in_progress", end="2027-05-15"), home(), trip(left_on="2026-09-20")]
+    out = compute(f1_case(records), [pack()], TODAY)
+    w = one_window(out, "trip.absence_limit")
+    assert (w["id"], w["opens"], w["closes"], w["closes_days_away"]) == (
+        "trip.absence_limit.t1",
+        "2026-09-20",
+        "2027-02-20",
+        141,
+    )
+    assert "t1.returned_on" in w.get("waits_on", []), w
+    upcoming = {(u["id"], u["date"]) for u in out["upcoming"]}
+    assert ("trip.absence_limit.closes.t1", "2027-02-20") in upcoming, upcoming
+    assert all(s.get("state") != "done" for s in out["stages"] if s["id"] == "trip.t1")
+    assert_asked(out, "t1", "returned_on", "absent")
+
+
+def assert_asked_as_conflict(out: dict[str, Any], records: set[str]) -> None:
+    """SPEC-W2-UNKNOWN points 5 and 34: facts that do not fit are a question about the record,
+    asked as a conflict (state conflict, or raised as conflict:<question id>), and cannot_tell."""
+    found = [
+        q
+        for q in out["questions"]
+        if q.get("record") in records
+        and (q.get("state") == "conflict" or f"conflict:{q['id']}" in out["verdict"]["reasons"])
+    ]
+    assert found, out["questions"]
+    assert out["verdict"]["state"] == "cannot_tell"
+
+
+def first_in_us() -> str:
+    """The address field that states "the first address in the US" (pack data, K6)."""
+    found: list[str] = [
+        f["id"]
+        for f in record_decl("address")["fields"]
+        if f["kind"] == "choice" and "first" in f["id"]
+    ]
+    assert len(found) == 1, found
+    return found[0]
+
+
+def address_n(n: int, since: str, **fields: Any) -> dict[str, Any]:
+    _, moved = address_window()
+    return rec(rid("address", n), "address", **{moved: since}, **fields)
+
+
+# Finding 2 (blocking) and the notes A10, A14; SPEC-W2-UNKNOWN point 5, D74, 8 CFR 214.2(f)(17)
+# ("within 10 days of the change"). Program p1 in progress to 2027-05-15, lists stated whole.
+# Each record says something another record (or the same one) cannot also be true of:
+# - A9: ad1 (since 2025-08-15) and ad2 (since 2026-09-25) each stated first in the US. Only one
+#   can be; a move happened by 2026-09-25, whose report would close 2026-10-05 (5 days reach
+#   Sep 30, 5 more Oct 5). Today: no question, no report window.
+# - A10: ad2 (since 2026-09-25) stated first in the US and also naming ad1 as the address moved
+#   from. Today: report 2026-10-05 shown with nothing asked.
+# - A14: ad2 (since 2026-09-20) and ad3 (since 2026-09-25) both name ad1 as moved from: one
+#   address left twice. Today: reports 2026-09-30 (20 + 10: Sep 30) and 2026-10-05 shown, with
+#   nothing asked.
+# Each is a conflict asked by name on the records that do not fit, and no report is shown as
+# settled: every report window shown has no closing day and waits on what it rests on.
+def a9() -> tuple[list[dict[str, Any]], set[str]]:
+    first = {first_in_us(): "yes"}
+    return [address_n(1, "2025-08-15", **first), address_n(2, "2026-09-25", **first)], {
+        rid("address"),
+        rid("address", 2),
+    }
+
+
+def a10() -> tuple[list[dict[str, Any]], set[str]]:
+    second = address_n(2, "2026-09-25", **{first_in_us(): "yes", moved_from(): rid("address")})
+    return [address_n(1, "2025-08-15"), second], {rid("address", 2)}
+
+
+def a14() -> tuple[list[dict[str, Any]], set[str]]:
+    left = {moved_from(): rid("address")}
+    return [
+        address_n(1, "2025-08-15", **{first_in_us(): "yes"}),
+        address_n(2, "2026-09-20", **left),
+        address_n(3, "2026-09-25", **left),
+    ], {rid("address", 2), rid("address", 3)}
+
+
+@pytest.mark.parametrize("case", [a9, a10, a14], ids=["A9", "A10", "A14"])
+def test_review2_2_addresses_that_cannot_all_be_true_are_a_conflict(case: Any) -> None:
+    window_id, _ = address_window()
+    assert date(2026, 9, 25) + timedelta(days=address_days()) == date(2026, 10, 5)
+    assert date(2026, 9, 20) + timedelta(days=address_days()) == date(2026, 9, 30)
+    addresses, at_odds = case()
+    out = compute(
+        f1_case([masters(state="in_progress", end="2027-05-15"), *addresses]), [pack()], TODAY
+    )
+    assert_asked_as_conflict(out, at_odds)
+    for w in windows_named(out, window_id):
+        assert w["closes"] is None, w
+        assert w.get("waits_on"), w
+
+
+def test_review2_3_a_check_in_a_limit_day_waits_on_is_asked_before_it_is_due() -> None:
+    # Finding 3 (mutant M9: a check-in asked only when due); SPEC-W2 point 46 (N3),
+    # SPEC-W2-UNKNOWN point 34 (each waits_on entry is a question id in questions). Card
+    # 2026-06-01 to 2027-05-31; w1 2026-06-01 to 2026-06-30, confirmed 2026-09-10. Days without
+    # work through 2026-09-10: Jul 31 + Aug 31 + Sep 10 = 72, as of 2026-09-10. The 90th would
+    # be 18 days on, 2026-09-28 (Sep 11 to 28), after the confirmed day, so the limit day is not
+    # known and waits on checkin.w1. The check-in is due 30 days on: 20 reach Sep 30, 10 more
+    # 2026-10-10, 8 days away, not yet due; it is asked all the same, withholding the limit day.
+    # Passes on HEAD; fails under M9, where the limit day waits on a question never asked.
+    assert 31 + 31 + 10 == 72
+    assert date(2026, 9, 10) + timedelta(days=unemployment_limit() - 72) == date(2026, 9, 28)
+    assert date(2026, 9, 10) + timedelta(days=JOB_DAYS) == date(2026, 10, 10)
+    out = compute(
+        f1_case(on_opt(job(start="2026-06-01", end="2026-06-30", confirmed_on="2026-09-10"))),
+        [pack()],
+        TODAY,
+    )
+    count = items(out)["unemployment.opt_card.a1"]
+    assert (count["value"], count.get("as_of")) == (72, "2026-09-10")
+    limit = items(out)["unemployment.opt_card.a1.limit_day"]
+    assert limit["value"] is None
+    assert "checkin.w1" in limit.get("waits_on", []), limit
+    c = checkin_of(out, "w1")
+    assert (c["question"], c["due"], c["due_days_away"]) == ("checkin.w1", "2026-10-10", 8)
+    asked = question(out, "checkin.w1")
+    assert "unemployment.opt_card.a1.limit_day" in asked.get("withholds", []), asked
+
+
+def test_review2_4_no_passport_or_visa_entered_and_those_lists_not_stated_are_asked() -> None:
+    # Finding 4; SPEC-W2-UNKNOWN point 14 ("none found" needs the list stated whole). The first
+    # review's finding 8 input with no passport and no visa entered and complete.passport and
+    # complete.visa taken out: a document not entered could run out before every date shown, so
+    # each list is asked whole (state list) and the verdict is cannot_tell. Today neither is
+    # asked: _use_kind runs only over a kind that has a record.
+    case = documents_case("2027-06-01", "2027-06-01")
+    case["records"] = [r for r in case["records"] if r["kind"] not in {"passport", "visa"}]
+    for kind in ("passport", "visa"):
+        del case["complete"][kind]
+    out = compute(case, [pack()], TODAY)
+    for kind in ("passport", "visa"):
+        assert question(out, f"complete.{kind}").get("state") == "list"
+    assert out["verdict"]["state"] == "cannot_tell"
+
+
+@pytest.mark.parametrize(
+    ("kind", "issued", "expires"),
+    [("visa", "2026-01-01", "2025-01-01"), ("passport", "2030-01-01", "2026-01-01")],
+)
+def test_review2_5_a_document_whose_dates_conflict_is_never_dated_on_the_watch(
+    kind: str, issued: str, expires: str
+) -> None:
+    # Finding 5; SPEC-W2-UNKNOWN points 32a and 33. W6: a visa issued 2026-01-01 that expires
+    # 2025-01-01, a year before it; W7: a passport issued 2030-01-01 that expires 2026-01-01.
+    # Either day may be the wrong one, so span_order.<id> is asked and the watch row dated from
+    # that record is withheld: date and days_away null, close false, and the conflict question
+    # names the row among what it holds back (the watch row has no waits_on in
+    # contracts/engine_output.schema.json; see requests). Today the visa row shows 2025-01-01,
+    # -639 days, close, and the passport row 2026-01-01, -274.
+    ends = {"passport": "2027-06-01", "visa": "2027-06-01"}
+    ends[kind] = expires
+    case = documents_case(ends["passport"], ends["visa"])
+    doc = next(r for r in case["records"] if r["kind"] == kind)
+    doc["fields"]["issued_on"] = issued
+    out = compute(case, [pack()], TODAY)
+    clash = question(out, f"span_order.{rid(kind)}")
+    assert clash.get("state") == "conflict"
+    assert out["verdict"]["state"] == "cannot_tell"
+    row = watch_of(out, rid(kind))
+    assert (row["date"], row["days_away"], row["close"]) == (None, None, False), row
+    assert row["id"] in clash.get("withholds", []), clash
+
+
+def test_review2_5_a_job_confirmed_before_it_began_is_a_conflict() -> None:
+    # The second review's note; SPEC-W2-UNKNOWN point 5. w1 starts 2026-07-01 and is confirmed
+    # 2026-06-10, 21 days before it began: likely a typing slip, asked as a conflict on w1.
+    # Today it is counted to 10 days (Jun 1 to 10) as of 2026-06-10 with nothing asked.
+    assert date(2026, 7, 1) - date(2026, 6, 10) == timedelta(days=21)
+    out = compute(f1_case(on_opt(job(confirmed_on="2026-06-10"))), [pack()], TODAY)
+    assert_asked_as_conflict(out, {"w1"})
