@@ -1,83 +1,58 @@
 {
-  "run_id": "l-review-bbceb25fc8",
-  "reviewed_commit": "83fddf1",
-  "scores": {
-    "correct": {
-      "score": 4,
-      "evidence": "Every SPEC input from the last review now gives what the SPEC says (R16 A-C, R34 both ways, R36, category 422, D4 withholds); 40 of 40 R rows pass; hand dates match. Off the SPEC inputs, a check's holds decides on an absent ask field (finding 1)."
-    },
-    "sourced": {
-      "score": 5,
-      "evidence": "No rule or number changed; sources verify clean; R14, R16 B, R36 and J15 validation_4 dates worked by hand match the saved quotes and test comments; D94 words now follow the pack declarations."
-    },
-    "never_assumes": {
-      "score": 3,
-      "evidence": "Selections, only_if, happened dates, history and list statements now ask. A check's holds still reads an absent ask field as known none: present true raises conflict:tree.c1, present false passes quietly, nothing asked (finding 1, toy pack, TMPDIR/rvu2/holds.py)."
-    },
-    "inside_the_boundary": {
-      "score": 5,
-      "evidence": "The only screen change removes two misleading empty-field strings; no new string states a conclusion about a person; copy lint clean."
-    },
-    "secure": {
-      "score": 5,
-      "evidence": "A record category the case does not list now gives 422 CASE_STRUCTURE through POST /v1/compute; unreadable dates, numbers, choices and links are taken in and asked; no input found that crashes or stalls compute."
-    },
-    "tested": {
-      "score": 3,
-      "evidence": "Every R row is a test and the mutants profile exists; but U11, U25, U26 and U21b survive every example and M9, M15, M16, M20 survive the properties (finding 2); the non-vacuity test fails under the mutants profile (finding 4)."
-    }
+ "run_id": "l-review-e4f7024f0e",
+ "reviewed_commit": "76a47db",
+ "scores": {
+  "correct": {
+   "score": 5,
+   "evidence": "40 of 40 R rows pass; holds probes (TMPDIR/rvu3/holds2.py) give the SPEC answer for flag, count, date, choice and link fields absent, not_sure and unreadable; declared-none and Kleene any_of/not cases right; the 20 journeys are byte-identical to 83fddf1."
   },
-  "findings": [
-    {
-      "severity": "blocking",
-      "kind": "other",
-      "spec_point": "2",
-      "title": "A check's holds reads an absent ask field as none under present, raising a conflict or passing quietly",
-      "file": "engine/path.py:746-750",
-      "input": "Toy pack check_pack with holds {field: this.online, present: true}, then present: false, then not present: true; TOY_SEED with c1.online left out (an ask flag). TMPDIR/rvu2/holds.py.",
-      "what_happens": "present true gives conflict:tree.c1 with no question on c1.online; present false and not present give no conflict and no question. Points 2 and 32 say U, no conflict, the gap asked. Mutant U21b (removing the exception) fails no example test. Not reachable in the shipped pack today."
-    },
-    {
-      "severity": "blocking",
-      "kind": "missing_test",
-      "spec_point": "52",
-      "title": "Point 52 mutants U11, U25, U26, U21b survive every example; M9, M15, M16, M20 survive the properties",
-      "file": "tests/unit/engine/test_w2_unknown.py, tests/unit/engine/test_w2_unknown_stages.py",
-      "input": "TMPDIR/rvu2/mut.py against the example files and the property files with --hypothesis-profile mutants. U11 input the engine gets right but no test holds: R16 C with filed_on 2026-05-01 (opt.apply_window.a1 null, waits on ec1.granted_on). U26: R36's third clause, two filing closes, one known and past and one U.",
-      "what_happens": "Each listed mutant leaves its files green. Point 52 asks each mutant killed by at least one property and one example."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "overbuilt",
-      "title": "_tri and _known wrap all3, any3 and not3 and unwrap them at once",
-      "file": "engine/path.py:184-190, 726-819",
-      "input": "Any condition read: _cond, _all, _any.",
-      "what_happens": "Results become Unknown on _gaps(tr, None), pass through all3, any3 or not3, and return to bool | None at once. The gaps are dropped, and the result is the same as the old three lines. Point 12's 'gap travels with the U' is not met. Carry Tri through, or remove the two helpers."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "missing_test",
-      "title": "The non-vacuity test fails under the mutants profile point 52 names",
-      "file": "tests/unit/engine/test_w2_unknown_props.py:285, tests/conftest.py",
-      "input": "The point 52 set with no mutant and --hypothesis-profile mutants (TMPDIR/rvu2/src).",
-      "what_happens": "test_the_properties_saw_each_output_kind_known_and_changed fails with counts under 5, so every mutant would read as killed. Skip it under the profile, or scale the floor."
-    },
-    {
-      "severity": "note",
-      "kind": "wording",
-      "title": "The 422 for a category fault does not name the category",
-      "file": "api/main.py:90-95",
-      "input": "J06 through POST /v1/compute with records[0].category h1b.",
-      "what_happens": "422 CASE_STRUCTURE. The detail lists kind, fields, id prefix, counts and facts, but not the category that is wrong."
-    },
-    {
-      "severity": "note",
-      "kind": "spec_gap",
-      "title": "A part-time pre-completion OPT always withholds the months-at-level count (carried)",
-      "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
-      "input": "R24's case.",
-      "what_happens": "opt.months_at_level.span_not_known.a1 is raised, as point 22a says. The pack's scope could leave such cards out. This is for L-content."
-    }
-  ],
-  "decision": "VETO"
+  "sourced": {
+   "score": 5,
+   "evidence": "No rule or number changed; sources verify clean; R16 C (2026-05-17 to 2026-10-14), R36 toy (2025-06-10, 2026-06-30) and U25 toy (2027-06-30) worked by hand match 8 CFR 214.2(f)(11)(i)(B) and the test comments."
+  },
+  "never_assumes": {
+   "score": 5,
+   "evidence": "A check's holds now asks an absent, undecided or unreadable field with its state in every probe and raises no conflict; only a field declared none reads as none (point 2)."
+  },
+  "inside_the_boundary": {
+   "score": 5,
+   "evidence": "The only new person-facing string is the 422 CASE_STRUCTURE detail, which names the category, echoes nothing sent and passes copy lint."
+  },
+  "secure": {
+   "score": 5,
+   "evidence": "A category fault is still 422 with no echo of the sent value; no probe crashed or stalled compute; mypy, ruff and engine_literals clean."
+  },
+  "tested": {
+   "score": 2,
+   "evidence": "Every named mutant is killed by an example and the non-vacuity test is skipped only under the mutants profile, but U10, U12, U16, U21, U22, U23b, U24, U25 and U26 survive every property under --hypothesis-profile mutants (finding 1)."
+  }
+ },
+ "findings": [
+  {
+   "severity": "blocking",
+   "kind": "missing_test",
+   "spec_point": "52",
+   "title": "Nine named point 52 mutants survive every property under the mutants profile",
+   "file": "tests/unit/engine/test_w2_unknown_props.py, tests/unit/engine/test_unknown_logic.py:397",
+   "input": "TMPDIR/rvu3/mut.py props set with --hypothesis-profile mutants on a full HEAD copy; the no-mutant baseline passes with only the non-vacuity test skipped.",
+   "what_happens": "U10, U12, U16, U21 (and U21b), U22, U23b, U24, U25 and U26 leave both property files green; each is killed by an example. P6 draws a leaf's U only as not_sure (test_unknown_logic.py:397), so present on an absent ask field (U21) is invisible to every property. The last review ran only the first ten mutants against the properties, so it did not list these."
+  },
+  {
+   "severity": "note",
+   "kind": "other",
+   "title": "Two test_path_reach assertions reversed, rightly",
+   "file": "tests/unit/engine/test_path_reach.py:765, 825",
+   "input": "A low course with left_on (an ask field in that file's pack, line 94) left out, under toy.high_or_left and toy.low_left.",
+   "what_happens": "The expectation moved from a conflict to missing:c1.left_on with no conflict. Point 2 makes the new one right; it is a reversal, not a loosening."
+  },
+  {
+   "severity": "note",
+   "kind": "spec_gap",
+   "title": "A part-time pre-completion OPT always withholds the months-at-level count (carried)",
+   "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
+   "input": "R24's case.",
+   "what_happens": "opt.months_at_level.span_not_known.a1 is raised, as point 22a says. For L-content."
+  }
+ ],
+ "decision": "VETO"
 }
