@@ -19,11 +19,11 @@ regimes:
   - id: fixed_admission_2026
     legal_status: enjoined
     operative: false
-    note: "Final rule: 91 FR 44976 (FR Doc. 2026-14439), published 2026-07-17, stated effective date 2026-09-15, saved as sources/fr-2026-14439.xml. Order of 2026-09-14, document 51 in Presidents Alliance on Higher Education and Immigration v. United States Department of Homeland Security, No. 1:26-cv-13799 (D. Mass.): paragraph 3 postpones the effective date under 5 U.S.C. 705 and paragraph 4 is quoted here. The snapshot is text extracted from the saved PDF beside it. Status as of 2026-09-28: the docket listing saved that day shows no later order, and no appeal was found. The 2026-09-15 point-in-time text carries the amendments even though the effective date is postponed. Paragraph 1(a) of the order names the Final Rule by its title, Establishing a Fixed Time Period of Admission and an Extension of Stay Procedure for Nonimmigrant Academic Students, Exchange Visitors, and Representatives of Foreign Information Media. Paragraph 3 says the effective date of the Final Rule is postponed pending further order of this court or resolution of this proceeding on the merits. History from the docket listing fetched 2026-10-02, saved as sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json: on 2026-09-30 the defendants filed a notice of appeal as to document 50, the memorandum and order of 2026-09-14 (ECF 53); the record on appeal was sent to the Court of Appeals the same day (ECF 54); and the First Circuit case number is 26-2112 (ECF 55). The listing shows no entry for a stay of the order. The words Status as of 2026-09-28 above are kept as written that day; the appeal is recorded here. The founder reviewed this docket listing (D90, accepting SPEC-FEED point 69): legal_status stays enjoined and operative stays false, since no order of a court has changed the order of 2026-09-14, and the status tag is unchanged. The listing this rests on was fetched at 2026-10-02T06:09Z, and again at 06:25Z with the same bytes. That is before the status conference the listing sets for 2026-10-02 at 12:00 PM in Boston (ECF 52), which is 16:00Z. Any order from that conference is not covered by this listing, and checked_on 2026-10-02 does not cover it."
+    note: "Final rule: 91 FR 44976 (FR Doc. 2026-14439), published 2026-07-17, stated effective date 2026-09-15, saved as sources/fr-2026-14439.xml. Order of 2026-09-14, document 51 in Presidents Alliance on Higher Education and Immigration v. United States Department of Homeland Security, No. 1:26-cv-13799 (D. Mass.): paragraph 3 postpones the effective date under 5 U.S.C. 705 and paragraph 4 is quoted here. The snapshot is text extracted from the saved PDF beside it. Status as of 2026-09-28: the docket listing saved that day shows no later order, and no appeal was found. The 2026-09-15 point-in-time text carries the amendments even though the effective date is postponed. Paragraph 1(a) of the order names the Final Rule by its title, Establishing a Fixed Time Period of Admission and an Extension of Stay Procedure for Nonimmigrant Academic Students, Exchange Visitors, and Representatives of Foreign Information Media. Paragraph 3 says the effective date of the Final Rule is postponed pending further order of this court or resolution of this proceeding on the merits. History from the docket listing fetched 2026-10-02, saved as sources/recheck-2026-10-02/courtlistener-docket-74661796-entries-2026-09-28.json: on 2026-09-30 the defendants filed a notice of appeal as to document 50, the memorandum and order of 2026-09-14 (ECF 53); the record on appeal was sent to the Court of Appeals the same day (ECF 54); and the First Circuit case number is 26-2112 (ECF 55). The listing shows no entry for a stay of the order. The words Status as of 2026-09-28 above are kept as written that day; the appeal is recorded here. The founder reviewed this docket listing (D90, accepting SPEC-FEED point 69): legal_status stays enjoined and operative stays false, since no order of a court has changed the order of 2026-09-14, and the status tag is unchanged. The listing this rests on was fetched at 2026-10-02T06:09Z, and again at 06:25Z with the same bytes. That is before the status conference the listing sets for 2026-10-02 at 12:00 PM in Boston (ECF 52), which is 16:00Z. Any order from that conference is not covered by this listing, and checked_on 2026-10-02 does not cover it. History from the docket listing fetched 2026-10-03 at 05:56Z, saved as sources/recheck-2026-10-03/courtlistener-docket-74661796-entries-2026-09-28.json: entry 56, filed 2026-10-02, reads Electronic Clerk's Notes for proceedings held before District Judge F. Dennis Saylor, IV: Status Conference held on 10/2/2026. Parties update the court; Proposed schedule and pathway forward due for submission by October 9, 2026. The listing also has an entry without a number on 2026-10-02, headed Status Conference, with no text. It shows no order after ECF 51 that changes it and no entry for a stay. The founder checked this listing: legal_status stays enjoined, operative stays false and the status tag is unchanged, and checked_on moves to 2026-10-03. The order of 2026-09-14 came back the same in the 2026-10-03 fetch. Anything filed after 05:56Z on 2026-10-03, including the schedule due by October 9, 2026, is not covered."
     source:
       citation: "Preliminary Injunction Order Postponing Effective Date of Final Rule, No. 1:26-cv-13799 (D. Mass. Sept. 14, 2026), ECF No. 51"
       url: "https://www.courtlistener.com/docket/74661796/51/presidents-alliance-on-higher-education-and-immigration-v-united-states/"
-      checked_on: 2026-10-02
+      checked_on: 2026-10-03
       quote: "Defendants are preliminarily enjoined from taking any further action to implement the Final Rule pending further order of this court or resolution of this proceeding on the merits."
       snapshot: sources/mad-1-26-cv-13799-doc51-order.txt
       snapshot_sha256: c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399
@@ -1461,6 +1461,57 @@ parameters:
     note: "The quote is the first sentence of paragraph (f)(17), headed Current name and address (D74). The next sentence says a student can satisfy the requirement in 8 CFR 265.1 of notifying DHS by providing a notice of a change of address within 10 days to the DSO, and that the DSO must enter it in SEVIS within 21 days; the 21 days are the DSO's and are not recorded as a row. The paragraph then says the address must be the actual physical location where the student resides, except for a student who cannot receive mail there. The manner of the notice is the school's; the 10 days are the regulation's. 8 CFR 265.1, named in the paragraph, is not saved and was not read. Paragraph (f)(12)(ii)(A), recorded as stem.report_change_within_days, gives a student with an approved 24-month OPT extension the same 10 days for a change of residential or mailing address, reported to the DSO. 67 FR 76256 (FR Doc. 02-31184), saved as sources/fr-02-31184.xml, has an older wording of (f)(17) with the same 10 days, inform the DSO and the Service of any legal changes to his or her name or of any change of address; no saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-10-02; both carry them, so the rule sits under no regime."
     plain: A student must tell DHS and the DSO of any legal changes to the student's name, or of any change of address, within 10 days of the change. The school sets how the notice is given.
     plain_terms: [change of address, legal changes]
+  - id: passport.valid_beyond_stay_months
+    value: 6
+    unit: months
+    status: settled
+    effective_from: 2026-09-30
+    effective_from_basis: earliest_saved_copy
+    source:
+      citation: "8 CFR 214.1(a)(3)(i), text of 2026-09-30"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-30/title-8.xml?part=214&section=214.1"
+      checked_on: 2026-10-03
+      quote: "The passport of an alien applying for admission must be valid for a minimum of six months from the expiration date of the contemplated period of stay, unless otherwise provided in this chapter, and the alien must agree to abide by the terms and conditions of his or her admission."
+      snapshot: sources/ecfr-8cfr214.1-2026-09-30.xml
+      snapshot_sha256: b84b4a7d8075b12c51b8f6ba826e12aa6f0272c50ee52b64fb894836c6badbb8
+    derivation: verbatim
+    note: "The six months are counted from the expiration date of the contemplated period of stay and apply on application for admission; the same sentence allows otherwise provided in this chapter, and no exception was read, since only 8 CFR 214.1 is saved. A student admitted for duration of status has no printed end to the period of stay, so Duly computes no date from this rule; it only makes the passport's expiry date worth watching. The pinned 2026-09-30 text is the version eCFR dates 2026-09-15 and carries the amendments of 91 FR 44976, which a court has postponed (see the regime fixed_admission_2026): its paragraph (a)(4) and (m) are new. Amendatory instruction 2 of that rule, saved as sources/fr-2026-14439.xml, amends section 214.1 by adding (a)(4), revising (b) and (c)(2) and (c)(3)(v), removing (b)(4), and adding (c)(8) and (m); it does not touch (a)(3)(i). So these words are the same under both regimes and the rule sits under no regime. No older copy of 8 CFR 214.1 is saved, so the start date is the date of the saved copy (effective_from_basis earliest_saved_copy); the rule is older."
+    plain: "To be admitted, a person needs a passport that is valid for six months or more. The six months count from the end of the contemplated period of stay. The rules may say otherwise for some cases."
+    plain_terms: ["contemplated period of stay"]
+  - id: passport.maintain_validity_on_extension
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2026-09-30
+    effective_from_basis: earliest_saved_copy
+    source:
+      citation: "8 CFR 214.1(a)(3)(i), text of 2026-09-30"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-30/title-8.xml?part=214&section=214.1"
+      checked_on: 2026-10-03
+      quote: "The passport of an alien applying for extension of stay must be valid at the time of application for extension, unless otherwise provided in this chapter, and the alien must agree to maintain the validity of his or her passport and to abide by all the terms and conditions of his extension."
+      snapshot: sources/ecfr-8cfr214.1-2026-09-30.xml
+      snapshot_sha256: b84b4a7d8075b12c51b8f6ba826e12aa6f0272c50ee52b64fb894836c6badbb8
+    derivation: verbatim
+    note: "The agreement to maintain the validity of the passport is stated in the sentence on extension of stay, not in the sentence on admission; the mission named it beside the six months, and this row keeps it with its own words. The sentence before it says a person applying for extension of stay must present a passport only if DHS asks for it. On the pinned text, the regimes and the start date, see passport.valid_beyond_stay_months: (a)(3)(i) is not amended by 91 FR 44976, so the row sits under no regime."
+    plain: "A person applying for an extension of stay must have a valid passport at the time of applying, unless this chapter of the rules says otherwise. The person must also agree to keep the passport valid."
+    plain_terms: ["extension of stay"]
+  - id: visa.validity_is_for_admission
+    value: true
+    unit: flag
+    status: settled
+    effective_from: 2026-09-30
+    effective_from_basis: earliest_saved_copy
+    source:
+      citation: "22 CFR 41.112(a), text of 2026-09-30"
+      url: "https://www.ecfr.gov/api/versioner/v1/full/2026-09-30/title-22.xml?part=41&section=41.112"
+      checked_on: 2026-10-03
+      quote: "The period of validity of a nonimmigrant visa is the period during which the alien may use it in making application for admission. The period of visa validity has no relation to the period of time the immigration authorities at a port of entry may authorize the alien to stay in the United States."
+      snapshot: sources/ecfr-22cfr41.112-2026-09-30.xml
+      snapshot_sha256: e8cdf51ceecc03432a53c78053facc21f88609a0bbe1c44a933410841917b344
+    derivation: verbatim
+    note: "A rule of the Department of State. On 2026-10-03 eCFR listed 2021-11-08 as the latest version of 22 CFR 41.112, so the pinned 2026-09-30 text is that version; 91 FR 44976 does not amend title 22 and only refers to 41.112(d), so the row sits under no regime. Paragraph (b)(3), not recorded as a row, says an unexpired visa is valid for application for admission even if the passport in which it is stamped has expired, provided the person also has a valid passport; paragraph (d), on automatic extension of validity at ports of entry, is not recorded either. No older copy is saved, so the start date is the date of the saved copy (effective_from_basis earliest_saved_copy); the rule is older."
+    plain: "A visa's period of validity is the time it can be used at entry to make an application for admission. It has no tie to how long a person may stay in the United States."
+    plain_terms: ["period of validity", "application for admission"]
 path:
   facts: []
   records:
@@ -2602,8 +2653,8 @@ path:
           rule_ids: [stem.requires.duties_hours_and_compensation, stem.min_hours_per_week]
           who: employer
   # Dates to watch (P6, gap map G10). When a date counts as close is the product setting
-  # watch.close_days, never a rule. Passport and visa expiry are not listed: no saved primary
-  # source states a rule on them (see rulepacks/REPORT.json, missing).
+  # watch.close_days, never a rule. Passport expiry rests on 8 CFR 214.1(a)(3)(i) and visa
+  # expiry on 22 CFR 41.112(a), both saved 2026-10-03.
   watch:
     - record: authorization
       field: card_end
@@ -2613,6 +2664,14 @@ path:
       field: end_date
       label: "Program end date on the Form I-20"
       rule_ids: [program.extension_before_end, grace.after_completion_days]
+    - record: passport
+      field: expires_on
+      label: "Date of expiry on a passport"
+      rule_ids: [passport.valid_beyond_stay_months, passport.maintain_validity_on_extension]
+    - record: visa
+      field: expires_on
+      label: "Expiration date on a visa"
+      rule_ids: [visa.validity_is_for_admission]
   # Check-ins (P7, gap map G8). How long a confirmation holds is a product setting.
   checkins:
     - {record: work, field: confirmed_on, setting: checkin.job_days}
