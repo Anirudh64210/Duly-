@@ -1,0 +1,61 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the second W2-P2 review veto (reviews/w2-p2.md): a trip with no return keeps its absence window open and upcoming, waiting on the return; addresses that cannot all be true are a question; the watch asks its lists whole and never dates a record whose dates conflict; and the app records the day a person confirms a job, so the count is never held back for a bookkeeping date. SPEC-W2 points 45 and 46, D74, D92, SPEC-W2-UNKNOWN''s rules on done steps, conflicts and lists.'
+merge: local
+audited: false
+rounds:
+- name: tests-and-content
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-p2.md (the second review). Write tests named test_review2_<N>_..., failing today, each date by hand: 1, a trip with no return (left 2026-09-20, today 2026-10-02): trip.absence_limit keeps 2026-09-20 to 2027-02-20, is not done, its closing day is in upcoming, and it waits on t1.returned_on (asked); change test_review4b accordingly (its waits_on with the return left out names the return); 2, two addresses each stated first in the US, an address stated first that also names a previous one, and two addresses that both name the same address moved from: each a conflict asked by name, with no report shown as settled; 3, the review''s mutant M9 case (w1 2026-06-01 to 2026-06-30, confirmed 2026-09-10): checkin.w1 is asked and withholds the limit day; 4, a case with no passport or visa entered and those lists not stated whole: complete.passport and complete.visa are asked and the watch waits on them; 5, a visa issued after it expires and a passport issued after it expires: the watch row waits on the conflict, never dated; a job confirmed before its start: asked as a conflict. Never loosen another assertion. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_records.py --co -q >/dev/null'
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'Read reviews/w2-p2.md finding 2 and its notes. In rulepacks/f1-us/v2026.09/parameters.yaml add checks that make each of these a conflict asked by name: more than one address stated first in the US; an address stated first that also names a previous address; two addresses that name the same address moved from. Plain words that state what does not fit, never what the person should do. No number changes; recheck --check must pass.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+  checks:
+  - name: sources
+    run: uv run python -m tools.sources.verify rulepacks
+- name: engine-and-web
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-p2.md (the second review), findings 1, 3, 4, 5 and 7 and the note on a confirmation before the start. engine/path.py: a window whose done step rests on an empty asked field is not done: it keeps the dates that rest on what is known, stays in upcoming and open items, and waits on the gap (the done-step rule of SPEC-W2-UNKNOWN; take out the block fix3 added that read such a window as done); run_watch asks complete.<kind> once per watch entry before reading the records, so an empty unstated list is asked; run_watch withholds a row on a record whose dates conflict; a confirmed_on before the record''s start is a conflict asked by name; ask_out_of_order reuses _out_of_order. Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass; run single tests while you work.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - lane: L-web
+    agent: builder
+    mission: 'Read reviews/w2-p2.md finding 6 and the note on an ended job. (1) The app records the day a person confirms a job or a petition: when the person saves or confirms such a record (onboarding or the case store, web/src/app/caseStore.tsx), its confirmed_on is written as that day in the person''s time zone, from the app''s clock, never typed; the question w1.confirmed_on is shown as the check-in, never as a date to type, and answering it writes the day. (2) Every caller of questionTitle (web/src/app/Home.tsx, Onboarding.tsx) passes the case records, so the check-in names the employer and the hours; a job whose end is entered gets words that fit an ended job. Tests in web/src beside the others. Copy rules hold.'
+    done: bash -c 'npm run typecheck -w web && npm test -w web -- src/ && npx eslint web --max-warnings 0 && uv run python -m tools.copy_lint.lint'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: samples
+  steps:
+  - lane: L-web
+    run: make samples
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with plan-w2-p2-fix4.yaml (the second review); write the finding beside each change; never loosen an assertion; escalate any failure no finding explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+  - lane: L-web
+    agent: builder
+    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and make npm test -w web pass, changing only tests plan-w2-p2-fix4.yaml requires, with the finding beside each.'
+    done: bash -c 'make samples && npm test -w web && npm test -w desktop'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review W2-P2 (plan-w2-p2.yaml and its fixes 0 to 4) against SPEC-W2 points 45, 46 and 50, SPEC-W2-UNKNOWN, D74, D92 to D94, PRINCIPLES.md and BOUNDARY.md and your findings in reviews/w2-p2.md. Rerun every input you named and mutants M1, M9 and M12. Write reviews/w2-p2.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p2.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P2 (plan-w2-p2.yaml and its fixes) as your role file describes. Write docs/requirements/audits/w2-p2.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p2.md && uv run python -m tools.requirements.register check'
