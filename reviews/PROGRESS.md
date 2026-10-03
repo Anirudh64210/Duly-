@@ -433,3 +433,15 @@
 - Failure: a fix made present-on-absent U in selections and only_if but kept the exception for a check's holds. P6 draws U only as not_sure, so no test saw it.
 - Fix: for each gap state the SPEC names (absent, unreadable, undecided), probe every reader position (where, only_if, holds, next only_if) on the toy pack.
 - Evidence: reviews/w2-unknown.md finding 1.
+
+## 2026-10-02, run l-review-e4f7024f0e (W2-UNKNOWN third review, after fix 7)
+- Read the last review, plan fix7, SPEC point 12 as amended and point 52, and the diff 83fddf1..76a47db (engine/path.py holds exception and _tri/_known removed, api/case.py words, tests/conftest.py skip, new tests in test_w2_unknown, _stages, _props, test_path_reach, test_case_structure).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0 in 4 min 33 s; mypy, ruff check, ruff format, engine_literals, sources verify, copy lint all 0.
+- Probes TMPDIR/rvu2/holds.py and TMPDIR/rvu3/holds2.py: holds asks absent, not_sure and unreadable for flag, count, date, choice and link fields; declared none reads as none. Journeys byte-identical to 83fddf1 (1077/434/410). jnull.py gives 32 at both commits, not the 24 I wrote last time.
+- Mutants TMPDIR/rvu3/mut.py, full source copy per mutant (a partial copy made every mutant an import error at first), parallel, mutants profile. Examples: all named caught but U2/U17b (unknown.py, caught by test_unknown_logic), U17 no-op, U18 equivalent. Properties, first complete run: U10, U12, U16, U21, U21b, U22, U23b, U24, U25, U26 survive.
+- Wrote reviews/w2-unknown.md (VETO, mean 4.5, tested 2), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: the property half of point 52 was run on ten mutants only, so nine survivors went unseen for a round.
+- Fix: run every mutant on both sets to the end, in parallel, in full source copies, with a no-mutant baseline; check the baseline line says passed before trusting any CAUGHT.
+- Evidence: reviews/w2-unknown.md finding 1.
