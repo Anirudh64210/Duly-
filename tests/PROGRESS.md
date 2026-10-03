@@ -3826,3 +3826,57 @@ Not built: nothing. No finding or point asks for a test that is not already ther
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-d8cea2cf52: the last veto of the unknown-values work (reviews/w2-unknown.md 1 to 5)
+
+Read: tests/PROGRESS.md, SPEC-W2-UNKNOWN points 2, 12 (amended), 29 to 34, 39, 44 to 52,
+reviews/w2-unknown.md. As data only: the reviewer's mutant script ($TMPDIR/rvu2/mut.py), for the
+exact M9, M15, M16, M20, U11, U21b, U25 and U26 patterns. My own runner: $TMPDIR/mymut.py, which
+copies engine, api, tests, contracts, rulepacks, tools, assistant and pipeline to $TMPDIR/ltm/<m>,
+applies one mutant and runs the named tests with `--hypothesis-profile mutants`.
+
+Added (point beside each):
+- test_w2_unknown.py, finding 1 (points 2, 32; U21b): toy check_pack whose holds is present:
+  true, present: false, or not present: true over c1.online. Left out: no tree.c1 conflict or
+  judgement, c1.online asked (absent), cannot_tell; not_sure: the same with undecided.
+  Fails today x3 (present: true raises conflict:tree.c1; the other two pass quietly unasked).
+  Fails if path.py reads an absent ask field as NONE in a check's holds (what HEAD does).
+- test_w2_unknown.py, R16 C with filed_on 2026-05-01 (points 26, 27; U11): ec1.granted_on
+  not_sure withholds opt.apply_window.a1, waits on ec1.granted_on, asked. Hand dates:
+  2026-08-15 less 90 is 2026-05-17, plus 60 is 2026-10-14; the old end gives 2026-02-14 to
+  2026-07-14. Passes on HEAD; U11 caught.
+- test_w2_unknown_stages.py, R36 third clause on the toy pack (point 31; U26): c1 2024-09-02
+  to 2025-06-30, card next stage with card.file closing 2026-06-30 (past) and an added card.late
+  closing on c1.left_on not_sure: card.c1 kept, unknown, waits on c1.left_on; fills 2026-06-01
+  (dropped) and 2026-12-01 (next). Passes on HEAD; U26 caught.
+- test_w2_unknown_stages.py, U25 (point 31): the card stage's span ends on this.course.left_on,
+  which the course stage never reads; c1 2025-09-01 to 2026-06-30 (card.file closes
+  2027-06-30, open), left_on not_sure: card.c1 next, waits on and asks c1.left_on. A first try
+  read left_on only through a window, and U25 survived it (windows ask on their own path; U25
+  only touches the span trace in `_enter`), so the test reads it through the span. U25 caught.
+- test_w2_unknown_props.py, new property (points 45 to 47 and 52): on the toy pack plus one
+  judgement course.day_credits over courses chosen by mode, seed TOY_SEED with c1 at 3 credits
+  plus c2 and k2. For each choice a for_each `where` reads (c1/c2.mode, k1/k2.type) and every
+  gap state: P2 (a), (b), (c); P1's "never removes" (an output of another record every fill
+  shows alike is still emitted or named in withholds); P3's second half on the read-once
+  checks. The NONE fill of an ask field goes through a copy of the pack declaring it `none`
+  (left out it is a gap, which first hid M16). Passes on HEAD, 4.5 s. Under the mutants
+  profile, run alone: M9, M15, M16, M20 each CAUGHT.
+- tests/conftest.py (finding 4): the non-vacuity test is skipped under the mutants profile.
+  Ran it with `--hypothesis-profile mutants`: skipped. Without the profile it runs as before.
+- tests/unit/api/test_case_structure.py (note 5, point 39): J06 with category "h1b": 422,
+  detail CASE_STRUCTURE, the detail holds the word "category", never "h1b". Fails today.
+
+Ran: done command exit 0 (ruff check: All checks passed; format: 111 files already
+formatted; pytest --co exit 0). test_case_structure, test_w2_unknown, test_w2_unknown_stages:
+only the 4 new fault tests fail. Mutants: U11, U25, U26, M9, M15, M16, M20 caught; U21b is the
+engine's fix, so the finding 1 tests pass on it and fail on HEAD.
+
+Not built: no refactor of P2 into a shared helper (the new property repeats its few asserts
+over a loop); no date fields in the selection property (6 date targets took 0.7 s an example);
+no presence assert added to P1 and P2 themselves (not needed for a kill, and untested on F-1).
+
+### Seen in data, not followed
+Nothing read asked for an action.
+Property file on HEAD, default profile: every test passes; call times total about 22 s (P2 f1
+7.4 s, the new selection property 4.4 s), within point 44's 90 s for the new unit files.

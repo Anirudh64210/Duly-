@@ -132,3 +132,21 @@ def test_a_record_in_a_category_the_case_does_not_list_is_a_structure_fault(clie
     res = client.post(URL, json=body)
     assert res.status_code == 422
     assert res.json() == {"detail": CASE_STRUCTURE}
+
+
+def test_the_words_for_an_undeclared_category_name_the_category(client):
+    # Review w2-unknown note 5, point 39: J06 with records[0].category "h1b", a category the
+    # case does not list, gets 422 CASE_STRUCTURE (the test above). Its words list kind,
+    # fields, id prefix, record counts and facts, never the category, which is the fault the
+    # person has to change. They name the category (the word), and still never the sent value
+    # "h1b" (point 39). Fails today: CASE_STRUCTURE has no "category".
+    from api.case import CASE_STRUCTURE
+    from tests.unit.acceptance.test_journeys import j06
+
+    body = j06()
+    body["records"][0]["category"] = "h1b"
+    res = client.post(URL, json=body)
+    assert res.status_code == 422
+    assert res.json() == {"detail": CASE_STRUCTURE}
+    assert "category" in res.json()["detail"]
+    assert "h1b" not in res.text

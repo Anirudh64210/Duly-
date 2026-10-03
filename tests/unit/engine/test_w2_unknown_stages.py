@@ -164,3 +164,77 @@ def test_finding_8_the_stem_next_stage_s_report_windows_wait_on_the_future_card_
     assert found[0]["opens"] is None
     assert found[0]["closes"] is None
     assert "future:stem.card_start" in found[0].get("waits_on", []), found[0]
+
+
+def _toy_two_filing_closes(left_on: str) -> dict[str, Any]:
+    """R36's third clause on the toy pack (review w2-unknown finding 2): the card next stage of
+    c1 (level mid, 2024-09-02 to 2025-06-30, no card) with two filing windows. card.file closes
+    on c1's end plus toy.months 12: 2026-06-30, known and before today 2026-09-29. card.late,
+    added here, closes on c1.left_on."""
+    import copy
+
+    from tests.support import unknown_toy as toy
+
+    stages = copy.deepcopy(toy.STAGES)
+    stages[1]["windows"].append(
+        {
+            "id": "card.late",
+            "label": "Late",
+            "opens": {"fact": "this.course.end"},
+            "closes": {"fact": "this.course.left_on"},
+            "rule_ids": ["toy.definition"],
+            "done_when": ["this.filed_on"],
+        }
+    )
+    c1 = toy.rec("c1", "course", level="mid", start="2024-09-02", end="2025-06-30", left_on=left_on)
+    return compute(toy.case([c1], TODAY), [toy.pack(stages=stages)], TODAY)
+
+
+def test_r36_toy_one_close_known_and_past_one_unknown_keeps_the_next_stage():
+    # R36, third clause, point 31 (U26): card.file closes 2025-06-30 + 12 months = 2026-06-30,
+    # past; card.late closes on c1.left_on, not_sure, which could be after today. So the next
+    # stage card.c1 is not closed: it is kept in state unknown, waits_on c1.left_on, with
+    # card.late's close null and card.file's dates shown (opens 2025-06-30 less toy.before_days
+    # 20: 30 June back 20 is 10 June, 2025-06-10). Fails if `_closed` ignores a U close (U26):
+    # every known close is past, so the stage is dropped.
+    assert date(2025, 6, 30) - timedelta(days=20) == date(2025, 6, 10)
+    out = _toy_two_filing_closes("not_sure")
+    stage = [s for s in out["stages"] if s["id"] == "card.c1"]
+    assert len(stage) == 1, [s["id"] for s in out["stages"]]
+    assert stage[0]["state"] == "unknown"
+    assert "c1.left_on" in stage[0].get("waits_on", [])
+    found = {w["id"]: (w["opens"], w["closes"]) for w in stage[0]["windows"]}
+    assert found["card.file.c1"] == ("2025-06-10", "2026-06-30")
+    assert found["card.late.c1"] == ("2025-06-30", None)
+    # Both fills, worked as above: left_on 2026-06-01 closes it (dropped), 2026-12-01 keeps it.
+    assert not [s for s in _toy_two_filing_closes("2026-06-01")["stages"] if s["id"] == "card.c1"]
+    kept = [s for s in _toy_two_filing_closes("2026-12-01")["stages"] if s["id"] == "card.c1"]
+    assert [s["state"] for s in kept] == ["next"]
+
+
+def test_u25_toy_a_field_only_the_next_stage_reads_is_asked():
+    # Point 31 (U25): a field of a real record that a next stage reads and is U is asked and
+    # named in waits_on, as anywhere else. Toy pack with the card stage's span ending on
+    # this.course.left_on, which c1's course stage (the host) never reads (it reads start, end,
+    # joined_on and the cards' ends). c1 (level mid, 2025-09-01 to 2026-06-30, no card,
+    # left_on not_sure): card.file closes 2026-06-30 + 12 months = 2027-06-30, after today, so
+    # card.c1 is next, waits_on c1.left_on, and c1.left_on is asked (state undecided).
+    # Fails if next stages drop `missing` (U25): nothing else asks c1.left_on.
+    import copy
+
+    from tests.support import unknown_toy as toy
+
+    stages = copy.deepcopy(toy.STAGES)
+    stages[1]["span"]["ends"] = {"fact": "this.course.left_on"}
+    c1 = toy.rec(
+        "c1", "course", level="mid", start="2025-09-01", end="2026-06-30", left_on="not_sure"
+    )
+    out = compute(toy.case([c1], TODAY), [toy.pack(stages=stages)], TODAY)
+    stage = [s for s in out["stages"] if s["id"] == "card.c1"]
+    assert [s["state"] for s in stage] == ["next"]
+    assert "c1.left_on" in stage[0].get("waits_on", [])
+    q = question(out, "c1.left_on")
+    assert q is not None, [x["id"] for x in out["questions"]]
+    assert q.get("state") == "undecided"
+    assert "undecided:c1.left_on" in reasons(out)
+    assert out["verdict"]["state"] == "cannot_tell"

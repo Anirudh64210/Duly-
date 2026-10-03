@@ -6,6 +6,7 @@ case: the properties compare outputs across fills, so no expected date is copied
 """
 
 import copy
+import functools
 from collections import Counter
 from datetime import date
 from typing import Any
@@ -280,6 +281,134 @@ def test_replacing_a_known_value_with_an_unknown_one_withholds_and_asks(name, pa
             # A record's entry into a stage, left out: named in the question's withholds.
             assert q is not None, key
             assert key.partition(":")[2] in q.get("withholds", []), key
+
+
+# Point 52, review w2-unknown finding 2: M9, M15, M16 and M20 act on a record whose for_each
+# selection is unknown, which P1 to P3 draw too seldom to kill in 10 examples. The toy pack plus
+# one judgement over the courses chosen by mode, a field nothing else reads, so only that
+# check's own selection can ask it. c1 and c2 are day courses with 3 credits, over toy.cap 2, so
+# the judgement is raised for each; k2 is a second plain card, for c2.
+DAY_CREDITS = {
+    "id": "course.day_credits",
+    "kind": "judgement",
+    "for_each": {"record": "course", "where": [{"field": "this.mode", "in": ["day"]}]},
+    "holds": [{"field": "this.credits", "at_most": {"rule": "toy.cap"}}],
+    "rule_ids": ["toy.cap"],
+}
+SELECTION_PACK = toy.pack(checks=[*toy.CHECKS, DAY_CREDITS])
+SELECTION_SEED = gaps.with_field(TOY_SEED, "c1", "credits", 3)
+SELECTION_SEED["records"] += [
+    toy.rec("c2", "course", **dict(SELECTION_SEED["records"][0]["fields"], code="B1")),
+    toy.rec("k2", "card", **dict(SELECTION_SEED["records"][1]["fields"], course="c2")),
+]
+# The toy checks whose holds read each field once (point 6), where P3's second half applies.
+# job.order and card.levels read a field twice.
+READ_ONCE_CHECKS = (
+    "card.inside_course",
+    "job.hours",
+    "course.renewal_day",
+    "card.cap",
+    "course.day_credits",
+)
+
+
+def _selection_fields(pack: Rulepack, case: dict[str, Any]) -> list[tuple[str, str]]:
+    """(record, field) for each choice a stage's or check's for_each `where` reads. Choices
+    only: their fill set is whole in 6 draws, and the dates such a `where` reads (joined_on)
+    are P2's, whose fills near every output date would take this test past point 44's budget."""
+    path = pack.path or {}
+    read = {
+        (part["for_each"]["record"], cond["field"].removeprefix("this."))
+        for part in [*path["stages"], *path["checks"]]
+        if "for_each" in part
+        for cond in part["for_each"].get("where", [])
+        if cond.get("field", "").count(".") == 1
+    }
+    return [
+        (r["id"], f)
+        for r in case["records"]
+        for f in sorted(r["fields"])
+        if (r["kind"], f) in read and gaps.decl_of(pack, r["kind"], f)["kind"] == "choice"
+    ]
+
+
+@functools.cache
+def _none_pack(kind: str, field: str) -> Rulepack:
+    """SELECTION_PACK with kind.field declared `none`: the NONE fill of an `ask` field has no raw
+    form (left out, the field is a gap), so it goes through this copy (tests/support/gaps.py)."""
+    records = copy.deepcopy(toy.RECORDS)
+    decl = next(d for r in records if r["id"] == kind for d in r["fields"] if d["id"] == field)
+    decl["when_absent"] = "none"
+    return toy.pack(records=records, checks=[*toy.CHECKS, DAY_CREDITS])
+
+
+def _of_read_once_check(reason: str) -> bool:
+    return any(
+        reason.startswith(f"conflict:{c}.") or reason == c or reason.endswith(f".{c.split('.')[1]}")
+        for c in READ_ONCE_CHECKS
+    )
+
+
+@UNIT
+@given(data=st.data())
+def test_a_gap_in_one_record_s_selection_keeps_every_other_record(data):
+    # P1 to P3 (points 45 to 47) on every field a for_each selection reads, each gap state:
+    # (a) every output known with the gap equals its value in each drawn fill; (b) when a fill
+    # changes an output, or the gap is unreadable, X.f is asked with its state and the verdict
+    # is cannot_tell; (c) an output that differs between fills waits on X.f, or is an entry
+    # named in the question's withholds; (P1, "never removes") an output of another record that
+    # every fill shows alike is still emitted; (P3, second half, read-once checks) a judgement or
+    # conflict of another record raised in every fill is raised with the gap.
+    # Fails if: an undecided record in a check's selection is not asked (M9: c2.mode, whose
+    # fills raise c2.day_credits or not); a stage drops every record when one is undecided
+    # (M15: k2.type drops card.k1); a check does (M16: c2.mode drops c1.day_credits); a choice
+    # outside the list reads as known (M20: unreadable mode or type not asked).
+    pack = SELECTION_PACK
+    case = data.draw(gaps.decided_cases(pack, [SELECTION_SEED]))
+    run = gaps.run_of(case)
+    base = compute(case, [pack], TODAY)
+    for rid, field in _selection_fields(pack, case):
+        decl = gaps.decl_of(pack, run[rid], field)
+        values = gaps.fills(decl, case, base, pack, run)
+        original = next(r for r in case["records"] if r["id"] == rid)["fields"][field]
+        keep = gaps.must_fill(original, values, gaps.output_dates(base))
+        none = _none_pack(run[rid], field) if gaps.absence(decl) == "ask" else pack
+        filled_outs = [
+            compute(gaps.with_field(case, rid, field, v), [none if v is None else pack], TODAY)
+            for v in data.draw(gaps.drawn_fills(values, keep))
+        ]
+        shown = [gaps.outputs(out) for out in filled_outs]
+        changed = {
+            key
+            for key in set().union(*shown)
+            if any((key in s, s.get(key)) != (key in shown[0], shown[0].get(key)) for s in shown)
+        }
+        alike = set(shown[0]) - changed - {"reasons"}
+        always = frozenset.intersection(*(_shown_reasons(out) for out in filled_outs))
+        qid = f"{rid}.{field}"
+        for state, raw in gaps.gap(decl, run):
+            held = compute(gaps.with_field(case, rid, field, raw), [pack], TODAY)
+            for out in filled_outs:
+                _same_known(held, out)
+            q = gaps.question(held, qid)
+            if changed or state == "unreadable":
+                assert q is not None, (qid, state)
+                assert (q.get("record"), q.get("field"), q.get("state")) == (rid, field, state)
+                assert held["verdict"]["state"] == "cannot_tell"
+            withholds = {t for one in held["questions"] for t in one.get("withholds", [])}
+            shown_held = gaps.outputs(held)
+            for key in changed - {"reasons"}:
+                if key in shown_held:
+                    assert qid in gaps.waits_on(held, key), (qid, state, key)
+                elif key.startswith("stage:"):
+                    assert key.partition(":")[2] in withholds, (qid, state, key)
+            for key in alike:
+                if f".{rid}" not in key and key not in shown_held:
+                    assert key.partition(":")[2] in withholds, (qid, state, key)
+            for reason in always:
+                if rid not in reason and _of_read_once_check(reason):
+                    assert reason in held["verdict"]["reasons"], (qid, state, reason)
+            event(f"selection:{qid}:{state}")
 
 
 def test_the_properties_saw_each_output_kind_known_and_changed():
