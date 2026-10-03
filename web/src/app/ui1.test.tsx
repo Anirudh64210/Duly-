@@ -68,6 +68,10 @@ const WHY_LINES = [
   "Did you type these dates from your documents?",
   // SPEC-W2 points 45 P4 and 50 (W2-P2): the sample's address list is not yet stated whole.
   "Is this every address in the US, through today?",
+  // reviews/w2-p2.md (second review) finding 4: the sample enters no passport and no visa, so
+  // the watch asks both lists whole.
+  "Is this every passport?",
+  "Is this every visa?",
   "Permission to work 1: Day the DSO signed or entered the recommendation",
   "Program of study 1: Was one full academic year done before the training began?",
   "Program of study 1: Does the program require CPT from the start?",
@@ -85,7 +89,8 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     mount({ path: "/" });
     const hero = await screen.findByRole("region", { name: "Verdict" });
     // SPEC-W2 points 45 P4 and 50 (W2-P2): the sample's address list is not yet stated whole.
-    expect(lines(hero)).toEqual(["10 answers would let Duly go on with your dates."]);
+    // reviews/w2-p2.md (second review) finding 4: two more, the passport and visa lists.
+    expect(lines(hero)).toEqual(["12 answers would let Duly go on with your dates."]);
   });
 
   it("shows each reason once under Why, in its own words", async () => {
@@ -113,15 +118,18 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     const section = await screen.findByRole("region", { name: "QUESTIONS FOR YOU" });
     const titles = [...section.querySelectorAll(".row-title")].map((t) => t.textContent);
     // SPEC-W2 points 45 P4 and 50 (W2-P2): the sample's address list is not yet stated whole.
-    expect(new Set(titles).size).toBe(10);
+    // reviews/w2-p2.md (second review) finding 4: two more, the passport and visa lists.
+    expect(new Set(titles).size).toBe(12);
     expect(
       within(section).getAllByText("Asked because nothing is entered for it yet."),
     ).toHaveLength(8);
     // A list not stated whole waits (SPEC-W2-UNKNOWN point 14). SPEC-W2 points 45 P4 and 50
     // (W2-P2): the sample states every list whole but the address list, so one waits.
+    // reviews/w2-p2.md (second review) finding 4: the passport and visa lists, with no record
+    // entered, are asked whole too, so three wait.
     expect(
       within(section).queryAllByText("Asked because Duly waits for your answer before it goes on."),
-    ).toHaveLength(1);
+    ).toHaveLength(3);
     expect(
       within(section).getByText("Asked because some dates you typed are not checked yet."),
     ).toBeInTheDocument();
@@ -133,7 +141,8 @@ describe("Home with the path-stem-next sample (points 1, 5, 6 and 8)", () => {
     const order = [
       within(hero).getByRole("heading", { level: 1 }),
       // SPEC-W2 points 45 P4 and 50 (W2-P2): one more answer, the address list.
-      within(hero).getByText(/^10 answers/),
+      // reviews/w2-p2.md (second review) finding 4: two more, the passport and visa lists.
+      within(hero).getByText(/^12 answers/),
       screen.getByRole("region", { name: "Counts" }),
       screen.getByRole("region", { name: "YOUR NEXT MOVE" }),
       screen.getByRole("region", { name: "QUESTIONS FOR YOU" }),
