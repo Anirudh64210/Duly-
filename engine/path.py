@@ -1463,8 +1463,24 @@ class _Run:
         # of false or a stated absence never is. Not done and not known: the window keeps its
         # dates and waits on what done rests on.
         done_tr = _Trace()
-        done_values = [self._read(p, record, record, done_tr) for p in window.get("done_when", [])]
+        done_paths = window.get("done_when", [])
+        done_values = [self._read(p, record, record, done_tr) for p in done_paths]
         done = any(v not in (ABSENT, NONE, NOT_YET, False) for v in done_values)
+        # Point 55: a field of the record left empty and asked (when_absent ask), neither a
+        # flag nor one that takes not sure, is known whatever the answer, so done is the same
+        # in every fill and waits on nothing; the field is still asked where a read rests on it.
+        own = [
+            p[len(THIS) + 1 :]
+            for p, v in zip(done_paths, done_values, strict=True)
+            if v is ABSENT and p.startswith(f"{THIS}.")
+        ]
+        done = done or any(
+            record is not None
+            and record["fields"].get(name) is None
+            and self._decl(record, name).get("kind") not in (None, "flag")
+            and not self._decl(record, name).get(NOT_SURE)
+            for name in own
+        )
         suffix = "" if rid is None else f".{rid}"
         dates: dict[str, date | None] = {}
         waits: dict[str, list[str]] = {}
