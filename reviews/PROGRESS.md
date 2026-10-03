@@ -483,3 +483,16 @@
 - Failure: a mutant script set UV_PROJECT_ENVIRONMENT to the worktree's .venv, which uv then created half-empty, and the first mutant results were environment errors.
 - Fix: read `env | grep UV_` first; the shared environment is already set, so run copies with the inherited variables and print the failing test name, not only the tail.
 - Evidence: reviews/w2-p2.md, What ran.
+
+## 2026-10-03, run l-review-8de7f34fa2 (W2-P2 second review, after fix2 and fix3)
+- Read the first review (88cc0dd), plan-w2-p2-fix2 and fix3, SPEC-W2-UNKNOWN points 2, 5, 6, 14, 30, 32a, 33, 34, 61, D74, D92 to D94, and the diff 9283025..70edfb1 (path.py, readers.py, parameters.yaml, CHANGELOG, labels.ts, tests).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0 in 3 min 44 s; engine_literals, mypy, ruff, format, sources verify, recheck --check, plain, copy lint all 0; vitest labels.test.ts 85 passed.
+- Old probes TMPDIR/rvp2/p1..p4 on HEAD: findings 1, 2, 4, 5, 6, 7, 9, 10, hours fixed; 3 and 8 fixed on the named input only.
+- New probes TMPDIR/rvp3: a.py A9 (two addresses both first_in_us yes) asks nothing and drops the move (blocking); d3.py trip with no return reads the absence window as done and drops it from upcoming (blocking, fix3 regression, pinned by test_review4b); w.py empty kind not asked whole, conflicted visa still watched.
+- Mutants TMPDIR/rvp3/mut.sh, baseline exit 0: M1, M1b, M7, M8, M10, M11, M12 caught; M9 (check-in asked early) survives engine + holdout.
+- Wrote reviews/w2-p2.md (VETO, mean 3.5), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: a fix for one test (fix3, review4b) widened a rule to every empty asked done_when field, and the test it was written for pinned the wrong behaviour.
+- Fix: for each new branch in the engine, read the SPEC point it names, then probe the plainest input it touches (here a trip still abroad with a future closing day), not only the test's input.
+- Evidence: reviews/w2-p2.md finding 1.
