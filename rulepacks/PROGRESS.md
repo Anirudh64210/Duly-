@@ -1524,3 +1524,44 @@ pytest tests/unit/engine -q, HEAD pack vs this pack (file swapped in place):
 ### Seen and not worked around
 
 - No network was used. No instruction was found in any data.
+
+## 2026-10-03, run l-content-1b6d5d80e0, attempt 1 (W2-P2 fix2: review findings 3, 7, 8, 10 and the notes)
+
+### What was tried
+
+- Finding 3: address.first_in_us added (choice yes/no, when_absent none, "Is this the first address in the US on this F-1 record?"). address.previous is now {none: [first_in_us in yes], else: ask}. The contract allows an object when_absent whose condition reads a field with a plain declaration, so the first-address statement stays an explicit choice.
+- Finding 7: trip.absence_limit label "Day of leaving plus the rule's months of a temporary absence"; trip.signature_covers label "Day of the travel signature plus the rule's months". No number, no instruction.
+- Finding 8: complete_label on passport and visa.
+- Finding 10: stage trip_opt selects by a card covering outer.returned_on again (reverses run l-content-90229349f7). entered_when stays this.left_on. Stage comment and the note of travel.opt_signature_months rewritten.
+- work.confirmed_on and petition.confirmed_on: when_absent ask written out; labels say the app records the day the person confirms.
+- Notes: readings marked in address.report_change_within_days (note and plain), stem.report_change_within_days (note), travel.absence_months (note and plain). First note used "Reading:" in an unquoted scalar again; YAML refused it; reworded to "As a reading,".
+- CHANGELOG section with screen words for address.first_in_us and address.previous.
+
+### What ran
+
+```
+done command: first run failed (YAML: "Reading:" in a plain scalar), fixed; then exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  load_all: ok
+copy lint: clean
+pytest tests/unit --ignore=tests/unit/desktop_entry, HEAD pack vs this pack (files swapped in place):
+  new failures, both intended by finding 10 (they test a trip with no return date expecting a
+  signature window, the fix1 reading):
+    test_w2_records.py::test_the_signature_covers_six_months_from_the_signature_on_opt
+    test_w2_records.py::test_a_trip_on_opt_with_no_signature_day_withholds_the_signature_window
+  test_when_absent.py changelog test failed until the CHANGELOG line for first_in_us was added; passes.
+  tests/unit/tools failures the same on both (sandbox).
+probes (today 2026-10-02 as in test_w2_records):
+  two addresses, no link: ad1.previous and ad2.previous asked, no window.
+  ad1 first_in_us yes, ad2 previous ad1 since 2026-09-25: address.report.ad2 2026-09-25 to 2026-10-05.
+  trip left 2026-05-20, returned 2026-06-10, signature 2026-05-01, card from 2026-06-01:
+    trip.signature_covers.t1 2026-05-01 to 2026-11-01.
+  trip with no return: no signature window, t1.returned_on asked.
+  passport and visa lists not stated: watch still lists both, complete.passport not asked (engine, finding 8).
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
