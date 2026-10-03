@@ -496,3 +496,16 @@
 - Failure: a fix for one test (fix3, review4b) widened a rule to every empty asked done_when field, and the test it was written for pinned the wrong behaviour.
 - Fix: for each new branch in the engine, read the SPEC point it names, then probe the plainest input it touches (here a trip still abroad with a future closing day), not only the test's input.
 - Evidence: reviews/w2-p2.md finding 1.
+
+## 2026-10-03, run l-review-13e7b0ae80 (W2-P2 third review, after fix4)
+- Read the second review, plan-w2-p2-fix4, SPEC-W2-UNKNOWN points 30, 32a, 33, 34, and the diff 70edfb1..b3d04af (path.py, parameters.yaml address checks, caseStore.tsx confirmRecords, labels.ts, Home, Onboarding, tests).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0 in 4 min 3 s; engine_literals, mypy, ruff, format, sources verify, recheck --check, plain, copy lint all 0; web vitest src/ 616 passed.
+- Old probes on HEAD ($TMPDIR/rvp4): second-review findings 1 to 8 all fixed on their inputs.
+- Mutants $TMPDIR/rvp4/mut.sh on tests/unit/engine + tests/holdout: M1, M9, M12, N1 to N4 caught; N5 (_confirmed ignores a clash) survives and changes the count (n5.py).
+- New probe pre.py: opt_pre.part_time_hours is taken by _answers_only as a clash, so a 25-hour part-time job's check-in day goes null (should fix). Labels probe: address conflicts show a bare "do not fit" line.
+- Wrote reviews/w2-p2.md (APPROVE, mean 4.5), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: a generic engine test added for one pack's checks (_answers_only) also took an older check of another shape, and no test covered it.
+- Fix: for each new structural predicate in the engine, run it over every check in the pack and read the list it selects.
+- Evidence: reviews/w2-p2.md finding 1, $TMPDIR/rvp4/ao.py.
