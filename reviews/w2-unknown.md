@@ -1,146 +1,141 @@
-# Review: one rule for unknown values (SPEC-W2-UNKNOWN, plan-w2-p1-unknown.yaml), third pass
+# Review: one rule for unknown values (SPEC-W2-UNKNOWN, plan-w2-p1-unknown.yaml), final pass
 
-Run l-review-e4f7024f0e. Reviewed commit 76a47db. The last review was at 83fddf1. This pass
-covers fix 7: engine/path.py (the holds exception, `_tri` and `_known` removed, `_and` added),
-api/case.py (the 422 words), tests/conftest.py (the mutants profile skip), and the new tests in
-test_w2_unknown.py, test_w2_unknown_stages.py, test_w2_unknown_props.py, test_path_reach.py and
-tests/unit/api/test_case_structure.py. I read them against SPEC-W2-UNKNOWN (point 12 as amended
-on 2026-10-02), D92 to D94, PRINCIPLES, BOUNDARY.md and my six findings at 83fddf1. Today is
-2026-09-29 in every probe, through FixedClock. Probes and the mutant script are in TMPDIR/rvu3.
+Run l-review-f924676928. Reviewed commit b120cf2. The last review was at 76a47db. This pass
+covers fix 8: tests/unit/engine/test_unknown_logic.py (P6 now draws every value state) and
+point 52 as amended on 2026-10-02. No file under engine/, api/ or web/ changed since 76a47db
+(`git diff 76a47db HEAD -- engine api` is empty). I read the change against SPEC-W2-UNKNOWN
+(points 12 and 52 as amended), D92 to D94, PRINCIPLES, BOUNDARY.md and my findings at 76a47db.
+Today is 2026-09-29 in every probe, through FixedClock. Probes and the mutant script are in
+TMPDIR/rvu4.
 
 ## What ran
 
 - `pytest tests/unit tests/holdout`, leaving out tests/unit/tools and tests/unit/desktop_entry:
-  exit 0, 4 min 33 s. desktop_entry needs Unix sockets, which my sandbox refuses.
-- mypy (72 files), ruff check and ruff format on engine, api and tests, engine_literals, sources
-  verify (4 packs, every quote found) and copy lint: all exit 0.
-- The holds probe from the last review (TMPDIR/rvu2/holds.py) and a wider one
-  (TMPDIR/rvu3/holds2.py).
-- Every point 52 mutant, plus U21b and three mutants for this round's code (X1 to X3), with
+  exit 0. desktop_entry needs Unix sockets, which my sandbox refuses.
+- The two property files with `--durations`: P6 takes 12.8 s while the mutant jobs were
+  running alongside it, and 8 s alone by the tests lane's figure. That is inside the point 44
+  budget.
+- ruff check, ruff format (134 files), mypy on engine and api, engine_literals, sources verify
+  (4 packs, every quote found) and copy lint: all exit 0.
+- Every point 52 mutant, plus U17b, U18b, U21b, U23a and X1 to X3, with
   `--hypothesis-profile mutants`, once against the example files and once against the property
-  files (TMPDIR/rvu3/mut.py, a full source copy per mutant). This time **both runs finished**,
-  each with a no-mutant baseline that passed.
-- The journey outputs at 83fddf1 and at HEAD, counted and diffed in full (TMPDIR/rvu3/jdiff.py).
+  files (TMPDIR/rvu4/mut.py, a full source copy per mutant). Both runs finished, and each
+  no-mutant baseline passed; in the property run only the non-vacuity test was skipped.
+- The 20 journeys at HEAD, compared with my 76a47db output (TMPDIR/rvu3/jdiff.py).
 
 ## The last review's findings
 
 | # | Then | Now | Evidence on HEAD |
 |---|---|---|---|
-| 1 | holds reads absent `ask` as none | fixed | With c1.online left out, each of `present: true`, `present: false` and `not present: true` gives no tree.c1 reason, asks c1.online with state absent, and gives cannot_tell. |
-| 2 | mutants survive | examples fixed, properties not | Every named mutant is now killed by an example. M9, M15, M16 and M20 are killed by the new selection property. Nine named mutants survive every property (new finding 1). |
-| 3 | `_tri` and `_known` overbuilt | fixed | Both are gone. `_and` (path.py:104) serves `_all` and `_cond`, and `_any` returns `None if None in results else False` after its early True. Point 12 as amended allows `bool \| None` with the gaps in the trace. |
-| 4 | non-vacuity fails under the profile | fixed | conftest.py skips it under `mutants` only. The baseline run shows it as `s`, and the rest pass. |
-| 5 | note: 422 does not name the category | fixed | CASE_STRUCTURE now says "a category the case lists". The test checks that the sent value "h1b" is not echoed. |
-| 6 | note: part-time OPT months count | unchanged | Still for L-content. |
+| 1 | nine named mutants survive every property | fixed under point 52 as amended | Every operator and reader mutant the amended point lists is now killed by a property, and U21 is killed by P6 itself. The ones still alive are the position mutants, which the amendment holds by their examples. All of them are killed by an example. |
+| 2 | note: two test_path_reach assertions reversed | unchanged, rightly | Point 2 still makes the new expectation the right one. |
+| 3 | note: part-time OPT months count | unchanged | Still for L-content. |
 
-## Probes
+## The change
 
-holds2.py, toy pack `check_pack`, TOY_SEED, holds `{"field": "this.<f>", "present": P}`:
+P6 (test_unknown_logic.py:416) draws each leaf as either known (a value, or NONE on follows and
+NOT_YET on left_on through the declaration) or unknown. An unknown leaf takes one sample of each
+gap state gaps.py gives for its field: absent only on an `ask` field, unreadable and not_sure.
+The tree then runs once on the drawn states and once per gap state. A `present: true` leaf on
+every ask field of c1 has NONE as a fill, so absent is U and never T or F (point 1, U21). Each
+unknown leaf is also run alone in each state, and must be asked once, with that state and with
+no conflict.
 
-- For online (flag), credits (count), joined_on (date), level (choice) and P true or false:
-  absent asks `<f>` with state absent, `not_sure` asks it undecided, and an unreadable value
-  ("yes", "three", "2026-13-40", "ultra") asks it unreadable. No tree.c1 conflict in any of the
-  30 cases.
-- follows, declared `when_absent: none`: absent with `present: true` raises conflict:tree.c1,
-  and with `present: false` it passes. That is right: a declared none is known (point 2).
-- `any_of` of present-on-absent online with level `in [mid]` (true) holds, and nothing is asked.
-  With `in [high]` (false), it is U and asks c1.online. Under `not`, the true case raises the
-  conflict, and the false case is U and asks. That is Kleene's logic as point 5 states it.
+I checked the reasoning behind the expected value:
+- Adding NONE to a leaf's fills cannot change a mixed result. Each unknown leaf's own fills
+  already give both T and F, and the test asserts this at line 527.
+- The T branch no longer requires an unreadable leaf to stay unasked, because point 8 asks an
+  unreadable value whatever the tree gives. That is the only place an assertion was narrowed,
+  and the new `unreadable <= asked` assertion covers it.
 
-Fix 7 changed no journey output. The 20 journeys give byte-identical JSON at 83fddf1 and at HEAD:
-1077 outputs, 434 null or unknown, 410 with `waits_on`.
+## Journeys
 
-My last review said 24 nulls had no `waits_on`. The same script, jnull.py, gives 32 lines at
-both 83fddf1 and HEAD, so the 24 was my miscount. The kinds are the ones I checked then:
-- limit days of counts under their limit;
-- STEM validation_3 or validation_4 and evaluation_final windows that would fall after the card
-  ends;
-- grace.p1 in J12 to J14 (cap_gap, for the DSO).
-
-None is a guess.
+Byte-identical to 76a47db: 1077 outputs, 434 null or unknown, 410 with `waits_on`. The 32 nulls
+with no `waits_on` (TMPDIR/rvu2/jnull.py) are the same lines I checked last time: limit days
+under the limit, STEM windows past the card end, and grace.p1 in J12 to J14 for the DSO.
 
 ## Dates checked by hand
 
-- R16 C with filed_on 2026-05-01: 2026-08-15 less 90 days is 2026-05-17 (15 to July 31, 15 more
-  to July 16, 30 to June 16, 30 to May 17). Plus 60 days is 2026-10-14. The case A window from
-  2026-05-15 is 2026-02-14 to 2026-07-14. These are the 90 days before and 60 after of
-  8 CFR 214.2(f)(11)(i)(B). The grant day could fall on either side of the filing day, so
-  withholding is right.
-- R36 toy: card.file closes 2025-06-30 plus 12 months, which is 2026-06-30, before 2026-09-29.
-  It opens 20 days before 2025-06-30, which is 2025-06-10.
-- U25 toy: 2026-06-30 plus 12 months is 2027-06-30, after today, so the stage is next.
+No date logic changed. The R16 C, R36 and U25 dates I worked by hand last time are still
+asserted by passing tests:
+- R16 C: 2026-05-17 to 2026-10-14 from 8 CFR 214.2(f)(11)(i)(B), 90 days before and 60 days
+  after.
+- R36: 2025-06-10 and 2026-06-30.
+- U25: 2027-06-30.
 
 ## R1 to R40
 
-Every row is named in a test under tests/unit or tests/holdout (grep, no row missing), and both
-suites pass. R36's third clause now has a test
-(test_r36_toy_one_close_known_and_past_one_unknown_keeps_the_next_stage), which also checks
-both fills.
+Every row is named in a test under tests/unit or tests/holdout (grep, none missing), and both
+suites pass.
 
-## Mutants (point 52), `--hypothesis-profile mutants`
+## Mutants (point 52 as amended), `--hypothesis-profile mutants`
 
-**Examples** (test_w2_unknown, _counts, _stages, _f1, _regressions, test_readers): every
-named mutant is caught except U2 and U17b, which mutate engine/unknown.py and are caught by
-test_unknown_logic.py, U17 (a no-op on engine_gap) and U18 (equivalent). U11, U21b, U25 and U26,
-which survived last time, are now caught, each by its new test. X1, X2 and X3 are caught.
+**Properties** (test_w2_unknown_props.py, test_unknown_logic.py). Every operator and reader
+mutant the point lists is caught:
 
-**Properties** (test_w2_unknown_props.py and test_unknown_logic.py): the selection property
-catches M9, M15, M16, M20 and U1. Also caught: M18, M19, U2 to U9, U11, U13, U14, U15, U17b,
-U19, U20, U23a, U27 and X1 to X3.
+| Mutant | Caught by |
+|---|---|
+| M9, M15, M16, M20, U1 | the selection property |
+| M18 | the boundary property |
+| M19 | P1w |
+| U2 | exists3 against every completion |
+| U3, U5, U6, U7, U8, U9 | P1 |
+| U4 | P2 |
+| U14, U21, U21b, X3 | P6 |
 
-**These survive every property:** U10, U12, U16, U21 (and U21b), U22, U23b, U24, U25 and U26.
-U17 and U18 survive as before (no-op, equivalent), and so does U18b, which point 52 does not
-name.
+Also caught: U11, U13, U15, U17b, U19, U20, U23a, U27, X1 and X2.
 
-This is the first property run to finish. The last review covered only the first ten mutants,
-so the fix 7 plan listed only M9, M15, M16 and M20, and the gap was partly my own.
+Survivors, all position mutants the amendment holds by their examples: U10, U12, U16, U22,
+U23b, U24, U25 and U26. U17 survives as before because it is a no-op, U18 because it is
+equivalent, and U18b is not named by point 52.
+
+**Examples** (test_w2_unknown, _counts, _stages, _f1, _regressions, test_readers). Every named
+mutant is caught except these:
+- U2 and U17b are mutants of engine/unknown.py. Run against test_unknown_logic.py with its
+  properties deselected, U2 is caught by the example
+  `test_each_list_operator_by_state[exists-...-U]`. U17b is caught by
+  `test_an_unknown_with_no_gap_cannot_be_built`.
+- U17 (a no-op) and U18 (equivalent) survive, as before.
+
+**My own probe of the new P6.** Y1 sends a not_sure gap to the missing list at path.py:272. It
+leaves P6, P1 to P5 and test_w2_unknown.py green. On the toy check with c1.level `not_sure`,
+HEAD and Y1 give the same questions and reasons (`undecided:c1.level`, `c1.level.not_sure`),
+because field reads route a not_sure to the unsure list on another path. So Y1 is equivalent
+on that input, and I found no fault.
 
 ## Findings
 
-### 1. Blocking (point 52): nine named mutants survive every property under the mutants profile
-Point 52: each mutant is killed "by at least one property and one example".
+### 1. Note (spec_gap, point 52): U22 is an operator mutant that the amended list leaves to its example
+U22 makes NONE equal NONE in `same_as`, which is an operator of contracts/rulepack.schema.json.
+The amended point 52 lists the property set by name (U1 to U9, U14, U21, M9, M15, M16, M18 to
+M20) and leaves U22 out, so it survives every property under the profile. R32's example kills
+it. The same holds for U24, a mutant of `first`, which is arguably a reader. This meets the text
+of the point, so it is a note for whoever next amends the SPEC: either name U22 in the property
+set or say why `same_as` between two links is a position.
 
-Input: TMPDIR/rvu3/mut.py, `props` set, `--hypothesis-profile mutants`, on a full HEAD copy. The
-no-mutant baseline passes, with only the
-non-vacuity test skipped.
-- U10, U12, U16, U21, U22, U23b, U24, U25 and U26 each leave both property files green. Every
-  one of them is killed by an example.
-- One cause is visible in the code. P6 at tests/unit/engine/test_unknown_logic.py:397 draws a
-  leaf's U only as `not_sure`, never as absent or unreadable. So `present` on an absent `ask`
-  field (U21, the fault of the last two reviews) can be seen by no property.
-- The other survivors act on as_of, group keys, done_when, same_as between two nones, whole-list
-  statements dated after today, first with a list not stated whole, and next stages. P1 to P3
-  do not draw these positions within 10 examples.
-
-The engine is right on each, as the examples show, so this is a gap in the tests, not in the
-behaviour.
-
-### 2. Note: two test_path_reach assertions changed meaning
-tests/unit/engine/test_path_reach.py:765 and :825 used to expect conflict:toy.high_or_left and
-conflict:toy.low_left on a low course with left_on left out. They now expect no conflict and
-`missing:c1.left_on`. In that file's pack, left_on is an `ask` field (line 94, `happened`), so
-point 2 makes the new expectation the right one. The change is not a loosening. I note it
-because it reverses an assertion rather than adding one.
+### 2. Note (carried): two test_path_reach assertions reversed, rightly
+This is unchanged from the last review: test_path_reach.py:765 and :825. Point 2 makes the
+new expectation the right one.
 
 ### 3. Note (carried): a part-time pre-completion OPT always withholds the months-at-level count
-Unchanged. This is for L-content.
+This is unchanged. It is for L-content.
 
 ## Scores
 
 | Line | Score | Evidence |
 |---|---|---|
-| correct | 5 | All 40 R rows pass, and the holds probes give the SPEC's answer for five field kinds in three gap states. Declared-none and Kleene cases are right. The journeys are byte-identical to 83fddf1. I could not break it. |
-| sourced | 5 | No rule or number changed. Sources verify clean. The R16 C, R36 and U25 dates worked by hand match the saved quote of 8 CFR 214.2(f)(11)(i)(B) and the tests' comments. |
-| never_assumes | 5 | A check's holds now asks an absent, undecided or unreadable field in every probe, and raises no conflict on it. Only a field declared none reads as none. |
-| inside_the_boundary | 5 | The only new person-facing string is the 422 detail. It names the category, echoes nothing sent, and passes the copy lint. |
-| secure | 5 | A category fault is still 422 with no echo. No probe crashed or stalled compute. |
-| tested | 2 | Every named mutant is killed by an example, and the property run is honest now. But nine named mutants survive every property under the profile point 52 names (finding 1). |
+| correct | 5 | No engine change since 76a47db. All 40 R rows pass, the journeys are byte-identical, and the holds probes from the last review still hold. I could not break it. |
+| sourced | 5 | No rule, number or quote changed. Sources verify clean, and the hand-worked R16 C, R36 and U25 dates are still asserted. |
+| never_assumes | 5 | P6 now asserts, for every leaf in every gap state, that the gap is asked with its own state and raises no conflict. The engine passes this. |
+| inside_the_boundary | 5 | No person-facing string changed in this round. Copy lint is clean. |
+| secure | 5 | No code path changed. P6 now feeds unreadable samples of every kind through compute with no crash. |
+| tested | 4 | Under the profile, every mutant the amended point 52 lists is killed by a property, and every named mutant by an example, with baselines passing. My own mutant Y1 turned out equivalent. One point short of 5 for note 1 (U22 and U24 have no property). |
 
-Mean 4.5. tested is below 4, and it rests on finding 1.
+Mean 4.83. No line is below 4.
 
 ## What I chose not to build
 
-No fixes and no tests: reviews/ is mine and the code is not. I did not run the survivors under
-the default profile, because point 52 names the mutants profile.
+I built no fixes and no tests: reviews/ is mine and the code is not. I did not add Y1 to the
+mutant set, since it is equivalent on the input I probed.
 
-VETO
+APPROVE
