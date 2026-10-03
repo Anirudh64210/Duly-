@@ -1,49 +1,48 @@
 {
- "run_id": "l-review-e4f7024f0e",
- "reviewed_commit": "76a47db",
+ "run_id": "l-review-f924676928",
+ "reviewed_commit": "b120cf2",
  "scores": {
   "correct": {
    "score": 5,
-   "evidence": "40 of 40 R rows pass; holds probes (TMPDIR/rvu3/holds2.py) give the SPEC answer for flag, count, date, choice and link fields absent, not_sure and unreadable; declared-none and Kleene any_of/not cases right; the 20 journeys are byte-identical to 83fddf1."
+   "evidence": "No engine, api or web change since 76a47db; 40 of 40 R rows pass; tests/unit and tests/holdout exit 0; the 20 journeys are byte-identical to 76a47db (1077 outputs, 434 null or unknown, 410 with waits_on)."
   },
   "sourced": {
    "score": 5,
-   "evidence": "No rule or number changed; sources verify clean; R16 C (2026-05-17 to 2026-10-14), R36 toy (2025-06-10, 2026-06-30) and U25 toy (2027-06-30) worked by hand match 8 CFR 214.2(f)(11)(i)(B) and the test comments."
+   "evidence": "No rule, number or quote changed; sources verify clean (4 packs); the hand-worked R16 C (2026-05-17 to 2026-10-14, 8 CFR 214.2(f)(11)(i)(B)), R36 and U25 dates stay asserted by passing tests."
   },
   "never_assumes": {
    "score": 5,
-   "evidence": "A check's holds now asks an absent, undecided or unreadable field with its state in every probe and raises no conflict; only a field declared none reads as none (point 2)."
+   "evidence": "P6 now asserts that every unknown leaf in each gap state (absent on an ask field, unreadable, not_sure) is asked once with its own state and raises no conflict, alone and in a tree; the engine passes it, and U21 and U21b are caught by P6."
   },
   "inside_the_boundary": {
    "score": 5,
-   "evidence": "The only new person-facing string is the 422 CASE_STRUCTURE detail, which names the category, echoes nothing sent and passes copy lint."
+   "evidence": "No person-facing string changed this round; copy lint clean."
   },
   "secure": {
    "score": 5,
-   "evidence": "A category fault is still 422 with no echo of the sent value; no probe crashed or stalled compute; mypy, ruff and engine_literals clean."
+   "evidence": "No code path changed; P6 now drives unreadable samples of every field kind through compute without a crash."
   },
   "tested": {
-   "score": 2,
-   "evidence": "Every named mutant is killed by an example and the non-vacuity test is skipped only under the mutants profile, but U10, U12, U16, U21, U22, U23b, U24, U25 and U26 survive every property under --hypothesis-profile mutants (finding 1)."
+   "score": 4,
+   "evidence": "Under --hypothesis-profile mutants, every operator and reader mutant point 52 lists (U1 to U9, U14, U21, M9, M15, M16, M18 to M20) is killed by a property and every named mutant by an example, with both baselines passing (TMPDIR/rvu4/mut_props.txt, mut_examples.txt). The reviewer's mutant Y1 was equivalent. U22 and U24 have no property (note 1)."
   }
  },
  "findings": [
   {
-   "severity": "blocking",
-   "kind": "missing_test",
-   "spec_point": "52",
-   "title": "Nine named point 52 mutants survive every property under the mutants profile",
-   "file": "tests/unit/engine/test_w2_unknown_props.py, tests/unit/engine/test_unknown_logic.py:397",
-   "input": "TMPDIR/rvu3/mut.py props set with --hypothesis-profile mutants on a full HEAD copy; the no-mutant baseline passes with only the non-vacuity test skipped.",
-   "what_happens": "U10, U12, U16, U21 (and U21b), U22, U23b, U24, U25 and U26 leave both property files green; each is killed by an example. P6 draws a leaf's U only as not_sure (test_unknown_logic.py:397), so present on an absent ask field (U21) is invisible to every property. The last review ran only the first ten mutants against the properties, so it did not list these."
+   "severity": "note",
+   "kind": "spec_gap",
+   "title": "U22 (same_as) and U24 (first) are left to their examples by the amended point 52 list",
+   "file": "specs/step-w/SPEC-W2-UNKNOWN.md:662",
+   "input": "TMPDIR/rvu4/mut.py props set, --hypothesis-profile mutants: U22 (NONE equal NONE in same_as, path.py) and U24 (first ignoring whether the list is whole).",
+   "what_happens": "Both leave both property files green; R32 and R35's examples kill them. The amended text names the property set and leaves both out, so this meets the point; name them or say why they count as positions at the next amendment."
   },
   {
    "severity": "note",
    "kind": "other",
-   "title": "Two test_path_reach assertions reversed, rightly",
+   "title": "Two test_path_reach assertions reversed, rightly (carried)",
    "file": "tests/unit/engine/test_path_reach.py:765, 825",
-   "input": "A low course with left_on (an ask field in that file's pack, line 94) left out, under toy.high_or_left and toy.low_left.",
-   "what_happens": "The expectation moved from a conflict to missing:c1.left_on with no conflict. Point 2 makes the new one right; it is a reversal, not a loosening."
+   "input": "A low course with left_on (an ask field in that file's pack) left out.",
+   "what_happens": "Expectation moved from a conflict to missing:c1.left_on; point 2 makes it right."
   },
   {
    "severity": "note",
@@ -54,5 +53,5 @@
    "what_happens": "opt.months_at_level.span_not_known.a1 is raised, as point 22a says. For L-content."
   }
  ],
- "decision": "VETO"
+ "decision": "APPROVE"
 }

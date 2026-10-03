@@ -445,3 +445,16 @@
 - Failure: the property half of point 52 was run on ten mutants only, so nine survivors went unseen for a round.
 - Fix: run every mutant on both sets to the end, in parallel, in full source copies, with a no-mutant baseline; check the baseline line says passed before trusting any CAUGHT.
 - Evidence: reviews/w2-unknown.md finding 1.
+
+## 2026-10-02, run l-review-f924676928 (W2-UNKNOWN final review, after fix 8)
+- Read the last review, plan fix8, SPEC point 52 as amended, tests/PROGRESS.md, and the diff 9749801..b120cf2 (test_unknown_logic.py P6 only; no engine, api or web change since 76a47db).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0. ruff, format, mypy, engine_literals, sources verify, copy lint all 0. Property files with --durations: P6 12.8 s under load.
+- Mutants TMPDIR/rvu4/mut.py, full source copies, mutants profile, both sets to the end, baselines pass. Properties: every listed operator and reader mutant caught (U14, U21, U21b, X3 by P6). Survivors are position mutants U10, U12, U16, U22, U23b, U24, U25, U26, plus U17 (no-op), U18 (equivalent) and U18b (not named). Examples: all caught but U2 and U17b (both caught by examples in test_unknown_logic.py), U17 and U18.
+- Own mutant Y1 (_note sends not_sure to missing): survives, but it is equivalent on a toy probe (TMPDIR/rvu4/y1probe.py).
+- Journeys byte-identical to 76a47db: 1077/434/410, 32 nulls with no waits_on.
+- Wrote reviews/w2-unknown.md (APPROVE, mean 4.83), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: a mutant of my own survived every test, and it would have read as a gap if I had not probed it.
+- Fix: diff HEAD and the mutant's output on one input before calling a survivor a finding.
+- Evidence: reviews/w2-unknown.md, own probe of P6.
