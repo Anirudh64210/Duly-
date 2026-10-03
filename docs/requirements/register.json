@@ -7014,9 +7014,9 @@
   "source": "DECISIONS.md D32",
   "text": "A missing DSO recommendation date blocks the verdict only while it can still matter; it stops blocking once a filing date or an EAD is recorded.",
   "kind": "engine",
-  "status": "met",
-  "evidence": "engine/f1.py _add_file_by; tests/unit/engine/test_f1_context.py::test_a_recommendation_date_does_not_block_once_the_ead_start_alone_is_recorded",
-  "note": "Built and the direct tests pass; one sibling test fails on this branch for the contract reason. On work/product-1 324 engine and api tests fail, because the round 1 contract and tests landed before the engine work.",
+  "status": "partial",
+  "evidence": "engine/f1.py _add_file_by; tests/unit/engine/test_f1_context.py::test_a_recommendation_date_does_not_block_once_the_ead_start_alone_is_recorded; tests/unit/engine/test_w2_windows.py::test_opt_last_day_with_no_recommendation_date_is_no_date",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): met to partial. Drift. True of compute_f1 (the old form; the test_f1_context tests pass). Not true of the path engine that POST /v1/compute and the desktop app run: an OPT card filed 2026-04-10 and approved, card 2026-06-01 to 2027-05-31, dso_on left out, today 2026-09-29, gives missing:a1.dso_on as a reason and a question, and opt.last_day closes null. The W2-P1 test asserts this, from SPEC-W2 point 45 (founder decision 2026-10-01, commit c24c65d), which DECISIONS.md does not record. Put to the founder as a dispute.",
   "part": "founder-decisions"
  },
  {
@@ -12634,9 +12634,9 @@
   "source": "11-claude-code-handoff/claude-scaffolding.md, LESSONS/",
   "text": "LESSONS has a proposals/ inbox.",
   "kind": "factory",
-  "status": "met",
-  "evidence": ".claude/LESSONS/proposals/.gitkeep; .claude/LESSONS/README.md",
-  "note": "Kept, empty after D44.",
+  "status": "superseded",
+  "evidence": "DECISIONS.md D68",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): met to superseded. Drift. .claude/LESSONS/proposals/ and .claude/LESSONS/README.md are gone; D68 deleted the proposal inbox.",
   "part": "gates-factory"
  },
  {
@@ -21008,6 +21008,66 @@
   "evidence": "contracts/events.md",
   "note": "The contract states ids and metadata only, but no events or email events exist and no test enforces it.",
   "part": "security-email-loops"
+ },
+ {
+  "id": "W2-001",
+  "source": "specs/step-w/SPEC-W2.md point 45, P1",
+  "text": "Last-day windows (opt.last_day, stem.last_day) close on the earliest of the filing window's close and the DSO recommendation limit, each from a saved primary source; with no recommendation date the last day is not known, the verdict is Can't tell yet and the date is asked.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (opt.last_day, stem.last_day); tests/unit/engine/test_w2_windows.py::test_opt_last_day_is_the_recommendation_limit_when_it_comes_first, ::test_opt_last_day_with_no_recommendation_date_is_no_date, ::test_stem_last_day_with_no_recommendation_date_is_no_date, ::test_opt_last_day_is_never_after_either_limit",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. Tests pass. My probes: program end 2026-12-15, recommendation 2026-09-25, not filed: 2026-09-16 to 2026-10-25; program end 2027-06-29, recommendation 2027-03-20: 2027-03-31 to 2027-04-19. Both right by hand. The missing date blocks even after filing and a card, which D32 does not allow (see DEC-D32-001).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-002",
+  "source": "specs/step-w/SPEC-W2.md point 45, P2",
+  "text": "Prepare windows (opt.prepare, stem.prepare) open plan.prepare_months before the filing window, from the product setting, never a number written by hand, and are marked planning.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_w2_windows.py::test_a_prepare_window_opens_the_setting_s_months_before_the_filing_window, ::test_a_prepare_window_lands_on_the_month_s_last_day_when_it_has_no_such_day, ::test_a_planning_date_names_the_setting_and_its_value_among_its_inputs",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. Probe: filing window opens 2027-03-31, prepare opens 2027-02-28 (no 31st), planning true. The web working names the setting generically (labels.ts SETTING_NAMES lacks plan.prepare_months); that is a screen gap, not this row's.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-003",
+  "source": "specs/step-w/SPEC-W2.md point 45, P3",
+  "text": "Report windows on a job's start (OPT employment report, STEM new plan and report), from saved sources; an hours change gets no window while no saved source gives its days.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_w2_windows.py::test_an_opt_job_start_gives_a_report_window_from_the_guidance, ::test_the_job_start_report_is_marked_a_reading_wherever_it_is_shown, ::test_an_opt_hours_change_gives_no_report_window_of_its_own, ::test_the_stem_report_window_is_worked_from_the_report_rule_not_the_new_plan_rule; rulepacks/f1-us/v2026.09/CHANGELOG.md (no hours-change window)",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. Probe: a job from 2026-09-25 gives opt_job_start.report 2026-09-25 to 2026-10-05, tagged guidance and marked a reading.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-004",
+  "source": "specs/step-w/SPEC-W2.md point 46, N1",
+  "text": "Windows whose amount names a product setting are dated from the setting and marked planning: true; a pack naming a setting anywhere but a stage window's opens or closes, an unknown setting id, or a unit that cannot date a window is refused with a plain error.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/rulepack.py; engine/settings.py; tests/unit/engine/test_w2_windows.py::test_a_setting_outside_a_window_is_refused_with_a_plain_error, ::test_a_window_on_a_setting_the_engine_cannot_date_from_is_refused, ::test_n1_a_toy_window_from_a_setting_is_dated_and_marked_planning, ::test_only_planning_windows_carry_planning_and_their_items_carry_it_too",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. Tests pass; engine_literals clean. Prepare windows carry status settled beside planning true (first review's note); no SPEC point asks otherwise.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-005",
+  "source": "specs/step-w/SPEC-W2.md point 46, N2",
+  "text": "Each counter gives a limit day, <counter>.<key>.limit_day: the day the count would reach its limit if nothing in the record changes, with words that never say what follows that day.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/path.py (limit_day item); tests/unit/engine/test_w2_limit_day.py::test_opt_card_limit_day_when_no_job_runs, ::test_a_card_that_starts_after_today_has_a_limit_day, ::test_the_limit_day_s_words_never_say_what_follows_that_day, ::test_stem_total_limit_day",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. Probe: card from 2026-08-15, no job, today 2026-09-29: 46 days, limit day 2026-11-12 (17 in August, 30 in September, 31 in October, 12 in November). Right by hand. A negative hours figure still yields a limit day from a figure no one can work (review finding 1; PRIN-010).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-006",
+  "source": "specs/step-w/SPEC-W2.md point 49",
+  "text": "W2-P1 is held by tests/unit/engine/test_w2_windows.py, test_w2_limit_day.py, new journey pairs in tests/holdout, and web/samples regenerated by make samples.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_w2_windows.py; tests/unit/engine/test_w2_limit_day.py; tests/holdout/test_holdout_w2.py; web/samples/make.py --check",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. The three files and the journeys pass (one expected xfail); web/samples/make.py --check exits 0. No test enters a negative hours figure.",
+  "part": "spec-w2"
  },
  {
   "id": "WB00-001",

@@ -59,3 +59,20 @@ Ran and printed:
 
 Changed: PRIN-012 and PRIN-013 partial to met; DEC-D59-002 not_started to partial; 8 rows added for D92 to D94 (5 met, 2 partial, 1 not started); notes on the other 11 covered rows. Covered rows: 9 of 14 met, not the 14 the SPEC claims.
 Not run: make test, make test-offline, gate-6, prove-gates, tests/unit/tools and desktop_entry (sandbox).
+
+## 2026-10-02, run l-audit-1044b1aa1e, attempt 1
+
+Tried: audit W2-P1 (plan-w2-p1.yaml, -fix, -fix2, -final; SPEC-W2 points 45, 46, 49) on the engine the unknown-values work left, at 1ba95b2 (docs/requirements/audits/w2-p1.md).
+
+Ran and printed:
+- test_w2_windows, test_w2_limit_day, holdout w2, journeys: all passed, one xfail, 4.6 s.
+- pytest tests/unit tests/holdout without tools and desktop_entry: exit 0.
+- sources verify, plain --require f1, engine_literals, mypy (72 files), ruff check and format, copy lint, web/samples/make.py --check: all exit 0.
+- web vitest 618 passed. desktop vitest 248 passed, 1 failed (buildpython dry-run copies). The same dry run by hand prints the five expected lines, so I count it as a sandbox effect. npm test -w desktop cannot create desktop/coverage here.
+- Probes: last day 2026-09-16 to 2026-10-25 and 2027-03-31 to 2027-04-19; prepare 2027-02-28 (month clamp); limit day 2026-11-12; job report 2026-09-25 to 2026-10-05. All right by hand. Hours -5 is still read as fact. A filed, approved card with no dso_on still blocks (against D32).
+- Drift: 20 met rows, seed 20261003 (new). PLAN11-086 evidence gone (D68).
+- register build and check: 2503 requirements, whole; 449 of 2140 met, 21%.
+
+Changed: W2-001 to W2-006 added in parts/spec-w2.json (all met). DEC-D32-001 met to partial. PLAN11-086 met to superseded.
+Not run: make test, make test-offline, prove-gates, the reviewer's mutants, tests/unit/tools, desktop_entry.
+Next audit: use a seed other than 20261002 and 20261003.

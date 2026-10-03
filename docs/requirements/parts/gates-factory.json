@@ -2569,9 +2569,9 @@
   "source": "11-claude-code-handoff/claude-scaffolding.md, LESSONS/",
   "text": "LESSONS has a proposals/ inbox.",
   "kind": "factory",
-  "status": "met",
-  "evidence": ".claude/LESSONS/proposals/.gitkeep; .claude/LESSONS/README.md",
-  "note": "Kept, empty after D44."
+  "status": "superseded",
+  "evidence": "DECISIONS.md D68",
+  "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): met to superseded. Drift. .claude/LESSONS/proposals/ and .claude/LESSONS/README.md are gone; D68 deleted the proposal inbox."
  },
  {
   "id": "PLAN11-087",
