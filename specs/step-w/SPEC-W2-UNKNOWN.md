@@ -659,7 +659,12 @@ before the engine exists and a missing name fails the test, never skips it.
     | R39 | toy pack: a counted record whose span ends on a `first` that chooses nothing | the group withheld, `<counter>.span_not_known.<record>` raised and named in `waits_on` |
     | R40 | R6's case plus p1.school_name absent and e1 (no STEM card names it) with e_verify `not_sure` | no question for either; `e1.e_verify.not_sure` raised; no `undecided:` reason; the verdict not cannot_tell for these |
 
-52. **Mutants the tests must kill,** each by at least one property and one example. The review's
+52. **Mutants the tests must kill,** each by at least one example; and each mutant of an operator
+    or a reader (U1 to U9, U14, U21 and the review's M9, M15, M16, M18 to M20) by a property as well,
+    with P6 drawing every value state (absent, unreadable, not_sure, NONE, NOT_YET) at its leaves.
+    Amended 2026-10-02: a mutant at one position of the path (as_of, a group key, done_when, a
+    dated statement, a next stage) is held by its example, since ten random draws reach such a
+    position only by chance. The review's
     M9, M15, M16, M18, M19, M20, and: U1 `_select` back to all or nothing; U2 `exists` without the
     list check; U3 `present` reading unreadable as absent; U4 `present` reading `not_sure` as
     present; U5 unknown hours read as no job; U6 an unknown end read as ongoing; U7 an unknown
