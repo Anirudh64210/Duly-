@@ -260,16 +260,24 @@ class _Run:
         5 and 34, reviews/w2-p2.md finding 9). A reading, for a kind whose only dates are a
         first and a last day (its _span_fields and no other): the last before the first, and
         a chain link (one to the record's own kind whose absence can be none, point 19) to a
-        record, itself included, that did not begin before this one."""
+        record, itself included, that did not begin before this one. A record confirmed
+        (path.checkins) before its first day, likely a typing slip (reviews/w2-p2.md note)."""
         for record in self.records.values():
             rid = record[ID]
             fields = self.kinds[record["kind"]]["fields"]
             span = self._span_fields(record["kind"])
+            checkin = self.checkins.get(record["kind"])
+            if span is not None and checkin is not None:
+                first, on = (self._own_day(record, name) for name in (span[0], checkin["field"]))
+                if first is not None and on is not None and on < first:
+                    name = f"{rid}.{checkin['field']}"
+                    at = {name: on.isoformat(), f"{rid}.{span[0]}": first.isoformat()}
+                    self._clash(name, at, rid, checkin["field"])
             if span is None or sum(f["kind"] == DATE_KIND for f in fields) != len(span):
                 continue
             first, last = (self._own_day(record, name) for name in span)
-            if first is not None and last is not None and last < first:
-                order = {"starts": first.isoformat(), "ends": last.isoformat()}
+            if self._out_of_order(record):
+                order = {"starts": str(first), "ends": str(last)}
                 self._clash(f"span_order.{rid}", order, rid, span[1])
             for decl in fields:
                 state, linked = self._read_own(record, decl[ID])
@@ -318,10 +326,10 @@ class _Run:
         state, got = self._read_own(record, name)
         return got if state == "known" and isinstance(got, date) else None
 
-    def _clash(self, cid: str, about: Json, rid: str, name: str) -> None:
-        """A conflict on a record's own dates or links: every window dated from the record
-        waits on it while it stands (point 32a)."""
-        self._conflict(cid, about, rid, (name, "conflict"))
+    def _clash(self, cid: str, about: Json, rid: str, name: str | None = None) -> None:
+        """A conflict on a record's own dates, links or answers: every window dated from the
+        record waits on it while it stands (point 32a)."""
+        self._conflict(cid, about, rid, None if name is None else (name, "conflict"))
         if cid in self.conflicts:
             self.clashed.setdefault(rid, []).append(cid)
 
@@ -1463,24 +1471,8 @@ class _Run:
         # of false or a stated absence never is. Not done and not known: the window keeps its
         # dates and waits on what done rests on.
         done_tr = _Trace()
-        done_paths = window.get("done_when", [])
-        done_values = [self._read(p, record, record, done_tr) for p in done_paths]
+        done_values = [self._read(p, record, record, done_tr) for p in window.get("done_when", [])]
         done = any(v not in (ABSENT, NONE, NOT_YET, False) for v in done_values)
-        # Point 55: a field of the record left empty and asked (when_absent ask), neither a
-        # flag nor one that takes not sure, is known whatever the answer, so done is the same
-        # in every fill and waits on nothing; the field is still asked where a read rests on it.
-        own = [
-            p[len(THIS) + 1 :]
-            for p, v in zip(done_paths, done_values, strict=True)
-            if v is ABSENT and p.startswith(f"{THIS}.")
-        ]
-        done = done or any(
-            record is not None
-            and record["fields"].get(name) is None
-            and self._decl(record, name).get("kind") not in (None, "flag")
-            and not self._decl(record, name).get(NOT_SURE)
-            for name in own
-        )
         suffix = "" if rid is None else f".{rid}"
         dates: dict[str, date | None] = {}
         waits: dict[str, list[str]] = {}
@@ -1802,11 +1794,32 @@ class _Run:
         if holds is False:
             if check.get("kind") == "judgement":
                 self._judge(_judgement_id(check, record) or cid)
+            elif record is not None and self._answers_only(check, record["kind"]):
+                # Answers on the record that cannot all be true hold back what is dated from it.
+                self._clash(cid, dict(tr.inputs), record[ID])
             else:
                 self._conflict(cid, dict(tr.inputs), rid)
         elif holds is None:
             self._need(tr)
             self._withhold(cid, self._waits(tr))
+
+    def _answers_only(self, check: Json, kind: str) -> bool:
+        """Whether a check reads only answers on records of its own kind: no date (fact),
+        no other kind, no field through a link. One that fails says they cannot all be true
+        (reviews/w2-p2.md finding 2), not what a rule asks of a date. A reading."""
+        nodes: list[Any] = [check.get("only_if", []), check["holds"]]
+        while nodes:
+            node = nodes.pop()
+            if isinstance(node, list):
+                nodes += node
+            elif isinstance(node, dict):
+                if "fact" in node or node.get("record", kind) != kind:
+                    return False
+                paths = [node.get(k) for k in ("field", "same_as", "differs_from")]
+                if any(isinstance(p, str) and p.count(".") > 1 for p in paths):
+                    return False
+                nodes += node.values()
+        return True
 
     # Counters.
 
@@ -2127,6 +2140,10 @@ class _Run:
         checkin = self.checkins.get(record["kind"])
         if checkin is None:
             return None
+        if record[ID] in self.clashed:
+            # Either of its days that conflict may be the wrong one (point 32a).
+            tr.named += self.clashed[record[ID]]
+            return ABSENT
         state, got = self._read_own(record, checkin["field"])
         if state == "absent" and self._absence(record, checkin["field"], tr) is not ABSENT:
             return None
@@ -2271,19 +2288,23 @@ class _Run:
         close_days = whole_setting(self.settings, CLOSE_SETTING)
         for entry in self.path.get("watch", []):
             rules = list(entry["rule_ids"])
+            self._use_kind(entry["record"])
             for record in self.records.values():
                 if record["kind"] != entry["record"]:
                     continue
-                self._use_kind(record["kind"])
                 tr = _Trace()
                 got = self._read(f"{THIS}.{entry['field']}", record, None, tr)
                 self._need(tr)
                 self._rules(rules)
-                day = as_date(got)
+                row = f"watch.{record[ID]}.{entry['field']}"
+                # Either of a record's dates that conflict may be the wrong one (point 32a).
+                clashed = self.clashed.get(record[ID], [])
+                self._withhold(row, clashed)
+                day = None if clashed else as_date(got)
                 away = None if day is None else (day - self.today).days
                 self.watch.append(
                     {
-                        ID: f"watch.{record[ID]}.{entry['field']}",
+                        ID: row,
                         "label": entry["label"],
                         "date": None if day is None else day.isoformat(),
                         "days_away": away,
