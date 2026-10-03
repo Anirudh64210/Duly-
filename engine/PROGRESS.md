@@ -2150,3 +2150,41 @@ Status: blocked on L-content (trip_opt selection) and L-tests (the at_or_over_li
 - Not built: no change to engine/f1.py (no test or reachable input needs it).
 
 Status: done.
+
+## l-engine-407943f4aa (W2-P2 review veto, findings 1, 2 and 5)
+
+- engine/path.py `_confirmed`: an absent confirmed day reads as its when_absent declares; `ask`
+  (work and petition confirmed_on) notes the gap and returns ABSENT, so a count resting on it is
+  withheld with waits_on `w1.confirmed_on` and asked as absent (finding 1, review1).
+- run_checkins asks an absent confirmed day only where an output rests on it (the count), not
+  from the check-in alone: test_j19_an_old_approved_petition... holds a petition with no
+  confirmed_on and no question.
+- _Trace.as_of now keeps (day, record id). The limit day is withheld when it would fall after
+  the last confirmed day (and that day is before today), waiting on `checkin.<record>` of each
+  stale record; that check-in is then asked even before its due day, so the waits_on id is a
+  question (finding 2, review2, review5). First try withheld every future limit day (toy N2 and
+  test_w2_limit_day failed): the condition is now `through < min(reached, today)`.
+- Done command as written ($TMPDIR/done.log): pytest exit 1, 3 failures, all in
+  test_f1_translation.py (opt dates, opt count vs compute_f1, stem dates):
+  unemployment.opt_card.a1 None where 14 is expected. Their translated and hand-written records
+  hold a work record with no confirmed_on and lists stated whole today, the same shape as
+  review1, which requires the count withheld. Disputed, not worked around.
+  engine_literals, mypy (72 files), ruff check, ruff format: exit 0.
+- Not built: no confirmed_on written by f1.to_records (case_f1 holds no confirmed day; the
+  complete.work "on" day states the list whole, not the hours, and the hand-written-records test
+  would then fail); no reading of complete.<kind> as a confirmation (review1 states it today).
+
+Status: blocked on L-tests (test_f1_translation vs review1).
+
+### Attempt 2 (l-engine-407943f4aa)
+
+- Attempt 1 was not accepted: the three test_f1_translation.py failures. Section 19 requires
+  parity for the translated count, so this is required, not a dispute.
+- engine/path.py `_confirmed`: a record holding a field the pack declares translation_only
+  comes from an older case, which has no check-in. With its list stated whole today
+  (`_stated`), its empty confirmed day reads as today. Native records (review1) are still
+  asked. Generic: reads the pack flag only.
+- Done command as written ($TMPDIR/done.log): exit 0 (1 xfail already there).
+- Not built: no confirmed_on in f1.to_records (the hand-written-records test pins the table).
+
+Status: done.

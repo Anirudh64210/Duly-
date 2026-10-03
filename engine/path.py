@@ -145,8 +145,8 @@ class _Trace:
     differ: list[str] = field(default_factory=list)
     # A conflict or a judgement an output waits on (SPEC-W2-UNKNOWN points 22 and 22a).
     named: list[str] = field(default_factory=list)
-    # The last confirmed days of the records a count rests on (SPEC-W2 N3).
-    as_of: list[date] = field(default_factory=list)
+    # The last confirmed days of the records a count rests on, with their ids (SPEC-W2 N3).
+    as_of: list[tuple[date, str]] = field(default_factory=list)
     optional_used: bool = False
     planning: bool = False
 
@@ -189,6 +189,8 @@ class _Run:
         self.stages: list[Json] = []
         self.checklists: list[Json] = []
         self.checkins_out: list[Json] = []
+        # Check-ins a limit day waits on, asked before they are due (SPEC-W2 N3).
+        self.checkins_waited: set[str] = set()
         self.watch: list[Json] = []
         self.questions: dict[str, Json] = {}
         self.missing: list[str] = []
@@ -1791,7 +1793,8 @@ class _Run:
             waits = [] if value is not None else self._waits(gtr)
             if value is None and not waits:
                 self._engine_gap(item_id)
-            as_of = min(gtr.as_of, default=None) if value is not None else None
+            through = min([self.today, *(day for day, _ in gtr.as_of)])
+            as_of = through if value is not None else None
             self._item(item_id, value, unit, gtr.inputs, rules, None, waits=waits, as_of=as_of)
             if counted is not None:
                 # SPEC-W2 point 46, N2: the day the count would reach its limit if nothing in
@@ -1808,6 +1811,12 @@ class _Run:
                     day_waits = []
                     if gtr.pending and (reached is None or reached > self.today):
                         reached, day_waits = None, self._waits(_Trace(pending=gtr.pending))
+                    if reached is not None and through < min(reached, self.today):
+                        # N3: past the last confirmed day the count is not known, so neither
+                        # is the day it reaches its limit; it waits on each stale check-in.
+                        stale = [f"checkin.{rid}" for day, rid in gtr.as_of if day < reached]
+                        self.checkins_waited.update(stale)
+                        reached, day_waits = None, _unique([*day_waits, *stale])
                 self._item(
                     f"{item_id}.limit_day",
                     reached,
@@ -1913,7 +1922,7 @@ class _Run:
         if any(without is None for without in all_without):
             return None, unit, []
         # N3: the count stops at the last day every record it rests on was confirmed.
-        through = min([self.today, *tr.as_of])
+        through = min([self.today, *(day for day, _ in tr.as_of)])
         return sum(1 for day in found if day <= through), unit, found
 
     def _days_without(
@@ -1976,7 +1985,7 @@ class _Run:
                 covered |= days
                 tr.merge(rtr)
                 if isinstance(confirmed, date):
-                    tr.as_of.append(confirmed)
+                    tr.as_of.append((confirmed, record[ID]))
             elif rtr.named or not self._outside(record, starts, ends):
                 tr.merge(rtr)
                 known = False
@@ -1984,12 +1993,20 @@ class _Run:
 
     def _confirmed(self, record: Json, tr: _Trace) -> date | _Absent | None:
         """The last day the person confirmed a record the pack checks in on (path.checkins),
-        None when never confirmed or not checked in on, ABSENT when not known (SPEC-W2 N3)."""
+        None when stated never confirmed or not checked in on, ABSENT when not known: left
+        empty, it reads as its when_absent declares (SPEC-W2 N3, SPEC-W2-UNKNOWN point 2)."""
         checkin = self.checkins.get(record["kind"])
         if checkin is None:
             return None
         state, got = self._read_own(record, checkin["field"])
-        if state in ("unreadable", "undecided"):
+        if state == "absent" and self._absence(record, checkin["field"], tr) is not ABSENT:
+            return None
+        older = any(self._decl(record, name).get("translation_only") for name in record["fields"])
+        if state == "absent" and older and self._stated(record["kind"]):
+            # A record translated from an older case, which has no check-in: its list stated
+            # whole today is its confirmation (specs/path-1/programs.md section 19, parity).
+            return self.today
+        if state != "known":
             self._note(tr, state, f"{record[ID]}.{checkin['field']}", record[ID])
             return ABSENT
         return got if isinstance(got, date) else None
@@ -2095,7 +2112,9 @@ class _Run:
                     continue
                 tr = _Trace()
                 confirmed = self._confirmed(record, tr)
-                self._need(tr)
+                if self._read_own(record, entry["field"])[0] != "absent":
+                    # A day left empty is asked where an output rests on it (point 2).
+                    self._need(tr)
                 on = confirmed.isoformat() if isinstance(confirmed, date) else None
                 due = confirmed + timedelta(days=days) if isinstance(confirmed, date) else None
                 qid = f"checkin.{record[ID]}"
@@ -2109,7 +2128,7 @@ class _Run:
                         "question": qid,
                     }
                 )
-                if due is not None and due <= self.today:
+                if qid in self.checkins_waited or (due is not None and due <= self.today):
                     about = {f"{record[ID]}.{entry['field']}": on}
                     self._ask(qid, f"{UNCONFIRMED}{qid}", about, record[ID])
                     reasons.append(f"{UNCONFIRMED}{qid}")
