@@ -27,7 +27,7 @@ rounds:
   lanes:
   - lane: L-engine
     agent: builder
-    mission: 'Read reviews/w2-p2.md findings 3, 4, 8, 9 and 10 and the hours note. engine/path.py: a stage whose span conflicts withholds every window it dates (point 32a), not only its own dates; run_watch reads each list through the whole-list rule (point 14: a list not stated whole leaves the soonest date unknown and asks complete.<kind>); a date order that does not fit in a record or between linked records (the four the review lists) is a conflict asked by name; an hours figure above the hours in a week is unreadable. Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass.'
+    mission: 'Read reviews/w2-p2.md findings 3, 4, 8, 9 and 10 and the hours note. engine/path.py: a stage whose span conflicts withholds every window it dates (SPEC-W2-UNKNOWN, the rule on span conflicts), not only its own dates; run_watch reads each list through the whole-list rule (point 14: a list not stated whole leaves the soonest date unknown and asks complete.<kind>); a date order that does not fit in a record or between linked records (the four the review lists) is a conflict asked by name; an hours figure above the hours in a week is unreadable. Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass.'
     done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
   - lane: L-web
     agent: builder
