@@ -21,14 +21,10 @@ from engine.unknown import (
     NONE,
     NOT_YET,
     Gap,
-    Tri,
     Unknown,
-    all3,
-    any3,
     count_at_most3,
     count_below3,
     exists3,
-    not3,
 )
 from engine.verdict import VerdictInputs, decide
 
@@ -105,14 +101,10 @@ def _gaps(tr: "_Trace", record: str | None) -> list[Gap]:
     return gaps or [Gap(record, "where", "undecided")]
 
 
-def _tri(got: bool | None, tr: "_Trace") -> Tri:
-    """A condition's answer as a truth value of engine/unknown.py: None is unknown on what the
-    trace read (SPEC-W2-UNKNOWN point 5)."""
-    return Unknown(frozenset(_gaps(tr, None))) if got is None else got
-
-
-def _known(got: Tri) -> bool | None:
-    return None if isinstance(got, Unknown) else got
+def _and(results: Sequence[bool | None]) -> bool | None:
+    """Kleene's and (SPEC-W2-UNKNOWN point 5): a known false settles it, else any unknown
+    leaves it unknown. The gaps travel in the trace."""
+    return False if False in results else None if None in results else True
 
 
 def _pinned(selector: Json) -> bool:
@@ -208,10 +200,6 @@ class _Run:
         self.virtual: set[int] = set()
         self.lists: list[Json] = []
         self.differ: list[str] = []
-        # How deep the conditions read now sit inside a selection's where.
-        self.selecting = 0
-        # Whether the conditions read now are a check's holds.
-        self.holding = False
 
     # Reading the record.
 
@@ -684,11 +672,7 @@ class _Run:
             if record["kind"] != selector["record"]:
                 continue
             sub = _Trace()
-            self.selecting += 1
-            try:
-                held = self._all(selector.get("where", []), record, outer, sub)
-            finally:
-                self.selecting -= 1
+            held = self._all(selector.get("where", []), record, outer, sub)
             if held is None:
                 undecided.append((record, sub))
             elif held:
@@ -726,16 +710,16 @@ class _Run:
     ) -> bool | None:
         # A condition known to fail settles the whole: nothing the others read is asked.
         subs: list[_Trace] = []
-        results: list[Tri] = []
+        results: list[bool | None] = []
         for c in conditions:
             sub = _Trace()
-            results.append(_tri(self._cond(c, this, outer, sub), sub))
+            results.append(self._cond(c, this, outer, sub))
             if results[-1] is False:
                 return False
             subs.append(sub)
         for sub in subs:
             tr.merge(sub)
-        return _known(all3(results))
+        return _and(results)
 
     def _cond(self, c: Json, this: Json | None, outer: Json | None, tr: _Trace) -> bool | None:
         # SPEC-W2-UNKNOWN point 7: a known value is compared; NONE or NOT_YET (stated
@@ -743,11 +727,7 @@ class _Run:
         results: list[bool | None] = []
         sub = _Trace()
         value: Any = self._read(c["field"], this, outer, sub) if "field" in c else ABSENT
-        holds_alone = self.holding and not self.selecting
-        if "present" in c and value is ABSENT and holds_alone and self._only_absent(sub):
-            # A check's holds alone reads an absent field as not there under present, and asks
-            # it through its own conflict. Everywhere else it is unknown (point 2).
-            value, sub = NONE, _Trace()
+        # Point 2: present on a field not known is unknown, in a check's holds as everywhere.
         tr.merge(sub)
         known = value is not ABSENT
         stated = value is NONE or value is NOT_YET
@@ -797,28 +777,29 @@ class _Run:
         if "all_of" in c:
             results.append(self._all(c["all_of"], this, outer, tr))
         if "not" in c:
-            results.append(_known(not3(_tri(self._cond(c["not"], this, outer, tr), tr))))
+            got = self._cond(c["not"], this, outer, tr)
+            results.append(None if got is None else not got)
         if not results:
             # A field alone: a flag is its value; any other kind reads as present: true.
             flag = self._decl_at(c["field"], this, outer).get("kind") == "flag"
             results.append(None if not known else value is True if flag else not stated)
-        return _known(all3(_tri(got, tr) for got in results))
+        return _and(results)
 
     def _any(
         self, conditions: list[Json], this: Json | None, outer: Json | None, tr: _Trace
     ) -> bool | None:
         # A condition known to hold settles the whole: nothing the others read is asked.
         subs: list[_Trace] = []
-        results: list[Tri] = []
+        results: list[bool | None] = []
         for c in conditions:
             sub = _Trace()
-            results.append(_tri(self._cond(c, this, outer, sub), sub))
+            results.append(self._cond(c, this, outer, sub))
             if results[-1] is True:
                 return True
             subs.append(sub)
         for sub in subs:
             tr.merge(sub)
-        return _known(any3(results))
+        return None if None in results else False
 
     def _compare_dates(
         self,
@@ -926,11 +907,6 @@ class _Run:
         if gap is not None:
             question["field"], question["state"] = gap
         self.questions.setdefault(qid, question)
-
-    def _only_absent(self, tr: _Trace) -> bool:
-        """Whether every gap a read left is a field left empty."""
-        gaps = [self._gap_of(name, record) for name, record in tr.missing]
-        return not tr.unsure and all(gap is not None and gap[1] == "absent" for gap in gaps)
 
     def _gap_of(self, name: str, record: str | None) -> tuple[str, str] | None:
         """The field and state of a gap on a record's field (SPEC-W2-UNKNOWN point 34)."""
@@ -1657,9 +1633,7 @@ class _Run:
             return
         holds = None
         if applies:
-            self.holding = True
             holds = self._all(check["holds"], record, record, tr)
-            self.holding = False
         self._rules(check["rule_ids"])
         if holds is False:
             if check.get("kind") == "judgement":

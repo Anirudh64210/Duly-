@@ -1992,3 +1992,22 @@ Status: blocked on the three disputes (tests and pack lanes).
 - Not built: no helper; no change to known-dated windows or upcoming (nothing withheld there).
 
 Status: done.
+
+## l-engine-335238e87f (W2 unknown, review findings 1 and 3, engine round)
+
+- Finding 1 (points 2 and 32): removed the `holds_alone` branch in `_cond` that read an absent
+  field under `present` in a check's holds as NONE. With it went the `holding` and `selecting`
+  flags and `_only_absent`, which only that branch used. An absent ask field is now unknown in
+  a check's holds as everywhere: `_check` gets holds None, asks the gap and withholds; no
+  conflict, no judgement, no quiet pass. tests/unit/engine/test_path_reach.py (commit 1047aaf)
+  expects exactly this and passes.
+- Finding 3 (point 12 as amended): removed `_tri` and `_known` and the all3/any3/not3 round
+  trips in `_all`, `_any`, `_cond` and `not`. One module helper `_and` (Kleene and over
+  bool | None, used by `_all` and `_cond`); `_any` and `not` are inline. Gaps stay in the
+  trace; short-circuits kept. Unused imports (Tri, all3, any3, not3) dropped.
+- Done command as written ($TMPDIR/done.log): exit 0 (1 xfail already there). engine_literals,
+  mypy (72 files), ruff check and ruff format pass.
+- Not built: no Tri carried through the evaluator (the finding allowed either way; removal is
+  the smaller change); no example tests for U11/U25/U26 (finding 2 is tests/, not this lane).
+
+Status: done.
