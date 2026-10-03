@@ -16,7 +16,7 @@ from engine.clocks import Clock, day_in_zone
 from engine.dates import add_months, add_years, is_business_day
 from engine.readers import as_date, as_number, read
 from engine.rulepack import Rulepack
-from engine.settings import dating_setting, load_settings
+from engine.settings import dating_setting, load_settings, whole_setting
 from engine.unknown import (
     NONE,
     NOT_YET,
@@ -53,6 +53,9 @@ NOT_COVERED = "category_not_covered:"
 # first two date fields its kind declares, in the pack's order (programs.md sections 10, 13).
 PERIOD_HOURS = "hours_per_week"
 DATE_KIND = "date"
+PERIODS_KIND = "periods"
+# Duly's own choice of when a watched date is near (contracts/product_settings.yaml, K1).
+CLOSE_SETTING = "watch.close_days"
 
 
 class _Absent:
@@ -142,6 +145,8 @@ class _Trace:
     differ: list[str] = field(default_factory=list)
     # A conflict or a judgement an output waits on (SPEC-W2-UNKNOWN points 22 and 22a).
     named: list[str] = field(default_factory=list)
+    # The last confirmed days of the records a count rests on (SPEC-W2 N3).
+    as_of: list[date] = field(default_factory=list)
     optional_used: bool = False
     planning: bool = False
 
@@ -155,6 +160,7 @@ class _Trace:
         self.inputs.update(other.inputs)
         self.lapsed += other.lapsed
         self.differ += other.differ
+        self.as_of += other.as_of
         self.optional_used = self.optional_used or other.optional_used
         self.planning = self.planning or other.planning
 
@@ -177,10 +183,13 @@ class _Run:
         self.records: dict[str, Json] = {r[ID]: r for r in records}
         self.run_kinds: dict[str, str] = {r[ID]: r["kind"] for r in records}
         self.stage_decls: dict[str, Json] = {s[ID]: s for s in self.path.get("stages", [])}
+        self.checkins: dict[str, Json] = {c["record"]: c for c in self.path.get("checkins", [])}
         self.computed: list[Json] = []
         self.upcoming: list[Json] = []
         self.stages: list[Json] = []
         self.checklists: list[Json] = []
+        self.checkins_out: list[Json] = []
+        self.watch: list[Json] = []
         self.questions: dict[str, Json] = {}
         self.missing: list[str] = []
         self.undecided: list[str] = []
@@ -1045,6 +1054,27 @@ class _Run:
         if rid is not None:
             entry["stage"] = stage[ID]
             entry["record"] = rid
+        # Point 33: each window of the stage is shown withheld, never left out.
+        suffix = "" if rid is None else f".{rid}"
+        for window in stage.get("windows", []):
+            rules = _unique(window["rule_ids"])
+            self._rules(rules)
+            shown: Json = {
+                ID: f"{window[ID]}{suffix}",
+                "label": window["label"],
+                "opens": None,
+                "closes": None,
+                "opens_days_away": None,
+                "closes_days_away": None,
+                "rule_ids": rules,
+                "status": self._status(rules),
+                "reading": self._reading(rules),
+                "inputs": {},
+                "waits_on": waits,
+            }
+            if rid is not None:
+                shown["record"] = rid
+            entry["windows"].append(shown)
         self._rules(entry["rule_ids"])
         return entry
 
@@ -1397,6 +1427,7 @@ class _Run:
         ahead: bool = False,
         planning: bool = False,
         waits: list[str] | None = None,
+        as_of: date | None = None,
     ) -> None:
         self._rules(rules)
         shown = value.isoformat() if isinstance(value, date) else value
@@ -1415,6 +1446,8 @@ class _Run:
             item["planning"] = True
         if value is None and waits:
             item["waits_on"] = waits
+        if as_of is not None and as_of < self.today:
+            item["as_of"] = as_of.isoformat()
         self.computed.append(item)
         if ahead and isinstance(value, date) and value >= self.today:
             coming: Json = {
@@ -1758,7 +1791,8 @@ class _Run:
             waits = [] if value is not None else self._waits(gtr)
             if value is None and not waits:
                 self._engine_gap(item_id)
-            self._item(item_id, value, unit, gtr.inputs, rules, None, waits=waits)
+            as_of = min(gtr.as_of, default=None) if value is not None else None
+            self._item(item_id, value, unit, gtr.inputs, rules, None, waits=waits, as_of=as_of)
             if counted is not None:
                 # SPEC-W2 point 46, N2: the day the count would reach its limit if nothing in
                 # the record changes, the limit-th day counted. Past today it waits on every
@@ -1878,7 +1912,9 @@ class _Run:
         found = [day for without in all_without if without is not None for day in without]
         if any(without is None for without in all_without):
             return None, unit, []
-        return sum(1 for day in found if day <= self.today), unit, found
+        # N3: the count stops at the last day every record it rests on was confirmed.
+        through = min([self.today, *tr.as_of])
+        return sum(1 for day in found if day <= through), unit, found
 
     def _days_without(
         self, counter: Json, record: Json, starts: date, ends: date, tr: _Trace
@@ -1925,14 +1961,38 @@ class _Run:
                     tr.inputs.update(rtr.inputs)
                     continue
                 counts = hours is not ABSENT
+                # A period's hours read as the record's own: one not known leaves them unknown.
+                for decl in self.kinds[record["kind"]]["fields"]:
+                    state = self._read_own(record, decl[ID])[0]
+                    if decl["kind"] == PERIODS_KIND and state in ("unreadable", "undecided"):
+                        self._note(rtr, state, f"{record[ID]}.{decl[ID]}", record[ID])
+                        counts = False
             days = self._days_of(record, starts, ends, rtr)
-            if counts and days is not None:
+            confirmed = self._confirmed(record, rtr) if counts and days else None
+            if confirmed is ABSENT:
+                tr.merge(rtr)
+                known = False
+            elif counts and days is not None:
                 covered |= days
                 tr.merge(rtr)
+                if isinstance(confirmed, date):
+                    tr.as_of.append(confirmed)
             elif rtr.named or not self._outside(record, starts, ends):
                 tr.merge(rtr)
                 known = False
         return covered if known else None
+
+    def _confirmed(self, record: Json, tr: _Trace) -> date | _Absent | None:
+        """The last day the person confirmed a record the pack checks in on (path.checkins),
+        None when never confirmed or not checked in on, ABSENT when not known (SPEC-W2 N3)."""
+        checkin = self.checkins.get(record["kind"])
+        if checkin is None:
+            return None
+        state, got = self._read_own(record, checkin["field"])
+        if state in ("unreadable", "undecided"):
+            self._note(tr, state, f"{record[ID]}.{checkin['field']}", record[ID])
+            return ABSENT
+        return got if isinstance(got, date) else None
 
     def _outside(self, record: Json, starts: date, ends: date) -> bool:
         """Whether a record's known first or last day puts it wholly outside the days."""
@@ -2023,6 +2083,67 @@ class _Run:
         self._ask(ENDS_BEFORE_TODAY, f"unconfirmed:{ENDS_BEFORE_TODAY}", about, None)
         return [f"unconfirmed:{ENDS_BEFORE_TODAY}"]
 
+    def run_checkins(self) -> list[str]:
+        """SPEC-W2 N3: a check-in for each record of a kind the pack checks in on, due its
+        setting's days after the last confirmed day. A due one is asked; a confirmed day not
+        known is asked as its own gap."""
+        reasons: list[str] = []
+        for entry in self.path.get("checkins", []):
+            days = whole_setting(self.settings, entry["setting"])
+            for record in self.records.values():
+                if record["kind"] != entry["record"]:
+                    continue
+                tr = _Trace()
+                confirmed = self._confirmed(record, tr)
+                self._need(tr)
+                on = confirmed.isoformat() if isinstance(confirmed, date) else None
+                due = confirmed + timedelta(days=days) if isinstance(confirmed, date) else None
+                qid = f"checkin.{record[ID]}"
+                self.checkins_out.append(
+                    {
+                        "record": record[ID],
+                        "kind": record["kind"],
+                        "confirmed_on": on,
+                        "due": None if due is None else due.isoformat(),
+                        "due_days_away": None if due is None else (due - self.today).days,
+                        "question": qid,
+                    }
+                )
+                if due is not None and due <= self.today:
+                    about = {f"{record[ID]}.{entry['field']}": on}
+                    self._ask(qid, f"{UNCONFIRMED}{qid}", about, record[ID])
+                    reasons.append(f"{UNCONFIRMED}{qid}")
+        return reasons
+
+    def run_watch(self) -> None:
+        """SPEC-W2 N4: each date the pack names to watch, on every record of its kind, with
+        its days away and whether it is near by the product setting. A date not known is
+        asked, and shown with no date."""
+        close_days = whole_setting(self.settings, CLOSE_SETTING)
+        for entry in self.path.get("watch", []):
+            rules = list(entry["rule_ids"])
+            for record in self.records.values():
+                if record["kind"] != entry["record"]:
+                    continue
+                tr = _Trace()
+                got = self._read(f"{THIS}.{entry['field']}", record, None, tr)
+                self._need(tr)
+                self._rules(rules)
+                day = as_date(got)
+                away = None if day is None else (day - self.today).days
+                self.watch.append(
+                    {
+                        ID: f"watch.{record[ID]}.{entry['field']}",
+                        "label": entry["label"],
+                        "date": None if day is None else day.isoformat(),
+                        "days_away": away,
+                        "close": away is not None and away <= close_days,
+                        "record": record[ID],
+                        "rule_ids": rules,
+                        "status": self._status(rules),
+                    }
+                )
+
     # Rules shown.
 
     def _rules(self, rule_ids: Iterable[str]) -> None:
@@ -2112,6 +2233,8 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
         run.run_checks()
         run.run_stages()
         run.run_counters()
+        soft += run.run_checkins()
+        run.run_watch()
         run.withhold_outputs()
         soft += run.ends_before_today()
         hard += run.complete_questions()
@@ -2159,6 +2282,10 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
     for run in runs:
         rules.update(run.rules_out())
     upcoming = sorted((u for run in runs for u in run.upcoming), key=lambda u: (u["date"], u[ID]))
+    # Soonest first; a date not known last.
+    watch = sorted(
+        (w for run in runs for w in run.watch), key=lambda w: (w["date"] is None, w["date"] or "")
+    )
     return {
         "verdict": {"state": verdict.state.value, "reasons": _unique(verdict.reasons)},
         "scope": {
@@ -2178,5 +2305,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
         "upcoming": upcoming,
         "stages": [s for run in runs for s in run.stages],
         "checklists": [c for run in runs for c in run.checklists],
+        "checkins": [c for run in runs for c in run.checkins_out],
+        "watch": watch,
         "answers_read": _unique(a for run in runs for a in run.answers_read),
     }
