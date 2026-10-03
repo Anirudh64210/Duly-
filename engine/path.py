@@ -211,6 +211,8 @@ class _Run:
         self.virtual: set[int] = set()
         self.lists: list[Json] = []
         self.differ: list[str] = []
+        # The conflicts on each record's own dates or links, by record id.
+        self.clashed: dict[str, list[str]] = {}
 
     # Reading the record.
 
@@ -252,6 +254,76 @@ class _Run:
         for name, value in self.facts.items():
             if read(self._fact_decl(name), value, self.run_kinds)[0] == "unreadable":
                 self._need(_Trace(missing=[(name, None)]))
+
+    def ask_out_of_order(self) -> None:
+        """Dates that do not fit together are a conflict asked by name (SPEC-W2-UNKNOWN points
+        5 and 34, reviews/w2-p2.md finding 9). A reading, for a kind whose only dates are a
+        first and a last day (its _span_fields and no other): the last before the first, and
+        a chain link (one to the record's own kind whose absence can be none, point 19) to a
+        record, itself included, that did not begin before this one."""
+        for record in self.records.values():
+            rid = record[ID]
+            fields = self.kinds[record["kind"]]["fields"]
+            span = self._span_fields(record["kind"])
+            if span is None or sum(f["kind"] == DATE_KIND for f in fields) != len(span):
+                continue
+            first, last = (self._own_day(record, name) for name in span)
+            if first is not None and last is not None and last < first:
+                order = {"starts": first.isoformat(), "ends": last.isoformat()}
+                self._clash(f"span_order.{rid}", order, rid, span[1])
+            for decl in fields:
+                state, linked = self._read_own(record, decl[ID])
+                absent = decl.get("when_absent", "ask")
+                chain = decl.get("to") == [record["kind"]] and (
+                    absent == "none" or (isinstance(absent, dict) and "none" in absent)
+                )
+                if decl["kind"] != "link" or not chain or state != "known":
+                    continue
+                before = self._own_day(self.records[str(linked)], span[0])
+                if first is not None and before is not None and before >= first:
+                    name = f"{rid}.{decl[ID]}"
+                    about: Json = {name: linked, f"{linked}.{span[0]}": before.isoformat()}
+                    self._clash(name, about, rid, decl[ID])
+
+    def _out_of_order(self, record: Json) -> bool:
+        """Whether the record's own first and last days (_span_fields) are both known and the
+        last is before the first."""
+        span = self._span_fields(record["kind"])
+        if span is None:
+            return False
+        first, last = (self._own_day(record, name) for name in span)
+        return first is not None and last is not None and last < first
+
+    def _order_rests_on(self, record: Json, stage_span: Json, tr: _Trace) -> None:
+        """Whether a record's own first and last days are in order rests on one answered not
+        sure or unreadable when the other is a day: any day could be meant, one out of order
+        withholds every window dated from the record, so each waits on it here too (points
+        33 and 46), when the stage's span starts on the first. An empty day asked is left to
+        the windows that read it."""
+        span = self._span_fields(record["kind"])
+        if span is None or stage_span.get("starts") != {"fact": f"{THIS}.{span[0]}"}:
+            return
+        first, last = _Trace(), _Trace()
+        starts = self._when3({"fact": f"{THIS}.{span[0]}"}, record, None, first)
+        ends = self._when3({"fact": f"{THIS}.{span[1]}"}, record, None, last)
+        for name, day, other, sub in (
+            (span[0], starts, ends, first),
+            (span[1], ends, starts, last),
+        ):
+            given = self._read_own(record, name)[0] in ("undecided", "unreadable")
+            if day is ABSENT and given and isinstance(other, date):
+                tr.merge(sub)
+
+    def _own_day(self, record: Json, name: str) -> date | None:
+        state, got = self._read_own(record, name)
+        return got if state == "known" and isinstance(got, date) else None
+
+    def _clash(self, cid: str, about: Json, rid: str, name: str) -> None:
+        """A conflict on a record's own dates or links: every window dated from the record
+        waits on it while it stands (point 32a)."""
+        self._conflict(cid, about, rid, (name, "conflict"))
+        if cid in self.conflicts:
+            self.clashed.setdefault(rid, []).append(cid)
 
     def _unreadable(self, record: Json, name: str, value: Any) -> bool:
         decl = self._decl(record, name)
@@ -1000,7 +1072,7 @@ class _Run:
     def run_stages(self) -> None:
         unknown: list[Json] = []
         for stage in self.path.get("stages", []):
-            for record in self._each(stage):
+            for record in self._each(stage, unknown):
                 tr = _Trace()
                 values = [self._read(p, record, record, tr) for p in stage["entered_when"]]
                 # Point 29: a stated not-yet is a known value; none, or a flag of false, is
@@ -1080,10 +1152,12 @@ class _Run:
         self._rules(entry["rule_ids"])
         return entry
 
-    def _each(self, declared: Json) -> list[Json | None]:
+    def _each(self, declared: Json, shown: list[Json] | None = None) -> list[Json | None]:
         """The records a stage or check is for (SPEC-W2-UNKNOWN point 17). Each decided
-        chosen record enters; each undecided one is left out, its gaps asked, and each
-        question names the entry it holds back in withholds."""
+        chosen record enters; each undecided one is not entered, its gaps asked, and each
+        question names the entry it holds back in withholds. For a stage (`shown`), the
+        undecided record's entry is shown unknown, its windows withheld, never left out with
+        nothing said (point 33, reviews/w2-p2.md findings 3 and 10)."""
         selector = declared.get("for_each")
         if not selector:
             return [None]
@@ -1096,6 +1170,8 @@ class _Run:
             if not waits:
                 self._engine_gap(entry)
             self._withhold(entry, waits)
+            if shown is not None and self._still_ahead(declared, record, waits):
+                shown.append(self._unknown_stage(declared, entry, record[ID], waits))
             if declared.get("span"):
                 # Point 32: a stage that may hold a record not decided counts its end toward
                 # "ended before today" only when that end is known.
@@ -1105,6 +1181,26 @@ class _Run:
                 )
                 self._restore(saved)
         return list(chosen)
+
+    def _still_ahead(self, stage: Json, record: Json, waits: list[str]) -> bool:
+        """Whether an undecided record's stage entry is shown withheld rather than left out
+        (point 17): only when what holds it back is the record's own and a window it would
+        date reaches today: one that closes on or after today, or any window of a record whose
+        own last day is not known, since an end not known never reads as before today (point
+        32)."""
+        if not all(name.startswith(f"{record[ID]}.") for name in waits):
+            return False
+        span = self._span_fields(record["kind"])
+        end = None if span is None else self._read(f"{THIS}.{span[1]}", record, None, _Trace())
+        saved = self._snapshot()
+        try:
+            for window in stage.get("windows", []):
+                closes = self._when(window["closes"], record, record, _Trace())
+                if end is ABSENT or (closes is not None and closes >= self.today):
+                    return True
+            return False
+        finally:
+            self._restore(saved)
 
     def _withhold(self, output: str, waits: Iterable[str]) -> None:
         """Each question an output waits on lists it in withholds (point 34)."""
@@ -1149,28 +1245,41 @@ class _Run:
         starts = self._when(span["starts"], record, record, tr) if span else None
         ends = self._when(span["ends"], record, record, tr) if span else None
         rule_ids = list(stage["rule_ids"])
-        clash = None
+        # Point 32a: a span that does not fit dates nothing, and the stage waits on it. A record
+        # whose own first and last days are out of order also holds back every window dated
+        # from it, in this stage and every other over it (reviews/w2-p2.md finding 4).
+        clashes = []
         if next_of is None and span:
             ends = self._ends_also(stage, span, ends, record, rule_ids, tr)
             clash = self._span_conflicts(sid, span, starts, ends, rid, tr)
             if clash is not None:
-                # Point 32a: a span that does not fit is not shown; the stage waits on it.
-                starts = ends = None
-                tr.named.append(clash)
+                clashes.append(clash)
+                if record is not None and self._out_of_order(record):
+                    self.clashed.setdefault(record[ID], []).append(clash)
             else:
                 # A span in conflict is asked as such; it neither holds back nor raises the
                 # question whether the record ends before today.
                 self.span_ends.append(ends)
+        unfit = [] if record is None or next_of is not None else self.clashed.get(rid or "", [])
+        clashes = _unique([*clashes, *unfit])
+        if clashes:
+            starts = ends = None
+            tr.named += clashes
+        withheld = _Trace(named=list(unfit))
+        if record is not None and span and next_of is None and not unfit:
+            self._order_rests_on(record, span, withheld)
         items: list[str] = []
         windows: list[Json] = []
         for window in stage.get("windows", []):
-            windows.append(self._window(window, record, rid, items, rule_ids, next_of is not None))
+            windows.append(
+                self._window(window, record, rid, items, rule_ids, next_of is not None, withheld)
+            )
         # Point 31: a next stage asks the gaps of real records like any stage; a field of the
         # record not entered yet is named future, never asked.
         self._need(tr)
         self._rules(rule_ids)
         state = "next" if next_of is not None else self._state(span, starts, ends, windows)
-        if clash is not None:
+        if clashes:
             state = "unknown"
         entry: Json = {
             ID: sid,
@@ -1348,6 +1457,7 @@ class _Run:
         items: list[str],
         stage_rules: list[str],
         is_next: bool,
+        withheld: _Trace,
     ) -> Json:
         # Point 30: any field known (a flag only when true) is done; a not-sure answer, a flag
         # of false or a stated absence never is. Not done and not known: the window keeps its
@@ -1364,6 +1474,9 @@ class _Run:
         for end in ("opens", "closes"):
             tr = traces[end] = _Trace()
             day = self._when3(window[end], record, record, tr)
+            if self._waits(withheld):
+                day = ABSENT
+                tr.merge(withheld)
             dates[end] = day if isinstance(day, date) else None
             waits[end] = [] if isinstance(day, date) or day is NONE else self._waits(tr)
             self._need(tr)
@@ -2137,13 +2250,15 @@ class _Run:
     def run_watch(self) -> None:
         """SPEC-W2 N4: each date the pack names to watch, on every record of its kind, with
         its days away and whether it is near by the product setting. A date not known is
-        asked, and shown with no date."""
+        asked, and shown with no date. The watch is read soonest first, a `first` over each
+        list, so a list it reads that is not stated whole is asked (SPEC-W2-UNKNOWN point 14)."""
         close_days = whole_setting(self.settings, CLOSE_SETTING)
         for entry in self.path.get("watch", []):
             rules = list(entry["rule_ids"])
             for record in self.records.values():
                 if record["kind"] != entry["record"]:
                     continue
+                self._use_kind(record["kind"])
                 tr = _Trace()
                 got = self._read(f"{THIS}.{entry['field']}", record, None, tr)
                 self._need(tr)
@@ -2247,6 +2362,7 @@ def compute(case: Json, packs: list[Rulepack], clock: Clock) -> Json:
         run = _Run(case, pack, today, own, settings)
         run._refuse_undeclared(own)
         run.ask_unreadable()
+        run.ask_out_of_order()
         runs.append(run)
     for run in runs:
         run.run_checks()

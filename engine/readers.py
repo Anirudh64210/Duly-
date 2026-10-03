@@ -8,7 +8,7 @@ never converted, never read as absent. Pure: the declaration comes in, no pack i
 import math
 import re
 from collections.abc import Mapping
-from datetime import date
+from datetime import date, timedelta
 from functools import cache
 from typing import Any, Literal
 
@@ -21,6 +21,8 @@ ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # A period's own dates and hours (contracts/case.schema.json $defs.period).
 PERIOD_DATES = ("start", "end")
 PERIOD_HOURS = "hours_per_week"
+# The hours in a week, from the calendar.
+WEEK_HOURS = timedelta(weeks=1) // timedelta(hours=1)
 
 
 @cache
@@ -51,11 +53,11 @@ def as_number(raw: object) -> int | float | None:
 
 
 def _hours(raw: object) -> int | float | None:
-    """Hours a week, a period's or a record's own: no one works below zero hours, so such a
-    figure is no reading of them (reviews/w2-p1.md finding 1). Any other number stays open
-    (point 41)."""
+    """Hours a week, a period's or a record's own: no one works below zero hours or more
+    hours than a week holds, so such a figure is no reading of them (reviews/w2-p1.md finding
+    1, reviews/w2-p2.md note). Any other number stays open (point 41)."""
     number = as_number(raw)
-    return None if number is None or number < 0 else number
+    return None if number is None or not 0 <= number <= WEEK_HOURS else number
 
 
 def _count(raw: object) -> int | None:
