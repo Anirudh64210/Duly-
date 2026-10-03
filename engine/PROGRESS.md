@@ -2248,3 +2248,38 @@ Status: done, with one dispute (below in REPORT.json).
   helper (one use, inline).
 
 Status: done.
+
+## l-engine-ad00e06879 (second W2-P2 review veto, findings 1, 3, 4, 5, 7, the confirmed-day note)
+
+### Attempt 1
+
+- Ten failures in test_w2_records.py at start: review4b (x3), review2_1, review2_2 A10 and A14,
+  review2_4, review2_5 (x3).
+- engine/path.py `_window`: took out fix3's point 55 block. A done step resting on an empty asked
+  field is not done: the window keeps its dates, stays in upcoming and open items, and waits on
+  the gap (point 30; finding 1).
+- `run_watch`: `_use_kind` once per watch entry before the records, so an empty list not stated
+  whole is asked (finding 4). A row on a record in `clashed` is withheld (date, days_away null,
+  close false) and each conflict question names the row in withholds (finding 5).
+- `ask_out_of_order` uses `_out_of_order` for the span test (finding 7), and asks a checked-in
+  record (path.checkins) confirmed before its first day as a conflict `<id>.<field>` (the note).
+  `_confirmed` reads a clashed record's confirmed day as not known, waiting on the conflict, so
+  the count is withheld with it.
+- Finding 2 (A10, A14): the content lane's address checks were asked but the report window still
+  showed a date. `_check`: a failed check that reads only answers on records of its own kind
+  (`_answers_only`: no fact, no other kind, no field through a link) is a clash, so every window
+  dated from the record waits on it. First try clashed every failed check: the signature window
+  of test_the_signature_covers_six_months_from_the_signature_on_opt went null (a rule's finding,
+  not answers at odds), so the reading was narrowed. Matches only the three address checks.
+- Finding 3 (M9): review2_3 passes on HEAD; nothing to change in code.
+
+### Attempt 2
+
+- Attempt 1 was not accepted only because engine/REPORT.json was not written; its code was kept
+  in commit 9ba90ab.
+- Done command as written, on that code ($TMPDIR/done.log): exit 0. pytest all pass (1 xfail
+  already there), engine literals: every number has a source, mypy: no issues in 72 files,
+  ruff check: all passed, ruff format: 11 files already formatted.
+- No code change in this attempt. Wrote engine/REPORT.json.
+
+Status: done.
