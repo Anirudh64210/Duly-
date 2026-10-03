@@ -21,9 +21,10 @@ SCHEMA_PATH = REPO_ROOT / "contracts" / "case.schema.json"
 # SPEC-W2-UNKNOWN point 39: the pack's structure, which no person typed and no question could
 # fix. The words never repeat what was sent.
 CASE_STRUCTURE = (
-    "records: the case is not built the way the rule pack declares. Each record needs a kind "
-    "and fields the pack declares, its own id that starts with its kind's prefix, no more "
-    "records of a kind than the pack allows, and only facts the pack declares."
+    "records: the case is not built the way the rule pack declares. Each record needs a "
+    "category the case lists, a kind and fields the pack declares, its own id that starts with "
+    "its kind's prefix, no more records of a kind than the pack allows, and only facts the pack "
+    "declares."
 )
 
 
