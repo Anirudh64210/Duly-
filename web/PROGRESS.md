@@ -1487,3 +1487,30 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - No screen for watch or check-ins: no web test or point in this round asks for one; the schema
   only accepts them so the samples parse.
+
+## l-web-6587eb0789 (W2-P2 review, finding 6: the check-in question), attempt 1
+
+### Tried and ran
+
+- labels.ts: `checkin.<record>` is matched in pathTitle before the "<check>.<record>" branch that
+  gave the conflict fallback. A job reads "Job 1: Still with Northwind, about 40 hours a week?",
+  with the employer's name and hours_per_week from the records when the screen passes them
+  (questionTitle takes an optional records list); with no records, or with hours_changes entered,
+  it says "this employer" and "about the same hours a week". A petition check-in asks whether the
+  petition still stands as it did when last confirmed. The because line now reads "Asked because
+  Duly waits for your answer before it goes on."
+- labels.test.ts: three tests for the above.
+- First done run: 3 failures not caused by the change, all from merged pack and engine work:
+  labels.test.ts (address.first_in_us had no words: added to FIELD_WORDS, the pack's label),
+  emptyWords.test.ts (CHANGELOG line 354 takes the empty words of address.previous away: removed
+  from EMPTY_WORDS), samples.test.ts (path-stem-next.json and path-window-open.json stale: ran the
+  make samples recipe, `uv run python samples/make.py` and prettier, exit 0).
+- Then eslint: one non-null assertion in the new test; replaced with a named const.
+- Done command: exit 0. 34 files, 612 tests passed; eslint clean; copy lint clean.
+
+### Not built
+
+- No wiring of records into Home or Onboarding: Home holds the older F-1 case, not records, and
+  the check-in screen is W2-P7's (the finding says so). The words are ready for it.
+- No check-in reason line in reasonText: Home shows a reason by its question's title when one is
+  asked, which is now the check-in title.

@@ -2,9 +2,9 @@
   "answers_read": [],
   "checkins": [
     {
-      "confirmed_on": null,
-      "due": null,
-      "due_days_away": null,
+      "confirmed_on": "2026-09-29",
+      "due": "2026-10-29",
+      "due_days_away": 30,
       "kind": "work",
       "question": "checkin.w1",
       "record": "w1"
@@ -2143,8 +2143,8 @@
       "checked_on": "2026-10-02",
       "citation": "8 CFR 214.2(f)(4)",
       "derivation": "verbatim",
-      "note": "No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents.",
-      "plain": "An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted. This is to attend an SEVP-certified school, with the papers the rule lists.",
+      "note": "No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents. As a reading, the sentence speaks of readmission for attendance at a school. The path's stage trip and the check on trips apply the five months to every trip on the F-1 record, so also to a student on OPT, whose time on OPT is not attendance at a school. That the limit holds on OPT is Duly's reading, not the words of the source.",
+      "plain": "An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted to attend an SEVP-certified school. Duly applies the same limit to a student on OPT. This is Duly's reading, not the rule's exact words.",
       "quote": "An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution",
       "status": "settled",
       "unit": "months",
@@ -2155,7 +2155,7 @@
       "checked_on": "2026-10-02",
       "citation": "8 CFR 214.2(f)(13)(ii)",
       "derivation": "verbatim",
-      "note": "The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six. As a reading, the path's stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip left, not the day it came back, so a planned trip, or one still under way, has its signature window. The sentence speaks of a student on post-completion practical training who returns; that the card covering the departure is how Duly finds such a student is Duly's reading, not the words of the source. The number is unchanged.",
+      "note": "The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six. As a reading, the path's stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip came back, as the check trip.signature_for_opt_return does, since the sentence speaks of a student on post-completion practical training who returns; a trip with no return day has that day asked. That the card covering the return is how Duly finds such a student is Duly's reading, not the words of the source. The number is unchanged.",
       "plain": "A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.",
       "quote": "endorsed for reentry by the DSO within the last six months",
       "status": "settled",
@@ -2883,7 +2883,7 @@
           "inputs": {
             "t1.left_on": "2026-05-01"
           },
-          "label": "Return from a temporary absence of five months or less",
+          "label": "Day of leaving plus the rule's months of a temporary absence",
           "opens": "2026-05-01",
           "opens_days_away": -151,
           "reading": false,
@@ -2920,7 +2920,7 @@
           "closes_days_away": null,
           "id": "trip.signature_covers.t1",
           "inputs": {},
-          "label": "Return with a Form I-20 endorsed for reentry within the last six months",
+          "label": "Day of the travel signature plus the rule's months",
           "opens": null,
           "opens_days_away": null,
           "reading": false,

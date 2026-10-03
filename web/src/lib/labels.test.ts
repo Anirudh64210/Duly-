@@ -909,3 +909,47 @@ describe("questions the pack can ask (ui-1 point 5)", () => {
     expect(questionTitle("zz1.on")).toBe(NO_WORDS);
   });
 });
+
+describe("reviews/w2-p2.md finding 6: a check-in is asked as a check-in", () => {
+  const employer = { id: "e1", kind: "employer", fields: { name: "Northwind" } };
+  const records = [
+    employer,
+    {
+      id: "w1",
+      kind: "work",
+      fields: { employer: "e1", hours_per_week: 40, confirmed_on: "2026-08-31" },
+    },
+  ];
+
+  it("names the job's employer and hours, never a conflict", () => {
+    const title = questionTitle("checkin.w1", records);
+    expect(title).toBe("Job 1: Still with Northwind, about 40 hours a week?");
+    expect(title).not.toContain(FACT_NOT_NAMED);
+  });
+
+  it("asks without a number it does not have", () => {
+    expect(questionTitle("checkin.w1")).toBe(
+      "Job 1: Still with this employer, about the same hours a week?",
+    );
+    const changed = [
+      employer,
+      {
+        id: "w1",
+        kind: "work",
+        fields: { employer: "e1", hours_per_week: 40, hours_changes: [{ start: "2026-07-01" }] },
+      },
+    ];
+    expect(questionTitle("checkin.w1", changed)).toBe(
+      "Job 1: Still with Northwind, about the same hours a week?",
+    );
+  });
+
+  it("asks a petition's check-in and says why it is asked", () => {
+    expect(questionTitle("checkin.h1")).toBe(
+      "H-1B petition 1: Does the petition still stand as it did when last confirmed?",
+    );
+    expect(becauseLine(["unconfirmed:checkin.w1"])).toBe(
+      "Asked because Duly waits for your answer before it goes on.",
+    );
+  });
+});
