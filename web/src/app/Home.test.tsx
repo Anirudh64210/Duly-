@@ -1,13 +1,13 @@
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import stemNext from "../../samples/path-stem-next.json";
 import { CaseRefused, engineOutputSchema, type EngineOutput } from "../lib/compute";
 import { ASKING, NEXT, OUTPUT, STATUS } from "../lib/fixtures";
-import { CaseProvider, newCase, type AppCase } from "./caseStore";
+import { CaseProvider, newCase, useStore, type AppCase } from "./caseStore";
 import { heldCase } from "./heldCase";
 import type { RecordsCase } from "../lib/records";
 import { createAppRouter } from "./Shell";
@@ -188,5 +188,73 @@ describe("Home's next dates and records (design-1 section 6)", () => {
     fireEvent.click(row);
     // A records case holds reports as their own records; Onboarding does not ask for them yet.
     expect(screen.getByText("Jun 20, 2026 onward: not marked as reported")).toBeInTheDocument();
+  });
+});
+
+describe("reviews/w2-p2.md finding 6: the app records the day a job is confirmed", () => {
+  const checkin = parse({
+    ...ASKING,
+    verdict: { state: "cannot_tell", reasons: ["absent:w1.confirmed_on"] },
+    questions: [{ id: "w1.confirmed_on", because: ["absent:w1.confirmed_on"] }],
+  });
+
+  it("shows the check-in with the employer and hours, and a yes writes the day", async () => {
+    const compute = vi.fn<(body: RecordsCase) => Promise<EngineOutput>>(() =>
+      Promise.resolve(checkin),
+    );
+    mount({ compute });
+    const title = "Job 1: Still with Acme, about 40 hours a week?";
+    fireEvent.click(await screen.findByRole("button", { name: new RegExp(title.slice(0, 20)) }));
+    expect(screen.getAllByText(title).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Last day the job/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Yes, it is as entered" }));
+    await waitFor(() => expect(compute).toHaveBeenCalledTimes(2));
+    const sent = compute.mock.calls[1]?.[0];
+    const job = sent?.records.find((record) => record.id === "w1");
+    expect(job?.fields.confirmed_on).toBe(checkin.today.date);
+    expect(sent?.confirmations?.["w1.confirmed_on"]).toBeUndefined();
+  });
+
+  it("dates a job the person saves from the app's clock in their zone", async () => {
+    const seen: RecordsCase[] = [];
+    const compute = (body: RecordsCase) => {
+      seen.push(body);
+      return new Promise<EngineOutput>(() => undefined);
+    };
+    let save: ((changed: AppCase) => void) | undefined;
+    let held: AppCase | null = null;
+    function Probe() {
+      const store = useStore();
+      save = store.save;
+      held = store.held;
+      return null;
+    }
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <CaseProvider
+          initial={heldCase()}
+          compute={compute}
+          now={() => new Date("2026-10-03T03:00:00Z")}
+        >
+          <Probe />
+        </CaseProvider>
+      </QueryClientProvider>,
+    );
+    const start = held as AppCase | null;
+    if (start === null || save === undefined) throw new Error("no store");
+    const records = start.draft.records.map((record) =>
+      record.id === "w1"
+        ? { ...record, fields: { ...record.fields, hours_per_week: "30" } }
+        : record,
+    );
+    act(() => save?.({ ...start, draft: { ...start.draft, records } }));
+    await waitFor(() => expect(seen.length).toBe(2));
+    const job = seen[1]?.records.find((record) => record.id === "w1");
+    // 03:00 UTC on October 3 is still October 2 in Los Angeles.
+    expect(job?.fields.confirmed_on).toBe("2026-10-02");
+    expect(seen[1]?.records.find((record) => record.id === "a1")?.fields.confirmed_on).toBe(
+      undefined,
+    );
   });
 });

@@ -6,6 +6,7 @@ import pack from "../../../rulepacks/f1-us/v2026.09/parameters.yaml?raw";
 import { engineOutputSchema } from "./compute";
 import { CPT_OVER, OUTPUT } from "./fixtures";
 import {
+  checkinRecord,
   FACT_NOT_NAMED,
   JUDGEMENT_NOT_NAMED,
   answerLine,
@@ -951,5 +952,29 @@ describe("reviews/w2-p2.md finding 6: a check-in is asked as a check-in", () => 
     expect(becauseLine(["unconfirmed:checkin.w1"])).toBe(
       "Asked because Duly waits for your answer before it goes on.",
     );
+  });
+});
+
+describe("reviews/w2-p2.md finding 6 and its note: the confirmed day and an ended job", () => {
+  const records = [
+    { id: "e1", kind: "employer", fields: { name: "Northwind" } },
+    { id: "w1", kind: "work", fields: { employer: "e1", hours_per_week: 40, end: "2026-08-01" } },
+  ];
+
+  it("asks a job's or a petition's confirmed day as the check-in, never as a day to type", () => {
+    expect(questionTitle("w1.confirmed_on")).toBe(questionTitle("checkin.w1"));
+    expect(questionTitle("h1.confirmed_on")).toBe(questionTitle("checkin.h1"));
+    expect(checkinRecord("w1.confirmed_on")).toBe("w1");
+    expect(checkinRecord("checkin.h2")).toBe("h2");
+    expect(checkinRecord("w1.start")).toBeNull();
+    expect(checkinRecord("t1.confirmed_on")).toBeNull();
+  });
+
+  it("asks an ended job whether it is as entered, not whether it goes on", () => {
+    const title = questionTitle("checkin.w1", records);
+    expect(title).toBe(
+      "Job 1: Did the job with Northwind end as entered, at about 40 hours a week?",
+    );
+    expect(title).not.toContain("Still");
   });
 });

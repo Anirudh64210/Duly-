@@ -5,7 +5,9 @@ import { useState } from "react";
 import { reportedZone, zoneChoices } from "../lib/caseForm";
 import {
   becauseLine,
+  CHECKIN_ANSWERS,
   categoryName,
+  checkinRecord,
   formatDate,
   groupOf,
   questionCopy,
@@ -424,7 +426,11 @@ export function Onboarding() {
       break;
     case "questions": {
       const question = questions[0];
-      const copy = question === undefined ? null : questionCopy(question.id);
+      const copy =
+        question === undefined
+          ? null
+          : (questionCopy(question.id) ??
+            (checkinRecord(question.id) === null ? null : CHECKIN_ANSWERS));
       if (question === undefined || store.busy) {
         body = <p className="busy-line">Working it out from your dates.</p>;
       } else if (whole !== null) {
@@ -457,7 +463,9 @@ export function Onboarding() {
           <>
             <p className="because">{becauseLine(question.because, question.about)}</p>
             <OptionCards
-              label={copy?.ask ?? "Duly's question"}
+              label={
+                copy === null ? "Duly's question" : questionTitle(question.id, store.body?.records)
+              }
               options={[
                 { value: "yes", title: copy?.yes ?? "Yes" },
                 { value: "no", title: copy?.no ?? "No" },
@@ -484,7 +492,7 @@ export function Onboarding() {
       : whole !== null
         ? whole.title
         : question !== undefined
-          ? questionTitle(question.id)
+          ? questionTitle(question.id, store.body?.records)
           : view.title;
   const sectionFill = view.kind === "done" ? SECTIONS.length : view.section;
   return (

@@ -225,6 +225,8 @@ describe("A student walks Onboarding as J08 reads (resolutions point 15)", () =>
       on_campus: "p1",
       start: "2025-01-13",
       hours_per_week: 20,
+      // reviews/w2-p2.md finding 6: the app records the day the job was saved, never typed.
+      confirmed_on: sent.complete.withdrawal?.on,
     });
     expect(fields("w1")).toMatchObject({ under: "a1", end: "2025-01-12" });
     // The days the student did not know are left out, never guessed; the engine asks later.

@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { About, Confirmations, EadBlock, EngineOutput } from "../lib/compute";
 import type { Sent } from "../lib/drafts";
+import { checkinRecord } from "../lib/labels";
 import {
   buildRecordsCase,
   computeCase,
@@ -140,6 +141,35 @@ export function zoneDay(now: Date, timeZone: string): string {
   }
 }
 
+// reviews/w2-p2.md finding 6: the kinds whose confirmed day the app records, never typed.
+const CONFIRMED_KINDS: ReadonlySet<string> = new Set(["work", "petition"]);
+
+function withoutConfirmed(record: DraftRecord): string {
+  return JSON.stringify({ ...record.fields, confirmed_on: undefined });
+}
+
+/**
+ * The case as saved: a job or a petition the person entered or changed, or the ids given,
+ * is confirmed on the day given. A record left as it was keeps its day.
+ */
+export function confirmRecords(
+  before: AppCase | null,
+  changed: AppCase,
+  day: string,
+  ids: readonly string[] = [],
+): AppCase {
+  if (day === "") return changed;
+  const old = new Map((before?.draft.records ?? []).map((record) => [record.id, record]));
+  const records = changed.draft.records.map((record) => {
+    if (!CONFIRMED_KINDS.has(record.kind)) return record;
+    const was = old.get(record.id);
+    const same = was !== undefined && withoutConfirmed(was) === withoutConfirmed(record);
+    if (same && !ids.includes(record.id)) return record;
+    return { ...record, fields: { ...record.fields, confirmed_on: day } };
+  });
+  return { ...changed, draft: { ...changed.draft, records } };
+}
+
 type Store = {
   held: AppCase | null;
   body: RecordsCase | null;
@@ -201,7 +231,7 @@ export function CaseProvider(props: {
     return () => window.removeEventListener("focus", onFocus);
   });
 
-  const save = useCallback((changed: AppCase) => setHeld(changed), []);
+  const today = () => output?.today.date ?? zoneDay(now(), held?.time_zone ?? "UTC");
   const store: Store = {
     held,
     body,
@@ -209,12 +239,17 @@ export function CaseProvider(props: {
     output,
     busy: body !== null && query.isPending,
     error: query.error,
-    today: () => output?.today.date ?? zoneDay(now(), held?.time_zone ?? "UTC"),
-    save,
+    today,
+    save: (changed) => setHeld(confirmRecords(held, changed, today())),
     clear: () => setHeld(null),
     answer: (question, given, about) => {
       if (held === null || output === undefined) return;
       const on = output.today.date;
+      const record = checkinRecord(question);
+      if (record !== null && given) {
+        setHeld(confirmRecords(held, held, on, [record]));
+        return;
+      }
       const recorded = about === undefined ? { answer: given, on } : { answer: given, on, about };
       setHeld({ ...held, confirmations: { ...held.confirmations, [question]: recorded } });
     },

@@ -23,6 +23,8 @@ import {
   groupOf,
   itemName,
   needsAnswer,
+  CHECKIN_ANSWERS,
+  checkinRecord,
   questionCopy,
   questionTitle,
   reasonItem,
@@ -133,13 +135,14 @@ function useTimeout(run: () => void, ms: number) {
  * was asked because of reads as that question does in the questions section.
  */
 function Reasons({ output }: { output: EngineOutput }) {
+  const records = useStore().body?.records ?? [];
   const reasons = [...output.verdict.reasons].sort(
     (a, b) => Number(needsAnswer(b)) - Number(needsAnswer(a)),
   );
   const lines = new Map<string, string>();
   for (const reason of reasons) {
     const asked = output.questions.find((question) => question.because.includes(reason));
-    const line = asked ? questionTitle(asked.id) : appReasonLine(reason, output.computed);
+    const line = asked ? questionTitle(asked.id, records) : appReasonLine(reason, output.computed);
     if (!lines.has(line)) lines.set(line, reason);
   }
   return (
@@ -264,7 +267,7 @@ function Metrics({ output }: { output: EngineOutput }) {
 }
 
 function QuestionsSection({ output, sent }: { output: EngineOutput; sent: Sent }) {
-  const { answer } = useStore();
+  const { answer, body } = useStore();
   if (output.questions.length === 0) return null;
   return (
     <section className="section rise d3" aria-labelledby="questions-heading" id="questions">
@@ -272,13 +275,15 @@ function QuestionsSection({ output, sent }: { output: EngineOutput; sent: Sent }
         QUESTIONS FOR YOU
       </h2>
       {output.questions.map((question) => {
-        const copy = questionCopy(question.id);
+        const copy =
+          questionCopy(question.id) ??
+          (checkinRecord(question.id) === null ? null : CHECKIN_ANSWERS);
         const rule = factRule(question.id);
         return (
           <Row
             key={question.id}
             id={`q:${question.id}`}
-            title={questionTitle(question.id)}
+            title={questionTitle(question.id, body?.records)}
             meta={becauseLine(question.because, question.about)}
           >
             {rule !== null && <RuleBlocks ids={[rule]} output={output} />}
