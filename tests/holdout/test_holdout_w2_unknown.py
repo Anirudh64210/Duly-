@@ -149,7 +149,7 @@ def test_p2j_every_journey_every_field_every_gap(name, build):
             if not any(
                 r.startswith("conflict:")
                 and r not in before
-                and (f".{rid}." in r or r.endswith(f".{rid}"))
+                and rid in r.removeprefix("conflict:").split(".")
                 for r in out["verdict"]["reasons"]
             )
         ]
