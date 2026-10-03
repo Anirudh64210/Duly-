@@ -1556,3 +1556,21 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - No confirmed-day input or edit: the day is recorded, never typed.
 - No change to the engine's reading of a check-in "no": the person changes the job in Your case.
+
+## l-web-9f538e7a1a (W2-P2 fix4 reconcile: samples and web tests), attempt 1
+
+### Tried and ran
+
+- `make samples` from the root: exit 0; nothing under web/samples changed.
+- `npm test -w web`: first run 4 failures, all in ui1.test.tsx on path-stem-next. The sample
+  enters no passport and no visa, and the watch now asks both lists whole (reviews/w2-p2.md
+  second review, finding 4): 12 answers, not 10; Why reads "Is this every passport?" and "Is this
+  every visa?" after the address line; 12 titles; 3 questions wait, not 1. Updated those counts
+  and lines, the finding beside each. Then 36 files, 625 tests passed.
+- Done command: make samples and web pass; `npm test -w desktop` exits 1 in this sandbox only,
+  EPERM on mkdir desktop/coverage. With coverage off: 248 of 249 pass, the one failure is the
+  buildpython.test.ts dry run (empty list), the temp file the sandbox refuses, as in earlier runs.
+
+### Not built
+
+- Nothing beyond the test update: no source or sample change was required.
