@@ -4242,3 +4242,37 @@ helpers sit beside their tests).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-e9d97410d4: W2-P2 fix4 reconcile (reviews/w2-p2.md, the second review)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/plan-w2-p2-fix4.yaml, git log since 9d09a88 (the
+fix4 tests round): engine round 3eae68e (findings 1, 3, 4, 5, 7), test edits 3c9ff3b and
+3d48da2, samples bf7f32f.
+
+Checked the two test edits made after the fix4 tests round, neither loosens an assertion:
+- 3c9ff3b, tests/unit/engine/test_f1_translation.py: the asked lists gain passport and visa
+  (finding 4, run_watch asks complete.<kind> once per watch entry). The equality asserts stay
+  exact; they now hold two more kinds.
+- 3d48da2, tests/holdout/test_holdout_w2_unknown.py P2j: a fill's new conflict is matched by the
+  record id as a name segment, so conflict:w1.confirmed_on (finding 5's note, a confirmation
+  before the start) is read as a contradiction, as the comment beside it already says. Every
+  case the old match found is still found.
+
+Ran:
+- uv run ruff check tests: All checks passed. ruff format --check tests: 113 files already formatted.
+- pytest tests/unit tests/holdout -p no:cacheprovider --ignore=tests/unit/tools: only the
+  tests in tests/unit/desktop_entry/test_desktop_main.py fail, on the Unix socket bind this
+  sandbox refuses. With that file ignored: exit 0.
+- pytest tests/unit/engine/test_w2_records.py -k "review2 or review4b": 13 passed, none
+  skipped, none xfail. Every test_review2_<N> written in l-tests-3368781d2d now passes.
+- npm test -w web -- tests/web: fails here only on mkdir web/coverage (EPERM). With
+  --coverage.reportsDirectory=$TMPDIR/webcov: 2 files, 9 tests passed.
+
+Changed: nothing in tests. No test is out of line with plan-w2-p2-fix4.yaml, so there is no
+finding to write beside a change. The change that would make each review2 test fail is listed
+under l-tests-3368781d2d above.
+
+Not built: nothing new; the mission asks for alignment and every test already aligns.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
