@@ -1450,6 +1450,17 @@ parameters:
     note: Not operative. 2026-09-15 is the effective date stated in 91 FR 44976, saved as sources/fr-2026-14439.xml. A court postponed that date on 2026-09-14; see the regime.
     plain: The paused rule would give a student allowed to withdraw from classes 15 days from the date of the withdrawal to leave. A court has paused this rule, so it does not apply today.
     plain_terms: [withdraw from classes]
+  - id: address.report_change_within_days
+    value: 10
+    unit: days
+    status: settled
+    effective_from: 2026-09-14
+    effective_from_basis: earliest_saved_copy
+    source: {citation: 8 CFR 214.2(f)(17), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: "A student must inform DHS and the DSO of any legal changes to the student's name or of any change of address, within 10 days of the change, in a manner prescribed by the school.", snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
+    derivation: verbatim
+    note: "The quote is the first sentence of paragraph (f)(17), headed Current name and address (D74). The next sentence says a student can satisfy the requirement in 8 CFR 265.1 of notifying DHS by providing a notice of a change of address within 10 days to the DSO, and that the DSO must enter it in SEVIS within 21 days; the 21 days are the DSO's and are not recorded as a row. The paragraph then says the address must be the actual physical location where the student resides, except for a student who cannot receive mail there. The manner of the notice is the school's; the 10 days are the regulation's. 8 CFR 265.1, named in the paragraph, is not saved and was not read. Paragraph (f)(12)(ii)(A), recorded as stem.report_change_within_days, gives a student with an approved 24-month OPT extension the same 10 days for a change of residential or mailing address, reported to the DSO. 67 FR 76256 (FR Doc. 02-31184), saved as sources/fr-02-31184.xml, has an older wording of (f)(17) with the same 10 days, inform the DSO and the Service of any legal changes to his or her name or of any change of address; no saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-10-02; both carry them, so the rule sits under no regime."
+    plain: A student must tell DHS and the DSO of any legal changes to the student's name, or of any change of address, within 10 days of the change. The school sets how the notice is given.
+    plain_terms: [change of address, legal changes]
 path:
   facts: []
   records:
@@ -1547,6 +1558,7 @@ path:
         - {id: hours_per_week, kind: number, label: "Hours a week"}
         - {id: hours_changes, kind: periods, label: "Times the hours a week changed"}
         - {id: employer_reported, kind: flag, label: "Employer reported, from an older case", translation_only: true}
+        - {id: confirmed_on, kind: date, label: "Last day the job and its hours were confirmed", happened: true}
     - id: report
       label: "Report to the DSO"
       id_prefix: r
@@ -1588,6 +1600,33 @@ path:
         - {id: outcome_on, kind: date, label: "Day of the outcome", happened: true}
         - {id: validity_start, kind: date, label: "Validity start date of the approved petition", when_absent: ask}
         - {id: h1b_began_on, kind: date, label: "Day H-1B status began", happened: true}
+        - {id: confirmed_on, kind: date, label: "Last day the petition's state was confirmed", happened: true}
+    - id: passport
+      label: "Passport"
+      id_prefix: pp
+      max_records: 10
+      fields:
+        - {id: country, kind: text, label: "Country that issued it", max_length: 80}
+        - {id: issued_on, kind: date, label: "Date of issue, as printed", happened: true}
+        - {id: expires_on, kind: date, label: "Date of expiry, as printed"}
+    - id: visa
+      label: "Visa"
+      id_prefix: vi
+      max_records: 10
+      fields:
+        - {id: issued_on, kind: date, label: "Issue date, as printed on the visa", happened: true}
+        - {id: expires_on, kind: date, label: "Expiration date, as printed on the visa"}
+    - id: address
+      label: "Address in the US"
+      id_prefix: ad
+      max_records: 50
+      grows_with_time: true
+      complete_label: "Is this every address in the US, through today?"
+      fields:
+        - {id: lines, kind: text, label: "Address where the student lives", max_length: 120}
+        - {id: since, kind: date, label: "First day living at this address", happened: true}
+        - {id: previous, kind: link, label: "Address moved from", to: [address], when_absent: none}
+        - {id: reported_on, kind: date, label: "Day the change of address was reported to the DSO", happened: true, when_absent: not_yet}
     - id: withdrawal
       label: "Withdrawal from classes"
       id_prefix: wd
@@ -2047,6 +2086,55 @@ path:
       span:
         starts: {fact: this.left_on}
         ends: {earliest_of: [{optional: true, fact: this.returned_on}, {fact: today}]}
+      windows:
+        - id: trip.absence_limit
+          label: "Return from a temporary absence of five months or less"
+          opens: {fact: this.left_on}
+          closes: {fact: this.left_on, add: [{rule: travel.absence_months}]}
+          rule_ids: [travel.absence_months]
+          done_when: [this.returned_on]
+    - id: trip_opt
+      label: "Trip abroad on post-completion OPT"
+      for_each:
+        record: trip
+        where:
+          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.returned_on}}, {field: this.card_end, on_or_after: {fact: outer.returned_on}}]}
+      entered_when: [this.signature_on]
+      rule_ids: [travel.opt_signature_months]
+      windows:
+        - id: trip.signature_covers
+          label: "Return with a Form I-20 endorsed for reentry within the last six months"
+          opens: {fact: this.signature_on}
+          closes: {fact: this.signature_on, add: [{rule: travel.opt_signature_months}]}
+          rule_ids: [travel.opt_signature_months]
+    - id: address
+      label: "Change of address"
+      for_each: {record: address, where: [{field: this.previous, present: true}]}
+      entered_when: [this.since]
+      rule_ids: [address.report_change_within_days]
+      windows:
+        - id: address.report
+          label: "Report of the change of address to DHS and the DSO"
+          opens: {fact: this.since}
+          closes: {fact: this.since, add: [{rule: address.report_change_within_days}]}
+          rule_ids: [address.report_change_within_days]
+          done_when: [this.reported_on]
+    - id: stem_address
+      label: "Change of address on a STEM OPT extension"
+      for_each:
+        record: address
+        where:
+          - {field: this.previous, present: true}
+          - exists: {record: authorization, where: [{field: this.type, in: [stem_extension]}, {field: this.decision, in: [approved]}, {field: this.card_start, on_or_before: {fact: outer.since}}, {field: this.card_end, on_or_after: {fact: outer.since}}]}
+      entered_when: [this.since]
+      rule_ids: [stem.report_change_within_days, stem.reporting_required]
+      windows:
+        - id: stem_address.report
+          label: "Report of the change of address to the DSO"
+          opens: {fact: this.since}
+          closes: {fact: this.since, add: [{rule: stem.report_change_within_days}]}
+          rule_ids: [stem.report_change_within_days]
+          done_when: [this.reported_on]
     - id: opt_job_end
       label: "End of a job on post-completion OPT"
       for_each: {record: work, where: [{field: this.under.type, in: [opt_post_completion]}, {field: this.end, present: true}]}
@@ -2513,3 +2601,19 @@ path:
           label: "Duties, hours and compensation like those of similar U.S. workers at the employer"
           rule_ids: [stem.requires.duties_hours_and_compensation, stem.min_hours_per_week]
           who: employer
+  # Dates to watch (P6, gap map G10). When a date counts as close is the product setting
+  # watch.close_days, never a rule. Passport and visa expiry are not listed: no saved primary
+  # source states a rule on them (see rulepacks/REPORT.json, missing).
+  watch:
+    - record: authorization
+      field: card_end
+      label: "End date on a work permission card, or on the Form I-20 for CPT"
+      rule_ids: [grace.after_completion_days]
+    - record: program
+      field: end_date
+      label: "Program end date on the Form I-20"
+      rule_ids: [program.extension_before_end, grace.after_completion_days]
+  # Check-ins (P7, gap map G8). How long a confirmation holds is a product setting.
+  checkins:
+    - {record: work, field: confirmed_on, setting: checkin.job_days}
+    - {record: petition, field: confirmed_on, setting: checkin.petition_days}

@@ -315,3 +315,18 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - petition.validity_start: when_absent ask, was none (D94).
 - capgap.petition_for_dso note: says an empty start is asked, never read as a petition that cannot extend a period, and while it is unanswered cap_gap.for_dso is withheld and the verdict is Can't tell yet with the start asked by name.
 - No number, rule, source, quote or plain text changed.
+
+### 2026-10-02, lane L-content, run l-content-459e1f6067 (W2-P2: SPEC-W2 point 45, P4 to P7; D74)
+
+- Added address.report_change_within_days, 10 days, settled, verbatim, from 8 CFR 214.2(f)(17) in the 2026-09-14 text (D74). The 2026-09-15 text has the same sentence, so it sits under no regime.
+- Added record kinds passport (country, issued_on, expires_on), visa (issued_on, expires_on) and address (lines, since, previous, reported_on) (P4, D74). No passport or visa number is kept.
+- address.previous: when_absent none. Screen words: "Leave empty if this is the first address in the US on this F-1 record."
+- address.reported_on: when_absent not_yet. Screen words: "Leave empty if you have not reported this change of address yet."
+- Every other new field stays ask, the default.
+- Stage address, for each address with an address moved from: window address.report, from the first day at the new address to 10 days later, from address.report_change_within_days, done when reported_on is entered.
+- Stage stem_address, for each such address whose first day falls inside an approved STEM extension card: window stem_address.report from stem.report_change_within_days, 8 CFR 214.2(f)(12)(ii)(A) (D74).
+- Stage trip: window trip.absence_limit, from the day of leaving to travel.absence_months later, done when returned_on is entered (P5).
+- Stage trip_opt, for each trip whose return falls inside a post-completion OPT or STEM card: window trip.signature_covers, from the DSO's travel signature to travel.opt_signature_months later (P5).
+- path.watch: authorization.card_end and program.end_date, with their rule ids (P6). Passport and visa expiry are not listed: no saved primary source states a rule on them.
+- work.confirmed_on and petition.confirmed_on added, and path.checkins names checkin.job_days and checkin.petition_days (P7).
+- No existing number, rule, source, quote or plain text changed.
