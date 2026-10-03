@@ -26,7 +26,9 @@ function mount(held: AppCase | null = null) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: ["/welcome"] }));
   render(
     <QueryClientProvider client={client}>
-      <CaseProvider initial={held}>
+      {/* The fixture's day in Los Angeles, so a job saved before the first answer arrives
+          is dated as one saved after it (a slower runner saves first). */}
+      <CaseProvider initial={held} now={() => new Date("2026-09-28T19:00:00Z")}>
         <RouterProvider router={router} />
       </CaseProvider>
     </QueryClientProvider>,
