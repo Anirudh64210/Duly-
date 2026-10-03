@@ -4010,3 +4010,48 @@ count (the contract says only that due is null).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-d2a0f68d9b: W2-P2 fix0, the address list stated whole and asked (SPEC-W2 points 45, 50; D92 point 58)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 points 45 and 50, SPEC-W2-UNKNOWN points 14 and 58, D92,
+the L-content result (.factory/runs/result-step-w_tests-and-content_L-content.json: disputes on
+the eight asked kinds, the request for address), the F-1 pack's address kind and stages
+(address, stem_address: for_each address where `previous` is present), SOURCES.md rows for
+8 CFR 214.1 and 22 CFR 41.112.
+
+Changed tests/unit/engine/test_f1_translation.py: the three asked lists gain address (SPEC-W2
+point 45, P4; SPEC-W2-UNKNOWN point 14, complete.<kind> for every kind a stage reads). Fails if
+the path stops asking complete.address, or asks a kind not listed.
+
+Changed tests/unit/engine/test_w2_records.py (D92 point 58):
+- LISTS named by hand (16 kinds) in place of reading every kind from the pack; pinned to the
+  pack's kinds, and the address kind must carry a complete_label. Fails if the pack adds or
+  drops a kind, or the address list has no question words.
+- home(): ad1 since 2025-08-15, moved from nothing. In every OPT, watch and trip case, so the
+  address list stated whole holds the address onboarding asks for.
+- The move is ad2, linked to ad1 by the address link field read from the pack (K6). One report
+  window only (one_window): fails if the first address, which is no change, gets a report.
+  Dates unchanged: 2026-09-25 + 10 = 2026-10-05, 3 days away.
+- New test_an_address_list_not_stated_whole_is_asked: complete.address dropped, so the
+  complete.address question (state list) and cannot_tell, while the entered move still closes
+  2026-10-05 (point 14). Stated whole: no complete.address question. Fails if the list gap is
+  not asked, or if the engine withholds a record's own window for a list gap.
+- New test_the_passport_and_visa_watch_rest_on_the_saved_sources: a watch rule citing 8 CFR
+  214.1(a)(3) / 22 CFR 41.112(a), with snapshot ecfr-8cfr214.1-* / ecfr-22cfr41.112-*, and its
+  quote found in the saved copy. Fails on a row with no rule, another citation, or a quote not
+  in the copy. The passport and visa watch tests are kept as they were.
+No expected date or count was changed.
+
+Ran: done command, exit 0 (ruff: All checks passed; format: 113 files already formatted;
+--co ok). pytest on both files: test_f1_translation all pass; test_w2_records: the address report,
+the new address list test and the list pin pass; 29 still fail, each waiting on another lane:
+path.watch names passport 0 times (L-content P6), no checkins[] / watch[] (L-engine N3, N4),
+the address and signature windows not emitted withheld (L-engine, point 33), and the signature
+window (see the dispute in REPORT.json). mypy on the two files: 5 errors, all in
+tests/support/f1_pack.py:1027 and earlier, not touched in this run.
+
+Not built: no option on f1_case to leave a list out (the one test that needs it deletes the
+key); no lines field on the addresses (no date reads it, and its id is pack data).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

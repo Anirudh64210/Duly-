@@ -347,10 +347,12 @@ def test_no_to_complete_kind_states_no_list_whole() -> None:
 def test_yes_to_every_complete_kind_asked_states_each_of_those_lists_whole() -> None:
     # The kinds the path asks about on a case with no OPT (read from the path's output on
     # 2026-09-30): authorization, program, move, work, end_date_change, trip, petition,
-    # withdrawal. A kind not asked is left out by the guard and stated nowhere.
+    # withdrawal; and address, since the address stage reads the address list (SPEC-W2 point
+    # 45, P4; SPEC-W2-UNKNOWN point 14: complete.<kind> for every kind a stage reads; D92
+    # point 58). A kind not asked is left out by the guard and stated nowhere.
     body = _records(program_end_date="2027-05-14", confirmations=WHOLE)
     asked = ["authorization", "program", "move", "work", "end_date_change", "trip"]
-    asked += ["petition", "withdrawal"]
+    asked += ["petition", "address", "withdrawal"]
     assert body["complete"] == {kind: {"on": ON} for kind in asked}
 
 
@@ -395,13 +397,14 @@ def test_yes_to_earlier_opt_at_this_level_states_nothing_whole() -> None:
 
 def _hand_written_opt_case() -> dict[str, Any]:
     """The records case section 19 writes for the OPT case as sent, by hand from the table
-    and resolutions point 14. The path asks complete.<kind> for eight kinds on this case
-    (program, move, end_date_change, authorization, work, trip, petition, withdrawal), each
-    answered yes today; opt.earlier_at_this_level no, which the path never asks, states
-    nothing whole (point 14 as clarified), so the case holds no authorization:p1."""
+    and resolutions point 14. The path asks complete.<kind> for nine kinds on this case
+    (program, move, end_date_change, authorization, work, trip, petition, address, withdrawal;
+    address since SPEC-W2 point 45, P4, and SPEC-W2-UNKNOWN point 14), each answered yes
+    today; opt.earlier_at_this_level no, which the path never asks, states nothing whole
+    (point 14 as clarified), so the case holds no authorization:p1."""
     whole = {"on": ON}
     asked = ["program", "move", "end_date_change", "authorization", "work", "trip"]
-    asked += ["petition", "withdrawal"]
+    asked += ["petition", "address", "withdrawal"]
     return {
         "categories": ["f1"],
         "time_zone": "UTC",
@@ -456,10 +459,12 @@ def _opt_case() -> dict[str, Any]:
 
 
 def test_the_opt_case_is_sent_with_each_asked_answer_and_its_about() -> None:
-    # The eight complete.<kind> the path asks, with no about; EARLIER with the card's about.
+    # The nine complete.<kind> the path asks, with no about (address since SPEC-W2 point 45,
+    # P4: the address stage reads the address list, SPEC-W2-UNKNOWN point 14); EARLIER with
+    # the card's about.
     sent = _sent(**_opt_case())["confirmations"]
     kinds = ["program", "move", "end_date_change", "authorization", "work", "trip"]
-    kinds += ["petition", "withdrawal"]
+    kinds += ["petition", "address", "withdrawal"]
     assert sent == {
         **{f"complete.{kind}": {"answer": True, "on": ON} for kind in kinds},
         EARLIER: {
