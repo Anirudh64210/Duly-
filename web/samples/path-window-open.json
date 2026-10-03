@@ -1,5 +1,15 @@
 {
   "answers_read": ["step.opt_post.start_date", "step.stem_opt.i983", "step.stem_opt.e_verify"],
+  "checkins": [
+    {
+      "confirmed_on": null,
+      "due": null,
+      "due_days_away": null,
+      "kind": "work",
+      "question": "checkin.w1",
+      "record": "w1"
+    }
+  ],
   "checklists": [
     {
       "confirmed": 1,
@@ -1046,6 +1056,53 @@
       "waits_on": ["future:stem.card_start"]
     },
     {
+      "id": "trip.absence_limit.opens.t1",
+      "inputs": {
+        "t1.left_on": "2026-05-01"
+      },
+      "reading": false,
+      "record": "t1",
+      "rule_ids": ["travel.absence_months"],
+      "status": "settled",
+      "unit": "date",
+      "value": "2026-05-01"
+    },
+    {
+      "id": "trip.absence_limit.closes.t1",
+      "inputs": {
+        "t1.left_on": "2026-05-01"
+      },
+      "reading": false,
+      "record": "t1",
+      "rule_ids": ["travel.absence_months"],
+      "status": "settled",
+      "unit": "date",
+      "value": null,
+      "waits_on": ["rule_copy_not_saved_for_event_day"]
+    },
+    {
+      "id": "trip.signature_covers.opens.t1",
+      "inputs": {},
+      "reading": false,
+      "record": "t1",
+      "rule_ids": ["travel.opt_signature_months"],
+      "status": "settled",
+      "unit": "date",
+      "value": null,
+      "waits_on": ["t1.signature_on"]
+    },
+    {
+      "id": "trip.signature_covers.closes.t1",
+      "inputs": {},
+      "reading": false,
+      "record": "t1",
+      "rule_ids": ["travel.opt_signature_months"],
+      "status": "settled",
+      "unit": "date",
+      "value": null,
+      "waits_on": ["t1.signature_on"]
+    },
+    {
       "id": "opt_job_start.report.opens.w1",
       "inputs": {
         "w1.start": "2026-02-15"
@@ -1216,7 +1273,13 @@
       "id": "t1.signature_on",
       "record": "t1",
       "state": "absent",
-      "withholds": ["trip.signature_for_opt_return.t1"]
+      "withholds": [
+        "trip.signature_for_opt_return.t1",
+        "trip_opt.t1",
+        "trip.signature_covers.t1",
+        "trip.signature_covers.opens.t1",
+        "trip.signature_covers.closes.t1"
+      ]
     },
     {
       "because": ["missing:t1.job_on_return"],
@@ -1233,6 +1296,12 @@
       "record": "t1",
       "state": "absent",
       "withholds": ["unemployment.opt_card.a2", "unemployment.opt_card.a2.limit_day"]
+    },
+    {
+      "because": ["unconfirmed:complete.address"],
+      "field": "address",
+      "id": "complete.address",
+      "state": "list"
     },
     {
       "about": {
@@ -1672,6 +1741,19 @@
       "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
       "value": true
     },
+    "program.extension_before_end": {
+      "checked_on": "2026-10-02",
+      "citation": "8 CFR 214.2(f)(7)(iii), text of 2026-09-14",
+      "derivation": "verbatim",
+      "note": "Start date from 67 FR 76256 (FR Doc. 02-31184), effective 2003-01-01, saved as sources/fr-02-31184.xml, which carries the same words. The rule may be older; this is the earliest rule document saved with the pack that carries them. Words checked in the 2026-09-14 text on 2026-09-29. The 2026-09-15 text, as amended by 91 FR 44976, rewrites this paragraph, so the row is recorded under the regime ds_2012 and tagged litigated. The 2026-09-15 text replaces the program extension by the DSO with an extension of stay filed with USCIS, and has no such sentence, so no row is recorded under fixed_admission_2026.",
+      "plain": "Under the rule in force today, a DSO may not grant a program extension if the student asked for it only after the program end date on the Form I-20. The paused rule would replace this with a filing to USCIS.",
+      "quote": "A DSO may not grant an extension if the student did not apply for an extension until after the program end date noted on the Form I-20 or successor form.",
+      "regime": "ds_2012",
+      "status": "litigated",
+      "unit": "flag",
+      "url": "https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2",
+      "value": true
+    },
     "program.extension_new_i20": {
       "checked_on": "2026-10-02",
       "citation": "8 CFR 214.2(f)(7)(iv), text of 2026-09-14",
@@ -2073,7 +2155,7 @@
       "checked_on": "2026-10-02",
       "citation": "8 CFR 214.2(f)(13)(ii)",
       "derivation": "verbatim",
-      "note": "The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six.",
+      "note": "The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six. As a reading, the path's stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip left, not the day it came back, so a planned trip, or one still under way, has its signature window. The sentence speaks of a student on post-completion practical training who returns; that the card covering the departure is how Duly finds such a student is Duly's reading, not the words of the source. The number is unchanged.",
       "plain": "A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.",
       "quote": "endorsed for reentry by the DSO within the last six months",
       "status": "settled",
@@ -2786,14 +2868,68 @@
         "t1.returned_on": "2026-05-15"
       },
       "id": "trip.t1",
-      "items": [],
+      "items": ["trip.absence_limit.opens.t1", "trip.absence_limit.closes.t1"],
       "label": "Trip abroad",
       "record": "t1",
       "rule_ids": ["travel.absence_months", "practical_training.study_abroad"],
       "stage": "trip",
       "starts": "2026-05-01",
       "state": "done",
-      "windows": []
+      "windows": [
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "trip.absence_limit.t1",
+          "inputs": {
+            "t1.left_on": "2026-05-01"
+          },
+          "label": "Return from a temporary absence of five months or less",
+          "opens": "2026-05-01",
+          "opens_days_away": -214,
+          "reading": false,
+          "record": "t1",
+          "rule_ids": ["travel.absence_months"],
+          "status": "settled",
+          "waits_on": ["rule_copy_not_saved_for_event_day"]
+        }
+      ]
+    },
+    {
+      "category": "f1",
+      "checklist": null,
+      "days_in": null,
+      "days_total": null,
+      "ends": null,
+      "ends_days_away": null,
+      "facts": {
+        "t1.left_on": "2026-05-01",
+        "t1.returned_on": "2026-05-15"
+      },
+      "id": "trip_opt.t1",
+      "items": ["trip.signature_covers.opens.t1", "trip.signature_covers.closes.t1"],
+      "label": "Trip abroad on post-completion OPT",
+      "record": "t1",
+      "rule_ids": ["travel.opt_signature_months"],
+      "stage": "trip_opt",
+      "starts": null,
+      "state": "unknown",
+      "waits_on": ["t1.signature_on"],
+      "windows": [
+        {
+          "closes": null,
+          "closes_days_away": null,
+          "id": "trip.signature_covers.t1",
+          "inputs": {},
+          "label": "Return with a Form I-20 endorsed for reentry within the last six months",
+          "opens": null,
+          "opens_days_away": null,
+          "reading": false,
+          "record": "t1",
+          "rule_ids": ["travel.opt_signature_months"],
+          "status": "settled",
+          "waits_on": ["t1.signature_on"]
+        }
+      ]
     },
     {
       "category": "f1",
@@ -2873,6 +3009,7 @@
     "reasons": [
       "no_documents",
       "unconfirmed:typed_dates",
+      "unconfirmed:complete.address",
       "missing:a1.dso_on",
       "missing:p1.first_year_before_training",
       "missing:p1.immediate_cpt",
@@ -2887,5 +3024,37 @@
       "opt.months_at_level.at_or_over_limit.master"
     ],
     "state": "cannot_tell"
-  }
+  },
+  "watch": [
+    {
+      "close": true,
+      "date": "2024-08-15",
+      "days_away": -838,
+      "id": "watch.a1.card_end",
+      "label": "End date on a work permission card, or on the Form I-20 for CPT",
+      "record": "a1",
+      "rule_ids": ["grace.after_completion_days"],
+      "status": "litigated"
+    },
+    {
+      "close": true,
+      "date": "2025-12-13",
+      "days_away": -353,
+      "id": "watch.p1.end_date",
+      "label": "Program end date on the Form I-20",
+      "record": "p1",
+      "rule_ids": ["program.extension_before_end", "grace.after_completion_days"],
+      "status": "litigated"
+    },
+    {
+      "close": false,
+      "date": "2027-02-09",
+      "days_away": 70,
+      "id": "watch.a2.card_end",
+      "label": "End date on a work permission card, or on the Form I-20 for CPT",
+      "record": "a2",
+      "rule_ids": ["grace.after_completion_days"],
+      "status": "litigated"
+    }
+  ]
 }
