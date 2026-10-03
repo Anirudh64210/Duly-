@@ -1514,3 +1514,19 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
   the check-in screen is W2-P7's (the finding says so). The words are ready for it.
 - No check-in reason line in reasonText: Home shows a reason by its question's title when one is
   asked, which is now the check-in title.
+
+## l-web-9f2391a6db (W2-P2 fix2 reconcile: samples and web tests), attempt 1
+
+### Tried and ran
+
+- `make samples` from the root: exit 0; nothing under web/samples changed (git status clean).
+- `npm test -w web`: exit 0, 36 files, 621 tests passed. No web test needed a change for
+  plan-w2-p2-fix2.yaml; the L-web step in that plan (finding 6) had already landed.
+- `npm test -w desktop`: exit 1 in this sandbox only, EPERM on mkdir desktop/coverage. With
+  coverage off (`npx vitest run --coverage.enabled=false` in desktop/): 248 of 249 pass, the one
+  failure is buildpython.test.ts dry run (empty list), the here-document temp file the sandbox
+  refuses, as seen in l-web-5b5121079f and l-web-6587eb0789.
+
+### Not built
+
+- Nothing: no sample, test or source change was required.
