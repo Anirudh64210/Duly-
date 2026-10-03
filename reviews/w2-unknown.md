@@ -1,205 +1,197 @@
-# Review: one rule for unknown values (SPEC-W2-UNKNOWN, plan-w2-p1-unknown.yaml)
+# Review: one rule for unknown values (SPEC-W2-UNKNOWN, plan-w2-p1-unknown.yaml), second pass
 
-Run l-review-d82408c575. Reviewed commit 8acde5a. Base c8dcfb2 (W2-U0, the contracts). This
-review covers everything plan-w2-p1-unknown.yaml and its fixes 0 to 4 changed: engine/unknown.py,
-engine/readers.py, engine/path.py, engine/rulepack.py, engine/f1.py, engine/verdict.py, the pack's
-when_absent declarations and CHANGELOG, api/case.py and api/local_routes.py, web/src/lib
-(labels.ts, records.ts), and the new tests. I read it against SPEC-W2-UNKNOWN, PRINCIPLES 2,
-BOUNDARY.md, the four maps and the three W2-P1 reviews. Today is 2026-09-29 in every probe,
-through FixedClock. Probes and the mutant script are in TMPDIR/rvu.
+Run l-review-bbceb25fc8. Reviewed commit 83fddf1. The last review was at 8acde5a. This pass
+covers fix 5 and fix 6 of the plan: engine/path.py and engine/readers.py, api/main.py,
+web/src/lib/labels.ts and onboarding.ts, the new tests in tests/unit/engine, tests/unit/api and
+web/src/lib, tests/conftest.py, tests/support/gaps.py, and the samples. I read it against
+SPEC-W2-UNKNOWN, D92 to D94, PRINCIPLES, BOUNDARY.md and my 14 findings at 8acde5a. Today is
+2026-09-29 in every probe, through FixedClock. Probes and the mutant script are in
+TMPDIR/rvu2. The probes from the last review are in TMPDIR/rvu.
 
 ## What ran
 
-- `pytest tests/unit` without tests/unit/tools and tests/unit/desktop_entry: exit 0, **105 s**
-  wall (the SPEC's baseline was 86 s). The new unit files alone: 22 s, under the 90 s budget.
-  tests/holdout: exit 0, 90 s; tests/holdout/test_holdout_w2_unknown.py alone: 34 s.
-  desktop_entry needs Unix sockets, which my sandbox refuses.
-- mypy (72 files), ruff check, ruff format, engine_literals, sources verify, copy lint: all 0.
-- The third review's probes (TMPDIR/rvw2g p1 to p4) on HEAD, and R1 to R40 by hand where no
-  test holds them (TMPDIR/rvu/r2.py to r8.py).
-- 36 mutants (TMPDIR/rvu/mut.py) for M9, M15, M16, M18, M19, M20 and U1 to U27, against the
-  point 52 set (the regression files, test_unknown_logic.py, the property file and
-  test_readers.py), then split into examples only and properties only. There is no
-  `mutants` Hypothesis profile (point 52 names one), so the properties ran at their unit
-  settings (30 examples).
+- `pytest tests/unit tests/holdout`, leaving out tests/unit/tools and tests/unit/desktop_entry:
+  exit 0, 209 s wall. desktop_entry needs Unix sockets, which my sandbox refuses.
+- mypy (72 files), ruff check and ruff format on engine, api and tests, engine_literals, sources
+  verify and copy lint: all exit 0.
+- web vitest on src/lib/emptyWords.test.ts and src/lib/views/fix7.test.ts: 15 passed.
+- Every probe from the last review, on HEAD (TMPDIR/rvu: r4, r7, r8, toy1, happ2, d5, api1).
+- The withheld-output count over the 20 journeys at c8dcfb2, 8acde5a and HEAD.
+- The point 52 mutants, plus one mutant per engine fix in this round (TMPDIR/rvu2/mut.py),
+  with `--hypothesis-profile mutants`. I ran them against the example files and, separately,
+  against the property files. Then I ran the survivors against every engine, acceptance and
+  holdout test, but that run did not finish.
+- New probes: TMPDIR/rvu2/holds.py (present in a check's holds), u11.py and u26.py.
 
-## The third review's findings
+## The last review's findings
 
-All five are fixed for their inputs. D4: w1's concluding evaluation stays 2026-08-02 to
-2026-08-12 with w2 as the witness (2026-08-02 plus 10, stem.evaluation_due_days). With w2
-removed, it is null and waits on w3.end. C: a1 keeps 121 and 2026-08-29 when a3 has no type.
-The w3 end table: absent gives 2026-08-02 to 2026-08-12. 2026-07-31 gives null with nothing
-to wait on. not_sure and "2026-13-40" give null waiting on w3.end, and the bad date is asked as
-unreadable. The hours table: 40 gives 30 with the limit day waiting on pending:w1.end. "40",
-"forty" and `true` give null, asked as unreadable. Absent gives missing:, and not_sure gives
-undecided:. M16, M18 and M20 are now caught.
+| # | Then | Now | Evidence on HEAD |
+|---|---|---|---|
+| 1 | R16 B withheld | fixed | opt.apply_window.a1 is 2026-02-14 to 2026-07-14 with no `waits_on`, the same as with filed_on 2026-05-01. A stays withheld on a1.filed_on, and C asks ec1.granted_on, never p1.end_date. |
+| 2 | one-record or future statement taken as whole | fixed | `stem.extensions.all` is null and waits on complete.authorization, for both `authorization:p1` and `authorization` dated 2026-10-15. It is 1 when the list is stated whole. |
+| 3 | R36 stage dropped | fixed | stem.a1 is `unknown` with `waits_on` a1.card_end, and the card end is asked as undecided. |
+| 4 | present on absent ask read as none | **part fixed** | Selections and only_if now give U: months.level.mid is null, waits on c1.online, and asks it. A check's `holds` still reads absent as none (new finding 1). |
+| 5 | not-sure happened date not asked | fixed | J01 p1.conferred_on `not_sure` asks p1.conferred_on and raises `undecided:`. |
+| 6 | category fault gives 500 | fixed | J06 with category "h1b" through POST /v1/compute gives 422 CASE_STRUCTURE. Two records with the same id also give 422. |
+| 7 | rows and mutants missing | rows fixed, mutants part | Every R row from R1 to R40 has a test in the file point 51 names, and the `mutants` profile exists. Four mutants still survive every example (new finding 2). |
+| 8 | STEM next windows null with no `waits_on` | fixed | stem.validation_1 to 4 wait on future:stem.card_end and future:stem.card_start. stem.evaluation_final waits on future:stem.card_start. |
+| 9 | path.py works its own three-valued logic | part fixed | path.py now reads through readers.as_date and readers.as_number, so the 1950 to 2099 bound applies. The logic itself is still wrapped and unwrapped (finding 3). |
+| 10 | petition empty words | fixed | Both strings are gone from EMPTY_WORDS and onboarding. The test reads the last CHANGELOG line for each field. Neither string appears anywhere else outside the CHANGELOG. |
+| 11 | weak properties | fixed, one new gap | The F-1 seeds are the 20 journeys plus the R-row cases. Non-vacuity is asserted, P1(b) is built for the toy pack, and P2 compares reasons. New problem: the non-vacuity test fails under the `mutants` profile (finding 4). |
+| 12 | withholds on for_each entries only | fixed | In D4 without w2, question w3.end now lists stem_job_end.w1, stem_job_end.evaluation_final.w1 and its opens and closes, and unemployment.total.a1. |
+| 13 | note: part-time count always withheld | unchanged | Still for L-content. |
+| 14 | known past day against NOT_YET left pending | fixed | test_finding_14 holds it, and mutant F14 is caught. |
+
+## Dates and counts checked by hand
+
+- R16 B: 2026-05-15 less 90 days is 2026-02-14 (30 days back to April 15, 30 to March 16, 30
+  to February 14). Plus 60 days is 2026-07-14.
+- R36: 2027-05-31 less 90 days is 2027-03-02.
+- R14: 30 + 31 + 24 = 85 days from 2026-06-01 to 2026-08-24.
+- J15 stem.validation_4.a2: the card starts 2025-06-15, so 24 months on is 2027-06-15. That is
+  after the card end, 2027-06-14, so null meaning "does not apply" is right.
+
+All of these agree with the saved quotes and with the tests' comments.
 
 ## R1 to R40
 
-Checked by hand: R6 (June 30, July 31, August 31, September 29: 121; the 90th day is 2026-08-29)
-and R18 (from 2026-07-01 to 2026-08-31 the job covers every day; June 30 plus September 1 to 29
-makes 59; 31 more days from 2026-09-30 reach 2026-10-30). R14 (2026-06-01 to 2026-08-24 is
-30 + 31 + 24 = 85) and R15 (the card ends 2027-05-31, so grace runs 2027-06-01 to 2027-07-30)
-are right. So are R16 case A (2026-05-15 less 90 days is 2026-02-14, plus 60 days is
-2026-07-14), R2 and R7 (plus 10 days). All of these agree with the saved quotes.
-
-Pass on HEAD: R1, R2, R3 (O1), R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R17,
-R18, R19, R20, R21, R23, R24, R25, R26, R27, R28, R29, R30, R31, R32, R35 (the move list
-withholds the end), R37, R38, R40. R22 asks p2.level, but no CPT item is emitted at all,
-because no group exists to withhold.
-**Fail: R16 case B, R34, R36** (findings 1 to 3). Not run: R33 and R39 (toy pack, no test).
+All 40 rows have a test, and the unit and holdout suites pass. I checked by hand the rows the
+last review failed or could not run: R16 A, B and C, R34 both ways, R35 and R36 (probes
+above). R33 and R39 now have toy-pack tests (test_r33_toy..., test_r39_toy...), and both pass.
+One clause of R36 has no test: "with two filing closes, one known and past and one U, the
+stage kept". See finding 2.
 
 ## Mutants (point 52)
 
-Point 52 set: 35 mutants run (U23 cannot be run as a mutant because it is the code as it
-stands, finding 2), 27 caught, 8 survive. Survivors: U10 (as_of falls back to today), U11 (an
-undated change is skipped), U17 as an engine_gap no-op (U17 as an empty Unknown is caught),
-U18 (equivalent: `get(..., 0) > 0` behaves like the new None check), U21 in checks (removing
-the absent-as-none reading of finding 4 fails no test), U24 (`first` ignores whole), U25 (next
-stages drop missing) and U26 (`_closed` ignores a U close).
-Examples alone also miss U2, U12, U17 and U19. The properties alone miss M9, M15 and M16 (that run reached only M9 to M19 before my time ran out).
-Point 52 asks that each mutant be killed by a property and by an example.
+45 mutants: the last review's 36, with U23 split into U23a (`kind:<id>` read as whole) and
+U23b (a future statement read as whole), plus one per engine fix of this round (F1, F3, F5,
+F6, F8, F12, F14).
 
-## Journey outputs withheld, before and after
+**Examples** (the regression files, test_w2_unknown_f1 and test_readers): every mutant is
+caught except these. U2 and U17b mutate engine/unknown.py; test_unknown_logic.py catches U2,
+and the last review saw it catch U17b. U17 is a no-op on engine_gap. U18 is equivalent.
+**U11, U21b, U25 and U26 survive.** F1, F3, F5, F8, F12 and F14 are caught by the tests of
+their findings, and F6 by tests/unit/api/test_case_structure.py.
 
-Over the 20 journeys of tests/unit/acceptance/test_journeys.py (computed items, stages and
-windows), counted with TMPDIR/rvu/jcount.py:
-- c8dcfb2: 1024 outputs. 358 are null or unknown, and none says what it waits on.
-- 8acde5a: 1039 outputs. 396 are null or unknown, and 327 carry `waits_on`.
+**Properties** (the property file and test_unknown_logic.py, 10 examples): this run went
+through 10 mutants before my time ran out. M18, M19, U1, U2 and U3 are caught. **M9, M15, M16
+and M20 survive the properties**, as M9, M15 and M16 did last time.
 
-So 38 more outputs wait, and most nulls now name what they wait for. J06 withholds nothing.
-J02, J09, J11 and J20 withhold the most (28 to 36 each).
+**Every engine, acceptance and holdout test**, survivors only: started, but it had not
+finished its first mutant when I stopped, so I do not claim any result from it. Finding 2
+rests on the files point 52 names.
+
+The non-vacuity test fails under the `mutants` profile even with no mutant (finding 4), so I
+deselected it in these runs.
+
+## Journey outputs withheld
+
+Counted over the 20 journeys of tests/unit/acceptance/test_journeys.py (computed items, stages
+and windows):
+
+| Engine | Outputs | Null or unknown | With `waits_on` |
+|---|---|---|---|
+| c8dcfb2 | 1024 | 358 | 0 |
+| 8acde5a | 1039 | 396 | 327 |
+| 83fddf1 | 1077 | 434 | 410 |
+
+On HEAD, 24 nulls have no `waits_on` (TMPDIR/rvu2/jnull.py). I checked each kind:
+- limit days of counts under their limit;
+- validation and evaluation windows that would fall after the card ends;
+- grace.p1 in J12 to J14, which is `unknown` with the reason cap_gap.for_dso. It was the same
+  at 8acde5a, and it goes to the DSO.
+
+Each one is "does not apply" or a DSO handoff. None is a guess. J06 still withholds nothing.
 
 ## Findings
 
-### 1. Blocking: R16 case B. A filing window is withheld when no change record could apply
-`engine/path.py:519-525` (`_when3`, `as_of`): a day that is unknown returns ABSENT at once and
-never asks whether any change record could apply. Point 26 says "unless no change record could
-apply ... the value is the same on every day and is known".
-Input (TMPDIR/rvu/r4.py): p1 master ending 2026-05-15; a1 opt_post_completion for p1, dso_on
-2026-04-01, filed_on `not_sure`, decision pending; no end_date_change, every list stated whole.
-`opt.apply_window.a1` is null with `waits_on` a1.filed_on. Every filing day gives 2026-02-14 to
-2026-07-14 (the same case with filed_on 2026-05-01 shows it). SPEC R16 B says "shown, the same
-for every filing day". No fill justifies this withholding, and no test holds R16, which is why
-U10 and U11 survive.
+### 1. Blocking: a check's `holds` still reads an absent `ask` field as none, so it raises a conflict or passes quietly
+`engine/path.py:746-750`: `holds_alone` turns ABSENT into NONE under `present` while a check's
+`holds` is read outside a selection.
 
-### 2. Blocking: R34 and U23. A statement for one record's list, or one dated after today, states the whole kind
-`engine/path.py:1628-1633` (`_stated`) accepts any key starting `<kind>:` and any `on` after today.
-`complete_questions` (`:1912-1923`) also treats a future-dated statement as given.
-Input (TMPDIR/rvu/r7.py): R6's case plus a2 stem_extension extending a1 (pending). With
-`complete` holding `authorization:p1` and no `authorization`, `stem.extensions.all` shows 1 with
-no `waits_on`. With `complete.authorization` dated 2026-10-15, it also shows 1, and nothing asks
-the list. Point 14 and R34 say it is withheld, waiting on complete.authorization, both times. An
-unlisted STEM extension could make it 2. That is a count shown on an assumed whole list (D41).
+Input (TMPDIR/rvu2/holds.py): the toy pack's `check_pack` with `holds` set to each of these
+conditions in turn, and TOY_SEED with c1.online left out. c1.online is an `ask` flag: toy1.py
+shows it asked as absent when a count reads it.
+- `{"field": "this.online", "present": true}` gives `conflict:tree.c1`, and nothing asks
+  c1.online.
+- `present: false` gives no conflict and no question, so the check passes quietly on a field
+  the person never gave.
+- `not present: true` gives the same quiet pass.
+- With online `not_sure`, each of the three is asked as `undecided:c1.online`, as it should be.
 
-### 3. Blocking: R36. A not-sure card end removes the STEM next stage entirely
-`engine/path.py:1000-1014`: an opt_post entry left unknown by `entered_when` goes to
-`_unknown_stage`, and `_next` is never called for it.
-Input (TMPDIR/rvu/r8.py): R6's case with a1.card_end `not_sure`. a1.card_end is asked, but no
-`stem.a1` stage appears at all. With card_end 2027-05-31 it is `next`. SPEC R36: "the STEM next
-stage in state `unknown` with `waits_on` a1.card_end". Point 33: a stage is never dropped on a
-guess. No test holds R36.
+Point 2: "`present` on an absent `ask` field is always U, never T or F". Point 32: a check
+whose `holds` is U raises neither its judgement nor its conflict, and its gaps are asked.
+Fix 5's mission said "unknown everywhere, never none". Mutant U21b removes these lines, and
+no example test fails, so no test needs them. P6 (the read-once tree test) draws U only as
+`not_sure`, never as absent, which is how this passes.
 
-### 4. Blocking: `present` on an absent `ask` field outside a selection is read as "none", so a count vanishes and nothing is asked
-`engine/path.py:738-742` turns ABSENT into NONE under `present` whenever the read is not inside a
-selection's `where`. That covers a check's holds and only_if, a counter's only_if, and a next
-stage's only_if.
-Input (TMPDIR/rvu/toy1.py, the toy pack of tests/support/unknown_toy.py, TOY_SEED): c1.online
-`true` or `false` gives `months.level.mid` 5. With `not_sure`, it is null, waits on c1.online,
-and is asked. **With online left out, the item is gone and no question names c1.online.**
-Point 2 says "`present` on an absent `ask` field is always U, never T or F". Point 24 says a
-withheld count is still emitted. The mission names U21. Removing the four lines fails no test (my
-mutant U21b), so nothing needs them. The shipped pack reaches this only through this.extends,
-which is declared `none`, so today the fault shows only on the toy pack. The engine is meant to
-be generic, so this blocks.
+The shipped pack reaches it nowhere today: check 17 reads `this.extends`, which is declared
+`none`, and the other `present` reads in `holds` sit inside a selection. But the engine is
+generic, and the toy pack shows the fault.
 
-### 5. Blocking: a not-sure `happened` date is never asked, though the after-today conflict rests on it
-`engine/path.py:1574-1581` (`run_checks`) reads `happened` dates only when known. Point 32:
-"`happened` over a date that is U is asked (path.py:1028 skips `not_sure`)".
-Input (TMPDIR/rvu/happ2.py): journey J01 with p1.conferred_on `not_sure`. The only result is the
-judgement p1.conferred_on.not_sure: no question, no `undecided:`. The fill 2026-12-01 raises
-`conflict:p1.conferred_on.after_today`, so the gap changes an output (point 8). The same holds
-for J04 p2.coursework_done_on, J12 h1.outcome_on and J15 a2.decided_on (TMPDIR/rvu/happened.py).
-P2(b) misses this because `changed` leaves out the reason set.
+### 2. Blocking: four point 52 mutants still survive every example, and four survive the properties
+Point 52: each mutant is killed "by at least one property and one example".
+- **U11** (an undated change skipped) survives every example. The engine is right
+  (TMPDIR/rvu2/u11.py): with filed_on 2026-05-01 known and ec1.granted_on `not_sure`,
+  opt.apply_window.a1 is null and waits on ec1.granted_on. But R16 C, the only test with an
+  undated change, also has filed_on `not_sure`, so the window is withheld either way. Example to
+  add: R16 C with filed_on 2026-05-01.
+- **U26** (`_closed` ignoring a U close) survives. The third clause of R36 has no test.
+  On the shipped pack, opt_post's filing closes all rest on p1.end_date or on a future gap,
+  so the example needs the toy pack (two filing windows, one closing on a known past day,
+  one on an unknown field).
+- **U25** (a next stage dropping `missing`) survives. Every field a next stage reads is also
+  read by its host stage, so the host asks it. Example to add: a next stage that reads a field
+  its host does not.
+- **U21b** survives: finding 1.
+- The properties alone miss **M9, M15, M16 and M20**. That is the same as last time for M9,
+  M15 and M16.
 
-### 6. Blocking (regression): a record in a category the case does not list now gets a 500
-`engine/path.py:2036` still raises a plain ValueError. `api/local_routes.py:75` now catches only
-CaseStructureError (it caught ValueError at c8dcfb2).
-Input (TMPDIR/rvu/api1.py): journey J06 through `POST /v1/compute` with
-`records[0].category = "h1b"`. The case schema takes it, and the answer is **500 Internal Server
-Error**. Point 39 lists an undeclared category as structure: 422 CASE_STRUCTURE. Two records
-with one id correctly give 422 CASE_STRUCTURE.
+### 3. Should fix (overbuilt): `_tri` and `_known` wrap all3, any3 and not3 and unwrap them at once
+`engine/path.py:184-190`, used in `_all`, `_any` and `_cond` (`:726-819`). Each result is
+turned into an Unknown built from `_gaps(tr, None)`, passed to all3, any3 or not3, and turned
+straight back into `bool | None`. The gaps are thrown away, and the questions still come from
+side traces.
+- This computes exactly what the old `False in results` code did.
+- Point 12 asks that functions returning `bool | None` "be replaced, so the gap travels with
+  the U". That is still not done.
+- Either carry Tri through `_cond`, `_all` and `_any` and read the questions off its gaps, or
+  remove the two helpers and keep the old three lines.
 
-### 7. Blocking: thirteen regression rows of point 51 have no test, and the point 52 mutants they would kill survive
-Point 51 places R3, R14, R21, R22 and R39 in test_w2_unknown_counts.py; R15, R16, R24, R29, R33,
-R34 and R35 in test_w2_unknown.py; and R36 in test_w2_unknown_stages.py. None of them exists.
-The file headers say they are "under not built", and no later round built them. R38 exists only
-as a holdout twin. Findings 1 to 3 are three of these rows failing. U10, U11, U24, U25 and U26
-survive every file point 52 names. The `mutants` profile does not exist. The properties alone
-miss M9, M15 and M16.
+The readers half of finding 9 is done.
 
-### 8. Should fix: the STEM next stage shows validation and concluding-evaluation windows as "does not apply"
-`engine/path.py:1439-1440` gives the virtual record the host's id. A `first` pinned by
-`this.id same_as outer.id` then finds the real OPT record, which is not a stem_extension, so it
-chooses nothing (NONE), with no `future:` gap. Input: R6's case. stem.validation_1 to 4 and
-stem.evaluation_final of `stem.a1` are null with no `waits_on`, while stem.evaluation_12_month
-waits on `future:stem.card_start`. Across the journeys it happens 3 times per window. Points 31
-and 33 say a null with no `waits_on` means only "does not apply", and these windows apply to
-every STEM card.
+### 4. Should fix: the non-vacuity test fails under the `mutants` profile that point 52 names
+Input: the point 52 set with no mutant and `--hypothesis-profile mutants` (TMPDIR/rvu2/src).
+test_w2_unknown_props.py::test_the_properties_saw_each_output_kind_known_and_changed fails
+(`counts` below 5), because 10 examples cannot reach 5 changes per kind. As written, point 52's
+run would therefore "kill" every mutant. Two possible fixes: skip that test under the
+`mutants` profile in tests/conftest.py, or scale its floor to the profile.
 
-### 9. Should fix (overbuilt): path.py works its own three-valued logic beside engine/unknown.py
-`engine/unknown.py` `all3`, `any3` and `not3` are used only by tests. `engine/path.py:715-817`
-(`_all`, `_any`, `not` in `_cond`) re-implement them as `bool | None` with the gaps in side
-traces. Point 12 says no operator works its own unknown, and a `bool | None` result is to be
-replaced so the gap travels with the U. Use the module's functions on Unknown values. Also,
-`path.py:72-85` `_as_date` and `_number` repeat `readers._date` and `readers._number` without
-the 1950 to 2099 bound or the finite check. Use the readers.
+### 5. Note: the 422 for a category fault does not name the category
+A record with category "h1b" now gets 422 CASE_STRUCTURE. The detail lists kind, fields, id
+prefix, record counts and facts, but not the category, which is the actual fault. That is for
+L-api, if the detail is meant to tell the person what to change.
 
-### 10. Should fix: the screen still tells the person an empty petition start is a statement
-`web/src/lib/labels.ts` EMPTY_WORDS keeps "Leave empty if the petition asks for no start date."
-and "...has no approved validity start date." D94 made both fields `ask`. The test reads
-CHANGELOG lines 296-297 (when_absent none) and ignores lines 314-315 (ask, D94), so
-web/src/lib/emptyWords.test.ts asserts the old words. Point 2: the words come from the same
-declaration.
-
-### 11. Should fix: the properties are weaker than section 9 says
-The F-1 seed is only R6's case (`F1_SEED`). Point 44 seeds every journey and R1 to R40. No final
-test asserts the non-vacuity counts (events are recorded, never checked). P1(b) is not built.
-P2(b) and (c) leave out the reasons, stage states and upcoming dates, which is how finding 5
-passed. The P3 read-once half is absent.
-
-### 12. Should fix: a question's `withholds` names only for_each entries
-Input: D4 without w2 (TMPDIR/rvu/d5.py). Question w3.end lists `withholds:
-[stem_job_end.w3]`, but `stem_job_end.evaluation_final.w1` and the `stem_job_end.w1` stage also
-wait on w3.end. Point 34: the question lists the outputs it holds back.
-
-### 13. Note: a part-time pre-completion OPT always withholds the months-at-level count
-R24's case raises `opt.months_at_level.span_not_known.a1`, because the counter's `first` chooses
-nothing for a part-time pre-completion card. This is point 22a working as written. The pack's
-scope could leave such cards out, since opt.months_at_level.part_time already hands them to the
-DSO. That is for L-content.
-
-### 14. Note: `_compare_dates` leaves a known past day against NOT_YET on the right as pending
-`engine/path.py:824-833`: `_when` returns None for NOT_YET, so `d after Y` with d on or before
-today is U (pending), where point 7 decides it F. This is sound but not complete. I found no
-shipped output it changes.
+### 6. Note (carried from 13): a part-time pre-completion OPT always withholds the months-at-level count
+Unchanged. This is for L-content.
 
 ## Scores
 
 | Line | Score | Evidence |
 |---|---|---|
-| correct | 1 | R16 B, R34 and R36, inputs the SPEC names, fail (findings 1 to 3); a 500 on a category fault (6) |
-| sourced | 4 | No rule or number changed; sources verify clean; every date checked by hand matches the saved quotes; the petition empty words contradict D94 (10) |
-| never_assumes | 2 | A list taken as whole from a one-record or future statement (2); absent read as none under present (4); a not-sure happened date never asked (5) |
-| inside_the_boundary | 4 | New lines (unreadable, undecided, waiting) state facts and name the DSO; no conclusion about a person; finding 10's words mislead about what empty means |
-| secure | 2 | A schema-valid case crashes /v1/compute with 500 (6); everything else I sent is taken in, read and asked |
-| tested | 2 | 13 regression rows missing; 8 point 52 mutants survive the named files; no mutants profile, no non-vacuity test, P2 blind to reasons (7, 11) |
+| correct | 4 | Every SPEC input I named last time now gives what the SPEC says (R16 A to C, R34, R36, the 422, D4's withholds). 40 of 40 R rows pass, and the hand dates match. Off the SPEC's inputs, a check's `holds` decides on an absent `ask` field (finding 1). |
+| sourced | 5 | No rule or number changed. Sources verify clean. Every date I worked by hand matches the saved quotes and the tests' comments. The D94 words now match the pack's declarations. |
+| never_assumes | 3 | Selections, only_if, happened dates, history and list statements are all asked now. A check's `holds` still reads an absent field as a known none, raising a conflict or passing quietly (finding 1). |
+| inside_the_boundary | 5 | The only new screen change removes two misleading strings. No new string states a conclusion about a person, and the copy lint is clean. |
+| secure | 5 | A category fault is 422. Unreadable dates, numbers, choices and links are taken in and asked. I found no input that crashes or stalls /v1/compute. |
+| tested | 3 | Every R row is a test, the profile exists, and the properties are stronger. U11, U25, U26 and U21b survive every example, and M9, M15, M16 and M20 survive the properties (finding 2). The mutants profile breaks the non-vacuity test (finding 4). |
 
-Mean 2.5. Every line below 4 rests on findings 1 to 7.
+Mean 4.17. never_assumes and tested are below 4, and they rest on findings 1 and 2.
 
 ## What I chose not to build
 
-No fixes and no new tests: reviews/ is mine, and the code is not. I did not run P2j under the
-mutants, because the properties alone already took more than a minute per mutant.
+No fixes and no tests. reviews/ is mine and the code is not. I did not run P2 under every
+mutant to the end, because each mutant takes about three minutes under the properties, so
+the property column covers the first ten mutants only.
 
 VETO

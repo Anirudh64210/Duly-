@@ -1,156 +1,82 @@
 {
-  "run_id": "l-review-d82408c575",
-  "reviewed_commit": "8acde5a",
+  "run_id": "l-review-bbceb25fc8",
+  "reviewed_commit": "83fddf1",
   "scores": {
     "correct": {
-      "score": 1,
-      "evidence": "R16 case B, R34 and R36, inputs SPEC point 51 names, fail on HEAD (findings 1-3); a category fault gives 500 (finding 6)."
+      "score": 4,
+      "evidence": "Every SPEC input from the last review now gives what the SPEC says (R16 A-C, R34 both ways, R36, category 422, D4 withholds); 40 of 40 R rows pass; hand dates match. Off the SPEC inputs, a check's holds decides on an absent ask field (finding 1)."
     },
     "sourced": {
-      "score": 4,
-      "evidence": "No rule or number changed; sources verify clean; R6, R14, R15, R16, R18 dates checked by hand against the saved quotes; the petition empty words contradict D94 (finding 10)."
+      "score": 5,
+      "evidence": "No rule or number changed; sources verify clean; R14, R16 B, R36 and J15 validation_4 dates worked by hand match the saved quotes and test comments; D94 words now follow the pack declarations."
     },
     "never_assumes": {
-      "score": 2,
-      "evidence": "A list is taken as whole from a one-record or future statement (2); absent is read as none under present (4); a not-sure happened date is never asked (5)."
+      "score": 3,
+      "evidence": "Selections, only_if, happened dates, history and list statements now ask. A check's holds still reads an absent ask field as known none: present true raises conflict:tree.c1, present false passes quietly, nothing asked (finding 1, toy pack, TMPDIR/rvu2/holds.py)."
     },
     "inside_the_boundary": {
-      "score": 4,
-      "evidence": "The unreadable, undecided and waiting lines state facts and name the DSO, with no conclusion about a person; the petition empty words mislead about what empty means (10)."
+      "score": 5,
+      "evidence": "The only screen change removes two misleading empty-field strings; no new string states a conclusion about a person; copy lint clean."
     },
     "secure": {
-      "score": 2,
-      "evidence": "A schema-valid case crashes POST /v1/compute with 500 (finding 6); every other value I sent was taken in and asked."
+      "score": 5,
+      "evidence": "A record category the case does not list now gives 422 CASE_STRUCTURE through POST /v1/compute; unreadable dates, numbers, choices and links are taken in and asked; no input found that crashes or stalls compute."
     },
     "tested": {
-      "score": 2,
-      "evidence": "13 regression rows missing; 8 point 52 mutants survive the named files; no mutants profile; P2 blind to reasons (findings 7, 11)."
+      "score": 3,
+      "evidence": "Every R row is a test and the mutants profile exists; but U11, U25, U26 and U21b survive every example and M9, M15, M16, M20 survive the properties (finding 2); the non-vacuity test fails under the mutants profile (finding 4)."
     }
   },
   "findings": [
     {
       "severity": "blocking",
-      "title": "R16 case B: a filing window is withheld though no change record could apply",
-      "file": "engine/path.py:519",
-      "input": "p1 master ending 2026-05-15; a1 opt_post_completion for p1, dso_on 2026-04-01, filed_on not_sure, decision pending; no end_date_change; every list stated whole; today 2026-09-29",
-      "what_happens": "opt.apply_window.a1 is null, waiting on a1.filed_on. Every filing day gives 2026-02-14 to 2026-07-14, and SPEC R16 B says shown. _when3 returns ABSENT for an unknown as_of day before checking whether a change could apply.",
       "kind": "other",
-      "spec_point": "26, R16"
+      "spec_point": "2",
+      "title": "A check's holds reads an absent ask field as none under present, raising a conflict or passing quietly",
+      "file": "engine/path.py:746-750",
+      "input": "Toy pack check_pack with holds {field: this.online, present: true}, then present: false, then not present: true; TOY_SEED with c1.online left out (an ask flag). TMPDIR/rvu2/holds.py.",
+      "what_happens": "present true gives conflict:tree.c1 with no question on c1.online; present false and not present give no conflict and no question. Points 2 and 32 say U, no conflict, the gap asked. Mutant U21b (removing the exception) fails no example test. Not reachable in the shipped pack today."
     },
     {
       "severity": "blocking",
-      "title": "R34/U23: a statement for one record's list, or one dated after today, states the whole kind",
-      "file": "engine/path.py:1628",
-      "input": "R6's case plus a2 stem_extension extending a1; complete holds authorization:p1 only; again with complete.authorization on 2026-10-15",
-      "what_happens": "stem.extensions.all shows 1 with no waits_on both times; with the future date nothing asks the list. An unlisted extension could make it 2.",
-      "kind": "other",
-      "spec_point": "14, R34"
-    },
-    {
-      "severity": "blocking",
-      "title": "R36: a not-sure card end removes the STEM next stage",
-      "file": "engine/path.py:1000",
-      "input": "R6's case with a1.card_end not_sure",
-      "what_happens": "a1.card_end is asked, but no stem.a1 stage is emitted (with card_end 2027-05-31 it is next). SPEC wants state unknown waiting on a1.card_end. An unknown entry never runs _next.",
-      "kind": "other",
-      "spec_point": "31, 33, R36"
-    },
-    {
-      "severity": "blocking",
-      "title": "present on an absent ask field outside a selection reads as none: a count vanishes and nothing is asked",
-      "file": "engine/path.py:738",
-      "input": "toy pack (tests/support/unknown_toy.py, TOY_SEED) with course c1's online left out",
-      "what_happens": "months.level.mid (5 with online true or false; null and asked with not_sure) is not emitted, and no question names c1.online. Removing lines 738-742 fails no test.",
-      "kind": "other",
-      "spec_point": "2, 24, U21"
-    },
-    {
-      "severity": "blocking",
-      "title": "a not-sure happened date is never asked though the after-today conflict rests on it",
-      "file": "engine/path.py:1574",
-      "input": "journey J01 with p1.conferred_on not_sure (likewise J04 p2.coursework_done_on, J12 h1.outcome_on, J15 a2.decided_on)",
-      "what_happens": "Only the judgement p1.conferred_on.not_sure: no question, no undecided:. The fill 2026-12-01 raises conflict:p1.conferred_on.after_today.",
-      "kind": "other",
-      "spec_point": "32, 8"
-    },
-    {
-      "severity": "blocking",
-      "title": "a record in a category the case does not list crashes /v1/compute with 500",
-      "file": "api/local_routes.py:75",
-      "input": "journey J06 via POST /v1/compute with records[0].category = 'h1b'",
-      "what_happens": "500 Internal Server Error. path.py:2036 raises a plain ValueError, and the route now catches only CaseStructureError. At c8dcfb2 this was a 422. Point 39 makes it 422 CASE_STRUCTURE.",
-      "kind": "regression",
-      "spec_point": "39"
-    },
-    {
-      "severity": "blocking",
-      "title": "thirteen regression rows of point 51 have no test; point 52 mutants survive",
-      "file": "tests/unit/engine/test_w2_unknown.py",
-      "input": "R3, R14, R15, R16, R21, R22, R24, R29, R33, R34, R35, R36, R39 (R38 only as a holdout twin); mutants U10, U11, U21b, U24, U25, U26 against the point 52 files",
-      "what_happens": "No test exists for these rows, and three of them fail (findings 1 to 3). U10, U11, U24, U25 and U26 survive every named file. The properties alone miss M9, M15 and M16. There is no mutants Hypothesis profile.",
       "kind": "missing_test",
-      "spec_point": "51, 52"
+      "spec_point": "52",
+      "title": "Point 52 mutants U11, U25, U26, U21b survive every example; M9, M15, M16, M20 survive the properties",
+      "file": "tests/unit/engine/test_w2_unknown.py, tests/unit/engine/test_w2_unknown_stages.py",
+      "input": "TMPDIR/rvu2/mut.py against the example files and the property files with --hypothesis-profile mutants. U11 input the engine gets right but no test holds: R16 C with filed_on 2026-05-01 (opt.apply_window.a1 null, waits on ec1.granted_on). U26: R36's third clause, two filing closes, one known and past and one U.",
+      "what_happens": "Each listed mutant leaves its files green. Point 52 asks each mutant killed by at least one property and one example."
     },
     {
       "severity": "should_fix",
-      "title": "STEM next stage shows validation and concluding-evaluation windows as does-not-apply",
-      "file": "engine/path.py:1439",
-      "input": "R6's case (and 3 journeys each)",
-      "what_happens": "stem.validation_1..4 and stem.evaluation_final of stem.a1 are null with no waits_on: the virtual record takes the host id a1, so a first pinned by this.id same_as outer.id finds the OPT record. They should wait on future:stem.card_start.",
-      "kind": "other",
-      "spec_point": "31, 33"
-    },
-    {
-      "severity": "should_fix",
-      "title": "path.py re-implements the three-valued logic engine/unknown.py provides",
-      "file": "engine/path.py:715",
-      "input": "any condition; unknown.all3/any3/not3 are used only by tests",
-      "what_happens": "_all, _any and not in _cond return bool|None with gaps in side traces; replace with all3/any3/not3 on Unknown. path.py _as_date and _number (72-85) repeat readers._date/_number without the 1950-2099 bound or the finite check.",
       "kind": "overbuilt",
-      "spec_point": "12"
+      "title": "_tri and _known wrap all3, any3 and not3 and unwrap them at once",
+      "file": "engine/path.py:184-190, 726-819",
+      "input": "Any condition read: _cond, _all, _any.",
+      "what_happens": "Results become Unknown on _gaps(tr, None), pass through all3, any3 or not3, and return to bool | None at once. The gaps are dropped, and the result is the same as the old three lines. Point 12's 'gap travels with the U' is not met. Carry Tri through, or remove the two helpers."
     },
     {
       "severity": "should_fix",
-      "title": "screen words still call an empty petition start a statement",
-      "file": "web/src/lib/labels.ts",
-      "input": "Onboarding petition step, requested_start and validity_start left empty",
-      "what_happens": "EMPTY_WORDS shows 'Leave empty if the petition asks for no start date.' D94 made both fields ask. The test reads CHANGELOG lines 296-297 and not the D94 lines 314-315.",
-      "kind": "wording",
-      "spec_point": "D94, 2"
-    },
-    {
-      "severity": "should_fix",
-      "title": "properties weaker than section 9",
-      "file": "tests/unit/engine/test_w2_unknown_props.py",
-      "input": "F1_SEED is R6's case only; P2 compares no reasons, stage states or upcoming",
-      "what_happens": "No journey seeds, no non-vacuity assertion, P1(b) and the P3 read-once half not built; P2 missed finding 5.",
       "kind": "missing_test",
-      "spec_point": "44, 46, 47"
-    },
-    {
-      "severity": "should_fix",
-      "title": "a question's withholds names only for_each entries",
-      "file": "engine/path.py:1060",
-      "input": "STEM card a2, w1 2026-07-01 to 2026-08-02, w3 under a2 from 2026-09-01 end not_sure",
-      "what_happens": "Question w3.end withholds only stem_job_end.w3, though stem_job_end.evaluation_final.w1 and stage stem_job_end.w1 wait on it.",
-      "kind": "other",
-      "spec_point": "34"
+      "title": "The non-vacuity test fails under the mutants profile point 52 names",
+      "file": "tests/unit/engine/test_w2_unknown_props.py:285, tests/conftest.py",
+      "input": "The point 52 set with no mutant and --hypothesis-profile mutants (TMPDIR/rvu2/src).",
+      "what_happens": "test_the_properties_saw_each_output_kind_known_and_changed fails with counts under 5, so every mutant would read as killed. Skip it under the profile, or scale the floor."
     },
     {
       "severity": "note",
-      "title": "part-time pre-completion OPT always withholds the months-at-level count",
+      "kind": "wording",
+      "title": "The 422 for a category fault does not name the category",
+      "file": "api/main.py:90-95",
+      "input": "J06 through POST /v1/compute with records[0].category h1b.",
+      "what_happens": "422 CASE_STRUCTURE. The detail lists kind, fields, id prefix, counts and facts, but not the category that is wrong."
+    },
+    {
+      "severity": "note",
+      "kind": "spec_gap",
+      "title": "A part-time pre-completion OPT always withholds the months-at-level count (carried)",
       "file": "rulepacks/f1-us/v2026.09/parameters.yaml",
-      "input": "R24's case",
-      "what_happens": "opt.months_at_level.span_not_known.a1 is raised by point 22a; the counter scope could leave part-time pre-completion cards out.",
-      "kind": "spec_gap"
-    },
-    {
-      "severity": "note",
-      "title": "a known past day against NOT_YET on the right is pending, not decided",
-      "file": "engine/path.py:824",
-      "input": "a condition d after Y with d on or before today",
-      "what_happens": "U with a pending gap where point 7 decides F; sound, not complete; no shipped output found that it changes.",
-      "kind": "other"
+      "input": "R24's case.",
+      "what_happens": "opt.months_at_level.span_not_known.a1 is raised, as point 22a says. The pack's scope could leave such cards out. This is for L-content."
     }
   ],
   "decision": "VETO"
