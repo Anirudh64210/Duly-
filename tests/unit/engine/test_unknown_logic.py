@@ -228,19 +228,49 @@ def test_count_at_most3_against_every_completion(args):
 
 # P6 through the pack: a toy check whose `holds` is one generated read-once tree over the
 # fields of c1 (course). Today 2026-09-29; the fact arrived_on is 2026-06-01. Each field is read
-# by at most one leaf; its value is known, the declared absence (None: NONE for follows,
-# NOT_YET for left_on), or U (not_sure). The engine's answer is read from the output: a
-# conflict tree.c1 is F; nothing raised and no question about the leaves is T; a question
-# naming a U leaf's field and no conflict is U.
+# by at most one leaf; its value is known (a value, or the declared absence, None: NONE for
+# follows, NOT_YET for left_on) or one of the field's gaps from tests/support/gaps.py: absent
+# on an `ask` field, unreadable, or not_sure (point 52 as amended on 2026-10-02: every value
+# state). The engine's answer is read from the output: a conflict tree.c1 is F; nothing raised
+# and no question about the leaves is T; a question naming a U leaf's field and no conflict
+# is U.
 #
 # Point 7 on NOT_YET: Y is later than a known day on or before today. 2026-06-01 is before
 # 2026-09-29, so left_on Y is after 2026-06-01 (T) and not on or before it (F).
+#
+# Point 1, the fill domain: an unknown on an `ask` field could be any readable value or NONE.
+# A leaf's `fills` are the completions of its unknown; they are its known values, which give
+# both T and F, so NONE adds no outcome, except where every readable value gives one answer:
+# `present: true` on an ask field is T on every readable value and F on NONE, so its fills
+# hold NONE_FILL as well (U21: present on an absent ask field is U, never T or F).
 
 TODAY = date(2026, 9, 29)
+NONE_FILL = object()
 
 
-def _leaf(op: str, field: str, cond: dict[str, Any], values: list[Any], truth: Any) -> Any:
-    return {"op": op, "field": field, "cond": cond, "values": values, "truth": truth}
+def _leaf(
+    op: str,
+    field: str,
+    cond: dict[str, Any],
+    values: list[Any],
+    truth: Any,
+    fills: list[Any] | None = None,
+) -> Any:
+    found = {"op": op, "field": field, "cond": cond, "values": values, "truth": truth}
+    found["fills"] = values if fills is None else fills
+    return found
+
+
+def _present_on_ask(field: str, value: Any) -> Any:
+    # present: true on an `ask` field: a known value is T; the fill NONE is F (point 7).
+    return _leaf(
+        "present",
+        field,
+        {"field": f"this.{field}", "present": True},
+        [value],
+        lambda v: v is not NONE_FILL,
+        [value, NONE_FILL],
+    )
 
 
 ARRIVED = {"fact": "arrived_on"}
@@ -258,6 +288,16 @@ LEAVES: list[dict[str, Any]] = [
         ["c1", None],
         lambda v: v is not None,
     ),
+    # present on every `ask` field of c1, so a tree reads one often: absent is U (point 1,
+    # U21). A flag of false is present (point 9).
+    _present_on_ask("code", "A1"),
+    _present_on_ask("credits", 2),
+    _present_on_ask("start", "2026-01-05"),
+    _present_on_ask("end", "2026-12-18"),
+    _present_on_ask("joined_on", "2026-03-01"),
+    _present_on_ask("level", "mid"),
+    _present_on_ask("mode", "day"),
+    _present_on_ask("online", False),
     _leaf(
         "in",
         "mode",
@@ -376,11 +416,15 @@ def test_the_leaves_cover_the_comparison_operators():
 @given(data=st.data())
 def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
     # Point 50, P6 through the toy pack: a random read-once tree over c1's fields, at most 5
-    # leaves, each leaf known (a value, or NONE through its declaration) or U (not_sure). The
-    # check `tree` is a conflict on c1 exactly when the tree is F on every completion, is
-    # silent exactly when it is T on every completion, and asks every U leaf's field
-    # otherwise. Fails if any operator reads U as F or T (U3, U4, U20, U21), or asks a field a
-    # settled tree does not rest on (point 8).
+    # leaves, each leaf known (a value, or NONE or NOT_YET through its declaration) or in one
+    # of its gap states (absent on an ask field, unreadable, not_sure; point 52). The check
+    # `tree` is a conflict on c1 exactly when the tree is F on every completion, is silent
+    # exactly when it is T on every completion, and asks every U leaf's field otherwise, with
+    # the gap's own state. An unreadable leaf is asked whatever the tree gives (point 8).
+    # Fails if any operator or reader reads U as F or T (U3, U4, U14, U20, U21, M20), asks a
+    # field a settled tree does not rest on (point 8), leaves an unreadable value unasked (M18),
+    # or names the wrong state (U3).
+    from tests.support.gaps import GAP_STATES, decl_of, gap
     from tests.support.unknown_toy import case, check_pack, rec
     from tests.support.w2_pack import compute
 
@@ -391,19 +435,34 @@ def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
     used = used[: data.draw(st.integers(1, 5))]
     joiners = [data.draw(st.sampled_from(["all_of", "any_of"])) for _ in used[1:]]
     negate = data.draw(st.booleans())
-    raw: dict[str, Any] = {}
-    unknown: list[str] = []
-    for leaf in used:
-        pick = data.draw(st.sampled_from([*leaf["values"], "not_sure"]))
-        if pick == "not_sure":
-            unknown.append(leaf["field"])
-        raw[leaf["field"]] = pick
     # The tree: leaves folded left with the drawn joiners, then perhaps negated.
     cond: Any = used[0]["cond"]
     for leaf, joiner in zip(used[1:], joiners, strict=True):
         cond = {joiner: [cond, leaf["cond"]]}
     if negate:
         cond = {"not": cond}
+    # The stage reads the fact arrived_on, never a field of c1: point 29 asks a course start
+    # that is unknown on the stage's own entry, which would be a question the tree did not ask.
+    pack = check_pack(cond, stage_reads="arrived_on")
+    # Each leaf is known or unknown, half and half. A known leaf draws one of its values; an
+    # unknown leaf draws a sample of each of its gap states and one state of its own. The tree
+    # is then run once on the drawn states and once per gap state, every unknown leaf that
+    # can take that state taking it, so each example reads each unknown leaf absent (on an ask
+    # field), unreadable and not_sure (point 52), whatever the kind's number of samples.
+    known: dict[str, Any] = {}
+    gaps: dict[str, dict[str, Any]] = {}  # field -> {gap state: its drawn sample}
+    drawn: dict[str, str] = {}
+    for leaf in used:
+        if data.draw(st.booleans()):
+            samples = gap(decl_of(pack, "course", leaf["field"]), {"c1": "course"})
+            gaps[leaf["field"]] = {
+                state: data.draw(st.sampled_from([v for s, v in samples if s == state]))
+                for state in GAP_STATES
+                if any(s == state for s, _ in samples)
+            }
+            drawn[leaf["field"]] = data.draw(st.sampled_from(sorted(gaps[leaf["field"]])))
+        else:
+            known[leaf["field"]] = data.draw(st.sampled_from(leaf["values"]))
 
     def evaluate(values: dict[str, Any]) -> bool:
         acc = used[0]["truth"](values[used[0]["field"]])
@@ -412,40 +471,75 @@ def test_a_read_once_tree_is_known_exactly_when_every_completion_agrees(data):
             acc = (acc and t) if joiner == "all_of" else (acc or t)
         return (not acc) if negate else acc
 
+    # The expected value rests only on which leaves are unknown, never on their gap state.
     by_field = {leaf["field"]: leaf for leaf in used}
     results = set()
-    for combo in itertools.product(*[by_field[f]["values"] for f in unknown]):
-        values = dict(raw)
-        values.update(dict(zip(unknown, combo, strict=True)))
+    for combo in itertools.product(*[by_field[f]["fills"] for f in gaps]):
+        values = dict(known)
+        values.update(dict(zip(gaps, combo, strict=True)))
         results.add(evaluate(values))
 
-    fields = {"level": "mid", "mode": "day", "start": "2026-01-05", "end": "2026-12-18"}
-    for name, value in raw.items():
-        if value is None:
-            fields.pop(name, None)
+    rounds = [drawn] + [{f: g if g in gaps[f] else drawn[f] for f in gaps} for g in GAP_STATES]
+    for unknown in [r for i, r in enumerate(rounds) if r not in rounds[:i]]:
+        raw = {**known, **{f: gaps[f][s] for f, s in unknown.items()}}
+        fields = {"level": "mid", "mode": "day", "start": "2026-01-05", "end": "2026-12-18"}
+        for name, value in raw.items():
+            if value is None:
+                fields.pop(name, None)
+            else:
+                fields[name] = value
+        c1 = rec("c1", "course", **fields)
+        out = compute(case([c1], TODAY, facts={"arrived_on": "2026-06-01"}), [pack], TODAY)
+        conflict = any(r.startswith("conflict:tree") for r in out["verdict"]["reasons"])
+        states = {
+            q.get("field"): q.get("state") for q in out["questions"] if q.get("record") == "c1"
+        }
+        asked = set(states)
+        # Point 8: an unreadable value is always asked, and every question on a drawn gap
+        # names the gap's own state (point 5).
+        unreadable = {f for f, s in unknown.items() if s == "unreadable"}
+        assert unreadable <= asked, (cond, raw, out["questions"])
+        assert all(states[f] == unknown[f] for f in asked & set(unknown)), (cond, raw, states)
+        for state in unknown.values():
+            event(f"state:{state}")
+        if results == {False}:
+            assert conflict, (cond, raw)
+            event("tree:F")
+        elif results == {True}:
+            assert not conflict, (cond, raw)
+            # Point 32: `happened` over a date that is U is asked whatever the tree gives, so a
+            # happened field's own question (joined_on, declared happened in the toy pack) is
+            # not one the settled tree asked; nor is an unreadable value's (point 8, above);
+            # every other unknown leaf stays unasked (point 8).
+            assert not (asked & (set(unknown) - HAPPENED - unreadable)), (cond, raw)
+            event("tree:T")
         else:
-            fields[name] = value
-    c1 = rec("c1", "course", **fields)
-    # The stage reads the fact arrived_on, never a field of c1: point 29 asks a course start
-    # that is unknown on the stage's own entry, which would be a question the tree did not ask.
-    pack = check_pack(cond, stage_reads="arrived_on")
-    out = compute(case([c1], TODAY, facts={"arrived_on": "2026-06-01"}), [pack], TODAY)
-    conflict = any(r.startswith("conflict:tree") for r in out["verdict"]["reasons"])
-    asked = {q.get("field") for q in out["questions"] if q.get("record") == "c1"}
-    if results == {False}:
-        assert conflict, (cond, raw)
-        event("tree:F")
-    elif results == {True}:
-        assert not conflict, (cond, raw)
-        # Point 32: `happened` over a date that is U is asked whatever the tree gives, so a
-        # happened field's own question (joined_on, declared happened in the toy pack) is not
-        # one the settled tree asked; every other unknown leaf stays unasked (point 8).
-        assert not (asked & (set(unknown) - HAPPENED)), (cond, raw)
-        event("tree:T")
-    else:
-        assert not conflict, (cond, raw)
-        assert set(unknown) & asked, (cond, raw, out["questions"])
-        event("tree:U")
+            assert not conflict, (cond, raw)
+            assert set(unknown) & asked, (cond, raw, out["questions"])
+            event("tree:U")
+
+    # Each unknown leaf alone, in each of its gap states, is a read-once tree too, and nothing
+    # else can settle it: its fills give both T and F (see LEAVES), so it is U, asks its own
+    # field with that state and raises no conflict, negated or not. This reads every unknown
+    # leaf in every state without the rest of the tree masking it (U21 on an absent ask field).
+    for f, samples in gaps.items():
+        alone = {"not": by_field[f]["cond"]} if negate else by_field[f]["cond"]
+        assert {by_field[f]["truth"](v) for v in by_field[f]["fills"]} == {True, False}
+        for state, sample in samples.items():
+            fields = {"level": "mid", "mode": "day", "start": "2026-01-05", "end": "2026-12-18"}
+            fields.pop(f, None)
+            if sample is not None:
+                fields[f] = sample
+            c1 = rec("c1", "course", **fields)
+            out = compute(
+                case([c1], TODAY, facts={"arrived_on": "2026-06-01"}),
+                [check_pack(alone, stage_reads="arrived_on")],
+                TODAY,
+            )
+            reasons = out["verdict"]["reasons"]
+            assert not any(r.startswith("conflict:tree") for r in reasons), (alone, f, sample)
+            asked = [q for q in out["questions"] if (q.get("record"), q.get("field")) == ("c1", f)]
+            assert [q.get("state") for q in asked] == [state], (alone, f, sample, asked)
 
 
 # Each operator drawn at least 5 times (point 50). The list and pairwise operators are their

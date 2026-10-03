@@ -3908,3 +3908,45 @@ Not built: nothing; no finding or point asks for a test that is not already ther
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-651eb98e76 (attempt 2): P6 draws every value state (finding 1, point 52 amended)
+
+Read: tests/PROGRESS.md, SPEC-W2-UNKNOWN point 52 (amended 2026-10-02), reviews/w2-unknown.md
+finding 1. Attempt 1 timed out after committing its P6 change (3a02c8c); this attempt checks it
+and runs the mutants, with no further edit to the test.
+
+The change (tests/unit/engine/test_unknown_logic.py, P6, from line 229):
+- A leaf is known (a value, or NONE on follows, NOT_YET on left_on through the declaration) or
+  unknown. An unknown leaf draws a sample of each of its gap states from tests/support/gaps.py
+  (absent on an ask field, unreadable, not_sure), and the tree is run on the drawn states and
+  once per gap state, so each example reads every unknown leaf in each state it can take.
+- `present: true` on every ask field of c1, with NONE as a fill (point 1): T on any readable
+  value, F on NONE, so absent is U (U21).
+- Each unknown leaf alone, in each gap state: no conflict, asked once with that state.
+- Point 8: an unreadable value is always asked; every question names the gap's own state.
+- No assertion of the old P6 was dropped: the F, T and U asserts are each kept, now inside the
+  loop over states. The T branch's "no question on an unknown leaf" leaves out unreadable
+  fields, which the old P6 never drew and which point 8 now asserts are always asked.
+- Fails if: present on an absent ask field gives T or F (U21); a reader passes a raw number or
+  flag (U14); unreadable is read as absent (U3, names the wrong state); not_sure is read as
+  present (U4); an unreadable value goes unasked (M18 path); `_any`, `_and` or `not` read U as
+  F or T (X1 to X3).
+
+Ran:
+- Done command: ruff check: All checks passed; format: 111 files already formatted; pytest
+  55 passed, P6 7.98 s, slowest property 7.27 s, whole run 31 s (point 44 budget 90 s).
+- Mutants: $TMPDIR/l651c/mut.py (attempt 1's runner, fresh copy of HEAD) on the `props` set
+  (test_w2_unknown_props.py, test_unknown_logic.py), `--hypothesis-profile mutants`, 5 min:
+  NONE baseline passes (one skip: the non-vacuity test, by design). CAUGHT, with the property:
+  M9, M15, M16, M20, U1: selection property. M18: boundary is total [f1]. M19: list not stated
+  whole [f1]. U2: exists3 and none. U3, U5, U6, U7, U8, U9: gap in a new record [toy].
+  U4: replacing a known value [toy]. U14, U21: P6.
+- Attempt 1's run of P6 alone (data): U3, U4, U14, U21, X1 to X3 caught by P6 itself;
+  M18, M20 and U20 survive P6 alone (M18 and M20 are caught by other properties above; U20 is
+  not in point 52's property set, its example holds it).
+
+Not built: no new property for the one-position mutants (U10, U12, U16, U22 to U26): point 52
+as amended holds them by their examples. No change to P1 to P3 or to gaps.py.
+
+### Seen in data, not followed
+Nothing read asked for an action.
