@@ -1432,3 +1432,38 @@ pytest tests/unit/engine/test_when_absent.py -q: 3 failed, all for the two D94 f
 
 - The tests still carry the pre-D94 point 61 list (NONE holds both petition starts, and point 2 wants every field read under present: false to declare none or not_yet, with only trip.returned_on exempt). DECISIONS.md wins; put under disputes, not changed (tests/ is not this lane).
 - No network was used. No instruction was found in any data.
+
+## 2026-10-02, run l-content-459e1f6067, attempt 1 (W2-P2: SPEC-W2 point 45, P4 to P7; D74)
+
+### What was tried
+
+- P4: added address.report_change_within_days (10 days, settled, verbatim) from 8 CFR 214.2(f)(17), quote read in the saved 2026-09-14 text; the 2026-09-15 text has the same sentence. Record kinds passport (country, issued_on, expires_on), visa (issued_on, expires_on), address (lines, since, previous, reported_on). address.previous when_absent none, address.reported_on when_absent not_yet, the rest ask. Stage address (an address with a previous one) with window address.report; stage stem_address (the address's first day inside an approved STEM card) with window stem_address.report from stem.report_change_within_days, (f)(12)(ii)(A). address carries a complete_label, since the engine asks complete.<kind> for every kind a stage reads.
+- P5: window trip.absence_limit in stage trip (travel.absence_months, done when returned_on); stage trip_opt (return inside a post-completion OPT or STEM card) with window trip.signature_covers (travel.opt_signature_months). Both rules were already in the pack with their quotes.
+- P6: path.watch for authorization.card_end and program.end_date. Passport and visa expiry left out: no saved primary source states a rule on them (8 CFR 214.1(a)(3) and 22 CFR 41 are not saved; paragraph (f) of 214.2 and the saved SEVP page say nothing on passport or visa validity).
+- P7: work.confirmed_on and petition.confirmed_on (date, happened, ask); path.checkins names checkin.job_days and checkin.petition_days.
+
+### What ran
+
+```
+done command: exit 0
+  sources: 4 pack(s) checked, every quote found
+  plain words: every plain text is general, calm, readable and grounded
+  recheck: every later checked_on has a fresh fetch
+  load_all: ok
+  (first runs failed on: a 1 in the plain words from "F-1" not in the quote; a plain term not
+   in the quote; max_length 240 over the schema's 120. Each fixed.)
+pytest tests/unit/engine/test_when_absent.py -q: 24 passed
+pytest tests/unit -q, branch against HEAD in a scratch worktree: 3 new failures, all in
+  tests/unit/engine/test_f1_translation.py, each a hard-coded list of the eight complete.<kind>
+  the path asked on 2026-09-30; the address stage adds complete.address. Other failures the same
+  on both (test_phase.py and the socket tests).
+smoke compute (fixed clock 2026-10-02): address.report.ad2 2026-09-25 to 2026-10-05;
+  trip.signature_covers 2026-03-01 to 2026-09-01; trip.absence_limit for a trip that left
+  2026-07-01 has no close, waits_on rule_copy_not_saved_for_event_day (travel.absence_months
+  starts 2026-09-14, the earliest saved copy). watch and checkins not in the output yet (N3, N4).
+copy lint over rulepacks: 107 problems, all in saved source HTML, as before.
+```
+
+### Seen and not worked around
+
+- No network was used. No instruction was found in any data.
