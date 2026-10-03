@@ -1,0 +1,27 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Close the last test-strength finding of the unknown-values review: P6 draws every value state at its leaves, so each operator and reader mutant is killed by a property as well as an example, as point 52 (amended) asks. Then the final review and audit.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-unknown.md finding 1 and SPEC-W2-UNKNOWN point 52 as amended on 2026-10-02. In tests/unit/engine/test_unknown_logic.py, P6 (about line 397) draws a leaf''s unknown only as not_sure: make it draw every value state (absent on an ask field, unreadable, not_sure, NONE, NOT_YET) so the operator and reader mutants of point 52 (U1 to U9, U14, U21, M9, M15, M16, M18 to M20) are each killed by a property under the mutants profile, within the gate-5 time budget of point 44. Run the point 52 mutant set yourself to show it, and list the result in your REPORT. Never loosen an existing assertion.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_unknown_logic.py tests/unit/engine/test_w2_unknown_props.py -q'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Final re-review of the unknown-values work (plan-w2-p1-unknown.yaml and its fixes 0 to 8) against SPEC-W2-UNKNOWN (points 12 and 52 as amended), D92 to D94, PRINCIPLES.md and BOUNDARY.md and your findings in reviews/w2-unknown.md. Rerun the point 52 mutant set under the mutants profile (operator and reader mutants by a property and an example; position mutants by an example), every R row, and the withheld-output count over the journeys. Write reviews/w2-unknown.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-unknown.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the unknown-values work (plan-w2-p1-unknown.yaml and its fixes 0 to 8) as your role file describes. Write docs/requirements/audits/w2-unknown.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-unknown.md && uv run python -m tools.requirements.register check'
