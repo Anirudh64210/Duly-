@@ -35,6 +35,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from engine.settings import load_settings, whole_setting
+from tests.support.records_case import TODAY as JOURNEY_DAY
 from tests.support.w2_pack import (
     compute,
     f1_pack,
@@ -45,6 +46,7 @@ from tests.support.w2_pack import (
     windows,
     windows_named,
 )
+from tests.unit.acceptance import test_journeys
 from tools.sources.verify import plain
 
 TODAY = date(2026, 10, 2)  # a Friday
@@ -942,6 +944,69 @@ def test_review4_a_trip_back_before_it_left_shows_no_trip_date() -> None:
     for w in shown:
         assert (w["opens"], w["closes"]) == (None, None), w
         assert any("span_order.t1" in g or "t1.ends_before_starts" in g for g in w["waits_on"]), w
+
+
+def absence_of_t1(out: dict[str, Any]) -> tuple[Any, ...]:
+    """trip.absence_limit.t1 as shown: its dates and what it waits on, and the computed
+    trip.absence_limit.opens.t1 and .closes.t1 with theirs."""
+    found = [w for w in windows_named(out, "trip.absence_limit") if w["id"].endswith(".t1")]
+    assert len(found) == 1, [w["id"] for w in windows(out)]
+    w = found[0]
+    shown = items(out)
+    opens, closes = shown["trip.absence_limit.opens.t1"], shown["trip.absence_limit.closes.t1"]
+    return (
+        (w["opens"], w["closes"], sorted(w.get("waits_on", []))),
+        (opens["value"], sorted(opens.get("waits_on", []))),
+        (closes["value"], sorted(closes.get("waits_on", []))),
+    )
+
+
+# Five months from leaving (8 CFR 214.2(f)(4), "five"), worked by months_after:
+# j07 left 2025-06-01: Jul, Aug, Sep, Oct, Nov: 2025-11-01.
+# j11 left 2025-12-18: Jan, Feb, Mar, Apr, May: 2026-05-18.
+# j16 left 2025-09-02: Oct, Nov, Dec, Jan, Feb: 2026-02-02.
+# Each departure is before 2026-09-14, the first day of the saved copy of travel.absence_months
+# (effective_from_basis earliest_saved_copy), so the closing day may be withheld with
+# rule_copy_not_saved_for_event_day; either way it is the same with the return left out.
+@pytest.mark.parametrize(
+    ("journey", "left", "closes"),
+    [
+        ("j07", "2025-06-01", "2025-11-01"),
+        ("j11", "2025-12-18", "2026-05-18"),
+        ("j16", "2025-09-02", "2026-02-02"),
+    ],
+)
+def test_review4b_a_trip_with_its_return_left_out_still_shows_the_absence_limit(
+    journey: str, left: str, closes: str
+) -> None:
+    # Plan W2-P2 fix3; SPEC-W2 point 46; SPEC-W2-UNKNOWN points 22 and 33; D92 (points 55, 61).
+    # The absence limit rests on left_on only: every return day on or after the departure
+    # (the departure itself, the journey's own return, 2099-12-31) gives the same window. A
+    # span's order conflict comes only from entered dates, so a return left out is no possible
+    # conflict: the window keeps its values and waits on nothing more, and t1.returned_on is
+    # asked. The review4 test keeps the other side: a return entered before the departure
+    # withholds the window. Today the window waits on t1.returned_on.
+    def run(returned_on: str | None) -> dict[str, Any]:
+        case = getattr(test_journeys, journey)()
+        t1 = next(r for r in case["records"] if r["id"] == "t1")["fields"]
+        assert t1["left_on"] == left
+        if returned_on is None:
+            del t1["returned_on"]
+        elif returned_on != "journey":
+            t1["returned_on"] = returned_on
+        return compute(case, [pack()], JOURNEY_DAY)
+
+    assert months_after(date.fromisoformat(left), absence_months()) == date.fromisoformat(closes)
+    entered = absence_of_t1(run("journey"))
+    window, opens, closing = entered
+    assert window[0] == opens[0] == left
+    assert window[1] == closing[0]
+    assert closing[0] == closes or "rule_copy_not_saved_for_event_day" in closing[1], entered
+    for back in (left, "2099-12-31"):
+        assert absence_of_t1(run(back)) == entered, back
+    left_out = run(None)
+    assert absence_of_t1(left_out) == entered
+    assert_asked(left_out, "t1", "returned_on", "absent")
 
 
 @pytest.mark.parametrize("kind", ["passport", "visa"])

@@ -4138,3 +4138,35 @@ to_records writes no confirmed_on, see requests).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-10a44e592d: W2-P2 fix3, a span conflict comes only from entered dates
+
+Read: tests/PROGRESS.md (tail), specs/step-w/plan-w2-p2-fix3.yaml, SPEC-W2 point 46,
+SPEC-W2-UNKNOWN points 22, 32a, 33, D92, journeys j07, j11, j16 and the review4 test.
+
+Probed the engine (a scratch script in $TMPDIR, not kept): with t1.returned_on left out, the
+items trip.absence_limit.opens.t1 and .closes.t1 already keep their values and waits_on, but the
+window trip.absence_limit.t1 in the trip stage adds t1.returned_on to its waits_on. Return set to
+the departure day, the journey's own return, or 2099-12-31: window identical to the entered case.
+Each closing is null with rule_copy_not_saved_for_event_day in every variant, because each
+departure (2025) is before 2026-09-14, the first day of the saved copy of travel.absence_months.
+
+New test in tests/unit/engine/test_w2_records.py:
+- test_review4b_a_trip_with_its_return_left_out_still_shows_the_absence_limit[j07, j11, j16]:
+  window (opens, closes, waits_on) and both items equal the entered case for return days on or
+  after the departure and with the return left out; t1.returned_on asked absent. opens is
+  left_on; closing is left_on + 5 months (2025-11-01, 2026-05-18, 2026-02-02, worked in the
+  comment) or null with the copy-not-saved reason. Fails today on the left-out case: waits_on
+  gains t1.returned_on. It would fail again if the engine read a left-out end as a possible span
+  conflict, or withheld the window on the return.
+- test_review4 unchanged and passing: an entered return before the departure still withholds.
+
+Ran: done command, exit 0 (ruff: All checks passed; 113 files already formatted; --co ok).
+pytest tests/unit/engine/test_w2_records.py: the 3 review4b cases fail, all else passes.
+
+Not built: no assertion on the stage trip.t1 (its state rightly turns on the return: done or
+current), no fill property (the hidden P2 property already covers it); the three return days
+in the test are the fills the mission names.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
