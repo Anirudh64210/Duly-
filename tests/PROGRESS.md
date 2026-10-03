@@ -3800,3 +3800,29 @@ branches of the tree test.
 ### Seen in data, not followed
 The engine lane's report holds requests addressed to tests; the same changes were in this
 run's prompt, so they were made from the prompt. Nothing else read asked for an action.
+
+## l-tests-74d3a06d15: reconcile after the engine, api and web rounds of fix5
+
+Read: tests/PROGRESS.md, specs/step-w/plan-w2-p1-unknown-fix5.yaml, reviews/w2-unknown.md
+(findings 1 to 14). HEAD e78ba19 (engine 8d98d66, api f2298da, web e78ba19 merged).
+
+Ran on HEAD, no test changed:
+- uv run ruff check tests: All checks passed. ruff format --check tests: 111 files already
+  formatted.
+- uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools: the
+  only failures are 15 in tests/unit/desktop_entry/test_desktop_main.py, each "[Errno 1]
+  Operation not permitted" on the Unix socket bind my sandbox refuses (the prompt names this).
+  Rerun with --ignore=tests/unit/desktop_entry: exit 0, every test passes, including the
+  finding 1 to 14 tests, R3 to R39, the API 422 CASE_STRUCTURE test (finding 6), J07 and the
+  property and non-vacuity tests (finding 11).
+- npm test -w web -- tests/web: vitest cannot mkdir web/coverage (EPERM, outside my writable
+  area). npx vitest run tests/web from web/ without coverage: 2 files, 9 tests passed.
+
+So every fix of the plan already agrees with the tests as written in the tests round; nothing
+to bring in line, and no assertion touched. Since no test changed, there is no new "fails if"
+to state; the earlier entries above hold for each test.
+
+Not built: nothing. No finding or point asks for a test that is not already there.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
