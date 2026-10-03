@@ -1,0 +1,50 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2-UNKNOWN.md
+goal: 'Clear the last review veto of the unknown-values work (reviews/w2-unknown.md, findings 1 to 5): a check''s holds never reads an absent ask field as a known none, and every point 52 mutant is killed by an example and by a property. SPEC-W2-UNKNOWN points 2, 12 (as amended), 32, 36, 52 and R16, R36.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-unknown.md (the review of fix 5). Write, each failing today where the review shows a fault, with the point beside it: (1) finding 1, on the toy pack of tests/support/unknown_toy.py: a check whose holds is present: true, present: false, or not present: true over the ask flag c1.online left out raises neither its conflict nor its judgement and asks c1.online (state absent), as not_sure already does (point 2 and 32); this kills mutant U21b; (2) finding 2, examples: U11, R16 case C with filed_on 2026-05-01 known and ec1.granted_on not_sure (opt.apply_window.a1 withheld, waits on ec1.granted_on); U26, the third clause of R36 on the toy pack (two filing windows, one closing on a known past day and one on an unknown field: the stage is not closed); U25, a next stage that reads a field its host does not, which is asked; (3) finding 2, properties: strengthen the properties of points 45 to 50 until each of M9, M15, M16 and M20 is killed by a property alone, within the gate-5 time budget of point 44; (4) finding 4: the non-vacuity test is skipped under the mutants profile in tests/conftest.py (or scales its floor to the profile), so point 52''s run reports real kills; (5) note 5: tests/unit/api asserts the 422 detail for an undeclared category names that category. Never loosen an existing assertion. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine tests/unit/api --co -q >/dev/null'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-unknown.md (the review of fix 5). Finding 1: in engine/path.py a check''s holds reads an absent ask field under present as unknown, like everywhere else, never as none; it is asked with state absent and the check raises neither its conflict nor its judgement (points 2 and 32). Finding 3 under point 12 as amended: remove _tri and _known and the conversions through them, keeping the condition evaluator as bool | None with its gaps in the trace, and no change in what any test expects. Generic, nothing about F-1 in engine code. Make every test in tests/unit/engine and the journeys pass; the whole command takes about two and a half minutes, so run single tests while you work.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - lane: L-api
+    agent: builder
+    mission: 'Review note 5 (reviews/w2-unknown.md): the 422 CASE_STRUCTURE detail for a record in a category the case does not list names that category; the tests in tests/unit/api pass.'
+    done: bash -c 'uv run pytest tests/unit/api tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: samples
+  steps:
+  - lane: L-web
+    run: make samples
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with the fixes of plan-w2-p1-unknown-fix7.yaml; write the finding beside each change; never loosen an assertion; escalate any failure no finding or point explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review the unknown-values work (plan-w2-p1-unknown.yaml and its fixes 0 to 7) against SPEC-W2-UNKNOWN (point 12 as amended), D92 to D94, PRINCIPLES.md and BOUNDARY.md and your findings in reviews/w2-unknown.md. Rerun your holds probes, every R row, every point 52 mutant against the named files with the mutants profile, and the withheld-output count over the journeys. Write reviews/w2-unknown.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-unknown.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit the unknown-values work (plan-w2-p1-unknown.yaml and its fixes 0 to 7) as your role file describes. Write docs/requirements/audits/w2-unknown.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-unknown.md && uv run python -m tools.requirements.register check'

@@ -234,8 +234,10 @@ extended by point 35.
     no operator works its own unknown.
     - Checked by: P6 on the module directly; tests/unit/engine/test_unknown_generic.py (neither
       module names a kind, field, choice or rule id of any shipped pack; `engine_literals`
-      checks only engine/f1.py); mypy strict (a function that returns `bool | None` for a
-      three-valued result is replaced, so the gap travels with the U).
+      checks only engine/f1.py); mypy strict. Amended 2026-10-02 (review of fix 5, finding 3): the condition evaluator in
+      engine/path.py may keep `bool | None` with its gaps carried in the trace it already writes;
+      engine/unknown.py stays the reference the property tests check it against, and no wrapper
+      converts between the two only to convert back.
 
 ## 3. Selections, firsts and lists
 
