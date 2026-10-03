@@ -1442,3 +1442,21 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 
 - No notSure on the Onboarding start fields: fieldQuestion already offers it when the engine
   asks the start, and leaving the field empty leads to that question.
+
+## l-web-5b5121079f (review w2-unknown findings 1 to 14, samples and web tests), attempt 1
+
+### Tried and ran
+
+- `make samples` on HEAD e78ba19: exit 0. No file under web/samples changed, so nothing to commit
+  there. The make step also printed "tests/holdout: Operation not permitted" from the sandbox.
+- `npm test -w web`: exit 0. 36 files, 618 tests passed.
+- `npm test -w desktop`: exit 1 in this sandbox. First it failed with EPERM on mkdir desktop/coverage
+  (desktop/ is not writable from this lane). With `--coverage.enabled=false`, 248 of 249 passed. The
+  one failure was buildpython.test.ts "copies exactly the allowlisted files". Running the same spawn
+  from node gave the cause: `build-python.sh: line 119: cannot create temp file for here document:
+  Operation not permitted`. The same script printed all five copy lines when run straight from the
+  shell, so the code is fine and the sandbox causes the failure.
+
+### Not built
+
+- No change to web source, web tests or samples. Nothing failed in web, so no finding needed one.
