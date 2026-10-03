@@ -1304,6 +1304,18 @@
       "state": "list"
     },
     {
+      "because": ["unconfirmed:complete.passport"],
+      "field": "passport",
+      "id": "complete.passport",
+      "state": "list"
+    },
+    {
+      "because": ["unconfirmed:complete.visa"],
+      "field": "visa",
+      "id": "complete.visa",
+      "state": "list"
+    },
+    {
       "about": {
         "a1.card_end": "2024-08-15",
         "a1.card_start": "2024-06-01",
@@ -3010,6 +3022,8 @@
       "no_documents",
       "unconfirmed:typed_dates",
       "unconfirmed:complete.address",
+      "unconfirmed:complete.passport",
+      "unconfirmed:complete.visa",
       "missing:a1.dso_on",
       "missing:p1.first_year_before_training",
       "missing:p1.immediate_cpt",
