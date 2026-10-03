@@ -738,7 +738,11 @@ def test_a_negative_hours_figure_is_unreadable_and_never_counted(hours: float) -
     assert count["value"] is None
     assert "w1.hours_per_week" in count.get("waits_on", [])
     assert items(out)["unemployment.opt_card.a1.limit_day"]["value"] is None
-    assert not any("at_or_over_limit" in r for r in out["verdict"]["reasons"])
+    # Only the unemployment count rests on the hours. The 12-month OPT card here also reaches
+    # opt.months_at_level's limit at the master's level, which no hours figure decides.
+    assert not any(
+        "unemployment" in r and "at_or_over_limit" in r for r in out["verdict"]["reasons"]
+    )
     assert_asked(out, "w1", "hours_per_week", "unreadable")
     assert question(out, "w1.hours_per_week")["about"] == {"w1.hours_per_week": hours}
 
