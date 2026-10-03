@@ -125,7 +125,7 @@ def opt_case(job_end: str | None, card_end: str = "2027-05-31", **kw: Any) -> di
     fields: dict[str, Any] = {"employer": "e1", "under": "a1", "start": "2026-07-01"}
     if job_end is not None:
         fields["end"] = job_end
-    job = rec("w1", "work", hours_per_week=40, **fields)
+    job = rec("w1", "work", confirmed_on="2026-09-29", hours_per_week=40, **fields)
     return f1_case([PROGRAM, opt_card(card_end), EMPLOYER, job], **kw)
 
 
@@ -278,8 +278,24 @@ def stem_case() -> dict[str, Any]:
         card_start="2026-07-01",
         card_end="2028-06-30",
     )
-    w1 = rec("w1", "work", employer="e1", under="a1", start="2025-07-01", end="2026-06-30")
-    w2 = rec("w2", "work", employer="e1", under="a2", start="2026-07-01", end="2026-08-31")
+    w1 = rec(
+        "w1",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e1",
+        under="a1",
+        start="2025-07-01",
+        end="2026-06-30",
+    )
+    w2 = rec(
+        "w2",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e1",
+        under="a2",
+        start="2026-07-01",
+        end="2026-08-31",
+    )
     for job in (w1, w2):
         job["fields"]["hours_per_week"] = 40
     return f1_case([program, a1, a2, EMPLOYER, w1, w2])

@@ -59,13 +59,22 @@ def stem_jobs(*jobs: dict[str, Any]) -> list[dict[str, Any]]:
 W1 = rec(
     "w1",
     "work",
+    confirmed_on="2026-09-29",
     employer="e1",
     under="a2",
     start="2026-07-01",
     end="2026-08-02",
     hours_per_week=40,
 )
-W2 = rec("w2", "work", employer="e2", under="a2", start="2026-08-03", hours_per_week=40)
+W2 = rec(
+    "w2",
+    "work",
+    confirmed_on="2026-09-29",
+    employer="e2",
+    under="a2",
+    start="2026-08-03",
+    hours_per_week=40,
+)
 
 
 def report_window(out: dict[str, Any], record: str) -> set[tuple[Any, Any]]:
@@ -81,7 +90,9 @@ def test_r2_a_gap_in_one_stem_job_keeps_the_other_job_s_windows():
     # R2 (S1): w3 under a2 from 2026-09-01 with no employer. w2's report window: w2 starts
     # 2026-08-03; 10 days on (stem.report_change_within_days, (f)(12)(ii)(A)) is 2026-08-13.
     # Question w3.employer, state absent. Fails if w3's gap drops w2's window (U1).
-    w3 = rec("w3", "work", under="a2", start="2026-09-01", hours_per_week=40)
+    w3 = rec(
+        "w3", "work", confirmed_on="2026-09-29", under="a2", start="2026-09-01", hours_per_week=40
+    )
     out = compute(f1_case(stem_jobs(W1, W2, w3)), [PACK], TODAY)
     assert date(2026, 8, 3) + timedelta(days=10) == date(2026, 8, 13)
     assert ("2026-08-03", "2026-08-13") in report_window(out, "w2")
@@ -96,7 +107,15 @@ def test_r4_an_unreadable_start_is_asked_with_the_value_as_entered(start):
     # R4 (S2): w3 with e2 and start "2026-13-40" (month 13) or "08/03/2026" (not ISO). w2's
     # window 2026-08-03 to 2026-08-13 kept (worked in R2). Point 35: `unreadable:w3.start`,
     # not `missing:`; point 34: about holds the value as entered.
-    w3 = rec("w3", "work", employer="e2", under="a2", start=start, hours_per_week=40)
+    w3 = rec(
+        "w3",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e2",
+        under="a2",
+        start=start,
+        hours_per_week=40,
+    )
     out = compute(f1_case(stem_jobs(W1, W2, w3)), [PACK], TODAY)
     assert ("2026-08-03", "2026-08-13") in report_window(out, "w2")
     assert "unreadable:w3.start" in reasons(out)
@@ -123,6 +142,7 @@ def test_r5_a_decided_witness_keeps_w1_s_concluding_evaluation():
     w3 = rec(
         "w3",
         "work",
+        confirmed_on="2026-09-29",
         employer="e2",
         under="a2",
         start="2026-09-01",
@@ -159,7 +179,7 @@ def test_r7_the_w3_end_table(end, expect):
     fields: dict[str, Any] = {"employer": "e2", "under": "a2", "start": "2026-07-15"}
     if end is not None:
         fields["end"] = end
-    w3 = rec("w3", "work", hours_per_week=40, **fields)
+    w3 = rec("w3", "work", confirmed_on="2026-09-29", hours_per_week=40, **fields)
     out = compute(f1_case(stem_jobs(W1, w3)), [PACK], TODAY)
     found = [w for w in windows_named(out, FINAL_EVALUATION) if w["id"].endswith(".w1")]
     assert found, [w["id"] for s in out["stages"] for w in s["windows"]]
@@ -238,8 +258,8 @@ def test_r26_two_records_with_one_id_are_a_structure_fault():
     from engine.path import compute as path_compute
     from tests.support.w2_pack import clock_on
 
-    w1a = rec("w1", "work", employer="Secretname", start="2026-07-01")
-    w1b = rec("w1", "work", start="2026-08-01")
+    w1a = rec("w1", "work", confirmed_on="2026-09-29", employer="Secretname", start="2026-07-01")
+    w1b = rec("w1", "work", confirmed_on="2026-09-29", start="2026-08-01")
     with pytest.raises(CaseStructureError) as refused:
         path_compute(f1_case([*r6_case(), w1a, w1b]), [PACK], clock_on(TODAY))
     assert "Secretname" not in str(refused.value)
@@ -512,7 +532,14 @@ def test_r24_an_unreadable_part_time_figure_neither_raises_nor_passes_the_hours_
     )
 
     def run(hours: Any) -> dict[str, Any]:
-        w7 = rec("w7", "work", under="a1", start="2026-06-01", hours_per_week=hours)
+        w7 = rec(
+            "w7",
+            "work",
+            confirmed_on="2026-09-29",
+            under="a1",
+            start="2026-06-01",
+            hours_per_week=hours,
+        )
         return compute(f1_case([p1, a1, w7]), [PACK], TODAY)
 
     assert "conflict:opt_pre.part_time_hours.w7" in reasons(run(30))
@@ -708,6 +735,7 @@ def test_finding_12_a_question_withholds_every_output_that_waits_on_it():
     w3 = rec(
         "w3",
         "work",
+        confirmed_on="2026-09-29",
         employer="e2",
         under="a2",
         start="2026-09-01",

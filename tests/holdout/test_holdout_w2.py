@@ -122,6 +122,7 @@ def test_limit_day_either_side_of_one_more_idle_day(client, job_end, limit_day):
     job = rec(
         "w1",
         "work",
+        confirmed_on="2026-09-29",
         employer="e1",
         under="a1",
         start="2026-07-01",
@@ -147,7 +148,15 @@ def test_limit_day_either_side_of_one_more_idle_day(client, job_end, limit_day):
     ("start", "closes"), [("2026-09-20", "2026-09-30"), ("2026-09-21", "2026-10-01")]
 )
 def test_job_start_report_either_side_of_a_month_end(client, start, closes):
-    job = rec("w1", "work", employer="e1", under="a1", start=start, hours_per_week=40)
+    job = rec(
+        "w1",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e1",
+        under="a1",
+        start=start,
+        hours_per_week=40,
+    )
     records = [
         _program("2026-05-15"),
         _opt("2026-04-01", "2026-04-10", "2026-06-01", "2027-05-31"),
@@ -218,7 +227,15 @@ def _stem_case(card_employer: str | None) -> dict[str, Any]:
         stem,
         rec("e1", "employer", name="Employer One", e_verify="yes"),
         rec("e2", "employer", name="Employer Two", e_verify="yes"),
-        rec("w2", "work", employer="e2", under="a2", start="2026-08-03", hours_per_week=40),
+        rec(
+            "w2",
+            "work",
+            confirmed_on="2026-09-29",
+            employer="e2",
+            under="a2",
+            start="2026-08-03",
+            hours_per_week=40,
+        ),
     ]
     return case(records, LISTS)
 
@@ -289,7 +306,9 @@ def test_a_gap_in_one_stem_job_keeps_the_other_job_s_windows(
     client: TestClient, w3: dict[str, str], named: str, reason: str
 ) -> None:
     body = _stem_case("e1")
-    body["records"].append(rec("w3", "work", under="a2", hours_per_week=40, **w3))
+    body["records"].append(
+        rec("w3", "work", confirmed_on="2026-09-29", under="a2", hours_per_week=40, **w3)
+    )
     out = _send(client, body)
     assert _w2_stem_windows(out) == W2_KEPT
     assert out["verdict"]["state"] == "cannot_tell"
@@ -308,8 +327,23 @@ def test_a_job_with_no_card_keeps_the_other_job_s_report_window(client: TestClie
         _program("2026-05-15"),
         _opt("2026-04-01", "2026-04-10", "2026-06-01", "2027-05-31"),
         rec("e1", "employer", name="Employer One"),
-        rec("w1", "work", employer="e1", under="a1", start="2026-07-01", hours_per_week=40),
-        rec("w2", "work", employer="e1", start="2026-08-03", hours_per_week=40),
+        rec(
+            "w1",
+            "work",
+            confirmed_on="2026-09-29",
+            employer="e1",
+            under="a1",
+            start="2026-07-01",
+            hours_per_week=40,
+        ),
+        rec(
+            "w2",
+            "work",
+            confirmed_on="2026-09-29",
+            employer="e1",
+            start="2026-08-03",
+            hours_per_week=40,
+        ),
     ]
     out = _send(client, case(records, LISTS))
     found = [

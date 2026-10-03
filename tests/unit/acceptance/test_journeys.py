@@ -226,13 +226,22 @@ def j01() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2023-08-07",
                 end="2024-06-18",
                 hours_per_week=40,
             ),
-            rec("w2", "work", employer="e2", under="a2", start="2026-08-01", hours_per_week=40),
+            rec(
+                "w2",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e2",
+                under="a2",
+                start="2026-08-01",
+                hours_per_week=40,
+            ),
         ],
         whole(*ASKED_LISTS, "authorization:p1", "authorization:p2"),
     )
@@ -621,6 +630,7 @@ def j07() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 on_campus="p1",
                 start="2024-09-03",
                 end="2025-05-09",
@@ -682,13 +692,21 @@ def j08(trips_whole: bool = True) -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2024-07-08",
                 end="2025-01-12",
                 hours_per_week=40,
             ),
-            rec("w2", "work", on_campus="p2", start="2025-01-13", hours_per_week=20),
+            rec(
+                "w2",
+                "work",
+                confirmed_on="2026-09-29",
+                on_campus="p2",
+                start="2025-01-13",
+                hours_per_week=20,
+            ),
         ],
         whole(
             *(k for k in ASKED_LISTS if k != "trip"), "authorization:p1", "authorization:p2", *trips
@@ -802,13 +820,22 @@ def j11() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2025-10-15",
                 end="2026-02-27",
                 hours_per_week=40,
             ),
-            rec("w2", "work", employer="e2", under="a1", start="2026-05-11", hours_per_week=40),
+            rec(
+                "w2",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e2",
+                under="a1",
+                start="2026-05-11",
+                hours_per_week=40,
+            ),
             rec(
                 "t1",
                 "trip",
@@ -858,7 +885,15 @@ def j12() -> dict[str, Any]:
                 card_end="2026-05-31",
             ),
             rec("e1", "employer", name="Employer One"),
-            rec("w1", "work", employer="e1", under="a1", start="2025-06-01", hours_per_week=40),
+            rec(
+                "w1",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e1",
+                under="a1",
+                start="2025-06-01",
+                hours_per_week=40,
+            ),
             rec(
                 "h1",
                 "petition",
@@ -904,6 +939,7 @@ def j13() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2025-07-01",
@@ -967,6 +1003,7 @@ def j14() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2023-07-11",
@@ -976,6 +1013,7 @@ def j14() -> dict[str, Any]:
             rec(
                 "w2",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e2",
                 under="a2",
                 start="2024-07-06",
@@ -1046,6 +1084,7 @@ def j15(job_c_end: str | None = None) -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2024-08-20",
@@ -1055,6 +1094,7 @@ def j15(job_c_end: str | None = None) -> dict[str, Any]:
             rec(
                 "w2",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e2",
                 under="a1",
                 start="2025-04-21",
@@ -1064,6 +1104,7 @@ def j15(job_c_end: str | None = None) -> dict[str, Any]:
             rec(
                 "w3",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e2",
                 under="a2",
                 start="2025-06-15",
@@ -1073,6 +1114,7 @@ def j15(job_c_end: str | None = None) -> dict[str, Any]:
             rec(
                 "w4",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e3",
                 under="a2",
                 start="2025-12-01",
