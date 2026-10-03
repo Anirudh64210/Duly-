@@ -2011,3 +2011,142 @@ Status: done.
   the smaller change); no example tests for U11/U25/U26 (finding 2 is tests/, not this lane).
 
 Status: done.
+
+## l-engine-1a23821960 (W2-P2, N3 and N4, engine round)
+
+- Built (engine/path.py, engine/readers.py), all generic, read from path.checkins, path.watch
+  and contracts/product_settings.yaml:
+  - N3: `checkins[]` per record of a kind in path.checkins: confirmed_on, due (plus the
+    setting's days), due_days_away, question `checkin.<record>`, asked (unconfirmed:checkin.<id>)
+    once due. A confirmed day not_sure or unreadable is asked as its own gap.
+  - N3: a days_without_qualifying_period count stops at the earliest last confirmed day of the
+    records it rests on (`_confirmed`, `_Trace.as_of`), and the item carries `as_of` when that is
+    before today. A confirmed day not known withholds the count and its limit day.
+  - N4: `watch[]` per path.watch entry and record: date, days_away, close (watch.close_days),
+    rule_ids, status; soonest first, no date last; a date not known is asked by the unknown rule.
+  - Finding 1: hours a week (a record's hours_per_week or a period's) below zero is unreadable
+    and asked. Any other `number` stays open (point 41, test_readers keeps -1 known). A periods
+    field on a counted record that is unreadable or not_sure withholds the count.
+  - Point 33: an unknown stage now lists each of its windows withheld (null dates, waits_on).
+- Done command (to $TMPDIR/done.log): exit 1, 22 failures. engine_literals, mypy (72 files),
+  ruff check and ruff format pass; journeys pass.
+  - 16 need pack data: no passport or visa entry in path.watch (8 tests and the pack test);
+    trip_opt's for_each reads outer.returned_on, so a trip not back is undecided and not shown
+    (2); address's for_each reads `previous present`, absent in the tests (4). With those
+    patched in memory ($TMPDIR/probe4.py, probe5.py), all 15 engine tests pass.
+  - 3 negative-hours tests: everything holds except `no at_or_over_limit reason at all`;
+    opt.months_at_level.at_or_over_limit.master is raised by the 12-month card, not the hours.
+  - 3 test_f1_translation tests fail on HEAD as well: the pack's new address stage asks
+    complete.address, which the hand lists in the tests do not hold.
+- Not built: hours_changes applied day by day to the count (no test or SPEC point here; G7's
+  hours change waits by founder decision); a check-in for a never-confirmed record (contract:
+  due null).
+
+Status: blocked on the pack (L-content) and three test disputes.
+
+### Attempt 2 (l-engine-1a23821960)
+
+- No engine code changed. Re-checked each of the 22 failures against the pack and the tests:
+  - 13 watch tests: path.watch still has no passport or visa entry. The pack CHANGELOG (v2026.09
+    line 330) leaves them out on purpose: no saved primary source states a rule on them. The engine
+    cannot add a watched date without a pack entry (hard rule: every number and rule from the pack).
+  - 4 address tests: stage address selects `previous present: true`; the tests' address records
+    have no previous (when_absent none), so no move is selected. Pack or test, not engine.
+  - 2 trip_opt tests: the selection reads outer.returned_on, absent on a trip not back yet.
+  - 3 negative-hours tests: probe ($TMPDIR/neg.py) shows opt.months_at_level.at_or_over_limit.master
+    raised with 40 hours as well (a 12-month card at a 12-month limit, `value >= limit`, the same
+    line test_f1 holds for unemployment at 90). Everything about the hours holds.
+  - 3 test_f1_translation tests: hand lists lack complete.address.
+- Done command as written ($TMPDIR/done.log): exit 1, those 22 only. engine_literals, mypy (72 files),
+  ruff check and ruff format pass; journeys pass.
+
+Status: blocked on L-content (pack) and L-tests (three disputes). Same as attempt 1.
+
+### Attempt 3 (l-engine-1a23821960)
+
+- No engine code changed. main and this branch carry no new pack or test commit since attempt 2.
+- Re-checked against the files: parameters.yaml path.watch still lists authorization and program
+  only (comment: passport and visa have no saved primary source); trip_opt and the (f)(16) trip
+  checks select on returned_on present / outer.returned_on; the f1_translation failure is
+  `Left contains 1 more item: {'address': ...}` (the engine asks complete.address from the pack).
+  test_a_negative_hours_figure asserts no at_or_over_limit reason at all, while the 12-month OPT
+  card at a 12-month opt.max_months raises opt.months_at_level.at_or_over_limit.master.
+- Done command as written ($TMPDIR/done3.log): exit 1, the same 22 failures. engine_literals,
+  mypy, ruff check and ruff format each exit 0 run alone; journeys pass.
+- Not built: no engine-side passport or visa watch entry and no relaxed selection. Either would
+  put a rule or a date in engine code that the pack does not state (hard rule).
+
+Status: blocked on L-content (pack) and L-tests (disputes). Same as attempts 1 and 2.
+
+## l-engine-3d4e5894cf (W2-P2 after fix0, carried forward)
+
+- Carried engine/path.py and engine/readers.py forward from lane/L-engine/l-engine-1a23821960
+  (383691e) with git apply; no engine code changed beyond that work. The fix0 round (pack watch
+  rows for passport and visa, tests state the lists whole, complete.address in the translation
+  lists) cleared 17 of the 22 failures.
+- Done command as written ($TMPDIR/done.log): exit 1, 5 failures, all in test_w2_records.py.
+  engine_literals exit 0, mypy (72 files) ok, ruff check ok, ruff format ok; journeys pass.
+  - test_the_signature_covers_six_months_from_the_signature_on_opt and
+    test_a_trip_on_opt_with_no_signature_day_withholds_the_signature_window: the pack's trip_opt
+    for_each picks a trip by an OPT card covering outer.returned_on; the trip is not back, so the
+    selection is unknown and no trip.signature_covers window comes out. The tests lane files the
+    same dispute (result-step-w_fixes_L-tests.json).
+  - test_a_negative_hours_figure_is_unreadable_and_never_counted[-5, -40, -0.5]: the count, its limit
+    day and the hours question all hold. The one assert that fails says no reason holds
+    at_or_over_limit at all, but opt.months_at_level.at_or_over_limit.master is raised by the
+    12-month card at opt.max_months 12, with 40 hours too ($TMPDIR/neg.py prints the same reasons
+    for 40 and -5). It does not read the hours.
+- Not built: no engine-side selection on left_on (that would put a rule in engine code that the pack
+  does not state); no change to the generic `value >= limit` line (test_path and test_f1 hold it).
+
+Status: blocked on L-content (trip_opt selection) and L-tests (the negative-hours assert).
+
+### Attempt 2 (l-engine-3d4e5894cf)
+
+- No engine code changed. No new pack or test commit on step-w or any lane branch since attempt 1.
+- Checked again: the trip_opt for_each in parameters.yaml still compares the card with
+  outer.returned_on (no optional fallback, unlike the trip stage's span), so a trip still under way
+  is not selected. tests/PROGRESS.md item 5 records opt.months_at_level.at_or_over_limit.master for
+  a 12-month card, which is the reason test_w2_records.py:741 says must not be there.
+- Done command as written ($TMPDIR/done.log): exit 1, the same 5 failures in test_w2_records.py.
+  engine_literals, mypy, ruff check and ruff format each exit 0 when run alone. Journeys pass.
+- Not built: an engine fallback from returned_on to left_on or today, and dropping the generic
+  `value >= limit` reason. Either would put a rule in engine code that the pack does not state.
+
+Status: blocked on L-content (trip_opt selection) and L-tests (the at_or_over_limit assert).
+
+### Attempt 3 (l-engine-3d4e5894cf)
+
+- No engine code changed. git log on parameters.yaml and test_w2_records.py (all branches) shows
+  no commit after be90d36 and dde9d54, both already read in attempts 1 and 2.
+- Checked whether the engine may show the signature window anyway. SPEC-W2-UNKNOWN point 17:
+  an undecided record in a stage for_each is not entered and not shown. Point 6: known only when
+  every value of the unknown gives the same output. returned_on is `ask` (asked, D92 point 61);
+  a return after 2027-05-31, or none, fails the pack's card check, so trip_opt's selection is
+  truly unknown. Showing a date there would break point 6 and point 17.
+- opt.months_at_level sums the whole 12-month card against opt.max_months 12, and the generic
+  `value >= limit` line raises opt.months_at_level.at_or_over_limit.master with 40 hours too.
+  test_f1 holds that `>=` line (unemployment 90 of 90 is talk_to_dso).
+- Done command as written ($TMPDIR/done.log): exit 1, the same 5 failures in test_w2_records.py.
+  engine_literals, mypy, ruff check and ruff format each exit 0 run alone. Journeys pass.
+
+Status: blocked on L-content (trip_opt selection) and L-tests (the at_or_over_limit assert).
+
+## l-engine-abc623927b (W2-P2, check-ins and watch, engine round)
+
+- Carried forward engine/ from lane/L-engine/l-engine-3d4e5894cf (b128a6f): path.py, readers.py,
+  PROGRESS.md. engine/ on this branch was unchanged since 90fa45e, so a plain checkout of those
+  files.
+- With fix1 (trip_opt by left_on, c9d70c6) and ce63ee6 (the negative-hours test checks only the
+  unemployment reasons), tests/unit/engine/test_w2_records.py passes whole (40 passed).
+- The resume note asked for engine/f1.py to read hours through readers.py. Checked: f1.py takes
+  only a case validated against contracts/case_f1.schema.json, where hours_per_week has minimum 0
+  and maximum 168, so a negative figure never reaches it. The negative-hours tests run through
+  path.py, whose readers already read a negative figure as unreadable. The failing reason in
+  attempt 3 was opt.months_at_level.at_or_over_limit.master, which the test no longer counts.
+  No f1.py change made.
+- Done command as written ($TMPDIR/done.log): exit 0 (1 xfail already there). engine_literals,
+  mypy (72 files), ruff check and ruff format pass.
+- Not built: no change to engine/f1.py (no test or reachable input needs it).
+
+Status: done.

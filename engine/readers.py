@@ -50,6 +50,14 @@ def as_number(raw: object) -> int | float | None:
     return raw if math.isfinite(raw) else None
 
 
+def _hours(raw: object) -> int | float | None:
+    """Hours a week, a period's or a record's own: no one works below zero hours, so such a
+    figure is no reading of them (reviews/w2-p1.md finding 1). Any other number stays open
+    (point 41)."""
+    number = as_number(raw)
+    return None if number is None or number < 0 else number
+
+
 def _count(raw: object) -> int | None:
     if isinstance(raw, bool) or not isinstance(raw, int) or raw < 0:
         return None
@@ -84,7 +92,7 @@ def _period(raw: object) -> dict[str, Any] | None:
         if key in PERIOD_DATES:
             got: object = as_date(value)
         elif key == PERIOD_HOURS:
-            got = as_number(value)
+            got = _hours(value)
         else:
             # Any other part of a period is a flag or a day (the case schema's own shape).
             got = value if isinstance(value, bool) else as_date(value)
@@ -106,7 +114,7 @@ def _known(decl: Mapping[str, Any], raw: object, run: Mapping[str, str]) -> obje
     if kind == "date":
         return as_date(raw)
     if kind == "number":
-        return as_number(raw)
+        return _hours(raw) if decl.get("id") == PERIOD_HOURS else as_number(raw)
     if kind == "count":
         return _count(raw)
     if kind == "flag":
