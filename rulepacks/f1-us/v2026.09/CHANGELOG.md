@@ -347,3 +347,14 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - Stage trip_opt is entered on the day the trip left (this.left_on), was the signature day. A trip on OPT with no signature day now has trip.signature_covers withheld and the signature day asked, never a silent absence.
 - That the card covering the departure is how Duly finds a student on OPT who travels is Duly's reading of 8 CFR 214.2(f)(13)(ii). It is said in a comment on the stage (the stage schema has no note field) and in the note of travel.opt_signature_months.
 - No number, rule, source, quote or plain text changed.
+
+### 2026-10-03, lane L-content, run l-content-1b6d5d80e0 (W2-P2 fix2: review findings 3, 7, 8, 10 and notes; SPEC-W2-UNKNOWN points 2, 6, 14; D74, D92)
+
+- address.first_in_us added, a choice of yes or no: "Is this the first address in the US on this F-1 record?" address.first_in_us: when_absent none. Screen words: "Leave empty unless this is the first address in the US on this F-1 record."
+- address.previous: when_absent none when first_in_us is yes, else ask (was none). Screen words: "Leave empty only if this is marked as the first address in the US on this F-1 record." An address with no address moved from is now asked unless the person states it is the first, so two unlinked addresses are no longer both read as the first (finding 3).
+- passport and visa get a complete_label, "Is this every passport held, through today?" and "Is this every visa held, through today?", so the lists path.watch reads are asked whole (finding 8, SPEC-W2-UNKNOWN point 14).
+- work.confirmed_on and petition.confirmed_on declare when_absent ask, as before by default, and their labels say the app records the day the person confirms the job or the petition (finding 1, SPEC-W2-UNKNOWN points 2 and 6).
+- Window labels: trip.absence_limit is "Day of leaving plus the rule's months of a temporary absence", trip.signature_covers is "Day of the travel signature plus the rule's months". Neither writes the rule's number by hand nor tells the person to do anything (finding 7).
+- Stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip came back (outer.returned_on) again, as the check trip.signature_for_opt_return does and as 8 CFR 214.2(f)(13)(ii) speaks of the student who returns. This reverses the 2026-10-02 change. A trip with no return day has that day asked (D92). Entered on the day the trip left, as before (finding 10).
+- Readings marked in the notes and plain words: address.report_change_within_days and, in its note, stem.report_change_within_days count the 10 days from the first day at the new address; travel.absence_months is applied to a student on OPT. The plain words of address.report_change_within_days and travel.absence_months now say each is Duly's reading.
+- No number, value, source, quote or status tag changed.

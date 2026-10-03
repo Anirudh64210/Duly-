@@ -881,7 +881,7 @@ parameters:
       snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml
       snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690
     derivation: verbatim
-    note: "The quote is the whole of paragraph (f)(12)(ii)(A), the first of the reporting obligations listed under (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension. The 10 days apply to those students; for post-completion OPT the regulation, (f)(12)(i), states no number of days, and opt.report_employer_within_days is SEVP guidance (SPEC-resolutions point 50). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime."
+    note: "The quote is the whole of paragraph (f)(12)(ii)(A), the first of the reporting obligations listed under (f)(12)(ii), headed Additional reporting obligations for students with an approved 24-month OPT extension. The 10 days apply to those students; for post-completion OPT the regulation, (f)(12)(i), states no number of days, and opt.report_employer_within_days is SEVP guidance (SPEC-resolutions point 50). Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same sentence. Words checked in the 2026-09-14 text on 2026-09-29; the 2026-09-15 text has the same sentence, so the rule sits under no regime. Reading: for a change of address, the path's stage stem_address counts the 10 days from the first day at the new address (address.since). That this day is the change is Duly's reading, not the words of the source."
     plain: "A student with an approved 24-month OPT extension must report changes to the DSO within 10 days of the change. This covers a change of legal name, home or mailing address, employer name or address, or a loss of employment."
     plain_terms: ["legal name", "loss of employment"]
   - id: calendar.federal_holidays_law
@@ -1404,8 +1404,8 @@ parameters:
     effective_from_basis: earliest_saved_copy
     source: {citation: 8 CFR 214.2(f)(4), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: An F-1 student returning to the United States from a temporary absence of five months or less may be readmitted for attendance at an SEVP-certified educational institution, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
-    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents.
-    plain: An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted. This is to attend an SEVP-certified school, with the papers the rule lists.
+    note: No saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). The rule may be older; an event before this day goes to the DSO. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word five. The sentence goes on to list the Form I-20 the student presents. As a reading, the sentence speaks of readmission for attendance at a school. The path's stage trip and the check on trips apply the five months to every trip on the F-1 record, so also to a student on OPT, whose time on OPT is not attendance at a school. That the limit holds on OPT is Duly's reading, not the words of the source.
+    plain: "An F-1 student coming back to the United States from a temporary absence of five months or less may be readmitted to attend an SEVP-certified school. Duly applies the same limit to a student on OPT. This is Duly's reading, not the rule's exact words."
     plain_terms: [temporary absence]
   - id: travel.updated_i20
     value: true
@@ -1425,7 +1425,7 @@ parameters:
     effective_from: 2016-05-10
     source: {citation: 8 CFR 214.2(f)(13)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: endorsed for reentry by the DSO within the last six months, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
-    note: The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six. As a reading, the path's stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip left, not the day it came back, so a planned trip, or one still under way, has its signature window. The sentence speaks of a student on post-completion practical training who returns; that the card covering the departure is how Duly finds such a student is Duly's reading, not the words of the source. The number is unchanged.
+    note: The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six. As a reading, the path's stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip came back, as the check trip.signature_for_opt_return does, since the sentence speaks of a student on post-completion practical training who returns; a trip with no return day has that day asked. That the card covering the return is how Duly finds such a student is Duly's reading, not the words of the source. The number is unchanged.
     plain: A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.
     plain_terms: [endorsed for reentry]
   - id: grace.withdrawal_days
@@ -1458,8 +1458,8 @@ parameters:
     effective_from_basis: earliest_saved_copy
     source: {citation: 8 CFR 214.2(f)(17), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: "A student must inform DHS and the DSO of any legal changes to the student's name or of any change of address, within 10 days of the change, in a manner prescribed by the school.", snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
-    note: "The quote is the first sentence of paragraph (f)(17), headed Current name and address (D74). The next sentence says a student can satisfy the requirement in 8 CFR 265.1 of notifying DHS by providing a notice of a change of address within 10 days to the DSO, and that the DSO must enter it in SEVIS within 21 days; the 21 days are the DSO's and are not recorded as a row. The paragraph then says the address must be the actual physical location where the student resides, except for a student who cannot receive mail there. The manner of the notice is the school's; the 10 days are the regulation's. 8 CFR 265.1, named in the paragraph, is not saved and was not read. Paragraph (f)(12)(ii)(A), recorded as stem.report_change_within_days, gives a student with an approved 24-month OPT extension the same 10 days for a change of residential or mailing address, reported to the DSO. 67 FR 76256 (FR Doc. 02-31184), saved as sources/fr-02-31184.xml, has an older wording of (f)(17) with the same 10 days, inform the DSO and the Service of any legal changes to his or her name or of any change of address; no saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-10-02; both carry them, so the rule sits under no regime."
-    plain: A student must tell DHS and the DSO of any legal changes to the student's name, or of any change of address, within 10 days of the change. The school sets how the notice is given.
+    note: "The quote is the first sentence of paragraph (f)(17), headed Current name and address (D74). The next sentence says a student can satisfy the requirement in 8 CFR 265.1 of notifying DHS by providing a notice of a change of address within 10 days to the DSO, and that the DSO must enter it in SEVIS within 21 days; the 21 days are the DSO's and are not recorded as a row. The paragraph then says the address must be the actual physical location where the student resides, except for a student who cannot receive mail there. The manner of the notice is the school's; the 10 days are the regulation's. 8 CFR 265.1, named in the paragraph, is not saved and was not read. Paragraph (f)(12)(ii)(A), recorded as stem.report_change_within_days, gives a student with an approved 24-month OPT extension the same 10 days for a change of residential or mailing address, reported to the DSO. 67 FR 76256 (FR Doc. 02-31184), saved as sources/fr-02-31184.xml, has an older wording of (f)(17) with the same 10 days, inform the DSO and the Service of any legal changes to his or her name or of any change of address; no saved rule document older than the point-in-time text of 2026-09-14 carries these exact words, so the start date is the date of that saved copy (effective_from_basis earliest_saved_copy). Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-10-02; both carry them, so the rule sits under no regime. Reading: the rule says within 10 days of the change and does not say which day the change is. The path's stage address counts the 10 days from the first day at the new address (address.since). That this day is the change is Duly's reading, not the words of the source."
+    plain: "A student must tell DHS and the DSO of any legal changes to the name, or of any change of address, within 10 days of the change. Duly counts the 10 days from the first day at the new address. This is Duly's reading, not the rule's exact words."
     plain_terms: [change of address, legal changes]
   - id: passport.valid_beyond_stay_months
     value: 6
@@ -1609,7 +1609,7 @@ path:
         - {id: hours_per_week, kind: number, label: "Hours a week"}
         - {id: hours_changes, kind: periods, label: "Times the hours a week changed"}
         - {id: employer_reported, kind: flag, label: "Employer reported, from an older case", translation_only: true}
-        - {id: confirmed_on, kind: date, label: "Last day the job and its hours were confirmed", happened: true}
+        - {id: confirmed_on, kind: date, label: "Last day the job and its hours were confirmed, as the app records it on the day the person confirms the job", happened: true, when_absent: ask}
     - id: report
       label: "Report to the DSO"
       id_prefix: r
@@ -1651,11 +1651,12 @@ path:
         - {id: outcome_on, kind: date, label: "Day of the outcome", happened: true}
         - {id: validity_start, kind: date, label: "Validity start date of the approved petition", when_absent: ask}
         - {id: h1b_began_on, kind: date, label: "Day H-1B status began", happened: true}
-        - {id: confirmed_on, kind: date, label: "Last day the petition's state was confirmed", happened: true}
+        - {id: confirmed_on, kind: date, label: "Last day the petition's state was confirmed, as the app records it on the day the person confirms the petition", happened: true, when_absent: ask}
     - id: passport
       label: "Passport"
       id_prefix: pp
       max_records: 10
+      complete_label: "Is this every passport held, through today?"
       fields:
         - {id: country, kind: text, label: "Country that issued it", max_length: 80}
         - {id: issued_on, kind: date, label: "Date of issue, as printed", happened: true}
@@ -1664,6 +1665,7 @@ path:
       label: "Visa"
       id_prefix: vi
       max_records: 10
+      complete_label: "Is this every visa held, through today?"
       fields:
         - {id: issued_on, kind: date, label: "Issue date, as printed on the visa", happened: true}
         - {id: expires_on, kind: date, label: "Expiration date, as printed on the visa"}
@@ -1676,7 +1678,8 @@ path:
       fields:
         - {id: lines, kind: text, label: "Address where the student lives", max_length: 120}
         - {id: since, kind: date, label: "First day living at this address", happened: true}
-        - {id: previous, kind: link, label: "Address moved from", to: [address], when_absent: none}
+        - {id: first_in_us, kind: choice, label: "Is this the first address in the US on this F-1 record?", choices: ["yes", "no"], when_absent: none}
+        - {id: previous, kind: link, label: "Address moved from", to: [address], when_absent: {none: [{field: this.first_in_us, in: ["yes"]}], else: ask}}
         - {id: reported_on, kind: date, label: "Day the change of address was reported to the DSO", happened: true, when_absent: not_yet}
     - id: withdrawal
       label: "Withdrawal from classes"
@@ -2139,28 +2142,29 @@ path:
         ends: {earliest_of: [{optional: true, fact: this.returned_on}, {fact: today}]}
       windows:
         - id: trip.absence_limit
-          label: "Return from a temporary absence of five months or less"
+          label: "Day of leaving plus the rule's months of a temporary absence"
           opens: {fact: this.left_on}
           closes: {fact: this.left_on, add: [{rule: travel.absence_months}]}
           rule_ids: [travel.absence_months]
           done_when: [this.returned_on]
-    # Reading (the stage schema has no note field): the travel signature applies to a student on
-    # OPT who travels (8 CFR 214.2(f)(13)(ii), travel.opt_signature_months). Duly reads that as a
-    # post-completion OPT or STEM card covering the day the trip left, so a planned trip, or one
-    # still under way, with no return date yet, is selected. The stage is entered on the day the
-    # trip left, so a trip with no signature day yet has its window withheld and the day asked.
-    # This is Duly's reading, not the words of the rule.
+    # Reading (the stage schema has no note field): 8 CFR 214.2(f)(13)(ii) speaks of a student on
+    # post-completion practical training who returns (travel.opt_signature_months). Duly reads
+    # that as a post-completion OPT or STEM card covering the day the trip came back, the same
+    # test as the check trip.signature_for_opt_return. A trip with no return day has that day
+    # asked (D92). The stage is entered on the day the trip left, so a trip with no signature
+    # day yet has its window withheld and the day asked. This is Duly's reading, not the words
+    # of the rule.
     - id: trip_opt
       label: "Trip abroad on post-completion OPT"
       for_each:
         record: trip
         where:
-          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.left_on}}, {field: this.card_end, on_or_after: {fact: outer.left_on}}]}
+          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.returned_on}}, {field: this.card_end, on_or_after: {fact: outer.returned_on}}]}
       entered_when: [this.left_on]
       rule_ids: [travel.opt_signature_months]
       windows:
         - id: trip.signature_covers
-          label: "Return with a Form I-20 endorsed for reentry within the last six months"
+          label: "Day of the travel signature plus the rule's months"
           opens: {fact: this.signature_on}
           closes: {fact: this.signature_on, add: [{rule: travel.opt_signature_months}]}
           rule_ids: [travel.opt_signature_months]
