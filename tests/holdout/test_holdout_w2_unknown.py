@@ -71,7 +71,14 @@ def test_twin_r6_a_card_with_no_type_keeps_a1_s_count():
 
 @pytest.mark.parametrize("hours", ["40", "forty", True, "not_sure"])
 def test_twin_r8_unknown_hours_withhold_the_count(hours):
-    w1 = rec("w1", "work", under="a1", start="2027-02-01", hours_per_week=hours)
+    w1 = rec(
+        "w1",
+        "work",
+        confirmed_on="2027-03-15",
+        under="a1",
+        start="2027-02-01",
+        hours_per_week=hours,
+    )
     out = compute(f1_case(twin_r6(w1), TODAY), [PACK], TODAY)
     shown = items(out)["unemployment.opt_card.a1"]
     assert shown["value"] is None
@@ -81,7 +88,15 @@ def test_twin_r8_unknown_hours_withhold_the_count(hours):
 @pytest.mark.parametrize("start", ["20270201", "2027-W05-1", "2027W051"])
 def test_twin_r38_basic_and_week_dates_are_unreadable(start):
     # R38 twin: 2027-W05-1 is Monday 2027-02-01 to fromisoformat; never read as that day.
-    w1 = rec("w1", "work", under="a1", start=start, end="2027-02-28", hours_per_week=40)
+    w1 = rec(
+        "w1",
+        "work",
+        confirmed_on="2027-03-15",
+        under="a1",
+        start=start,
+        end="2027-02-28",
+        hours_per_week=40,
+    )
     out = compute(f1_case(twin_r6(w1), TODAY), [PACK], TODAY)
     assert "unreadable:w1.start" in out["verdict"]["reasons"]
     assert items(out)["unemployment.opt_card.a1"]["value"] is None

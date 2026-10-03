@@ -437,7 +437,12 @@ def trip(**fields: Any) -> dict[str, Any]:
 
 def test_the_absence_limit_is_five_months_from_leaving() -> None:
     out = compute(
-        f1_case(on_opt(job(), trip(left_on="2026-09-30", signature_on="2026-03-31"))),
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"),
+                trip(left_on="2026-09-30", signature_on="2026-03-31"),
+            )
+        ),
         [pack()],
         TODAY,
     )
@@ -450,8 +455,16 @@ def test_the_absence_limit_is_five_months_from_leaving() -> None:
 
 
 def test_the_signature_covers_six_months_from_the_signature_on_opt() -> None:
+    # reviews/w2-p2.md finding 10: (f)(13)(ii) speaks of the student "who returns", so the trip
+    # is selected by a card covering its return; back 2026-10-01, on the card (2026-06-01 to
+    # 2027-05-31). The date is unchanged.
     out = compute(
-        f1_case(on_opt(job(), trip(left_on="2026-09-30", signature_on="2026-03-31"))),
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"),
+                trip(left_on="2026-09-30", returned_on="2026-10-01", signature_on="2026-03-31"),
+            )
+        ),
         [pack()],
         TODAY,
     )
@@ -467,7 +480,12 @@ def test_a_trip_with_no_return_date_is_asked_not_assumed() -> None:
     # D92 (point 61): a trip with no return date is asked. The absence limit does not rest on
     # the return, so it is still shown (SPEC-W2-UNKNOWN point 6).
     out = compute(
-        f1_case(on_opt(job(), trip(left_on="2026-09-30", signature_on="2026-03-31"))),
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"),
+                trip(left_on="2026-09-30", signature_on="2026-03-31"),
+            )
+        ),
         [pack()],
         TODAY,
     )
@@ -478,15 +496,30 @@ def test_a_trip_with_no_return_date_is_asked_not_assumed() -> None:
 def test_a_trip_on_opt_with_no_signature_day_withholds_the_signature_window() -> None:
     # signature_on declares no absence (ask), so left out it is a gap: asked, never read as no
     # signature.
+    # Back 2026-10-01, on the card, so the trip is selected by its return (finding 10).
     assert field_decl("trip", "signature_on").get("when_absent", "ask") == "ask"
-    out = compute(f1_case(on_opt(job(), trip(left_on="2026-09-30"))), [pack()], TODAY)
+    out = compute(
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"), trip(left_on="2026-09-30", returned_on="2026-10-01")
+            )
+        ),
+        [pack()],
+        TODAY,
+    )
     assert_withheld(out, "trip.signature_covers", "t1.signature_on")
     assert_asked(out, "t1", "signature_on", "absent")
 
 
 def test_a_leaving_day_not_sure_gives_no_trip_date_and_is_asked() -> None:
     out = compute(
-        f1_case(on_opt(job(), trip(left_on="not_sure", signature_on="2026-03-31"))), [pack()], TODAY
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"), trip(left_on="not_sure", signature_on="2026-03-31")
+            )
+        ),
+        [pack()],
+        TODAY,
     )
     assert all(w["closes"] is None for w in windows_named(out, "trip.absence_limit"))
     assert_asked(out, "t1", "left_on", "undecided")
@@ -777,3 +810,263 @@ def test_no_negative_hours_figure_is_ever_counted(hours: float) -> None:
     )
     assert items(out)["unemployment.opt_card.a1"]["value"] is None
     assert question(out, "w1.hours_per_week").get("state") == "unreadable"
+
+
+# reviews/w2-p2.md (VETO), findings 1 to 10 and the hours note. Each case below gives the input
+# the review ran; written before the fix (plan-w2-p2-fix2), so each fails today.
+
+
+def unemployment_limit() -> int:
+    # 8 CFR 214.2(f)(10)(ii)(E): "may not accrue an aggregate of more than 90 days of
+    # unemployment during any post-completion OPT period".
+    return number_in_saved_words(
+        pack(), "opt.unemployment_limit_days", r"more than (\d+) days of unemployment", TODAY
+    )
+
+
+def test_review1_a_job_never_confirmed_is_not_counted_and_its_day_is_asked() -> None:
+    # Finding 1; SPEC-W2-UNKNOWN points 2 and 6, SPEC-W2 point 46 (N3). work.confirmed_on
+    # declares no absence, so left out it is ask: the day the count runs through differs with
+    # every fill (a past day stops it earlier), so the count, its limit day and the at-or-over
+    # line are withheld, and w1.confirmed_on is asked with state absent. Today the count is 30
+    # (June, counted through today) and nothing is asked.
+    assert field_decl("work", "confirmed_on").get("when_absent", "ask") == "ask"
+    out = compute(f1_case(on_opt(job())), [pack()], TODAY)
+    count = items(out)["unemployment.opt_card.a1"]
+    assert count["value"] is None
+    assert "w1.confirmed_on" in count.get("waits_on", [])
+    assert items(out)["unemployment.opt_card.a1.limit_day"]["value"] is None
+    assert "unemployment.opt_card.at_or_over_limit.a1" not in out["verdict"]["reasons"]
+    assert_asked(out, "w1", "confirmed_on", "absent")
+
+
+def test_review2_the_limit_day_stops_where_the_count_stops() -> None:
+    # Finding 2; SPEC-W2 point 46 (N2, N3). Card 2026-06-01 to 2027-05-31; w1 2026-07-01 to
+    # 2026-08-01, confirmed 2026-07-15. Through Jul 15: June has no job, 30 days; Jul 1 to 15
+    # worked: 30, as of 2026-07-15. Counted past it (the bug): Aug 2 to 31 is 30 more (60),
+    # Sep 30 more (90): the 90th day is 2026-09-30, a past day the count of 30 never reaches.
+    # Within the confirmed days the count is 30, short of 90, so no limit day falls in them:
+    # the limit day is withheld (with what it waits on), or a day on or before 2026-07-15.
+    assert unemployment_limit() == 90
+    assert date(2026, 8, 2) + timedelta(days=59) == date(2026, 9, 30)
+    out = compute(
+        f1_case(on_opt(job(end="2026-08-01", confirmed_on="2026-07-15"))), [pack()], TODAY
+    )
+    count = items(out)["unemployment.opt_card.a1"]
+    assert (count["value"], count.get("as_of")) == (30, "2026-07-15")
+    limit = items(out)["unemployment.opt_card.a1.limit_day"]
+    assert limit["value"] != "2026-09-30"
+    if limit["value"] is None:
+        assert limit.get("waits_on"), limit
+    else:
+        assert limit["value"] <= "2026-07-15", limit
+    assert "unemployment.opt_card.at_or_over_limit.a1" not in out["verdict"]["reasons"]
+
+
+@SLOW
+@given(
+    confirmed=st.dates(date(2026, 7, 1), date(2026, 9, 1)),
+    after=st.integers(0, 30),
+)
+def test_review5_the_count_never_grows_past_the_last_confirmed_day(
+    confirmed: date, after: int
+) -> None:
+    # Finding 5, mutant M1 (`through = self.today`): a case where the count grows after the
+    # confirmed day. w1 from 2026-07-01 ends `after` days after it was last confirmed; every day
+    # from the end to today (2026-10-02, at least 31 days on) would be a day without work. On
+    # the confirmed days only June has no job: 30 (Jun 1 to 30), as of the confirmed day, which
+    # is before today. With the count run through today it would be 30 + (today - end), at
+    # least 61. The limit day (90th day) never falls after the confirmed day.
+    end = confirmed + timedelta(days=after)
+    out = compute(
+        f1_case(on_opt(job(end=end.isoformat(), confirmed_on=confirmed.isoformat()))),
+        [pack()],
+        TODAY,
+    )
+    count = items(out)["unemployment.opt_card.a1"]
+    assert (count["value"], count.get("as_of")) == (30, confirmed.isoformat())
+    limit = items(out)["unemployment.opt_card.a1.limit_day"]["value"]
+    assert limit is None or limit <= confirmed.isoformat()
+
+
+def test_review3_two_addresses_with_no_link_are_a_question() -> None:
+    # Finding 3; SPEC-W2-UNKNOWN point 2, D92, D74 (G17). ad1 since 2025-08-15 and ad2 since
+    # 2026-09-25, neither naming the address it was moved from. Each empty link reads "this is
+    # the first address", and only one can be true: a move happened by 2026-09-25, whose
+    # report under (f)(17) would close 2026-10-05 (25 + 10: 5 days reach Sep 30, 5 more Oct 5),
+    # three days away. So the record is asked (a conflict, or the links asked as absent, as
+    # the pack declares them) and cannot_tell, and no report is read as settled: none dated on
+    # a guess, none left out with nothing said.
+    window_id, moved = address_window()
+    second = rec(rid("address", 2), "address", **{moved: "2026-09-25"})
+    out = compute(
+        f1_case([masters(state="in_progress", end="2027-05-15"), home(), second]), [pack()], TODAY
+    )
+    ids = {rid("address"), rid("address", 2)}
+    asked = [q for q in out["questions"] if q.get("record") in ids]
+    assert any(q.get("state") in {"conflict", "absent"} for q in asked), out["questions"]
+    assert out["verdict"]["state"] == "cannot_tell"
+    reports = windows_named(out, window_id)
+    assert reports, [w["id"] for w in windows(out)]
+    for w in reports:
+        assert w["closes"] is None
+        assert w.get("waits_on"), w
+
+
+def test_review4_a_trip_back_before_it_left_shows_no_trip_date() -> None:
+    # Finding 4; SPEC-W2-UNKNOWN points 22 and 32a. Left 2026-09-20, back 2026-09-01, before
+    # it: the conflict span_order.t1 is asked, and the stage waits on it. Either day may be the
+    # wrong one, so the absence limit (left + 5 months, 2027-02-20 as shown today) and the
+    # signature window rest on a value the record contradicts: every window of the trip is
+    # withheld, with waits_on naming the conflict.
+    out = compute(
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"),
+                trip(
+                    left_on="2026-09-20",
+                    returned_on="2026-09-01",
+                    signature_on="2026-06-01",
+                    purpose="personal",
+                    job_on_return="yes",
+                ),
+            )
+        ),
+        [pack()],
+        TODAY,
+    )
+    assert question(out, "span_order.t1").get("state") == "conflict"
+    assert out["verdict"]["state"] == "cannot_tell"
+    shown = windows_named(out, "trip.absence_limit") + windows_named(out, "trip.signature_covers")
+    assert windows_named(out, "trip.absence_limit"), [w["id"] for w in windows(out)]
+    for w in shown:
+        assert (w["opens"], w["closes"]) == (None, None), w
+        assert any("span_order.t1" in g or "t1.ends_before_starts" in g for g in w["waits_on"]), w
+
+
+@pytest.mark.parametrize("kind", ["passport", "visa"])
+def test_review8_a_document_list_not_stated_whole_is_asked(kind: str) -> None:
+    # Finding 8; SPEC-W2-UNKNOWN point 14. watch[] is read soonest first, so a document not
+    # entered could run out before every one shown: the list is asked whole by the pack's own
+    # words (complete_label), complete.<kind> with state list, and cannot_tell. The document
+    # entered is still dated from its own record (point 14): passport 2026-11-01, 30 days
+    # away (29 reach Oct 31, one more); visa 2026-11-02, 31.
+    assert record_decl(kind).get("complete_label")
+    case = documents_case("2026-11-01", "2026-11-02")
+    del case["complete"][kind]
+    out = compute(case, [pack()], TODAY)
+    assert question(out, f"complete.{kind}").get("state") == "list"
+    assert out["verdict"]["state"] == "cannot_tell"
+    assert (
+        watch_of(out, rid(kind))["date"] == {"passport": "2026-11-01", "visa": "2026-11-02"}[kind]
+    )
+    stated = compute(documents_case("2026-11-01", "2026-11-02"), [pack()], TODAY)
+    assert f"complete.{kind}" not in {q["id"] for q in stated["questions"]}
+
+
+def assert_conflict_on(out: dict[str, Any], records: set[str]) -> None:
+    """SPEC-W2-UNKNOWN points 5 and 34: facts that do not fit are asked as a conflict about the
+    record, and the verdict is cannot_tell."""
+    found = [q for q in out["questions"] if q.get("state") == "conflict"]
+    assert any(q.get("record") in records for q in found), out["questions"]
+    assert out["verdict"]["state"] == "cannot_tell"
+
+
+def test_review9_a_move_before_the_address_it_left_began_is_a_conflict() -> None:
+    # Finding 9. ad2 since 2026-09-25 moved from ad1, whose first day is 2026-09-28, three days
+    # after the move away from it.
+    _, moved = address_window()
+    first = rec(rid("address"), "address", **{moved: "2026-09-28"})
+    case = f1_case([masters(state="in_progress", end="2027-05-15"), first])
+    case["records"].append(address(**{moved: "2026-09-25"}))
+    out = compute(case, [pack()], TODAY)
+    assert_conflict_on(out, {rid("address"), rid("address", 2)})
+
+
+def test_review9_an_address_moved_from_itself_is_a_conflict() -> None:
+    # Finding 9. ad2's "moved from" names ad2.
+    _, moved = address_window()
+    case = address_case(**{moved: "2026-09-25"})
+    case["records"][-1]["fields"][moved_from()] = rid("address", 2)
+    out = compute(case, [pack()], TODAY)
+    assert_conflict_on(out, {rid("address", 2)})
+
+
+def test_review9_a_visa_that_expires_before_it_was_issued_is_a_conflict() -> None:
+    # Finding 9. Issued 2026-01-01, expiring 2025-01-01, a year before it.
+    case = documents_case("2027-06-01", "2025-01-01")
+    case["records"][-1]["fields"]["issued_on"] = "2026-01-01"
+    assert case["records"][-1]["kind"] == "visa"
+    out = compute(case, [pack()], TODAY)
+    assert_conflict_on(out, {rid("visa")})
+
+
+def test_review9_a_report_before_its_move_is_a_conflict() -> None:
+    # Finding 9. Moved 2026-09-25, the change reported 2026-09-01, 24 days before it.
+    _, moved = address_window()
+    out = compute(
+        address_case(**{moved: "2026-09-25", "reported_on": "2026-09-01"}), [pack()], TODAY
+    )
+    assert_conflict_on(out, {rid("address", 2)})
+
+
+def test_review10_a_trip_that_returns_on_the_card_has_the_signature_window() -> None:
+    # Finding 10; 8 CFR 214.2(f)(13)(ii) speaks of a student on post-completion training "who
+    # returns". Left 2026-05-20, before the card (2026-06-01), back 2026-06-10, on it. Signature
+    # 2026-05-01; six months on: Jun, Jul, Aug, Sep, Oct, Nov: 2026-11-01.
+    out = compute(
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"),
+                trip(left_on="2026-05-20", returned_on="2026-06-10", signature_on="2026-05-01"),
+            )
+        ),
+        [pack()],
+        TODAY,
+    )
+    assert months_after(date(2026, 5, 1), signature_months()) == date(2026, 11, 1)
+    w = one_window(out, "trip.signature_covers")
+    assert (w["id"], w["closes"]) == ("trip.signature_covers.t1", "2026-11-01")
+    assert "waits_on" not in w
+
+
+def test_review10_a_trip_with_no_return_day_has_the_signature_window_waiting_on_it() -> None:
+    # Finding 10, D92: left 2026-09-30 on the card, not back. Whether the student returns on a
+    # card is not known, so the signature window waits on the return, which is asked.
+    out = compute(
+        f1_case(
+            on_opt(
+                job(confirmed_on="2026-10-02"),
+                trip(left_on="2026-09-30", signature_on="2026-03-31"),
+            )
+        ),
+        [pack()],
+        TODAY,
+    )
+    assert_withheld(out, "trip.signature_covers", "t1.returned_on")
+    assert_asked(out, "t1", "returned_on", "absent")
+
+
+@pytest.mark.parametrize("hours", [169, 200, 168.5])
+def test_review_hours_more_hours_than_a_week_holds_is_unreadable(hours: float) -> None:
+    # The note of reviews/w2-p2.md; SPEC-W2-UNKNOWN points 3 and 35. A week holds 7 x 24 = 168
+    # hours, so a figure above it is no one's hours: unreadable, asked with the value as
+    # entered, and the count withheld.
+    assert 7 * 24 == 168
+    out = compute(
+        f1_case(on_opt(job(hours_per_week=hours, confirmed_on="2026-10-02"))), [pack()], TODAY
+    )
+    count = items(out)["unemployment.opt_card.a1"]
+    assert count["value"] is None
+    assert "w1.hours_per_week" in count.get("waits_on", [])
+    assert_asked(out, "w1", "hours_per_week", "unreadable")
+    assert question(out, "w1.hours_per_week")["about"] == {"w1.hours_per_week": hours}
+
+
+def test_review_hours_a_whole_week_of_hours_is_counted() -> None:
+    # The other side of the line: 168 hours is a week's every hour, readable; the count is 30.
+    out = compute(
+        f1_case(on_opt(job(hours_per_week=168, confirmed_on="2026-10-02"))), [pack()], TODAY
+    )
+    assert items(out)["unemployment.opt_card.a1"]["value"] == 30
+    assert "w1.hours_per_week" not in {q["id"] for q in out["questions"]}

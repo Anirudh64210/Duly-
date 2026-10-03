@@ -171,7 +171,15 @@ def test_twin_j01_masters_card_windows_and_count(client: TestClient) -> None:
             _masters("2026-06-12", stem_list="on_list", start_date="2024-08-26"),
             _opt("a1", "p1", "2026-07-20", "2027-07-19"),
             rec("e1", "employer", name="Employer H", e_verify="yes"),
-            rec("w1", "work", employer="e1", under="a1", start="2026-08-24", hours_per_week=40),
+            rec(
+                "w1",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e1",
+                under="a1",
+                start="2026-08-24",
+                hours_per_week=40,
+            ),
         ],
         whole(*ASKED_LISTS, "authorization:p1"),
     )
@@ -337,6 +345,7 @@ def _j08_like(trips_whole: bool) -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2024-07-22",
@@ -431,13 +440,22 @@ def test_twin_j11_personal_days_abroad_during_a_job_count(client: TestClient) ->
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2025-10-15",
                 end="2026-02-27",
                 hours_per_week=40,
             ),
-            rec("w2", "work", employer="e1", under="a1", start="2026-05-11", hours_per_week=40),
+            rec(
+                "w2",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e1",
+                under="a1",
+                start="2026-05-11",
+                hours_per_week=40,
+            ),
             rec(
                 "t1",
                 "trip",
@@ -495,7 +513,15 @@ def _no_petition_case(card: tuple[str, str]) -> dict[str, Any]:
             _masters("2025-05-16"),
             _opt("a1", "p1", *card),
             rec("e1", "employer", name="Employer M"),
-            rec("w1", "work", employer="e1", under="a1", start=card[0], hours_per_week=40),
+            rec(
+                "w1",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e1",
+                under="a1",
+                start=card[0],
+                hours_per_week=40,
+            ),
         ],
         whole(*ASKED_LISTS, "authorization:p1"),
     )
@@ -676,6 +702,7 @@ def _j14_like() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2023-01-09",
@@ -685,6 +712,7 @@ def _j14_like() -> dict[str, Any]:
             rec(
                 "w2",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a2",
                 start="2024-01-09",
@@ -1186,6 +1214,7 @@ def _j15_like() -> dict[str, Any]:
             rec(
                 "w1",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a1",
                 start="2024-03-03",
@@ -1195,6 +1224,7 @@ def _j15_like() -> dict[str, Any]:
             rec(
                 "w2",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e1",
                 under="a2",
                 start="2025-03-03",
@@ -1204,6 +1234,7 @@ def _j15_like() -> dict[str, Any]:
             rec(
                 "w3",
                 "work",
+                confirmed_on="2026-09-29",
                 employer="e2",
                 under="a2",
                 start="2026-01-20",

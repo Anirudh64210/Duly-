@@ -4080,3 +4080,61 @@ building for its own sake.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-1104733684: W2-P2 fix2, the review veto as tests (reviews/w2-p2.md findings 1 to 10, the hours note)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p2.md, specs/step-w/plan-w2-p2-fix2.yaml, SPEC-W2-UNKNOWN
+points 2, 5, 6, 14, 22, 24, 29 to 34, the F-1 pack's work, trip, passport, visa and address kinds and
+the trip, trip_opt and address stages, engine/f1.py to_records (data only).
+
+New tests in tests/unit/engine/test_w2_records.py, each failing today on the defect named, with
+what would make it fail once fixed:
+- test_review1 (finding 1; UNKNOWN 2, 6; N3): job with no confirmed_on: count and limit day
+  null, waits_on w1.confirmed_on, asked absent, no at-or-over. Today 30, nothing asked. Fails
+  again if absence is read as "confirmed through today".
+- test_review2 (finding 2; N2, N3): end 2026-08-01, confirmed 2026-07-15: 30 as of 2026-07-15;
+  limit day not 2026-09-30 (Aug 2 + 59), null with waits_on or on or before Jul 15. Today
+  2026-09-30. Fails if the limit day reads days past as_of.
+- test_review5 (finding 5, mutant M1): property over confirmed day Jul 1 to Sep 1 and end 0 to
+  30 days after: count 30 as of the confirmed day, limit day null or not after it. With
+  `through = self.today` the count is at least 61. Today the limit day fails (e.g. Aug 30 for
+  confirmed Jul 1); the count half passes and is what catches M1.
+- test_review3 (finding 3; UNKNOWN 2, D92, D74): ad1 and ad2 with no link: a question on ad1 or
+  ad2 in state conflict or absent (L-content may declare previous ask, so either fits), cannot_tell,
+  and at least one address.report window, every one withheld with waits_on. Today none and nothing.
+- test_review4 (finding 4; UNKNOWN 22, 32a): back 2026-09-01 before leaving 2026-09-20:
+  span_order.t1 asked as a conflict; every trip window opens and closes null, waits_on naming
+  span_order.t1 or t1.ends_before_starts. Today the absence limit shows 2027-02-20.
+- test_review8 (finding 8; UNKNOWN 14): complete.passport / complete.visa dropped: asked, state
+  list, cannot_tell, complete_label present; the entered row still dated. Today no label, no question.
+- test_review9 x4 (finding 9): move before the address it left began; previous naming itself;
+  visa expiring a year before issue; report 24 days before the move: each a question in state
+  conflict on the record, cannot_tell. Today nothing asked.
+- test_review10 x2 (finding 10; (f)(13)(ii) "who returns"; D92): left 2026-05-20 before the card,
+  back 2026-06-10 on it, signature 2026-05-01: window closes 2026-11-01 (Jun to Nov). Not back:
+  the window waits on t1.returned_on, asked absent. Today no window, and a dated window.
+- test_review_hours (note): 169, 200, 168.5 (a week is 7 x 24 = 168) unreadable, asked with the
+  value, count withheld; 168 counted (30), the other side, passes today.
+
+Changed, no assertion loosened, no expected date or count changed:
+- test_w2_records.py: the two signature tests get returned_on 2026-10-01 (finding 10: the trip
+  is chosen by its return); trip cases get confirmed_on 2026-10-02 (finding 1).
+- confirmed_on set to the case's today, as the app writes it on save (2026-09-29; 2027-03-15 in
+  test_holdout_w2_unknown.py), on every F-1 work record in test_journeys.py, test_w2_unknown.py,
+  test_w2_windows.py, test_w2_unknown_counts.py, test_w2_limit_day.py, test_compute_records.py,
+  test_holdout_journeys.py, test_holdout_w2.py, test_holdout_w2_unknown.py (60 records).
+  Confirmed today counts through today with no as_of, so on today's engine nothing changes.
+
+Ran: done command, exit 0 (ruff: All checks passed; 113 files already formatted; --co ok).
+pytest tests/unit tests/holdout (--ignore tools, desktop_entry): failing only the 16 review
+tests and test_p2j_every_journey_every_field_every_gap[j01, j08, j11, j14, j15]. The latter is
+finding 1 caught by the holdout soundness property: with confirmed_on now present it drops the
+field, and the engine counts 49 through today where a filled day gives 0. It passes once
+review1 is fixed.
+
+Not built: no helper to add confirmed_on (a regex edit, then ruff format); no waits_on on watch
+rows (the contract has none, see requests); no test of translated v1 cases (engine/f1.py
+to_records writes no confirmed_on, see requests).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

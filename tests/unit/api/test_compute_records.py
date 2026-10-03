@@ -62,7 +62,15 @@ def _onboarding_case() -> dict[str, Any]:
                 card_end="2027-06-14",
             ),
             rec("e1", "employer", name="Employer One"),
-            rec("w1", "work", employer="e1", under="a1", start="2026-08-01", hours_per_week=40),
+            rec(
+                "w1",
+                "work",
+                confirmed_on="2026-09-29",
+                employer="e1",
+                under="a1",
+                start="2026-08-01",
+                hours_per_week=40,
+            ),
             rec(
                 "t1",
                 "trip",

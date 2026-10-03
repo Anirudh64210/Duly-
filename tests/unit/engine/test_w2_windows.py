@@ -418,7 +418,15 @@ def report_windows(out: dict[str, Any], record: str, rule: str) -> set[tuple[Any
 
 
 def opt_job(**extra: Any) -> dict[str, Any]:
-    return rec("w1", "work", employer="e1", under="a1", hours_per_week=40, **extra)
+    return rec(
+        "w1",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e1",
+        under="a1",
+        hours_per_week=40,
+        **extra,
+    )
 
 
 def opt_job_case(job: dict[str, Any]) -> dict[str, Any]:
@@ -524,8 +532,24 @@ def stem_jobs_case(*jobs: dict[str, Any]) -> dict[str, Any]:
 def test_a_new_employer_during_stem_gives_the_new_plan_window():
     # w1 with e1 (the employer the STEM card names) from 2026-07-01; w2 with e2 from
     # 2026-08-03. 2026-08-03 plus 10 is 2026-08-13.
-    w1 = rec("w1", "work", employer="e1", under="a2", start="2026-07-01", hours_per_week=40)
-    w2 = rec("w2", "work", employer="e2", under="a2", start="2026-08-03", hours_per_week=40)
+    w1 = rec(
+        "w1",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e1",
+        under="a2",
+        start="2026-07-01",
+        hours_per_week=40,
+    )
+    w2 = rec(
+        "w2",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e2",
+        under="a2",
+        start="2026-08-03",
+        hours_per_week=40,
+    )
     out = compute(stem_jobs_case(w1, w2), [PACK], TODAY)
     assert date(2026, 8, 3) + timedelta(days=NEW_PLAN) == date(2026, 8, 13)
     assert report_windows(out, "w2", "stem.new_plan_due_days") == {("2026-08-03", "2026-08-13")}
@@ -534,7 +558,15 @@ def test_a_new_employer_during_stem_gives_the_new_plan_window():
 def test_the_employer_the_stem_card_names_is_not_a_new_employer():
     # The saved words tie the 10 days to a new employer. w1 is with e1, the STEM card's own
     # employer, so it gets no new plan window.
-    w1 = rec("w1", "work", employer="e1", under="a2", start="2026-07-01", hours_per_week=40)
+    w1 = rec(
+        "w1",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e1",
+        under="a2",
+        start="2026-07-01",
+        hours_per_week=40,
+    )
     out = compute(stem_jobs_case(w1), [PACK], TODAY)
     assert report_windows(out, "w1", "stem.new_plan_due_days") == set()
 
@@ -552,13 +584,22 @@ def stem_new_employer_case(start: str) -> dict[str, Any]:
     w1 = rec(
         "w1",
         "work",
+        confirmed_on="2026-09-29",
         employer="e1",
         under="a2",
         start="2026-07-01",
         end="2026-08-02",
         hours_per_week=40,
     )
-    w2 = rec("w2", "work", employer="e2", under="a2", start=start, hours_per_week=40)
+    w2 = rec(
+        "w2",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e2",
+        under="a2",
+        start=start,
+        hours_per_week=40,
+    )
     return stem_jobs_case(w1, w2)
 
 
@@ -607,7 +648,15 @@ def test_a_new_employer_job_begun_before_the_stem_card_gives_no_new_plan_window(
     # Finding 4, mutant M7: (f)(10)(ii)(C)(7)(iv) "a new employer during his or her 24-month
     # OPT extension". Fails if: the stem_job_start selection drops this.start on_or_after
     # this.under.card_start. w2 here is the only job, with e2, not the card's employer e1.
-    w2 = rec("w2", "work", employer="e2", under="a2", start=start, hours_per_week=40)
+    w2 = rec(
+        "w2",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e2",
+        under="a2",
+        start=start,
+        hours_per_week=40,
+    )
     out = compute(stem_jobs_case(w2), [PACK], TODAY)
     assert report_windows(out, "w2", "stem.new_plan_due_days") == expected
 
@@ -669,7 +718,9 @@ def test_s1_a_job_with_no_employer_never_removes_another_job_s_stem_windows() ->
     # turns on w3.employer, which is not known. w2's two windows stay; w3 is asked about by
     # name; no date is made up for w3. Fails if: the selection is dropped whole when any one
     # record is undecided (the engine's `for record in found or []`), or w3 is read as decided.
-    w3 = rec("w3", "work", under="a2", start="2026-09-01", hours_per_week=40)
+    w3 = rec(
+        "w3", "work", confirmed_on="2026-09-29", under="a2", start="2026-09-01", hours_per_week=40
+    )
     out = compute(stem_case_with(w3), [PACK], TODAY)
     assert_w2_keeps_both_stem_windows(out)
     assert out["verdict"]["state"] == "cannot_tell"
@@ -685,7 +736,16 @@ def test_o1_a_job_with_no_card_never_removes_another_job_s_report_window() -> No
     # w1's window stays; w2 is asked about by name. Fails if: w2's unknown `under` drops the
     # whole opt_job_start selection, w1 with it.
     case = opt_job_case(opt_job(start="2026-07-01"))
-    case["records"].append(rec("w2", "work", employer="e1", start="2026-08-03", hours_per_week=40))
+    case["records"].append(
+        rec(
+            "w2",
+            "work",
+            confirmed_on="2026-09-29",
+            employer="e1",
+            start="2026-08-03",
+            hours_per_week=40,
+        )
+    )
     out = compute(case, [PACK], TODAY)
     assert date(2026, 7, 1) + timedelta(days=OPT_REPORT) == date(2026, 7, 11)
     assert report_windows(out, "w1", "opt.report_employer_within_days") == {
@@ -708,7 +768,15 @@ def test_s2_an_unreadable_date_in_one_job_is_named_and_never_removes_another_job
     # (the mission: the record left undecided is asked about by name). Fails if: the unreadable
     # date compares as unknown with nothing to ask and nothing said (silence), or drops w2's
     # windows with it, or is guessed into a date for w3.
-    w3 = rec("w3", "work", employer="e2", under="a2", start=unreadable, hours_per_week=40)
+    w3 = rec(
+        "w3",
+        "work",
+        confirmed_on="2026-09-29",
+        employer="e2",
+        under="a2",
+        start=unreadable,
+        hours_per_week=40,
+    )
     out = compute(stem_case_with(w3), [PACK], TODAY)
     assert_w2_keeps_both_stem_windows(out)
     assert out["verdict"]["state"] == "cannot_tell"

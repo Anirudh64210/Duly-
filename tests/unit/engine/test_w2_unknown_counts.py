@@ -52,7 +52,7 @@ def test_r6_a_card_with_no_type_withholds_nothing_of_a1_s_count():
 
 
 def job(**fields: Any) -> dict[str, Any]:
-    return rec("w1", "work", under="a1", **fields)
+    return rec("w1", "work", confirmed_on="2026-09-29", under="a1", **fields)
 
 
 def test_r8_40_hours_with_an_open_end_is_counted_and_waits_for_no_limit_day():
@@ -164,7 +164,18 @@ def test_r27_a_link_to_the_wrong_kind_is_unreadable():
     # R27: w1 under "p1", a program where the pack allows only an authorization. Unreadable
     # (point 41), and a1's count withheld (w1 could be a1's job).
     out = compute(
-        f1_case(r6_case(rec("w1", "work", under="p1", start="2026-07-01", hours_per_week=40))),
+        f1_case(
+            r6_case(
+                rec(
+                    "w1",
+                    "work",
+                    confirmed_on="2026-09-29",
+                    under="p1",
+                    start="2026-07-01",
+                    hours_per_week=40,
+                )
+            )
+        ),
         [PACK],
         TODAY,
     )
@@ -204,7 +215,7 @@ def test_r3_a_job_with_no_card_keeps_the_other_job_s_report_and_withholds_the_co
     # (2026-08-01 on, end not yet) covers counted days of a1's card, so a1's count is withheld
     # with w2.under in waits_on. Fails if w2's gap drops w1's window (U1) or reads w2 as no job.
     w1 = job(start="2026-07-01", hours_per_week=40)
-    w2 = rec("w2", "work", start="2026-08-01", hours_per_week=40)
+    w2 = rec("w2", "work", confirmed_on="2026-09-29", start="2026-08-01", hours_per_week=40)
     out = compute(f1_case(r6_case(w1, w2)), [PACK], TODAY)
     assert date(2026, 7, 1) + timedelta(days=10) == date(2026, 7, 11)
     shown = items(out)
