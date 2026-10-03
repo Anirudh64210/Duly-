@@ -340,3 +340,10 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - path.watch: passport.expires_on ("Date of expiry on a passport") and visa.expires_on ("Expiration date on a visa"), resting on those rules.
 - Regime fixed_admission_2026: history adds ECF 56, the clerk's notes of the status conference held 2026-10-02, in the docket's own words, from the listing fetched 2026-10-03; checked_on 2026-10-02 to 2026-10-03. legal_status, operative and the status tag unchanged.
 - No existing number, rule, quote or plain text changed.
+
+### 2026-10-02, lane L-content, run l-content-90229349f7 (W2-P2: SPEC-W2 points 45 and 46; SPEC-W2-UNKNOWN points 1, 6 and 24)
+
+- Stage trip_opt now selects a trip by a post-completion OPT or STEM card that covers the day the trip left (outer.left_on), was the day it came back (outer.returned_on). A planned trip, or one still under way, has no return date and was left undecided.
+- Stage trip_opt is entered on the day the trip left (this.left_on), was the signature day. A trip on OPT with no signature day now has trip.signature_covers withheld and the signature day asked, never a silent absence.
+- That the card covering the departure is how Duly finds a student on OPT who travels is Duly's reading of 8 CFR 214.2(f)(13)(ii). It is said in a comment on the stage (the stage schema has no note field) and in the note of travel.opt_signature_months.
+- No number, rule, source, quote or plain text changed.

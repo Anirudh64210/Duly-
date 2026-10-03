@@ -1425,7 +1425,7 @@ parameters:
     effective_from: 2016-05-10
     source: {citation: 8 CFR 214.2(f)(13)(ii), url: 'https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2', checked_on: 2026-10-02, quote: endorsed for reentry by the DSO within the last six months, snapshot: sources/ecfr-8cfr214.2-2026-09-14.xml, snapshot_sha256: 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690}
     derivation: verbatim
-    note: The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six.
+    note: The sentence says the EAD must be used in combination with a Form I-20 or successor form endorsed for reentry by the DSO within the last six months, for a student on post-completion practical training who returns after a temporary absence. Start date from 81 FR 13040 (FR Doc. 2016-04828), effective 2016-05-10, saved as sources/fr-2016-04828.xml, which carries the same words. Words checked in the 2026-09-14 text and in the 2026-09-15 text on 2026-09-29; both carry them, so the rule sits under no regime. The source writes the number as the word six. As a reading, the path's stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip left, not the day it came back, so a planned trip, or one still under way, has its signature window. The sentence speaks of a student on post-completion practical training who returns; that the card covering the departure is how Duly finds such a student is Duly's reading, not the words of the source. The number is unchanged.
     plain: A student on post-completion training who comes back uses the EAD with a Form I-20. The Form I-20 must be endorsed for reentry by the DSO within the last six months.
     plain_terms: [endorsed for reentry]
   - id: grace.withdrawal_days
@@ -2144,13 +2144,19 @@ path:
           closes: {fact: this.left_on, add: [{rule: travel.absence_months}]}
           rule_ids: [travel.absence_months]
           done_when: [this.returned_on]
+    # Reading (the stage schema has no note field): the travel signature applies to a student on
+    # OPT who travels (8 CFR 214.2(f)(13)(ii), travel.opt_signature_months). Duly reads that as a
+    # post-completion OPT or STEM card covering the day the trip left, so a planned trip, or one
+    # still under way, with no return date yet, is selected. The stage is entered on the day the
+    # trip left, so a trip with no signature day yet has its window withheld and the day asked.
+    # This is Duly's reading, not the words of the rule.
     - id: trip_opt
       label: "Trip abroad on post-completion OPT"
       for_each:
         record: trip
         where:
-          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.returned_on}}, {field: this.card_end, on_or_after: {fact: outer.returned_on}}]}
-      entered_when: [this.signature_on]
+          - exists: {record: authorization, where: [{field: this.type, in: [opt_post_completion, stem_extension]}, {field: this.card_start, on_or_before: {fact: outer.left_on}}, {field: this.card_end, on_or_after: {fact: outer.left_on}}]}
+      entered_when: [this.left_on]
       rule_ids: [travel.opt_signature_months]
       windows:
         - id: trip.signature_covers
