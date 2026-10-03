@@ -76,3 +76,19 @@ Ran and printed:
 Changed: W2-001 to W2-006 added in parts/spec-w2.json (all met). DEC-D32-001 met to partial. PLAN11-086 met to superseded.
 Not run: make test, make test-offline, prove-gates, the reviewer's mutants, tests/unit/tools, desktop_entry.
 Next audit: use a seed other than 20261002 and 20261003.
+
+## 2026-10-03, run l-audit-2238585ca8, attempt 1
+
+Tried: audit W2-P2 (plan-w2-p2.yaml and fixes 0 to 4; SPEC-W2 points 45 P4 to P7, 46 N3 and N4, 50; D74, D92) at d3d0de0 (docs/requirements/audits/w2-p2.md).
+
+Ran and printed:
+- pytest tests/unit tests/holdout without tools and desktop_entry: exit 0, 3 min 43 s. test_engine_literals and the agent_run escalation test: passed.
+- sources verify, plain --require f1, recheck --check, engine_literals, copy lint, mypy, ruff check and format, web/samples/make.py --check: all exit 0. web vitest 625 passed.
+- Mutant M1 on a scratch copy: killed by three tests. Mutant N5: survives tests/unit/engine and tests/holdout (review finding 2 confirmed).
+- Probes: address report 2026-09-28 to 2026-10-08 (and the STEM one); trip with no return 2026-09-28 to 2027-02-28, upcoming, waits on the return; signature 2026-08-31 to 2027-02-28; passport 18 days close, visa 649 days; count 30 as of 2026-08-20, due 2026-09-19; hours 169 asked; address conflicts asked. All right by hand. Wrong: a part-time job at 25 hours loses its confirmed day (review finding 1); a trip wholly after today gets ends_before_starts with ends = today while its window still shows.
+- Drift: 20 met rows, seed 20261005, no change.
+- register build and check: 2510 requirements, whole; 454 of 2147 met, 21%.
+
+Changed: W2-007 to W2-013 added (5 met, W2-011 and W2-012 partial); DEC-D74-001 and RMKT-033 not_started to partial; notes on DEC-D92-004, DEC-D92-005, DEC-D73-001.
+Not run: make test, make test-offline, prove-gates, desktop vitest, mutants M9 and M12, tests/unit/tools whole and desktop_entry.
+Next audit: use a seed other than 20261002, 20261003 and 20261005.

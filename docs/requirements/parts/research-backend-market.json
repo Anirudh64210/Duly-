@@ -1498,9 +1498,9 @@
   "source": "Duly market and pricing validation.md, pricing table",
   "text": "A travel-readiness check (absences, documents to carry).",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No travel feature exists."
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stage trip: trip.absence_limit, trip.signature_covers; path.watch passport and visa); tests/unit/engine/test_w2_records.py (trip and watch tests)",
+  "note": "No travel feature exists. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): not_started to partial. The engine gives each trip its absence-limit window from 8 CFR 214.2(f)(4) and the OPT signature window, and watches passport and visa expiry (W2-008, W2-009). Not built: the documents to carry, and any screen that shows a trip check."
  },
  {
   "id": "RMKT-034",

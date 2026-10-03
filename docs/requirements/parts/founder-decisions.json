@@ -2985,16 +2985,16 @@
   "kind": "privacy",
   "status": "not_started",
   "evidence": "contracts/schedule.schema.json",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built."
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays not_started. checkins[] due days are now worked by the engine (W2-011), on the device when the desktop app runs it, but no reminder exists yet."
  },
  {
   "id": "DEC-D74-001",
   "source": "DECISIONS.md D74",
   "text": "Passport, visa and address records with their sourced rules (8 CFR 214.2(f)(17), (f)(12)(ii)(A)); For you shows only the date in force when a court pauses a rule; From your paper on the source sheet.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. The pack quotes (f)(12)(ii)(A) inside stem rows only. No passport, visa or address record is built, and no From your paper text exists."
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (records passport, visa, address; address.report_change_within_days from 8 CFR 214.2(f)(17); stem.report_change_within_days from (f)(12)(ii)(A); stages address, stem_address); tests/unit/engine/test_w2_records.py",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. The pack quotes (f)(12)(ii)(A) inside stem rows only. No passport, visa or address record is built, and no From your paper text exists. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): not_started to partial. The passport, visa and address records and their sourced report rules are built and tested (W2-007). Not built: For you showing only the date in force when a court pauses a rule (no For you screen reads a regime yet), and From your paper on the source sheet (grep finds no such words in web/src or desktop/src). No screen enters a passport, visa or address."
  },
  {
   "id": "DEC-D75-001",
@@ -3174,7 +3174,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "engine/path.py _stated; tests/unit/engine/test_w2_unknown_props.py::test_a_list_not_stated_whole_never_shows_what_an_unseen_record_could_change; tests/unit/engine/test_w2_unknown.py (R34, R35); web/src/lib/views/onboarding.ts auth-all",
-  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, partial. The engine half passes (P1w, R23, R34, R35). Onboarding asks \"Is that all the CPT and OPT for <program>?\" and states authorization:<program> (onboarding.ts:1539), which point 14 no longer counts as the whole authorization list, so stem.extensions.all still waits on complete.authorization after that answer (read in the code; not walked through the screen). Every kind carries a complete_label in the pack."
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, partial. The engine half passes (P1w, R23, R34, R35). Onboarding asks \"Is that all the CPT and OPT for <program>?\" and states authorization:<program> (onboarding.ts:1539), which point 14 no longer counts as the whole authorization list, so stem.extensions.all still waits on complete.authorization after that answer (read in the code; not walked through the screen). Every kind carries a complete_label in the pack. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays partial. The watch now reads the passport and visa lists whole and asks complete.passport and complete.visa when unstated (test_review2_4 passes). Onboarding still adds no passport, visa, address or trip record, so it asks no any-others for them; the generic complete.<kind> answer (onboarding.ts:1771) is the only way to state those lists."
  },
  {
   "id": "DEC-D92-005",
@@ -3183,7 +3183,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (trip.returned_on, no when_absent); tests/unit/engine/test_when_absent.py",
-  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. test_when_absent.py passes; probe of R6's case plus t1 with no returned_on: question t1.returned_on (absent), missing:t1.returned_on, cannot_tell."
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. test_when_absent.py passes; probe of R6's case plus t1 with no returned_on: question t1.returned_on (absent), missing:t1.returned_on, cannot_tell. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays met, stronger. Probe: left 2026-09-28, no return, today 2026-10-02: t1.returned_on asked (absent), and the absence window keeps 2026-09-28 to 2027-02-28, in upcoming, waiting on the return (test_review2_1 passes)."
  },
  {
   "id": "DEC-D93-001",
