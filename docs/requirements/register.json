@@ -9526,7 +9526,7 @@
   "kind": "privacy",
   "status": "not_started",
   "evidence": "contracts/schedule.schema.json",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays not_started. checkins[] due days are now worked by the engine (W2-011), on the device when the desktop app runs it, but no reminder exists yet.",
   "part": "founder-decisions"
  },
  {
@@ -9534,9 +9534,9 @@
   "source": "DECISIONS.md D74",
   "text": "Passport, visa and address records with their sourced rules (8 CFR 214.2(f)(17), (f)(12)(ii)(A)); For you shows only the date in force when a court pauses a rule; From your paper on the source sheet.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. The pack quotes (f)(12)(ii)(A) inside stem rows only. No passport, visa or address record is built, and no From your paper text exists.",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (records passport, visa, address; address.report_change_within_days from 8 CFR 214.2(f)(17); stem.report_change_within_days from (f)(12)(ii)(A); stages address, stem_address); tests/unit/engine/test_w2_records.py",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. The pack quotes (f)(12)(ii)(A) inside stem rows only. No passport, visa or address record is built, and no From your paper text exists. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): not_started to partial. The passport, visa and address records and their sourced report rules are built and tested (W2-007). Not built: For you showing only the date in force when a court pauses a rule (no For you screen reads a regime yet), and From your paper on the source sheet (grep finds no such words in web/src or desktop/src). No screen enters a passport, visa or address.",
   "part": "founder-decisions"
  },
  {
@@ -9736,7 +9736,7 @@
   "kind": "engine",
   "status": "partial",
   "evidence": "engine/path.py _stated; tests/unit/engine/test_w2_unknown_props.py::test_a_list_not_stated_whole_never_shows_what_an_unseen_record_could_change; tests/unit/engine/test_w2_unknown.py (R34, R35); web/src/lib/views/onboarding.ts auth-all",
-  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, partial. The engine half passes (P1w, R23, R34, R35). Onboarding asks \"Is that all the CPT and OPT for <program>?\" and states authorization:<program> (onboarding.ts:1539), which point 14 no longer counts as the whole authorization list, so stem.extensions.all still waits on complete.authorization after that answer (read in the code; not walked through the screen). Every kind carries a complete_label in the pack.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, partial. The engine half passes (P1w, R23, R34, R35). Onboarding asks \"Is that all the CPT and OPT for <program>?\" and states authorization:<program> (onboarding.ts:1539), which point 14 no longer counts as the whole authorization list, so stem.extensions.all still waits on complete.authorization after that answer (read in the code; not walked through the screen). Every kind carries a complete_label in the pack. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays partial. The watch now reads the passport and visa lists whole and asks complete.passport and complete.visa when unstated (test_review2_4 passes). Onboarding still adds no passport, visa, address or trip record, so it asks no any-others for them; the generic complete.<kind> answer (onboarding.ts:1771) is the only way to state those lists.",
   "part": "founder-decisions"
  },
  {
@@ -9746,7 +9746,7 @@
   "kind": "engine",
   "status": "met",
   "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (trip.returned_on, no when_absent); tests/unit/engine/test_when_absent.py",
-  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. test_when_absent.py passes; probe of R6's case plus t1 with no returned_on: question t1.returned_on (absent), missing:t1.returned_on, cannot_tell.",
+  "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. test_when_absent.py passes; probe of R6's case plus t1 with no returned_on: question t1.returned_on (absent), missing:t1.returned_on, cannot_tell. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays met, stronger. Probe: left 2026-09-28, no return, today 2026-10-02: t1.returned_on asked (absent), and the absence window keeps 2026-09-28 to 2027-02-28, in upcoming, waiting on the return (test_review2_1 passes).",
   "part": "founder-decisions"
  },
  {
@@ -17144,9 +17144,9 @@
   "source": "Duly market and pricing validation.md, pricing table",
   "text": "A travel-readiness check (absences, documents to carry).",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No travel feature exists.",
+  "status": "partial",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (stage trip: trip.absence_limit, trip.signature_covers; path.watch passport and visa); tests/unit/engine/test_w2_records.py (trip and watch tests)",
+  "note": "No travel feature exists. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): not_started to partial. The engine gives each trip its absence-limit window from 8 CFR 214.2(f)(4) and the OPT signature window, and watches passport and visa expiry (W2-008, W2-009). Not built: the documents to carry, and any screen that shows a trip check.",
   "part": "research-backend-market"
  },
  {
@@ -21067,6 +21067,76 @@
   "status": "met",
   "evidence": "tests/unit/engine/test_w2_windows.py; tests/unit/engine/test_w2_limit_day.py; tests/holdout/test_holdout_w2.py; web/samples/make.py --check",
   "note": "Audit w2-p1 (l-audit-1044b1aa1e, 2026-10-02 UTC): new row, met. The three files and the journeys pass (one expected xfail); web/samples/make.py --check exits 0. No test enters a negative hours figure.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-007",
+  "source": "specs/step-w/SPEC-W2.md point 45, P4; D74",
+  "text": "Passport, visa and address records are pack record kinds with their fields and when_absent declarations, and a change of address gives a report window from 8 CFR 214.2(f)(17) (and on a STEM extension from (f)(12)(ii)(A)), each from a saved primary source; addresses that cannot all be true are a conflict asked by name.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (records passport, visa, address; rules address.report_change_within_days, stem.report_change_within_days; stages address, stem_address; checks address.one_first_in_us, address.first_names_no_previous, address.one_move_from_each); tests/unit/engine/test_w2_records.py::test_the_pack_declares_passport_visa_and_address_records, ::test_the_address_report_closes_ten_days_after_the_move, ::test_review3_two_addresses_with_no_link_are_a_question, ::test_review2_2_addresses_that_cannot_all_be_true_are_a_conflict; tests/holdout/test_holdout_w2_records.py::test_address_report_either_side_of_a_month_end",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, met. Tests pass. Probes: a move on 2026-09-28 from ad1 gives address.report 2026-09-28 to 2026-10-08 (10 days: 2 to Sep 30, 8 more), and on an approved stem_extension card also stem_address.report to 2026-10-08. Two addresses both first in the US: both asked as address.one_first_in_us, cannot_tell. One address with no first_in_us and no previous: ad1.previous asked. A move before 2026-09-14 gets no closing day (rule_copy_not_saved_for_event_day: the earliest saved copy of the rule is 2026-09-14; the pack's note sends such an event to the DSO). The conflicts reach Home as a bare 'do not fit' (review finding 3), so the screen half is not whole; this row is the engine's.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-008",
+  "source": "specs/step-w/SPEC-W2.md point 45, P5; gap map G9",
+  "text": "Trip windows trip.absence_limit (travel.absence_months, 8 CFR 214.2(f)(4)) and trip.signature_covers (travel.opt_signature_months, 8 CFR 214.2(f)(13)(ii)) are dated from saved sources; a trip with no return keeps its absence window open and upcoming and waits on the return, which is asked; a return entered before the departure withholds the trip's windows.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_w2_records.py::test_the_absence_limit_is_five_months_from_leaving, ::test_the_signature_covers_six_months_from_the_signature_on_opt, ::test_review2_1_a_trip_with_no_return_keeps_its_absence_window_open_and_upcoming, ::test_review4_a_trip_back_before_it_left_shows_no_trip_date, ::test_review4b_a_trip_with_its_return_left_out_still_shows_the_absence_limit, ::test_review10_a_trip_that_returns_on_the_card_has_the_signature_window; tests/holdout/test_holdout_w2_records.py::test_absence_limit_either_side_of_the_end_of_february, ::test_signature_covers_either_side_of_a_short_month",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, met. Probes, today 2026-10-02: left 2026-09-28, no return: window 2026-09-28 to 2027-02-28 waiting on t1.returned_on, closing day in upcoming, t1.returned_on asked absent. Left 2026-09-14, back 2026-09-20: closes 2027-02-14. Signature 2026-08-31 on OPT: covers to 2027-02-28 (no Feb 31). All right by hand. Left 2026-09-10: no closing day (earliest saved copy 2026-09-14). A trip entered wholly after today (2026-10-31 to 2026-11-15) is asked as after_today, and also as trip.t1.ends_before_starts with ends 2026-10-02, a day nobody entered, while the window still shows 2026-10-31 to 2027-03-31 (finding 1 of the audit). No screen shows a trip yet.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-009",
+  "source": "specs/step-w/SPEC-W2.md point 45, P6; gap map G10",
+  "text": "The pack names the dates to watch (path.watch: card ends, program end, passport and visa expiry) with their rule ids, each resting on a saved primary source; the passport rows rest on 8 CFR 214.1(a)(3) and the visa row on 22 CFR 41.112(a), with labels that state the date only.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (path.watch; passport.valid_beyond_stay_months, passport.maintain_validity_on_extension, visa.validity_is_for_admission); rulepacks/f1-us/v2026.09/sources/ecfr-8cfr214.1-2026-09-30.xml, ecfr-22cfr41.112-2026-09-30.xml; tests/unit/engine/test_w2_records.py::test_the_pack_names_the_dates_to_watch, ::test_the_passport_and_visa_watch_rest_on_the_saved_sources",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, met. sources verify (every quote found), plain --require f1 and recheck --check exit 0. The I-20 end is watched as program end_date. The labels are 'Date of expiry on a passport' and 'Expiration date on a visa'.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-010",
+  "source": "specs/step-w/SPEC-W2.md point 45, P7; gap map G8",
+  "text": "work and petition carry confirmed_on, declared ask, and path.checkins names the field and the K1 setting for each (checkin.job_days, checkin.petition_days); the app writes confirmed_on as the day the person saves or confirms the record, from the app's clock in the person's time zone, never typed.",
+  "kind": "product",
+  "status": "met",
+  "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (work.confirmed_on, petition.confirmed_on when_absent ask; path.checkins); web/src/app/caseStore.tsx confirmRecords; tests/unit/engine/test_w2_records.py::test_the_pack_names_the_check_ins_with_the_k1_settings, ::test_review1_a_job_never_confirmed_is_not_counted_and_its_day_is_asked; web/src/app/Home.test.tsx (confirmed_on written as the output's today); web/src/lib/labels.test.ts (w1.confirmed_on reads as the check-in)",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, met. Pack read; web vitest 625 passed. confirmRecords takes the day from output.today.date, else the zone day of now(); it rewrites the day only for a job or petition whose fields changed or that the person confirms. A 'No, something changed' answer is stored and not read (review note); the edit screen is W2-P7's.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-011",
+  "source": "specs/step-w/SPEC-W2.md point 46, N3; gap map G8",
+  "text": "checkins[] lists each record to check in on with confirmed_on, due and due_days_away from the setting; a count resting on such a record stops at its last confirmed day and says so with as_of; the limit day stops where the count stops; a confirmed day absent, not sure, before the record's start or past due is asked and withholds what rests on it.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/path.py (_confirmed, checkins, as_of); tests/unit/engine/test_w2_records.py::test_a_stale_job_is_due_and_its_count_stops_at_the_last_confirmed_day, ::test_review2_the_limit_day_stops_where_the_count_stops, ::test_review5_the_count_never_grows_past_the_last_confirmed_day, ::test_review2_3_a_check_in_a_limit_day_waits_on_is_asked_before_it_is_due, ::test_review2_5_a_job_confirmed_before_it_began_is_a_conflict; tests/holdout/test_holdout_w2_records.py::test_check_in_either_side_of_its_due_day",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, partial. Tests pass. Probe: OPT card from 2026-06-01, job from 2026-07-01 confirmed 2026-08-20, today 2026-10-02: count 30 as of 2026-08-20 (June), check-in due 2026-09-19, -13 days, checkin.w1 asked. Right by hand. Not whole: a pre-completion part-time job at 25 hours confirmed 2026-10-01 shows the check-in with confirmed_on, due and due_days_away all null and nothing naming why (reproduced review finding 1: _answers_only reads a rule check as a clash on the record); at 20 hours the row reads 2026-10-01, due 2026-10-31. And no test fails if the count is read from a confirmed day that is itself a conflict (review finding 2, mutant N5).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-012",
+  "source": "specs/step-w/SPEC-W2.md point 46, N4; gap map G10",
+  "text": "watch[] gives each date to watch with id, label, date, days_away, close (from the product setting watch.close_days, never a rule), record, rule_ids and status, soonest first; an unknown end is asked and never watched as a date; a list not stated whole is asked as complete.<kind>; a record whose dates conflict is never dated as known.",
+  "kind": "engine",
+  "status": "partial",
+  "evidence": "engine/path.py run_watch; tests/unit/engine/test_w2_records.py::test_watch_gives_each_date_with_days_away_and_close, ::test_watch_is_soonest_first_and_a_passed_date_is_close, ::test_days_away_and_close_follow_the_injected_clock, ::test_review8_a_document_list_not_stated_whole_is_asked, ::test_review2_4_no_passport_or_visa_entered_and_those_lists_not_stated_are_asked, ::test_review2_5_a_document_whose_dates_conflict_is_never_dated_on_the_watch; tests/holdout/test_holdout_w2_records.py::test_watch_close_either_side_of_the_setting",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, partial. Probe, today 2026-10-02: passport expiring 2026-10-20: 18 days, close true (30-day setting); visa 2028-07-12: 649 days, close false. Right by hand. Not whole: a row on a record whose dates conflict keeps its date with days_away null and close false and has no waits_on, so by SPEC-W2-UNKNOWN point 33 the null reads as does not apply; the link is only in the question's withholds (review finding 4; contracts/engine_output.schema.json gives a watch row no waits_on, a contract change first). No screen reads watch[] yet.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-013",
+  "source": "specs/step-w/SPEC-W2.md point 50",
+  "text": "W2-P2 is held by tests/unit/engine/test_w2_records.py (passport, visa, address, trips, watch, check-ins, the count as of the last confirmed day), new journey pairs in tests/holdout, and web/samples regenerated by make samples.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_w2_records.py (53 tests); tests/holdout/test_holdout_w2_records.py; web/samples/make.py --check",
+  "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, met. Both files pass in the whole run of tests/unit and tests/holdout (tools and desktop_entry left out: sandbox). Two of the review's mutants survive the suite (N5; and the opt_pre case of finding 1 has no test).",
   "part": "spec-w2"
  },
  {
