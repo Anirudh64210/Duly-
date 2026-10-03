@@ -750,6 +750,7 @@ const CHECKED_DATE = /^typed_dates\.checked\.(.+)$/;
 const ENDS_BEFORE_TODAY = "record.ends_before_today";
 const UNCONFIRMED_TYPED = "unconfirmed:typed_dates";
 const CHECKIN = "checkin.";
+const CONFIRMED_ON = ".confirmed_on";
 
 /** A record id as the person reads it, "Trip abroad 1", or null for an id that is not one. */
 function recordName(recordId: string): { kind: string; name: string } | null {
@@ -784,10 +785,11 @@ function gapName(entry: string): string {
  */
 function checkinTitle(recordId: string, records: readonly CaseRecord[]): string | null {
   const record = recordName(recordId);
-  if (record?.kind === "petition") {
+  if (record === null) return null;
+  if (record.kind === "petition") {
     return `${record.name}: Does the petition still stand as it did when last confirmed?`;
   }
-  if (record?.kind !== "work") return null;
+  if (record.kind !== "work") return null;
   const job = records.find((entry) => entry.id === recordId)?.fields ?? {};
   const employer = records.find((entry) => entry.id === job.employer)?.fields.name;
   const at = typeof employer === "string" && employer !== "" ? employer : "this employer";
@@ -797,14 +799,39 @@ function checkinTitle(recordId: string, records: readonly CaseRecord[]): string 
     typeof job.hours_per_week === "number" && !changed
       ? `about ${job.hours_per_week} hours a week`
       : "about the same hours a week";
+  // An ended job is asked whether it is as entered, never whether it goes on.
+  if (typeof job.end === "string" && job.end !== "") {
+    return `${record.name}: Did the job with ${at} end as entered, at ${hours}?`;
+  }
   return `${record.name}: Still with ${at}, ${hours}?`;
 }
 
+/**
+ * reviews/w2-p2.md finding 6: the record a check-in is about, for `checkin.<record>` and for
+ * the job's or petition's confirmed day the app records. A yes writes that day; nothing is
+ * typed.
+ */
+export function checkinRecord(questionId: string): string | null {
+  const id = questionId.startsWith(CHECKIN)
+    ? questionId.slice(CHECKIN.length)
+    : questionId.endsWith(CONFIRMED_ON)
+      ? questionId.slice(0, -CONFIRMED_ON.length)
+      : "";
+  const kind = recordName(id)?.kind;
+  return kind === "work" || kind === "petition" ? id : null;
+}
+
+/** The answers to a check-in, named by what each one records. */
+export const CHECKIN_ANSWERS = {
+  yes: "Yes, it is as entered",
+  no: "No, something changed",
+} as const;
+
 /** ui-1 point 5: the words for a question of the path, keyed by what it asks. */
 function pathTitle(questionId: string, records: readonly CaseRecord[] = []): string | null {
-  if (questionId.startsWith(CHECKIN)) {
-    return checkinTitle(questionId.slice(CHECKIN.length), records);
-  }
+  const checkin = checkinRecord(questionId);
+  if (checkin !== null) return checkinTitle(checkin, records);
+  if (questionId.startsWith(CHECKIN)) return null;
   if (questionId === TYPED_DATES) return "Did you type these dates from your documents?";
   if (questionId === ENDS_BEFORE_TODAY) {
     return "Your record ends before today. Is there anything after it to add?";

@@ -1530,3 +1530,29 @@ statements 96.53%, branches 92.64%; eslint clean; prettier clean; "copy lint: cl
 ### Not built
 
 - Nothing: no sample, test or source change was required.
+
+## l-web-eba8f1b5a9 (W2-P2 second review, finding 6 and the note on an ended job), attempt 1
+
+### Tried and ran
+
+- labels.ts: `checkinRecord(questionId)` names the job or petition a check-in is about, for
+  `checkin.<record>` and for `<record>.confirmed_on`; pathTitle gives both the check-in title,
+  so the confirmed day is never shown as a day to type. A job whose end is entered reads "Job 1:
+  Did the job with Northwind end as entered, at about 40 hours a week?". `CHECKIN_ANSWERS` names
+  the two answers ("Yes, it is as entered", "No, something changed").
+- caseStore.tsx: `confirmRecords` writes confirmed_on on a work or petition record that is new or
+  changed when the case is saved, as store.today() (the engine's day for the case, else the app's
+  clock in the case's zone). A yes to a check-in writes that day on its record and records no
+  confirmation; a no is recorded as before.
+- Home.tsx (Reasons, QuestionsSection) and Onboarding.tsx pass the case records to
+  questionTitle; both give a check-in the answer buttons above.
+- Tests: labels.test.ts (2), Home.test.tsx (2: the check-in on Home writes the day; a saved job
+  is dated 2026-10-02 from 03:00 UTC on 2026-10-03 in Los Angeles). OnboardingWalk.test.tsx
+  expected w2's exact fields: it now expects confirmed_on, the day the walk stated its lists.
+- Done command: first run 1 failure (the walk test above), then 2 eslint errors (unused names),
+  then exit 0: 34 files, 616 tests passed, eslint clean, copy lint clean.
+
+### Not built
+
+- No confirmed-day input or edit: the day is recorded, never typed.
+- No change to the engine's reading of a check-in "no": the person changes the job in Your case.
