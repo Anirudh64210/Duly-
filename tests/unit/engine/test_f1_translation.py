@@ -352,7 +352,7 @@ def test_yes_to_every_complete_kind_asked_states_each_of_those_lists_whole() -> 
     # point 58). A kind not asked is left out by the guard and stated nowhere.
     body = _records(program_end_date="2027-05-14", confirmations=WHOLE)
     asked = ["authorization", "program", "move", "work", "end_date_change", "trip"]
-    asked += ["petition", "address", "withdrawal"]
+    asked += ["petition", "address", "withdrawal", "passport", "visa"]
     assert body["complete"] == {kind: {"on": ON} for kind in asked}
 
 
@@ -399,12 +399,13 @@ def _hand_written_opt_case() -> dict[str, Any]:
     """The records case section 19 writes for the OPT case as sent, by hand from the table
     and resolutions point 14. The path asks complete.<kind> for nine kinds on this case
     (program, move, end_date_change, authorization, work, trip, petition, address, withdrawal;
-    address since SPEC-W2 point 45, P4, and SPEC-W2-UNKNOWN point 14), each answered yes
+    address since SPEC-W2 point 45, P4, and SPEC-W2-UNKNOWN point 14; passport and visa since the
+    watch reads those lists, plan-w2-p2-fix4), each answered yes
     today; opt.earlier_at_this_level no, which the path never asks, states nothing whole
     (point 14 as clarified), so the case holds no authorization:p1."""
     whole = {"on": ON}
     asked = ["program", "move", "end_date_change", "authorization", "work", "trip"]
-    asked += ["petition", "address", "withdrawal"]
+    asked += ["petition", "address", "withdrawal", "passport", "visa"]
     return {
         "categories": ["f1"],
         "time_zone": "UTC",
@@ -464,7 +465,7 @@ def test_the_opt_case_is_sent_with_each_asked_answer_and_its_about() -> None:
     # the card's about.
     sent = _sent(**_opt_case())["confirmations"]
     kinds = ["program", "move", "end_date_change", "authorization", "work", "trip"]
-    kinds += ["petition", "address", "withdrawal"]
+    kinds += ["petition", "address", "withdrawal", "passport", "visa"]
     assert sent == {
         **{f"complete.{kind}": {"answer": True, "on": ON} for kind in kinds},
         EARLIER: {
