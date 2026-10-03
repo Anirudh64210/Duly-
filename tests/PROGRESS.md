@@ -4170,3 +4170,28 @@ in the test are the fills the mission names.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-8f3ac03195: W2-P2 fix2 reconcile (reviews/w2-p2.md findings 1 to 11)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/plan-w2-p2-fix2.yaml, git log (engine rounds for
+findings 1, 2, 5 and 3, 4, 8, 9, 10, hours; fix3 span-order commit; holdout P2j commit f1ef1cc).
+
+Ran:
+- uv run ruff check tests: All checks passed. ruff format --check tests: 113 files already formatted.
+- pytest tests/unit tests/holdout -p no:cacheprovider --ignore=tests/unit/tools: every test
+  passes except the 15 in tests/unit/desktop_entry/test_desktop_main.py, which bind a Unix
+  socket and are refused by this sandbox (Operation not permitted), as the contract foretells.
+  With that file ignored: exit 0.
+- pytest -k review (same paths): 64 passed, none skipped, none xfail. Every review test
+  written in l-tests-1104733684 and l-tests-10a44e592d (review1 to review10, review4b,
+  review_hours) now passes against the engine, as does P2j for j01, j08, j11, j14, j15.
+- npm test -w web -- tests/web: fails in this sandbox only on mkdir web/coverage (EPERM).
+  With --coverage.reportsDirectory=$TMPDIR/webcov: 2 files, 9 tests passed.
+
+Changed: nothing. No test is out of line with plan-w2-p2-fix2.yaml, so there is no finding to
+write beside a change and no assertion was touched.
+
+Not built: nothing new; the mission asks for alignment, and every test already aligns.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
