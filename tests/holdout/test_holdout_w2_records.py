@@ -120,9 +120,18 @@ def _job(**extra: Any) -> dict[str, Any]:
 def test_address_report_either_side_of_a_month_end(
     client: TestClient, moved: str, closes: str
 ) -> None:
+    # A move is a second address linked to the one it left: the first address on the record
+    # is no change and owes no report (the pack's address.previous is when_absent none).
     field = _address_field()
-    moved_rec = rec(f"{_decl('address')['id_prefix']}1", "address", **{field: moved})
-    out = _send(client, _on_opt(_job(confirmed_on="2026-09-29"), moved_rec))
+    prefix = _decl("address")["id_prefix"]
+    link = next(
+        f["id"]
+        for f in _decl("address")["fields"]
+        if f["kind"] == "link" and f.get("to") == ["address"]
+    )
+    first = rec(f"{prefix}1", "address", **{field: "2025-08-15"})
+    moved_rec = rec(f"{prefix}2", "address", **{field: moved, link: first["id"]})
+    out = _send(client, _on_opt(_job(confirmed_on="2026-09-29"), first, moved_rec))
     dated = [
         w["closes"]
         for s in out["stages"]
