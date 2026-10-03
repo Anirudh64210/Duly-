@@ -762,7 +762,10 @@ def test_any_of_holds_when_one_part_holds() -> None:
     low = _run_check(HIGH_OR_LEFT, _course(level="low"))
     assert _mentions(high, "toy.high_or_left") == []
     assert _mentions(low_left, "toy.high_or_left") == []
-    assert _mentions(low, "conflict:", "toy.high_or_left", "c1")
+    # SPEC-W2-UNKNOWN points 2 and 32: left_on is an ask field, so a low course with it left
+    # out leaves the any_of unknown: no conflict, and c1.left_on is asked.
+    assert _mentions(low, "conflict:", "toy.high_or_left") == []
+    assert "missing:c1.left_on" in low["verdict"]["reasons"]
 
 
 def test_any_of_with_an_unknown_part_and_no_true_part_is_unknown() -> None:
@@ -809,7 +812,7 @@ def test_not_of_an_unknown_is_unknown() -> None:
 
 def test_a_check_whose_only_if_is_false_does_not_apply() -> None:
     # Applies to low courses only. A high course without left_on raises nothing; a low one
-    # without left_on raises the conflict.
+    # without left_on is asked it (left_on is an ask field: points 2 and 32), no conflict.
     check = _check(
         "toy.low_left",
         "course",
@@ -819,7 +822,8 @@ def test_a_check_whose_only_if_is_false_does_not_apply() -> None:
     high = _run_check(check, _course(level="high"))
     low = _run_check(check, _course(level="low"))
     assert _mentions(high, "toy.low_left") == []
-    assert _mentions(low, "conflict:", "toy.low_left", "c1")
+    assert _mentions(low, "conflict:", "toy.low_left") == []
+    assert "missing:c1.left_on" in low["verdict"]["reasons"]
 
 
 # Levels: programs.md 13 point 2 (path.order, lowest to highest) and section 11.
