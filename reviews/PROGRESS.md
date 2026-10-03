@@ -419,3 +419,17 @@
 - Failure: regression rows the tests round left as "not built" were never built by a later round, and three of them fail on the final engine.
 - Fix: first list every R row and mutant the SPEC names, grep the test files for each, and run every missing one by hand.
 - Evidence: reviews/w2-unknown.md findings 1 to 3 and 7.
+
+## 2026-10-02, run l-review-bbceb25fc8 (W2-UNKNOWN second review, after fix 5 and fix 6)
+- Read the last review, plan fix5 and fix6, SPEC points 2, 7, 12, 14, 26, 31 to 34, 44, 51, 52, and the diff 8acde5a..83fddf1 (engine path.py and readers.py, api/main.py, web labels and onboarding, new tests, conftest, gaps.py).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0 in 209 s. mypy, ruff check, ruff format, engine_literals, sources verify and copy lint all 0. Web vitest emptyWords + fix7: 15 passed.
+- Old probes TMPDIR/rvu (r4, r7, r8, toy1, happ2, d5, api1) on HEAD: findings 1, 2, 3, 5, 6, 8, 10, 12 and 14 fixed. Finding 4 is fixed for selections and only_if.
+- New probe TMPDIR/rvu2/holds.py: a check's holds with present on an absent ask field gives a conflict (present true) or passes quietly (present false), with nothing asked. Blocking.
+- Mutants TMPDIR/rvu2/mut.py (45, mutants profile, non-vacuity test deselected because it fails under the profile with no mutant). Examples: U11, U21b, U25 and U26 survive, plus U17 (no-op), U18 (equivalent) and the module mutants U2 and U17b. Properties: the run reached 10 mutants, and M9, M15, M16 and M20 survive.
+- Journeys: c8dcfb2 1024/358/0, 8acde5a 1039/396/327, HEAD 1077/434/410 (outputs / null or unknown / with waits_on). The 24 nulls with no waits_on are all "does not apply" or the cap_gap DSO handoff.
+- Wrote reviews/w2-unknown.md (VETO, mean 4.17), REVIEW.json (valid against the schema) and REPORT.json.
+
+## Lesson
+- Failure: a fix made present-on-absent U in selections and only_if but kept the exception for a check's holds. P6 draws U only as not_sure, so no test saw it.
+- Fix: for each gap state the SPEC names (absent, unreadable, undecided), probe every reader position (where, only_if, holds, next only_if) on the toy pack.
+- Evidence: reviews/w2-unknown.md finding 1.
