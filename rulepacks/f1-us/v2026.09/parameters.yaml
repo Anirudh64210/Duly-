@@ -2511,6 +2511,26 @@ path:
       holds:
         - {field: this.end, on_or_before: {fact: this.on_campus.end_date, as_of: {fact: today}}}
       rule_ids: [oncampus.after_completion]
+    # The address list is one chain of moves (reviews/w2-p2.md finding 2 and its notes A10, A14).
+    # Answers that cannot all be true are a conflict asked by name; no report is read from them.
+    # address.one_first_in_us: "More than one address is marked as the first address in the US on this F-1 record."
+    - id: address.one_first_in_us
+      for_each: {record: address, where: [{field: this.first_in_us, in: ["yes"]}]}
+      holds:
+        - none: {record: address, where: [{field: this.first_in_us, in: ["yes"]}, {field: this.id, differs_from: outer.id}]}
+      rule_ids: [address.report_change_within_days]
+    # address.first_names_no_previous: "This address is marked as the first in the US, and it also names an address moved from."
+    - id: address.first_names_no_previous
+      for_each: {record: address, where: [{field: this.first_in_us, in: ["yes"]}]}
+      holds:
+        - {field: this.previous, present: false}
+      rule_ids: [address.report_change_within_days]
+    # address.one_move_from_each: "More than one address names the same address moved from."
+    - id: address.one_move_from_each
+      for_each: {record: address, where: [{field: this.previous, present: true}]}
+      holds:
+        - none: {record: address, where: [{field: this.previous, same_as: outer.previous}, {field: this.id, differs_from: outer.id}]}
+      rule_ids: [address.report_change_within_days]
   counters:
     - id: unemployment.opt_card
       calculator: days_without_qualifying_period

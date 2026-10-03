@@ -358,3 +358,11 @@ What leaving a field empty means, from the list of point 61 as D92 accepted it. 
 - Stage trip_opt selects a trip by a post-completion OPT or STEM card that covers the day the trip came back (outer.returned_on) again, as the check trip.signature_for_opt_return does and as 8 CFR 214.2(f)(13)(ii) speaks of the student who returns. This reverses the 2026-10-02 change. A trip with no return day has that day asked (D92). Entered on the day the trip left, as before (finding 10).
 - Readings marked in the notes and plain words: address.report_change_within_days and, in its note, stem.report_change_within_days count the 10 days from the first day at the new address; travel.absence_months is applied to a student on OPT. The plain words of address.report_change_within_days and travel.absence_months now say each is Duly's reading.
 - No number, value, source, quote or status tag changed.
+
+### 2026-10-03, lane L-content, run l-content-1637cd418a (W2-P2 fix4: second review finding 2 and its notes A10, A14; SPEC-W2-UNKNOWN point 5; D74)
+
+- New check address.one_first_in_us: an address marked first in the US is a conflict when another address is also marked first. Screen words: "More than one address is marked as the first address in the US on this F-1 record."
+- New check address.first_names_no_previous: an address marked first in the US is a conflict when it also names an address moved from. Screen words: "This address is marked as the first in the US, and it also names an address moved from."
+- New check address.one_move_from_each: an address that names an address moved from is a conflict when another address names the same one. Screen words: "More than one address names the same address moved from."
+- Each is a conflict check (the default kind) on address.report_change_within_days, raised once per record, so it is asked by name, for example address.one_first_in_us.ad2. The screen words are YAML comments above each check, because contracts/rulepack.schema.json gives a check no label or note field.
+- No number, value, source, quote, plain text or status tag changed.
