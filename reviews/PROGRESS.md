@@ -471,3 +471,15 @@
 - Failure: old probe scripts raised on a new id prefix rule, which could have read as a regression.
 - Fix: read the exception first and fix the probe's ids before judging the engine.
 - Evidence: reviews/w2-p1.md, What ran.
+
+## 2026-10-03, run l-review-9fa957435a (W2-P2 review)
+- Read plan-w2-p2.yaml, fix0, fix1, SPEC-W2 points 39 to 46 and 50, SPEC-W2-UNKNOWN points 2, 14, 22, 32a, BOUNDARY, and the diff d45fab7..9283025 (path.py check-ins, watch, as_of; readers.py hours; pack rules, kinds, stages, watch, checkins; tests; web).
+- Ran: tests/unit + tests/holdout without tools and desktop_entry, exit 0. engine_literals, mypy, ruff, format, sources verify, recheck --check, plain, copy lint all 0.
+- Probes TMPDIR/rvp2/p1..p8.py: never-confirmed job counted through today unasked; limit_day 2026-09-30 past as_of 2026-07-15; two unlinked addresses drop a move; trip with return before leaving keeps dated windows (32a); watch skips lists not stated; check-in titled as a conflict in labels.ts.
+- Mutants TMPDIR/rvp2/mut.sh: M2 to M6 caught, M1 (count through today) survives.
+- Wrote reviews/w2-p2.md (VETO, mean 3.33), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: a mutant script set UV_PROJECT_ENVIRONMENT to the worktree's .venv, which uv then created half-empty, and the first mutant results were environment errors.
+- Fix: read `env | grep UV_` first; the shared environment is already set, so run copies with the inherited variables and print the failing test name, not only the tail.
+- Evidence: reviews/w2-p2.md, What ran.
