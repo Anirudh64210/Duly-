@@ -1,6 +1,10 @@
 branch: step-w
 spec: specs/step-w/SPEC-W2.md
-goal: 'The engine holds the records the new screens read and the dates they need, each from a saved primary source: passport, visa and address records with the address report (D74), trip windows, the dates to watch, and check-ins with counts as of the last confirmed day. Every unknown follows the one rule (D92, SPEC-W2-UNKNOWN). W2-P2, SPEC-W2 points 45, 46 and 50 (P4 to P7, N3, N4), gap map rows G8, G9, G10 and G17. F-1 only (D89).'
+goal: 'The engine holds the records the new screens read and the dates they need, each from a saved primary
+  source: passport, visa and address records with the address report (D74), trip windows, the dates to
+  watch, and check-ins with counts as of the last confirmed day. Every unknown follows the one rule (D92,
+  SPEC-W2-UNKNOWN). W2-P2, SPEC-W2 points 45, 46 and 50 (P4 to P7, N3, N4), gap map rows G8, G9, G10 and
+  G17. F-1 only (D89).'
 merge: local
 audited: false
 rounds:
@@ -8,12 +12,31 @@ rounds:
   lanes:
   - lane: L-tests
     agent: test-author
-    mission: 'SPEC-W2 point 50: write tests/unit/engine/test_w2_records.py (passport, visa and address records and the address report window; trip windows for the absence limit and the travel signature; the dates to watch as watch[] with date, days_away and close from the watch.close_days setting; check-ins as checkins[] from the K1 settings and a count that stops at the last confirmed day with as_of), each date checked against the saved words of its source first and worked by hand in the comment, with new journey pairs in tests/holdout. Every gap follows SPEC-W2-UNKNOWN (asked by name, withheld with waits_on, never read as none unless declared). Also the W2-P1 review''s should-fix: a negative or otherwise impossible hours figure is read as unreadable and asked, never counted (engine/readers.py). Outputs validate against contracts/engine_output.schema.json. They cannot pass yet.'
-    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_records.py --co -q >/dev/null'
+    mission: 'SPEC-W2 point 50: write tests/unit/engine/test_w2_records.py (passport, visa and address
+      records and the address report window; trip windows for the absence limit and the travel signature;
+      the dates to watch as watch[] with date, days_away and close from the watch.close_days setting;
+      check-ins as checkins[] from the K1 settings and a count that stops at the last confirmed day with
+      as_of), each date checked against the saved words of its source first and worked by hand in the
+      comment, with new journey pairs in tests/holdout. Every gap follows SPEC-W2-UNKNOWN (asked by name,
+      withheld with waits_on, never read as none unless declared). Also the W2-P1 review''s should-fix:
+      a negative or otherwise impossible hours figure is read as unreadable and asked, never counted (engine/readers.py).
+      Outputs validate against contracts/engine_output.schema.json. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_records.py
+      --co -q >/dev/null'
   - lane: L-content
     agent: rulepack-drafter
-    mission: 'SPEC-W2 point 45, P4 to P7 in rulepacks/f1-us: passport, visa and address record kinds with their fields and when_absent declarations (SPEC-W2-UNKNOWN point 2), and the address report from 8 CFR 214.2(f)(17) and (f)(12)(ii)(A) (D74); the trip windows for the absence limit and the travel signature on OPT, as sourced rules (never a product setting: if the law states the months, it is a rule with its quote; if no saved source states them, report it missing and leave the window out); path.watch naming the dates to watch (card ends, passport and visa expiry, I-20 end) with their rule ids; confirmed_on fields on work and petition and path.checkins naming the settings. Every rule from a saved primary source with its quote and checked_on; tools.sources.recheck --check must pass. No number written by hand.'
-    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+    mission: 'SPEC-W2 point 45, P4 to P7 in rulepacks/f1-us: passport, visa and address record kinds with
+      their fields and when_absent declarations (SPEC-W2-UNKNOWN point 2), and the address report from
+      8 CFR 214.2(f)(17) and (f)(12)(ii)(A) (D74); the trip windows for the absence limit and the travel
+      signature on OPT, as sourced rules (never a product setting: if the law states the months, it is
+      a rule with its quote; if no saved source states them, report it missing and leave the window out);
+      path.watch naming the dates to watch (card ends, passport and visa expiry, I-20 end) with their
+      rule ids; confirmed_on fields on work and petition and path.checkins naming the settings. Every
+      rule from a saved primary source with its quote and checked_on; tools.sources.recheck --check must
+      pass. No number written by hand.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain
+      rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09
+      && uv run python -c "from engine.rulepack import load_all; load_all()"'
   checks:
   - name: sources
     run: uv run python -m tools.sources.verify rulepacks
@@ -21,8 +44,18 @@ rounds:
   lanes:
   - lane: L-engine
     agent: builder
-    mission: 'SPEC-W2 point 46, N3 and N4: check-ins (checkins[] from path.checkins and the settings) and a counter that stops at the last confirmed day with as_of; watch[] from path.watch with date, days_away and close (watch.close_days). The new record kinds work through the readers and the unknown rule as every other kind; a negative or impossible hours figure is unreadable and asked. Generic, nothing about F-1 in engine code. Make tests/unit/engine/test_w2_records.py and every engine test and the journeys pass; the whole command takes about two and a half minutes, so run single tests while you work.'
-    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+    mission: 'SPEC-W2 point 46, N3 and N4: check-ins (checkins[] from path.checkins and the settings)
+      and a counter that stops at the last confirmed day with as_of; watch[] from path.watch with date,
+      days_away and close (watch.close_days). The new record kinds work through the readers and the unknown
+      rule as every other kind; a negative or impossible hours figure is unreadable and asked. Generic,
+      nothing about F-1 in engine code. Make tests/unit/engine/test_w2_records.py and every engine test
+      and the journeys pass; the whole command takes about two and a half minutes, so run single tests
+      while you work. Resume note (2026-10-03): your kept work (watch[] and checkins[] built) is on lane/L-engine/l-engine-1a23821960;
+      the tests now state their lists whole and the pack names the passport and visa watch rows (plan-w2-p2-fix0.yaml).
+      Carry the work forward and make every test pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run
+      python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff
+      format --check engine'
   checks:
   - name: hidden tests
     run: uv run pytest tests/holdout -q
@@ -34,11 +67,15 @@ rounds:
   lanes:
   - lane: L-tests
     agent: test-author
-    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with W2-P2 (SPEC-W2 points 45, 46 and 50); write the point beside each change; never loosen an assertion; escalate any failure no point explains.'
-    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+    mission: Bring every test in tests/unit, tests/holdout and tests/web in line with W2-P2 (SPEC-W2 points
+      45, 46 and 50); write the point beside each change; never loosen an assertion; escalate any failure
+      no point explains.
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit
+      tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
   - lane: L-web
     agent: builder
-    mission: 'Run make samples from the repository root, commit what it changes under web/samples, and make npm test -w web pass, changing only tests W2-P2 requires, with the point beside each.'
+    mission: Run make samples from the repository root, commit what it changes under web/samples, and
+      make npm test -w web pass, changing only tests W2-P2 requires, with the point beside each.
     done: bash -c 'make samples && npm test -w web && npm test -w desktop'
   checks:
   - name: offline gates
@@ -47,11 +84,16 @@ rounds:
   lanes:
   - lane: L-review
     agent: reviewer
-    mission: 'Review W2-P2 against SPEC-W2 points 45, 46 and 50, SPEC-W2-UNKNOWN, D74, D92 to D94, PRINCIPLES.md and BOUNDARY.md. Try hardest to find a travel or address number no saved source states, a product setting presented as a rule, a gap in a new record that is read as none or dropped, a watch date or check-in resting on a guess, and words that say what follows a date. Write reviews/w2-p2.md and reviews/REVIEW.json.'
+    mission: Review W2-P2 against SPEC-W2 points 45, 46 and 50, SPEC-W2-UNKNOWN, D74, D92 to D94, PRINCIPLES.md
+      and BOUNDARY.md. Try hardest to find a travel or address number no saved source states, a product
+      setting presented as a rule, a gap in a new record that is read as none or dropped, a watch date
+      or check-in resting on a guess, and words that say what follows a date. Write reviews/w2-p2.md and
+      reviews/REVIEW.json.
     done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p2.md && test -f reviews/REVIEW.json'
 - name: audit
   lanes:
   - lane: L-audit
     agent: auditor
-    mission: 'Audit W2-P2 as your role file describes. Write docs/requirements/audits/w2-p2.md.'
-    done: bash -c 'test -f docs/requirements/audits/w2-p2.md && uv run python -m tools.requirements.register check'
+    mission: Audit W2-P2 as your role file describes. Write docs/requirements/audits/w2-p2.md.
+    done: bash -c 'test -f docs/requirements/audits/w2-p2.md && uv run python -m tools.requirements.register
+      check'

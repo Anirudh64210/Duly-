@@ -1,0 +1,19 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Unblock the W2-P2 engine round: the passport and visa dates to watch rest on the sources now saved (8 CFR 214.1(a)(3), 22 CFR 41.112(a), fetched 2026-10-03), and the tests state the address list whole and list the address question, as D92 asks. SPEC-W2 points 45 and 50.'
+merge: local
+audited: false
+rounds:
+- name: fixes
+  lanes:
+  - lane: L-content
+    agent: rulepack-drafter
+    mission: 'SPEC-W2 point 45, P6. Two primary sources are now saved in rulepacks/f1-us/v2026.09/sources and listed in SOURCES.md, fetched 2026-10-02/03 (recheck-2026-10-03.json): ecfr-8cfr214.1-2026-09-30.xml (8 CFR 214.1(a)(3)(i): the passport must be valid six months beyond the period of stay on admission, and the alien must agree to maintain the validity of the passport) and ecfr-22cfr41.112-2026-09-30.xml (22 CFR 41.112(a): the visa''s period of validity is the period it may be used in applying for admission, with no relation to the period of stay). Add rules from them with exact quotes, statuses and checked_on 2026-10-03, and path.watch rows for passport end and visa end resting on them, with labels that state the date only (the visa row''s plain words say it is about entry, not about the stay). recheck --check must pass. No number written by hand.'
+    done: bash -c 'uv run python -m tools.sources.verify rulepacks && uv run python -m tools.sources.plain rulepacks --require f1 && uv run python -m tools.sources.recheck --check rulepacks/f1-us/v2026.09 && uv run python -c "from engine.rulepack import load_all; load_all()"'
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read the W2-P2 content lane''s disputes and requests in .factory/runs/result-step-w_tests-and-content_L-content.json. (1) tests/unit/engine/test_f1_translation.py: the asked complete kinds now include address (SPEC-W2-UNKNOWN point 14; the address stage reads the address list). (2) tests/unit/engine/test_w2_records.py: every case whose expected address report, watch date or check-in rests on a list states that list whole as onboarding will ask it (D92 point 58), so the expectation never rests on an unstated list; keep the passport and visa watch tests, which the content lane now makes possible. Write the point beside each change; never loosen an expected date.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_w2_records.py tests/unit/engine/test_f1_translation.py --co -q >/dev/null'
+  checks:
+  - name: sources
+    run: uv run python -m tools.sources.verify rulepacks
