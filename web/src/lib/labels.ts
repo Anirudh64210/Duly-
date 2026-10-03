@@ -1,4 +1,5 @@
 import type { ComputedItem, Confirmation, ItemStatus } from "./compute";
+import type { CaseRecord } from "./records";
 import { reasonLine } from "./status";
 
 // Every word a user reads about a computed item. Names state what the item is,
@@ -285,7 +286,6 @@ export const EMPTY_WORDS = {
   "authorization.employer":
     "Leave empty if no employer is named on the Form I-20 for this permission.",
   "authorization.basis_program": "Leave empty unless this is a STEM extension.",
-  "address.previous": "Leave empty if this is the first address in the US on this F-1 record.",
   "address.reported_on": "Leave empty if you have not reported this change of address yet.",
 } as const satisfies Record<string, string>;
 
@@ -717,6 +717,7 @@ const FIELD_WORDS: ReadonlyMap<string, string> = new Map(
     "visa.expires_on": "Expiration date, as printed on the visa",
     "address.lines": "Address where you live",
     "address.since": "First day living at this address",
+    "address.first_in_us": "Is this the first address in the US on this F-1 record?",
     "address.previous": "Address moved from",
     "address.reported_on": "Day the change of address was reported to the DSO",
     "withdrawal.program": "Program withdrawn from",
@@ -748,6 +749,7 @@ const TYPED_DATES = "typed_dates.from_documents";
 const CHECKED_DATE = /^typed_dates\.checked\.(.+)$/;
 const ENDS_BEFORE_TODAY = "record.ends_before_today";
 const UNCONFIRMED_TYPED = "unconfirmed:typed_dates";
+const CHECKIN = "checkin.";
 
 /** A record id as the person reads it, "Trip abroad 1", or null for an id that is not one. */
 function recordName(recordId: string): { kind: string; name: string } | null {
@@ -776,8 +778,33 @@ function gapName(entry: string): string {
   return record && words ? `${record.name}, ${words.replace(/\?$/, "")}` : inputName(key);
 }
 
+/**
+ * SPEC-W2 point 46 (gap map G8): a check-in asks whether the record still holds, in the
+ * record's own values where they are entered. Nothing in it conflicts.
+ */
+function checkinTitle(recordId: string, records: readonly CaseRecord[]): string | null {
+  const record = recordName(recordId);
+  if (record?.kind === "petition") {
+    return `${record.name}: Does the petition still stand as it did when last confirmed?`;
+  }
+  if (record?.kind !== "work") return null;
+  const job = records.find((entry) => entry.id === recordId)?.fields ?? {};
+  const employer = records.find((entry) => entry.id === job.employer)?.fields.name;
+  const at = typeof employer === "string" && employer !== "" ? employer : "this employer";
+  // A job whose hours changed has no one number to show back.
+  const changed = Array.isArray(job.hours_changes) && job.hours_changes.length > 0;
+  const hours =
+    typeof job.hours_per_week === "number" && !changed
+      ? `about ${job.hours_per_week} hours a week`
+      : "about the same hours a week";
+  return `${record.name}: Still with ${at}, ${hours}?`;
+}
+
 /** ui-1 point 5: the words for a question of the path, keyed by what it asks. */
-function pathTitle(questionId: string): string | null {
+function pathTitle(questionId: string, records: readonly CaseRecord[] = []): string | null {
+  if (questionId.startsWith(CHECKIN)) {
+    return checkinTitle(questionId.slice(CHECKIN.length), records);
+  }
   if (questionId === TYPED_DATES) return "Did you type these dates from your documents?";
   if (questionId === ENDS_BEFORE_TODAY) {
     return "Your record ends before today. Is there anything after it to add?";
@@ -802,11 +829,14 @@ function pathTitle(questionId: string): string | null {
   return fieldTitle(questionId);
 }
 
-/** The title a question is shown under, on every screen that lists it. */
-export function questionTitle(questionId: string): string {
+/**
+ * The title a question is shown under, on every screen that lists it. The records, where
+ * the screen has them, give a check-in its values.
+ */
+export function questionTitle(questionId: string, records: readonly CaseRecord[] = []): string {
   return (
     questionCopy(questionId)?.ask ??
-    pathTitle(questionId) ??
+    pathTitle(questionId, records) ??
     "Duly has a question about what you entered."
   );
 }
