@@ -13,6 +13,9 @@
     "contracts/case.schema.json",
     "contracts/case_f1.schema.json",
     "contracts/rulepack.schema.json",
-    "contracts/product_settings.yaml"
+    "contracts/product_settings.yaml",
+    "contracts/schedule.schema.json",
+    "contracts/update.schema.json",
+    "pipeline/published/*.json"
   ]
 }
