@@ -56,7 +56,12 @@
       "additionalProperties": false,
       "required": ["days"],
       "properties": {
-        "days": { "type": "integer", "minimum": 0 }
+        "days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36525,
+          "description": "At most 36525, a hundred years: Duly's own limit so one body cannot run for long, never a rule."
+        }
       },
       "description": "Whole calendar days."
     },
@@ -65,7 +70,12 @@
       "additionalProperties": false,
       "required": ["business_days"],
       "properties": {
-        "business_days": { "type": "integer", "minimum": 0 }
+        "business_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 260,
+          "description": "At most 260, about a year of business days: Duly's own limit, since each business day is checked against the holiday rows one day at a time, never a rule."
+        }
       },
       "description": "Business days: weekends and the federal holidays the engine already counts out (rule calendar.federal_holidays_law) are skipped. The answer names that rule."
     },
@@ -74,7 +84,12 @@
       "additionalProperties": false,
       "required": ["months"],
       "properties": {
-        "months": { "type": "integer", "minimum": 0 }
+        "months": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1200,
+          "description": "At most 1200, a hundred years: Duly's own limit, never a rule."
+        }
       },
       "description": "Calendar months. A day the target month does not have becomes that month's last day."
     },
@@ -152,9 +167,11 @@
             "cap_not_found",
             "cap_has_no_date",
             "setting_not_found",
-            "setting_unit_not_a_date_offset"
+            "setting_unit_not_a_date_offset",
+            "holidays_not_known",
+            "outside_readable_dates"
           ],
-          "description": "Present only when date is null. item_not_found and cap_not_found: no computed item of unit date has this id in the engine output for the case. item_has_no_date and cap_has_no_date: the item exists but its value is null, so its question stands. setting_not_found: no product setting has this id. setting_unit_not_a_date_offset: the setting's unit is not days, business_days or months."
+          "description": "Present only when date is null. item_not_found and cap_not_found: no computed item of unit date has this id in the engine output for the case. item_has_no_date and cap_has_no_date: the item exists but its value is null, so its question stands. setting_not_found: no product setting has this id. setting_unit_not_a_date_offset: the setting's unit is not days, business_days or months. holidays_not_known: a business day counted falls on a day for which no holiday row of the pack is in force, so whether it is a holiday is not known; the other requests of the body are still answered. outside_readable_dates: the base date or the result falls before dates.earliest_readable or after dates.latest_readable in contracts/product_settings.yaml."
         },
         "capped": {
           "type": "boolean",
@@ -163,7 +180,7 @@
         "planning": {
           "type": "boolean",
           "const": true,
-          "description": "Optional, present only when the amount came from a product setting: a planning date, not a rule. As in engine_output.schema.json."
+          "description": "Optional, present only when a product setting set the date: the amount came from a product setting, or the base item, or the cap item when the answer is capped, is itself marked planning in the engine output. A planning date, not a rule. As in engine_output.schema.json."
         },
         "rule_ids": {
           "type": "array",

@@ -121,14 +121,17 @@ paths:
                 $ref: "schedule.schema.json#/$defs/response"
         "422":
           description: >
-            The body does not match the contract, or the pack refuses the structure of the
-            case (CASE_STRUCTURE, as /v1/compute gives it). The body names the first problem.
+            The body does not match the contract, two requests share an id, or the pack
+            refuses the structure of the case (CASE_STRUCTURE, as /v1/compute gives it). The
+            body names the first problem. A request the engine cannot date is not a 422: its
+            answer has a null date and the reason in missing.
   /v1/updates:
     get:
       operationId: getUpdates
       description: >
-        Approved law updates only: those for which publish_blockers returns nothing. Each
-        follows contracts/update.schema.json. Matching reads the categories, stage ids and
+        Approved law updates only: each file is first checked against
+        contracts/update.schema.json, and a file that does not follow it is never returned;
+        then publish_blockers must return nothing. Matching reads the categories, stage ids and
         field ids sent in the query, never a value the person entered.
       parameters:
         - name: categories
