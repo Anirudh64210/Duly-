@@ -4423,3 +4423,36 @@ CASE and CLOCK from test_schedule); no reference engine kept; no published fixtu
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-39dc1c6178: reconcile after L-engine, L-api, L-pipeline and the bundle fix (plan-w2-p3-fix0, D95)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/plan-w2-p3-fix0.yaml, git log since a3f7a7a,
+engine/schedule.py (is_holiday, cap, outside_readable_dates), api/case.py published_updates.
+
+Ran:
+- uv run ruff check tests: All checks passed. ruff format --check tests: 116 files already formatted.
+- pytest tests/unit tests/holdout -p no:cacheprovider --ignore=tests/unit/tools, with
+  tests/unit/desktop_entry/test_desktop_main.py deselected: every test passed. That file alone:
+  the tests that bind a Unix socket fail with "[Errno 1] Operation not permitted" (sandbox).
+- pytest -rA on test_schedule.py, test_updates_module.py, test_local_routes_w2.py and
+  test_bundle_inputs.py: 128 PASSED, none skipped. The review tests written in l-tests-9ad80f6ea4
+  (findings 1 to 8 and the notes) now pass against the landed code.
+- npm test -w web -- tests/web: exit 1 here only on mkdir web/coverage (EPERM, sandbox). With
+  --coverage.reportsDirectory=$TMPDIR/webcov: 2 files, 9 tests passed.
+
+Mutants against the landed code, in a scratch copy ($TMPDIR/mut, removed after), -k review_w2p3:
+- M1 engine/schedule.py listed = True: test_review_w2p3_5_juneteenth_... fails.
+- M2 found > cap_date + 1 day: test_review_w2p3_4_a_result_one_day_past_the_cap_... fails.
+- M3 published_updates without the publish_blockers filter: test_review_w2p3_2_3_... fails.
+- M3s (mine) published_updates without the schema check: the same test fails.
+- M7 no holiday row -> not a holiday (return False): test_review_w2p3_5_a_day_with_no_holiday_row_... fails.
+- unmutated: every review test passes.
+
+Changed: nothing in tests. No test is out of line with plan-w2-p3-fix0 or D95, and no failure
+needs a finding to explain it.
+
+Not built: no new test. Every point the plan names already has one (l-tests-9ad80f6ea4), and each
+mutant it names is killed; a further test would duplicate one.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
