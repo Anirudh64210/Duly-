@@ -92,3 +92,20 @@ Ran and printed:
 Changed: W2-007 to W2-013 added (5 met, W2-011 and W2-012 partial); DEC-D74-001 and RMKT-033 not_started to partial; notes on DEC-D92-004, DEC-D92-005, DEC-D73-001.
 Not run: make test, make test-offline, prove-gates, desktop vitest, mutants M9 and M12, tests/unit/tools whole and desktop_entry.
 Next audit: use a seed other than 20261002, 20261003 and 20261005.
+
+## 2026-10-03, run l-audit-3167cec10b, attempt 1
+
+Tried: audit W2-P3 (plan-w2-p3.yaml and plan-w2-p3-fix0.yaml; SPEC-W2 points 22, 41, 46 N5, 47, 51 and SPEC-W1 point 14 as D95 amends them) at 78f9ace (docs/requirements/audits/w2-p3.md).
+
+Ran and printed:
+- test_schedule.py, test_updates_module.py, test_local_routes_w2.py, test_bundle_inputs.py: 128 passed. test_desktop_main.py: 56 passed, 15 failed, all Operation not permitted (sandbox sockets).
+- pytest tests/unit tests/holdout without tools and the socket file: 3042 passed, 1 xfailed, exit 0, 3 min 47 s.
+- mypy, ruff check and format, engine_literals, copy lint, sources verify: all exit 0. web tests/web without coverage: 9 passed (npm test cannot create web/coverage here).
+- Mutants M1, M2, M3, M7 and six of my own on scratch copies: all killed; M17 (dead handler) survives.
+- Probes on both apps, 16 requests worked by hand: all match, byte-identical; limits plus one, duplicate ids, bad categories are 422; no token 403; one non-JSON published file gives 500 on both (review finding 2).
+- Drift: 20 met rows, seed 20261007, no change.
+- register build and check: 2524 requirements, whole; 466 of 2161 met, 22%.
+
+Changed: W2-014 to W2-022 added (7 met, W2-017 and W2-022 partial); DEC-D95-001 to DEC-D95-005 added (met); UPD-017 not_started to partial; notes on DEC-D75-001 and DEC-D73-001.
+Not run: make test, make test-offline, prove-gates, desktop vitest, the socket tests.
+Next audit: use a seed other than 20261002, 20261003, 20261005 and 20261007.

@@ -1435,9 +1435,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, 5 Updates, Rule",
   "text": "Which items match a case is computed deterministically from case attributes, never generated in the send path.",
   "kind": "updates",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The spec's impact score is dropped (UPD-005); matching by field (A4) keeps the determinism rule."
+  "status": "partial",
+  "evidence": "api/local_routes.py updates (matched stages from the names in the query); tests/unit/api/test_local_routes_w2.py",
+  "note": "The spec's impact score is dropped (UPD-005); matching by field (A4) keeps the determinism rule. Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): not_started to partial. GET /v1/updates matches an update's stages against the stage ids sent, deterministically, with no model. Fields never match (update.schema.json has no field selector yet), and no screen reads the route."
  },
  {
   "id": "WBC-001",
