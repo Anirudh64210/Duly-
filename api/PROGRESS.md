@@ -354,3 +354,21 @@ publish_blockers) in local_routes, served by both apps with the launch token.
   test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
   sandbox). Everything else passed. mypy "Success: no issues found in 73 source files", ruff
   "All checks passed!", "12 files already formatted". Copy lint on api: clean.
+
+## Run l-api-01af1a666d (review w2-p3 findings 1, 2, 7 and notes; D95, attempt 1)
+Goal: an update outside update.schema.json is never served; publish_blockers from engine.updates;
+duplicate ids a 422; categories follow ^[a-z0-9]+$; both apps alike from the packaged tree.
+- First run (socket tests left out): 7 failed. The updates schema test (2), duplicate id (1),
+  categories pattern (3), and the allowlist-tree test (desktop /v1/updates 500: api.case imported
+  pipeline.graph, which is not in the bundle).
+- api/case.py: published_updates checks each file with a validator on update.schema.json, then
+  engine.updates.publish_blockers. The lazy pipeline import and the empty-folder shortcut are gone.
+- api/local_routes.py: CATEGORIES pattern ^[a-z0-9]+(,[a-z0-9]+)*$ for categories (stages keep
+  NAMES); /v1/schedule answers 422 "requests: more than one request has the id <id>." after the
+  schema check and before the case check. bundle.json not touched.
+- Findings 1 (schedule.schema.json in the bundle), 5, 6 and 8 needed no api change: the bundle
+  and the engine lane's work already make those tests pass.
+- Copy lint on api: clean. Done command, run as written: exit 1. 15 failed, all in
+  tests/unit/desktop_entry/test_desktop_main.py, each "[Errno 1] Operation not permitted" on an
+  AF_UNIX bind (the sandbox). Everything else passed. mypy "Success: no issues found in 74 source
+  files", ruff "All checks passed!", "12 files already formatted".
