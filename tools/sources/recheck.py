@@ -140,7 +140,13 @@ def fetch(pack: Path, now: dt.datetime, get: Fetcher = http_get) -> Path:
     out = pack / f"recheck-{day}.json"
     # A second fetch the same day adds its rows; it never writes over the first one's record.
     earlier = json.loads(out.read_text()).get("rows", []) if out.exists() else []
-    record = {"pack": pack.as_posix(), "day": day, "rows": [*earlier, *rows]}
+    # The pack as a path inside the repository, never this machine's own folders (audit
+    # 2026-10-03: the records carried /Users/... into the repository).
+    try:
+        shown = pack.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        shown = pack.name
+    record = {"pack": shown, "day": day, "rows": [*earlier, *rows]}
     out.write_text(json.dumps(record, indent=2) + "\n")
     return out
 

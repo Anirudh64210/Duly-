@@ -92,6 +92,20 @@ def test_a_fetch_records_same_and_changed_and_keeps_the_changed_copy_beside_the_
     }
 
 
+def test_the_record_names_the_pack_without_this_machines_folders(tmp_path):
+    # Audit 2026-10-03: recheck records carried /Users/... into the repository. Outside the
+    # repository the pack is named by its folder alone; inside it, by its path from the root.
+    out = recheck.fetch(make_pack(tmp_path), NOW, fake_web())
+    shown = json.loads(out.read_text())["pack"]
+    assert not shown.startswith("/")
+    assert str(tmp_path) not in shown
+    for record in recheck.REPO_ROOT.glob("rulepacks/*/v*/recheck-*.json"):
+        assert (
+            json.loads(record.read_text())["pack"]
+            == record.parent.relative_to(recheck.REPO_ROOT).as_posix()
+        ), record.name
+
+
 def test_a_source_that_could_not_be_fetched_is_recorded_and_supports_nothing(tmp_path):
     pack = make_pack(tmp_path, checked_on="2026-10-02")
     recheck.fetch(pack, NOW, fake_web(down={PDF_URL}))
