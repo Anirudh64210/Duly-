@@ -4719,3 +4719,35 @@ no new helper in support.ts (plantRows and startsEmpty have one file as user).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-68ab6f1629: reconcile after plan-w2-p4-fix1.yaml (the second W2-P4 review)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/plan-w2-p4-fix1.yaml, reviews/w2-p4.md findings
+1 to 8, the merged L-desktop (33335c2) and L-api (a370735) changes.
+
+Ran:
+- npm test -w desktop: the sandbox refuses mkdir desktop/coverage (EPERM, outside tests/). With
+  --coverage.reportsDirectory=$TMPDIR/cov-d: 22 files, 347 tests, all pass, including the ten
+  review2_w2p4_* tests that failed before the fixes.
+- npm test -w web -- tests/web (reports in $TMPDIR/cov-w): 2 files, 9 tests, all pass.
+- uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools: 15
+  failed, all in tests/unit/desktop_entry/test_desktop_main.py on "[Errno 1] Operation not
+  permitted" from the Unix socket bind (the mission names this). With that file deselected:
+  3046 passed, 1 xfailed. test_review2_w2p4_6 passes.
+
+Changed: tests/desktop/documents-store.test.ts, one new test:
+- review2_w2p4_8 (note 8): an index planted with 20001 history lines, no write first; list
+  answers within list_reply with the newest 20000 (count 1 first, count 20000 last). The plan
+  gave L-desktop "trim an index already over 20000 history lines when it is loaded", and no test
+  held it: review_w2p4_5 plants exactly 20000 and so passes without the trim at load.
+  What makes it fail: drop the slice in load (loaded = { key, index }). Checked in
+  $TMPDIR/mt10: list is then outside list_reply ("/: anyOf"), so the test fails.
+- After it: tsc, eslint and prettier on tests/desktop clean; npm test -w desktop 348 pass.
+
+No assertion changed. No failure is left that a finding does not explain.
+
+Not built: no test of note 5 (overbuilt code, not a missing test); no test of build-python.sh's
+process substitution (note 7, owned by desktop/src/buildpython.test.ts).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

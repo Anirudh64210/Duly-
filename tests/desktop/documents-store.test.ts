@@ -1203,6 +1203,31 @@ describe("the second W2-P4 review's findings on the store (reviews/w2-p4.md, 444
     });
     expect((await listed(await open())).documents).toHaveLength(5000);
   }, 120_000);
+
+  it("review2_w2p4_8: an index already over 20000 history lines lists at once, newest 20000", async () => {
+    // Note 8: an index of more than 20000 lines, which only a build before D96 wrote, made list
+    // fail until the next write trimmed it. The contract's list_reply history: "The index keeps
+    // the newest 20000 lines". Planted: 20001 exported lines, newest first, line k (k = 0
+    // newest) with count k + 1. Working: with no write first, list keeps lines 0..19999, so
+    // history[0] is count 1, history[19999] count 20000; the oldest, count 20001, is dropped.
+    // Fails if load does not trim (list then gives 20001 lines, outside list_reply).
+    const kept = keptRandom();
+    await addOne(await open({ random: kept.random }), studentFile("ead.pdf", 900).path);
+    const key = documentKey(kept.draws);
+    const index = openIndex(key);
+    index.history = Array.from({ length: 20001 }, (_, k) => ({
+      on: TODAY,
+      event: "exported",
+      count: k + 1,
+    }));
+    plantIndex(key, index);
+
+    const seen = await listed(await open());
+    expect(seen.documents).toHaveLength(1);
+    expect(seen.history).toHaveLength(20000);
+    expect(seen.history[0]).toEqual({ on: TODAY, event: "exported", count: 1 });
+    expect(seen.history[19999]).toEqual({ on: TODAY, event: "exported", count: 20000 });
+  }, 120_000);
 });
 
 function flip(bytes: Buffer): Buffer {
