@@ -351,6 +351,26 @@ def test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_serve
     assert _shown(a.json()) == [PASSING]
 
 
+def test_review_w2p3_2_a_file_that_is_not_json_is_skipped_and_the_rest_is_served(
+    apps: tuple[TestClient, TestClient], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # reviews/w2-p3.md finding 2: pipeline/published/ holding one valid, unblocked update and
+    # one file containing `{not json` gave a 500, so the valid update was not served either.
+    # openapi /v1/updates: "a file that does not follow it is never returned"; a file that is
+    # not JSON is the plainest such file. Both apps answer 200 with PASSING only. Fails while
+    # api/case.py lets json.loads raise on the bad file (500), or serves nothing.
+    (tmp_path / f"{PASSING['id']}.json").write_text(json.dumps(PASSING))
+    (tmp_path / "review-w2p3-not-json.json").write_text("{not json")
+    monkeypatch.setattr(importlib.import_module("api.case"), "PUBLISHED", tmp_path)
+    server, desktop = apps
+    a = server.get("/v1/updates", headers=WITH_TOKEN)
+    b = desktop.get("/v1/updates", headers=WITH_TOKEN)
+    assert a.status_code == 200, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+    assert _updates_problems(a.json()) == []
+    assert _shown(a.json()) == [PASSING]
+
+
 # Finding 6 and D95 (3): Duly's own limits in schedule.schema.json, days 36525, business days
 # 260, months 1200. One over each is outside the contract, so a 422 from both apps alike.
 
