@@ -26,7 +26,7 @@ WEEK_HOURS = timedelta(weeks=1) // timedelta(hours=1)
 
 
 @cache
-def _readable_days() -> tuple[date, date]:
+def readable_days() -> tuple[date, date]:
     """dates.earliest_readable and dates.latest_readable in contracts/product_settings.yaml."""
     by_id = {row["id"]: row["value"] for row in load_settings()["settings"]}
     first = date.fromisoformat(str(by_id["dates.earliest_readable"]))
@@ -42,7 +42,7 @@ def as_date(raw: object) -> date | None:
         day = date.fromisoformat(raw)
     except ValueError:
         return None
-    first, last = _readable_days()
+    first, last = readable_days()
     return day if first <= day <= last else None
 
 
