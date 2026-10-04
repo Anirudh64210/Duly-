@@ -12,6 +12,12 @@ export const STATE_CHANNEL = "duly:state";
 
 export const STATE_FILE = "state.bin";
 
+/**
+ * Main's record of the reminders it has shown (D96), encrypted as state.bin is. reminders.ts
+ * keeps it; state.clear and the documents store's clear remove it with the rest.
+ */
+export const SHOWN_FILE = "reminders-shown.bin";
+
 export const STATE_BRIDGE_ID = "https://duly.local/contracts/desktop_state_bridge.schema.json";
 
 /** The contracts the state bridge checks against: $defs/state refers to the other two. */
@@ -34,6 +40,7 @@ export function createStateBridge(deps: CaseStoreDeps): (message: unknown) => Pr
       valueSchema: `${STATE_BRIDGE_ID}#/$defs/state`,
       bridgeSchema: STATE_BRIDGE_ID,
       shapeOnly: {},
+      clearsToo: [SHOWN_FILE],
     },
     deps,
   );

@@ -214,7 +214,7 @@ function launch(folder: string | null, verify: boolean): void {
     });
 
     // Planned reminders follow the saved state: as it is read at launch, and as it is saved.
-    const reminders = createReminders({ folder: app.getPath("userData") });
+    const reminders = createReminders({ folder: app.getPath("userData"), cipher });
     const stateAnswer = createStateBridge({
       folder: app.getPath("userData"),
       checker: loadChecker(paths.contracts, STATE_CONTRACTS),
