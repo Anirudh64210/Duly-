@@ -1,0 +1,84 @@
+{
+  "id": "2026-09-14-presidents-alliance-order",
+  "headline": "A court in Boston put off the fixed admission period rule",
+  "plain": "On September 14, 2026, a federal court in Boston put off the start of a rule that would end duration of status for F, J, and I visa holders. It also barred the government from taking more steps on the rule until the court says otherwise or decides the case. The government has appealed. On October 2, 2026, the court met with both sides and set October 9, 2026 for a proposed schedule.",
+  "source_label": {
+    "agency": "U.S. District Court, District of Massachusetts",
+    "document": "Preliminary injunction order, No. 1:26-cv-13799, ECF 51",
+    "dated": "2026-09-14"
+  },
+  "topic": "Fixed admission period rule",
+  "legal_status": "enjoined",
+  "status_as_of": "2026-10-03",
+  "categories": [
+    "f1"
+  ],
+  "claims": [
+    {
+      "text": "The order of September 14, 2026 (ECF 51) postpones the effective date of the final rule published at 91 Fed. Reg. 44976 on July 17, 2026, until the court orders otherwise or decides the merits.",
+      "quote": "The effective date of the Final Rule is hereby POSTPONED pending further order of this court or resolution of this proceeding on the merits.",
+      "source_url": "https://storage.courtlistener.com/recap/gov.uscourts.mad.305059/gov.uscourts.mad.305059.51.0_1.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399",
+      "quote_found": true
+    },
+    {
+      "text": "The same order enjoins the defendants from taking any further action to implement the final rule until the court orders otherwise or decides the merits.",
+      "quote": "Defendants are preliminarily enjoined from taking any further action to implement the Final Rule pending further order of this court or resolution of this proceeding on the merits.",
+      "source_url": "https://storage.courtlistener.com/recap/gov.uscourts.mad.305059/gov.uscourts.mad.305059.51.0_1.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399",
+      "quote_found": true
+    },
+    {
+      "text": "The order is dated September 14, 2026 and signed by District Judge F. Dennis Saylor IV.",
+      "quote": "September 14, 2026 United States District Judge",
+      "source_url": "https://storage.courtlistener.com/recap/gov.uscourts.mad.305059/gov.uscourts.mad.305059.51.0_1.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399",
+      "quote_found": true
+    },
+    {
+      "text": "The district court docket listing fetched on October 3, 2026 shows entry 53, filed September 30, 2026: a notice of appeal from the memorandum and order of September 14, 2026 (ECF 50).",
+      "quote": "NOTICE OF APPEAL as to 50 Memorandum & ORDER,, by Mullin Markwayne, United States Department of Homeland Security, United States Immigration and Customs Enforcement, David Venturella.",
+      "source_url": "https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74661796&type=rd&order_by=entry_date_filed%20desc",
+      "source_kind": "primary",
+      "snapshot_sha256": "31747ff852fa4c18c929dd6d1cce3a2217e49e3161cae6fc8bcb6140b5cb0c4b",
+      "quote_found": true
+    },
+    {
+      "text": "The district court docket listing fetched on October 3, 2026 shows entry 56, filed October 2, 2026: a status conference held that day, with a proposed schedule due by October 9, 2026. Searched for the word stay in every entry of that listing, which holds every entry filed after entry 51: no entry matched. The First Circuit docket for case 26-2112 was not read.",
+      "quote": "Status Conference held on 10/2/2026. Parties update the court; Proposed schedule and pathway forward due for submission by October 9, 2026.",
+      "source_url": "https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74661796&type=rd&order_by=entry_date_filed%20desc",
+      "source_kind": "primary",
+      "snapshot_sha256": "31747ff852fa4c18c929dd6d1cce3a2217e49e3161cae6fc8bcb6140b5cb0c4b",
+      "quote_found": true
+    }
+  ],
+  "history": [
+    {
+      "on": "2026-09-14",
+      "legal_status": "enjoined",
+      "note": "Preliminary injunction order postponing the effective date of the final rule (ECF 51).",
+      "source_url": "https://storage.courtlistener.com/recap/gov.uscourts.mad.305059/gov.uscourts.mad.305059.51.0_1.pdf"
+    },
+    {
+      "on": "2026-09-30",
+      "legal_status": "appealed",
+      "note": "Notice of appeal (ECF 53) from the order of September 14, 2026.",
+      "source_url": "https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74661796&type=rd&order_by=entry_date_filed%20desc"
+    }
+  ],
+  "checks": {
+    "independent_check_passed": false,
+    "refutation_survived": false
+  },
+  "approval": {
+    "approved": false,
+    "approved_by": null,
+    "approved_at": null
+  }
+}

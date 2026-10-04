@@ -1,0 +1,80 @@
+{
+  "id": "2026-09-14-trilleras-gomez-denial",
+  "headline": "A second court turned down one exchange visitor's request about the fixed admission period rule",
+  "plain": "On September 14, 2026, a federal court in the District of Columbia turned down a request from one exchange visitor. She had asked that the fixed admission period rule not apply to her while her case goes on. Her case is about a waiver, not the rule, and the ruling covers only that case. The same day, a court in Boston put off the start of the rule itself.",
+  "source_label": {
+    "agency": "U.S. District Court, District of Columbia",
+    "document": "Memorandum opinion, No. 1:26-cv-02364, ECF 14",
+    "dated": "2026-09-14"
+  },
+  "topic": "Fixed admission period rule",
+  "legal_status": "enjoined",
+  "status_as_of": "2026-10-03",
+  "categories": [
+    "f1"
+  ],
+  "claims": [
+    {
+      "text": "The plaintiffs in Trilleras Gomez v. Mullin, No. 1:26-cv-02364 (D.D.C.), asked the court to keep the final rule of July 17, 2026 from applying to one J-1 plaintiff while the case goes on.",
+      "quote": "Plaintiffs seek to enjoin a new Department of Homeland Security (DHS) rule from applying to Trilleras for the duration of this litigation.",
+      "source_url": "https://storage.courtlistener.com/pdf/2026/09/14/trilleras_gomez_v._mullin.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "d87bc7c0dd7b4e451e50cf79a5f2b83a2877671956a0f14c41b235c824cba731",
+      "quote_found": true
+    },
+    {
+      "text": "The plaintiffs do not challenge the final rule itself; their lawsuit is about a waiver of the J-1 two year home residence requirement.",
+      "quote": "Plaintiffs bring no independent challenge to the September Rule.",
+      "source_url": "https://storage.courtlistener.com/pdf/2026/09/14/trilleras_gomez_v._mullin.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "d87bc7c0dd7b4e451e50cf79a5f2b83a2877671956a0f14c41b235c824cba731",
+      "quote_found": true
+    },
+    {
+      "text": "The court denied the motion for a preliminary injunction in an opinion dated September 14, 2026.",
+      "quote": "For the foregoing reasons, Plaintiffs’ motion for a preliminary injunction, ECF 8, is DENIED.",
+      "source_url": "https://storage.courtlistener.com/pdf/2026/09/14/trilleras_gomez_v._mullin.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "d87bc7c0dd7b4e451e50cf79a5f2b83a2877671956a0f14c41b235c824cba731",
+      "quote_found": true
+    },
+    {
+      "text": "The opinion is dated September 14, 2026.",
+      "quote": "Date: September 14, 2026",
+      "source_url": "https://storage.courtlistener.com/pdf/2026/09/14/trilleras_gomez_v._mullin.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "d87bc7c0dd7b4e451e50cf79a5f2b83a2877671956a0f14c41b235c824cba731",
+      "quote_found": true
+    },
+    {
+      "text": "On the same day the District of Massachusetts (No. 1:26-cv-13799, ECF 51) postponed the effective date of the final rule, not only for the parties to that case.",
+      "quote": "The effective date of the Final Rule is hereby POSTPONED pending further order of this court or resolution of this proceeding on the merits.",
+      "source_url": "https://storage.courtlistener.com/recap/gov.uscourts.mad.305059/gov.uscourts.mad.305059.51.0_1.pdf",
+      "source_kind": "primary",
+      "source_type": "court_order",
+      "snapshot_sha256": "c211815e43cc9f25b6cc231ab75c8c8151bfe6e26c3a79d147a3642c220db399",
+      "quote_found": true
+    }
+  ],
+  "history": [
+    {
+      "on": "2026-09-14",
+      "legal_status": "enjoined",
+      "note": "The District of Columbia denied one J-1 plaintiff's motion for a preliminary injunction (ECF 14). The District of Massachusetts postponed the rule the same day (ECF 51).",
+      "source_url": "https://storage.courtlistener.com/pdf/2026/09/14/trilleras_gomez_v._mullin.pdf"
+    }
+  ],
+  "checks": {
+    "independent_check_passed": false,
+    "refutation_survived": false
+  },
+  "approval": {
+    "approved": false,
+    "approved_by": null,
+    "approved_at": null
+  }
+}
