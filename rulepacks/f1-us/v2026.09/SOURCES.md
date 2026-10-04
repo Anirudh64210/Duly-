@@ -56,6 +56,25 @@ What came back:
 
 No number, quote or plain text changed in this fetch.
 
+## Fetch of 2026-10-04
+
+Every source in the first table was fetched again on 2026-10-04 by tools/sources/recheck.py, outside the agents' jail. The result is in recheck-2026-10-04.json, and each copy that changed is in sources/recheck-2026-10-04/ under the name of its original. One new copy, named by no rule, was saved for the appeal's update draft:
+
+| File in sources/ | What it is | Fetched from | sha256 |
+|---|---|---|---|
+| courtlistener-docket-74908049-entries-2026-10-04.json | CourtListener listing of the entries on the First Circuit docket of case 26-2112 (the appeal from ECF 50 of the D. Mass. case), as returned on 2026-10-04 | https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74908049&type=rd&order_by=entry_date_filed%20desc | 3d414f9c65a5bb42ed024e8726d8a951c1c59d6e53e50b506a8088177cbd687b |
+
+What came back:
+
+- Byte for byte the same: 19 of the 24 sources, among them every eCFR text, the Federal Register documents, the court PDFs and the SEVP guidance PDF.
+- eCFR's versions lists: the newest version of 8 CFR 214.2 is still 2026-09-30, the one read in the fetch of 2026-10-02; there is none after it. The newest of 8 CFR 214.1 is 2026-09-15 and of 22 CFR 41.112 is 2021-11-08, both older than the 2026-09-30 copies saved. The four copies of the continuity check below are older versions by design.
+- The Study in the States OPT page: the markup changed and the words are the same. With tags taken out and spaces made uniform the copies are equal, and all seven quotes resting on it are found in the new copy.
+- The D. Mass. docket listing: one new entry, ECF 56 of 2026-10-02, the clerk's notes of the status conference, with a proposed schedule and pathway forward due by 2026-10-09. No entry stays the order (ECF 51).
+- The First Circuit docket (the new listing above): one entry, the case docketed on 2026-10-01. No motion to stay.
+- 5 U.S.C. 6103 and 31 U.S.C. 1102 from uscode.house.gov: the Under Maintenance page again. Those copies back nothing, as on 2026-10-02.
+
+No number, quote or plain text changed in this fetch. Moving a rule's checked_on is L-content's step in plan-w2-r1 (D98), and for the litigated regime it needs the founder's sign-off on the docket (SPEC-FEED point 55).
+
 ## Claims about the blocked rule
 
 Each claim is one sentence, the exact quote, the url, and the saved copy. Hashes are in the table above.
