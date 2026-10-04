@@ -458,3 +458,27 @@ vitest 22 files, 335 passed; eslint, prettier and copy lint clean; bash -n clean
 test_bundle_inputs.py 14 passed.
 Not built: a deletion of reminders-shown.json in Delete everything (no SPEC point or test asks;
 the file holds only hashes and is trimmed to the plan at the next show).
+
+## 2026-10-04, run l-desktop-27d88c5e61, attempt 1
+
+The second W2-P4 review (reviews/w2-p4.md findings 1 to 5, notes 7 and 8) against the documents
+contract as of 444fa86.
+- Finding 1: load() writes the empty documents.bin in the same step that first writes keys.bin.
+  index_missing is now only documents.bin missing while files/ holds a file (keys.bin or not);
+  keys.bin with no stored file writes a new empty index at load. A failed index write there
+  answers cannot_store, and the next launch starts empty.
+- Finding 3: add checks each path once (check()); when the paths alone would pass 5000, it
+  first counts only the files it would store (not skipped, not a duplicate of a held one or of
+  an earlier path in the same add), and refuses store_full only if those pass 5000.
+- Finding 5: the multi-file replaces rule is only in docbridge.ts (it counts skipped drops, as
+  the contract says), with its test review_w2p4_2 in tests/desktop/documents-bridge.test.ts.
+- Note 8: load trims the history to the newest 20000 lines in memory, so list answers at once.
+- Finding 2: reminders.ts keeps the shown record in <userData>/reminders-shown.bin, the JSON of
+  [id, date] pairs encrypted with the cipher (safeStorage in main, as state.bin); a record this
+  keychain cannot open is none shown. SHOWN_FILE lives in statefile.ts; state.clear removes it
+  (FileKind.clearsToo in casefile.ts) and so does the documents store's clear.
+- Note 7: build-python.sh line 121 reads the list through process substitution.
+What ran: the done command, unpiped, output to a file under TMPDIR: exit 0; typecheck clean;
+vitest 22 files, 347 passed; eslint, prettier and copy lint clean; bash -n clean.
+Not built: no write of the trimmed history at load (list only needs it in memory; the next
+write keeps 20000); no guard for a file that changes between the count and the store.

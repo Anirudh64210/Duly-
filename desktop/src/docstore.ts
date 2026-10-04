@@ -11,6 +11,7 @@ import { basename, extname, join, resolve, sep } from "node:path";
 
 import { nodeDisk, type Cipher, type Disk } from "./casefile";
 import type { Checker } from "./schema";
+import { SHOWN_FILE } from "./statefile";
 
 export const DOCUMENTS_BRIDGE_ID =
   "https://duly.local/contracts/desktop_documents_bridge.schema.json";
@@ -246,10 +247,9 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     }
     // Without keys.bin an index that is there can never be read again: refuse, change nothing.
     if (wrapped === null && encrypted !== null) return refuse("cannot_decrypt");
-    // D96: a missing index never means no documents while keys.bin or a stored file remains.
-    if (encrypted === null && (wrapped !== null || (await stored()).length > 0)) {
-      return refuse("index_missing");
-    }
+    // D96: a missing index never means no documents while a stored file remains. keys.bin
+    // alone names no document, so a new empty index is written below.
+    if (encrypted === null && (await stored()).length > 0) return refuse("index_missing");
     let key: Buffer;
     if (wrapped === null) {
       if (!create) return { key: Buffer.alloc(0), index: { rows: [], history: [] } };
@@ -267,26 +267,27 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       }
       if (key.length !== KEY) return refuse("cannot_decrypt");
     }
-    let index: Index = { rows: [], history: [] };
-    if (encrypted !== null) {
-      let value: unknown;
-      try {
-        const aes = createDecipheriv("aes-256-gcm", key, encrypted.subarray(0, INDEX_NONCE));
-        aes.setAAD(INDEX_AAD);
-        aes.setAuthTag(encrypted.subarray(INDEX_NONCE, INDEX_NONCE + TAG));
-        const text = Buffer.concat([
-          aes.update(encrypted.subarray(INDEX_NONCE + TAG)),
-          aes.final(),
-        ]);
-        value = JSON.parse(text.toString("utf8"));
-      } catch {
-        return refuse("index_damaged", "/: does not open under the document key");
-      }
-      const problem = indexProblem(checker, value);
-      if (problem !== null) return refuse("index_damaged", problem);
-      index = value as Index;
+    if (encrypted === null) {
+      // In the step that makes keys.bin, so keys.bin never stays without an index it can name.
+      const empty: Index = { rows: [], history: [] };
+      if (!(await save(key, empty))) return refuse("cannot_store");
+      return { key, index: empty };
     }
-    loaded = { key, index };
+    let value: unknown;
+    try {
+      const aes = createDecipheriv("aes-256-gcm", key, encrypted.subarray(0, INDEX_NONCE));
+      aes.setAAD(INDEX_AAD);
+      aes.setAuthTag(encrypted.subarray(INDEX_NONCE, INDEX_NONCE + TAG));
+      const text = Buffer.concat([aes.update(encrypted.subarray(INDEX_NONCE + TAG)), aes.final()]);
+      value = JSON.parse(text.toString("utf8"));
+    } catch {
+      return refuse("index_damaged", "/: does not open under the document key");
+    }
+    const problem = indexProblem(checker, value);
+    if (problem !== null) return refuse("index_damaged", problem);
+    const index = value as Index;
+    // Only a build before D96 wrote more lines than one list answer carries.
+    loaded = { key, index: { ...index, history: index.history.slice(0, MAX_HISTORY) } };
     return loaded;
   };
 
@@ -339,78 +340,79 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     }
   };
 
+  /** One file the student gave: its bytes to store, or why it is skipped. */
+  const check = async (
+    path: string,
+    held: (hash: string) => string | undefined,
+  ): Promise<{ plain: Buffer; hash: string } | { refused: string; existing?: string }> => {
+    try {
+      const found = await stat(path);
+      if (!found.isFile()) return { refused: "not_a_file" };
+      if (await insideFolder(folder, path)) return { refused: "inside_data_folder" };
+      if (found.size > MAX_FILE_BYTES) return { refused: "too_large" };
+      if (found.size === 0) return { refused: "empty" };
+    } catch {
+      return { refused: "not_a_file" };
+    }
+    let plain: Buffer;
+    try {
+      plain = await readFile(path);
+    } catch {
+      return { refused: "cannot_store" };
+    }
+    if (plain.length > MAX_FILE_BYTES) return { refused: "too_large" };
+    if (plain.length === 0) return { refused: "empty" };
+    const hash = sha256(plain);
+    const existing = held(hash);
+    return existing === undefined ? { plain, hash } : { refused: "duplicate", existing };
+  };
+
   const add = async (paths: readonly string[], replaces?: string): Promise<StoreReply> => {
     const ready = await load(true);
     if ("ok" in ready) return ready;
-    // A chain stays one line, so only one file at a time replaces a document.
-    if (
-      replaces !== undefined &&
-      (paths.length > 1 || badReplaces(ready.index, undefined, replaces))
-    ) {
+    if (replaces !== undefined && badReplaces(ready.index, undefined, replaces)) {
       return refuse("bad_replaces");
     }
-    // All or nothing: an add that would pass the most a list answer carries adds nothing.
-    if (ready.index.rows.length + paths.length > MAX_DOCUMENTS) return refuse("store_full");
+    // All or nothing: an add whose stored files would pass the most a list answer carries adds
+    // nothing. Skipped files do not count, so each is checked first when the paths alone pass.
+    if (ready.index.rows.length + paths.length > MAX_DOCUMENTS) {
+      const hashes = new Set(ready.index.rows.map((row) => row.sha256));
+      let storing = 0;
+      for (const given of paths) {
+        const checked = await check(resolve(given), (hash) =>
+          hashes.has(hash) ? hash : undefined,
+        );
+        if ("plain" in checked) {
+          hashes.add(checked.hash);
+          storing += 1;
+        }
+      }
+      if (ready.index.rows.length + storing > MAX_DOCUMENTS) return refuse("store_full");
+    }
     const added: Document[] = [];
     const skipped: Record<string, unknown>[] = [];
     for (const given of paths) {
       // A path through .. is taken as the place it names, so the data folder is found by any path.
       const path = resolve(given);
       const name = basename(path);
-      const skip = (refused: string, more: Record<string, unknown> = {}) =>
-        skipped.push({ ...(name === "" ? {} : { name }), refused, ...more });
-      let size: number;
-      try {
-        const found = await stat(path);
-        if (!found.isFile()) {
-          skip("not_a_file");
-          continue;
-        }
-        size = found.size;
-      } catch {
-        skip("not_a_file");
-        continue;
-      }
-      if (await insideFolder(folder, path)) {
-        skip("inside_data_folder");
-        continue;
-      }
-      if (size > MAX_FILE_BYTES) {
-        skip("too_large");
-        continue;
-      }
-      if (size === 0) {
-        skip("empty");
-        continue;
-      }
+      const skip = (why: { refused: string; existing?: string }) =>
+        skipped.push({ ...(name === "" ? {} : { name }), ...why });
       const { key, index } = loaded ?? ready;
-      let plain: Buffer;
-      try {
-        plain = await readFile(path);
-      } catch {
-        skip("cannot_store");
+      const checked = await check(
+        path,
+        (hash) => index.rows.find((row) => row.sha256 === hash)?.document.id,
+      );
+      if (!("plain" in checked)) {
+        skip(checked);
         continue;
       }
-      if (plain.length > MAX_FILE_BYTES) {
-        skip("too_large");
-        continue;
-      }
-      if (plain.length === 0) {
-        skip("empty");
-        continue;
-      }
-      const hash = sha256(plain);
-      const held = index.rows.find((row) => row.sha256 === hash);
-      if (held !== undefined) {
-        skip("duplicate", { existing: held.document.id });
-        continue;
-      }
+      const { plain, hash } = checked;
       const id = random(16).toString("hex");
       const fileKey = random(KEY);
       try {
         await store(id, fileKey, plain);
       } catch {
-        skip("cannot_store");
+        skip({ refused: "cannot_store" });
         continue;
       }
       const document: Document = {
@@ -432,7 +434,7 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       };
       if (!(await save(key, next))) {
         await rm(join(files, id), { force: true });
-        skip("cannot_store");
+        skip({ refused: "cannot_store" });
         continue;
       }
       added.push({ ...document });
@@ -630,6 +632,8 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
         await rm(files, { recursive: true, force: true });
         await disk.remove(indexPath);
         await disk.remove(keysPath);
+        // Delete everything: the record of shown reminders goes too (statefile.ts).
+        await disk.remove(join(folder, SHOWN_FILE));
       } catch {
         return refuse("cannot_store");
       }

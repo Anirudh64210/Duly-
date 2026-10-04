@@ -34,6 +34,8 @@ export interface FileKind {
   bridgeSchema: string;
   /** The least a value can be, put in its place while only the call's shape is checked. */
   shapeOnly: object;
+  /** Other files in the folder that clear removes with it. */
+  clearsToo?: readonly string[];
 }
 
 export interface Refusal {
@@ -194,6 +196,7 @@ export function createFileBridge(
   const clear = async (call: string): Promise<Reply> => {
     try {
       await disk.remove(file);
+      for (const other of kind.clearsToo ?? []) await disk.remove(join(deps.folder, other));
     } catch {
       return refusal(call, "cannot_store");
     }

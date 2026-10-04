@@ -118,7 +118,7 @@ while IFS=$'\t' read -r from to; do
     mkdir -p "$(dirname "$build/engine-root/$to")"
     cp -p "$root/$from" "$build/engine-root/$to"
   fi
-done <<<"$files"
+done < <(printf '%s\n' "$files")
 
 echo "step 4: precompile"
 run "$python" -I -m compileall -q -j 0 --invalidation-mode unchecked-hash \
