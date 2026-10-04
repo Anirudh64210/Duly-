@@ -20,8 +20,20 @@ const ROOT = join(HERE, "..");
 /** W1 builds for the founder's Mac only: Apple silicon. */
 export const TARGET = { platform: "darwin", arch: "arm64" } as const;
 
-/** The two schemas casefile.ts reads, copied into app.asar beside the screen. */
-export const CONTRACTS = ["case.schema.json", "desktop_case_bridge.schema.json"] as const;
+/**
+ * The schemas the bridges read (casefile.ts, enginebridge.ts, statefile.ts), copied into
+ * app.asar beside the screen.
+ */
+export const CONTRACTS = [
+  "case.schema.json",
+  "desktop_case_bridge.schema.json",
+  "engine_output.schema.json",
+  "schedule.schema.json",
+  "update.schema.json",
+  "desktop_engine_bridge.schema.json",
+  "desktop_ask_bridge.schema.json",
+  "desktop_state_bridge.schema.json",
+] as const;
 
 /** The bundle id, from desktop/app.json (point 31). */
 export function bundleId(path: string = join(HERE, "app.json")): string {
@@ -76,7 +88,7 @@ const config: ForgeConfig = {
         throw new Error("Choose the bundle id in desktop/app.json first (SPEC-W1 point 31)");
       }
     },
-    // The screen and the two schemas, inside app.asar (point 18).
+    // The screen and the bridges' schemas, inside app.asar (point 18).
     packageAfterCopy: async (_config, buildPath) => {
       cpSync(join(ROOT, "web", "dist"), join(buildPath, "web"), { recursive: true });
       mkdirSync(join(buildPath, "contracts"), { recursive: true });
