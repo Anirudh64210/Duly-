@@ -4336,3 +4336,34 @@ and the contract check from test_schedule.py).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-6b85610ccb: W2-P3 alignment after N5, A1, A2 merged (SPEC-W2 points 22, 46, 47, 51)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 points 22, 46, 47, 51, contracts/factory_report.schema.json,
+tests/unit/api/test_local_routes_w2.py, tests/unit/pipeline/test_update_files.py, git log of
+pipeline/drafts.
+
+Ran:
+- uv run ruff check tests: All checks passed. ruff format --check tests: 115 files already formatted.
+- pytest tests/unit tests/holdout -p no:cacheprovider --ignore=tests/unit/tools: only the 15 tests
+  in tests/unit/desktop_entry/test_desktop_main.py that bind a Unix socket fail, each with
+  "[Errno 1] Operation not permitted" (sandbox). With that file ignored: every test passed.
+- pytest tests/unit/engine/test_schedule.py tests/unit/api/test_local_routes_w2.py -rs: all
+  passed, none skipped. The tests written in l-tests-0e375622d3 before N5 and A1/A2 existed now
+  pass against engine/schedule.py and api/local_routes.py.
+- npm test -w web -- tests/web: exit 1 here only on mkdir web/coverage (EPERM, sandbox). With
+  --coverage.reportsDirectory=$TMPDIR/webcov: 9 tests passed.
+
+Changed: nothing in tests. No test is out of line with points 46, 47 or 51. The change that
+would make each W2-P3 test fail is listed under l-tests-0e375622d3 above.
+
+Checked not vacuous: pipeline/published/ does not exist, so GET /v1/updates serves an empty
+list; test_the_drafts_folder_holds_a_draft_publish_blockers_refuses keeps the never-serve-a-draft
+test from passing on nothing (pipeline/drafts holds 4 files, each refused as not_approved_in_ops).
+
+Not built: no new test. The point 51 L-pipeline line (articles in pipeline/published/) differs
+from what landed (drafts awaiting approval); that is founder's call, put under disputes, not
+tested around.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
