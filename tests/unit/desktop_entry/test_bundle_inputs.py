@@ -11,11 +11,14 @@ specs/step-w/SPEC-W1.md section 3:
   api/__init__.py, api/desktop_main.py, api/local_routes.py, api/case.py, api/case_f1.py,
   api/local_token.py, a launcher duly_engine.py, rulepacks/*/v*/parameters.yaml, and from
   contracts/ only case.schema.json, case_f1.schema.json, rulepack.schema.json and
-  product_settings.yaml. Not rulepacks' sources/, assistant/, pipeline/, api/main.py,
+  product_settings.yaml (DECISIONS.md D95 adds schedule.schema.json and update.schema.json,
+  which W2's routes read, and pipeline/published/*.json, SPEC-W2 point 47; nothing else from
+  pipeline/). Not rulepacks' sources/, assistant/, pipeline/, api/main.py,
   api/settings.py, api/db.py or api/worker.py. The tree keeps the repo's relative layout, so
   engine.rulepack.REPO_ROOT works unchanged. Checked by: the allowlist names no forbidden
   path; every file it names exists; assistant/providers.py matches no pattern; the engine
-  loads every pack from a temporary copy made from the allowlist alone.
+  loads every pack from a temporary copy made from the allowlist alone; D95 (1): a test runs
+  the routes from a tree built from the allowlist alone, and they answer as the server does.
 
 Written from the SPEC before desktop/python/bundle.json exists, so the point 14 tests fail
 until L-desktop writes it. The SPEC does not fix the file's shape; these tests read either a
@@ -26,6 +29,7 @@ takes every file under it.
 
 import json
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -34,11 +38,18 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
+import api.main
 from api import case as records_case
+from api import local_routes
+from api.local_token import TOKEN_HEADER
 from engine.rulepack import load_all
 from tests.support.records_case import CLOCK
 from tests.unit.acceptance import test_journeys as journeys
+from tests.unit.api.test_local_routes_w2 import PASSING
+from tests.unit.engine.test_schedule import CASE as SCHEDULE_CASE
+from tests.unit.engine.test_schedule import CLOCK as SCHEDULE_CLOCK
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BUNDLE_JSON = REPO_ROOT / "desktop" / "python" / "bundle.json"
@@ -67,7 +78,13 @@ CONTRACT_FILES = {
     "contracts/case_f1.schema.json",
     "contracts/rulepack.schema.json",
     "contracts/product_settings.yaml",
+    # D95 (1): the schemas POST /v1/schedule and GET /v1/updates read.
+    "contracts/schedule.schema.json",
+    "contracts/update.schema.json",
 }
+# D95 (1): the published updates GET /v1/updates serves, and nothing else from pipeline/.
+PUBLISHED_PATTERN = "pipeline/published/*.json"
+PUBLISHED = re.compile(r"^pipeline/published/[^/]+\.json$")
 PARAMETERS = re.compile(r"^rulepacks/[^/]+/v[^/]+/parameters\.yaml$")
 LAUNCHER = "duly_engine.py"
 
@@ -187,26 +204,30 @@ def _not_allowed(rel: str) -> bool:
     """A file point 14 does not let into the bundle."""
     if rel.startswith("engine/"):
         return False
-    if rel in API_FILES or rel in CONTRACT_FILES or PARAMETERS.match(rel):
+    if rel in API_FILES or rel in CONTRACT_FILES or PARAMETERS.match(rel) or PUBLISHED.match(rel):
         return False
     return Path(rel).name != LAUNCHER
 
 
 def test_point_14_every_pattern_names_files_that_exist() -> None:
     # "every file it names exists". Fails on a pattern that matches nothing, such as a
-    # misspelt path or a file not yet written.
-    assert [p for p in _patterns() if not _files_of(p)] == []
+    # misspelt path or a file not yet written. D95 keeps the articles in pipeline/drafts until
+    # the founder approves them, so pipeline/published/*.json names no file yet: an empty
+    # published folder is a state the SPEC expects, not a misspelt pattern.
+    assert [p for p in _patterns() if p != PUBLISHED_PATTERN and not _files_of(p)] == []
 
 
 def test_point_14_the_allowlist_names_no_forbidden_path() -> None:
     # The SPEC's list of what is not copied: rulepacks' sources/, assistant/, pipeline/,
-    # api/main.py, api/settings.py, api/db.py, api/worker.py; contracts/ beyond the four
-    # named. Fails if any pattern takes such a file, for example "api/*.py" or "rulepacks/**".
+    # api/main.py, api/settings.py, api/db.py, api/worker.py; contracts/ beyond the six
+    # named; pipeline/ beyond published/*.json (D95). Fails if any pattern takes such a file,
+    # for example "api/*.py", "rulepacks/**" or "pipeline".
     files = _allowlisted()
     assert sorted(f for f in files if _not_allowed(f)) == []
     for named in ("api/main.py", "api/settings.py", "api/db.py", "api/worker.py"):
         assert named not in files
-    assert [f for f in files if f.startswith(("assistant/", "pipeline/"))] == []
+    assert [f for f in files if f.startswith("assistant/")] == []
+    assert [f for f in files if f.startswith("pipeline/") and not PUBLISHED.match(f)] == []
     assert [f for f in files if "/sources/" in f] == []
 
 
@@ -222,6 +243,11 @@ def test_point_14_the_guard_refuses_each_forbidden_path() -> None:
         "api/worker.py",
         "rulepacks/f1-us/v2026.09/sources/fr-2016-04828.xml",
         "contracts/openapi.yaml",
+        "pipeline/graph.py",
+        "pipeline/__init__.py",
+        "pipeline/drafts/2026-09-14-presidents-alliance-order.json",
+        "pipeline/published/sub/x.json",
+        "pipeline/published/notes.md",
     ):
         assert _not_allowed(rel), rel
     for rel in (
@@ -229,6 +255,7 @@ def test_point_14_the_guard_refuses_each_forbidden_path() -> None:
         *API_FILES,
         *CONTRACT_FILES,
         "rulepacks/f1-us/v2026.09/parameters.yaml",
+        "pipeline/published/2026-09-14-presidents-alliance-order.json",
     ):
         assert not _not_allowed(rel), rel
 
@@ -241,11 +268,14 @@ def test_point_14_assistant_providers_matches_no_pattern() -> None:
 
 
 def test_point_14_the_allowlist_takes_every_file_the_spec_names() -> None:
-    # Fails if a named file is left out: an api module, one of the four contracts, the
-    # launcher, a pack's parameters.yaml, or a module of engine/.
+    # Fails if a named file is left out: an api module, one of the six contracts, the
+    # launcher, a pack's parameters.yaml, a module of engine/, or the published updates
+    # (D95: the pattern itself, since the folder may hold none yet, and every file it holds).
     files = _allowlisted()
     assert sorted(API_FILES - files) == []
     assert sorted(CONTRACT_FILES - files) == []
+    assert PUBLISHED_PATTERN in _patterns()
+    assert sorted(_files_of(PUBLISHED_PATTERN) - files) == []
     assert [f for f in files if Path(f).name == LAUNCHER], "the launcher duly_engine.py"
     packs = {p.relative_to(REPO_ROOT).as_posix() for p in REPO_ROOT.glob("rulepacks/*/v*")}
     # Hand count: rulepacks/ holds eb1a-us, f1-us, h1b-us and o1-us, each with v2026.09: 4.
@@ -258,6 +288,16 @@ def test_point_14_the_allowlist_takes_every_file_the_spec_names() -> None:
         if "__pycache__" not in p.parts
     }
     assert sorted(engine_modules - files) == []
+
+
+def _copy_of_the_allowlist(tmp_path: Path) -> Path:
+    """A tree holding the files the allowlist takes and nothing else, in the repo's layout."""
+    root = (tmp_path / "engine-root").resolve()
+    for rel in _allowlisted():
+        target = root / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO_ROOT / rel, target)
+    return root
 
 
 # The engine, from the copy alone. Two cases arrive on stdin: the smallest case
@@ -293,11 +333,6 @@ def test_point_14_the_engine_loads_every_pack_from_a_copy_made_from_the_allowlis
     # working folder nor PYTHONPATH puts the repository on sys.path; only the copy is added.
     # Fails if the engine or api.case reads a file the allowlist leaves out (a schema,
     # product_settings.yaml, a pack), or imports a module outside it.
-    root = (tmp_path / "engine-root").resolve()
-    for rel in _allowlisted():
-        target = root / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(REPO_ROOT / rel, target)
     cases = {
         "h1b": {
             "categories": ["h1b"],
@@ -308,6 +343,7 @@ def test_point_14_the_engine_loads_every_pack_from_a_copy_made_from_the_allowlis
         },
         "J01": journeys.j01(),
     }
+    root = _copy_of_the_allowlist(tmp_path)
     # records_case.CLOCK: 16:00 UTC on 2026-09-29, noon in New York, J01's zone.
     res = subprocess.run(
         [sys.executable, "-I", "-B", "-c", _FROM_THE_COPY, str(root), CLOCK.now().isoformat()],
@@ -344,3 +380,101 @@ def test_point_14_a_planted_forbidden_pattern_is_caught(planted: str) -> None:
     files = _files_of(planted)
     assert files, f"{planted} matches files in this repository"
     assert all(_not_allowed(f) for f in files)
+
+
+# D95 (1) and reviews/w2-p3.md finding 1: "The packaged engine answers both new routes exactly as
+# the server does ... a test runs the routes from a tree built from the allowlist alone."
+# SPEC-W2 point 47: A1 and A2 are served by api/desktop_main.py and api/main.py. The desktop
+# app is made in an isolated interpreter (-I) whose sys.path is the copy, the standard library
+# and site-packages, never the repository; the server app here, at the same clock.
+_ROUTES_FROM_THE_COPY = """
+import json, sys
+from datetime import datetime
+sys.path.insert(0, sys.argv[1])
+from fastapi.testclient import TestClient
+import api.desktop_main, api.local_routes
+from api.local_token import TOKEN_HEADER
+from engine.clocks import FixedClock
+sent = json.loads(sys.stdin.read())
+clock = FixedClock(datetime.fromisoformat(sys.argv[2]))
+app = api.desktop_main.create_app(sent["token"])
+app.dependency_overrides[api.local_routes.get_clock] = lambda: clock
+client = TestClient(app, raise_server_exceptions=False)
+headers = {TOKEN_HEADER: sent["token"]}
+def body(r):
+    # A 500 is plain text, not JSON.
+    return r.json() if r.headers.get("content-type") == "application/json" else r.text
+schedule = client.post("/v1/schedule", json=sent["schedule"], headers=headers)
+updates = client.get("/v1/updates?categories=f1", headers=headers)
+print(json.dumps({
+    "files": sorted(
+        m.__file__ for n, m in sys.modules.items()
+        if n.split(".")[0] in ("api", "engine", "pipeline") and getattr(m, "__file__", None)
+    ),
+    "schedule": [schedule.status_code, body(schedule)],
+    "updates": [updates.status_code, body(updates)],
+}))
+"""
+
+
+def test_review_w2p3_1_the_routes_from_the_allowlist_alone_answer_as_the_server_does(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Finding 1 (blocking): from the allowlist-only tree, POST /v1/schedule answered 500
+    # (FileNotFoundError: contracts/schedule.schema.json), where the repository tree gave 200.
+    # The review's body: from today, add 1 day, sign 1. Hand working: the clock is 02:00 UTC
+    # on 2026-09-30, 19:00 on Tue 2026-09-29 in Los Angeles, the case's zone, so today is
+    # 2026-09-29 and one day on is 2026-09-30, 1 day away. GET /v1/updates?categories=f1 gives
+    # the same body from both, with one passing update published to each (finding 7: the
+    # desktop could not serve one, as api.case imported pipeline.graph and so langgraph).
+    # Fails if either route reads a file the allowlist leaves out or imports a module outside
+    # it, or if the two apps differ.
+    token = secrets.token_hex(32)
+    schedule_body = {
+        "case": SCHEDULE_CASE,
+        "requests": [{"id": "a", "from": {"today": True}, "add": {"days": 1}, "sign": 1}],
+    }
+    root = _copy_of_the_allowlist(tmp_path)
+    # The same update published in the copy and, through api.case.PUBLISHED, for the server.
+    server_published = tmp_path / "server-published"
+    for folder in (root / "pipeline" / "published", server_published):
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / f"{PASSING['id']}.json").write_text(json.dumps(PASSING))
+    monkeypatch.setattr(records_case, "PUBLISHED", server_published)
+    res = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-B",
+            "-c",
+            _ROUTES_FROM_THE_COPY,
+            str(root),
+            SCHEDULE_CLOCK.now().isoformat(),
+        ],
+        cwd=root,
+        input=json.dumps({"token": token, "schedule": schedule_body}),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    assert res.returncode == 0, res.stderr[-2000:]
+    desktop = json.loads(res.stdout)
+    assert all(Path(f).resolve().is_relative_to(root) for f in desktop["files"]), desktop["files"]
+
+    monkeypatch.setenv("DULY_LOCAL_TOKEN", token)
+    for key in {local_routes.get_clock, api.main.get_clock}:  # type: ignore[attr-defined]
+        monkeypatch.setitem(api.main.app.dependency_overrides, key, lambda: SCHEDULE_CLOCK)
+    # 127.0.0.1 is inside the ops list, so the ops guard does not refuse first.
+    server = TestClient(api.main.app, client=("127.0.0.1", 50000))
+    headers = {TOKEN_HEADER: token}
+    schedule = server.post("/v1/schedule", json=schedule_body, headers=headers)
+    updates = server.get("/v1/updates?categories=f1", headers=headers)
+
+    assert desktop["schedule"] == [200, schedule.json()]
+    assert schedule.status_code == 200
+    (answer,) = schedule.json()["dates"]
+    assert (answer["id"], answer["date"], answer["days_away"]) == ("a", "2026-09-30", 1)
+    assert desktop["updates"] == [200, updates.json()]
+    assert updates.status_code == 200
+    assert [e["update"] for e in updates.json()["updates"]] == [PASSING]

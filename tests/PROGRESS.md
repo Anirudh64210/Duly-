@@ -4367,3 +4367,59 @@ tested around.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-9ad80f6ea4: the W2-P3 review's veto (reviews/w2-p3.md, D95, contracts as of a3f7a7a)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p3.md, DECISIONS.md D95, SPEC-W1 point 14 (as D95
+amends it), contracts/schedule.schema.json, openapi /v1/schedule and /v1/updates,
+update.schema.json, engine/schedule.py, api/case.py, api/local_routes.py, pipeline/graph.py,
+tests/unit/pipeline/test_graph.py, desktop/python/bundle.json.
+
+New tests, each named test_review_w2p3_<finding>_..., with the hand working beside it, and the
+change that would make each fail:
+- desktop_entry/test_bundle_inputs.py, _1_the_routes_from_the_allowlist_alone_...: a tree built
+  from bundle.json alone, an isolated interpreter (-I, sys.path the copy, stdlib, site-packages),
+  create_app with a token, POST /v1/schedule (today + 1 day: 2026-09-30, 1 away) and GET
+  /v1/updates?categories=f1 with one passing update planted in the copy and in api.case.PUBLISHED;
+  both 200 and equal to api.main's at the same clock. Fails if a route reads a file the allowlist
+  leaves out (schedule.schema.json today: 500), imports pipeline.graph/langgraph, or differs.
+  Pinned sets for point 14 as D95 amends it: CONTRACT_FILES gains schedule.schema.json and
+  update.schema.json; pipeline/published/*.json is allowed and required as a pattern; any other
+  pipeline/ path is refused (guard now also refuses graph.py, __init__.py, a draft, a nested
+  published file, a non-json one). The "every pattern names files" test exempts that one pattern
+  only, since D95 (5) keeps the published folder empty for now.
+- api/test_local_routes_w2.py: _2_the_planted_files_are_what_they_say (guard); _2_3_only_a_file_
+  that_follows_the_schema_and_passes_is_served (PUBLISHED at tmp: passing, approved "false",
+  quote_found "false", no approved_at, refutation_survived false; only PASSING served; fails
+  without the schema check, and on M3); _6_an_offset_over_duly_s_limit_is_a_422 (36526, 261, 1201;
+  passes today through the contract's maxima, fails if a maximum is dropped); _6_a_body_inside_
+  the_limits_is_answered_never_a_500 (today+36525 days, today+1200 months, 0001-01-01 -1 day:
+  200, outside_readable_dates); _5_a_day_with_no_holiday_row_is_answered_not_a_422; note: two
+  requests with one id 422; note: categories f1_x, f1.opt, F1, "f1,o_1" are 422.
+- engine/test_schedule.py: _4_ (2026-04-30 + 2 days -> 2026-05-01 capped; + 1 day -> 05-01 not
+  capped; kills M2); _5_juneteenth (2020-06-18 + 1 bd -> 2020-06-19; kills M1); _5_a_day_with_no_
+  holiday_row (1985-12-30 + 3 bd -> null holidays_not_known, neighbour 2026-10-15; kills M7);
+  _6_ outside readable (2099-12-30 + 5 days, 0001-01-01 - 1 day) and the boundary 2099-12-31
+  still dated; _8_ planning base (opt.prepare.opens.a1 + 0 -> 2026-01-14 planning) and planning
+  cap (2026-01-10 + 10 -> 01-14 capped planning; + 1 -> 01-11 neither).
+- engine/test_updates_module.py (new): engine.updates.publish_blockers equals pipeline.graph's on
+  GOOD, the ten table changes (read from test_graph's parametrize mark) and {}; importing
+  engine.updates in a fresh -I interpreter loads only stdlib modules and engine.
+
+Mutants, in a scratch copy ($TMPDIR/mut, not kept): M1 (juneteenth_listed=True), M2 (cap + 1
+day), M7 (no row -> not a holiday) each fail the new test; on the unmutated engine the M1 and
+M2 tests pass. M3: with a stand-in schema check added to published_updates the _2_3 tests pass,
+and fail once the publish_blockers filter is removed. With bundle.json gaining the two schemas
+and pipeline/published/*.json, test_bundle_inputs.py passes except the routes test's updates
+half (500: api.case imports pipeline.graph, absent from the copy), which is finding 7, as meant.
+
+Ran: done command, exit 0 (All checks passed; 116 files already formatted; --co ok). mypy on
+the four files: no errors in them. pytest on the four files: 30 failed, all new or changed
+review tests, each on the finding it names; tests/unit/pipeline: all pass.
+
+Not built: no support module (PASSING is imported from test_local_routes_w2 by the bundle test,
+CASE and CLOCK from test_schedule); no reference engine kept; no published fixture in pipeline/
+(not mine); no duplicate of test_graph's table (read from its mark).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
