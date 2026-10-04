@@ -1,0 +1,52 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'The engine dates every timer and reminder the Loop asks for, and the desktop engine serves it: engine/schedule.py (N5) over an injected clock, POST /v1/schedule (A1) and GET /v1/updates (A2, published updates only) in the local routes, and the prototype''s articles as update drafts awaiting the founder''s approval. W2-P3, SPEC-W2 points 22, 46, 47 and 51; contracts/schedule.schema.json (K3).'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'SPEC-W2 point 51, the L-tests line: tests/unit/engine/test_schedule.py, property tests with an injected clock: business days skip weekends and the federal holidays the pack counts out (from the pack, never written in the test); a cap never moves a date past its obligation; months clamp to the month''s last day; a missing base gives no date, never a guess, and the request names it as missing; a setting amount marks the answer planning; every answer validates against contracts/schedule.schema.json. tests/unit/api/test_local_routes_w2.py: POST /v1/schedule and GET /v1/updates served by both api.main and api.desktop_main with the launch token, the same JSON from both; GET /v1/updates returns only files in pipeline/published/ that pass publish_blockers, never a draft. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_schedule.py tests/unit/api/test_local_routes_w2.py --co -q >/dev/null'
+- name: build
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'SPEC-W2 point 46, N5: engine/schedule.py, a pure function over a Clock, the pack''s calendar (business days with the federal holidays the engine already counts out) and the product settings, answering contracts/schedule.schema.json; a missing base gives no date and names it; a cap never passes its obligation; a setting amount is marked planning. Generic, nothing about F-1. Make tests/unit/engine/test_schedule.py pass with every engine test and the journeys.'
+    done: bash -c 'uv run pytest tests/unit/engine -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+  - lane: L-pipeline
+    agent: builder
+    mission: 'SPEC-W2 point 51, the L-pipeline line, with one change: the prototype''s three articles (specs/ui-2/prototype) become update files in pipeline/drafts/, each following contracts/update.schema.json with its primary source and quote, never in pipeline/published/: publishing needs the founder''s approval, which no lane can record. Information only, nothing addressed to the student, nothing about what anyone should do (BOUNDARY.md). tests/unit/pipeline must pass.'
+    done: bash -c 'uv run pytest tests/unit/pipeline -q'
+- name: routes
+  lanes:
+  - lane: L-api
+    agent: builder
+    mission: 'SPEC-W2 point 47: A1 POST /v1/schedule in api/local_routes.py over engine/schedule.py, and A2 GET /v1/updates reading the published updates bundled with the app (pipeline/published/*.json, each passing publish_blockers; an empty list when none is published), both served by api/desktop_main.py and api/main.py with the launch token; desktop/python/bundle.json gains pipeline/published/*.json only if the bundle check allows it (else report it for the founder). Make tests/unit/api/test_local_routes_w2.py and tests/unit/desktop_entry pass.'
+    done: bash -c 'uv run pytest tests/unit/api tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with W2-P3 (SPEC-W2 points 46, 47 and 51); write the point beside each change; never loosen an assertion; escalate any failure no point explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review W2-P3 against SPEC-W2 points 22, 46, 47 and 51, contracts/schedule.schema.json, SPEC-W2-UNKNOWN, PRINCIPLES.md and BOUNDARY.md. Try hardest to find a scheduled date resting on a guess, a business day that counts a holiday, a cap that passes its obligation, a route that answers without the token or differs between the server and the desktop, and an update served that publish_blockers would refuse. Write reviews/w2-p3.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p3.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P3 as your role file describes. Write docs/requirements/audits/w2-p3.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p3.md && uv run python -m tools.requirements.register check'
