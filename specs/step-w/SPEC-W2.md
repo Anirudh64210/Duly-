@@ -420,8 +420,11 @@ with tests first. Codes as used in the gap map.
 41. K3, `contracts/schedule.schema.json` and `POST /v1/schedule` in openapi.yaml: requests
     `{id, from: {item} | {date} | {today}, add: {days} | {business_days} | {months} |
     {setting}, sign, cap: {item}?}` in; out `{today, dates: [{id, date, days_away}]}`, each answer
-    optionally carrying `missing`, `capped`, `planning` (only when a setting set it), `rule_ids`
-    and `inputs` (as built in W2-P0). No other route changes.
+    optionally carrying `missing`, `capped`, `planning` (only when a setting set it: the amount,
+    or a base or cap item that is itself planning, D95), `rule_ids` and `inputs` (as built in
+    W2-P0). Offsets have Duly's own limits (days 36525, business days 260, months 1200), and a
+    request the engine cannot date is answered with its reason, `holidays_not_known` or
+    `outside_readable_dates` among them, never a failed body (D95). No other route changes.
 42. K4, the desktop bridges: `desktop_engine_bridge.schema.json`, `desktop_documents_bridge.
     schema.json`, `desktop_state_bridge.schema.json`, `desktop_ask_bridge.schema.json`.
     desktop_case_bridge.schema.json is unchanged.
@@ -450,13 +453,21 @@ written by hand):**
     count would reach its limit if nothing in the record changes, an item `<counter>.<key>.
     limit_day`, with words that never say what follows that day); N3 check-ins and `as_of`; N4
     `watch[]`; N5 `engine/schedule.py`, a pure function over a Clock, the pack's calendar (business
-    days with the federal holidays the engine already counts out) and the settings; N6 cap-gap in
+    days with the federal holidays the engine already counts out) and the settings (a day with no
+    holiday row in force, or a base or result outside the readable dates, gives that request no
+    date and its reason, never an error, D95); N6 cap-gap in
     the path engine, matching f1.py on the cases of specs/capgap-1.
 
 **Local routes (L-api):**
 47. A1 `POST /v1/schedule` in api/local_routes.py, served by api/desktop_main.py and api/main.py;
     A2 `GET /v1/updates` (declared in openapi.yaml, not built) in local_routes, reading the
     published updates bundled with the app (W1's allowlist gains `pipeline/published/*.json`).
+    D95: both routes give the same answer from the packaged tree as from the repository, so
+    W1's allowlist also gains `contracts/schedule.schema.json` and `contracts/update.schema.json`;
+    A2 returns a file only if it follows update.schema.json and `publish_blockers` returns
+    nothing, with `publish_blockers` moved now to `engine/updates.py` (standard library only,
+    SPEC-FEED point 35's first half; its wording checks stay with the feed plans) and
+    re-exported by `pipeline/graph.py`; two requests with one id are a 422.
 
 ## 11. The plans, in order
 
@@ -502,9 +513,10 @@ in order.
     - L-api. Done: `bash -c 'uv run pytest tests/unit/api/test_local_routes_w2.py
       tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api'`.
     - L-pipeline, beside them: the prototype's three articles as update files in
-      `pipeline/published/`, each passing `publish_blockers` (primary source, quote found, two
-      checks, the founder's approval recorded). Done: `bash -c 'uv run pytest tests/unit/pipeline
-      -q'`.
+      `pipeline/drafts/` (D95: no lane can record the founder's approval, so they wait there and
+      move to `pipeline/published/` only when the founder approves, passing `publish_blockers`:
+      primary source, quote found, two checks, the approval recorded). Done: `bash -c 'uv run
+      pytest tests/unit/pipeline -q'`.
 52. **W2-P4, the desktop bridges** (may run beside P1 to P3). Engine bridge, state store,
     documents store, notifications, the CSP change.
     - L-tests: `tests/desktop/bridges.test.ts`, `tests/desktop/documents.test.ts` (sections 4 and

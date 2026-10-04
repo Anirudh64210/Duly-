@@ -1,0 +1,52 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the W2-P3 review veto (reviews/w2-p3.md): the packaged engine answers POST /v1/schedule and GET /v1/updates exactly as the server does; an update outside update.schema.json is never served; publish_blockers lives in engine/updates.py; a schedule request the engine cannot date is answered with its reason, never a crash or a failed body; a date set from a planning item is planning; and tests kill mutants M1, M2, M3 and M7. SPEC-W2 points 41, 46, 47 and 51 as amended by D95; SPEC-W1 point 14 as amended by D95; contracts/schedule.schema.json and contracts/openapi.yaml as of a3f7a7a.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-p3.md and DECISIONS.md D95. Write tests named test_review_w2p3_<N>_..., failing today, each date worked by hand in a comment, with the finding beside it. 1, tests/unit/desktop_entry: build a temporary tree from desktop/python/bundle.json''s allowlist alone (as test_bundle_inputs.py reads it), then in a subprocess whose sys.path is only that tree and the standard library and site-packages, create api.desktop_main''s app with a launch token and send POST /v1/schedule (the review''s body: from today, add 1 day, sign 1) and GET /v1/updates?categories=f1 through a TestClient: both answer 200 with the same JSON as api.main''s app at the same clock; update test_bundle_inputs.py''s pinned sets for SPEC-W1 point 14 as D95 amends it (the two schemas and pipeline/published/*.json, nothing else from pipeline/). 2 and 3, tests/unit/api: point api.case.PUBLISHED at a temporary folder holding one passing update, one with approval.approved "false" (a string), one with quote_found "false", one approved without approved_at, and one with a blocker: GET /v1/updates returns only the passing one (kills mutant M3, the filter removed). 4, tests/unit/engine/test_schedule.py: from 2026-04-30 add 2 days with cap opt.file_by.closes.a1 (2026-05-01) gives 2026-05-01 and capped (kills M2, the cap compared against cap plus one day). 5, 2020-06-18 add 1 business day gives 2020-06-19, since Juneteenth is counted out only from 2021-06-17 (kills M1); 1985-12-30 add 3 business days gives date null with missing holidays_not_known while another request in the same body is still answered (kills M7). 6, from date 2099-12-30 add 5 days, and from date 0001-01-01 add 1 day sign -1: each gives date null with missing outside_readable_dates; days 36526, business_days 261 and months 1201 are each a 422 at the route. 8, from item opt.prepare.opens.a1 add 0 days gives planning true; a request capped by a planning item and moved to it gives planning true. Notes: two requests with one id are a 422; a categories value outside ^[a-z0-9]+$ is a 422. tests/unit/engine/test_updates_module.py: engine.updates.publish_blockers gives the same tuple as pipeline.graph.publish_blockers on every case of tests/unit/pipeline/test_graph.py; importing engine.updates in a fresh interpreter loads no module outside the standard library and engine. Never loosen an assertion. They cannot pass yet.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/engine/test_schedule.py tests/unit/engine/test_updates_module.py tests/unit/api/test_local_routes_w2.py tests/unit/desktop_entry --co -q >/dev/null'
+- name: engine
+  lanes:
+  - lane: L-engine
+    agent: builder
+    mission: 'Read reviews/w2-p3.md findings 4 to 8 and its notes, and DECISIONS.md D95. engine/schedule.py: a business day with no holiday row in force gives that request date null and missing holidays_not_known, and the other requests are still answered; a base date or a result outside the product settings dates.earliest_readable and dates.latest_readable gives date null and missing outside_readable_dates, checked before any arithmetic so no OverflowError can occur; planning is set when the amount came from a setting, or the base item is planning, or the answer is capped to a planning cap item (contracts/schedule.schema.json as of a3f7a7a). engine/updates.py: publish_blockers moved from pipeline/graph.py unchanged, standard library only (SPEC-FEED point 35''s first half, without the wording checks); do not edit pipeline/. Generic, nothing about F-1 in engine code. Make tests/unit/engine/test_schedule.py, tests/unit/engine/test_updates_module.py, every engine test and the journeys pass.'
+    done: bash -c 'uv run pytest tests/unit/engine tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals && uv run mypy && uv run ruff check engine && uv run ruff format --check engine'
+- name: routes
+  lanes:
+  - lane: L-api
+    agent: builder
+    mission: 'Read reviews/w2-p3.md findings 1, 2 and 7 and its notes, and DECISIONS.md D95. api/case.py: published_updates validates each file against contracts/update.schema.json and returns it only when it follows the schema and engine.updates.publish_blockers returns nothing; import publish_blockers from engine.updates, never from pipeline. api/local_routes.py: two requests with one id are a 422 naming the id; the categories query follows openapi''s ^[a-z0-9]+$. desktop/python/bundle.json gains contracts/schedule.schema.json, contracts/update.schema.json and pipeline/published/*.json (SPEC-W1 point 14 as D95 amends it), nothing else. Both apps give the same answer from the packaged tree as from the repository. Make tests/unit/api and tests/unit/desktop_entry pass.'
+    done: bash -c 'uv run pytest tests/unit/api tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  - lane: L-pipeline
+    agent: builder
+    mission: 'DECISIONS.md D95 (2) and SPEC-FEED point 35: pipeline/graph.py re-exports publish_blockers from engine.updates and no longer defines it, so tests/unit/pipeline/test_graph.py still imports it from pipeline.graph with every case unchanged. Make tests/unit/pipeline pass.'
+    done: bash -c 'uv run pytest tests/unit/pipeline -q && uv run mypy && uv run ruff check pipeline && uv run ruff format --check pipeline'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/unit, tests/holdout and tests/web in line with plan-w2-p3-fix0.yaml (reviews/w2-p3.md, D95); write the finding beside each change; never loosen an assertion; escalate any failure no finding explains.'
+    done: bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools && npm test -w web -- tests/web'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review W2-P3 (plan-w2-p3.yaml and plan-w2-p3-fix0.yaml) against SPEC-W2 points 22, 41, 46, 47 and 51 and SPEC-W1 point 14 as D95 amends them, contracts/schedule.schema.json and contracts/openapi.yaml, SPEC-W2-UNKNOWN, PRINCIPLES.md and BOUNDARY.md, and your findings in reviews/w2-p3.md. Rerun every input you named, the bundle probe from the allowlist alone, and mutants M1, M2, M3 and M7. Write reviews/w2-p3.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p3.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P3 (plan-w2-p3.yaml and its fix) as your role file describes. Write docs/requirements/audits/w2-p3.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p3.md && uv run python -m tools.requirements.register check'

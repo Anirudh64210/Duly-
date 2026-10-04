@@ -130,7 +130,9 @@ replaces the TCP port with a Unix domain socket.
     `api/__init__.py`, `api/desktop_main.py`, `api/local_routes.py`, `api/case.py`,
     `api/case_f1.py` (api.case imports it), `api/local_token.py`, a launcher
     `duly_engine.py`, `rulepacks/*/v*/parameters.yaml`, and from contracts/ only
-    `case.schema.json`, `case_f1.schema.json`, `rulepack.schema.json`, `product_settings.yaml`. Not
+    `case.schema.json`, `case_f1.schema.json`, `rulepack.schema.json`, `product_settings.yaml`
+    (D95 adds `schedule.schema.json` and `update.schema.json`, which W2's routes read, and
+    `pipeline/published/*.json`, SPEC-W2 point 47; nothing else from pipeline/). Not
     rulepacks' sources/ (large saved PDFs, not read by the engine), not assistant/, pipeline/,
     api/main.py, api/settings.py, api/db.py or api/worker.py. The tree keeps the repo's relative
     layout, so `engine.rulepack.REPO_ROOT` works unchanged.
