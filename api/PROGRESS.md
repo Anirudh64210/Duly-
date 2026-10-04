@@ -331,3 +331,26 @@ Goal: the 422 CASE_STRUCTURE words name the category, never the sent value.
   test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
   sandbox). mypy "Success: no issues found in 72 source files", ruff "All checks passed!",
   "12 files already formatted".
+
+## Run l-api-62c761817b (SPEC-W2 point 47, A1 and A2, attempt 1)
+Goal: POST /v1/schedule over engine/schedule.py and GET /v1/updates (published, passing
+publish_blockers) in local_routes, served by both apps with the launch token.
+- First run: 12 failed in tests/unit/api/test_local_routes_w2.py (no routes), plus the six-routes
+  test and the socket tests in desktop_entry.
+- api/local_routes.py: A1 schedule_dates (body checked against schedule.schema.json's request,
+  the case refused as /v1/compute refuses it, CaseStructureError 422 CASE_STRUCTURE,
+  CalendarNotInForceError 422 NO_CALENDAR) and A2 updates (categories and stages as comma
+  lists; matched stages only when a category matches; fields never match, update.schema.json
+  has no field selector). The body read and case checks of /v1/compute became _json and
+  _checked_case, shared by both. Both apps already include the router, so main.py and
+  desktop_main.py are unchanged.
+- First try put the jsonschema/referencing validator and the pipeline import in local_routes:
+  test_point_2_local_routes_imports_only_fastapi_api_case_local_token_and_engine failed. Moved
+  both into api/case.py (schedule_problem, published_updates). api/case_f1.py: first_schema_problem
+  split out of first_problem_under (the schedule body has no top-level time_zone).
+- pipeline/published/ does not exist, so A2 returns an empty list. Checked by hand with a temp
+  folder: the four drafts were refused, an approved copy was served.
+- Done command, run as written: exit 1. 15 failed, all in tests/unit/desktop_entry/
+  test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
+  sandbox). Everything else passed. mypy "Success: no issues found in 73 source files", ruff
+  "All checks passed!", "12 files already formatted". Copy lint on api: clean.
