@@ -386,3 +386,12 @@ skipped like one outside update.schema.json, so the other files are still served
   sandbox). No other failure (the not-json test in test_local_routes_w2.py passes). mypy
   "Success: no issues found in 74 source files", ruff "All checks passed!", "12 files already
   formatted". Copy lint on api: clean.
+
+## Run l-api-9ffdc9281d (review w2-p4 finding 8; D96, attempt 1)
+Goal: a published file that is not UTF-8 is skipped like one that is not JSON, so the other
+files are still served and GET /v1/updates never gives a 500 for it.
+- api/case.py: published_updates reads with encoding="utf-8" (no locale default) and catches
+  ValueError, which covers UnicodeDecodeError and json.JSONDecodeError. Docstring says so.
+- Done command, run as written: exit 0. pytest tests/unit/api all passed, mypy "Success: no
+  issues found in 74 source files", ruff "All checks passed!", "12 files already formatted".
+  Copy lint on api: clean.
