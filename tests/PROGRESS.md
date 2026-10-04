@@ -4456,3 +4456,80 @@ mutant it names is killed; a further test would duplicate one.
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-8a69b158ea: W2-P4 desktop bridges, tests first (SPEC-W2 points 5, 13 to 18, 22, 52)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 sections 2, 4, 5, 6 and point 52, plan-w2-p4.yaml, the
+K4 contracts (desktop_engine_bridge, desktop_state_bridge, desktop_documents_bridge),
+documents-1 section 3, reviews/w2-p3.md finding 2, desktop/src (casefile, engine, protocol,
+preload, schema, pages, main) and their tests.
+
+Wrote:
+- tests/desktop/support.ts: load() of a desktop/src module through a path tsc does not follow
+  (so this folder type-checks before the modules exist, and a missing one fails, never skips);
+  contractChecker() with desktop's own Checker; fakeKeychain() (AES-GCM, keeps what it wraps);
+  filesUnder(); keyForms() (bytes, hex, base64, base64url).
+- tests/desktop/bridges.test.ts (24 tests): engine bridge forwards compute (POST /v1/compute),
+  schedule (POST /v1/schedule with {case, requests}) and updates (GET /v1/updates, no query) on
+  the engine's socket with X-Duly-Local; 15 calls outside the contract rejected with nothing
+  sent; a bad case is not_a_case, nothing sent; engine_unavailable while not ready;
+  engine_refused / engine_failed / not_an_answer, with the engine's echoed input never passed
+  on; socket and token never in a reply; mayUseEngine table and main.ts wiring. State bridge:
+  write/read/clear in state.bin only; nothing plain on disk; $defs/state on every write (8
+  refused values) and read; a bad file (outside state, not JSON, other key) refused and kept
+  byte for byte; a failed write keeps the old state (atomic); keychain_unavailable writes
+  nothing; calls outside the contract rejected; mayUseState. Preload: engine and state send
+  only contract messages on their channels. Reminders: one Notification at 2026-10-06 09:00
+  with its exact words, none at 10-05 09:00 or 10-06 08:59, none again later or on a re-plan,
+  none while off.
+- tests/desktop/documents-store.test.ts (24 tests): D wrapped once by the keychain, no 32-byte
+  key draw in any file or reply in any form, no F handed to the keychain; round trip at sizes
+  1, 1048575, 1048576, 1048577, 2109497; chunk layout found from a 1-byte and a 3 MiB file
+  (T = (e3 - e1 - 3*1048576 + 1)/2, H = e1 - 1 - T), then 7 faults (two swaps, middle and last
+  chunk dropped, cut inside, cut to header, one byte changed) each file_damaged with no bytes;
+  a throw in each add step (part_written, synced, renamed, checked) leaves no row, no file, and
+  the same file adds after relaunch; planted .part and row-less file removed at relaunch;
+  too_large on a sparse MAX+1 file; documents.bin write failure keeps the old index byte for
+  byte and leaves no new file; a bad index is refused as index_damaged by list, add, remove and
+  delete and kept, files untouched; no name or date in the clear; versions newest first from
+  any member; bad_replaces (itself, loop, unknown); remove/restore with history; delete only
+  from Removed; unknown_document; delete for good removes the file and leaves a
+  {on, event: deleted} line with no id or name, also after relaunch; clear removes the three.
+- tests/desktop/documents-bridge.test.ts (17 tests): every call through the bridge with every
+  reply checked against the contract; each add refusal (not_dropped, not_a_file,
+  inside_data_folder by path, by .. and by link, too_large, duplicate with existing, a mixed
+  drop); 14 calls outside the contract rejected and nothing written; the preload sends only
+  webUtils paths, never a string from the page; export to the picked folder only, with the
+  exported history line; Delete everything leaves none of the five files.
+- tests/unit/api/test_local_routes_w2.py: test_review_w2p3_2_a_file_that_is_not_json_is_skipped_
+  and_the_rest_is_served (finding 2), beside test_review_w2p3_2_3.
+
+What makes each fail (the mutants I mean them to catch): engine bridge forwarding without the
+token or to another path, passing the 422 body on, or skipping the reply check (not_an_answer
+tests); a state write skipping $defs/state, deleting a bad file on read, or writing in place;
+a reminder shown on every tick or re-shown after set(); D written raw to keys.bin or F wrapped
+by safeStorage; chunks without index or last-chunk flag in the additional data (swap, drop,
+cut-at-edge tests); an add that writes the row before checking, or does not clean on failure;
+an open that deletes orphans before reading the index (bad index test); delete keeping the id
+on history lines; a drop path not checked against the data folder after resolving.
+
+Ran:
+- the done command: exit 0 (tsc, eslint, prettier "All matched files use Prettier code
+  style!", ruff "All checks passed!", "116 files already formatted").
+- cd desktop && npx vitest run ../tests/desktop: 3 files, 65 tests, all fail, on: Cannot find
+  module desktop/src/docstore, docbridge, enginebridge, and "#/$defs/schedule_request/
+  properties/from: unknown word oneOf" (desktop's Checker does not know oneOf, which
+  schedule.schema.json uses). As meant: they cannot pass yet.
+- uv run pytest tests/unit/api/test_local_routes_w2.py -k review_w2p3_2: the new test fails
+  on JSONDecodeError from api/case.py (finding 2), the others pass.
+- Fixture checks with jsonschema: the schedule call and reply, the state, the second reminder
+  and the five web engine samples follow their contracts.
+
+Not built: no reference implementation of the modules (time); no zip export test beyond a
+cancelled one (the mission names a folder; Node has no zip writer and the format is not
+specified); no test that F is destroyed inside documents.bin (it is encrypted under D in a
+format the SPEC does not fix; the reply and file checks stand in); no PDF pages test (point
+62 waits on the founder).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
