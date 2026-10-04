@@ -415,3 +415,23 @@ Attempt 1 was not accepted: copy lint found a listed word on two lines of this f
 the attempt 1 notes about the rename. Reworded both lines; no code changed.
 What ran: the done command, unpiped, output to a file under TMPDIR: exit 0; vitest 22 files, 316
 passed; typecheck, eslint, prettier and copy lint clean.
+
+## 2026-10-03, run l-desktop-9e93726946, attempt 1
+
+The W2-P4 review veto (reviews/w2-p4.md findings 1, 2, 5, 6, 7, 10) and D96, in docstore.ts only.
+- Finding 1: load() refuses index_missing when documents.bin is missing while keys.bin or a file
+  in files/ (not .part) is there; nothing is made. The launch sweep then removes only .part files.
+  No keys.bin, no index and no stored file is still a first launch.
+- Finding 2: badReplaces (was loops) also refuses a document another one already replaces, and a
+  chain past 200 versions (the versions at and above id, plus replaces and those below it). add
+  with replaces and more than one path is bad_replaces.
+- Finding 5: save() keeps the newest 20000 history lines. add is store_full when the rows plus the
+  paths asked would pass 5000, so an add is all or nothing.
+- Finding 10: an empty file is skipped as empty (from stat, and again after reading).
+- Findings 6 and 7: the chunk nonce, additional data and read-back comparison were already as
+  point 15 says; the new tests pass on the code as it was.
+What ran: the done command, unpiped, output under TMPDIR. First run exit 1 (prettier on
+docstore.ts); after prettier --write, exit 0: typecheck clean; vitest 20 files, 284 passed;
+eslint clean; prettier clean.
+Not built: too_many_files and export inside the data folder (tests/desktop/documents-bridge.test.ts
+review_w2p4_4 and review_w2p4_9 still fail); they are docbridge.ts, outside this part.
