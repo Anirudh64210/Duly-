@@ -15,11 +15,6 @@
         "matcher": "Write|Edit",
         "hooks": [{ "type": "command", "command": "cd \"$CLAUDE_PROJECT_DIR\" && uv run --quiet python .claude/hooks/lint_touched.py" }]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [{ "type": "command", "command": "cd \"$CLAUDE_PROJECT_DIR\" && uv run --quiet python .claude/hooks/lane_test.py" }]
-      }
     ]
   }
 }

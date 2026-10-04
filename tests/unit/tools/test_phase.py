@@ -431,29 +431,30 @@ def test_a_review_that_approves_against_its_own_scores_is_refused(tmp_path):
 
 def test_work_kept_for_the_founder_is_not_merged(tmp_path):
     repo = mini.build(tmp_path)
+    rule = "security/semgrep/new-rule.yaml"
     env = mini.scenario(
         tmp_path,
-        {"L-factory": [mini.good(["proposals/lessons/a.md"], "proposals", "lesson\n")]},
+        {"L-security": [mini.good([rule], "security", "rules: []\n")]},
     )
     plan_file(
         repo,
         [
             {
                 "name": "K",
-                "lanes": [job("L-factory", "skill-curator", "test -f proposals/lessons/a.md")],
+                "lanes": [job("L-security", "red-team", f"test -f {rule}")],
                 "checks": [],
             }
         ],
     )
     done = orchestrate(repo, env)
     assert done.returncode == 0, done.stdout + done.stderr
-    assert "waiting for the founder (skill_or_prompt_changed)" in done.stdout
+    assert "waiting for the founder (guardrail_changed)" in done.stdout
     # Held work is not a stop: it has its own kind, and the plan went on.
     kinds = [r["kind"] for r in ledger.read(repo) if r["lane"] == "founder"]
     assert "held" in kinds
     assert "blocked" not in kinds
-    assert not (repo / "proposals" / "lessons" / "a.md").exists()
-    assert "lane/L-factory/" in mini.git(repo, "branch", "--list", "lane/*")
+    assert not (repo / rule).exists()
+    assert "lane/L-security/" in mini.git(repo, "branch", "--list", "lane/*")
 
 
 def test_a_merge_conflict_is_reported_and_leaves_the_branch_clean(tmp_path, monkeypatch):
@@ -574,6 +575,7 @@ def test_changes_that_need_the_founder_are_named():
             "engine/f1.py",
             ".github/workflows/ci.yml",
             ".claude/hooks/guard_bash.py",
+            ".claude/skills/add-eval-case/SKILL.md",
             "contracts/openapi.yaml",
         ]
     )
@@ -581,6 +583,7 @@ def test_changes_that_need_the_founder_are_named():
         "dependency_added",
         "ci_or_infra_changed",
         "guardrail_changed",
+        "skill_or_prompt_changed",
         "contract_changed",
     }
     assert phase.needs_founder(["engine/f1.py", "web/src/App.tsx"]) == {}

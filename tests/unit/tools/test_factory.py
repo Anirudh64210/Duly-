@@ -20,9 +20,6 @@ def repo(tmp_path):
     skill = tmp_path / ".claude" / "skills" / "one"
     skill.mkdir(parents=True)
     (skill / "SKILL.md").write_text("x")
-    proposals = tmp_path / ".claude" / "LESSONS" / "proposals"
-    proposals.mkdir(parents=True)
-    (proposals / "a.md").write_text("x")
     return tmp_path
 
 

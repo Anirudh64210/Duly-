@@ -367,7 +367,15 @@ def test_an_agents_lessons_reach_no_one(tmp_path, monkeypatch):
     repo, out = play(tmp_path, monkeypatch, [steps])
     assert out.status == "done"
     # What an agent says about its own run is neither filed nor handed to a later agent.
-    assert not list((repo / ".claude" / "LESSONS" / "proposals").glob("*.md"))
+    filed = [
+        p
+        for p in repo.rglob("*")
+        if p.is_file()
+        and not {".git", ".factory"} & set(p.relative_to(repo).parts)
+        and "piped through tail" in p.read_text(errors="ignore")
+    ]
+    assert filed == []
+    assert mini.git(repo, "log", "--all", "--format=%h", "-S", "piped through tail") == ""
     assert memory.read(repo) == []
     assert "piped through tail" not in memory.for_prompt("L-engine", 8, 3000, repo)
 

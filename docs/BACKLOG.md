@@ -226,6 +226,11 @@ SPEC-FEED marks which wait for an account and which run on this Mac (D98, this b
 Only when `pgrep -f tools.factory.phase` is empty. While a plan runs, founder-lane edits go on
 their own branch and merge after it (D100).
 
+- D68 retirement (regroup, 2026-10-04): 24 register rows still cite the deleted parts as
+  evidence, 9 of them marked met (PLAN08-024, PLAN08-058, PLAN11-037, PLAN11-069, PLAN11-070,
+  RBACK-078, RBACK-111, RBACK-116, RBACK-119). Who: the re-audit (D100), which moves the rows D68
+  drops to superseded and DEC-D68-001 to met, so the share met is not overstated.
+
 ### Git and GitHub (D100)
 
 - A33, A39, A56. About 47 idle lane worktrees (4.0 GB at the audit) and duly-build (1.4 GB; its

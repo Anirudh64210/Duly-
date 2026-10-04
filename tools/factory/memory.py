@@ -4,7 +4,7 @@ Only the orchestrator writes here, from the output of the checks it ran itself. 
 agent says about its own run is not kept, and a health probe keeps nothing. A row is
 dropped once the same task later passes. Capped in size and with repeats removed, so it
 cannot grow without limit. It is given to the agent as data about the past, never as
-instructions. Prose lessons under .claude/LESSONS/ are not handed to agents.
+instructions. No prose lessons are kept or handed to agents (D68).
 """
 
 import hashlib
