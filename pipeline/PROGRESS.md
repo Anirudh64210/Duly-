@@ -42,3 +42,36 @@
   returns independent_check_not_passed, refutation_not_survived and not_approved_in_ops, so it
   stays a draft. Copy lint: clean.
 - Done command `uv run pytest tests/unit/pipeline -q`: 17 passed, exit 0.
+
+## 2026-10-03, run l-pipeline-87dc9561dd, attempt 1 (SPEC-W2 point 51, the prototype's articles)
+
+- The orchestrator changed point 51 for this lane: the three prototype articles
+  (specs/ui-2/prototype/data.js, updates.items court, dc-ruling, fixed-admission-rule) go to
+  pipeline/drafts/, never pipeline/published/, because no lane can record the founder's approval.
+- Wrote three drafts in the shape of contracts/update.schema.json, each with checks and approval
+  left false:
+  - 2026-09-14-presidents-alliance-order.json (court): ECF 51 order text (sha c211815e...,
+    sources/mad-1-26-cv-13799-doc51-order.txt) and the docket listing saved 2026-10-03
+    (sha 31747ff8..., sources/recheck-2026-10-03/courtlistener-docket-74661796-entries-2026-09-28.json):
+    ECF 53 appeal, ECF 56 status conference of 2026-10-02 with a schedule due 2026-10-09.
+    Absence check: "stay" in description and short_description of all 20 saved entries (filed
+    2026-08-31 to 2026-10-02): no match. First Circuit docket 26-2112 not read.
+  - 2026-09-14-trilleras-gomez-denial.json (dc-ruling): D.D.C. ECF 14 opinion text (sha d87bc7c0...,
+    sources/dcd-1-26-cv-02364-doc14-opinion.txt), plus the ECF 51 postponement.
+  - 2026-07-17-fixed-admission-final-rule.json (fixed-admission-rule): FR Doc. 2026-14439 (sha
+    f9c196f7..., sources/fr-2026-14439.xml): fixed time period, program end date up to 4 years
+    plus 30 days, 60 to 30 days to prepare to depart, effective date 2026-09-15; plus ECF 51.
+- Left out of the drafts, because no quote in a saved copy carries them here: the prototype's
+  "forYou", "affects" and "todo" lines (they speak to the student and say what to do, BOUNDARY.md);
+  the 1978 history, the commenter tallies, the OPT application window and start date, the STEM OPT
+  comparison, the "chaos and confusion" line (ECF 50), and the judges' findings on likelihood of
+  success. No kind or stages field: matching to stages is not this lane's to assert.
+- Checked with an ad hoc script ($TMPDIR/check_drafts.py, not committed): every snapshot sha256
+  matches its saved copy; every quote is found (tags stripped, whitespace collapsed); each plain
+  passes tools.sources.plain.problems as a "regime" text with the claims' quotes as grounds;
+  publish_blockers returns independent_check_not_passed, refutation_not_survived,
+  not_approved_in_ops for each. Headlines of the final rule and the D.D.C. drafts score reading
+  grade 9.1 and 11.5 (no check requires it for headlines). The FEED-PA appeal draft's plain fails
+  those plain checks (842 characters, 10 sentences, numbers not in quotes); left unchanged.
+- Copy lint on pipeline/drafts: clean. Done command `uv run pytest tests/unit/pipeline -q`:
+  20 passed, exit 0.
