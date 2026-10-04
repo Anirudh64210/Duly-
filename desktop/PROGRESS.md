@@ -435,3 +435,26 @@ docstore.ts); after prettier --write, exit 0: typecheck clean; vitest 20 files, 
 eslint clean; prettier clean.
 Not built: too_many_files and export inside the data folder (tests/desktop/documents-bridge.test.ts
 review_w2p4_4 and review_w2p4_9 still fail); they are docbridge.ts, outside this part.
+
+## 2026-10-03, run l-desktop-c4010e06ea, attempt 1
+
+The W2-P4 review findings 2, 3, 4, 9, 11 and 12 and D96, outside docstore.ts's own part.
+- docbridge.ts: an add of more than 50 files (picked, or dropped counting the not_dropped ones)
+  is too_many_files, and an add of more than one file with replaces is bad_replaces, both
+  before anything is stored. Export pointed at the data folder or inside it (the folder picked,
+  or the folder a zip would go in) is inside_data_folder and writes nothing; the check is
+  docstore.ts's insideFolder, moved to module level and exported so both use one rule.
+  namesFor(name) is the one generator of "stem (n).ext" names for openFree and freeName.
+- reminders.ts: createReminders({ folder }) keeps the shown keys in <userData>/
+  reminders-shown.json (never state.bin), each a SHA-256 of id and date so the file names no
+  reminder and no date; written to .part and renamed; trimmed to the keys of the current plan.
+  Without a folder it is memory only, as before. main.ts passes userData.
+- bundle.json: pipeline/published/*.json moved to a new optional list. build-python.sh reads
+  both lists; an optional pattern that matches nothing passes, an include one still fails; find
+  leaves out PROGRESS.md and REPORT.json. verify-bundle.mjs reads both lists and refuses those
+  two names in engine-root. buildpython.test.ts and verify-bundle.test.ts cover each.
+What ran: the done command, unpiped, output to a file under TMPDIR: exit 0; typecheck clean;
+vitest 22 files, 335 passed; eslint, prettier and copy lint clean; bash -n clean; pytest
+test_bundle_inputs.py 14 passed.
+Not built: a deletion of reminders-shown.json in Delete everything (no SPEC point or test asks;
+the file holds only hashes and is trimmed to the plan at the next show).

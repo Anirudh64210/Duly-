@@ -7,7 +7,8 @@
 #   2. install the desktop dependency group from uv.lock, wheels only, hashes required, into
 #      desktop/build/python/site;
 #   3. copy the files of desktop/python/bundle.json to desktop/build/engine-root, keeping their
-#      paths, the launcher at the top;
+#      paths, the launcher at the top. Each include pattern must match a file; an optional one
+#      may match none. No PROGRESS.md or REPORT.json (an agent's work log) is copied;
 #   4. precompile every .py, so nothing is written inside the signed app later;
 #   5. write desktop/build/python-manifest.json.
 #
@@ -87,10 +88,10 @@ run "$python" -I -m pip install --no-input --disable-pip-version-check --require
 echo "step 3: the allowlisted sources"
 # One line per file: the path in the repository, a tab, the path under engine-root.
 allowlisted() {
-  local pattern match file
+  local list pattern match file
   shopt -s nullglob
   cd "$root"
-  while IFS= read -r pattern; do
+  while IFS=$'\t' read -r list pattern; do
     local found=0
     # Unquoted on purpose: the pattern is a glob from bundle.json.
     # shellcheck disable=SC2086
@@ -103,10 +104,11 @@ allowlisted() {
         else
           printf '%s\t%s\n' "$file" "$file"
         fi
-      done < <(find "$match" -type f -not -path '*/__pycache__/*' -not -name '.DS_Store' | LC_ALL=C sort)
+      done < <(find "$match" -type f -not -path '*/__pycache__/*' -not -name '.DS_Store' \
+        -not -name 'PROGRESS.md' -not -name 'REPORT.json' | LC_ALL=C sort)
     done
-    [[ $found -eq 1 ]] || fail "bundle.json names $pattern, which matches no file"
-  done < <(node -e 'const b = require(process.argv[1]); for (const p of (Array.isArray(b) ? b : b.include)) console.log(p);' "$bundle_json")
+    [[ $found -eq 1 || $list == optional ]] || fail "bundle.json names $pattern, which matches no file"
+  done < <(node -e 'const b = require(process.argv[1]); for (const l of ["include", "optional"]) for (const p of b[l] ?? []) console.log(`${l}\t${p}`);' "$bundle_json")
 }
 files="$(allowlisted)" || exit 1
 run rm -rf "$build/engine-root"

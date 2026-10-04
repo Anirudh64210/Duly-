@@ -43,7 +43,7 @@ export function readAllowlist(
   path = fileURLToPath(new URL("../python/bundle.json", import.meta.url)),
 ) {
   const data = JSON.parse(readFileSync(path, "utf8"));
-  return Array.isArray(data) ? data : data.include;
+  return Array.isArray(data) ? data : [...data.include, ...(data.optional ?? [])];
 }
 
 /** A pattern of bundle.json as a test on a repository-relative path. */
@@ -72,6 +72,8 @@ export function allowedInEngineRoot(rel, patterns) {
   // The launcher sits at the top of engine-root, and only there.
   if (source === LAUNCHER) return patterns.some((p) => posix.basename(p) === LAUNCHER);
   if (posix.basename(source) === LAUNCHER) return false;
+  // An agent's work log never ships, whatever pattern takes its folder.
+  if (["PROGRESS.md", "REPORT.json"].includes(posix.basename(source))) return false;
   return patterns.some((p) => matcher(p)(source));
 }
 

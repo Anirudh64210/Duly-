@@ -7,12 +7,13 @@
  * Plaintext leaves the store only where the student picked through a system dialog.
  */
 import { open, rename, rm, type FileHandle } from "node:fs/promises";
-import { extname, isAbsolute, join } from "node:path";
+import { dirname, extname, isAbsolute, join } from "node:path";
 import { crc32 } from "node:zlib";
 
 import { mayUseCase, PROBLEM_LENGTH } from "./casefile";
 import {
   DOCUMENTS_BRIDGE_ID,
+  insideFolder,
   openStore,
   type Document,
   type StoreDeps,
@@ -56,6 +57,9 @@ const REPLIES: Record<Verb, string> = {
   clear: "done_reply",
 };
 
+/** D96: the most files one add takes, the most one add_reply carries. */
+const MAX_ADD = 50;
+
 /** The images open shows, as the contract's data_url allows them. */
 const SHOWN_IMAGES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 
@@ -75,28 +79,36 @@ export function mayUseDocuments(frameUrl: string | undefined, isMainFrame: boole
   return mayUseCase(frameUrl, isMainFrame);
 }
 
-/** Opens the first free name in the folder, so no file of the student's is written over. */
-async function openFree(folder: string, name: string): Promise<FileHandle> {
+/** The names to try for name, in order: name, then "stem (2).ext", "stem (3).ext" and on. */
+function* namesFor(name: string): Generator<string> {
   const ext = extname(name);
   const stem = name.slice(0, name.length - ext.length);
-  for (let at = 1; ; at += 1) {
-    const candidate = at === 1 ? name : `${stem} (${String(at)})${ext}`;
+  yield name;
+  for (let at = 2; ; at += 1) yield `${stem} (${String(at)})${ext}`;
+}
+
+/** Opens the first free name in the folder, so no file of the student's is written over. */
+async function openFree(folder: string, name: string): Promise<FileHandle> {
+  let tried = 0;
+  for (const candidate of namesFor(name)) {
     try {
       return await open(join(folder, candidate), "wx", 0o600);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST" || at >= 1000) throw error;
+      tried += 1;
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST" || tried >= 1000) throw error;
     }
   }
+  throw new Error("no free name");
 }
 
 /** A name not yet in the zip. */
 function freeName(taken: Set<string>, name: string): string {
-  const ext = extname(name);
-  const stem = name.slice(0, name.length - ext.length);
-  let candidate = name;
-  for (let at = 2; taken.has(candidate); at += 1) candidate = `${stem} (${String(at)})${ext}`;
-  taken.add(candidate);
-  return candidate;
+  for (const candidate of namesFor(name)) {
+    if (taken.has(candidate)) continue;
+    taken.add(candidate);
+    return candidate;
+  }
+  throw new Error("no free name");
 }
 
 /**
@@ -189,6 +201,10 @@ export function createDocumentsBridge(
         else skipped.push({ refused: "not_dropped" });
       }
     }
+    // Before anything is stored: too many for one answer, or more than one replacing.
+    const count = paths.length + skipped.length;
+    if (count > MAX_ADD) return { ok: false, refused: "too_many_files" };
+    if (replaces !== undefined && count > 1) return { ok: false, refused: "bad_replaces" };
     if (paths.length === 0) return { ok: true, added: [], skipped };
     const reply = await (await opened).add(paths, replaces);
     if (!reply.ok) return reply;
@@ -222,6 +238,10 @@ export function createDocumentsBridge(
     }
     const place = as === "folder" ? await dialogs.folder() : await dialogs.zip();
     if (place === null) return { ok: true, exported: 0, cancelled: true };
+    // A plaintext copy inside the data folder would outlast Delete everything.
+    if (await insideFolder(deps.folder, as === "zip" ? dirname(place) : place)) {
+      return { ok: false, refused: "inside_data_folder" };
+    }
     let damaged: StoreReply | null = null;
     let at = 0;
     const next = async (): Promise<{ name: string; bytes: Buffer } | null> => {

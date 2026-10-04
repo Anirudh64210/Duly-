@@ -206,6 +206,16 @@ function indexProblem(checker: Checker, value: unknown): string | null {
   return null;
 }
 
+/** Whether path is the data folder or inside it, by any path to it (links followed). */
+export async function insideFolder(folder: string, path: string): Promise<boolean> {
+  try {
+    const [real, home] = await Promise.all([realpath(path), realpath(folder)]);
+    return real === home || real.startsWith(home + sep);
+  } catch {
+    return false;
+  }
+}
+
 /** Opens the store, and removes what a crash left in files/ that no index row names. */
 export async function openStore(deps: StoreDeps): Promise<Store> {
   const { folder, cipher, checker, today } = deps;
@@ -302,15 +312,6 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
   const line = (event: string, document?: string): HistoryLine =>
     document === undefined ? { on: today(), event } : { on: today(), event, document };
 
-  const insideFolder = async (path: string): Promise<boolean> => {
-    try {
-      const [real, home] = await Promise.all([realpath(path), realpath(folder)]);
-      return real === home || real.startsWith(home + sep);
-    } catch {
-      return false;
-    }
-  };
-
   /** Encrypts one file into files/<id>, checked, or leaves nothing and throws. */
   const store = async (id: string, key: Buffer, plain: Buffer): Promise<void> => {
     const part = join(files, `${id}.part`);
@@ -370,7 +371,7 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
         skip("not_a_file");
         continue;
       }
-      if (await insideFolder(path)) {
+      if (await insideFolder(folder, path)) {
         skip("inside_data_folder");
         continue;
       }
