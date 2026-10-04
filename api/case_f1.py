@@ -110,14 +110,20 @@ def first_problem(raw: Any) -> str | None:
     return first_problem_under(_validator(), raw)
 
 
-def first_problem_under(validator: Draft202012Validator, raw: Any) -> str | None:
-    """first_problem, against the contract this validator holds."""
+def first_schema_problem(validator: Draft202012Validator, raw: Any) -> str | None:
+    """The first way raw departs from the contract this validator holds, or None."""
     errors = sorted(
         validator.iter_errors(raw),
         key=lambda e: ([str(p) for p in e.absolute_path], str(e.validator)),
     )
-    if errors:
-        return _in_words(errors[0])
+    return _in_words(errors[0]) if errors else None
+
+
+def first_problem_under(validator: Draft202012Validator, raw: Any) -> str | None:
+    """first_problem, against the contract this validator holds."""
+    problem = first_schema_problem(validator, raw)
+    if problem is not None:
+        return problem
     try:
         zone_named(raw["time_zone"])
     except ValueError:
