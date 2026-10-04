@@ -4625,3 +4625,36 @@ relaunch behaviour only).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-d0ff666b56: reconcile after the W2-P4 fix (plan-w2-p4-fix0.yaml, reviews/w2-p4.md, D96)
+
+Read: tests/PROGRESS.md (tail), specs/step-w/plan-w2-p4-fix0.yaml, the merges since dcca9a0
+(L-desktop store and bridge, L-api finding 8), desktop/scripts/build-python.sh.
+
+Ran:
+- npm test -w desktop: EPERM making desktop/coverage (sandbox write wall, as before). With
+  --coverage.reportsDirectory in $TMPDIR: 22 files, 335 tests, 332 passed, 3 failed, all in
+  desktop/src/buildpython.test.ts (not mine), each because build-python.sh line 121
+  (`done <<<"$files"`) reads nothing: /bin/bash 3.2 prints "cannot create temp file for here
+  document: Operation not permitted" here, even when TMPDIR is set to a writable folder. To check:
+  a $TMPDIR copy of the script with only that line changed to `done < <(printf ...)`, run with
+  DULY_ROOT=this worktree and --dry-run, prints 29 copy lines, no PROGRESS.md, no REPORT.json, no
+  failure while pipeline/published holds no .json, and exits 0. So the failure comes from the
+  sandbox, not the code. Every tests/desktop test passes, including all review_w2p4_* ones.
+- npm test -w web -- tests/web (reports in $TMPDIR): 2 files, 9 tests, all pass.
+- uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools: 15
+  failed, all in tests/unit/desktop_entry/test_desktop_main.py on "[Errno 1] Operation not
+  permitted" binding the Unix socket (the mission names this). With that file deselected,
+  everything passes, including test_review_w2p4_8 and test_review_w2p4_12.
+
+Changed: nothing in tests/. Every review_w2p4_<N> test written in l-tests-196f0fb0da now passes
+on the merged code, unchanged, and no test outside them fails for a reason a finding explains.
+Since no test changed, there's no new "what makes it fail" to log. The earlier entry's mutant
+list (M1, M2, M3, M6, M6b, M13, M17) still applies.
+
+Not built: no test in tests/ that the bundle copy leaves out PROGRESS.md and REPORT.json
+(the plan gives that to desktop/src/buildpython.test.ts, which covers it, and no finding
+names a tests/ check for it).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
