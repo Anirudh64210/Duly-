@@ -2985,7 +2985,7 @@
   "kind": "privacy",
   "status": "not_started",
   "evidence": "contracts/schedule.schema.json",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays not_started. checkins[] due days are now worked by the engine (W2-011), on the device when the desktop app runs it, but no reminder exists yet."
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays not_started. checkins[] due days are now worked by the engine (W2-011), on the device when the desktop app runs it, but no reminder exists yet. Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): stays not_started. The schedule route dates reminders on the device and stores nothing, but no reminder is built."
  },
  {
   "id": "DEC-D74-001",
@@ -3003,7 +3003,7 @@
   "kind": "product",
   "status": "not_started",
   "evidence": "contracts/schedule.schema.json",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract names the Loop module. No loop is built, and no check fails a dead end."
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract names the Loop module. No loop is built, and no check fails a dead end. Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): stays not_started. engine.schedule now dates timers (W2-014), but no Loop module exists in web/src."
  },
  {
   "id": "DEC-D76-001",
@@ -3211,5 +3211,50 @@
   "status": "met",
   "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (when_absent: ask on both); tests/unit/engine/test_when_absent.py; tests/unit/acceptance/test_fix8.py::test_point_22b_j19_twin_g_no_start_withholds_the_step_back_and_the_grace_waits",
   "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. Both tests pass (tests/unit/acceptance run, exit 0)."
+ },
+ {
+  "id": "DEC-D95-001",
+  "source": "DECISIONS.md D95 (1)",
+  "text": "The packaged engine answers POST /v1/schedule and GET /v1/updates exactly as the server does: the bundle gains the two schemas and pipeline/published/*.json, and a test runs the routes from a tree built from the allowlist alone.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/python/bundle.json; tests/unit/desktop_entry/test_bundle_inputs.py (test_review_w2p3_1)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. The test passes; my probe of both apps in one process gives byte-identical bodies."
+ },
+ {
+  "id": "DEC-D95-002",
+  "source": "DECISIONS.md D95 (2)",
+  "text": "publish_blockers moves to engine/updates.py, standard library only, and GET /v1/updates returns a file only if it follows update.schema.json and has no blockers.",
+  "kind": "updates",
+  "status": "met",
+  "evidence": "engine/updates.py; api/case.py published_updates; tests/unit/engine/test_updates_module.py; tests/unit/api/test_local_routes_w2.py::test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_served",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Both tests pass; M3 killed. No file outside the schema is ever returned. A file that is not JSON makes the whole route a 500 (W2-017, partial), which does not return it either."
+ },
+ {
+  "id": "DEC-D95-003",
+  "source": "DECISIONS.md D95 (3)",
+  "text": "Schedule offsets have Duly's own limits (days 36525, business days 260, months 1200), and a request the engine cannot date is answered with its reason, never a failed body.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/schedule.schema.json; engine/schedule.py; tests/unit/engine/test_schedule.py (test_review_w2p3_5, _6)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Probes: the three limits plus one are 422; 2099-12-31 plus 1 day gives outside_readable_dates; M7 killed."
+ },
+ {
+  "id": "DEC-D95-004",
+  "source": "DECISIONS.md D95 (4)",
+  "text": "A date set from a planning item is planning.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/schedule.py (from_planning, cap_planning); tests/unit/engine/test_schedule.py (test_review_w2p3_8)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Two mutants of my own on the planning cap are killed. A planning base capped to a rule item stays planning (review note; follows the contract)."
+ },
+ {
+  "id": "DEC-D95-005",
+  "source": "DECISIONS.md D95 (5)",
+  "text": "The prototype's articles stay in pipeline/drafts until the founder approves them.",
+  "kind": "updates",
+  "status": "met",
+  "evidence": "pipeline/drafts/ (three prototype articles, approval false); no pipeline/published/ folder",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Read: approval approved false, approved_by null on all four drafts."
  }
 ]

@@ -1594,9 +1594,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, 5 Updates, Rule",
   "text": "Which items match a case is computed deterministically from case attributes, never generated in the send path.",
   "kind": "updates",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "The spec's impact score is dropped (UPD-005); matching by field (A4) keeps the determinism rule.",
+  "status": "partial",
+  "evidence": "api/local_routes.py updates (matched stages from the names in the query); tests/unit/api/test_local_routes_w2.py",
+  "note": "The spec's impact score is dropped (UPD-005); matching by field (A4) keeps the determinism rule. Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): not_started to partial. GET /v1/updates matches an update's stages against the stage ids sent, deterministically, with no model. Fields never match (update.schema.json has no field selector yet), and no screen reads the route.",
   "part": "canvas"
  },
  {
@@ -9526,7 +9526,7 @@
   "kind": "privacy",
   "status": "not_started",
   "evidence": "contracts/schedule.schema.json",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays not_started. checkins[] due days are now worked by the engine (W2-011), on the device when the desktop app runs it, but no reminder exists yet.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract exists (stateless, nothing stored). No reminder is built. Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): stays not_started. checkins[] due days are now worked by the engine (W2-011), on the device when the desktop app runs it, but no reminder exists yet. Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): stays not_started. The schedule route dates reminders on the device and stores nothing, but no reminder is built.",
   "part": "founder-decisions"
  },
  {
@@ -9546,7 +9546,7 @@
   "kind": "product",
   "status": "not_started",
   "evidence": "contracts/schedule.schema.json",
-  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract names the Loop module. No loop is built, and no check fails a dead end.",
+  "note": "Audit feed-pa (l-audit-9a4aa22c50, 2026-10-02 UTC): new row, not_started. Only the schedule contract names the Loop module. No loop is built, and no check fails a dead end. Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): stays not_started. engine.schedule now dates timers (W2-014), but no Loop module exists in web/src.",
   "part": "founder-decisions"
  },
  {
@@ -9777,6 +9777,56 @@
   "status": "met",
   "evidence": "rulepacks/f1-us/v2026.09/parameters.yaml (when_absent: ask on both); tests/unit/engine/test_when_absent.py; tests/unit/acceptance/test_fix8.py::test_point_22b_j19_twin_g_no_start_withholds_the_step_back_and_the_grace_waits",
   "note": "Audit w2-unknown (l-audit-2c3af22d65, 2026-10-02 UTC): new row, met. Both tests pass (tests/unit/acceptance run, exit 0).",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D95-001",
+  "source": "DECISIONS.md D95 (1)",
+  "text": "The packaged engine answers POST /v1/schedule and GET /v1/updates exactly as the server does: the bundle gains the two schemas and pipeline/published/*.json, and a test runs the routes from a tree built from the allowlist alone.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/python/bundle.json; tests/unit/desktop_entry/test_bundle_inputs.py (test_review_w2p3_1)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. The test passes; my probe of both apps in one process gives byte-identical bodies.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D95-002",
+  "source": "DECISIONS.md D95 (2)",
+  "text": "publish_blockers moves to engine/updates.py, standard library only, and GET /v1/updates returns a file only if it follows update.schema.json and has no blockers.",
+  "kind": "updates",
+  "status": "met",
+  "evidence": "engine/updates.py; api/case.py published_updates; tests/unit/engine/test_updates_module.py; tests/unit/api/test_local_routes_w2.py::test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_served",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Both tests pass; M3 killed. No file outside the schema is ever returned. A file that is not JSON makes the whole route a 500 (W2-017, partial), which does not return it either.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D95-003",
+  "source": "DECISIONS.md D95 (3)",
+  "text": "Schedule offsets have Duly's own limits (days 36525, business days 260, months 1200), and a request the engine cannot date is answered with its reason, never a failed body.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/schedule.schema.json; engine/schedule.py; tests/unit/engine/test_schedule.py (test_review_w2p3_5, _6)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Probes: the three limits plus one are 422; 2099-12-31 plus 1 day gives outside_readable_dates; M7 killed.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D95-004",
+  "source": "DECISIONS.md D95 (4)",
+  "text": "A date set from a planning item is planning.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/schedule.py (from_planning, cap_planning); tests/unit/engine/test_schedule.py (test_review_w2p3_8)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Two mutants of my own on the planning cap are killed. A planning base capped to a rule item stays planning (review note; follows the contract).",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D95-005",
+  "source": "DECISIONS.md D95 (5)",
+  "text": "The prototype's articles stay in pipeline/drafts until the founder approves them.",
+  "kind": "updates",
+  "status": "met",
+  "evidence": "pipeline/drafts/ (three prototype articles, approval false); no pipeline/published/ folder",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Read: approval approved false, approved_by null on all four drafts.",
   "part": "founder-decisions"
  },
  {
@@ -21137,6 +21187,96 @@
   "status": "met",
   "evidence": "tests/unit/engine/test_w2_records.py (53 tests); tests/holdout/test_holdout_w2_records.py; web/samples/make.py --check",
   "note": "Audit w2-p2 (l-audit-2238585ca8, 2026-10-03 UTC): new row, met. Both files pass in the whole run of tests/unit and tests/holdout (tools and desktop_entry left out: sandbox). Two of the review's mutants survive the suite (N5; and the opt_pre case of finding 1 has no test).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-014",
+  "source": "specs/step-w/SPEC-W2.md point 46 (N5), as D95 amends it",
+  "text": "engine/schedule.py is a pure function over a Clock, the pack's calendar (business days skip weekends and the federal holidays of the row in force) and the product settings; a day with no holiday row in force, or a base or result outside the readable dates, gives that request no date and its reason, never an error; a cap never passes its obligation; months clamp to the month's last day.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "engine/schedule.py; engine/dates.py add_business_days; tests/unit/engine/test_schedule.py (test_review_w2p3_4, _5, _6, _8 and the property tests)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. test_schedule.py passes. Mutants M1 (Juneteenth always listed), M2 (cap compared with cap plus a day), M7 (no row read as a business day) and four of my own (last readable day, planning cap dropped, planning cap always set, days_away from the base) are each killed. My own 16 requests, worked by hand (MLK, Memorial Day, Labor Day, Veterans Day, Christmas, month clamps to 2027-02-28 and 2028-02-29, 260 business days to 2027-10-12, the dso setting to 2026-10-06), all match.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-015",
+  "source": "specs/step-w/SPEC-W2.md point 41 (K3), as D95 amends it",
+  "text": "contracts/schedule.schema.json and POST /v1/schedule in openapi.yaml: requests in, {today, dates} out, each answer optionally carrying missing, capped, planning (only from a setting, a planning base or a planning cap), rule_ids and inputs; offsets limited to days 36525, business days 260, months 1200; a request the engine cannot date is answered with its reason, never a failed body.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "contracts/schedule.schema.json; contracts/openapi.yaml /v1/schedule; tests/unit/engine/test_schedule.py (every answer validated); tests/unit/api/test_local_routes_w2.py",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Probe: business_days 261, days 36526, months 1201 are 422 on both apps; 1985-12-30 plus 3 business days is 200 with holidays_not_known. The route still carries an unreachable 422 for a missing calendar (api/local_routes.py:34 and :130, review finding 1); mutant M17 removing it survives, which is expected for dead code.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-016",
+  "source": "specs/step-w/SPEC-W2.md point 47 (A1), with SPEC-W1 point 14 as D95 amends it",
+  "text": "POST /v1/schedule is served from api/local_routes.py by api/desktop_main.py and api/main.py, both behind the launch token, and gives the same answer from the packaged tree (desktop/python/bundle.json's allowlist, which gains contracts/schedule.schema.json, contracts/update.schema.json and pipeline/published/*.json) as from the repository.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "api/local_routes.py schedule_dates; desktop/python/bundle.json; tests/unit/api/test_local_routes_w2.py::test_both_apps_serve_the_one_route_of_local_routes; tests/unit/desktop_entry/test_bundle_inputs.py (test_review_w2p3_1)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Both files pass. Probe: 16 requests in one body give byte-identical 200 bodies from the two apps; without the token both are 403. The socket tests of test_desktop_main.py fail here with Operation not permitted (sandbox), 15 of 71; not counted against the row.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-017",
+  "source": "specs/step-w/SPEC-W2.md point 47 (A2), as D95 amends it",
+  "text": "GET /v1/updates in local_routes serves the published updates bundled with the app: each file in pipeline/published/ that follows update.schema.json and for which publish_blockers returns nothing, an empty list when none is published; a categories value outside ^[a-z0-9]+$ is a 422.",
+  "kind": "updates",
+  "status": "partial",
+  "evidence": "api/case.py published_updates; api/local_routes.py updates; tests/unit/api/test_local_routes_w2.py::test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_served",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, partial. Mutant M3 (filter removed) is killed, and so is my own (reading pipeline/drafts instead). Empty list today on both apps (no pipeline/published/). Partly built: one file in pipeline/published/ that is not JSON makes the route a 500 on both apps, so no valid update is served either (probe; review finding 2, open).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-018",
+  "source": "specs/step-w/SPEC-W2.md point 47; DECISIONS.md D95 (2); SPEC-FEED point 35 first half",
+  "text": "publish_blockers lives in engine/updates.py, standard library only, and pipeline/graph.py re-exports it and no longer defines it.",
+  "kind": "updates",
+  "status": "met",
+  "evidence": "engine/updates.py; pipeline/graph.py:13 and __all__; tests/unit/engine/test_updates_module.py",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. test_updates_module.py passes. Probe: pipeline.graph.publish_blockers is engine.updates.publish_blockers; importing engine.updates under python -I loads no pipeline, langgraph, yaml, pydantic or jsonschema module.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-019",
+  "source": "specs/step-w/SPEC-W2.md point 47; DECISIONS.md D95",
+  "text": "Two schedule requests with one id are a 422 naming the id.",
+  "kind": "engine",
+  "status": "met",
+  "evidence": "api/local_routes.py:118 to 124; tests/unit/api/test_local_routes_w2.py (test_review_w2p3 notes)",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Probe: 422 on both apps.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-020",
+  "source": "specs/step-w/SPEC-W2.md point 51 (L-pipeline), as D95 (5) amends it",
+  "text": "The prototype's three articles are update files in pipeline/drafts/, each following update.schema.json with its primary source and quote, never in pipeline/published/ until the founder approves them.",
+  "kind": "updates",
+  "status": "met",
+  "evidence": "pipeline/drafts/2026-07-17-fixed-admission-final-rule.json; pipeline/drafts/2026-09-14-presidents-alliance-order.json; pipeline/drafts/2026-09-14-trilleras-gomez-denial.json",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Probe: each validates against update.schema.json with no error; every claim is primary; publish_blockers gives independent_check_not_passed, refutation_not_survived, not_approved_in_ops; approval false. None carries the optional article paragraphs (K5) that the Updates screen (point 30) reads; the prototype's forYou and todo lines were left out as outside BOUNDARY.md.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-021",
+  "source": "specs/step-w/SPEC-W2.md point 51 (L-tests)",
+  "text": "W2-P3 is held by tests/unit/engine/test_schedule.py (property tests with an injected clock) and tests/unit/api/test_local_routes_w2.py, with the review's mutants killed.",
+  "kind": "testing",
+  "status": "met",
+  "evidence": "tests/unit/engine/test_schedule.py; tests/unit/api/test_local_routes_w2.py; tests/unit/engine/test_updates_module.py; tests/unit/desktop_entry/test_bundle_inputs.py",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. 128 passed. M1, M2, M3, M7 each killed on a scratch copy; the baseline copy passes. No test has an unparsable published file (review finding 2).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-022",
+  "source": "specs/step-w/SPEC-W2.md point 22",
+  "text": "The scheduler: timers, reminders (lead days and the day itself), the weekly budget, the morning digest and the .ics file are planned by the Loop module and dated by engine.schedule; main shows local notifications with words from the scheduler's real state.",
+  "kind": "product",
+  "status": "partial",
+  "evidence": "engine/schedule.py; api/local_routes.py schedule_dates",
+  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, partial. Only the engine half is built (W2-014, W2-016). No web/src/loops module, no Notification, no .ics, no digest, no weekly budget: those are later W2 plans.",
   "part": "spec-w2"
  },
  {
