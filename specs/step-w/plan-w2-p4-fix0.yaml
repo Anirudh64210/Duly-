@@ -1,0 +1,52 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the W2-P4 review veto (reviews/w2-p4.md): a missing documents index never deletes a document; a version chain stays one line; one reminder is one Notification across relaunches; every documents answer stays inside its contract at the limits; the chunk nonces, the additional data and the read-back check are each tested; a published file that is not UTF-8 is skipped; and the bundle''s pipeline/published/*.json is optional so make desktop-python works while it is empty. SPEC-W2 points 13 to 17 and 22 and SPEC-W1 point 14 as D96 amends them; contracts/desktop_documents_bridge.schema.json as of 2d46965.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-p4.md and DECISIONS.md D96. Write tests named review_w2p4_<N>, failing today, with the finding beside each. In tests/desktop/documents-store.test.ts: 1, two documents added, documents.bin moved away with keys.bin kept, then a relaunch: list, add and open are refused index_missing, and files/ holds the same two files with the same bytes after the relaunch; with nothing stored at all, a first launch still works. 2, update(c, {replaces: old}) when b already replaces old is bad_replaces and versions(old) is unchanged; a chain at 200 versions refuses the 201st as bad_replaces. 5, an index holding 20000 history lines plus one more event keeps 20000 lines, newest first, and list still answers; with 5000 documents held, add is refused store_full and nothing changes. 6, the nonces of the chunks of one file all differ, and each chunk opens only with its own counter, chunk index and last-chunk flag (kills mutants M1, M2 and M3). 7, a fake cipher whose decrypt-back returns other bytes makes add skip the file as cannot_store with nothing left in files/ or the index (kills M6); a file over the size limit is refused without its bytes being read (kills M17). 10, an empty file is skipped as empty. In tests/desktop/documents-bridge.test.ts: 2, an add of two files from one pick that replaces old is bad_replaces, nothing added; 4, 51 files picked is too_many_files and the index and files/ are unchanged; 7, a reply main builds outside the contract is refused by main''s reply check (kills M13); 9, export pointed at a folder inside the data folder is inside_data_folder and writes nothing. In tests/desktop/bridges.test.ts: 3, a reminder shown at 09:00 is not shown again when a second main starts over the same userData at 09:40 the same day. In tests/unit/api beside test_review_w2p3_2_3: 8, a published file holding the bytes ff fe 7b beside a valid update: GET /v1/updates answers 200 with the valid one. In tests/unit/desktop_entry/test_bundle_inputs.py: 12, bundle.json''s optional list holds pipeline/published/*.json and its include list does not, and the point 14 checks read both lists. Never loosen an assertion. They cannot pass yet.'
+    done: bash -c 'npx tsc --noEmit -p tests/desktop && npx eslint tests/desktop --max-warnings 0 && npx prettier --check "tests/desktop/**/*.{ts,json}" && uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/api tests/unit/desktop_entry/test_bundle_inputs.py --co -q >/dev/null'
+- name: store
+  lanes:
+  - lane: L-desktop
+    agent: builder
+    mission: 'Read reviews/w2-p4.md findings 1, 2, 5, 6, 7 and 10 and DECISIONS.md D96, against contracts/desktop_documents_bridge.schema.json as of 2d46965. desktop/src/docstore.ts: a missing documents.bin while keys.bin or any file in files/ remains is refused as index_missing and the launch sweep deletes nothing then (it may still remove .part files); a second document replacing the same one, or a chain past 200 versions, is bad_replaces; the index keeps the newest 20000 history lines; add is refused store_full at 5000 documents; an empty file is skipped as empty; keep the per-chunk nonce, additional data and decrypt-back comparison exactly as point 15 says. Make tests/desktop/documents-store.test.ts pass with every desktop test in src.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop -- src/ documents-store && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}"'
+  - lane: L-api
+    agent: builder
+    mission: 'reviews/w2-p4.md finding 8: api/case.py treats a published file that cannot be read as UTF-8 text or parsed as JSON as one that does not follow update.schema.json (catch ValueError, which covers UnicodeDecodeError and JSONDecodeError), so the other files are still served. Make tests/unit/api pass.'
+    done: bash -c 'uv run pytest tests/unit/api -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+- name: bridge
+  lanes:
+  - lane: L-desktop
+    agent: builder
+    mission: 'Read reviews/w2-p4.md findings 2, 3, 4, 9, 11 and 12 and DECISIONS.md D96. desktop/src/docbridge.ts: more than 50 files in one add is too_many_files before anything is stored; an add of more than one file that replaces is bad_replaces; export pointed at a folder or file inside the data folder is inside_data_folder and writes nothing; one generator of "stem (n).ext" names serves openFree and freeName. desktop/src/reminders.ts: the ids main has shown are kept in its own file under userData (never state.bin), so a reminder is shown once across relaunches. desktop/python/bundle.json: move pipeline/published/*.json from include to a new optional list; desktop/scripts/build-python.sh copies optional patterns when they match and never fails on one that matches nothing, while an include pattern that matches nothing still fails; desktop/src/buildpython.test.ts covers both. Make every desktop test pass.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}" && uv run python -m tools.copy_lint.lint && bash -n desktop/scripts/build-python.sh && uv run pytest tests/unit/desktop_entry/test_bundle_inputs.py -q -p no:cacheprovider'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/desktop, tests/unit and tests/web in line with plan-w2-p4-fix0.yaml (reviews/w2-p4.md, D96); write the finding beside each change; never loosen an assertion; escalate any failure no finding explains.'
+    done: bash -c 'npm test -w desktop && npm test -w web -- tests/web && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review W2-P4 (plan-w2-p4.yaml and plan-w2-p4-fix0.yaml) against SPEC-W2 points 5, 13 to 18, 22 and 52 and SPEC-W1 point 14 as D96 amends them, the K4 contracts as of 2d46965, D85, security/threat-model.md, PRINCIPLES.md and BOUNDARY.md, and your findings in reviews/w2-p4.md. Rerun every probe you named (P1 to P7) and mutants M1, M2, M3, M6, M13 and M17, and build the bundle from bundle.json with pipeline/published absent. Write reviews/w2-p4.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p4.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P4 (plan-w2-p4.yaml and its fix) as your role file describes. Write docs/requirements/audits/w2-p4.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p4.md && uv run python -m tools.requirements.register check'

@@ -161,12 +161,19 @@ records with their sourced rules, a change that lands first).
 16. **The index** (names, kinds, typed fields, labels, versions, removed flags, history lines) is
     one JSON file `<userData>/documents.bin`, AES-256-GCM under D, written atomically like case.bin.
     No SQLCipher and no other database (ARCHITECTURE 2.5). The student's original file is never
-    moved or deleted, and Duly says so once.
-    - Checked by: desktop tests (atomic write; a bad index is refused and kept, never deleted).
+    moved or deleted, and Duly says so once. D96: a missing documents.bin while keys.bin or a file
+    in files/ remains is refused as index_missing, and nothing is read, written or deleted (a
+    missing index never means no documents); the index keeps the newest 20000 history lines.
+    - Checked by: desktop tests (atomic write; a bad index is refused and kept, never deleted; a
+      missing index with files present deletes nothing across a relaunch).
 17. **Versions and nothing lost.** A reissued I-20 is a new document that `replaces` the old one;
     the chain is its versions, newest first. Remove moves to Removed, Put back returns it, Delete
     for good destroys F and the file. "Delete everything on this Mac" (Settings, Your data) deletes
-    files/, documents.bin, keys.bin, case.bin and state.bin after an inline confirm.
+    files/, documents.bin, keys.bin, case.bin and state.bin after an inline confirm. D96: a chain
+    stays a single line (a second document replacing the same one, or a multi-file add that
+    replaces, is bad_replaces, and so is a chain past 200 versions); one add takes at most 50
+    files and the store at most 5000 documents; an empty file is skipped; export never writes
+    inside Duly's own data folder.
     - Checked by: desktop tests for each, and that history keeps "A document was deleted for good"
       without its name.
 
@@ -235,7 +242,9 @@ records with their sourced rules, a change that lands first).
     date, an offset in days, business days or a setting) to `engine.schedule` and gets dates back
     (gap map G32). Main shows local notifications through Electron's `Notification` at the
     planned times while Duly runs; the words come from the scheduler's real state ("Reminder set
-    on this Mac" or "Reminders are off here. Add to calendar"), never a template.
+    on this Mac" or "Reminders are off here. Add to calendar"), never a template. Each planned
+    reminder is shown once, across relaunches too: main keeps the ids it has shown in its own
+    file under userData, never in state.bin, which the page writes (D96).
     - Checked by: loop tests with a fake scheduler; engine tests of the schedule module (gap map,
       N5); a desktop test that a planned reminder becomes one Notification with the given words.
 

@@ -132,7 +132,9 @@ replaces the TCP port with a Unix domain socket.
     `duly_engine.py`, `rulepacks/*/v*/parameters.yaml`, and from contracts/ only
     `case.schema.json`, `case_f1.schema.json`, `rulepack.schema.json`, `product_settings.yaml`
     (D95 adds `schedule.schema.json` and `update.schema.json`, which W2's routes read, and
-    `pipeline/published/*.json`, SPEC-W2 point 47; nothing else from pipeline/). Not
+    `pipeline/published/*.json`, SPEC-W2 point 47, as an optional pattern: the folder is empty
+    until the founder approves an update, so the build copies it when present and never fails
+    on it, D96; nothing else from pipeline/). Not
     rulepacks' sources/ (large saved PDFs, not read by the engine), not assistant/, pipeline/,
     api/main.py, api/settings.py, api/db.py or api/worker.py. The tree keeps the repo's relative
     layout, so `engine.rulepack.REPO_ROOT` works unchanged.
