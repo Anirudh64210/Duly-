@@ -4658,3 +4658,64 @@ names a tests/ check for it).
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-bd8d1e862c: the second W2-P4 review (reviews/w2-p4.md, run l-review-5f14d86b05)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p4.md, contracts/desktop_documents_bridge.schema.json
+as of 444fa86 (index_missing only when a file in files/ would lose its name; keys.bin alone
+writes a new empty index; store_full counts only files the add would store), D96, and the
+existing store, bridge and published-file tests.
+
+Wrote, each named review2_w2p4_<N> with its finding beside it:
+- tests/desktop/documents-store.test.ts, a new describe:
+  - 1 (x3): a new student's first add of one empty file, one folder, one sparse file of
+    MAX_FILE_BYTES + 1: ok with the file skipped (empty, not_a_file, too_large); after a relaunch
+    list is ok with no documents, a new add stores a file and it reads back after another
+    relaunch. Fails today: the relaunch is index_missing.
+  - 1: the first write of documents.bin throws once: nothing added, "cannot_store" in the reply
+    (a skip or a whole refusal, as the earlier atomic test accepts, since the fix may write the
+    empty index in load), files/ empty; then the same relaunch check. Fails today.
+  - 4: documents.bin and keys.bin gone, one file in files/: list, add and open are
+    index_missing, the file unchanged, the folder holds only files/. Passes today; kills N1b
+    (index_missing only with keys.bin), checked in $TMPDIR/mt9.
+  - 4: keys.bin with files/ empty, then with files/ gone, no documents.bin: list ok with no
+    documents, documents.bin written, a new add stores. Fails today (index_missing); kills N1c.
+  - 4: chains x1..x150 and y1..y51 by real adds. update(y1, replaces x150): 51 + 150 = 201,
+    bad_replaces, nothing changes; update(y2, replaces x150): 50 + 150 = 200, ok, versions(y51)
+    is y51..y2 then x150..x1. Passes today; kills N4c (above = 1 gives 151), checked in mt9.
+  - 3: 4999 held (planted copies of one real row), add([new.pdf, a copy of the held file]):
+    new.pdf added, the copy skipped duplicate, 5000 after a relaunch. Fails today (store_full).
+  - 3: 5000 held: a new file alone and a new file beside the copy are store_full with nothing
+    changed; the copy alone is ok with it skipped duplicate (5000 + 0 is not past 5000). Fails
+    today on the third.
+- tests/desktop/bridges.test.ts:
+  - 2: a reminder shown; every file in the folder searched for the id, the date (also as
+    20261007), and md5/sha1/sha256/sha512 of 11 joinings, raw, hex, HEX and base64: none found.
+    A second main with the same keychain shows nothing; one with another keychain shows it.
+    Fails today on the unsalted sha256 in reminders-shown.json.
+  - 2: state.clear leaves the folder empty after a state is saved and a reminder shown. Fails
+    today (reminders-shown.json stays).
+  - 2: documents.clear leaves the folder empty after one document and one reminder shown.
+    Fails today.
+  - createReminders is now given { folder, cipher } (safeStorage, as state.bin). review_w2p4_3
+    passes the same fake keychain to each main; no assertion changed.
+- tests/unit/api/test_local_routes_w2.py: test_review2_w2p4_6 (a folder x.json beside PASSING:
+  both apps 200 with PASSING only). Fails today on IsADirectoryError.
+
+Ran:
+- the done command: exit 0 ("All matched files use Prettier code style!", "All checks
+  passed!", "116 files already formatted").
+- cd desktop && npx vitest run ../tests/desktop/documents-store.test.ts
+  ../tests/desktop/bridges.test.ts --coverage.enabled=false: 70 tests, 10 failed (the ten new
+  ones that need the fixes), 60 passed.
+- mt9 (a copy of desktop, contracts and tests): baseline 2 of 3 review2_w2p4_4 pass; N1b fails
+  the no-keys.bin test; N4c fails the update cap test.
+- uv run pytest -k "review2 or review_w2p4_8": test_review2_w2p4_6 fails on IsADirectoryError.
+
+Not built: no test of the bridge's multi-file replaces guard (note 5 is overbuilt code, not a
+missing test); no test of build-python.sh's here-string (note 7, a sandbox fault, owned by
+desktop/src/buildpython.test.ts); no planted index over 20000 lines (note 8, the old build only);
+no new helper in support.ts (plantRows and startsEmpty have one file as user).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

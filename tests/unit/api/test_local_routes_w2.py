@@ -391,6 +391,26 @@ def test_review_w2p4_8_a_published_file_that_is_not_utf8_is_skipped_and_the_rest
     assert _shown(a.json()) == [PASSING]
 
 
+def test_review2_w2p4_6_a_folder_named_like_an_update_is_skipped_and_the_rest_is_served(
+    apps: tuple[TestClient, TestClient], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # reviews/w2-p4.md (second review) note 6: a folder named x.json in pipeline/published
+    # matches *.json, read_text() raises IsADirectoryError, which is an OSError and not a
+    # ValueError, so GET /v1/updates gives 500. openapi /v1/updates: "a file that does not
+    # follow it is never returned". Both apps answer 200 with PASSING only. Fails while
+    # api/case.py catches ValueError alone.
+    (tmp_path / f"{PASSING['id']}.json").write_text(json.dumps(PASSING))
+    (tmp_path / "x.json").mkdir()
+    monkeypatch.setattr(importlib.import_module("api.case"), "PUBLISHED", tmp_path)
+    server, desktop = apps
+    a = server.get("/v1/updates", headers=WITH_TOKEN)
+    b = desktop.get("/v1/updates", headers=WITH_TOKEN)
+    assert a.status_code == 200, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+    assert _updates_problems(a.json()) == []
+    assert _shown(a.json()) == [PASSING]
+
+
 # Finding 6 and D95 (3): Duly's own limits in schedule.schema.json, days 36525, business days
 # 260, months 1200. One over each is outside the contract, so a 422 from both apps alike.
 

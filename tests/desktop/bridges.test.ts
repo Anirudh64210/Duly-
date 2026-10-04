@@ -10,8 +10,11 @@
 // - desktop/src/statefile.ts: STATE_CHANNEL; mayUseState(frameUrl, isMainFrame);
 //   createStateBridge({ folder, cipher, checker, disk? }), as createCaseBridge.
 // - desktop/src/reminders.ts: createReminders() with set(reminders), the reminders part of a
-//   saved state, and tick({ date, time }), this Mac's local day and HH:MM, given by main.
+//   saved state, and tick({ date, time }), this Mac's local day and HH:MM, given by main. Given
+//   { folder, cipher } (main's userData and safeStorage, as state.bin), it keeps the record of
+//   shown reminders there, readable only with the keychain (the second W2-P4 review, below).
 // - the preload: window.duly.engine and window.duly.state, on those channels.
+import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -29,6 +32,7 @@ import {
   STATE_BRIDGE,
   contractChecker,
   fakeKeychain,
+  filesUnder,
   load,
 } from "./support";
 
@@ -91,6 +95,14 @@ interface RemindersModule {
   createReminders(): {
     set(reminders: unknown): void;
     tick(now: { date: string; time: string }): void;
+  };
+}
+
+/** createReminders given main's userData folder and safeStorage, to keep what it has shown. */
+interface KeptReminders {
+  createReminders(deps: { folder: string; cipher: Cipher }): {
+    set(reminders: unknown): void;
+    tick(now: { date: string; time: string }): void | Promise<void>;
   };
 }
 
@@ -669,19 +681,16 @@ describe("a planned reminder becomes one Notification (SPEC-W2 point 22)", () =>
     // kept in main's own file." So createReminders is given the userData folder. Two mains
     // over one folder: one Notification. A main over another, empty folder shows it, so the
     // first is not kept from showing for some other reason. Fails while shown is memory only.
-    interface KeptReminders {
-      createReminders(deps: { folder: string }): {
-        set(reminders: unknown): void;
-        tick(now: { date: string; time: string }): void | Promise<void>;
-      };
-    }
+    // Each main is given this Mac's keychain too, which the record needs since the second
+    // review (finding 2, below).
     const { createReminders } = await load<KeptReminders>("reminders");
-    const first = createReminders({ folder });
+    const { cipher } = fakeKeychain();
+    const first = createReminders({ folder, cipher });
     first.set(reminders);
     await first.tick({ date: "2026-10-06", time: "09:00" });
     expect(shown).toHaveLength(1);
 
-    const second = createReminders({ folder });
+    const second = createReminders({ folder, cipher });
     second.set(reminders);
     await second.tick({ date: "2026-10-06", time: "09:40" });
     expect(shown).toHaveLength(1);
@@ -689,12 +698,128 @@ describe("a planned reminder becomes one Notification (SPEC-W2 point 22)", () =>
 
     const elsewhere = mkdtempSync(join(tmpdir(), "duly-other-"));
     try {
-      const other = createReminders({ folder: elsewhere });
+      const other = createReminders({ folder: elsewhere, cipher });
       other.set(reminders);
       await other.tick({ date: "2026-10-06", time: "09:40" });
       expect(shown).toHaveLength(2);
     } finally {
       rmSync(elsewhere, { recursive: true, force: true });
+    }
+  });
+
+  // The second W2-P4 review (reviews/w2-p4.md, run l-review-5f14d86b05), finding 2: the record
+  // of shown reminders held unsalted sha256("<id> <date>") in plain text, so a copy of the data
+  // folder without the Mac login gave back "loop.b 2026-10-07" from 3 ids and 4 years of dates
+  // in a millisecond (S2), and it outlasted state.clear (N5). Point 18 keeps reminders in
+  // state.bin under safeStorage; security/threat-model.md names a copy of the data folder.
+
+  /** Every form of the reminder a reader without the keychain could find or match. */
+  function readableForms(id: string, on: string): Buffer[] {
+    const texts = [id, on, on.replaceAll("-", ""), `${id} ${on}`, `${id}${on}`, `${id}|${on}`];
+    texts.push(`${id}:${on}`, `${id}\n${on}`, `${on} ${id}`, JSON.stringify([id, on]));
+    texts.push(JSON.stringify({ id, on }));
+    const forms = texts.map((text) => Buffer.from(text));
+    for (const text of texts) {
+      for (const algorithm of ["md5", "sha1", "sha256", "sha512"]) {
+        const digest = createHash(algorithm).update(text).digest();
+        forms.push(digest, Buffer.from(digest.toString("hex")));
+        forms.push(Buffer.from(digest.toString("hex").toUpperCase()));
+        forms.push(Buffer.from(digest.toString("base64")));
+      }
+    }
+    return forms;
+  }
+
+  it("review2_w2p4_2: the record of shown reminders cannot be read or matched without the keychain", async () => {
+    // A reminder loop.b.reminder on 2026-10-07, shown. Every file in the folder is then
+    // searched for the id, the date, and md5, sha1, sha256 and sha512 of each way of joining
+    // them, in raw bytes, hex and base64: none may be there. A second main with this Mac's
+    // keychain does not show it again (the record still works); a main over the same folder
+    // with another keychain cannot match it, so it shows it. Fails on today's unsalted sha256
+    // in plain text, and on a record kept in the clear.
+    const { createReminders } = await load<KeptReminders>("reminders");
+    const reminder = { id: "loop.b.reminder", on: "2026-10-07", title: "Check in", body: "" };
+    const plan = { ...reminders, planned: [reminder] };
+    const keychain = fakeKeychain();
+    const first = createReminders({ folder, cipher: keychain.cipher });
+    first.set(plan);
+    await first.tick({ date: "2026-10-07", time: "09:00" });
+    expect(shown).toHaveLength(1);
+
+    const onDisk = [...filesUnder(folder).values()];
+    expect(onDisk.length).toBeGreaterThan(0);
+    for (const form of readableForms(reminder.id, reminder.on)) {
+      for (const bytes of onDisk) expect(bytes.includes(form)).toBe(false);
+    }
+
+    const again = createReminders({ folder, cipher: keychain.cipher });
+    again.set(plan);
+    await again.tick({ date: "2026-10-07", time: "09:30" });
+    expect(shown).toHaveLength(1);
+
+    const stranger = createReminders({ folder, cipher: fakeKeychain().cipher });
+    stranger.set(plan);
+    await stranger.tick({ date: "2026-10-07", time: "09:30" });
+    expect(shown).toHaveLength(2);
+  });
+
+  it("review2_w2p4_2: state.clear removes the record of shown reminders", async () => {
+    // Finding 2, N5: after state.clear the record was still there. Point 18: state.clear is
+    // "Delete everything" for the state. A state is saved and a reminder shown, so the folder
+    // holds state.bin and the record; after state.clear it holds nothing. Fails while the
+    // record outlasts state.clear.
+    const { createReminders } = await load<KeptReminders>("reminders");
+    const keychain = fakeKeychain();
+    const state = stateModule.createStateBridge({ folder, cipher: keychain.cipher, checker });
+    await state(stateWrite(A_STATE));
+    const planner = createReminders({ folder, cipher: keychain.cipher });
+    planner.set(reminders);
+    await planner.tick({ date: "2026-10-06", time: "09:00" });
+    expect(shown).toHaveLength(1);
+    expect(readdirSync(folder).length).toBeGreaterThan(1);
+
+    expect(await state(stateClear)).toEqual({ ...stateClear, ok: true });
+    expect(readdirSync(folder)).toEqual([]);
+  });
+
+  it("review2_w2p4_2: documents.clear removes the record of shown reminders", async () => {
+    // Finding 2: "It is not among the files Delete everything removes." The documents store's
+    // clear is the other half of Delete everything (contract clear_call). One document stored
+    // and a reminder shown; after clear the folder holds nothing. Fails while the record stays.
+    interface Cleared {
+      openStore(deps: {
+        folder: string;
+        cipher: Cipher;
+        checker: Checker;
+        today: () => string;
+      }): Promise<{
+        add(paths: readonly string[]): Promise<{ ok: boolean }>;
+        clear(): Promise<unknown>;
+      }>;
+    }
+    const { createReminders } = await load<KeptReminders>("reminders");
+    const { openStore } = await load<Cleared>("docstore");
+    const keychain = fakeKeychain();
+    const student = mkdtempSync(join(tmpdir(), "duly-student-"));
+    try {
+      const file = join(student, "i20.pdf");
+      writeFileSync(file, "a scan of the I-20");
+      const opened = await openStore({
+        folder,
+        cipher: keychain.cipher,
+        checker: contractChecker(["case", "desktop_documents_bridge"]),
+        today: () => "2026-10-06",
+      });
+      expect(await opened.add([file])).toMatchObject({ ok: true });
+      const planner = createReminders({ folder, cipher: keychain.cipher });
+      planner.set(reminders);
+      await planner.tick({ date: "2026-10-06", time: "09:00" });
+      expect(shown).toHaveLength(1);
+
+      expect(await opened.clear()).toEqual({ ok: true });
+      expect(readdirSync(folder)).toEqual([]);
+    } finally {
+      rmSync(student, { recursive: true, force: true });
     }
   });
 });

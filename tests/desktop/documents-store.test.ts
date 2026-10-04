@@ -22,6 +22,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import {
   chmodSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -962,6 +963,246 @@ describe("the W2-P4 review's findings on the store (reviews/w2-p4.md, D96)", () 
     expect(snapshot()).toEqual(before);
     expect((await listed(opened)).documents.map((one) => one.id)).toEqual([held.id]);
   });
+});
+
+// The second W2-P4 review (reviews/w2-p4.md, run l-review-5f14d86b05) and the contract as of
+// 444fa86: index_missing only when a file in files/ would lose its name ("keys.bin with no file
+// in files/ is not index_missing: no document can be lost, so a new empty index is written"),
+// and store_full counts only the files an add would store. Each test names its finding. Written
+// before the fixes: these cannot pass yet.
+
+/** 4999 or 5000 documents: the one real row, then copies of it under other ids. */
+function plantRows(key: Buffer, count: number): void {
+  const index = openIndex(key);
+  const row = index.rows[0] as { document: Document };
+  index.rows = Array.from({ length: count }, (_, k) =>
+    k === 0 ? row : { ...row, document: { ...row.document, id: k.toString(16).padStart(32, "0") } },
+  );
+  plantIndex(key, index);
+}
+
+/** After a relaunch: list answers ok with no documents, and a new add stores a file. */
+async function startsEmpty(): Promise<void> {
+  const relaunched = await open();
+  expect((await listed(relaunched)).documents).toEqual([]);
+  const file = studentFile("i20.pdf", 900);
+  const document = await addOne(relaunched, file.path);
+  const again = await open();
+  expect((await listed(again)).documents.map((one) => one.id)).toEqual([document.id]);
+  const back = await again.read(document.id);
+  expect(back.ok && back.bytes.equals(file.bytes)).toBe(true);
+}
+
+describe("the second W2-P4 review's findings on the store (reviews/w2-p4.md, 444fa86)", () => {
+  // Finding 1 (blocking): a new student's first add stored nothing, but load had written
+  // keys.bin and no documents.bin was written, so every later launch was index_missing (N1).
+  // Point 16 as D96 amends it and the contract: keys.bin with no file in files/ is not
+  // index_missing. Each fails while keys.bin alone after a relaunch is refused.
+  const firsts: [string, string, string, () => string][] = [
+    ["one empty file", "empty.pdf", "empty", () => studentFile("empty.pdf", 0).path],
+    [
+      "one folder",
+      "scans",
+      "not_a_file",
+      () => {
+        const path = join(outside, "scans");
+        mkdirSync(path);
+        return path;
+      },
+    ],
+    [
+      "one file over the size limit",
+      "huge.pdf",
+      "too_large",
+      () => {
+        const path = join(outside, "huge.pdf");
+        writeFileSync(path, "");
+        truncateSync(path, store.MAX_FILE_BYTES + 1);
+        return path;
+      },
+    ],
+  ];
+  for (const [what, name, refused, make] of firsts) {
+    it(`review2_w2p4_1: a first add of ${what} is skipped and Documents opens after a relaunch`, async () => {
+      expect(readdirSync(folder)).toEqual([]);
+      const reply = await (await open()).add([make()]);
+      inContract("add", reply, "add_reply");
+      expect(reply).toMatchObject({ ok: true, added: [], skipped: [{ name, refused }] });
+      await startsEmpty();
+    });
+  }
+
+  it("review2_w2p4_1: a first add whose index write fails once stores nothing, and Duly relaunches", async () => {
+    // Finding 1, N2: the first write of documents.bin throws once, so the add stores nothing
+    // (the file skipped as cannot_store, or the add refused as cannot_store: "the index or a
+    // file could not be written"), and files/ holds nothing half added. Then a relaunch with a
+    // working disk lists no documents and adds. Fails while that relaunch is index_missing.
+    let failed = false;
+    const failsOnce: Disk = {
+      read: nodeDisk.read,
+      write: (path, data) => {
+        if (failed || !path.endsWith("documents.bin")) return nodeDisk.write(path, data);
+        failed = true;
+        return Promise.reject(new Error("full"));
+      },
+      remove: nodeDisk.remove,
+    };
+    const reply = await (await open({ disk: failsOnce })).add([studentFile("a.pdf", 900).path]);
+    inContract("add", reply, "add_reply");
+    expect(failed).toBe(true);
+    expect(reply.ok ? reply.added : []).toEqual([]);
+    expect(JSON.stringify(reply)).toContain('"cannot_store"');
+    const files = join(folder, "files");
+    expect(existsSync(files) ? readdirSync(files) : []).toEqual([]);
+    await startsEmpty();
+  });
+
+  it("review2_w2p4_4: a file in files/ with no documents.bin and no keys.bin is index_missing", async () => {
+    // Finding 4, N1b: index_missing checked only with keys.bin present survived every test.
+    // Contract: "index_missing: documents.bin is missing while a file in files/ is there ...
+    // nothing is read, written or deleted". The file stays byte for byte, and neither
+    // documents.bin nor keys.bin is made. (With keys.bin kept: review_w2p4_1 above.)
+    const a = await addOne(await open(), studentFile("i20.pdf", 900).path);
+    rmSync(join(folder, "documents.bin"));
+    rmSync(join(folder, "keys.bin"));
+    const files = filesUnder(join(folder, "files"));
+    expect([...files.keys()]).toEqual([a.id]);
+
+    const relaunched = await open();
+    const replies = [
+      ["list", await relaunched.list(), "list_reply"],
+      ["add", await relaunched.add([studentFile("b.pdf", 700).path]), "add_reply"],
+      ["open", await relaunched.read(a.id), "open_reply"],
+    ] as const;
+    for (const [call, reply, define] of replies) {
+      expect(reply).toMatchObject({ ok: false, refused: "index_missing" });
+      inContract(call, reply, define);
+    }
+    expect(filesUnder(join(folder, "files"))).toEqual(files);
+    expect(readdirSync(folder)).toEqual(["files"]);
+  });
+
+  it("review2_w2p4_4: keys.bin with no file in files/ and no documents.bin starts an empty index", async () => {
+    // Finding 4, N1c, and the contract as of 444fa86: "keys.bin with no file in files/ is not
+    // index_missing: no document can be lost, so a new empty index is written". A document
+    // added, removed and deleted for good leaves files/ empty; then documents.bin goes. Once
+    // with files/ empty and once with files/ gone: list answers ok with no documents, a
+    // documents.bin is written, and a new add stores a file. Fails if either is index_missing.
+    for (const filesGone of [false, true]) {
+      const opened = await open();
+      const gone = await addOne(opened, studentFile(`gone-${filesGone}.pdf`, 900).path);
+      await opened.remove(gone.id);
+      expect(await opened.delete(gone.id)).toEqual({ ok: true });
+      expect(readdirSync(join(folder, "files"))).toEqual([]);
+      rmSync(join(folder, "documents.bin"));
+      if (filesGone) rmSync(join(folder, "files"), { recursive: true });
+
+      const relaunched = await open();
+      expect((await listed(relaunched)).documents).toEqual([]);
+      expect(existsSync(join(folder, "documents.bin"))).toBe(true);
+      const kept = await addOne(relaunched, studentFile(`kept-${filesGone}.pdf`, 901).path);
+      expect((await listed(await open())).documents.map((one) => one.id)).toEqual([kept.id]);
+      await relaunched.clear();
+    }
+  });
+
+  it("review2_w2p4_4: update keeps the 200 cap on a document that already has newer versions", async () => {
+    // Finding 4, N4c: counting only the document itself above the join (above = 1) survived,
+    // since every update test joined a document with nothing newer. Point 17 as D96 amends it:
+    // a chain past 200 versions is bad_replaces. Two chains by real adds: x1 <- ... <- x150
+    // and y1 <- ... <- y51 (y51 newest). Working:
+    // - update(y1, replaces x150): y1 and the 50 above it (y2 to y51) are 51, x150 to x1 are
+    //   150; 51 + 150 = 201 > 200: bad_replaces, nothing changes. With N4c: 1 + 150 = 151, ok.
+    // - update(y2, replaces x150): y2 to y51 are 50; 50 + 150 = 200, the cap itself: ok, and
+    //   versions(y51) is y51 down to y2, then x150 down to x1, 200 in all.
+    const opened = await open();
+    const chainOf = async (tag: string, length: number): Promise<Document[]> => {
+      const made = [await addOne(opened, studentFile(`${tag}-1.pdf`, 64).path)];
+      for (let at = 2; at <= length; at += 1) {
+        const below = made[made.length - 1] as Document;
+        made.push(await addOne(opened, studentFile(`${tag}-${at}.pdf`, 64).path, below.id));
+      }
+      return made;
+    };
+    const x = await chainOf("x", 150);
+    const y = await chainOf("y", 51);
+    const x150 = x[149] as Document;
+    const before = snapshot();
+
+    const over = await opened.update((y[0] as Document).id, { replaces: x150.id });
+    expect(over).toMatchObject({ ok: false, refused: "bad_replaces" });
+    inContract("update", over, "update_reply");
+    expect(snapshot()).toEqual(before);
+
+    const atCap = await opened.update((y[1] as Document).id, { replaces: x150.id });
+    inContract("update", atCap, "update_reply");
+    expect(atCap.ok).toBe(true);
+    const chain = await opened.versions((y[50] as Document).id);
+    inContract("versions", chain, "versions_reply");
+    const ids = ((chain as Reply).versions as Document[]).map((one) => one.id);
+    const expected = [...y.slice(1).reverse(), ...[...x].reverse()].map((one) => one.id);
+    expect(expected).toHaveLength(200);
+    expect(ids).toEqual(expected);
+  }, 120_000);
+
+  it("review2_w2p4_3: with 4999 held, a new file beside a duplicate is stored and makes 5000", async () => {
+    // Finding 3 (S1): add([new.pdf, a duplicate]) at 4999 was store_full, since the store
+    // counted paths, not files it would store. Contract store_full as of 444fa86: "the files
+    // this add would store would take the store past 5000 documents ... Files skipped (a
+    // duplicate, an empty file) do not count." Working: 4999 + 1 stored = 5000, not past 5000.
+    // The duplicate is skipped as duplicate. Fails while the store counts paths (4999 + 2).
+    const kept = keptRandom();
+    const held = studentFile("i20.pdf", 900);
+    await addOne(await open({ random: kept.random }), held.path);
+    plantRows(documentKey(kept.draws), 4999);
+    const copy = join(outside, "i20 copy.pdf");
+    writeFileSync(copy, held.bytes);
+
+    const opened = await open();
+    expect((await listed(opened)).documents).toHaveLength(4999);
+    const reply = await opened.add([studentFile("new.pdf", 700).path, copy]);
+    inContract("add", reply, "add_reply");
+    expect(reply).toMatchObject({
+      ok: true,
+      added: [{ name: "new.pdf" }],
+      skipped: [{ name: "i20 copy.pdf", refused: "duplicate" }],
+    });
+    expect((reply as Reply).added).toHaveLength(1);
+    expect((await listed(await open())).documents).toHaveLength(5000);
+  }, 120_000);
+
+  it("review2_w2p4_3: with 5000 held, any add that would store a file is store_full", async () => {
+    // Contract store_full: "nothing is added". At 5000, a new file alone and a new file beside a
+    // duplicate would each make 5001: store_full, documents.bin and files/ as before. A
+    // duplicate alone stores nothing, so 5000 + 0 is not past 5000: answered ok with it
+    // skipped. Fails if any of the first two is answered ok, or if the third is store_full.
+    const kept = keptRandom();
+    const held = studentFile("i20.pdf", 900);
+    await addOne(await open({ random: kept.random }), held.path);
+    plantRows(documentKey(kept.draws), 5000);
+    const copy = join(outside, "i20 copy.pdf");
+    writeFileSync(copy, held.bytes);
+
+    const opened = await open();
+    const before = snapshot();
+    for (const paths of [
+      [studentFile("one-more.pdf", 700).path],
+      [studentFile("two-more.pdf", 700).path, copy],
+    ]) {
+      const reply = await opened.add(paths);
+      expect(reply).toMatchObject({ ok: false, refused: "store_full" });
+      inContract("add", reply, "add_reply");
+      expect(snapshot()).toEqual(before);
+    }
+    const onlyCopy = await opened.add([copy]);
+    inContract("add", onlyCopy, "add_reply");
+    expect(onlyCopy).toMatchObject({
+      ok: true,
+      added: [],
+      skipped: [{ name: "i20 copy.pdf", refused: "duplicate" }],
+    });
+    expect((await listed(await open())).documents).toHaveLength(5000);
+  }, 120_000);
 });
 
 function flip(bytes: Buffer): Buffer {
