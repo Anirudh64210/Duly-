@@ -27,7 +27,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Cipher } from "../../desktop/src/casefile";
 import type { Checker } from "../../desktop/src/schema";
-import { DOCUMENTS_BRIDGE, SRC, contractChecker, fakeKeychain, load } from "./support";
+import { DOCUMENTS_BRIDGE, SRC, contractChecker, fakeKeychain, filesUnder, load } from "./support";
 
 const exposed = vi.hoisted(() => [] as [string, unknown][]);
 const asked = vi.hoisted(() => [] as unknown[][]);
@@ -514,6 +514,111 @@ describe("a path string from the screen is refused (SPEC-W2 point 13)", () => {
     expect(main).toContain("ipcMain.handle(DOCUMENTS_CHANNEL");
     expect(main).toContain("mayUseDocuments(");
     expect(main).toContain("createDocumentsBridge(");
+  });
+});
+
+// The W2-P4 review (reviews/w2-p4.md) and DECISIONS.md D96, which amends SPEC-W2 points 13
+// and 17 and contracts/desktop_documents_bridge.schema.json (2d46965). Each test names its
+// finding. Written before the fixes: these cannot pass yet.
+describe("the W2-P4 review's findings on the bridge (reviews/w2-p4.md, D96)", () => {
+  /** Every file in the data folder with its bytes, to show that nothing changed. */
+  const everything = () => filesUnder(folder);
+
+  it("review_w2p4_2: an add of two files that replaces one is bad_replaces, nothing added", async () => {
+    // Finding 2: add([a.pdf, b.pdf], old) from one pick made a fork, and versions(old) then
+    // missed a.pdf. Point 17 as D96 amends it: "a multi-file add that replaces, is
+    // bad_replaces". Contract bad_replaces: "or the add holds more than one file". From the
+    // dialog and from a drop alike. Fails if either adds anything or answers ok.
+    const answer = bridge();
+    const old = await addDropped(answer, studentFile("i20-old.pdf", PDF));
+    const before = everything();
+    const two = [studentFile("a.pdf", randomBytes(300)), studentFile("b.pdf", randomBytes(301))];
+    picks.files = two;
+    for (const message of [
+      call("add", { from: "dialog", replaces: old.id }),
+      drop(two, { replaces: old.id }),
+    ]) {
+      expect(await answer(message)).toEqual({
+        ...call("add"),
+        ok: false,
+        refused: "bad_replaces",
+      });
+    }
+    expect(everything()).toEqual(before);
+    const versions = (await answer(call("versions", { id: old.id }))) as { versions: Document[] };
+    expect(versions.versions.map((d) => d.id)).toEqual([old.id]);
+  });
+
+  it("review_w2p4_4: 51 files picked is too_many_files, and nothing is added", async () => {
+    // Finding 4: 51 files from the dialog were all stored, and then the reply broke add_reply
+    // added maxItems 50, so the page got no answer. D96: "one add takes at most 50 files".
+    // Contract too_many_files: "more than 50 files in one add ... nothing is added". Hand
+    // count: 51 = 50 + 1. Fails if any file is stored or the index changes.
+    const answer = bridge();
+    await addDropped(answer, studentFile("held.pdf", PDF));
+    const before = everything();
+    picks.files = Array.from({ length: 51 }, (_, at) =>
+      studentFile(`scan-${at}.pdf`, randomBytes(100 + at)),
+    );
+    expect(await answer(call("add", { from: "dialog" }))).toEqual({
+      ...call("add"),
+      ok: false,
+      refused: "too_many_files",
+    });
+    expect(everything()).toEqual(before);
+  });
+
+  it("review_w2p4_7: a reply main builds outside the contract is never sent", async () => {
+    // Finding 7: mutant M13, main's reply check removed (docbridge.ts), passed every test, as
+    // no test made a reply outside the contract. Point 13: "Every reply is checked against the
+    // schema." Here the checker main is given finds a problem with every list reply, and with
+    // nothing else, so the reply main builds is outside the contract it checks by. The call
+    // must be rejected, as a call outside the contract is. Fails on M13.
+    const strict = Object.create(checker) as Checker;
+    strict.problem = (id: string, value: unknown): string | null => {
+      const reply = typeof value === "object" && value !== null && "ok" in value;
+      if (reply && (value as { call?: unknown }).call === "documents.list") {
+        return "/: outside the contract in this test";
+      }
+      return checker.problem(id, value);
+    };
+    const answer = docs.createDocumentsBridge({
+      folder,
+      cipher: keychain.cipher,
+      checker: strict,
+      today: () => TODAY,
+      dialogs,
+    });
+    await expect(answer(call("list"))).rejects.toThrow();
+    expect(await bridge()(call("list"))).toMatchObject({ ok: true });
+  });
+
+  it("review_w2p4_9: export into the data folder is inside_data_folder and writes nothing", async () => {
+    // Finding 9: the folder dialog pointed at the data folder left a.pdf in plaintext beside
+    // documents.bin, which Delete everything does not remove. D96: "export never writes inside
+    // Duly's own data folder". Contract inside_data_folder: "export was pointed at a folder or
+    // file inside Duly's own data folder; nothing is written". The data folder itself, its
+    // files/ and a .zip inside it. Fails if any file is written there or a history line kept.
+    const answer = bridge();
+    const document = await addDropped(answer, studentFile("a.pdf", PDF));
+    const before = everything();
+    const places: [string, "folder" | "zip"][] = [
+      [folder, "folder"],
+      [join(folder, "files"), "folder"],
+      [join(folder, "copy.zip"), "zip"],
+    ];
+    for (const [place, as] of places) {
+      picks.folder = as === "folder" ? place : null;
+      picks.zip = as === "zip" ? place : null;
+      expect(await answer(call("export", { ids: [document.id], as }))).toEqual({
+        ...call("export"),
+        ok: false,
+        refused: "inside_data_folder",
+      });
+      expect(everything()).toEqual(before);
+    }
+    const list = (await answer(call("list"))) as { history: unknown[] };
+    expect(list.history).toEqual([{ on: TODAY, event: "added", document: document.id }]);
   });
 });
 

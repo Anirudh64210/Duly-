@@ -18,12 +18,14 @@
 //   there is a crash in that step.
 // - disk: as casefile.ts's Disk, for keys.bin and documents.bin, written in full or not at all.
 // It also exports MAX_FILE_BYTES, Duly's own size limit (no law states one).
-import { randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import {
+  chmodSync,
   existsSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   truncateSync,
   writeFileSync,
@@ -530,6 +532,435 @@ describe("versions and nothing lost (SPEC-W2 point 17)", () => {
       expect(existsSync(join(folder, name))).toBe(false);
     }
     expect(readFileSync(file.path)).toEqual(file.bytes);
+  });
+});
+
+// The W2-P4 review (reviews/w2-p4.md) and DECISIONS.md D96, which amends SPEC-W2 points 16
+// and 17 and contracts/desktop_documents_bridge.schema.json (2d46965). Each test names its
+// finding. Written before the fixes: these cannot pass yet.
+//
+// Two layouts the SPEC leaves open are read here as docstore.ts writes them today, so a test
+// can plant an index at a limit and open a chunk by hand. If either moves, the test fails at
+// the helper, loudly, never quietly:
+// - documents.bin: a 12-byte nonce, the GCM tag, then the index JSON under D, with
+//   "duly documents.bin v1" as additional data; the JSON holds rows (each with its document)
+//   and history.
+// - a chunk's additional data: the document id in latin1, the chunk index as a UInt32BE and
+//   one byte, 1 for the last chunk and 0 for any other. Point 15 names the three; their bytes
+//   are not in the SPEC (see disputes in tests/REPORT.json).
+
+const INDEX_AAD = Buffer.from("duly documents.bin v1");
+
+interface PlantedIndex {
+  rows: { document: Document }[];
+  history: HistoryLine[];
+}
+
+/** D: the one 32-byte draw the keychain was asked to wrap. */
+function documentKey(draws: readonly Buffer[]): Buffer {
+  const wrapped = draws.filter(
+    (draw) =>
+      draw.length === 32 &&
+      keychain.wrapped.some((text) =>
+        keyForms(draw).some((form) => text.includes(form.toString())),
+      ),
+  );
+  expect(wrapped).toHaveLength(1);
+  return wrapped[0] as Buffer;
+}
+
+function openIndex(key: Buffer): PlantedIndex {
+  const bytes = readFileSync(join(folder, "documents.bin"));
+  const aes = createDecipheriv("aes-256-gcm", key, bytes.subarray(0, 12));
+  aes.setAAD(INDEX_AAD);
+  aes.setAuthTag(bytes.subarray(12, 28));
+  const text = Buffer.concat([aes.update(bytes.subarray(28)), aes.final()]).toString("utf8");
+  const index = JSON.parse(text) as PlantedIndex;
+  expect(Array.isArray(index.rows) && Array.isArray(index.history)).toBe(true);
+  return index;
+}
+
+function plantIndex(key: Buffer, index: PlantedIndex): void {
+  const nonce = randomBytes(12);
+  const aes = createCipheriv("aes-256-gcm", key, nonce);
+  aes.setAAD(INDEX_AAD);
+  const body = Buffer.concat([aes.update(JSON.stringify(index), "utf8"), aes.final()]);
+  writeFileSync(join(folder, "documents.bin"), Buffer.concat([nonce, aes.getAuthTag(), body]));
+}
+
+/** Point 15's nonce: the file's 64-bit prefix, then the 32-bit chunk counter. */
+function chunkNonce(prefix: Buffer, counter: number): Buffer {
+  const nonce = Buffer.alloc(12);
+  prefix.copy(nonce, 0, 0, 8);
+  nonce.writeUInt32BE(counter, 8);
+  return nonce;
+}
+
+/** Point 15's additional data: the document id, the chunk index and the last-chunk flag. */
+function chunkData(id: string, index: number, last: boolean): Buffer {
+  const data = Buffer.alloc(id.length + 5);
+  data.write(id, 0, "latin1");
+  data.writeUInt32BE(index, id.length);
+  data.writeUInt8(last ? 1 : 0, id.length + 4);
+  return data;
+}
+
+/** One chunk opened by hand, or null when GCM refuses it. */
+function openChunk(
+  key: Buffer,
+  nonce: Buffer,
+  data: Buffer,
+  sealed: Buffer, // the chunk's ciphertext, then its 16-byte tag
+): Buffer | null {
+  try {
+    const aes = createDecipheriv("aes-256-gcm", key, nonce);
+    aes.setAAD(data);
+    aes.setAuthTag(sealed.subarray(sealed.length - 16));
+    return Buffer.concat([aes.update(sealed.subarray(0, sealed.length - 16)), aes.final()]);
+  } catch {
+    return null;
+  }
+}
+
+/** A whole file in point 15's layout: the prefix, then each chunk's ciphertext and tag. */
+function sealFile(id: string, key: Buffer, prefix: Buffer, plain: Buffer): Buffer {
+  const parts = [prefix];
+  const count = Math.max(1, Math.ceil(plain.length / CHUNK));
+  for (let index = 0; index < count; index += 1) {
+    const aes = createCipheriv("aes-256-gcm", key, chunkNonce(prefix, index));
+    aes.setAAD(chunkData(id, index, index === count - 1));
+    parts.push(aes.update(plain.subarray(index * CHUNK, (index + 1) * CHUNK)), aes.final());
+    parts.push(aes.getAuthTag());
+  }
+  return Buffer.concat(parts);
+}
+
+/** The documents.bin bytes and every file in files/, to show that nothing changed. */
+function snapshot(): { index: Buffer | null; files: Map<string, Buffer> } {
+  const indexPath = join(folder, "documents.bin");
+  return {
+    index: existsSync(indexPath) ? readFileSync(indexPath) : null,
+    files: existsSync(join(folder, "files")) ? filesUnder(join(folder, "files")) : new Map(),
+  };
+}
+
+describe("the W2-P4 review's findings on the store (reviews/w2-p4.md, D96)", () => {
+  it("review_w2p4_1: a missing documents.bin is index_missing and deletes no file", async () => {
+    // Finding 1 (blocking): two documents added, documents.bin moved out of the folder with
+    // keys.bin kept, then a relaunch: the launch sweep deleted both files ("files before: 2",
+    // "after relaunch: 0"). Point 16 as D96 amends it: "a missing documents.bin while keys.bin
+    // or a file in files/ remains is refused as index_missing, and nothing is read, written or
+    // deleted". Contract refusal index_missing. Fails if a relaunch deletes either file, if
+    // list, add or open answers anything but index_missing, or if a new documents.bin is made.
+    // With documents.bin put back, both open with their own bytes: nothing was lost.
+    const first = await open();
+    const one = studentFile("i20.pdf", 900);
+    const two = studentFile("passport.jpg", CHUNK + 3);
+    const a = await addOne(first, one.path);
+    const b = await addOne(first, two.path);
+    const files = filesUnder(join(folder, "files"));
+    expect([...files.keys()].sort()).toEqual([a.id, b.id].sort());
+    const keys = readFileSync(join(folder, "keys.bin"));
+    const away = join(outside, "documents.bin");
+    renameSync(join(folder, "documents.bin"), away);
+
+    for (let launch = 0; launch < 2; launch += 1) {
+      const relaunched = await open();
+      const list = await relaunched.list();
+      expect(list).toMatchObject({ ok: false, refused: "index_missing" });
+      inContract("list", list, "list_reply");
+      const added = await relaunched.add([studentFile(`new-${launch}.pdf`, 700).path]);
+      expect(added).toMatchObject({ ok: false, refused: "index_missing" });
+      inContract("add", added, "add_reply");
+      const opened = await relaunched.read(a.id);
+      expect(opened).toMatchObject({ ok: false, refused: "index_missing" });
+      inContract("open", opened, "open_reply");
+
+      expect(filesUnder(join(folder, "files"))).toEqual(files);
+      expect(readFileSync(join(folder, "keys.bin"))).toEqual(keys);
+      expect(existsSync(join(folder, "documents.bin"))).toBe(false);
+    }
+
+    renameSync(away, join(folder, "documents.bin"));
+    const restored = await open();
+    for (const [document, file] of [
+      [a, one],
+      [b, two],
+    ] as const) {
+      const back = await restored.read(document.id);
+      expect(back.ok && back.bytes.equals(file.bytes)).toBe(true);
+    }
+  });
+
+  it("review_w2p4_1: with nothing stored at all, a first launch still lists and adds", async () => {
+    // Finding 1's fix must not lock out a new student: no keys.bin, no documents.bin and no
+    // files/ is a first launch, not a missing index. Fails if it is refused as index_missing.
+    expect(readdirSync(folder)).toEqual([]);
+    const opened = await open();
+    expect(await listed(opened)).toMatchObject({ documents: [], history: [] });
+    const document = await addOne(opened, studentFile("i20.pdf", 900).path);
+    expect((await listed(await open())).documents.map((one) => one.id)).toEqual([document.id]);
+  });
+
+  it("review_w2p4_2: a second document replacing the same one is bad_replaces", async () => {
+    // Finding 2: update(c, {replaces: old}) when b already replaces old made a fork, and
+    // versions() then dropped c. Point 17 as D96 amends it: "a chain stays a single line (a
+    // second document replacing the same one ... is bad_replaces)". Contract bad_replaces: "a
+    // document another document already replaces". Fails if the update is answered ok, or if
+    // versions(old) is anything but b then old, or if c changes.
+    const opened = await open();
+    const old = await addOne(opened, studentFile("i20-2025.pdf", 900).path);
+    const b = await addOne(opened, studentFile("i20-2026.pdf", 901).path, old.id);
+    const c = await addOne(opened, studentFile("i20-travel.pdf", 902).path);
+    const before = snapshot();
+
+    const reply = await opened.update(c.id, { replaces: old.id });
+    expect(reply).toMatchObject({ ok: false, refused: "bad_replaces" });
+    inContract("update", reply, "update_reply");
+
+    const versions = await opened.versions(old.id);
+    inContract("versions", versions, "versions_reply");
+    expect(((versions as Reply).versions as Document[]).map((one) => one.id)).toEqual([
+      b.id,
+      old.id,
+    ]);
+    const cNow = (await listed(opened)).documents.find((one) => one.id === c.id);
+    expect(cNow?.replaces ?? null).toBeNull();
+    expect(snapshot()).toEqual(before);
+  });
+
+  it("review_w2p4_2: a chain at 200 versions refuses the 201st as bad_replaces", async () => {
+    // Finding 5 (a chain of 201 versions breaks versions maxItems 200) and D96: "so is a
+    // chain past 200 versions". 200 real adds, each replacing the one before: versions gives
+    // all 200 inside the contract. A 201st, by add with replaces and by update of a document
+    // on its own, is bad_replaces and nothing changes. Hand count: 1 first + 199 replacing = 200.
+    const opened = await open();
+    let head = await addOne(opened, studentFile("v-1.pdf", 64).path);
+    for (let at = 2; at <= 200; at += 1) {
+      head = await addOne(opened, studentFile(`v-${at}.pdf`, 64).path, head.id);
+    }
+    const chain = await opened.versions(head.id);
+    inContract("versions", chain, "versions_reply");
+    expect((chain as Reply).versions).toHaveLength(200);
+    const alone = await addOne(opened, studentFile("alone.pdf", 64).path);
+    const before = snapshot();
+
+    const byAdd = await opened.add([studentFile("v-201.pdf", 64).path], head.id);
+    expect(byAdd).toMatchObject({ ok: false, refused: "bad_replaces" });
+    inContract("add", byAdd, "add_reply");
+    const byUpdate = await opened.update(alone.id, { replaces: head.id });
+    expect(byUpdate).toMatchObject({ ok: false, refused: "bad_replaces" });
+    inContract("update", byUpdate, "update_reply");
+
+    expect(snapshot()).toEqual(before);
+    expect(((await opened.versions(head.id)) as Reply).versions).toHaveLength(200);
+  }, 120_000);
+
+  it("review_w2p4_5: an index of 20000 history lines keeps the newest 20000", async () => {
+    // Finding 5: with 20001 history lines every list was "not a documents bridge reply", so
+    // Documents was dead from then on. D96 and the contract's list_reply history: "The index
+    // keeps the newest 20000 lines; older lines are dropped as new ones are written."
+    // Planted: 20000 exported lines, newest first, line k (k = 0 newest) with count k + 1.
+    // One more event (a remove) makes 20001; the oldest, count 20000, is dropped. Working:
+    // history[0] is the remove, history[1] count 1, history[19999] count 19999. Fails if list
+    // is refused or outside the contract, or the lines are not the newest, newest first.
+    const kept = keptRandom();
+    const first = await open({ random: kept.random });
+    const document = await addOne(first, studentFile("ead.pdf", 900).path);
+    const key = documentKey(kept.draws);
+    const index = openIndex(key);
+    index.history = Array.from({ length: 20000 }, (_, k) => ({
+      on: TODAY,
+      event: "exported",
+      count: k + 1,
+    }));
+    plantIndex(key, index);
+
+    const opened = await open();
+    expect((await listed(opened)).history).toHaveLength(20000);
+    inContract("remove", await opened.remove(document.id), "done_reply");
+    for (const seen of [await listed(opened), await listed(await open())]) {
+      expect(seen.history).toHaveLength(20000);
+      expect(seen.history[0]).toEqual({ on: TODAY, event: "removed", document: document.id });
+      expect(seen.history[1]).toEqual({ on: TODAY, event: "exported", count: 1 });
+      expect(seen.history[19999]).toEqual({ on: TODAY, event: "exported", count: 19999 });
+    }
+  }, 120_000);
+
+  it("review_w2p4_5: with 5000 documents held, add is store_full and nothing changes", async () => {
+    // Finding 5 (at 5001 documents list is outside list_reply documents maxItems 5000) and
+    // D96: "the store at most 5000 documents". Contract store_full: "nothing is added".
+    // Planted: the one real row and 4999 copies under other ids, 5000 in all. Fails if the
+    // add is answered ok, if documents.bin or files/ change, or if list stops answering.
+    const kept = keptRandom();
+    const first = await open({ random: kept.random });
+    await addOne(first, studentFile("i20.pdf", 900).path);
+    const key = documentKey(kept.draws);
+    const index = openIndex(key);
+    const row = index.rows[0] as { document: Document };
+    index.rows = Array.from({ length: 5000 }, (_, k) =>
+      k === 0
+        ? row
+        : { ...row, document: { ...row.document, id: k.toString(16).padStart(32, "0") } },
+    );
+    plantIndex(key, index);
+
+    const opened = await open();
+    expect((await listed(opened)).documents).toHaveLength(5000);
+    const before = snapshot();
+    const reply = await opened.add([studentFile("one-more.pdf", 900).path]);
+    expect(reply).toMatchObject({ ok: false, refused: "store_full" });
+    inContract("add", reply, "add_reply");
+    expect(snapshot()).toEqual(before);
+    expect((await listed(await open())).documents).toHaveLength(5000);
+  }, 120_000);
+
+  it("review_w2p4_6: each chunk has its own nonce and opens only as its own chunk", async () => {
+    // Finding 6: mutants M3 (one nonce for every chunk), M1 (last-chunk flag dropped) and M2
+    // (chunk index out of the additional data) passed every test, since the whole-file SHA-256
+    // caught each fault first. Point 15: "each chunk's nonce a random 64-bit file prefix plus a
+    // 32-bit counter, with the document id, chunk index and a last-chunk flag as additional
+    // data". The file: chunk 0 and chunk 1 the same 1 MiB of bytes, then 4321 of them again,
+    // so 3 chunks; size 8 + 2 * (1048576 + 16) + 4321 + 16 = 2101529.
+    // - Nonces differ: under one key and nonce, the same bytes give the same ciphertext. Two
+    //   different nonces agree on about 1 byte in 256 (4096 of 1048576; 17 of 4321); the test
+    //   allows 1 in 64 (16384; 540). Fails on M3.
+    // - Each chunk opens with its own counter, index and flag, and with no other. Fails on M1,
+    //   M2 and M3.
+    const kept = keptRandom();
+    const opened = await open({ random: kept.random });
+    const same = randomBytes(CHUNK);
+    const plain = Buffer.concat([same, same, same.subarray(0, 4321)]);
+    const path = join(outside, "three-chunks.pdf");
+    writeFileSync(path, plain);
+    const document = await addOne(opened, path);
+    const stored = readFileSync(join(folder, "files", document.id));
+    expect(stored.length).toBe(8 + 2 * (CHUNK + 16) + 4321 + 16);
+
+    const d = documentKey(kept.draws);
+    const fileKeys = kept.draws.filter((draw) => draw.length === 32 && !draw.equals(d));
+    expect(fileKeys).toHaveLength(1);
+    const f = fileKeys[0] as Buffer;
+    const prefix = stored.subarray(0, 8);
+    expect(kept.draws.some((draw) => draw.length === 8 && draw.equals(prefix))).toBe(true);
+    const sealed = [
+      stored.subarray(8, 8 + CHUNK + 16),
+      stored.subarray(8 + CHUNK + 16, 8 + 2 * (CHUNK + 16)),
+      stored.subarray(8 + 2 * (CHUNK + 16)),
+    ];
+    const plainChunks = [same, same, same.subarray(0, 4321)];
+
+    const agree = (x: Buffer, y: Buffer): number => {
+      let count = 0;
+      for (let at = 0; at < Math.min(x.length, y.length); at += 1) if (x[at] === y[at]) count += 1;
+      return count;
+    };
+    const body = (index: number) => (sealed[index] as Buffer).subarray(0, -16);
+    expect(agree(body(0), body(1))).toBeLessThan(CHUNK / 64);
+    expect(agree(body(0), body(2))).toBeLessThan(4321 / 8);
+    expect(agree(body(1), body(2))).toBeLessThan(4321 / 8);
+
+    for (let index = 0; index < 3; index += 1) {
+      const last = index === 2;
+      const own = sealed[index] as Buffer;
+      const back = openChunk(
+        f,
+        chunkNonce(prefix, index),
+        chunkData(document.id, index, last),
+        own,
+      );
+      expect(back?.equals(plainChunks[index] as Buffer)).toBe(true);
+      for (const other of [0, 1, 2].filter((one) => one !== index)) {
+        const data = chunkData(document.id, index, last);
+        expect(openChunk(f, chunkNonce(prefix, other), data, own)).toBeNull();
+        const wrongIndex = chunkData(document.id, other, last);
+        expect(openChunk(f, chunkNonce(prefix, index), wrongIndex, own)).toBeNull();
+      }
+      const wrongFlag = chunkData(document.id, index, !last);
+      expect(openChunk(f, chunkNonce(prefix, index), wrongFlag, own)).toBeNull();
+    }
+  });
+
+  it("review_w2p4_7: a file that reads back as other bytes is skipped, nothing kept", async () => {
+    // Finding 7: mutant M6, the decrypt-back and SHA-256 comparison of an add removed, passed
+    // every test, since the crash test throws in step() and never reaches it. Point 15:
+    // "decrypts back and compares the SHA-256 before the index row is written; on any failure
+    // nothing half-added remains". After the rename, the stored file is put in place as
+    // (1) a whole, valid encryption of other bytes of the same length under the same F,
+    // prefix and id, so GCM passes and only the SHA-256 differs, and (2) the same with one
+    // byte changed, so GCM fails. Each: skipped as cannot_store, files/ and documents.bin as
+    // before. Fails on M6, or on a check of GCM alone for (1).
+    const kept = keptRandom();
+    const held = await addOne(await open({ random: kept.random }), studentFile("a.pdf", 900).path);
+    const d = documentKey(kept.draws);
+    for (const how of ["other bytes", "one byte changed"]) {
+      const before = snapshot();
+      const file = studentFile(`b ${how}.pdf`, CHUNK + 5);
+      const crooked = await open({
+        random: kept.random,
+        step: (name) => {
+          if (name !== "renamed") return;
+          const id = readdirSync(join(folder, "files")).find(
+            (one) => one !== held.id && !one.endsWith(".part"),
+          ) as string;
+          const target = join(folder, "files", id);
+          const f = [...kept.draws].reverse().find((draw) => draw.length === 32 && !draw.equals(d));
+          const prefix = readFileSync(target).subarray(0, 8);
+          const other = sealFile(id, f as Buffer, prefix, randomBytes(file.bytes.length));
+          writeFileSync(target, how === "other bytes" ? other : flip(other));
+        },
+      });
+      const reply = await crooked.add([file.path]);
+      inContract("add", reply, "add_reply");
+      expect(reply).toMatchObject({
+        ok: true,
+        added: [],
+        skipped: [{ name: `b ${how}.pdf`, refused: "cannot_store" }],
+      });
+      expect(snapshot()).toEqual(before);
+      expect((await listed(await open())).documents.map((one) => one.id)).toEqual([held.id]);
+    }
+  });
+
+  it("review_w2p4_7: a file over the size limit is too_large without being read", async () => {
+    // Finding 7: mutant M17, the size check from stat removed, passed "refuses a file over the
+    // size limit before reading it", since the check after reading caught the same file. Here
+    // the file is MAX_FILE_BYTES + 1 (sparse) and nobody may read it (mode 000), so only a
+    // check made before reading can name it too_large; a read gives cannot_store. Fails on M17.
+    const opened = await open();
+    const path = join(outside, "huge.pdf");
+    writeFileSync(path, "");
+    truncateSync(path, store.MAX_FILE_BYTES + 1);
+    chmodSync(path, 0o000);
+    try {
+      const reply = await opened.add([path]);
+      inContract("add", reply, "add_reply");
+      expect(reply).toMatchObject({
+        ok: true,
+        added: [],
+        skipped: [{ name: "huge.pdf", refused: "too_large" }],
+      });
+    } finally {
+      chmodSync(path, 0o600);
+    }
+  });
+
+  it("review_w2p4_10: an empty file is skipped as empty", async () => {
+    // Finding 10 (an empty image could not be opened inside the contract) and D96: "an empty
+    // file is skipped". Contract skipped refused empty: "the file holds no bytes". Fails if
+    // it is added, or anything for it is left in files/ or the index.
+    const opened = await open();
+    const held = await addOne(opened, studentFile("a.pdf", 900).path);
+    const before = snapshot();
+    const reply = await opened.add([studentFile("empty.png", 0).path]);
+    inContract("add", reply, "add_reply");
+    expect(reply).toMatchObject({
+      ok: true,
+      added: [],
+      skipped: [{ name: "empty.png", refused: "empty" }],
+    });
+    expect(snapshot()).toEqual(before);
+    expect((await listed(opened)).documents.map((one) => one.id)).toEqual([held.id]);
   });
 });
 

@@ -661,4 +661,40 @@ describe("a planned reminder becomes one Notification (SPEC-W2 point 22)", () =>
     expect(titles).toEqual(["Check in", "Report the end of your job"]);
     expect(shown.every((one) => one.shows === 1)).toBe(true);
   });
+
+  it("review_w2p4_3: a reminder shown at 09:00 is not shown again by a second main at 09:40", async () => {
+    // reviews/w2-p4.md finding 3: the shown set lived only in memory, so Duly quit and opened
+    // again at 09:40 the same day showed the 09:00 reminder a second time (P5 printed 2).
+    // DECISIONS.md D96: "A planned reminder is shown once across relaunches, the shown ids
+    // kept in main's own file." So createReminders is given the userData folder. Two mains
+    // over one folder: one Notification. A main over another, empty folder shows it, so the
+    // first is not kept from showing for some other reason. Fails while shown is memory only.
+    interface KeptReminders {
+      createReminders(deps: { folder: string }): {
+        set(reminders: unknown): void;
+        tick(now: { date: string; time: string }): void | Promise<void>;
+      };
+    }
+    const { createReminders } = await load<KeptReminders>("reminders");
+    const first = createReminders({ folder });
+    first.set(reminders);
+    await first.tick({ date: "2026-10-06", time: "09:00" });
+    expect(shown).toHaveLength(1);
+
+    const second = createReminders({ folder });
+    second.set(reminders);
+    await second.tick({ date: "2026-10-06", time: "09:40" });
+    expect(shown).toHaveLength(1);
+    expect(shown[0]?.shows).toBe(1);
+
+    const elsewhere = mkdtempSync(join(tmpdir(), "duly-other-"));
+    try {
+      const other = createReminders({ folder: elsewhere });
+      other.set(reminders);
+      await other.tick({ date: "2026-10-06", time: "09:40" });
+      expect(shown).toHaveLength(2);
+    } finally {
+      rmSync(elsewhere, { recursive: true, force: true });
+    }
+  });
 });

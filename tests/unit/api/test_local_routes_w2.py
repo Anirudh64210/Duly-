@@ -371,6 +371,26 @@ def test_review_w2p3_2_a_file_that_is_not_json_is_skipped_and_the_rest_is_served
     assert _shown(a.json()) == [PASSING]
 
 
+def test_review_w2p4_8_a_published_file_that_is_not_utf8_is_skipped_and_the_rest_is_served(
+    apps: tuple[TestClient, TestClient], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # reviews/w2-p4.md finding 8 (a regression of reviews/w2-p3.md finding 2): a published
+    # file holding the bytes ff fe 7b made read_text() raise UnicodeDecodeError, which is not
+    # JSONDecodeError, so GET /v1/updates gave a 500 again. openapi /v1/updates: "a file that
+    # does not follow it is never returned". Both apps answer 200 with PASSING only. Fails
+    # while api/case.py catches JSONDecodeError alone.
+    (tmp_path / f"{PASSING['id']}.json").write_text(json.dumps(PASSING))
+    (tmp_path / "review-w2p4-not-utf8.json").write_bytes(b"\xff\xfe\x7b")
+    monkeypatch.setattr(importlib.import_module("api.case"), "PUBLISHED", tmp_path)
+    server, desktop = apps
+    a = server.get("/v1/updates", headers=WITH_TOKEN)
+    b = desktop.get("/v1/updates", headers=WITH_TOKEN)
+    assert a.status_code == 200, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+    assert _updates_problems(a.json()) == []
+    assert _shown(a.json()) == [PASSING]
+
+
 # Finding 6 and D95 (3): Duly's own limits in schedule.schema.json, days 36525, business days
 # 260, months 1200. One over each is outside the contract, so a 422 from both apps alike.
 

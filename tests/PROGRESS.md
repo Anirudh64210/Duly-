@@ -4567,3 +4567,61 @@ point 52); nothing else, since every test in the three folders already matches W
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-196f0fb0da: the W2-P4 review's veto (reviews/w2-p4.md, D96, contract 2d46965)
+
+Read: tests/PROGRESS.md (tail), reviews/w2-p4.md, DECISIONS.md D96, SPEC-W2 points 13 to 17
+and 22, the 2d46965 contract diff, specs/documents-1 section 3, the current docstore.ts,
+docbridge.ts and reminders.ts (to learn the layouts the helpers below need, not to copy
+expectations).
+
+Added, each named review_w2p4_<N> with its finding beside it:
+- tests/desktop/documents-store.test.ts: 1 (documents.bin moved away, two relaunches: list, add
+  and open are index_missing, files/ and keys.bin byte for byte the same, no new documents.bin;
+  put back, both documents open), 1 (a first launch with nothing stored lists and adds), 2 (a
+  second replacer of old is bad_replaces, versions(old) stays [b, old]), 2 (200 real adds in one
+  chain; the 201st by add and by update is bad_replaces, nothing changes), 5 (a planted index of
+  20000 history lines plus a remove keeps 20000, newest first), 5 (5000 planted documents: add
+  is store_full, nothing changes), 6 (identical chunks give different ciphertext; each chunk
+  opens only with its own counter, index and flag), 7 (after the rename the stored file is put
+  in place as a valid encryption of other bytes, and again with a byte changed: cannot_store,
+  nothing kept), 7 (a MAX+1 sparse file at mode 000 is too_large), 10 (an empty file is
+  skipped as empty).
+- tests/desktop/documents-bridge.test.ts: 2 (two files replacing one, from the dialog and a
+  drop: bad_replaces), 4 (51 picked: too_many_files, data folder unchanged), 7 (a checker that
+  finds every list reply outside the contract: the call is rejected), 9 (export to the data
+  folder, its files/ and a .zip in it: inside_data_folder, nothing written, no history line).
+- tests/desktop/bridges.test.ts: 3 (createReminders({ folder }): two mains over one folder
+  give one Notification; a main over another folder shows it).
+- tests/unit/api/test_local_routes_w2.py: test_review_w2p4_8 (ff fe 7b beside PASSING: 200,
+  PASSING only, both apps).
+- tests/unit/desktop_entry/test_bundle_inputs.py: test_review_w2p4_12 (published pattern in
+  optional, not in include, nothing else optional); _lists() reads both lists and _patterns()
+  joins them, so every point 14 check reads both; every include pattern must match a file, and
+  the D95 exemption moves to the optional list.
+
+What makes each fail: today's code (10 desktop tests, 8 and 12 and the point 14 checks fail
+now). The tests for 6 and 7 pass on today's code and catch the mutants, run in $TMPDIR/mt4 (a
+copy of desktop/src, tests/desktop and contracts): M1 last flag dropped, M2 chunk index out of
+the additional data, M3 counter fixed at 0, M6 read-back removed, M6b read-back checked by GCM
+alone, M13 reply check removed, M17 the stat size check removed: all 7 KILLED.
+
+Ran:
+- the done command: exit 0 ("All matched files use Prettier code style!", "All checks
+  passed!", "116 files already formatted").
+- cd desktop && npx vitest run ../tests/desktop --coverage.enabled=false: 81 tests, 10 failed
+  (the ten above, on index_missing, bad_replaces, too_many_files ("not a documents bridge
+  reply: /: anyOf"), inside_data_folder, store_full, empty, "/: anyOf" for 20001 lines, and 2
+  Notifications), 71 passed.
+- uv run pytest on the new and point 14 tests: test_review_w2p4_8 fails on
+  UnicodeDecodeError; the point 14 tests and test_review_w2p4_12 fail on "each list is a list
+  of patterns" (bundle.json has no optional list). With a bundle.json fixed as D96 says (in
+  $TMPDIR), all five point 14 checks and test_review_w2p4_12 pass.
+
+Not built: no new support helper (the index and chunk helpers have one user, the store test);
+no 20001-line planted index (the contract's index cannot hold it, so the case is one more event
+on 20000); no test of main.ts passing userData to createReminders (the mission names the
+relaunch behaviour only).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.

@@ -21,10 +21,12 @@ specs/step-w/SPEC-W1.md section 3:
   the routes from a tree built from the allowlist alone, and they answer as the server does.
 
 Written from the SPEC before desktop/python/bundle.json exists, so the point 14 tests fail
-until L-desktop writes it. The SPEC does not fix the file's shape; these tests read either a
-JSON list of patterns, or an object whose "include" holds that list. A pattern is a path
-relative to the repository root, read as a pathlib glob; a pattern that matches a folder
-takes every file under it.
+until L-desktop writes it. The file is an object: "include" holds the patterns that must each
+match a file, and "optional" those that may match none (DECISIONS.md D96: pipeline/published/
+is empty until the founder approves an update, so pipeline/published/*.json is optional, and
+make desktop-python works while it is empty). The point 14 checks read both lists. A pattern
+is a path relative to the repository root, read as a pathlib glob; a pattern that matches a
+folder takes every file under it.
 """
 
 import json
@@ -171,14 +173,23 @@ def test_point_13_the_forbidden_pattern_catches_each_named_distribution() -> Non
 # Point 14
 
 
-def _patterns() -> list[str]:
+def _lists() -> tuple[list[str], list[str]]:
+    """The include and optional lists of the allowlist (D96)."""
     assert BUNDLE_JSON.is_file(), "desktop/python/bundle.json is the allowlist (point 14)"
     data: Any = json.loads(BUNDLE_JSON.read_text())
-    patterns = data["include"] if isinstance(data, dict) else data
-    assert isinstance(patterns, list), "the allowlist is a list of patterns"
-    assert patterns, "the allowlist names at least one pattern"
-    assert all(isinstance(p, str) for p in patterns), patterns
-    return patterns
+    assert isinstance(data, dict), "the allowlist is an object with include and optional"
+    include, optional = data.get("include"), data.get("optional")
+    for patterns in (include, optional):
+        assert isinstance(patterns, list), "each list is a list of patterns"
+        assert all(isinstance(p, str) for p in patterns), patterns
+    assert include, "the allowlist includes at least one pattern"
+    return include, optional
+
+
+def _patterns() -> list[str]:
+    """Every pattern the allowlist names, from both lists."""
+    include, optional = _lists()
+    return [*include, *optional]
 
 
 def _files_of(pattern: str) -> set[str]:
@@ -210,11 +221,25 @@ def _not_allowed(rel: str) -> bool:
 
 
 def test_point_14_every_pattern_names_files_that_exist() -> None:
-    # "every file it names exists". Fails on a pattern that matches nothing, such as a
-    # misspelt path or a file not yet written. D95 keeps the articles in pipeline/drafts until
-    # the founder approves them, so pipeline/published/*.json names no file yet: an empty
-    # published folder is a state the SPEC expects, not a misspelt pattern.
-    assert [p for p in _patterns() if p != PUBLISHED_PATTERN and not _files_of(p)] == []
+    # "every file it names exists". Fails on an included pattern that matches nothing, such as
+    # a misspelt path or a file not yet written. D95 keeps the articles in pipeline/drafts
+    # until the founder approves them, so pipeline/published/*.json names no file yet; D96
+    # puts it in the optional list, which alone may match nothing.
+    include, _ = _lists()
+    assert [p for p in include if not _files_of(p)] == []
+
+
+def test_review_w2p4_12_published_updates_are_optional_and_not_included() -> None:
+    # reviews/w2-p4.md finding 12: buildpython.test.ts fails on a clean checkout, because
+    # bundle.json's include list names pipeline/published/*.json and the folder is absent.
+    # D96: "The bundle's pipeline/published/*.json is an optional pattern, since the folder is
+    # empty until the founder approves an update". Fails while the pattern is in include, or
+    # missing from optional.
+    include, optional = _lists()
+    assert PUBLISHED_PATTERN in optional
+    assert PUBLISHED_PATTERN not in include
+    # Nothing else is optional: every other file point 14 names exists and stays included.
+    assert optional == [PUBLISHED_PATTERN]
 
 
 def test_point_14_the_allowlist_names_no_forbidden_path() -> None:
@@ -270,11 +295,12 @@ def test_point_14_assistant_providers_matches_no_pattern() -> None:
 def test_point_14_the_allowlist_takes_every_file_the_spec_names() -> None:
     # Fails if a named file is left out: an api module, one of the six contracts, the
     # launcher, a pack's parameters.yaml, a module of engine/, or the published updates
-    # (D95: the pattern itself, since the folder may hold none yet, and every file it holds).
+    # (D95: the pattern itself, optional under D96 since the folder may hold none yet, and
+    # every file it holds).
     files = _allowlisted()
     assert sorted(API_FILES - files) == []
     assert sorted(CONTRACT_FILES - files) == []
-    assert PUBLISHED_PATTERN in _patterns()
+    assert PUBLISHED_PATTERN in _lists()[1]
     assert sorted(_files_of(PUBLISHED_PATTERN) - files) == []
     assert [f for f in files if Path(f).name == LAUNCHER], "the launcher duly_engine.py"
     packs = {p.relative_to(REPO_ROOT).as_posix() for p in REPO_ROOT.glob("rulepacks/*/v*")}
