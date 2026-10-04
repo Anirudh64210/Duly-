@@ -6,6 +6,7 @@ import {
   app,
   BrowserWindow,
   clipboard,
+  dialog,
   ipcMain,
   nativeTheme,
   protocol,
@@ -18,6 +19,12 @@ import {
 
 import { APP_ORIGIN, APP_SCHEME } from "./about";
 import { CASE_CHANNEL, createCaseBridge, loadChecker, mayUseCase } from "./casefile";
+import {
+  DOCUMENTS_CHANNEL,
+  DOCUMENTS_CONTRACTS,
+  createDocumentsBridge,
+  mayUseDocuments,
+} from "./docbridge";
 import { healthWaitMs, startEngine } from "./engine";
 import { ENGINE_CHANNEL, ENGINE_CONTRACTS, createEngineBridge, mayUseEngine } from "./enginebridge";
 import {
@@ -227,6 +234,43 @@ function launch(folder: string | null, verify: boolean): void {
       return reply;
     });
     setInterval(() => reminders.tick(localNow()), REMINDER_TICK_MS).unref();
+
+    // Paths come only from these system dialogs, or from a real drop through the preload.
+    const parent = () => BrowserWindow.getFocusedWindow() ?? window;
+    const pick = async (options: Electron.OpenDialogOptions) => {
+      const shownTo = parent();
+      const picked = await (shownTo === null
+        ? dialog.showOpenDialog(options)
+        : dialog.showOpenDialog(shownTo, options));
+      return picked.canceled ? null : picked.filePaths;
+    };
+    const documentsAnswer = createDocumentsBridge({
+      folder: app.getPath("userData"),
+      checker: loadChecker(paths.contracts, DOCUMENTS_CONTRACTS),
+      cipher,
+      today: () => localNow().date,
+      dialogs: {
+        files: () => pick({ properties: ["openFile", "multiSelections"] }),
+        folder: async () =>
+          (await pick({ properties: ["openDirectory", "createDirectory"] }))?.[0] ?? null,
+        zip: async () => {
+          const options = {
+            defaultPath: "Duly documents.zip",
+            filters: [{ name: "Zip", extensions: ["zip"] }],
+          };
+          const shownTo = parent();
+          const picked = await (shownTo === null
+            ? dialog.showSaveDialog(options)
+            : dialog.showSaveDialog(shownTo, options));
+          return picked.canceled || picked.filePath === "" ? null : picked.filePath;
+        },
+      },
+    });
+    ipcMain.handle(DOCUMENTS_CHANNEL, (event, message: unknown) => {
+      const frame = askedFrom(event);
+      if (!mayUseDocuments(frame.url, frame.main)) throw new Error("not the app's page");
+      return documentsAnswer(message);
+    });
 
     const shown = new BrowserWindow({
       ...WINDOW,

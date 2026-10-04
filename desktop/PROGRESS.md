@@ -378,3 +378,40 @@ Not built: docbridge.ts, the preload's window.duly.documents, open's data_url an
 another part of W2-P4). Not run: Electron, so no real safeStorage.
 MAX_FILE_BYTES is 50 MiB, the documents-1 proposal (vault.max_file_megabytes); it is not in
 contracts/product_settings.yaml. Recorded as a request.
+
+## 2026-10-03, run l-desktop-b01ce3103a, attempt 1
+
+W2-P4, SPEC-W2 point 13 (and point 17's clear), against tests/desktop/documents-bridge.test.ts.
+- docbridge.ts (new): DOCUMENTS_CHANNEL, DOCUMENTS_CONTRACTS, mayUseDocuments, and
+  createDocumentsBridge(deps) over openStore. Each message is checked against its <verb>_call $defs
+  (anything else is rejected and nothing is read or written); each reply gets version and call and
+  is checked against its reply $defs before it leaves. add: from dialog (dialogs.files(), null or
+  empty is cancelled) or from drop (a path that is not absolute, such as the empty one webUtils gives
+  for a File made in the page, is skipped as not_dropped; the rest go to the store). open: reads and
+  checks every chunk, then image (png, jpeg, gif, webp) as data_url, anything else none. export: every
+  id must be known before the dialog opens; folder writes each copy with wx under a free name (name
+  (2).ext), so nothing of the student's is written over; zip is a stored (method 0) zip written to
+  .part and renamed, CRC from node:zlib crc32. Both add an exported line with the count.
+- docstore.ts: add resolves each path first (a path through .. is inside_data_folder, as the test
+  asks); Store.exported(count) keeps the history line. One word renamed to "encrypted": copy lint
+  now lists the old word (18 problems in docstore.ts before the rename).
+- preload.ts: window.duly.documents, frozen; drop paths only from webUtils.getPathForFile; the page's
+  fields are spread first so version and call are always the preload's. add is async, so a
+  non-File rejects. preload.test.ts expects the documents key.
+- main.ts: the documents bridge on its channel with the frame check; dialogs are Electron's open
+  dialog (files; folder with createDirectory) and save dialog (zip, "Duly documents.zip").
+- forge.config.ts CONTRACTS ships desktop_documents_bridge.schema.json; forge.test.ts includes
+  DOCUMENTS_CONTRACTS.
+
+What ran: the done command, unpiped, output to a file under TMPDIR. First run exit 1 (copy lint, a
+listed word); after the rename and prettier, exit 0: typecheck clean; vitest 22 files, 316 passed;
+eslint clean; prettier clean; copy lint clean. A throwaway vitest (deleted) exported two documents
+as zip and `unzip -p` gave back the bytes.
+Not run: Electron, so no real dialog, drop or safeStorage.
+
+## 2026-10-03, run l-desktop-b01ce3103a, attempt 2
+
+Attempt 1 was not accepted: copy lint found a listed word on two lines of this file (396, 407), in
+the attempt 1 notes about the rename. Reworded both lines; no code changed.
+What ran: the done command, unpiped, output to a file under TMPDIR: exit 0; vitest 22 files, 316
+passed; typecheck, eslint, prettier and copy lint clean.

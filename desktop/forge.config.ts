@@ -21,7 +21,7 @@ const ROOT = join(HERE, "..");
 export const TARGET = { platform: "darwin", arch: "arm64" } as const;
 
 /**
- * The schemas the bridges read (casefile.ts, enginebridge.ts, statefile.ts), copied into
+ * The schemas the bridges read (casefile.ts, enginebridge.ts, statefile.ts, docbridge.ts), copied into
  * app.asar beside the screen.
  */
 export const CONTRACTS = [
@@ -33,6 +33,7 @@ export const CONTRACTS = [
   "desktop_engine_bridge.schema.json",
   "desktop_ask_bridge.schema.json",
   "desktop_state_bridge.schema.json",
+  "desktop_documents_bridge.schema.json",
 ] as const;
 
 /** The bundle id, from desktop/app.json (point 31). */
