@@ -24,7 +24,7 @@ rounds:
   lanes:
   - lane: L-desktop
     agent: builder
-    mission: 'Read reviews/w2-p4.md findings 2, 3, 4, 9, 11 and 12 and DECISIONS.md D96. desktop/src/docbridge.ts: more than 50 files in one add is too_many_files before anything is stored; an add of more than one file that replaces is bad_replaces; export pointed at a folder or file inside the data folder is inside_data_folder and writes nothing; one generator of "stem (n).ext" names serves openFree and freeName. desktop/src/reminders.ts: the ids main has shown are kept in its own file under userData (never state.bin), so a reminder is shown once across relaunches. desktop/python/bundle.json: move pipeline/published/*.json from include to a new optional list; desktop/scripts/build-python.sh copies optional patterns when they match and never fails on one that matches nothing, while an include pattern that matches nothing still fails; desktop/src/buildpython.test.ts covers both. Make every desktop test pass.'
+    mission: 'Read reviews/w2-p4.md findings 2, 3, 4, 9, 11 and 12 and DECISIONS.md D96. desktop/src/docbridge.ts: more than 50 files in one add is too_many_files before anything is stored; an add of more than one file that replaces is bad_replaces; export pointed at a folder or file inside the data folder is inside_data_folder and writes nothing; one generator of "stem (n).ext" names serves openFree and freeName. desktop/src/reminders.ts: the ids main has shown are kept in its own file under userData (never state.bin), so a reminder is shown once across relaunches. desktop/python/bundle.json: move pipeline/published/*.json from include to a new optional list; desktop/scripts/build-python.sh copies optional patterns when they match and never fails on one that matches nothing, while an include pattern that matches nothing still fails; desktop/src/buildpython.test.ts covers both. The copy leaves out every PROGRESS.md and REPORT.json, so engine/PROGRESS.md, an agent work log, no longer ships inside the app (audit 2026-10-03). Make every desktop test pass.'
     done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}" && uv run python -m tools.copy_lint.lint && bash -n desktop/scripts/build-python.sh && uv run pytest tests/unit/desktop_entry/test_bundle_inputs.py -q -p no:cacheprovider'
   checks:
   - name: hidden tests
@@ -37,7 +37,7 @@ rounds:
     done: bash -c 'npm test -w desktop && npm test -w web -- tests/web && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
   checks:
   - name: offline gates
-    run: make test-offline BASE=work/product-2
+    run: make test-offline BASE=origin/main
 - name: review
   lanes:
   - lane: L-review
