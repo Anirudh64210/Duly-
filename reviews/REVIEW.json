@@ -1,137 +1,101 @@
 {
- "run_id": "l-review-222da33bfc",
- "reviewed_commit": "0e48fd916fad9c0bc01b986eb66fb4ab92a37d8a",
- "scores": {
-  "correct": {
-   "score": 3,
-   "evidence": "Finding 1 (blocking): with keys.bin kept and documents.bin missing, relaunch deletes every file in files/ (probe P3: 2 files, then 0; the index put back gives file_damaged). Findings 2 to 5: a fork in replaces drops a version, a relaunch shows a reminder twice, a 51-file add changes the store and then gives no answer, and list is never answered again past 20000 history lines."
+  "run_id": "l-review-5f14d86b05",
+  "reviewed_commit": "8637df10436c8f912aef5a779bf28a7bfcc38853",
+  "scores": {
+    "correct": {
+      "score": 2,
+      "evidence": "Finding 1 (blocking): a first add whose only file is skipped (empty, a folder, over 50 MiB) or whose first index save fails leaves keys.bin without documents.bin, and every documents call after a relaunch is index_missing. Finding 3: store_full at 4999 plus a duplicate. All first-review inputs P1 to P7 now answer right."
+    },
+    "sourced": {
+      "score": 5,
+      "evidence": "The limits 50, 5000, 20000 and 200 equal the maxItems of contracts/desktop_documents_bridge.schema.json at 2d46965 and are marked as D96's; 50 MiB and the chunk and nonce layout unchanged from specs/documents-1/SPEC.md lines 92, 142, 175."
+    },
+    "never_assumes": {
+      "score": 4,
+      "evidence": "A missing index with files present is refused and nothing is deleted (P3: 2 files before, 2 after). Finding 1 asserts a lost index where none existed, a refusal rather than a quiet answer."
+    },
+    "inside_the_boundary": {
+      "score": 5,
+      "evidence": "No new words a person reads; refusals are codes; Notifications carry the saved title and body only; copy lint exit 0."
+    },
+    "secure": {
+      "score": 4,
+      "evidence": "No path, key or chunk fault gets through; export into the data folder, files/ or a zip there is refused. Finding 2: reminders-shown.json is unsalted sha256 of id and date, reversed in a millisecond, and survives state.clear. Note 6: a folder named x.json in published gives 500."
+    },
+    "tested": {
+      "score": 3,
+      "evidence": "Finding 1 has no test. Mutants N1b, N1c and N4c survive (finding 4). M1, M2, M3, M6, M13, M17 are now caught by review_w2p4_6 and review_w2p4_7."
+    }
   },
-  "sourced": {
-   "score": 4,
-   "evidence": "50 MiB is vault.max_file_megabytes in specs/documents-1/SPEC.md line 92. The 1 MiB chunks and the 64-bit prefix plus 32-bit counter are on lines 142 and 175, and the code matches. The threat-model rows match the code. The limit is marked as Duly's own, not the law's."
-  },
-  "never_assumes": {
-   "score": 3,
-   "evidence": "Finding 1: a missing index is taken to mean no documents, and the launch sweep deletes on that basis. The opposite case (keys.bin missing) is refused, as it should be."
-  },
-  "inside_the_boundary": {
-   "score": 5,
-   "evidence": "Main writes no words of its own: a Notification carries the saved title and body exactly, and every refusal is a code from the contract. Copy lint is clean."
-  },
-  "secure": {
-   "score": 4,
-   "evidence": "Frame checks are on all four channels. Off-contract calls are rejected before any read (probes P8 and P9). Paths come only from the dialog or a webUtils drop. Inside_data_folder holds when the case of the path changes. D is only written wrapped and F only appears in the index. Every chunk fault is file_damaged. Findings 4 and 5 (the Documents page dies) and 9 (plaintext in the data folder) are the gaps."
-  },
-  "tested": {
-   "score": 3,
-   "evidence": "Finding 1 has no test. Mutants that survive: M3 (one nonce for every chunk), M6 (no read-back SHA-256 on add), M13 (the docs reply check removed) and M17 (no size check before the read). Fourteen other mutants are caught."
-  }
- },
- "findings": [
-  {
-   "severity": "blocking",
-   "title": "A missing documents.bin makes the next launch delete every stored document",
-   "file": "desktop/src/docstore.ts:229",
-   "input": "Two documents added, then documents.bin moved out of the data folder with keys.bin kept, then openStore again",
-   "what_happens": "load() takes the index as empty, and the launch sweep removes both files in files/. With documents.bin put back, read gives file_damaged. No test covers it.",
-   "kind": "other",
-   "spec_point": "SPEC-W2 point 16"
-  },
-  {
-   "severity": "should_fix",
-   "title": "A fork in replaces drops a version from versions()",
-   "file": "desktop/src/docstore.ts:436",
-   "input": "add([a.pdf, b.pdf], old) from one dialog pick, or update(c, {replaces: old}) when b already replaces old",
-   "what_happens": "versions(old) = [b.pdf, i20.pdf], so a.pdf is missing. versions(b) = [b.pdf, old.pdf], so c is missing.",
-   "kind": "spec_gap",
-   "spec_point": "17"
-  },
-  {
-   "severity": "should_fix",
-   "title": "A reminder shows twice after a relaunch the same day",
-   "file": "desktop/src/reminders.ts:22",
-   "input": "A reminder on 2026-10-06 at 09:00, shown at 09:00, then Duly reopened at 09:40",
-   "what_happens": "A second Notification is shown, because the shown set is in memory only",
-   "kind": "other",
-   "spec_point": "22"
-  },
-  {
-   "severity": "should_fix",
-   "title": "add from the dialog with more than 50 files changes the store and then gives no answer",
-   "file": "desktop/src/docbridge.ts:178",
-   "input": "documents.add {from: dialog} with 51 files picked",
-   "what_happens": "The bridge rejects with 'not a documents bridge reply: /: anyOf', yet the index has 51 rows and files/ has 51 files",
-   "kind": "spec_gap",
-   "spec_point": "13"
-  },
-  {
-   "severity": "should_fix",
-   "title": "history past 20000 lines means list is never answered again",
-   "file": "desktop/src/docstore.ts:402",
-   "input": "An index with 20001 history lines",
-   "what_happens": "Every documents.list rejects with 'not a documents bridge reply', while update is still accepted. The same happens at 5001 documents or a chain of 201 versions.",
-   "kind": "spec_gap",
-   "spec_point": "13"
-  },
-  {
-   "severity": "should_fix",
-   "title": "The tests pass when every chunk reuses one nonce",
-   "file": "tests/desktop/documents-store.test.ts",
-   "input": "Mutant nonce.writeUInt32BE(0, PREFIX) in docstore.ts:139",
-   "what_happens": "All 66 desktop bridge tests pass. The whole-file SHA-256 hides every per-chunk fault, so the nonce layout and additional data of point 15 are not tested.",
-   "kind": "missing_test",
-   "spec_point": "15"
-  },
-  {
-   "severity": "should_fix",
-   "title": "The read-back SHA-256 comparison of add is untested",
-   "file": "desktop/src/docstore.ts:318",
-   "input": "Mutant that removes the decrypt-back comparison",
-   "what_happens": "All tests pass. M13 (the docs reply check removed) and M17 (the size check before the read removed) also survive.",
-   "kind": "missing_test",
-   "spec_point": "15"
-  },
-  {
-   "severity": "should_fix",
-   "title": "A published file that is not UTF-8 still gives a 500",
-   "file": "api/case.py:89",
-   "input": "pipeline/published/bad.json holding bytes ff fe 7b",
-   "what_happens": "read_text raises UnicodeDecodeError, which is not caught, so GET /v1/updates gives a 500",
-   "kind": "regression",
-   "spec_point": "reviews/w2-p3.md finding 2"
-  },
-  {
-   "severity": "note",
-   "title": "Export can write plaintext into Duly's own data folder",
-   "file": "desktop/src/docbridge.ts:223",
-   "input": "The folder dialog pointed at the data folder",
-   "what_happens": "exported 1, and a.pdf sits in plaintext beside documents.bin. clear does not remove it.",
-   "kind": "other"
-  },
-  {
-   "severity": "note",
-   "title": "An empty image cannot be opened",
-   "file": "desktop/src/docbridge.ts:208",
-   "input": "An empty .png added, then documents.open",
-   "what_happens": "data_url 'data:image/png;base64,' fails the contract pattern, so the call is rejected rather than refused",
-   "kind": "other"
-  },
-  {
-   "severity": "note",
-   "title": "Two helpers build the same numbered names",
-   "file": "desktop/src/docbridge.ts:79",
-   "input": "openFree and freeName",
-   "what_happens": "Each builds 'stem (n).ext'. One candidate-name generator could serve both.",
-   "kind": "overbuilt"
-  },
-  {
-   "severity": "note",
-   "title": "The buildpython test fails on a clean checkout",
-   "file": "desktop/src/buildpython.test.ts:77",
-   "input": "npx vitest run in desktop, with no pipeline/published/ folder",
-   "what_happens": "bundle.json names pipeline/published/*.json, which matches no file. This predates W2-P4.",
-   "kind": "other"
-  }
- ],
- "decision": "VETO"
+  "findings": [
+    {
+      "severity": "blocking",
+      "title": "A first add that stores nothing locks Documents as index_missing after the next launch",
+      "file": "desktop/src/docstore.ts:255",
+      "input": "New data folder; add([an empty file]) (or a folder, or a 60 MiB file, or the first documents.bin write failing); then openStore again and list, add",
+      "what_happens": "The add answers ok with the file skipped, but load(true) already wrote keys.bin and no index is ever saved. After relaunch list and add are refused index_missing for good; only Delete everything recovers. No test covers keys.bin alone.",
+      "kind": "regression",
+      "spec_point": "SPEC-W2 point 16 (D96)"
+    },
+    {
+      "severity": "should_fix",
+      "title": "reminders-shown.json reveals reminder dates that state.bin encrypts, and outlasts state.clear",
+      "file": "desktop/src/reminders.ts:24",
+      "input": "Reminder loop.b on 2026-10-07 shown; read <userData>/reminders-shown.json from a copy of the data folder",
+      "what_happens": "The file is plaintext unsalted sha256('<id> <date>'); trying 3 ids over 4 years recovered 'loop.b 2026-10-07'. After set(null) the file remains.",
+      "kind": "other",
+      "spec_point": "SPEC-W2 point 18"
+    },
+    {
+      "severity": "should_fix",
+      "title": "store_full is refused before the store holds 5000",
+      "file": "desktop/src/docstore.ts:353",
+      "input": "4999 documents held; add([new.pdf, duplicate of a held file])",
+      "what_happens": "Refused store_full, though only one would be stored; the contract says store_full means the store already holds 5000.",
+      "kind": "spec_gap",
+      "spec_point": "contracts/desktop_documents_bridge.schema.json store_full"
+    },
+    {
+      "severity": "should_fix",
+      "title": "Each half of index_missing and the update path of the 200-version cap are untested",
+      "file": "desktop/src/docstore.ts:250",
+      "input": "Mutants N1b (only keys.bin checked), N1c (only files/ checked), N4c (versions above id counted as 1, line 501)",
+      "what_happens": "All 321 tests pass under each.",
+      "kind": "missing_test",
+      "spec_point": "SPEC-W2 points 16 and 17 (D96)"
+    },
+    {
+      "severity": "note",
+      "title": "The multi-file replaces rule is in two places; unreachable throws after infinite generators",
+      "file": "desktop/src/docbridge.ts:207",
+      "input": "Mutants N6 and N6b each survive alone; N6c caught",
+      "what_happens": "docbridge.ts:207 and docstore.ts:348 guard the same input; docbridge.ts:101 and 111 throw lines are unreachable.",
+      "kind": "overbuilt"
+    },
+    {
+      "severity": "note",
+      "title": "A folder named x.json in pipeline/published gives 500",
+      "file": "api/case.py:93",
+      "input": "mkdir pipeline/published/zz-dir.json beside valid files",
+      "what_happens": "published_updates raises IsADirectoryError; catching OSError too would skip it.",
+      "kind": "other"
+    },
+    {
+      "severity": "note",
+      "title": "build-python.sh here-string needs a temp file",
+      "file": "desktop/scripts/build-python.sh:121",
+      "input": "Run the buildpython tests where bash 3.2 cannot write its here-document temp file",
+      "what_happens": "3 buildpython tests fail in the reviewer sandbox only; with process substitution all 7 pass.",
+      "kind": "other"
+    },
+    {
+      "severity": "note",
+      "title": "An index over 20000 lines from the pre-fix build answers list only after the next write",
+      "file": "desktop/src/docstore.ts:295",
+      "input": "documents.bin holding 20001 history lines, then documents.list",
+      "what_happens": "list is rejected as outside the contract until one update trims the history to 20000.",
+      "kind": "other"
+    }
+  ],
+  "decision": "VETO"
 }

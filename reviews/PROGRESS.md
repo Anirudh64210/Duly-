@@ -560,3 +560,17 @@
 - Fix: for any clean-up that deletes "what the index does not name", run it with the index absent, damaged and present, and check the files survive the first two.
 - Evidence: reviews/w2-p4.md finding 1, $TMPDIR/rv7/probe.test.ts P3.
 - Also: two guards on the same fault (GCM per chunk and a whole-file SHA-256) hide each other from outcome tests; mutate each alone and both together.
+
+## 2026-10-04, run l-review-5f14d86b05 (W2-P4 second review, after fix0)
+- Read my first review, D96, plan-w2-p4-fix0, SPEC-W2 16, 17, 22 and SPEC-W1 14 as amended, the contract at 2d46965, and the diff 0e48fd9..8637df1 (docstore.ts, docbridge.ts, reminders.ts, main.ts, api/case.py, bundle.json, build-python.sh, verify-bundle.mjs, tests).
+- Ran: desktop vitest 332 passed, 3 failed (buildpython, sandbox only: bash 3.2 here-string temp file refused; all 7 pass on a copy using process substitution). typecheck, tsc tests/desktop, eslint, copy lint, ruff, mypy, pytest tests/unit/api + test_bundle_inputs all 0.
+- Bundle: patched-copy dry-run on the repo with pipeline/published absent exits 0, 29 copies, no pipeline/PROGRESS/REPORT; a tree from those lines answers /v1/schedule 200 and /v1/updates 200. ff fe 7b file skipped; a folder named x.json gives IsADirectoryError (note).
+- Probes $TMPDIR/rv8/p: P1 to P9 all fixed. New N1: a first add whose only file is skipped (empty, folder, too large) leaves keys.bin without documents.bin, and after relaunch everything is index_missing (blocking). N2 same on a failed first save. S1 store_full at 4999 + duplicate. S2 reminders-shown.json hashes reversed to 'loop.b 2026-10-07'.
+- Mutants $TMPDIR/mt8/mut.py (baseline 321 pass): M1, M2, M3, M6, M13, M17 caught; 15 of 21 new caught; N1b, N1c, N4c survive; N6/N6b and N10 survive only because a second guard covers them.
+- Wrote reviews/w2-p4.md (VETO, mean 3.83), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: the fix for "a missing index deletes everything" made keys.bin alone mean a lost index, and the store itself writes keys.bin before any index exists, so a first add that stores nothing locks the store.
+- Fix: for any new refusal keyed on files on disk, list every way the app itself can reach that disk state (each skip, each failed write, first use), and probe each across a relaunch.
+- Evidence: reviews/w2-p4.md finding 1, $TMPDIR/rv8/p/n.test.ts N1, N2.
+- Also: a vitest probe outside the repo needs node_modules linked to the same tree the source resolves, or vi.mock("electron") does not apply.
