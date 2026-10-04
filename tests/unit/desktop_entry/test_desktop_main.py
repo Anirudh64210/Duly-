@@ -129,15 +129,19 @@ def _served(routes: list[Any], prefix: str = "") -> list[tuple[str, frozenset[st
     return served
 
 
-def test_point_1_the_app_has_exactly_the_four_routes() -> None:
+def test_point_1_the_app_has_exactly_the_six_routes() -> None:
     # Fails on any other route: /v1/compute/f1, /ops/*, and FastAPI's own
     # /openapi.json, /docs and /redoc, which an app serves unless they are turned off.
+    # SPEC-W2 point 47 (W2-P3) adds A1 POST /v1/schedule and A2 GET /v1/updates to the four of
+    # SPEC-W1 point 1.
     app: FastAPI = _desktop_main().create_app(TOKEN)
     served = _served(app.routes)
     assert sorted((path, sorted(methods)) for path, methods, _ in served) == [
         ("/health", ["GET"]),
         ("/v1/compute", ["POST"]),
+        ("/v1/schedule", ["POST"]),
         ("/v1/status", ["GET"]),
+        ("/v1/updates", ["GET"]),
         ("/version", ["GET"]),
     ]
     assert all(endpoint is not None for _, _, endpoint in served)
