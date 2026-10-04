@@ -372,3 +372,17 @@ duplicate ids a 422; categories follow ^[a-z0-9]+$; both apps alike from the pac
   tests/unit/desktop_entry/test_desktop_main.py, each "[Errno 1] Operation not permitted" on an
   AF_UNIX bind (the sandbox). Everything else passed. mypy "Success: no issues found in 74 source
   files", ruff "All checks passed!", "12 files already formatted".
+
+## Run l-api-f2db9351ac (review w2-p3 findings 1 and 2, second review; attempt 1)
+Goal: drop the dead NO_CALENDAR 422 from /v1/schedule; a published file that is not JSON is
+skipped like one outside update.schema.json, so the other files are still served.
+- api/local_routes.py: NO_CALENDAR, the CalendarNotInForceError handler and its import deleted
+  (engine/schedule.py answers that case per request with holidays_not_known).
+- api/case.py: published_updates reads each file in a loop and skips one that raises
+  json.JSONDecodeError. First try named the loop variable path: ruff F402 (shadows the os.path
+  import); renamed to file.
+- Done command, run as written: exit 1. 15 failed, all in tests/unit/desktop_entry/
+  test_desktop_main.py, each "[Errno 1] Operation not permitted" on an AF_UNIX bind (the
+  sandbox). No other failure (the not-json test in test_local_routes_w2.py passes). mypy
+  "Success: no issues found in 74 source files", ruff "All checks passed!", "12 files already
+  formatted". Copy lint on api: clean.
