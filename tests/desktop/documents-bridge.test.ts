@@ -27,7 +27,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Cipher } from "../../desktop/src/casefile";
 import type { Checker } from "../../desktop/src/schema";
-import { DOCUMENTS_BRIDGE, contractChecker, fakeKeychain, load } from "./support";
+import { DOCUMENTS_BRIDGE, SRC, contractChecker, fakeKeychain, load } from "./support";
 
 const exposed = vi.hoisted(() => [] as [string, unknown][]);
 const asked = vi.hoisted(() => [] as unknown[][]);
@@ -504,6 +504,16 @@ describe("a path string from the screen is refused (SPEC-W2 point 13)", () => {
     expect(may("duly://app/index.html", false)).toBe(false);
     expect(may("https://www.uscis.gov/", true)).toBe(false);
     expect(may(undefined, true)).toBe(false);
+  });
+
+  it("is wired in main behind the frame check", () => {
+    // Point 5's frame rule, "as the case bridge does today", holds for this bridge too; the
+    // check lives in main's ipcMain handler, so this reads main.ts as bridges.test.ts does for
+    // the engine and state bridges. Fails if the handler is added without mayUseDocuments.
+    const main = readFileSync(join(SRC, "main.ts"), "utf8");
+    expect(main).toContain("ipcMain.handle(DOCUMENTS_CHANNEL");
+    expect(main).toContain("mayUseDocuments(");
+    expect(main).toContain("createDocumentsBridge(");
   });
 });
 
