@@ -23,8 +23,15 @@ from tools.factory.phase import PlanError, load_plan, working_branch
 
 PATH = r"`?((?:[\w.-]+/)+[\w.-]+\.[A-Za-z]{1,5})`?"
 WRITE = re.compile(
-    r"\b(?:write|writes|create|creates|edit|edits|remove|removes|delete)\s+" + PATH, re.I
+    r"\b(?:write|writes|create|creates|edit|edits|update|updates|change|changes|remove|removes"
+    r"|delete)\s+" + PATH,
+    re.I,
 )
+# The file as the subject of its change ("desktop/python/bundle.json gains ..."), or the target
+# of an addition ("add X to api/case.py"). plan-w2-p3-fix0 gave L-api a bundle.json that "gains"
+# three entries; no verb above caught it, and the lane spent three attempts before escalating.
+CHANGED = re.compile(PATH + r"\s+(?:gains?|loses?|becomes?)\b", re.I)
+ADDED_TO = re.compile(r"\badds?\b[^.;:]{1,80}?\s(?:to|into)\s+" + PATH, re.I)
 COPY = re.compile(r"\b(copy|move|mv|cp)\s+" + PATH + r"\s+(?:to|into)\s+" + PATH, re.I)
 DONE_PATH = re.compile(
     r"(?<![\w/.-])((?:[\w-]+/)+[\w.-]+\.(?:py|ts|tsx|js|json|yaml|md|txt))(?![\w/])"
@@ -43,6 +50,8 @@ ONE_COMMAND = re.compile(
 
 def _writes(mission: str) -> list[str]:
     out = [m.group(1) for m in WRITE.finditer(mission)]
+    out += [m.group(1) for m in CHANGED.finditer(mission)]
+    out += [m.group(1) for m in ADDED_TO.finditer(mission)]
     for m in COPY.finditer(mission):
         out.append(m.group(3))
         if m.group(1).lower() in {"move", "mv"}:

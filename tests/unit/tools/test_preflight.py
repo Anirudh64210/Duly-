@@ -62,6 +62,23 @@ def test_a_lane_told_to_write_outside_its_paths_is_found(tmp_path):
     ]
 
 
+def test_a_file_that_gains_or_is_added_to_is_a_write(tmp_path):
+    # plan-w2-p3-fix0: L-api, which owns api/ only, was told "desktop/python/bundle.json gains
+    # contracts/schedule.schema.json"; the lane could not write it and failed three attempts.
+    repo = mini.build(tmp_path)
+    mission = (
+        "desktop/python/bundle.json gains two schemas; add the route to web/src/app.ts; "
+        "update engine/x.py; api/case.py becomes stricter."
+    )
+    found = preflight.problems(
+        plan(repo, [{"name": "A", "lanes": [lane("L-api", "builder", mission)]}]), repo
+    )
+    assert any("write desktop/python/bundle.json" in p for p in found)
+    assert any("write web/src/app.ts" in p for p in found)
+    assert any("write engine/x.py" in p for p in found)
+    assert not any("api/case.py" in p for p in found)
+
+
 def test_a_copy_names_its_target_and_a_move_its_source_too(tmp_path):
     repo = mini.build(tmp_path)
     mission = "Move tests/a.py to engine/a.py, then copy engine/b.py to web/b.py."
