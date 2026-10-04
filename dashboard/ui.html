@@ -1325,7 +1325,7 @@
             count(t.tokens_out) + " written by agents",
           ),
           spendTile(s.spend),
-          tile("Lessons", String(s.learning.lessons), s.learning.proposals + " waiting for review"),
+          tile("Lessons", String(s.learning.lessons), "written by agents"),
         );
 
         const cards = s.agents.map((a) => {
@@ -1393,7 +1393,6 @@
         };
         $("learning").replaceChildren(
           row("Lessons written by agents", s.learning.lessons),
-          row("Waiting for your review", s.learning.proposals),
           row("Skills", s.learning.skills),
           row("Skills proven by replay", s.learning.skills_replayed),
         );

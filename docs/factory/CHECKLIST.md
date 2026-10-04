@@ -33,10 +33,10 @@ Tests are in tests/unit/tools/. Real-agent runs are recorded at the end of this 
 
 | # | Requirement | How | Proven by | Status |
 |---|---|---|---|---|
-| 3.1 | Improvements are proposed as diffs, never applied live | The curator works on its own branch. Any change under .claude/skills, .claude/agents or .claude/LESSONS is held for the founder | test_work_kept_for_the_founder_is_not_merged | Met |
+| 3.1 | Improvements are proposed as diffs, never applied live | Each agent works on its own branch. Any change under .claude/skills or .claude/agents, or to a guardrail, is held for the founder | test_work_kept_for_the_founder_is_not_merged, test_changes_that_need_the_founder_are_named | Met |
 | 3.2 | Self-modification goes through the same review and eval gate | Held for the founder, then `make golden` before and after, then `make doctor` | docs/factory/RUNBOOK.md, "Before a change to the factory" | Met, with a limit: the founder's merge is a local merge today, not a pull request |
 | 3.3 | Safety rules, permissions and eval criteria are read-only to agents | The sandbox denies writes to factory/, contracts/, tools/, .claude/hooks, .claude/agents, the settings files, CI, and the doctrine files | Sandbox probe steps 9 and 10; test_the_sandbox_settings_for_a_lane | Met |
-| 3.4 | Regression memory with a size cap and no repeats | tools/factory/memory.py. Failures from the orchestrator and lessons from reports, handed to the next agent as data about the past | test_memory_removes_repeats_and_keeps_to_its_caps, test_lessons_from_a_report_are_kept_once | Met |
+| 3.4 | Regression memory with a size cap and no repeats | tools/factory/memory.py. Failures the orchestrator saw, handed to the next agent as data about the past; what an agent says about its own run is not kept (D68) | test_memory_removes_repeats_and_keeps_to_its_caps, test_an_agents_lessons_reach_no_one | Met |
 | 3.5 | Improvement claims cite eval evidence | Each skill has a REPLAY.md. The first curation reported "no change" for all six | .claude/skills/*/REPLAY.md | Met |
 
 ## 4. Evaluation

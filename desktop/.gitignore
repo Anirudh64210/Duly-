@@ -5,4 +5,5 @@ coverage
 !build/
 build/*
 !build/entitlements.plist
+!build/python-entitlements.plist
 out/

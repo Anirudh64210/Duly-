@@ -90,7 +90,7 @@ For any merge, the full trace is:
 
 ## How the factory learns
 
-One rule. At each plan close the founder lane counts `findings.jsonl` by kind. A kind seen three times gets a check, hook or test in the next plan, and any prose lesson about it is deleted. There is no inbox of lessons and no weekly curator; the skill-curator is retired for now.
+One rule. At each plan close the founder lane counts `findings.jsonl` by kind. A kind seen three times gets a check, hook or test in the next plan, and any prose lesson about it is deleted. There is no inbox of lessons and no weekly curator; the skill-curator was deleted by D68, and git keeps it.
 
 The memory handed to agents is `.factory/failures.jsonl`. Only the orchestrator writes it, from the checks it ran itself; a health probe writes nothing, and a row goes once the same task passes. An agent sees its own lane's rows and the all-lanes rows, within `lessons_memory_max_items` and `lessons_memory_max_chars` in factory/config.yaml. Rows written by agents before this rule are moved once, by the founder, to `.factory/failures-archive.jsonl` with `uv run python -m tools.factory.memory --archive-agent-rows`.
 

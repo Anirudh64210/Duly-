@@ -1,11 +1,16 @@
 # The rules and news feed: Duly stays current on the device
 
-Status: draft for the founder, revised 2026-10-01 after two reviews (security and legal line;
-buildability), see "Review notes" at the end. Written by the founder lane from DECISIONS.md D2,
-D22, D29, D65, D79 to D89, BOUNDARY.md, SPEC-W1, SPEC-W2, specs/updates-1/SPEC.md, and three
-research passes run on 2026-10-01 and 2026-10-02 UTC (official sources, signing, fit with the code
-on branch `step-w`). F-1 only (D89). Builds on SPEC-W1 (the bundled engine over a private socket)
-and SPEC-W2 (the engine bridge, `GET /v1/updates`, the Updates screen of W2-P7).
+Status: approved by D90 and D91 (2026-10-01): the recommendations of points 68 to 86 are accepted as
+written, except the hardware key (point 83), still open; D90 records point 82 and D91 decides point
+77. Amended on 2026-10-03 by D97 (what an update may say, points 35, 38 and 48; a stale or litigated
+rule holds only the items it touches, points 30, 33 and 64), D98 (nothing to sign up for: what runs
+on this Mac now, what waits, and the 7-day recheck until the feed exists, section 13) and D99 (the
+founder's next test, point 66). Revised 2026-10-01 after two reviews (security and legal line;
+buildability), see "Review notes" at the end. Written by the founder lane from DECISIONS.md D2, D22,
+D29, D65, D79 to D89, BOUNDARY.md, SPEC-W1, SPEC-W2, specs/updates-1/SPEC.md, and three research
+passes run on 2026-10-01 and 2026-10-02 UTC (official sources, signing, fit with the code on branch
+`step-w`). F-1 only (D89). Builds on SPEC-W1 (the bundled engine over a private socket) and SPEC-W2
+(the engine bridge, `GET /v1/updates`, the Updates screen of W2-P7).
 
 Plans in this SPEC are always written FEED-P0a, FEED-P1 and so on; W2's plans are W2-P1 to W2-P12,
 and W2's rule-pack codes P1 to P12 are never meant here.
@@ -19,17 +24,24 @@ Once a day the installed app downloads one public, signed feed: the newest F-1 r
 record that the sources behind it were watched and showed no change, and the law updates the
 founder approved. Main checks every signature and hash, installs the files into userData in one
 atomic step, and the engine reads the newest valid pack. A pack stays fresh while the daily record
-keeps coming; when a source changes, the record is withheld and the verdict becomes Can't tell yet
-until the founder reviews it. An approved update saying the law changed, before a pack carries the
-change, also makes the verdict Can't tell yet. Late, never wrong. Nothing from the student's
-records is sent: every device downloads the same files.
+keeps coming; when a source changes, its row is withheld and the items that rest on its rules
+wait (Can't tell yet) until the founder reviews it, while every other item keeps its date (D97,
+point 64). An approved update saying the law changed, before a pack carries the change, holds
+the items that read the changed rules the same way. Late, never wrong. Nothing from the
+student's records is sent: every device downloads the same files. Until the feed's hosting
+exists (D98), the founder lane rechecks the sources on this Mac and rebuilds the app at least
+every 7 days (section 13).
 
 ## Why now
 
-- Rules go stale and nothing refreshes them. The F-1 pack's oldest `checked_on` is 2026-09-28, and
+- Rules go stale and nothing refreshes them. The F-1 pack's oldest `checked_on` was 2026-09-28
+  when this was written, and
   `engine/verdict.py:13` makes a verdict `cannot_tell` with `rules_stale` when today minus that date
   is more than 7 days. Every F-1 verdict on every installed build turns Can't tell yet on
   **2026-10-06**. No plan in this SPEC can ship before then; point 55 (FEED-PA) is the bridge.
+  (2026-10-03: FEED-PA ran on the fetches of 2026-10-02 and 2026-10-03, the pack's oldest
+  `checked_on` is now 2026-10-02, and the next cliff is **2026-10-10**. Until the feed exists,
+  the recheck repeats at least every 7 days, D98; section 13 says what happens on each date.)
 - The law has moved since the pack was reviewed (research, 2026-10-01):
   - D. Mass. docket 74661796: ECF 53, a notice of appeal from the ECF 50 order, filed 2026-09-30;
     ECF 55, First Circuit case 26-2112. No stay of the injunction appears in the listing. The
@@ -51,15 +63,24 @@ records is sent: every device downloads the same files.
 - Not a server that knows students. The feed is static files on GitHub Pages. No account, no
   query string, no category, no identifier is sent (D84). The network still sees the request
   (point 40).
+- Not anything that needs an account, a login or a payment to build (D98). The plans, or parts of
+  plans, that need one wait until the founder chooses otherwise; the rest runs on this Mac now
+  (section 13).
 
 ## Decisions this serves
 
 D88 (a signed feed of rule packs and published updates, checked once a day, public GitHub
-repository for now, Duly's AWS later, the signing key with the founder; a CI-held key for the daily
-record needs the amendment of point 82). D89 (F-1 complete first). D2 and D22 (primary sources,
-accuracy over speed, founder approval is the final pass). D1 and D56 (legal status in plain words,
-from the court's own record). D65 (a stale regime makes only the litigated items Can't tell yet).
-D84 (local-only, open source: no student data leaves the device). CLAUDE.md hard rules:
+repository for now, Duly's AWS later, the signing key with the founder), as D90 amends it: founder
+keys sign every rule pack and every update, and a CI key signs only the daily check record (point
+82). D91 (the daily check on by default once setup has shown the disclosure line, point 77). D89
+(F-1 complete first), with D99's test point (point 66). D2 and D22 (primary sources, accuracy over
+speed, founder approval is the final pass). D1 and D56 (legal status in plain words, from the
+court's own record). D65 (a stale regime makes only the litigated items Can't tell yet), extended
+by D97(3): a stale, held, superseded or litigated rule holds only the items it touches (point 64).
+D97(2) (an update says what is happening, whether it touches the student's record, and anything
+to do as the primary source states it, or "Nothing now"; never a recommendation or reassurance;
+points 35 and 38). D98 (every step of the build runs on this Mac; the feed's hosting waits;
+section 13). D84 (local-only, open source: no student data leaves the device). CLAUDE.md hard rules:
 `publish_blockers` returns nothing before any update is shown; every rule has a primary source and
 one of the five tags; conflicting means `cannot_tell`; a verdict never falls back to the quiet
 state.
@@ -75,7 +96,8 @@ state.
    the app trusts the pinned keys, never the host. The domain is verified in the GitHub
    organization settings, so a later Pages change cannot leave a CNAME another account can claim.
    `raw.githubusercontent.com/<owner>/duly-feed/served/` is the fallback mirror (the `served`
-   branch, point 2). Repository name, owner and domain: point 76.
+   branch, point 2). Repository name, owner and domain: point 76. The repository, the domain
+   and its DNS wait until the founder chooses to host the feed (D98, section 13).
    - Checked by (offline, in the jail): `tests/unit/pipeline/test_feed_export.py` runs the export
      over the repo and fails if any file under the export holds student-shaped data: a top-level
      key from `contracts/case.schema.json` (`records` holding `categories` or `time_zone`, `sevis`,
@@ -259,8 +281,9 @@ modules); no decision is made in YAML. Rules for every workflow:
     hash; only `timestamp.json` changes in place, so a CDN cache cannot mix two versions). Client
     in main: `tuf-js` (pure TypeScript, verifies with Node's built-in crypto, takes an injected
     fetcher), bundled into main's output so it is inside app.asar (point 52). Tools: `python-tuf`
-    in a new `feed` dependency group, never in the `desktop` group. Key types: what the hardware
-    signer supports (Ed25519, or ECDSA P-256 on a PIV key), both verified by tuf-js (point 83).
+    in a new `feed` dependency group, never in the `desktop` group. Key type: Ed25519 for the
+    founder's passphrase-protected key files (point 75); if the hardware key of point 83 comes
+    later, what it supports (Ed25519, or ECDSA P-256 on a PIV key), both verified by tuf-js.
     Founder decision on the dependency, with the fallback: point 74.
     - Checked by: `test_bundle_inputs.py` still resolves the `desktop` group to exactly its six
       packages; `tests/desktop/feed.test.ts` runs the client against committed fixture repositories
@@ -275,8 +298,8 @@ modules); no decision is made in YAML. Rules for every workflow:
 
     | Role | Key | Where it lives | Expiry (point 75) | Signs |
     |---|---|---|---|---|
-    | root | founder keys A, B and D, threshold 2 of 3 | all offline; at least one in another place | 90 days | which keys hold every role |
-    | targets | founder key T | a hardware key with touch, used only in a signing session | 60 days | every pack and every update; delegates `checks/*` |
+    | root | founder keys A, B and D, threshold 2 of 3 | passphrase-protected key files, all kept offline and brought to a Mac only for a root signing session, each with a backup copy; at least one in another place | 90 days | which keys hold every role |
+    | targets | founder key T | a passphrase-protected key file on the founder's Mac, with a backup copy kept offline, used only in a signing session; a hardware key with touch before real students rely on the feed (point 83) | 60 days | every pack and every update; delegates `checks/*` |
     | checks (delegated, terminating) | CI key C | GitHub `attest` environment secret | 2 days | `checks/*` only, nothing else |
     | snapshot, timestamp | CI key C | same | 2 days | which metadata versions are current |
 
@@ -284,6 +307,12 @@ modules); no decision is made in YAML. Rules for every workflow:
     root expires at 90 days, so a root signing session every 90 days rotates C. A device whose
     newest root has expired stops accepting new metadata; its rules then age into Can't tell yet,
     the safe direction.
+    The founder keys start as passphrase-protected files, each with a backup copy kept offline
+    (the root keys kept offline throughout, point 75): what the founder lane told the founder on
+    2026-10-02, when the founder asked what the key was ("I'll start with the free option ...
+    Nothing for you to buy now"), with point 83 still open (D90) and no purchase under D98. That
+    covers the building and the testing; point 83 is raised again before real students rely on
+    the feed. The key ceremony itself waits with the feed's hosting (D98, FEED-P5).
     - Checked by: `tests/unit/pipeline/test_feed_keys.py` (a fresh repository from
       `pipeline/feed/keys.py init` has exactly these roles, thresholds, expiries and delegation
       paths, and a new root version names a new C).
@@ -297,8 +326,13 @@ modules); no decision is made in YAML. Rules for every workflow:
       one; with a DNS hijack of feed.tryduly.co a forged record served only to some devices is not
       public, which is why the dead-man check (point 84) also compares the served metadata with
       the `served` branch and with the raw mirror. A public transparency log stays Later.
-    - **T.** Can publish a false rule or update to every device. It lives on a hardware key with
-      touch and never goes online.
+    - **T.** Can publish a false rule or update to every device. It is never put on GitHub or
+      any server. Until point 83, it is a passphrase-protected file on the founder's Mac, so
+      malware on that Mac that captures the passphrase could copy it (FEED-T11); on a hardware
+      key with touch it could not be copied.
+    - **Root keys as files.** Until point 83, malware on the Mac used for a root signing session,
+      where two root key files are unlocked, could copy them and take over the feed (FEED-T4,
+      FEED-T11).
     - **One root key.** Can do nothing alone (2 of 3).
     - **Two root keys.** Can take over the feed. Until the app has its own update channel (point
       86), a root compromise is recovered only by each user reinstalling a build with a new root.
@@ -320,7 +354,8 @@ modules); no decision is made in YAML. Rules for every workflow:
       before and after. The founder confirms each changed rule one by one. It then shows each
       update in full (headline, every text field, legal status, `pack`) and the withdrawn ids.
     - It writes `approval {approved, approved_by, approved_at}` into each update only after the
-      founder confirms it; signs `targets.json` with T (one touch); writes it into the feed working
+      founder confirms it; signs `targets.json` with T (the key file's passphrase; one touch
+      once T is on a hardware key, point 83); writes it into the feed working
       copy. The founder opens the PR to `main`. The signature on the targets is the proof of
       approval; `approved_by` alone is text anyone could type.
     - Checked by: `tests/unit/pipeline/test_feed_sign.py` with throwaway keys and an injected
@@ -410,16 +445,20 @@ modules); no decision is made in YAML. Rules for every workflow:
       targets version below the floor is refused; a pack version below the bundled one is
       refused); a FEED-P10 check that the packaged root is not the fixture.
 20. **When it checks.** Never before the window is shown and the engine is ready, never blocking
-    either, and never before onboarding has shown the disclosure line of point 37 (point 77). The
-    first check after a launch, and after a `powerMonitor` resume when the last success is older
+    either, and never before onboarding has shown the disclosure line of point 37 (point 77, D91).
+    The first check after a launch, and after a `powerMonitor` resume when the last success is older
     than `feed.check_every_hours`, waits a random `feed.first_check_delay_minutes` (5 to 60). After
     that, checks run every `feed.check_every_hours` at a fixed random phase chosen once per install
     and kept in `state.json`, so checks do not reveal launch or wake times. One check at a time.
     Settings can turn the daily check off (point 37); then no request is made at all.
+    A build whose packaged root is the fixture (point 19: every build until FEED-P5, D98) makes
+    no feed request at all, its host list empty; it reports `no_feed` and shows neither the
+    disclosure nor the switch (points 36 and 37).
     - Checked by: feed.test.ts with fake timers, a fake powerMonitor and an injected random source
       (no request before engine ready or before the disclosure was shown; the first request falls
       inside the delay band; one request per interval at the stored phase; a resume after the
-      interval triggers one after a delay; off makes none).
+      interval triggers one after a delay; off makes none; a fixture root makes none and reports
+      `no_feed`).
 21. **The fetch.** The `tuf-js` fetcher (Duly's own, injected) calls `net.fetch` on a dedicated
     session from `session.fromPartition("duly-feed")` (not persisted, no cookies), with
     `cache: "no-store"` and no conditional headers; HTTPS only; `redirect: "error"`; hosts allowed:
@@ -463,7 +502,8 @@ modules); no decision is made in YAML. Rules for every workflow:
       A pack id with no pack in the feed is not copied; the engine uses the bundled one;
     - `current.json`: the pointer to one generation (contract `feed_state.schema.json`);
     - `state.json`: the last attempt and the last success (UTC instants), the result kind
-      (`ok`, `offline`, `refused`, `expired`, `off`), the per-install check phase, whether the
+      (`ok`, `offline`, `refused`, `expired`, `off`, and `no_feed` for a build with the fixture
+      root, D98), the per-install check phase, whether the
       disclosure was shown; never a URL with an address or any case value.
     - Checked by: feed.test.ts (the tree after an install; `state.json` validates against the
       contract and holds no field outside it).
@@ -496,7 +536,8 @@ modules); no decision is made in YAML. Rules for every workflow:
 27. **Offline.** Nothing breaks. The current generation stays; a failed or offline check writes
     `offline` and tries again at the next interval or on resume; an expired-metadata error while
     offline is recorded, not shown as a fault. A first launch with no network uses the bundled
-    pack, which may already be stale: the verdict is Can't tell yet, which is the safe outcome.
+    pack, which may already be stale: the items that rest on its stale rules wait (point 64)
+    and the verdict is Can't tell yet, which is the safe outcome.
     - Checked by: feed.test.ts (a fetcher that throws a network error leaves every file and the
       pointer untouched and writes `offline`).
 
@@ -504,11 +545,11 @@ modules); no decision is made in YAML. Rules for every workflow:
 
 28. **An update reaches a device only as a founder-signed target.** Each update follows
     `contracts/update.schema.json` (with W2's K5 `article` and `affects`). It is drafted in Duly's
-    `pipeline/drafts/`, goes through the `law-update-claim` skill (primary source, the exact quote
-    found in a saved copy, an independent check, a refutation), passes `publish_blockers` with the
-    wording checks with nothing returned, is approved and signed in `make feed-sign` (point 14),
-    and only then is copied to the feed repository's `updates/` and to Duly's
-    `pipeline/published/`.
+    `pipeline/drafts/` with its `to_do` (point 35, D97), goes through the `law-update-claim` skill
+    (primary source, the exact quote found in a saved copy, an independent check, a refutation),
+    passes `publish_blockers` with the wording checks with nothing returned, is approved and signed
+    in `make feed-sign` (point 14), and only then is copied to the feed repository's `updates/` and
+    to Duly's `pipeline/published/`.
     - Checked by: test_feed_sign.py (an update with any blocker, wording ones included, is never in
       a signed targets); test_feed_gate.py (point 8). Assigned to FEED-P3.
 29. **The device checks again.** `GET /v1/updates` (SPEC-W2 A2) reads the bundled
@@ -517,7 +558,8 @@ modules); no decision is made in YAML. Rules for every workflow:
     includes the wording checks, point 35), and no tombstone names it. The same id in both places:
     the feed copy wins only when its `status_as_of` is later.
     - Checked by: `tests/unit/api/test_feed_routes.py` (an update with `quote_found: false` in the
-      feed folder is never returned; one whose `article` says "you must leave" is never returned; a
+      feed folder is never returned; one whose `article` says "you must leave" is never returned;
+      one with no `to_do` is never returned (point 35, D97); a
       tombstoned one is never returned; a schema-invalid one is never returned and does not stop
       the others).
 30. **An update that announces a rule change names the pack that carries it** (`pack: {category,
@@ -529,7 +571,8 @@ modules); no decision is made in YAML. Rules for every workflow:
     - An update that passes point 29, is in force, and names a `min_version` above the loaded pack
       is a known conflict with the pack's dates. The engine adds verdict reason `rules_superseded`
       and returns `cannot_tell` for that pack (FEED-P8 narrows this to the items the update
-      `affects`). Dates are never shown from law an approved update says has changed.
+      `affects`: under D97(3) only those items wait, and every other item keeps its date). Dates
+      are never shown from law an approved update says has changed.
     - The caption "Duly's dates do not use this change yet." is kept only for an update with
       `in_rules: false` that is not yet in force (proposed, or effective later).
     - Checked by: test_feed_routes.py (an update naming v2026.10 against a v2026.09 pack gives
@@ -566,11 +609,13 @@ modules); no decision is made in YAML. Rules for every workflow:
     `source.checked_on`, or the record's `confirmed_on` when that is later and the record's row for
     the same `url` and `snapshot_sha256` is `unchanged`. The pack's date is the earliest of those.
     The record counts only if its `pack_sha256` equals the loaded file's bytes, only if
-    `feed.records_refresh` is true (KF9; it stays false until the D88 amendment of point 82 is
-    recorded, so until then records only hold or age), and a `confirmed_on` more than
-    `feed.future_tolerance_days` after the person's own today is ignored. A row marked `hold` adds
-    the verdict reason `rules_on_hold` for that pack. Regimes now count, so the court regime
-    `fixed_admission_2026` can no longer stay fresh by being left out.
+    `feed.records_refresh` is true (KF9: true from FEED-P0a, since D90 recorded the D88 amendment
+    of point 82 on 2026-10-01; set false, records only hold or age), and a `confirmed_on` more
+    than `feed.future_tolerance_days` after the person's own today is ignored. A row marked `hold`
+    adds the verdict reason `rules_on_hold` for that pack. Regimes now count, so the court regime
+    `fixed_admission_2026` can no longer stay fresh by being left out. This is the pack-level
+    first step; FEED-P8 follows directly (D97(3), point 64) and narrows `rules_stale`,
+    `rules_on_hold` and `rules_superseded` to the items that read the rules concerned.
     `Rulepack.rules_checked_on` keeps its meaning (the oldest date a person reviewed a rule).
     `RULES_STALE_AFTER` stays 7 days.
     - Checked by: `tests/unit/engine/test_feed_freshness.py`, property tests with an injected
@@ -590,25 +635,40 @@ modules); no decision is made in YAML. Rules for every workflow:
     - Checked by: test_feed_freshness.py (the fields, and `rules_stale_from` equal to the first day
       the verdict changes when the clock is moved one day at a time); test_desktop_main.py (desktop
       status equals server status on the bundled packs).
-35. **`publish_blockers` moves to `engine/updates.py` and gains the wording checks.** The module
-    imports only the standard library and `assistant.boundary` (itself standard library only), so
-    the bundled engine can run it; the bundle gains `assistant/__init__.py` and
+35. **`publish_blockers` moves to `engine/updates.py` and gains the wording checks.** (The move and
+    the re-export landed with W2-P3 under D95(2); the wording checks below are still FEED-P1's.) The
+    module imports only the standard library and `assistant.boundary` (itself standard library
+    only), so the bundled engine can run it; the bundle gains `assistant/__init__.py` and
     `assistant/boundary.py` (KF8). The provenance checks move unchanged. `wording_blockers(update)`
     is new and its reasons are appended by `publish_blockers`: over `headline`, `plain`, every
     `article` paragraph and every other text field, it reports second person (the same pattern as
-    `tools.sources.plain.SECOND_PERSON`), a conclusion, an instruction, and a modal or status word
-    with the user as the subject (`assistant.boundary`'s Side B tests). The copy lint phrase list
-    runs over update text in the gate and in `feed-sign` (points 8, 14), and `tools/copy_lint`'s
-    product scope gains `pipeline/published/`, `pipeline/drafts/` and, in the feed repository,
-    `updates/`, `README.md`, `SOURCES.md` and `CHANGELOG.md` (a founder edit, FEED-P0b).
-    `pipeline/graph.py` re-exports `publish_blockers`, so `tests/unit/pipeline/test_graph.py` still
-    imports it from there.
+    `tools.sources.plain.SECOND_PERSON`), a conclusion, an instruction in Duly's own voice
+    (`assistant.boundary.instructs`), and a modal or status word with the user as the subject
+    (`assistant.boundary`'s Side B tests).
+    **Anything to do (D97(2)).** An update states anything to do only in its `to_do` (KF6, point
+    48): each step says what the primary source states the process requires, attributed to that
+    source, and names the claim it rests on (BOUNDARY A5); an empty list is shown as "Nothing now".
+    The checks above run over every step as over every other text field, so a step is never an
+    instruction in Duly's own voice, a recommendation or a comparison of choices (B4), or
+    reassurance (B10). `wording_blockers` also reports an update with no `to_do`
+    (`to_do_not_stated`: "Nothing now" is the founder's statement, never read from a missing field)
+    and a step whose claim is not a primary source with its quote found (`to_do_<i>_no_source`). The
+    copy lint phrase list runs over update text in the gate and in `feed-sign` (points 8, 14), and
+    `tools/copy_lint`'s product scope gains `pipeline/published/`, `pipeline/drafts/` and, in the
+    feed repository, `updates/`, `README.md`, `SOURCES.md` and `CHANGELOG.md` (a founder edit,
+    FEED-P0b). `pipeline/graph.py` re-exports `publish_blockers`, so
+    `tests/unit/pipeline/test_graph.py` still imports it from there.
     - Checked by: `tests/unit/engine/test_updates_module.py` (every case of test_graph.py's
-      blockers gives the same tuple, since none holds update text; "you must leave by", "you are
-      safe" and "you have plenty of time" each give a wording reason; the second-person pattern
-      equals plain.py's; importing engine.updates in a fresh interpreter loads no module outside
-      the standard library, `engine` and `assistant.boundary`); paired cases in `evals/boundary`
-      for update text, one on each side of the line (L-evals, `add-eval-case`).
+      blockers gives the same tuple, since none holds update text, once its GOOD fixture, and
+      test_local_routes_w2.py's PASSING, state `to_do: []` (point 54); "you must leave by",
+      "you are safe" and "you have plenty of time" each give a wording reason; the second-person
+      pattern equals plain.py's; importing engine.updates in a fresh interpreter loads no module
+      outside the standard library, `engine` and `assistant.boundary`); for `to_do`: a step
+      worded as its source's own listed requirement and naming a primary claim with its quote
+      found passes, `to_do: []` passes, no `to_do` gives `to_do_not_stated`, a step naming no
+      claim gives `to_do_0_no_source`, and a step that says "it is best to", "there is no rush"
+      or "you should" gives a wording reason; paired cases in `evals/boundary` for update text,
+      one on each side of the line (L-evals, `add-eval-case`).
 
 ## 8. What the screen says
 
@@ -623,14 +683,17 @@ The words are drafts for L-web, held to the copy rules (no long dashes, no emoji
     | Record current | "Rules reviewed Sep 28. Watched for changes through Oct 3." |
     | Never checked on this Mac | "Rules reviewed Sep 28. Not yet checked for changes on this Mac." |
     | Offline | "Rules watched for changes through Oct 3. Duly checks again when this Mac is online." |
-    | A source withheld, not yet stale | "A source behind these rules changed and is being reviewed. Without a new check, dates show as Can't tell yet from Oct 11." |
+    | A source withheld, not yet stale | "A source behind these rules changed and is being reviewed. Without a new check, dates that rest on it show as Can't tell yet from Oct 11." |
     | On hold | "A source behind these rules changed and is being reviewed. Dates that rest on it show as Can't tell yet until then." |
-    | Superseded | "The law behind these rules changed. Dates show as Can't tell yet until Duly's rules include the change." |
+    | Superseded | "The law behind these rules changed. Dates that rest on the change show as Can't tell yet until Duly's rules include it." |
     | Refused or expired files | "The newest rule files did not pass Duly's checks, so they were not used. Duly keeps the rules it has." |
     | Daily checks off | "Daily checks are off. Rules watched for changes through Oct 3." |
+    | No feed in this build (`no_feed`, D98) | "Rules reviewed Oct 2. Without a newer version of Duly, dates show as Can't tell yet from Oct 10." |
 
     The dates in the table are examples. "Reviewed" is `rules_checked_on`, "watched through" is
-    `rules_current_on`, the Can't tell yet day is `rules_stale_from`.
+    `rules_current_on`, the Can't tell yet day is `rules_stale_from`. Under D97(3) (point 64),
+    "dates" in these lines means the dates that rest on the rules named; every other date stays
+    shown.
     - Checked by: `tests/web/acceptance/rules-line.test.tsx` (each state from fixture engine
       outputs and bridge states; each date equals its field; the sentence built from
       `rules_current_on` never contains "reviewed"); copy lint.
@@ -640,18 +703,27 @@ The words are drafts for L-web, held to the copy rules (no long dashes, no emoji
     Duly. Nothing from your records is sent." The same line is shown once in onboarding before the
     first check (point 20). Buttons: "Check for changes now", "Turn off daily checks" (or "Turn on
     daily checks"). Turning off says what follows: "Without a check, dates show as Can't tell yet
-    from Oct 11."
+    from Oct 11." In a build with the fixture root (`no_feed`, every build until FEED-P5, D98) the
+    panel shows only the rules line, with no switch and no button, and onboarding shows no
+    disclosure: no control that does nothing, and no line about a download that does not happen.
     - Checked by: `tests/web/acceptance/settings-feed.test.tsx` (each button changes the bridge
       state it names; no control that does nothing; the disclosure line is present in Settings and
-      in onboarding).
+      in onboarding; with `no_feed`, neither the switch, the buttons nor the disclosure is drawn).
 38. **Updates** (W2 point 30, G26): published updates only; each article shows its source line and
     legal status with its date; an update with `in_rules: false` not yet in force carries "Duly's
     dates do not use this change yet."; one in force shows the superseded rules line (point 30). A
-    withdrawn update disappears from the list. No update ever says what the student should do
-    (BOUNDARY B4, B10). Source links open only through main: `shell.openExternal` on an https URL
-    whose host is in `PRIMARY_HOSTS`, and any other URL is refused.
+    withdrawn update disappears from the list. Each article's For you box (SPEC-W2 point 30)
+    says whether the update touches the student's record, naming the field that matched (BOUNDARY
+    A4; the page matches `affects` against the engine's `stages[]` on the device, SPEC-W2 G26),
+    and anything to do: the update's `to_do` steps, each as the primary source states it with its
+    source one tap away (A5), or "Nothing now" when the list is empty (D97). No update recommends
+    a choice for the person (B4) or reassures (B10), and the screen adds no step of its own.
+    Source links open only through main: `shell.openExternal` on an https URL whose host is in
+    `PRIMARY_HOSTS`, and any other URL is refused.
     - Checked by: `tests/web/acceptance/updates.test.tsx` (an update the engine did not return is
-      never drawn; the `in_rules` line follows the field; no feed record string is drawn);
+      never drawn; the `in_rules` line follows the field; no feed record string is drawn; the
+      For you box draws each `to_do` step with its source, or "Nothing now" for an empty list,
+      and no other step);
       `tests/desktop/feed-bridge.test.ts` (an http link, a link to another host and a `file:` link
       are refused).
 39. **The feed bridge,** `window.duly.feed` (contract `desktop_feed_bridge.schema.json`): `status`
@@ -681,7 +753,8 @@ The words are drafts for L-web, held to the copy rules (no long dashes, no emoji
     local malware that can write userData (out of scope, as for case.bin); T9 the host and the
     network (availability, network observers, subdomain takeover); T10 the CI supply chain (the
     fetch and attest split, pinned actions, Actions injection); T11 an agent or malware on the
-    signing Mac (TTY, agent refusal, hook, hardware touch).
+    signing Mac (TTY, agent refusal, hook, the key files' passphrases, and hardware touch once
+    point 83 is decided).
     - Checked by: the FEED-P4 L-security done command (one grep per id).
 42. **The limit, said plainly.** An automated check is weaker than a person's review. It does not
     see a court order on a docket nobody watches, a guidance page with no version history that
@@ -724,7 +797,7 @@ The words are drafts for L-web, held to the copy rules (no long dashes, no emoji
 | FG24 | Holds | N | point 17, the hold job (point 9) and the `rules_on_hold` reason (point 33) |
 | FG25 | Withdrawn updates | N | tombstone targets (points 2, 29) |
 | FG26 | Threat model rows and README disclosure | N | points 40, 41 |
-| FG27 | Per-rule staleness (D65: only litigated and cap-gap items) | N | FEED-P8, after point 80 |
+| FG27 | Per-rule staleness (D65, extended by D97(3): a stale, held, superseded or litigated rule holds only the items it touches) | N | FEED-P8, directly after FEED-P1 (point 64) |
 
 **Counts: 27 rows. 3 reused as they are (FG12 to FG14); 12 changed (FG1 to FG11, FG15); 12 new
 (FG16 to FG27).**
@@ -733,7 +806,8 @@ The words are drafts for L-web, held to the copy rules (no long dashes, no emoji
 
 Contracts land first and alone, in one founder commit (FEED-P0a), after W2-P0 (whose K5 adds
 `article` and `affects` to update.schema.json) is committed. Setup follows in a second founder
-commit (FEED-P0b).
+commit (FEED-P0b). (W2-P0 left K5 out: a0913d8 says "K5 lands with the feed contracts". So K5,
+SPEC-W2 point 43, lands first in its own founder commit, alone, and FEED-P0a follows it.)
 
 **Contracts (founder lane, FEED-P0a):**
 
@@ -753,8 +827,11 @@ commit (FEED-P0b).
     `/v1/updates` says it reads the feed generation as well; each returned entry gains
     `in_rules` (boolean or null).
 48. KF6 `contracts/update.schema.json`: optional `pack: {category, min_version, in_force_from}`,
-    `in_force_from` a date or null (point 30). Every other field unchanged; `publish_blockers`
-    gains only the wording checks (point 35).
+    `in_force_from` a date or null (point 30). Optional `to_do` (D97): a list of steps, each
+    `{text, claim}` naming the claim it rests on the way K5's article paragraphs name theirs; an
+    empty list is shown as "Nothing now". It is optional in the schema so that every existing
+    file still validates; point 35 refuses to publish an update without it. Every other field
+    unchanged; `publish_blockers` gains only the wording checks (point 35).
 49. KF7 `contracts/desktop_feed_bridge.schema.json` (point 39); `desktop_engine_bridge.schema.json`
     `updates_reply` gains the optional `in_rules` map by update id.
 50. KF8 the SPEC amendments:
@@ -763,9 +840,10 @@ commit (FEED-P0b).
       `assistant/__init__.py`, `assistant/boundary.py`; `pipeline/published/*.json` is already
       added by W2 point 47 and is not repeated), point 16 (the optional `--feed <dir>`).
     - SPEC-W2 point 24 and G37 (the Plan line is the rules line of point 36, "Rules reviewed",
-      not "Rules checked"), point 30 (the superseded line), point 32 (the Rule updates panel),
-      point 41 (K3's "No other route changes" now excepts A2's `GET /v1/updates` and its feed
-      reading), point 47 (A2 reads the feed).
+      not "Rules checked"), point 30 (the superseded line, and the For you box: whether the
+      update touches the record, A4, and its `to_do` steps or "Nothing now", point 38, D97(2)),
+      point 32 (the Rule updates panel), point 41 (K3's "No other route changes" now excepts
+      A2's `GET /v1/updates` and its feed reading), point 47 (A2 reads the feed).
     - specs/updates-1/SPEC.md: a source whose text changed while every quote is still found is
       withheld for review, not kept current (point 78); its register and check are replaced by
       section 4 of this SPEC.
@@ -773,10 +851,11 @@ commit (FEED-P0b).
     `feed.check_every_hours` (24), `feed.jitter_minutes` (60), `feed.first_check_delay_minutes`
     ([5, 60]), `feed.keep_generations` (2), `feed.future_tolerance_days` (1),
     `feed.fetch_timeout_seconds` (30), `feed.max_metadata_bytes` (1048576), `feed.records_refresh`
-    (false until point 82 is recorded), `watch.max_size_factor` (3), `watch.miss_issue_after` (3),
+    (true: D90 recorded point 82), `watch.max_size_factor` (3), `watch.miss_issue_after` (3),
     `watch.text_length_band` ([0.5, 2.0]).
 
-**Setup (founder lane, FEED-P0b, after the founder decides points 74 and 83):**
+**Setup (founder lane, FEED-P0b; D90 decided point 74, and point 83 no longer blocks it, since
+the founder keys start as key files, point 75):**
 
 52. KF10 dependencies and build:
     - `pyproject.toml`: a `feed` group with python-tuf and pypdf at exact versions;
@@ -796,7 +875,8 @@ commit (FEED-P0b).
       protects `desktop/feed/**` (point 19).
     - The fixture `desktop/feed/root.json` and `floor.json` (point 19).
     - Founder step in the main checkout, outside the jail, before any feed plan runs: `uv sync
-      --all-groups && npm ci` (the jail has no network to fetch a new group).
+      --all-groups && npm ci` (the jail has no network to fetch a new group). The packages come
+      from the public registries and need no account (D98).
 
 ## 12. Lanes and the paths each owns
 
@@ -824,11 +904,15 @@ feed's code lives in `watch/` and `pipeline/feed/` (L-pipeline).
     `test_desktop_main.py:132`; the bundle allowlist and forbidden paths in
     `test_bundle_inputs.py:50-61,186-201` (in FEED-P4's tests-first round, for KF8's bundle
     entries); `test_desktop_main.py:147-166` (desktop status equals server status, through
-    `status_body`). In L-desktop's FEED-P4 build round: `desktop/src/paths.test.ts:24-86` and
-    `engine.test.ts:223-244` (exact args), `forge.test.ts:80` (`CONTRACTS`). Tests that pick a pack
-    with `next(p for p in load_all() if p.category == "f1")` stay correct only while the repository
-    holds one version folder per pack id; a test fails when there are two
-    (`test_bundle_inputs.py:243` already counts four packs).
+    `status_body`); in FEED-P1's tests round, `tests/unit/pipeline/test_graph.py`'s GOOD update
+    gains `to_do: []`, since an update with no `to_do` now has a blocker (point 35, D97). In the
+    same round, `tests/unit/api/test_local_routes_w2.py`'s PASSING update gains `to_do: []` too.
+    Its refused copies are made from it, so every assertion there stays exact, and
+    `tests/desktop/bridges.test.ts`'s copy of PASSING follows it. In L-desktop's FEED-P4 build
+    round: `desktop/src/paths.test.ts:24-86` and `engine.test.ts:223-244` (exact args),
+    `forge.test.ts:80` (`CONTRACTS`). Tests that pick a pack with `next(p for p in load_all() if
+    p.category == "f1")` stay correct only while the repository holds one version folder per pack
+    id; a test fails when there are two (`test_bundle_inputs.py:243` already counts four packs).
 
 **The interfaces the tests call.** L-tests writes against these before the code exists; each part
 that touches the world is injected.
@@ -851,10 +935,71 @@ that touches the world is injected.
 
 Each plan is one factory run: a `goal`, lanes with their paths, tests first, a build held to its
 own tests plus the journeys, a reconcile round, a review and an audit (RUNBOOK). Small plans;
-FEED-P0a alone. FEED-PA runs now, outside this order. Done commands name test files, never whole
-folders, so plans running side by side do not pick up each other's tests.
+FEED-P0a alone. FEED-PA ran on 2026-10-02 and 2026-10-03, outside this order, and repeats as the
+interim below until FEED-P5. Done commands name test files, never whole folders, so plans
+running side by side do not pick up each other's tests.
+
+**What runs on this Mac now, and what waits (D98).** Nothing in the build needs an account, a
+login or a payment. A plan, or the part of one, that needs one waits until the founder chooses
+otherwise; the rest goes ahead, in this order, once D100's re-audit finds the repo clean; only
+the interim below (the recheck and its freshness plan) runs before it.
+
+| Plan | Runs on this Mac now | Waits (D98) |
+|---|---|---|
+| FEED-PA (point 55) | All of it, as the interim below | Nothing |
+| K5, then FEED-P0a (point 56) | All of it | Nothing |
+| FEED-P0b (point 56) | All of it: packages from the public registries, and the fixture root and floor made with throwaway keys | Nothing |
+| FEED-P1, then FEED-P8 (points 57, 64) | All of it | Nothing |
+| FEED-P2 (point 58) | All of it | Nothing |
+| FEED-P3 (point 59) | All of it: a fake server, saved responses, throwaway keys, planted fixture workflows | Nothing |
+| FEED-P4 (point 60) | All of it, on the committed fixture repositories and the fixture root | The real root, which comes with FEED-P5 |
+| FEED-P6 (point 62) | `watch/detect.py`, `watch/sources.yaml` and their tests, over saved responses | The scheduled job, which runs in the feed repository |
+| FEED-P7 (point 63) | All of it, inside W2-P7, with the `no_feed` state (points 20, 36, 37) | The live states, once a feed exists |
+| FEED-P5 (point 61) | Nothing | All of it: the `duly-feed` repository, Pages, `feed.tryduly.co` and its DNS, the key ceremony, the CourtListener token, the GitHub App, the dead-man check |
+| FEED-P9 (point 65) | Nothing | All of it: a model account, and the founder's approval (point 81) |
+| FEED-P10 (point 66) | Nothing | All of it: it tests the live feed |
+| The hardware key (point 83) | Nothing: key files stand in (point 75) | A purchase |
+
+**The interim, until FEED-P5 (D98).** No feed exists, so nothing refreshes the rules in an
+installed build. The founder lane keeps them current on this Mac, at least every 7 days:
+
+1. Outside the jail, `uv run python -m tools.sources.recheck --fetch rulepacks/f1-us/v2026.09`
+   fetches every F-1 source fresh (the public pages, and the CourtListener addresses the recheck
+   already reads, with no token).
+2. A FEED-PA-style plan: L-content moves `checked_on` only where that fetch backs it (point 55),
+   and a reviewer checks it. Moving `checked_on` is L-content's lane: never a founder edit of the
+   pack, and never a rebuild alone.
+3. `make desktop-python desktop-package desktop-verify`, and the new dated build replaces the
+   last one. Builds hold made-up data only until W1's packaged-app review and audit pass (D99),
+   and the founder's test at W2-P6 (D99) uses a build from a cycle no more than 7 days old
+   (D98).
+
+The recheck and the freshness plan of step 2 are part of the regroup round itself (D98, D100),
+so they may run before the re-audit: D100's gate holds the next build plan (W2-P5), not this
+freshness work.
+
+A verdict turns Can't tell yet on the eighth day after the pack's oldest `checked_on`
+(`engine/verdict.py`: more than 7 days), so each cycle finishes by the seventh. On the two dates
+this SPEC has named:
+
+- **2026-10-06.** The cliff this SPEC was written for. FEED-PA moved the repository's pack past
+  it (oldest `checked_on` 2026-10-02), so a build made from the repository since 2026-10-02
+  keeps its dates that day. A build packaged before FEED-PA (its pack's oldest `checked_on`
+  2026-09-28, as in the first 2026-10-01 package) shows Can't tell yet for every F-1 item from
+  2026-10-06; it is not used again, and the next rebuild replaces it.
+- **2026-10-10.** The repository's pack, and every build made from it since 2026-10-02 (the dated
+  2026-10-02 build included), turn Can't tell yet on this day, the eighth after 2026-10-02. The
+  founder lane runs the cycle above on 2026-10-08 or 2026-10-09, which moves the next cliff
+  about 7 days on; the re-audit does not hold it (above). If the cycle cannot finish by
+  2026-10-09, builds show Can't tell yet from 2026-10-10 until it does (late, never wrong), and
+  the founder is told plainly which it is.
+- After that, the cycle repeats at least every 7 days until FEED-P5 makes the daily record.
 
 55. **FEED-PA, before the feed: the 2026-10-06 cliff (founder, then L-content, then the founder).**
+    Done: the fetches of 2026-10-02 and 2026-10-03 (`recheck-2026-10-02.json`,
+    `recheck-2026-10-03.json`), plan-feed-pa.yaml and plan-feed-pa-fix.yaml; reviews/feed-pa.md
+    approves, and the pack's oldest `checked_on` is 2026-10-02. Until FEED-P5 it repeats as the
+    interim above (D98).
     Versions are not immutable until one is signed, and none is, so **v2026.09 is edited in place**
     and no folder is renamed (about 20 files in other lanes pin `v2026.09`).
     - Founder lane, outside the jail (the jail has no network): `tools/sources/recheck.py` fetches
@@ -881,28 +1026,31 @@ folders, so plans running side by side do not pick up each other's tests.
       p=next(x for x in load_all() if x.category==\"f1\"); assert
       p.rules_checked_on.isoformat() >= \"2026-10-01\", p.rules_checked_on" && uv run pytest
       tests/unit/engine -q'`. `recheck --check` fails when any moved `checked_on` has no fresh fetch
-      on or after it.
-    - Founder steps, outside the jail: `make desktop-package desktop-verify`, install on the Mac,
-      and on 2026-10-07 check that Plan shows dates, not Can't tell yet. This moves the cliff by
-      one review, about 7 days, not for good; the feed is what keeps it moving.
+      on or after it. Each repeat raises the date in the assert to its own fetch day.
+    - Founder steps, outside the jail: `make desktop-python desktop-package desktop-verify`,
+      install on the Mac, and the next day check that Plan shows dates, not Can't tell yet
+      (2026-10-07 for the first run). Each run moves the cliff by one review, about 7 days, not
+      for good; until the feed exists, the interim above repeats it (D98).
 56. **FEED-P0a, contracts (founder lane, alone).** Points 43 to 51, plus
     `tests/unit/contracts/test_feed_schemas.py` (every new schema passes Draft 2020-12
     `check_schema`; fixture records, states and targets validate; today's engine output for the
-    journeys still validates). The D88 amendment (point 82) is recorded in DECISIONS.md in its
-    own founder commit before this one (contracts land alone), or `feed.records_refresh` stays
-    false. Done: `bash -c 'uv run pytest tests/unit/contracts -q && make gate-7 && uv run pytest
-    tests/unit -q'` and `make doctor`. The audit step adds
+    journeys still validates). D90 recorded the D88 amendment (point 82) on 2026-10-01, so
+    `feed.records_refresh` is true. It follows K5's own commit (section 11). Done: `bash -c 'uv
+    run pytest tests/unit/contracts -q && make gate-7 && uv run pytest tests/unit -q'` and `make
+    doctor`. The audit step adds
     register rows for D88 and D89.
-    **FEED-P0b, setup (founder lane, after points 74 and 83 are decided).** Point 52. Done: `bash -c
-    'uv run mypy && uv run python -c "import tuf, pypdf" && npm run typecheck -w desktop && uv run
-    pytest tests/unit -q'`.
+    **FEED-P0b, setup (founder lane).** D90 decided point 74; point 83 no longer blocks it, since
+    the founder keys start as key files (point 75), and it runs on this Mac now (D98). Point 52.
+    Done: `bash -c 'uv run mypy && uv run python -c "import tuf, pypdf" && npm run typecheck -w
+    desktop && uv run pytest tests/unit -q'`.
 57. **FEED-P1, the engine reads packs and records.** Points 32 (engine part), 33, 34 (engine part),
     35.
-    - Round 1, L-tests: test_feed_freshness.py, test_select_packs.py, test_updates_module.py, and
-      the fixtures. Done: `bash -c 'uv run ruff check tests && uv run ruff format --check tests && uv
-      run pytest tests/unit/engine/test_feed_freshness.py tests/unit/engine/test_select_packs.py
-      tests/unit/engine/test_updates_module.py --co -q >/dev/null'`. L-evals, beside it: the paired
-      update-text cases.
+    - Round 1, L-tests: test_feed_freshness.py, test_select_packs.py, test_updates_module.py, the
+      fixtures, and the `to_do: []` of point 54 in test_graph.py, test_local_routes_w2.py and
+      bridges.test.ts. Done: `bash -c 'uv run ruff check tests && uv run ruff format --check
+      tests && uv run pytest tests/unit/engine/test_feed_freshness.py
+      tests/unit/engine/test_select_packs.py tests/unit/engine/test_updates_module.py --co -q
+      >/dev/null'`. L-evals, beside it: the paired update-text cases.
     - Round 2, L-engine. Done: `bash -c 'uv run pytest tests/unit/engine/test_feed_freshness.py
       tests/unit/engine/test_select_packs.py tests/unit/engine/test_updates_module.py
       tests/unit/acceptance/test_journeys.py -q && uv run python -m tools.gates.engine_literals &&
@@ -943,8 +1091,10 @@ folders, so plans running side by side do not pick up each other's tests.
       tools.copy_lint.lint && uv run pytest tests/unit/desktop_entry/test_bundle_inputs.py -q'`.
     - L-security. Done: `bash -c 'for i in 1 2 3 4 5 6 7 8 9 10 11; do grep -qw "FEED-T$i"
       security/threat-model.md || exit 1; done'`.
-61. **FEED-P5, the feed goes live (founder lane, outside the jail).**
-    - Keys: `make feed-keys` (A, B and D made offline and stored apart; T on the hardware key with
+61. **FEED-P5, the feed goes live (founder lane, outside the jail).** Waits, whole, until the
+    founder chooses to host the feed (D98).
+    - Keys: `make feed-keys` (A, B and D made offline and stored apart; T as a passphrase-protected
+      key file with a backup copy kept offline, until point 83 puts it on a hardware key with
       touch; C made and put in the `attest` environment as one base64 string).
     - GitHub: the repository; the `served` branch; Pages from GitHub Actions; the custom domain
       verified in the organization settings (a TXT record); the DNS CNAME for `feed.tryduly.co` at
@@ -955,14 +1105,16 @@ folders, so plans running side by side do not pick up each other's tests.
     - Files: `.github/feed-workflows/*.yml` written and exported; the first root, the first targets
       for the F-1 pack FEED-PA produced (through a PR), the first check record;
       `desktop/feed/root.json` and `floor.json` replace the fixtures; the README paragraph; the
-      dead-man check (point 84) set up.
+      dead-man check (point 84) set up, as the launchd job on the Mac (an outside monitor needs
+      an account, D98).
     - The app rebuilt and reinstalled with the real root.
     - Done: `make feed-verify URL=https://feed.tryduly.co/v1/` and the same against the raw mirror;
       `grep -q "The download shows GitHub and your network" README.md`; `uv run pytest
       tests/unit/pipeline/test_feed_workflows.py -q`; then one full day: `gh run list --workflow
       freshness.yml --event schedule --status success -L 1` shows a run from today, and `make
       feed-verify` shows the checks version went up.
-62. **FEED-P6, news detection** (after FEED-P5). Points 6, 18; `review/open.yaml` and the pack
+62. **FEED-P6, news detection** (its code and tests run now, over saved responses; the scheduled
+    job waits for FEED-P5, D98). Points 6, 18; `review/open.yaml` and the pack
     release gate. L-tests: test_watch_detect.py. L-pipeline: `watch/detect.py`, `sources.yaml`.
     Done as FEED-P3's L-pipeline line with `tests/unit/pipeline/test_watch_detect.py` in place of
     its test list.
@@ -970,12 +1122,23 @@ folders, so plans running side by side do not pick up each other's tests.
     side). W2-P7's plan lists the change to Plan's rules line (built in W2-P6) and the onboarding
     disclosure. L-tests writes rules-line.test.tsx, updates.test.tsx and settings-feed.test.tsx
     first by the `data-landmark` names `rules-line`, `settings-rule-updates`, `update-in-rules`,
-    `onboarding-feed-disclosure`; L-web builds; the done commands are W2-P5's.
-64. **FEED-P8, per-rule staleness (D65),** if the founder agrees (point 80). An item that rests on a
-    stale, held or superseded rule becomes null with its reason, and the verdict turns Can't tell
-    yet only when a shown item depends on one. L-tests first (`tests/unit/engine/
-    test_rule_staleness.py`, with the journeys and the litigated cases), then L-engine with
-    FEED-P1's L-engine done command over the new file.
+    `onboarding-feed-disclosure`; L-web builds; the done commands are W2-P5's. Until FEED-P5 the
+    screens show the `no_feed` state (points 20, 36, 37, D98), and the For you box follows
+    point 38 (D97).
+64. **FEED-P8, per-rule staleness (D65, extended by D97(3)).** Decided by D97 on 2026-10-03, so
+    it no longer waits on point 80: it runs directly after FEED-P1, and both run on this Mac
+    (D98), so they can land before W2-P6 builds Home and Plan on the verdict. An item that
+    reads a stale, held, superseded or litigated rule (`rule_in_litigation`: its rule differs
+    under an alternate regime) waits: null, with its reason and the rule named in `waits_on`
+    (SPEC-W2-UNKNOWN point 34). Every other item keeps its date, and nothing that waits is ever
+    shown as settled; the verdict turns Can't tell yet only when an item computed from the
+    student's record reads such a rule, and never reads as no open items while any item waits
+    (D4). Until a feed exists, "stale" is per rule, from each rule's own `checked_on`. Stale and
+    litigated rules, and the rest of D97(3) (an unknown, an unanswered question or an
+    unconfirmed field holding only its items), are SPEC-W2 N8, built in W2-R1 (plan-w2-r1);
+    FEED-P8 adds the rules the feed holds or supersedes, on the same per-item hold. L-tests first
+    (`tests/unit/engine/test_rule_staleness.py`, with the journeys and the litigated cases), then
+    L-engine with FEED-P1's L-engine done command over the new file.
 65. **FEED-P9, drafting updates with a model** (only if the founder approves, point 81). A
     `news-draft.yml` job in the feed repository, model client in `pipeline/models` only (added to
     the export set of point 3 then), reading public law text only, with no tools; a check that the
@@ -989,9 +1152,11 @@ folders, so plans running side by side do not pick up each other's tests.
     (bundled pack), then online after onboarding (install), a tampered generation (bundled), a feed
     with a lower version (refused), the daily check across a sleep and resume; review (L-review
     tries a forged check record, a replayed old timestamp, a redirect to another host, a C-signed
-    pack); audit. This is part of the D89 milestone: the founder tests once Home, Plan and
-    reminders work on real F-1 dates with the feed live. The founder lane checks it live, sends the
-    push notification and the test guide.
+    pack); audit. This was part of the D89 milestone: the founder tests once Home, Plan and
+    reminders work on real F-1 dates with the feed live. D99 moved the founder's next test to
+    W2-P6 (Home and Plan; reminders follow in W2-P7), since the feed waits under D98. FEED-P10
+    waits with FEED-P5 and is the founder's test of the live feed once it is hosted. The founder
+    lane checks it live, sends the push notification and the test guide.
 
 ## 14. What this does to the share
 
@@ -1001,7 +1166,8 @@ folders, so plans running side by side do not pick up each other's tests.
 
 ## Covers
 
-D88 and D89 in full for F-1 (no register rows yet; FEED-P0a's audit adds them). Register rows:
+D88 (as D90 amends it) and D89 (with D99's test point) in full for F-1, and D91, D97(2) and (3)
+and D98 for the feed (no register rows yet; FEED-P0a's audit adds them). Register rows:
 DEC-D02-001 (runs continuously), DEC-D02-003 (primary sources only), DEC-D02-005 (checked on a set
 interval), DEC-D02-006 (quote, independent check, refutation), DEC-D02-007 (citations),
 DEC-D02-008 (late rather than wrong), DEC-D02-010 (status changes tracked), DEC-D22-001 (founder
@@ -1020,9 +1186,15 @@ recounts. Of the rows above, 3 are met today (DEC-D02-008, PRIN-005, IMPL-027).
 
 ## For the founder
 
+D90 accepted the recommendations of points 68 to 86 as written, except point 83, which stays
+open; D90 itself records point 82, and D91 decides point 77. Later decisions amend points 68, 75,
+80, 83 and 84 as marked, and D98 holds the parts that need an account (section 13).
+
 68. **Today's cliff.** Without FEED-PA, every F-1 verdict on every build turns Can't tell yet on
     2026-10-06. Recommendation: run FEED-PA now, before FEED-P0a, editing v2026.09 in place, and
-    rebuild and reinstall the app after it.
+    rebuild and reinstall the app after it. Done on 2026-10-02 and 2026-10-03 (point 55); the next
+    cliff is 2026-10-10, and until the feed exists the recheck and rebuild repeat at least every
+    7 days (D98, section 13).
 69. **The appeal.** ECF 53 is a notice of appeal; no stay appears. Recommendation: record it in the
     regime's history and as an update through `law-update-claim` (kept in `pipeline/drafts/`
     until you approve it), leave the regime `enjoined` and `operative: false` unless a court order
@@ -1052,20 +1224,28 @@ recounts. Of the rows above, 3 are met today (DEC-D02-008, PRIN-005, IMPL-027).
     Recommendation: TUF, both pinned exactly and read once by the reviewer, main bundled with
     esbuild; the same metadata is read by Rust `tough` later for the shared engine and the phones
     (D78, D82).
-75. **Keys and expiry.** Root 2 of 3 founder keys, all offline, expiring at 90 days with C rotated
-    each time; targets 60 days with a reminder 14 days before; CI-signed roles 2 days; T on a
-    hardware key with touch from the start. Recommendation: as written. The cost: a root session
-    every 90 days and a targets session at least every 60 days, or verdicts go Can't tell yet; if
-    you lose T, updates stop until root re-delegates.
+75. **Keys and expiry.** Root 2 of 3 founder keys, all offline, expiring at 90 days with C
+    rotated each time; targets 60 days with a reminder 14 days before; CI-signed roles 2 days.
+    T starts as a passphrase-protected key file on your Mac, and A, B and D as
+    passphrase-protected key files, all offline and stored apart, each key with a backup copy
+    kept offline, as the founder lane told you on 2026-10-02 ("the free option", nothing to buy
+    now); that covers the building and the testing. The hardware key waits on point 83 and is
+    raised again before real students rely on the feed. Recommendation: as first written,
+    accepted by D90 except the hardware key, which D90 left open with point 83 (this point first
+    read "T on a hardware key with touch from the start"). The cost: a root session every 90
+    days and a targets session at least every 60 days, or verdicts go Can't tell yet; if you
+    lose T, updates stop until root re-delegates; while the keys are files, malware on the Mac
+    where one is unlocked could copy it once it captures the passphrase (point 13).
 76. **Repository and domain.** Recommendation: a public `duly-feed` repository under the same
     owner as Duly, Pages on `feed.tryduly.co`, the domain verified in the organization. Law text
     is public; Duly's summaries and pack files under a license you choose (recommendation: CC BY
-    4.0 for data and summaries, AGPL for the tools, matching D84).
+    4.0 for data and summaries, AGPL for the tools, matching D84). Accepted by D90; the
+    repository and the domain wait under D98 (FEED-P5).
 77. **The first network request (D84).** Recommendation: daily checks on by default, but the first
     check waits until onboarding has shown the disclosure line of point 37; said in the README and
     in Settings in plain words, with the switch to turn them off; with them off, the rules go stale
     after 7 days and the screen says so. The other choice is opt-in, which is more private and
-    leaves most users stale.
+    leaves most users stale. Decided: D91, as recommended.
 78. **May an automated "no change" record count toward freshness, and what counts as change?**
     Recommendation: yes, under the per-source rules of point 16, shown as "watched for changes",
     never as "reviewed". A source whose text changed while every quote is still found is withheld
@@ -1075,46 +1255,59 @@ recounts. Of the rows above, 3 are met today (DEC-D02-008, PRIN-005, IMPL-027).
     gone, a court order on a watched docket, the hold job)? Recommendation: yes; a hold only makes
     Duly more cautious, and lifting one needs your merge. CourtListener's docket API now needs a
     token: recommendation, a free account token in the feed's `fetch` environment, used only by the
-    fetch job.
+    fetch job. Accepted by D90; the token is an account, so it waits under D98 (FEED-P5).
 80. **Per-rule staleness (D65).** Pack-level staleness means one withheld source makes every F-1
     verdict Can't tell yet. Recommendation: build pack-level first (FEED-P1, safe and small), then
     FEED-P8 so that only items resting on the withheld, litigated or superseded rules become Can't
     tell yet. Until FEED-P8, an active appeal docket will withhold often and you review each new
-    entry within 7 days.
+    entry within 7 days. Accepted by D90; then D97(3) (2026-10-03) made per-item holds the rule
+    for stale and litigated rules, so FEED-P8 runs directly after FEED-P1 (point 64).
 81. **A model in the news pipeline.** Recommendation: not yet. Detection without a model (FEED-P6)
     and updates written by hand through `law-update-claim` first; FEED-P9 with its own SPEC once
     the first weeks show how many items arrive (research estimate, unverified: $10 to $40 a month
     at Opus 5.5 list prices, with Anthropic access through workload identity federation and no
-    stored key).
+    stored key). Accepted by D90 (not yet); it would also need a paid model account, which waits
+    under D98.
 82. **D88 says "the signing key stays with the founder".** This SPEC adds a CI-held key whose daily
     records decide whether users see dates or Can't tell yet, with no approval per day.
     Recommendation: amend D88 in DECISIONS.md before FEED-P0a: "Founder keys sign every rule pack
     and every update. A CI key may sign only the daily check record, which can keep reviewed rules
     current or put them on hold, and never changes a rule or shows text." Until it is recorded,
-    `feed.records_refresh` is false: records only hold or age.
-83. **The hardware key.** Recommendation: a YubiKey (or similar) for T and for at least one root
-    key, with touch required, now rather than later. Ed25519 if the signer library python-tuf uses
-    supports it on that key; otherwise ECDSA P-256 on PIV. Decide before FEED-P0b, since it sets the
-    key type in KF10.
+    `feed.records_refresh` is false: records only hold or age. Decided: D90 recorded these words
+    on 2026-10-01, so `feed.records_refresh` is true (KF9).
+83. **The hardware key.** Still open (D90). Recommendation (it first read "now rather than
+    later"; amended for D98, which buys nothing during the build): a YubiKey (or similar) for T
+    and for at least one root key, with touch required, before real students rely on the feed.
+    Ed25519 if the signer library python-tuf uses supports it on that key; otherwise ECDSA P-256
+    on PIV. Until then every founder key is a passphrase-protected key file with a backup copy
+    kept offline, the root keys offline throughout (point 75), as the founder lane told you on
+    2026-10-02, and a purchase waits under D98 in any case. It no longer blocks FEED-P0b: the
+    file keys are Ed25519 (point 11). Moving T, or a root key, to the hardware key later is a new
+    root version from a root signing session, which devices follow with no app update. A reminder
+    is owed to you: the founder lane raises this point again before the first build that real
+    students rely on (the launch of D84), and records the answer in DECISIONS.md.
 84. **The dead-man check.** Recommendation: a daily check outside GitHub that alerts you when the
     served timestamp is older than 36 hours and when the served metadata differs from the
     `served` branch or the raw mirror: either a launchd job on your Mac running `make feed-verify`,
     or an external uptime monitor on the timestamp's age. The Mac job is free and compares both;
-    the monitor works while the Mac is off.
+    the monitor works while the Mac is off. Accepted by D90; under D98, the launchd job on your
+    Mac, since an outside monitor needs an account.
 85. **The app's own update channel.** Until it exists, a root compromise or a broken feed client is
     fixed only by users reinstalling, and installed devices get no notice. Recommendation: ship the
     app update channel (SPEC-W1 Later) before launch to real users, as its own SPEC.
 86. **The CI's GitHub identity.** PRs opened with the built-in token do not run the required
     checks. Recommendation: a GitHub App owned by you, installed only on `duly-feed`, scoped to
-    pull requests and issues, whose PRs run the gates and need your merge.
+    pull requests and issues, whose PRs run the gates and need your merge. Accepted by D90; it
+    waits with the feed repository under D98 (FEED-P5).
 
 ## Later
 
-The feed on Duly's own AWS (a DNS change, with no access logs, point 40); Windows (rename semantics
-tested there); phones and the Rust core reading the same metadata with `tough` (D78, D82); H-1B,
-O-1 and EB-1A packs as their own plans (D89); school pages (D3, D24); email alerts for approved
-updates (D22); a public transparency log for signed metadata; the app's own update channel
-(SPEC-W1 Later, point 85).
+The feed's hosting and keys (FEED-P5, then FEED-P10, FEED-P9 if approved, and FEED-P6's scheduled
+job), when the founder chooses (D98); the hardware key (point 83). The feed on Duly's own AWS (a DNS
+change, with no access logs, point 40); Windows (rename semantics tested there); phones and the Rust
+core reading the same metadata with `tough` (D78, D82); H-1B, O-1 and EB-1A packs as their own plans
+(D89); school pages (D3, D24); email alerts for approved updates (D22); a public transparency log
+for signed metadata; the app's own update channel (SPEC-W1 Later, point 85).
 
 ## Review notes
 

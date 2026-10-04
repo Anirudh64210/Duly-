@@ -93,19 +93,6 @@ rounds:
           reviews/phase-2.md, ending with APPROVE or VETO on its own line.
         done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/phase-2.md'
         max_iterations: 2
-      - lane: L-factory
-        agent: skill-curator
-        slug: curation
-        merge: false
-        mission: >
-          Run the curation described in .claude/agents/skill-curator.md. Read every
-          PROGRESS.md on this branch (engine/, api/, web/, tests/, rulepacks/) and the files
-          in .claude/LESSONS/proposals/. Write one proposal file per distinct lesson. Where a
-          lesson repeats or cost an agent more than three rounds, change or add a skill, with
-          a verification block. Replay the five starter skills if you can and record each
-          result in a REPLAY.md beside the skill. Your branch is not merged; the founder
-          reviews it.
-        done: bash -c 'ls .claude/LESSONS/proposals/*.md | wc -l | grep -Eqv "^ *[01]$"'
-        max_iterations: 2
+      # The L-factory skill-curator job that ran here is retired by D68; git keeps it.
     checks:
       - { name: "reviewer approved", run: "grep -Eq '^APPROVE$' reviews/phase-2.md" }

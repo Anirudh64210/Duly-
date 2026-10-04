@@ -36,7 +36,7 @@ def build(tmp_path: Path, **limits: float) -> Path:
     config["budgets"].update(limits.pop("budgets", {}))  # type: ignore[arg-type]
     config["alerts"]["notify"] = "none"
     (repo / "factory" / "config.yaml").write_text(yaml.safe_dump(config))
-    for name in ("engine", "tests", "web", "reviews", "proposals"):
+    for name in ("engine", "tests", "web", "reviews"):
         (repo / name).mkdir()
         (repo / name / "README.md").write_text(f"# {name}\n")
     (repo / "tests" / "holdout").mkdir()
@@ -49,6 +49,14 @@ def build(tmp_path: Path, **limits: float) -> Path:
     git(repo, "commit", "-q", "-m", "base")
     git(repo, "branch", "phase-x")
     return repo
+
+
+def retire(repo: Path, agent: str) -> None:
+    """Mark one agent's contract in the small repository as retired."""
+    path = repo / "factory" / "agents" / f"{agent}.yaml"
+    contract = yaml.safe_load(path.read_text())
+    contract["retired"] = True
+    path.write_text(yaml.safe_dump(contract))
 
 
 def scenario(

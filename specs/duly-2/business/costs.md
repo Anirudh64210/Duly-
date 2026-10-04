@@ -1,6 +1,6 @@
 # Duly business: what it costs to run, and a price that covers it
 
-Status: research section for the founder, 2026-10-01. Inputs: ARCHITECTURE.md sections 0, 8, 16, 18, 19; DECISIONS.md D8, D14, D45, D73, D79, D80; specs/ui-2/VALUE-2.md section 4; specs/ui-2/competitor/ANALYSIS.md; the sibling file business/market.md (same date). Nothing here is a decision; D8 (pricing) is still parked.
+Status: research section for the founder, 2026-10-01. Inputs: ARCHITECTURE.md sections 0, 8, 16, 18, 19; DECISIONS.md D8, D14, D45, D73, D79, D80; specs/ui-2/VALUE-2.md section 4; specs/ui-2/competitor/ANALYSIS.md (removed from the repo on 2026-10-03, D100; in git history at 67bbc33); the sibling file business/market.md (same date). Nothing here is a decision; D8 (pricing) is still parked.
 
 Markings: every external number carries its source URL and the date it was read. **(estimate)** means arithmetic or judgement in this file, not a published figure. **(unverified)** means a figure from a project file that this pass could not confirm. All AWS prices are US West (Oregon) list prices, read 2026-10-01. The arithmetic is reproducible: the assumptions are listed in section 7.
 
@@ -341,4 +341,4 @@ Fees on a $12 web sale are about $0.85.
 - https://www.bls.gov/ooh/computer-and-information-technology/software-developers.htm ; https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm
 - https://www.macrumors.com/2025/12/11/apple-app-store-fees-external-payment-links/
 - https://www.trackmyopt.com/ ; https://apps.apple.com/us/app/lawfully-case-tracker/id1435063223 ; https://www.visabuddyapp.com/
-- Project files: specs/duly-2/ARCHITECTURE.md (sections 0, 7.4, 8, 16, 18, 19, 20), specs/duly-2/business/market.md, specs/ui-2/VALUE-2.md, specs/ui-2/competitor/ANALYSIS.md, DECISIONS.md, docs/research/founder/Duly market and pricing validation.md
+- Project files: specs/duly-2/ARCHITECTURE.md (sections 0, 7.4, 8, 16, 18, 19, 20), specs/duly-2/business/market.md, specs/ui-2/VALUE-2.md, specs/ui-2/competitor/ANALYSIS.md (removed from the repo on 2026-10-03, D100; in git history at 67bbc33), DECISIONS.md, docs/research/founder/Duly market and pricing validation.md

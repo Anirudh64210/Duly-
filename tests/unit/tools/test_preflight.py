@@ -1,13 +1,14 @@
 """A plan's own faults are found before any agent runs: each case is one that cost an agent
 attempt in product-2."""
 
+import shutil
 import sys
 from pathlib import Path
 
 import yaml
 
 from tests.support import mini_factory as mini
-from tools.factory import preflight
+from tools.factory import preflight, validate
 
 
 def plan(repo: Path, rounds: list[dict], spec: str = "README.md") -> Path:
@@ -227,6 +228,32 @@ def test_a_founder_gate_failing_before_any_agent_is_found(tmp_path):
     found = preflight.baseline(tmp_path, (ok, bad))
     assert len(found) == 1
     assert "copy lint: 7 problem(s)" in found[0]
+
+
+def test_gate_7_failing_before_any_agent_is_found(tmp_path):
+    # The audit (2026-10-03): the baseline skipped tools.factory.validate, so a commit that
+    # broke another plan under specs/ turned gate 7 red and still let a whole plan start a run.
+    assert validate.problems in preflight.BASELINE
+    repo = mini.build(tmp_path)
+    (repo / "evals" / "factory").mkdir(parents=True)
+    shutil.copy(mini.REAL / "evals" / "factory" / "golden.yaml", repo / "evals" / "factory")
+    mission = "Write security/threat-model.md rows."
+    (repo / "specs" / "x").mkdir(parents=True)
+    other = plan(repo, [{"name": "A", "lanes": [lane("L-security", "builder", mission)]}])
+    other.rename(repo / "specs" / "x" / "plan.yaml")
+    path = plan(repo, [{"name": "A", "lanes": [lane("L-security", "red-team", mission)]}])
+    gates = (validate.problems,)
+    assert preflight.problems(path, repo) == []  # the plan being run is whole
+    assert preflight.baseline(repo, gates) == [
+        "baseline: tools.factory.validate fails before any agent runs: "
+        "specs/x/plan.yaml: agent builder has no contract for lane L-security"
+    ]
+    shutil.copy(path, repo / "specs" / "x" / "plan.yaml")
+    assert preflight.baseline(repo, gates) == []
+    (repo / "evals" / "factory" / "golden.yaml").write_text("tasks: [\n")
+    found = preflight.baseline(repo, gates)
+    assert len(found) == 1
+    assert found[0].startswith("baseline: tools.factory.validate fails before any agent runs: ")
 
 
 def test_a_builder_held_to_the_hidden_tests_is_found(tmp_path):

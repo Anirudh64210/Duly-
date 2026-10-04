@@ -132,8 +132,6 @@ def test_load_reads_a_repo_without_any_agents(tmp_path):
 def test_load_reads_events_gates_and_lessons(tmp_path):
     repo = tmp_path / "duly"
     (repo / ".factory").mkdir(parents=True)
-    (repo / ".claude" / "LESSONS" / "proposals").mkdir(parents=True)
-    (repo / ".claude" / "LESSONS" / "proposals" / "a.md").write_text("x")
     (repo / ".claude" / "skills" / "s1").mkdir(parents=True)
     (repo / ".claude" / "skills" / "s1" / "SKILL.md").write_text("x")
     (repo / ".claude" / "skills" / "s1" / "REPLAY.md").write_text("x")
@@ -154,7 +152,7 @@ def test_load_reads_events_gates_and_lessons(tmp_path):
     api = snap.agents[0]
     assert snap.round_line == "round A: L-api"
     assert snap.gates == {"types": "pass"}
-    assert (snap.proposals, snap.skills, snap.skills_replayed) == (1, 1, 1)
+    assert (snap.skills, snap.skills_replayed) == (1, 1)
     assert api.state == "stopped"  # it says working, but no process is running
     assert api.lessons == 1
     assert api.worktree == tree
@@ -164,7 +162,7 @@ def test_load_reads_events_gates_and_lessons(tmp_path):
     assert json.loads(json.dumps(main)) == main  # plain values only
     assert main["totals"]["running"] == 0
     assert main["totals"]["first_start"].startswith("2026-09-29T06:00")
-    assert main["learning"] == {"lessons": 1, "proposals": 1, "skills": 1, "skills_replayed": 1}
+    assert main["learning"] == {"lessons": 1, "skills": 1, "skills_replayed": 1}
     assert main["agents"][0]["lane"] == "L-api"
     assert main["orchestrator"][0]["message"] == "round A: L-api"
 
@@ -314,7 +312,10 @@ def test_health_shows_every_agent_and_lane_and_goes_out_of_date(tmp_path):
     assert {r["state"] for r in rows} == {"not checked"}
     shown = {(r["agent"], r["lane"]) for r in rows}
     assert ("builder", "L-desktop") not in shown  # desktop has no folder yet
-    assert ("skill-curator", "L-factory") not in shown  # a retired agent needs no check
+    assert ("reviewer", "L-review") in shown
+    mini.retire(repo, "reviewer")
+    shown = {(r["agent"], r["lane"]) for r in data.health_rows(repo, {})}
+    assert ("reviewer", "L-review") not in shown  # a retired agent needs no check
     # A pass the runner just recorded shows as passed: the window uses health.fingerprint.
     builder = config.load_contract("builder", repo)
     clock = FixedClock(datetime(2026, 9, 29, tzinfo=UTC))
@@ -351,10 +352,10 @@ def test_running_counts_every_live_run_and_names_its_kind(tmp_path):
             "started_at": "2026-09-29T10:00:00+00:00",
         },
         "b": {
-            "lane": "L-factory",
-            "agent": "skill-curator",
+            "lane": "L-security",
+            "agent": "red-team",
             "pid": me,
-            "task": "health/skill-curator/L-factory",
+            "task": "health/red-team/L-security",
             "started_at": "2026-09-29T10:01:00+00:00",
         },
         "c": {

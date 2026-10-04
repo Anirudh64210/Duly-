@@ -12,12 +12,14 @@ Usage: python -m tools.factory.preflight specs/<phase>/plan.yaml
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from tools.diff_policy.check import LaneError, load_lane, matches
+from tools.factory import validate
 from tools.factory.config import ConfigError, all_contracts
 from tools.factory.paths import REPO_ROOT
 from tools.factory.phase import PlanError, load_plan, working_branch
@@ -194,20 +196,35 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
     return found
 
 
+# A gate is a command to run, or a check called here that returns its problems.
+Gate = tuple[str, ...] | Callable[[Path], list[str]]
+
 # Quick gates only the founder lane can fix. When they already fail on the branch, every lane
 # that runs them fails for a reason it cannot change (step-w W1 stopped three times this way:
 # dashes in the founder's docs, build output being linted, a SPEC without its share).
-BASELINE: tuple[tuple[str, ...], ...] = (
+# Gate 7 is here too: problems() checks only the plan being run, so a commit that broke another
+# plan, a contract, the golden tasks or the model pins could start a run (audit, 2026-10-03).
+BASELINE: tuple[Gate, ...] = (
     ("uv", "run", "python", "-m", "tools.copy_lint.lint"),
     ("uv", "run", "python", "-m", "tools.requirements.register", "check"),
     ("uv", "run", "ruff", "check", ".", "-q"),
+    validate.problems,
 )
 
 
-def baseline(repo: Path = REPO_ROOT, commands: tuple[tuple[str, ...], ...] = BASELINE) -> list[str]:
+def baseline(repo: Path = REPO_ROOT, commands: tuple[Gate, ...] = BASELINE) -> list[str]:
     """The founder-owned gates that already fail before any agent runs."""
     found: list[str] = []
     for cmd in commands:
+        if callable(cmd):
+            try:
+                failed = cmd(repo)
+            except (OSError, yaml.YAMLError, KeyError, TypeError) as err:
+                first = (str(err).splitlines() or [""])[0]
+                failed = [f"it stopped on {type(err).__name__}: {first}"]
+            where = f"baseline: {cmd.__module__} fails before any agent runs"
+            found += [f"{where}: {p}" for p in failed]
+            continue
         done = subprocess.run(list(cmd), cwd=repo, capture_output=True, text=True, check=False)
         if done.returncode != 0:
             tail = (done.stdout + done.stderr).strip().splitlines()

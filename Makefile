@@ -1,7 +1,7 @@
 COMPOSE := docker compose -f infra/docker-compose.yml
 BASE ?= main
 
-.PHONY: up down seed logs test ci e2e attack lane prove-gates \
+.PHONY: up down seed logs test ci e2e attack prove-gates \
         gate-1 gate-2 gate-3 gate-4 gate-5 gate-6 gate-7 test-offline ops-block-demo watch stop resume status doctor factory-clean factory-metrics handled workflow-tokens factory-test golden weekly mutation register desktop desktop-smoke prototype-app desktop-python desktop-package desktop-verify desktop-launch-time
 
 up:
@@ -181,10 +181,3 @@ desktop-smoke:
 
 register:
 	uv run python -m tools.requirements.register build
-
-lane:
-	@test -n "$(NAME)" || (echo "usage: make lane NAME=L-web" && exit 1)
-	@test -f .claude/lanes/$(NAME).yaml || (echo "unknown lane $(NAME)" && exit 1)
-	git worktree add -b lane/$(NAME)/work ../duly-$(NAME) $(BASE)
-	@echo "$(NAME)" > ../duly-$(NAME)/.lane
-	@echo "worktree ready at ../duly-$(NAME)"

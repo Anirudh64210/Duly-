@@ -23,6 +23,9 @@ node_modules
 PROMPT.md
 REPORT.json
 REVIEW.json
+# The factory's review record is source (phase, drift and golden read it); only a lane's own
+# REVIEW.json is a run file.
+!reviews/REVIEW.json
 HEALTH.txt
 ESCALATE.md
 .done-scratch/

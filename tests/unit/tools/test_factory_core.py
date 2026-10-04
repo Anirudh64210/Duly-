@@ -1,6 +1,5 @@
 import json
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -63,7 +62,6 @@ def test_every_shipped_contract_loads_and_is_complete():
         "test-author",
         "rulepack-drafter",
         "reviewer",
-        "skill-curator",
         "eval-curator",
         "red-team",
         "auditor",
@@ -460,14 +458,15 @@ def test_make_doctor_skips_a_retired_agent(tmp_path, monkeypatch, capsys):
     from tools.factory import agent_run, control
 
     repo = mini.build(tmp_path)
-    assert load_contract("skill-curator", repo).retired
+    mini.retire(repo, "reviewer")  # its lane's folder, reviews/, is there to probe
+    assert load_contract("reviewer", repo).retired
     assert not load_contract("builder", repo).retired
 
     def never(*args, **kwargs):
         raise AssertionError("a retired agent was run")
 
     monkeypatch.setattr(agent_run, "run", never)
-    assert control.doctor(repo, "skill-curator") == 0
+    assert control.doctor(repo, "reviewer") == 0
     assert capsys.readouterr().out == ""
 
 
@@ -487,28 +486,21 @@ def test_only_health_probes_leave_the_pinned_model(tmp_path):
     assert health.model(repo) == config["model"]["pinned"]
 
 
-def test_the_stop_hook_leaves_a_factory_run_to_the_orchestrator(tmp_path):
-    repo = mini.build(tmp_path)
-    hook = mini.REAL / ".claude" / "hooks" / "lane_test.py"
-    env = {
-        "PATH": os.environ["PATH"],
-        "CLAUDE_PROJECT_DIR": str(repo),
-        "DULY_LANE": "L-engine",
-        "DULY_DONE": "false",
-    }
-
-    def stop(extra: dict[str, str]) -> int:
-        done = subprocess.run(
-            [sys.executable, str(hook)],
-            input="{}",
-            env={**env, **extra},
-            capture_output=True,
-            text=True,
-        )
-        return done.returncode
-
-    assert stop({}) == 2  # a lane worked by hand is held to its test
-    assert stop({"DULY_RUN_ID": "l-engine-1"}) == 0  # the jailed run is the check
+def test_the_parts_d68_retired_are_gone():
+    for rel in (
+        ".claude/LESSONS",
+        "proposals",
+        ".claude/agents/skill-curator.md",
+        "factory/agents/skill-curator.yaml",
+        ".claude/lanes/L-factory.yaml",
+        ".claude/hooks/lane_test.py",
+    ):
+        assert not (mini.REAL / rel).exists(), rel
+    # No Stop hook holds a turn: a factory run's done command is checked by the orchestrator.
+    settings = json.loads((mini.REAL / ".claude" / "settings.json").read_text())
+    assert "Stop" not in settings["hooks"]
+    targets = (mini.REAL / "Makefile").read_text().splitlines()
+    assert not any(line.startswith("lane:") for line in targets)
 
 
 def test_judge_drift_is_a_number():

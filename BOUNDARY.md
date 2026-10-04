@@ -80,7 +80,13 @@ The drafted email asks a question. It never argues a position and never states a
 
 ## Where the assistant runs
 
-In the released product, inside Duly's own AWS account (Claude through Amazon Bedrock, with no data retention), so no user question and no user record is sent to Anthropic or any other outside model provider. The local prototype may call the Claude API directly, with the founder's own test data only. In the updates pipeline, models read public law text only.
+In the released product, Ask reasons and writes its answers with Claude through Amazon Bedrock inside Duly's own AWS account, with no training on the data and no retention by the provider, so no user question and no user record is sent to Anthropic or any other outside model provider (D79, D80). The engine still supplies every date and count, and every rule in this file still applies (D79). That service has its own Ask address with logs off, its requests cannot be linked to an account, and crisis and enforcement questions stay on the device (D80). No value from a document reaches it, or any model, until the founder decides otherwise (D60). It comes after the open-source launch as a paid service, never part of the free core; the launch itself is local-only, with no Duly server holding student data (D84).
+
+Until that service exists, Ask on a real record, in a test build (D85) or at launch, uses only the guides on the device and the drafted DSO question, and nothing about the student leaves the device (D84, D86).
+
+For prototype testing only, a local helper sends the made-up sample student's record to Claude through the founder's own Claude Code login. No real record goes through it (D79, D86).
+
+In the updates pipeline, models read public law text only.
 
 ## Words Duly never uses about itself
 

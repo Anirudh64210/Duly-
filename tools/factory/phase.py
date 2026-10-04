@@ -67,8 +67,6 @@ NEEDS_FOUNDER = {
     "skill_or_prompt_changed": (
         ".claude/skills/*",
         ".claude/agents/*",
-        ".claude/LESSONS/*",
-        "proposals/*",
     ),
     "contract_changed": (
         "contracts/*",

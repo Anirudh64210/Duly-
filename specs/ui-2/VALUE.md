@@ -2,7 +2,8 @@
 
 Round 4 goal: give students as much as TrackMyOPT gives them, or more, in Duly's own calm way.
 Never copy their design, their words or their clutter. Rounds 1 to 3 of BRIEF.md still hold. Duly
-is web, phone and desktop. Needs come from competitor/ANALYSIS.md section 2, gaps from section 6.
+is web, phone and desktop. Needs come from section 2 of competitor/ANALYSIS.md (removed from the
+repo on 2026-10-03, D100; in git history at 67bbc33), gaps from its section 6.
 
 ## 1. The promise
 

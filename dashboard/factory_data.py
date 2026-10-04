@@ -66,7 +66,6 @@ class Snapshot:
     round_line: str = ""
     orchestrator: list[dict[str, Any]] = field(default_factory=list)
     gates: dict[str, str] = field(default_factory=dict)
-    proposals: int = 0
     skills: int = 0
     skills_replayed: int = 0
     head: str = ""
@@ -829,7 +828,6 @@ def load(
         round_line=round_line,
         orchestrator=orchestrator,
         gates=gates,
-        proposals=len(list((repo / ".claude" / "LESSONS" / "proposals").glob("*.md"))),
         skills=len(skill_dirs),
         skills_replayed=len([d for d in skill_dirs if (d / "REPLAY.md").exists()]),
         head=_out(["git", "log", "-1", "--format=%h %s"], repo).strip(),
@@ -896,7 +894,6 @@ def snapshot_json(
         "gates": snap.gates,
         "learning": {
             "lessons": sum(a.lessons for a in snap.agents),
-            "proposals": snap.proposals,
             "skills": snap.skills,
             "skills_replayed": snap.skills_replayed,
         },
