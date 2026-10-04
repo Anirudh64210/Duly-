@@ -16,3 +16,16 @@
 - Not built: no new attack strings or semgrep rules (no finding needs them in this round); no
   attack run against a stack (this round's row is the threat model only; the packaged app is
   attacked by L-review after the founder packages it).
+
+## 2026-10-03, run l-security-8d2f7f4d82, attempt 1 (SPEC-W2 point 52, D85)
+
+- Read SPEC-W2 points 13 to 17 and 52, D85, documents-1 sections 3 and the recovery kit, the
+  desktop_documents_bridge contract, the report schema.
+- Changed security/threat-model.md: four adversary rows (a copy of the data folder without the
+  login; changed or swapped stored files; anyone logged in as the student or any process that can
+  ask the Keychain for "Duly Safe Storage", accepted under D85 until documents-1; old backups and
+  snapshots after a delete) and one line under the Step W1 known gaps (no Touch ID lock, no
+  recovery kit, a lost Keychain item means the documents cannot be opened).
+- Ran the done command: "copy lint: clean", exit 0.
+- Not built: no attack strings or semgrep rules (no finding in this round needs them); no attack
+  run on the documents store, because L-desktop's main code for it is not in this tree yet.
