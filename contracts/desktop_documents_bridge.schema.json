@@ -348,9 +348,10 @@
             "inside_data_folder",
             "too_large",
             "duplicate",
+            "empty",
             "cannot_store"
           ],
-          "description": "not_dropped: no path came with the File, so it was not from a real drop. not_a_file: a folder or something else that is not a plain file. inside_data_folder: the file is inside Duly's own data folder. too_large: over the size limit. duplicate: the same bytes are already held, as existing. cannot_store: the encrypted copy could not be written and checked; nothing half added remains."
+          "description": "not_dropped: no path came with the File, so it was not from a real drop. not_a_file: a folder or something else that is not a plain file. inside_data_folder: the file is inside Duly's own data folder. too_large: over the size limit. duplicate: the same bytes are already held, as existing. empty: the file holds no bytes. cannot_store: the encrypted copy could not be written and checked; nothing half added remains."
         },
         "existing": {
           "$ref": "#/$defs/document_id",
@@ -388,9 +389,13 @@
             "unknown_document",
             "not_in_removed",
             "bad_replaces",
-            "cannot_store"
+            "cannot_store",
+            "index_missing",
+            "too_many_files",
+            "store_full",
+            "inside_data_folder"
           ],
-          "description": "keychain_unavailable: safeStorage cannot unwrap or wrap the document key on this computer, so nothing is read or written. cannot_decrypt: keys.bin cannot be read with the keychain's key. index_damaged: documents.bin fails its check or this contract; it is kept as it is, never deleted. file_damaged: a chunk of the file fails its check (reordered, dropped or cut); nothing of it is shown. unknown_document: no document has this id. not_in_removed: delete was asked for a document not in Removed. bad_replaces: replaces names the document itself, an unknown document, or would make the chain loop. cannot_store: the index or a file could not be written or deleted."
+          "description": "keychain_unavailable: safeStorage cannot unwrap or wrap the document key on this computer, so nothing is read or written. cannot_decrypt: keys.bin cannot be read with the keychain's key. index_damaged: documents.bin fails its check or this contract; it is kept as it is, never deleted. file_damaged: a chunk of the file fails its check (reordered, dropped or cut); nothing of it is shown. unknown_document: no document has this id. not_in_removed: delete was asked for a document not in Removed. bad_replaces: replaces names the document itself, an unknown document, or a document another document already replaces; or the add holds more than one file; or the chain would loop or pass 200 versions, the most a versions answer carries. cannot_store: the index or a file could not be written or deleted. index_missing: documents.bin is missing while keys.bin or a file in files/ is there, so the documents cannot be named; nothing is read, written or deleted, and Delete everything is the way to start over. too_many_files: more than 50 files in one add, the most one answer carries; nothing is added. store_full: the store already holds 5000 documents, the most a list answer carries; nothing is added. inside_data_folder: export was pointed at a folder or file inside Duly's own data folder; nothing is written."
         },
         "first_problem": {
           "type": "string",
@@ -447,7 +452,7 @@
               "type": "array",
               "maxItems": 20000,
               "items": { "$ref": "#/$defs/history_line" },
-              "description": "Newest first."
+              "description": "Newest first. The index keeps the newest 20000 lines; older lines are dropped as new ones are written."
             }
           }
         },
