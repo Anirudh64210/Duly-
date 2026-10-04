@@ -2306,3 +2306,28 @@ Status: done.
   contract names days, business_days and months only).
 
 Status: done.
+
+## l-engine-f86e1f305c (W2-P3 review veto, findings 4 to 8; D95)
+
+### Attempt 1
+
+- At start: 5 failures in test_schedule.py (findings 5 M7, 6, 8) and every test of
+  test_updates_module.py (no engine/updates.py).
+- engine/updates.py: publish_blockers copied from pipeline/graph.py unchanged, standard library
+  only (D95 (2)). pipeline/ not edited.
+- engine/schedule.py: CalendarNotInForceError is caught per request and gives date null,
+  missing holidays_not_known; the other requests are answered. A base outside
+  dates.earliest_readable..dates.latest_readable, an amount longer than that span in days
+  (ends outside it in any unit, so checked before the arithmetic: no OverflowError), or an
+  answer (after the cap) outside it gives missing outside_readable_dates. planning is set from
+  a setting amount, a planning base item, or a planning cap item when capped.
+- engine/readers.py: `_readable_days` renamed `readable_days` so the schedule reuses it.
+- Findings 4 (M2) and 5 (M1): the new tests already pass on the code; no change needed.
+- Done command as written ($TMPDIR/done.log): exit 0. pytest all pass (1 xfail already there),
+  engine literals: every number has a source, mypy: no issues in 74 files, ruff check: passed,
+  ruff format: 13 files already formatted.
+- Not built: no new settings reader (readable_days reused), no amount limits in the engine
+  (the contract's maximums are checked at the route; the span check alone prevents overflow),
+  no uniqueness check on ids (not in my part).
+
+Status: done.

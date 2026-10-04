@@ -2,7 +2,9 @@
 46; contracts/schedule.schema.json).
 
 A pure function over a Clock, the packs' calendar and the product settings. A base, a cap or
-a setting the engine cannot read gives no date and names why. Nothing is stored.
+a setting the engine cannot read, a day whose holidays are not known, or a date outside the
+readable dates gives no date and names why; the other requests are still answered. Nothing is
+stored.
 """
 
 from collections.abc import Callable, Mapping
@@ -12,6 +14,7 @@ from typing import Any
 from engine.clocks import Clock, day_in_zone
 from engine.dates import JUNETEENTH_ITEM, add_business_days, add_months, federal_holidays
 from engine.path import compute
+from engine.readers import readable_days
 from engine.rulepack import Rulepack
 from engine.settings import DATING_UNITS, load_settings, whole_setting
 
@@ -24,7 +27,7 @@ OFFSETS = ("days", "business_days", "months")
 
 class CalendarNotInForceError(ValueError):
     """No pack of the case holds a holiday list in force on a day a business-day count
-    crosses. The schedule contract has no missing reason for it, so the request is refused."""
+    crosses, so whether that day is a holiday is not known."""
 
 
 def schedule(request: Json, packs: list[Rulepack], clock: Clock) -> Json:
@@ -56,6 +59,7 @@ def _answer(
 ) -> Json:
     none: Json = {"id": r["id"], "date": None, "days_away": None}
     rule_ids: list[str] = []
+    from_planning = False
 
     base_from = r["from"]
     if "item" in base_from:
@@ -66,14 +70,17 @@ def _answer(
             return {**none, "missing": "item_has_no_date"}
         base = date.fromisoformat(item["value"])
         rule_ids += item.get("rule_ids", [])
+        from_planning = bool(item.get("planning"))
     elif "date" in base_from:
         base = date.fromisoformat(base_from["date"])
     else:
         base = today
+    first, last = readable_days()
+    if not first <= base <= last:
+        return {**none, "missing": "outside_readable_dates"}
 
     add = r["add"]
-    planning = "setting" in add
-    if planning:
+    if "setting" in add:
         entry = next((s for s in settings["settings"] if s.get("id") == add["setting"]), None)
         if entry is None:
             return {**none, "missing": "setting_not_found"}
@@ -85,7 +92,9 @@ def _answer(
         unit = next(k for k in OFFSETS if k in add)
         amount = add[unit]
 
+    planning = from_planning or "setting" in add
     cap_date: date | None = None
+    cap_planning = False
     if "cap" in r:
         cap = items.get(r["cap"]["item"])
         if cap is None:
@@ -94,20 +103,31 @@ def _answer(
             return {**none, "missing": "cap_has_no_date"}
         cap_date = date.fromisoformat(cap["value"])
         rule_ids += cap.get("rule_ids", [])
+        cap_planning = bool(cap.get("planning"))
 
     sign = r["sign"]
+    # A count longer than the readable span in days ends outside it in any unit: refused
+    # before the arithmetic, so no date can overflow.
+    if amount > (last - first).days:
+        return {**none, "missing": "outside_readable_dates"}
     if unit == "days":
         found = base + sign * timedelta(days=amount)
     elif unit == "months":
         found = add_months(base, sign * amount)
     else:
-        found = add_business_days(base, amount, is_holiday, sign)
+        try:
+            found = add_business_days(base, amount, is_holiday, sign)
+        except CalendarNotInForceError:
+            return {**none, "missing": "holidays_not_known"}
         rule_ids.append(HOLIDAYS_LAW)
 
     out: Json = {"id": r["id"]}
     if cap_date is not None and found > cap_date:
         found = cap_date
         out["capped"] = True
+        planning = planning or cap_planning
+    if not first <= found <= last:
+        return {**none, "missing": "outside_readable_dates"}
     out["date"] = found.isoformat()
     out["days_away"] = (found - today).days
     if planning:
