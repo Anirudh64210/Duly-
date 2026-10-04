@@ -4533,3 +4533,37 @@ format the SPEC does not fix; the reply and file checks stand in); no PDF pages 
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-47583b095e: W2-P4 alignment after L-desktop merged (SPEC-W2 points 5, 13 to 18, 22, 52)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 points 5, 13 to 18, 22 and 52, the desktop/src
+changes since e9e0ee7 (enginebridge, statefile, reminders, docstore, docbridge, preload, main).
+
+Ran:
+- npm test -w desktop: exit 1 in this sandbox before any test, "EPERM: mkdir desktop/coverage"
+  (the sandbox refuses writes in desktop/). Same run with --coverage.reportsDirectory in $TMPDIR:
+  22 files, 315 passed, 1 failed. All 65 tests in tests/desktop pass against L-desktop's code.
+  The one failure is desktop/src/buildpython.test.ts "copies exactly the allowlisted files":
+  /bin/bash here: "cannot create temp file for here document: Operation not permitted"
+  (build-python.sh line 119, the `<<<"$files"` here-string), so the copy loop reads nothing.
+  Reproduced outside vitest with node spawnSync of /bin/bash -c 'cat <<X'. A sandbox wall, not
+  the code.
+- npm test -w web -- tests/web: same EPERM on web/coverage; with the reports in $TMPDIR, 2
+  files, 9 tests, all pass.
+- uv run pytest tests/unit/desktop_entry -q -p no:cacheprovider: 15 failed, each on
+  "[Errno 1] Operation not permitted" binding the Unix socket (the mission names this); the
+  rest pass.
+
+Changed: tests/desktop/documents-bridge.test.ts, one test "is wired in main behind the frame
+check" (point 5's frame rule, which point 13's bridge follows as the case bridge does). The
+engine and state bridges had this check in bridges.test.ts; the documents bridge had only the
+mayUseDocuments table. Fails if main.ts handles DOCUMENTS_CHANNEL without calling
+mayUseDocuments( or without createDocumentsBridge(.
+After: npx vitest run ../tests/desktop: 3 files, 66 passed; npx tsc --noEmit -p tests/desktop,
+npx eslint tests/desktop --max-warnings 0, npx prettier --check: clean.
+
+Not built: no web test that no source calls fetch( (point 5's web check lands with W2-P5,
+point 52); nothing else, since every test in the three folders already matches W2-P4.
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
