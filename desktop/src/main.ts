@@ -12,12 +12,14 @@ import {
   safeStorage,
   session,
   shell,
+  type IpcMainInvokeEvent,
   type WebContents,
 } from "electron";
 
 import { APP_ORIGIN, APP_SCHEME } from "./about";
 import { CASE_CHANNEL, createCaseBridge, loadChecker, mayUseCase } from "./casefile";
 import { healthWaitMs, startEngine } from "./engine";
+import { ENGINE_CHANNEL, ENGINE_CONTRACTS, createEngineBridge, mayUseEngine } from "./enginebridge";
 import {
   WINDOW,
   decideFrameNavigation,
@@ -31,11 +33,13 @@ import { checkRuntime } from "./manifest";
 import { FLASH_GROUND, FLASH_MS, GROUND, GROUND_DARK } from "./pages";
 import { appPaths, engineCommand, repoOnly, repoRoot, verifyStart, webDist } from "./paths";
 import { createAppHandler, fetchOverSocket, readInside } from "./protocol";
+import { createReminders } from "./reminders";
 import { smokeFolder } from "./screen";
 import { runShots } from "./shotrun";
 import { NO_ENGINE, refusedInApp, shotsFolder, webSamples } from "./shots";
 import { runSmoke } from "./smoke";
 import { checkSocket, prepareFolder, socketPlace } from "./socket";
+import { STATE_CHANNEL, STATE_CONTRACTS, createStateBridge, mayUseState } from "./statefile";
 
 const INDEX = `${APP_ORIGIN}/index.html`;
 
@@ -64,6 +68,25 @@ function guard(contents: WebContents): void {
     return { action: "deny" };
   });
 }
+
+/** The frame that asked, for the bridges' frame checks. */
+function askedFrom(event: IpcMainInvokeEvent): { url: string | undefined; main: boolean } {
+  const frame = event.senderFrame;
+  return { url: frame?.url, main: frame !== null && frame === event.sender.mainFrame };
+}
+
+/** This Mac's local day and time of day, for the planned reminders. */
+function localNow(): { date: string; time: string } {
+  const now = new Date();
+  const two = (part: number) => String(part).padStart(2, "0");
+  return {
+    date: `${now.getFullYear()}-${two(now.getMonth() + 1)}-${two(now.getDate())}`,
+    time: `${two(now.getHours())}:${two(now.getMinutes())}`,
+  };
+}
+
+/** How often main looks at the clock for a planned reminder: once a minute, as HH:MM changes. */
+const REMINDER_TICK_MS = 60_000;
 
 function launch(folder: string | null, verify: boolean): void {
   const marks = new Milestones();
@@ -156,21 +179,54 @@ function launch(folder: string | null, verify: boolean): void {
       }),
     );
 
+    const cipher = {
+      available: () => safeStorage.isEncryptionAvailable(),
+      encrypt: (text: string) => safeStorage.encryptString(text),
+      decrypt: (data: Buffer) => safeStorage.decryptString(data),
+    };
     const answer = createCaseBridge({
       folder: app.getPath("userData"),
       checker: loadChecker(paths.contracts),
-      cipher: {
-        available: () => safeStorage.isEncryptionAvailable(),
-        encrypt: (text) => safeStorage.encryptString(text),
-        decrypt: (data) => safeStorage.decryptString(data),
-      },
+      cipher,
     });
     ipcMain.handle(CASE_CHANNEL, (event, message: unknown) => {
-      const frame = event.senderFrame;
-      const main = frame !== null && frame === event.sender.mainFrame;
-      if (!mayUseCase(frame?.url, main)) throw new Error("not the app's page");
+      const frame = askedFrom(event);
+      if (!mayUseCase(frame.url, frame.main)) throw new Error("not the app's page");
       return answer(message);
     });
+
+    const engineAnswer = createEngineBridge({
+      checker: loadChecker(paths.contracts, ENGINE_CONTRACTS),
+      engine: () => engine.view(),
+      fetch: fetchOverSocket,
+    });
+    ipcMain.handle(ENGINE_CHANNEL, (event, message: unknown) => {
+      const frame = askedFrom(event);
+      if (!mayUseEngine(frame.url, frame.main)) throw new Error("not the app's page");
+      return engineAnswer(message);
+    });
+
+    // Planned reminders follow the saved state: as it is read at launch, and as it is saved.
+    const reminders = createReminders();
+    const stateAnswer = createStateBridge({
+      folder: app.getPath("userData"),
+      checker: loadChecker(paths.contracts, STATE_CONTRACTS),
+      cipher,
+    });
+    const planFrom = (state: unknown) =>
+      reminders.set((state as { reminders?: unknown } | null)?.reminders);
+    void stateAnswer({ version: "v1", call: "state.read" }).then((reply) => {
+      if (reply.ok) planFrom(reply.state);
+    });
+    ipcMain.handle(STATE_CHANNEL, async (event, message: unknown) => {
+      const frame = askedFrom(event);
+      if (!mayUseState(frame.url, frame.main)) throw new Error("not the app's page");
+      const reply = await stateAnswer(message);
+      if (reply.ok && reply.call === "state.write") planFrom((message as { state: unknown }).state);
+      if (reply.ok && reply.call === "state.clear") planFrom(null);
+      return reply;
+    });
+    setInterval(() => reminders.tick(localNow()), REMINDER_TICK_MS).unref();
 
     const shown = new BrowserWindow({
       ...WINDOW,

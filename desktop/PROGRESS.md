@@ -328,3 +328,26 @@ What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0.
 vitest 19 files, 242 passed; eslint clean; copy lint clean; bash -n on both scripts clean;
 test_bundle_inputs.py 12 passed. git printed "tests/holdout: Operation not permitted" during the merge
 (the sandbox denies reads there). Not run: Electron itself, a real build-python.sh or sign-adhoc.sh run.
+
+## 2026-10-03, run l-desktop-2d917716ea, attempt 1
+
+W2-P4, SPEC-W2 points 5, 18 and 22, against tests/desktop/bridges.test.ts.
+- enginebridge.ts: window.duly.engine in main. Each call is checked against its $defs in
+  desktop_engine_bridge (the case checked on its own, so a bad case is not_a_case), forwarded over
+  the W1 socket with X-Duly-Local, and each answer checked against the reply $defs before the page
+  sees it. 422 is engine_refused, other non-200 engine_failed, a socket error engine_unavailable;
+  the engine's own words are never passed on.
+- statefile.ts: window.duly.state over <userData>/state.bin. casefile.ts now holds one generic
+  file bridge (createFileBridge) used by both the case and the state bridge; the .writing file is
+  now named after its file (case.bin.writing as before, state.bin.writing), so the two never share one.
+- reminders.ts: one Electron Notification per planned reminder (by id and date), at time_of_day on
+  its date, with its own words. Main reads the state at launch, follows every state write and
+  clear, and ticks once a minute with this Mac's local day and HH:MM.
+- preload: engine and state, frozen, on their own channels; preload.test.ts expects the new keys.
+- schema.ts: oneOf (schedule.schema.json uses it) and format date-time (update.schema.json).
+- forge.config.ts CONTRACTS ships every schema the bridges read; forge.test.ts checks that.
+- The duly://app/api proxy and the CSP are unchanged (W2-P5).
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0. typecheck clean;
+vitest 20 files, 275 passed; eslint clean; prettier clean; copy lint clean.
+Not run: Electron itself, so no real Notification was shown and no real socket was used.

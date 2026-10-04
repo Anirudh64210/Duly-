@@ -26,7 +26,7 @@ interface Exposed {
 }
 
 describe("the preload", () => {
-  it("exposes the version, the platform and the case bridge, and nothing else", async () => {
+  it("exposes the version, the platform and the case, engine and state bridges, and nothing else", async () => {
     const argv = process.argv;
     process.argv = [...argv, "--duly-version=1.2.3"];
     try {
@@ -39,7 +39,13 @@ describe("the preload", () => {
     expect(exposed).toHaveLength(1);
     const [key, value] = exposed[0] ?? ["", null];
     expect(key).toBe("duly");
-    expect(Object.keys(value as object).sort()).toEqual(["case", "platform", "version"]);
+    expect(Object.keys(value as object).sort()).toEqual([
+      "case",
+      "engine",
+      "platform",
+      "state",
+      "version",
+    ]);
     const duly = value as Exposed;
     expect(duly.version).toBe("1.2.3");
     expect(duly.platform).toBe(process.platform);

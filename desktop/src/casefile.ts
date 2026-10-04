@@ -17,7 +17,6 @@ export const CASE_CHANNEL = "duly:case";
 
 /** The one file, in the app's data folder. documents-1 moves the case into duly.db. */
 export const CASE_FILE = "case.bin";
-const WRITING_FILE = `${CASE_FILE}.writing`;
 
 export const CASE_SCHEMA_ID = "https://duly.local/contracts/case.schema.json";
 export const BRIDGE_SCHEMA_ID = "https://duly.local/contracts/desktop_case_bridge.schema.json";
@@ -25,21 +24,27 @@ export const BRIDGE_SCHEMA_ID = "https://duly.local/contracts/desktop_case_bridg
 /** How long first_problem may be, from the bridge contract. */
 export const PROBLEM_LENGTH = 240;
 
-export type CallName = "case.read" | "case.write" | "case.clear";
-export type Refused = "not_a_case" | "cannot_decrypt" | "keychain_unavailable" | "cannot_store";
+/** A bridge over one encrypted file: the case bridge here, the state bridge in statefile.ts. */
+export interface FileKind {
+  /** The calls are `${name}.read`, `.write` and `.clear`; a write carries the value as `name`. */
+  name: "case" | "state";
+  file: string;
+  /** The schema every value read or written is checked against. */
+  valueSchema: string;
+  bridgeSchema: string;
+  /** The least a value can be, put in its place while only the call's shape is checked. */
+  shapeOnly: object;
+}
 
 export interface Refusal {
   version: "v1";
-  call: CallName;
+  call: string;
   ok: false;
-  refused: Refused;
+  refused: string;
   first_problem?: string;
 }
 
-export type Reply =
-  | { version: "v1"; call: "case.read"; ok: true; case: unknown }
-  | { version: "v1"; call: "case.write" | "case.clear"; ok: true }
-  | Refusal;
+export type Reply = { version: "v1"; call: string; ok: true; [value: string]: unknown } | Refusal;
 
 /** Encryption with the keychain's key. In main this is Electron's safeStorage. */
 export interface Cipher {
@@ -68,7 +73,7 @@ export const nodeDisk: Disk = {
     }
   },
   async write(path, data) {
-    const writing = join(path, "..", WRITING_FILE);
+    const writing = `${path}.writing`;
     try {
       await writeFile(writing, data, { mode: 0o600 });
       await rename(writing, path);
@@ -78,16 +83,18 @@ export const nodeDisk: Disk = {
     }
   },
   async remove(path) {
-    await rm(join(path, "..", WRITING_FILE), { force: true });
+    await rm(`${path}.writing`, { force: true });
     await rm(path, { force: true });
   },
 };
 
-/** Reads the two contracts the bridge checks against, from the repository's contracts folder. */
-/** The two schemas, from the contracts folder paths.ts gives. */
-export function loadChecker(contracts: string): Checker {
+/** The contracts a bridge checks against, from the contracts folder paths.ts gives. */
+export function loadChecker(
+  contracts: string,
+  names: readonly string[] = ["case.schema.json", "desktop_case_bridge.schema.json"],
+): Checker {
   const read = (name: string): unknown => JSON.parse(readFileSync(join(contracts, name), "utf8"));
-  return new Checker([read("case.schema.json"), read("desktop_case_bridge.schema.json")]);
+  return new Checker(names.map(read));
 }
 
 /** Only the app's own page, in the window's main frame, may use the bridge. */
@@ -103,106 +110,116 @@ export interface CaseStoreDeps {
   disk?: Disk;
 }
 
-function refusal(call: CallName, refused: Refused, problem?: string): Refusal {
+const CASE: FileKind = {
+  name: "case",
+  file: CASE_FILE,
+  valueSchema: CASE_SCHEMA_ID,
+  bridgeSchema: BRIDGE_SCHEMA_ID,
+  shapeOnly: { categories: ["f1"], time_zone: "UTC", facts: {}, records: [], complete: {} },
+};
+
+export function createCaseBridge(deps: CaseStoreDeps): (message: unknown) => Promise<Reply> {
+  return createFileBridge(CASE, deps);
+}
+
+function refusal(call: string, refused: string, problem?: string): Refusal {
   const reply: Refusal = { version: "v1", call, ok: false, refused };
   if (problem !== undefined) reply.first_problem = problem.slice(0, PROBLEM_LENGTH);
   return reply;
 }
 
-function callName(message: unknown): CallName | null {
-  if (typeof message !== "object" || message === null) return null;
-  const call = (message as { call?: unknown }).call;
-  return call === "case.read" || call === "case.write" || call === "case.clear" ? call : null;
-}
-
-/** The least a case can be, put in the case's place while only the call's shape is checked. */
-const SHAPE_ONLY = { categories: ["f1"], time_zone: "UTC", facts: {}, records: [], complete: {} };
-
-const CALL_SHAPES: Record<CallName, string> = {
-  "case.read": "read_call",
-  "case.write": "write_call",
-  "case.clear": "clear_call",
-};
+type Verb = "read" | "write" | "clear";
 
 /**
  * Answers one call from the page. A message that is not one of the three calls is not
  * answered: the promise is rejected, and nothing is read or written.
  */
-export function createCaseBridge(deps: CaseStoreDeps): (message: unknown) => Promise<Reply> {
+export function createFileBridge(
+  kind: FileKind,
+  deps: CaseStoreDeps,
+): (message: unknown) => Promise<Reply> {
   const disk = deps.disk ?? nodeDisk;
-  const file = join(deps.folder, CASE_FILE);
+  const file = join(deps.folder, kind.file);
   const { checker, cipher } = deps;
+  const notA = `not_a_${kind.name}`;
+  const verbs = new Map<unknown, Verb>(
+    (["read", "write", "clear"] as const).map((verb) => [`${kind.name}.${verb}`, verb]),
+  );
   let queue: Promise<unknown> = Promise.resolve();
 
-  const read = async (): Promise<Reply> => {
-    if (!cipher.available()) return refusal("case.read", "keychain_unavailable");
+  const read = async (call: string): Promise<Reply> => {
+    if (!cipher.available()) return refusal(call, "keychain_unavailable");
     let data: Buffer | null;
     try {
       data = await disk.read(file);
     } catch {
-      return refusal("case.read", "cannot_decrypt");
+      return refusal(call, "cannot_decrypt");
     }
-    if (data === null) return { version: "v1", call: "case.read", ok: true, case: null };
+    if (data === null) return { version: "v1", call, ok: true, [kind.name]: null };
     let text: string;
     try {
       text = cipher.decrypt(data);
     } catch {
-      return refusal("case.read", "cannot_decrypt");
+      return refusal(call, "cannot_decrypt");
     }
     let saved: unknown;
     try {
       saved = JSON.parse(text);
     } catch {
-      return refusal("case.read", "not_a_case", "/: JSON");
+      return refusal(call, notA, "/: JSON");
     }
-    const problem = checker.problem(CASE_SCHEMA_ID, saved);
-    if (problem !== null) return refusal("case.read", "not_a_case", problem);
-    return { version: "v1", call: "case.read", ok: true, case: saved };
+    const problem = checker.problem(kind.valueSchema, saved);
+    if (problem !== null) return refusal(call, notA, problem);
+    return { version: "v1", call, ok: true, [kind.name]: saved };
   };
 
-  const write = async (value: unknown): Promise<Reply> => {
-    const problem = checker.problem(CASE_SCHEMA_ID, value);
-    if (problem !== null) return refusal("case.write", "not_a_case", problem);
-    if (!cipher.available()) return refusal("case.write", "keychain_unavailable");
+  const write = async (call: string, value: unknown): Promise<Reply> => {
+    const problem = checker.problem(kind.valueSchema, value);
+    if (problem !== null) return refusal(call, notA, problem);
+    if (!cipher.available()) return refusal(call, "keychain_unavailable");
     let data: Buffer;
     try {
       data = cipher.encrypt(JSON.stringify(value));
     } catch {
-      return refusal("case.write", "keychain_unavailable");
+      return refusal(call, "keychain_unavailable");
     }
     try {
       await disk.write(file, data);
     } catch {
-      return refusal("case.write", "cannot_store");
+      return refusal(call, "cannot_store");
     }
-    return { version: "v1", call: "case.write", ok: true };
+    return { version: "v1", call, ok: true };
   };
 
-  const clear = async (): Promise<Reply> => {
+  const clear = async (call: string): Promise<Reply> => {
     try {
       await disk.remove(file);
     } catch {
-      return refusal("case.clear", "cannot_store");
+      return refusal(call, "cannot_store");
     }
-    return { version: "v1", call: "case.clear", ok: true };
+    return { version: "v1", call, ok: true };
   };
 
   return (message: unknown) => {
-    const call = callName(message);
-    if (call === null) return Promise.reject(new Error("not a case bridge call"));
-    // A write's case is checked on its own, so a case that fails is refused as not_a_case.
+    const isObject = typeof message === "object" && message !== null;
+    const call = isObject ? (message as { call?: unknown }).call : undefined;
+    const verb = verbs.get(call);
+    if (verb === undefined || typeof call !== "string") {
+      return Promise.reject(new Error(`not a ${kind.name} bridge call`));
+    }
+    // A write's value is checked on its own, so a value that fails is refused as not_a_<name>.
     // The rest of the message must be the call exactly as the contract gives it.
-    const { case: value, ...shape } = message as { case?: unknown };
-    const hasCase = Object.hasOwn(message as object, "case");
+    const { [kind.name]: value, ...shape } = message as Record<string, unknown>;
+    const hasValue = Object.hasOwn(message as object, kind.name);
     const fits =
-      hasCase === (call === "case.write") &&
-      checker.problem(`${BRIDGE_SCHEMA_ID}#/$defs/${CALL_SHAPES[call]}`, {
+      hasValue === (verb === "write") &&
+      checker.problem(`${kind.bridgeSchema}#/$defs/${verb}_call`, {
         ...shape,
-        ...(hasCase ? { case: SHAPE_ONLY } : {}),
+        ...(hasValue ? { [kind.name]: kind.shapeOnly } : {}),
       }) === null;
-    if (!fits) return Promise.reject(new Error("not a case bridge call"));
+    if (!fits) return Promise.reject(new Error(`not a ${kind.name} bridge call`));
     const run = (): Promise<Reply> =>
-      call === "case.read" ? read() : call === "case.write" ? write(value) : clear();
+      verb === "read" ? read(call) : verb === "write" ? write(call, value) : clear(call);
     const next = queue.then(run, run);
     queue = next.catch(() => undefined);
     return next;

@@ -10,16 +10,59 @@ const contract = (name: string): unknown => JSON.parse(readFileSync(join(CONTRAC
 const CASE_ID = "https://duly.local/contracts/case.schema.json";
 
 describe("the words a schema may use", () => {
-  it("covers every word in the two contracts the bridge checks", () => {
-    expect(() => knownWords(contract("case.schema.json"))).not.toThrow();
-    expect(() => knownWords(contract("desktop_case_bridge.schema.json"))).not.toThrow();
+  it("covers every word in the contracts the bridges check", () => {
+    for (const name of [
+      "case.schema.json",
+      "desktop_case_bridge.schema.json",
+      "engine_output.schema.json",
+      "schedule.schema.json",
+      "update.schema.json",
+      "desktop_engine_bridge.schema.json",
+      "desktop_ask_bridge.schema.json",
+      "desktop_state_bridge.schema.json",
+    ]) {
+      expect(() => knownWords(contract(name)), name).not.toThrow();
+    }
   });
 
   it("refuses a word it does not know, so no check is skipped", () => {
-    expect(() => knownWords({ type: "object", oneOf: [] })).toThrow(/oneOf/);
+    expect(() => knownWords({ type: "object", allOf: [] })).toThrow(/allOf/);
     expect(() => knownWords({ properties: { a: { if: {} } } })).toThrow(/if/);
     expect(() => knownWords({ format: "email" })).toThrow(/email/);
     expect(() => new Checker([{ type: "object" }])).toThrow(/\$id/);
+  });
+});
+
+describe("oneOf and date-time", () => {
+  const ID = "https://duly.local/test.schema.json";
+  const checker = new Checker([
+    {
+      $id: ID,
+      $defs: {
+        one: { oneOf: [{ type: "integer" }, { type: "number" }] },
+        when: { type: "string", format: "date-time" },
+      },
+    },
+  ]);
+
+  it("takes a value that matches exactly one choice, and no other", () => {
+    expect(checker.problem(`${ID}#/$defs/one`, 1.5)).toBeNull();
+    expect(checker.problem(`${ID}#/$defs/one`, 2)).toBe("/: oneOf");
+    expect(checker.problem(`${ID}#/$defs/one`, "2")).toBe("/: oneOf");
+  });
+
+  it("takes a real date and time with an offset, and nothing else", () => {
+    for (const good of ["2026-09-15T10:00:00Z", "2026-09-15T10:00:00.5-04:00"]) {
+      expect(checker.problem(`${ID}#/$defs/when`, good), good).toBeNull();
+    }
+    for (const bad of [
+      "2026-02-30T10:00:00Z",
+      "2026-09-15T24:00:00Z",
+      "2026-09-15T10:00:00",
+      "x",
+    ]) {
+      expect(checker.problem(`${ID}#/$defs/when`, bad), bad).toBe("/: format");
+    }
   });
 });
 

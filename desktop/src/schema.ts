@@ -17,6 +17,7 @@ const CHECKS = new Set([
   "const",
   "enum",
   "anyOf",
+  "oneOf",
   "properties",
   "required",
   "additionalProperties",
@@ -36,7 +37,7 @@ const CHECKS = new Set([
 /** Words that say what a schema is, and change nothing. */
 const NOTES = new Set(["$schema", "$id", "$defs", "title", "description"]);
 
-const FORMATS = new Set(["date"]);
+const FORMATS = new Set(["date", "date-time"]);
 
 function isSchemaObject(value: unknown): value is SchemaObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -55,9 +56,9 @@ export function knownWords(schema: unknown, where = "#"): void {
       if (!isSchemaObject(inside)) throw new Error(`${where}/${word}: must be an object`);
       for (const [name, part] of Object.entries(inside))
         knownWords(part, `${where}/${word}/${name}`);
-    } else if (word === "anyOf") {
-      if (!Array.isArray(inside)) throw new Error(`${where}/anyOf: must be a list`);
-      inside.forEach((part, index) => knownWords(part, `${where}/anyOf/${index}`));
+    } else if (word === "anyOf" || word === "oneOf") {
+      if (!Array.isArray(inside)) throw new Error(`${where}/${word}: must be a list`);
+      inside.forEach((part, index) => knownWords(part, `${where}/${word}/${index}`));
     } else if (word === "items" || word === "additionalProperties" || word === "propertyNames") {
       knownWords(inside, `${where}/${word}`);
     }
@@ -98,6 +99,18 @@ function isRealDate(text: string): boolean {
   const date = new Date(Date.UTC(year, month - 1, day));
   return (
     date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
+}
+
+/** RFC 3339 date-time, as JSON Schema's format names it: a real day, a real time, an offset. */
+function isRealDateTime(text: string): boolean {
+  const match =
+    /^(\d{4}-\d{2}-\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(\.\d+)?([Zz]|[+-](\d{2}):(\d{2}))$/.exec(text);
+  if (match === null || !isRealDate(match[1] ?? "")) return false;
+  const [hour, minute, second] = [Number(match[2]), Number(match[3]), Number(match[4])];
+  const offset = match[7] === undefined ? [0, 0] : [Number(match[7]), Number(match[8])];
+  return (
+    hour <= 23 && minute <= 59 && second <= 60 && (offset[0] ?? 0) <= 23 && (offset[1] ?? 0) <= 59
   );
 }
 
@@ -208,6 +221,10 @@ export class Checker {
       const some = schema.anyOf.some((part) => this.check(inside(part), value, path) === null);
       if (!some) return at("anyOf");
     }
+    if (Array.isArray(schema.oneOf)) {
+      const matches = schema.oneOf.filter((part) => this.check(inside(part), value, path) === null);
+      if (matches.length !== 1) return at("oneOf");
+    }
 
     if (typeof value === "string") {
       const length = [...value].length;
@@ -217,6 +234,7 @@ export class Checker {
         return at("pattern");
       }
       if (schema.format === "date" && !isRealDate(value)) return at("format");
+      if (schema.format === "date-time" && !isRealDateTime(value)) return at("format");
     }
     if (typeof value === "number") {
       if (typeof schema.minimum === "number" && value < schema.minimum) return at("minimum");
