@@ -525,3 +525,17 @@
 - Fix: for any new file a local route reads at run time, build a tree from desktop/python/bundle.json alone and call the route there.
 - Evidence: reviews/w2-p3.md finding 1.
 - Also: in zsh, "$T" holding several test paths is not split; write the paths out.
+
+## 2026-10-03, run l-review-d0cf43d6f6 (W2-P3 second review, after fix0)
+- Read my first review, plan-w2-p3-fix0, D95, SPEC-W1 14 and SPEC-W2 41, 46, 47, 51 as amended, and the diff 647247a..4fd1ed9 (schedule.py, readers.py, updates.py, graph.py, case.py, local_routes.py, bundle.json, contracts, tests).
+- Ran: tests/unit + tests/holdout without tools and test_desktop_main.py, exit 0; mypy, ruff, format, engine_literals, copy lint all 0.
+- Bundle probe $TMPDIR/rvp6 (mktree.py, cmp.py): allowlist-only tree under python -I, 36 schedule requests and 5 updates queries; byte-identical to api.main with and without five published files. pipeline.graph and langgraph not loaded.
+- All first-review inputs fixed; hand checks right, including today + 260 business days = 2027-10-12.
+- Mutants: M1, M2, M3, M7, M3b, M3c, M8, M13, M14, M16 caught; M17 (route except removed) survives, equivalent: dead code (finding 1).
+- Malformed published file: GET /v1/updates 500 (finding 2).
+- Wrote reviews/w2-p3.md (APPROVE, mean 4.67), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: a fix moved an exception's handling into the engine and left the route's handler, which no test can reach.
+- Fix: after such a move, grep callers for the same except and run a mutant that removes it.
+- Evidence: reviews/w2-p3.md finding 1.
