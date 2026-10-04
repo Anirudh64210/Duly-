@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import config, { CONTRACTS, TARGET, bundleId, leftOut } from "../forge.config";
 import { FUSES, differences } from "../scripts/read-fuses.mjs";
+import { DOCUMENTS_CONTRACTS } from "./docbridge";
 import { ENGINE_CONTRACTS } from "./enginebridge";
 import { STATE_CONTRACTS } from "./statefile";
 
@@ -82,7 +83,9 @@ describe("the Forge config (point 18)", () => {
     // Every schema a bridge reads in main, and no other.
     const read = ["case.schema.json", "desktop_case_bridge.schema.json"];
     expect([...CONTRACTS].sort()).toEqual(
-      [...new Set([...read, ...ENGINE_CONTRACTS, ...STATE_CONTRACTS])].sort(),
+      [
+        ...new Set([...read, ...ENGINE_CONTRACTS, ...STATE_CONTRACTS, ...DOCUMENTS_CONTRACTS]),
+      ].sort(),
     );
   });
 });

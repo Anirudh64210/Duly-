@@ -7,7 +7,7 @@
  */
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { mkdir, open, readdir, readFile, realpath, rename, rm, stat } from "node:fs/promises";
-import { basename, extname, join, sep } from "node:path";
+import { basename, extname, join, resolve, sep } from "node:path";
 
 import { nodeDisk, type Cipher, type Disk } from "./casefile";
 import type { Checker } from "./schema";
@@ -101,6 +101,8 @@ export interface Store {
   remove(id: string): Promise<StoreReply>;
   restore(id: string): Promise<StoreReply>;
   delete(id: string): Promise<StoreReply>;
+  /** Keeps the history line of an export of count documents. */
+  exported(count: number): Promise<StoreReply>;
   clear(): Promise<StoreReply>;
 }
 
@@ -139,7 +141,7 @@ function chunkNonce(prefix: Buffer, index: number): Buffer {
 }
 
 /** The file: its 64-bit nonce prefix, then each chunk's ciphertext and tag. */
-function sealFile(id: string, key: Buffer, prefix: Buffer, plain: Buffer): Buffer {
+function encryptFile(id: string, key: Buffer, prefix: Buffer, plain: Buffer): Buffer {
   const parts = [prefix];
   const count = Math.max(1, Math.ceil(plain.length / CHUNK));
   for (let index = 0; index < count; index += 1) {
@@ -152,19 +154,19 @@ function sealFile(id: string, key: Buffer, prefix: Buffer, plain: Buffer): Buffe
 }
 
 /** The plain bytes, or null when any chunk fails its check, is missing or is cut. */
-function openFile(id: string, key: Buffer, sealed: Buffer): Buffer | null {
-  if (sealed.length < PREFIX + TAG) return null;
-  const prefix = sealed.subarray(0, PREFIX);
+function openFile(id: string, key: Buffer, encrypted: Buffer): Buffer | null {
+  if (encrypted.length < PREFIX + TAG) return null;
+  const prefix = encrypted.subarray(0, PREFIX);
   const parts: Buffer[] = [];
   let offset = PREFIX;
-  for (let index = 0; offset < sealed.length; index += 1) {
-    const end = Math.min(offset + CHUNK + TAG, sealed.length);
+  for (let index = 0; offset < encrypted.length; index += 1) {
+    const end = Math.min(offset + CHUNK + TAG, encrypted.length);
     if (end - offset < TAG) return null;
     try {
       const aes = createDecipheriv("aes-256-gcm", key, chunkNonce(prefix, index));
-      aes.setAAD(chunkData(id, index, end === sealed.length));
-      aes.setAuthTag(sealed.subarray(end - TAG, end));
-      parts.push(aes.update(sealed.subarray(offset, end - TAG)), aes.final());
+      aes.setAAD(chunkData(id, index, end === encrypted.length));
+      aes.setAuthTag(encrypted.subarray(end - TAG, end));
+      parts.push(aes.update(encrypted.subarray(offset, end - TAG)), aes.final());
     } catch {
       return null;
     }
@@ -216,17 +218,17 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     if (loaded !== null) return loaded;
     if (!cipher.available()) return refuse("keychain_unavailable");
     let wrapped: Buffer | null;
-    let sealed: Buffer | null;
+    let encrypted: Buffer | null;
     try {
       wrapped = await disk.read(keysPath);
-      sealed = await disk.read(indexPath);
+      encrypted = await disk.read(indexPath);
     } catch {
       return refuse("cannot_decrypt");
     }
     let key: Buffer;
     if (wrapped === null) {
       // Without keys.bin an index that is there can never be read again: refuse, change nothing.
-      if (sealed !== null) return refuse("cannot_decrypt");
+      if (encrypted !== null) return refuse("cannot_decrypt");
       if (!create) return { key: Buffer.alloc(0), index: { rows: [], history: [] } };
       key = random(KEY);
       try {
@@ -243,13 +245,16 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       if (key.length !== KEY) return refuse("cannot_decrypt");
     }
     let index: Index = { rows: [], history: [] };
-    if (sealed !== null) {
+    if (encrypted !== null) {
       let value: unknown;
       try {
-        const aes = createDecipheriv("aes-256-gcm", key, sealed.subarray(0, INDEX_NONCE));
+        const aes = createDecipheriv("aes-256-gcm", key, encrypted.subarray(0, INDEX_NONCE));
         aes.setAAD(INDEX_AAD);
-        aes.setAuthTag(sealed.subarray(INDEX_NONCE, INDEX_NONCE + TAG));
-        const text = Buffer.concat([aes.update(sealed.subarray(INDEX_NONCE + TAG)), aes.final()]);
+        aes.setAuthTag(encrypted.subarray(INDEX_NONCE, INDEX_NONCE + TAG));
+        const text = Buffer.concat([
+          aes.update(encrypted.subarray(INDEX_NONCE + TAG)),
+          aes.final(),
+        ]);
         value = JSON.parse(text.toString("utf8"));
       } catch {
         return refuse("index_damaged", "/: does not open under the document key");
@@ -300,7 +305,7 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       await mkdir(files, { recursive: true, mode: 0o700 });
       const handle = await open(part, "wx", 0o600);
       try {
-        await handle.writeFile(sealFile(id, key, random(PREFIX), plain));
+        await handle.writeFile(encryptFile(id, key, random(PREFIX), plain));
         step("part_written");
         await handle.sync();
         step("synced");
@@ -327,7 +332,9 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     }
     const added: Document[] = [];
     const skipped: Record<string, unknown>[] = [];
-    for (const path of paths) {
+    for (const given of paths) {
+      // A path through .. is taken as the place it names, so the data folder is found by any path.
+      const path = resolve(given);
       const name = basename(path);
       const skip = (refused: string, more: Record<string, unknown> = {}) =>
         skipped.push({ ...(name === "" ? {} : { name }), refused, ...more });
@@ -483,13 +490,13 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       if ("ok" in ready) return ready;
       const row = find(ready.index, id);
       if (row === undefined) return refuse("unknown_document");
-      let sealed: Buffer;
+      let encrypted: Buffer;
       try {
-        sealed = await readFile(join(files, id));
+        encrypted = await readFile(join(files, id));
       } catch {
         return refuse("file_damaged");
       }
-      const bytes = openFile(id, Buffer.from(row.key, "base64"), sealed);
+      const bytes = openFile(id, Buffer.from(row.key, "base64"), encrypted);
       if (bytes === null || sha256(bytes) !== row.sha256) return refuse("file_damaged");
       return { ok: true, bytes };
     },
@@ -574,6 +581,14 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       return reply;
     },
 
+    async exported(count) {
+      const ready = await load();
+      if ("ok" in ready) return ready;
+      const history = [{ on: today(), event: "exported", count }, ...ready.index.history];
+      if (!(await save(ready.key, { ...ready.index, history }))) return refuse("cannot_store");
+      return { ok: true };
+    },
+
     async clear() {
       try {
         await rm(files, { recursive: true, force: true });
@@ -619,6 +634,7 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     remove: inTurn(calls.remove),
     restore: inTurn(calls.restore),
     delete: inTurn(calls.delete),
+    exported: inTurn(calls.exported),
     clear: inTurn(calls.clear),
   };
 }

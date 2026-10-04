@@ -41,6 +41,7 @@ describe("the preload", () => {
     expect(key).toBe("duly");
     expect(Object.keys(value as object).sort()).toEqual([
       "case",
+      "documents",
       "engine",
       "platform",
       "state",
