@@ -351,3 +351,30 @@ W2-P4, SPEC-W2 points 5, 18 and 22, against tests/desktop/bridges.test.ts.
 What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0. typecheck clean;
 vitest 20 files, 275 passed; eslint clean; prettier clean; copy lint clean.
 Not run: Electron itself, so no real Notification was shown and no real socket was used.
+
+## 2026-10-03, run l-desktop-342b5cd4ab, attempt 1
+
+W2-P4, SPEC-W2 points 14 to 17, against tests/desktop/documents-store.test.ts. One new file,
+desktop/src/docstore.ts, with openStore(deps) and MAX_FILE_BYTES. Node's crypto only, no dependency.
+- keys.bin: D (random(32)) as base64, wrapped by the cipher, written through Disk (in full or not at
+  all). Made at the first add, never by a read. keys.bin missing while documents.bin is there is
+  cannot_decrypt, and nothing is written.
+- files/<id>: an 8-byte random nonce prefix, then per 1 MiB chunk the ciphertext and its 16-byte
+  tag. Nonce = prefix + 32-bit counter; additional data = id, chunk index, last-chunk flag. An empty
+  file is one empty last chunk. Add: .part opened wx, written, synced, renamed, read back, SHA-256
+  compared, then the index row; a throw in any step removes the .part and the file (cannot_store).
+- documents.bin: { rows: [{document, key (F), sha256}], history } as JSON, AES-256-GCM under D,
+  through Disk. On read each document and history line is checked against the contract's $defs;
+  a failure is index_damaged with the path, never a value, and the file is kept.
+- At open, with the index read, anything in files/ no row names is removed.
+- read() also compares the SHA-256 kept in the index. Delete for good removes the row (and F),
+  takes the id off every history line, and relinks a later version to what the deleted one replaced.
+- Also refused in add, since the store holds what they need: not_a_file, inside_data_folder
+  (realpath), too_large (stat before reading), duplicate (the SHA-256 in the index).
+
+What ran: the done command once, unpiped, output to a file under TMPDIR, exit 0. typecheck clean;
+vitest 21 files, 298 passed (documents-store 23 of 23); eslint clean; prettier clean.
+Not built: docbridge.ts, the preload's window.duly.documents, open's data_url and export (point 13,
+another part of W2-P4). Not run: Electron, so no real safeStorage.
+MAX_FILE_BYTES is 50 MiB, the documents-1 proposal (vault.max_file_megabytes); it is not in
+contracts/product_settings.yaml. Recorded as a request.
