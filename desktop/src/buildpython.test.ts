@@ -93,6 +93,38 @@ describe("build-python.sh --dry-run (point 15)", () => {
     expect(run.stderr).toContain("api/desktop_main.py, which matches no file");
   });
 
+  it("copies an optional pattern's files when it matches, and passes when it matches none", () => {
+    // D96: pipeline/published/*.json is optional, as the folder is empty until an update is
+    // approved. An include pattern that matches nothing still fails (the test above).
+    const bundle = (optional: string[]) =>
+      put("desktop/python/bundle.json", JSON.stringify({ include: ["api/case.py"], optional }));
+    bundle(["pipeline/published/*.json"]);
+    const empty = build("--dry-run");
+    expect(empty.status, empty.stderr).toBe(0);
+    expect(empty.stdout).not.toContain("pipeline/");
+
+    put("pipeline/published/an-update.json", "{}");
+    put("pipeline/drafts/a-draft.json", "{}");
+    const copies = build("--dry-run")
+      .stdout.split("\n")
+      .filter((line) => line.startsWith("copy "));
+    expect(copies).toEqual([
+      "copy api/case.py -> engine-root/api/case.py",
+      "copy pipeline/published/an-update.json -> engine-root/pipeline/published/an-update.json",
+    ]);
+  });
+
+  it("leaves out every PROGRESS.md and REPORT.json, an agent's work log", () => {
+    // Audit 2026-10-03: engine/PROGRESS.md shipped inside the app with the engine folder.
+    put("engine/PROGRESS.md", "notes");
+    put("engine/data/REPORT.json", "{}");
+    const run = build("--dry-run");
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.stdout).not.toContain("PROGRESS.md");
+    expect(run.stdout).not.toContain("REPORT.json");
+    expect(run.stdout).toContain("copy engine/path.py -> engine-root/engine/path.py");
+  });
+
   it("refuses a download whose SHA-256 differs from runtime.json, and unpacks nothing", () => {
     put(`desktop/build/download/${RUNTIME.asset}`, "not the runtime");
     const run = build();

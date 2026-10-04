@@ -111,6 +111,13 @@ describe("verify-bundle.mjs (point 25)", () => {
     expect(allowedInEngineRoot("rulepacks/f1-us/parameters.yaml", PATTERNS)).toBe(false);
     expect(allowedInEngineRoot("enginex/a.py", PATTERNS)).toBe(false);
   });
+
+  it("lets in the optional published updates, and no agent's work log", () => {
+    expect(allowedInEngineRoot("pipeline/published/an-update.json", PATTERNS)).toBe(true);
+    expect(allowedInEngineRoot("pipeline/drafts/a-draft.json", PATTERNS)).toBe(false);
+    expect(allowedInEngineRoot("engine/PROGRESS.md", PATTERNS)).toBe(false);
+    expect(allowedInEngineRoot("engine/REPORT.json", PATTERNS)).toBe(false);
+  });
 });
 
 describe("the import check (point 25 step 2)", () => {

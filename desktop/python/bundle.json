@@ -1,5 +1,5 @@
 {
-  "note": "SPEC-W1 point 14: the only source files copied into the app, as globs from the repository root. The launcher goes to the top of engine-root; every other file keeps its path.",
+  "note": "SPEC-W1 point 14: the only source files copied into the app, as globs from the repository root. The launcher goes to the top of engine-root; every other file keeps its path. Each include pattern must match a file; an optional pattern may match none (D96: pipeline/published/ is empty until the founder approves an update). No PROGRESS.md or REPORT.json is copied.",
   "include": [
     "engine",
     "api/__init__.py",
@@ -15,7 +15,7 @@
     "contracts/rulepack.schema.json",
     "contracts/product_settings.yaml",
     "contracts/schedule.schema.json",
-    "contracts/update.schema.json",
-    "pipeline/published/*.json"
-  ]
+    "contracts/update.schema.json"
+  ],
+  "optional": ["pipeline/published/*.json"]
 }
