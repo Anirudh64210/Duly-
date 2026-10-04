@@ -21,7 +21,7 @@ rounds:
     mission: 'reviews/w2-p3.md findings 1 and 2, left by the W2-P3 approval. api/local_routes.py: delete NO_CALENDAR, the 422 handler for a missing holiday row and the import of CalendarNotInForceError, which can no longer run since engine/schedule.py answers that case per request with holidays_not_known (openapi: a request the engine cannot date is not a 422). api/case.py: a published file that does not parse as JSON is treated as one that does not follow update.schema.json, so the other files are still served. Make tests/unit/api and tests/unit/desktop_entry pass.'
     done: bash -c 'uv run pytest tests/unit/api tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
   - lane: L-security
-    agent: builder
+    agent: red-team
     mission: 'SPEC-W2 point 52, the L-security line, and D85: rows in security/threat-model.md for documents under the keychain key alone: what <userData>/files/, documents.bin and keys.bin hold, who can read them (anyone logged in as the student on that Mac, any process that can ask the Keychain for "Duly Safe Storage"), what AES-256-GCM in chunks with a random key per file protects against and what it does not, and that the Touch ID lock and the recovery kit come with documents-1. Plain words, no long dashes.'
     done: bash -c 'grep -q "documents.bin" security/threat-model.md && grep -q "keys.bin" security/threat-model.md && uv run python -m tools.copy_lint.lint'
 - name: documents-store

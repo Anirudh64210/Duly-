@@ -18,6 +18,7 @@ from typing import Any
 import yaml
 
 from tools.diff_policy.check import LaneError, load_lane, matches
+from tools.factory.config import ConfigError, all_contracts
 from tools.factory.paths import REPO_ROOT
 from tools.factory.phase import PlanError, load_plan, working_branch
 
@@ -108,6 +109,11 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
     found: list[str] = []
     if not str(plan.get("goal", "")).strip():
         found.append("the plan has no goal: every lane is told it, so it sees the whole picture")
+    try:
+        contracts = {c.name: c for c in all_contracts(repo)}
+    except ConfigError as err:
+        found.append(f"the agent contracts do not load: {err}")
+        contracts = {}
     earlier: list[Any] = []
     for rnd in plan["rounds"]:
         owners: dict[str, Any] = {}
@@ -124,6 +130,18 @@ def problems(plan_path: Path, repo: Path = REPO_ROOT, ref: str = "") -> list[str
                 owners[job["lane"]] = load_lane(job["lane"], repo)
             except LaneError as err:
                 found.append(f"round {rnd['name']}: {err}")
+            # The check tools.factory.validate makes, here before a run: plan-w2-p4 gave
+            # L-security the builder agent, and the run refused the lane at its round.
+            held = contracts.get(job["agent"])
+            if contracts and held is None:
+                found.append(
+                    f"round {rnd['name']} {job['lane']}: no contract for agent {job['agent']}"
+                )
+            elif held is not None and job["lane"] not in held.lanes:
+                found.append(
+                    f"round {rnd['name']} {job['lane']}: agent {job['agent']} has no contract "
+                    f"for lane {job['lane']}"
+                )
         for job in rnd["lanes"]:
             lane, where = owners.get(job["lane"]), f"round {rnd['name']} {job['lane']}"
             mission, done = str(job["mission"]), str(job["done"])

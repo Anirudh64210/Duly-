@@ -79,6 +79,19 @@ def test_a_file_that_gains_or_is_added_to_is_a_write(tmp_path):
     assert not any("api/case.py" in p for p in found)
 
 
+def test_an_agent_with_no_contract_for_its_lane_is_found(tmp_path):
+    # plan-w2-p4 gave L-security the builder agent; tools.factory.validate refuses that, and so
+    # did the run, at the lane's round. The red-team agent holds the L-security contract.
+    repo = mini.build(tmp_path)
+    mission = "Write security/threat-model.md rows."
+    bad = plan(repo, [{"name": "A", "lanes": [lane("L-security", "builder", mission)]}])
+    assert preflight.problems(bad, repo) == [
+        "round A L-security: agent builder has no contract for lane L-security"
+    ]
+    good = plan(repo, [{"name": "A", "lanes": [lane("L-security", "red-team", mission)]}])
+    assert preflight.problems(good, repo) == []
+
+
 def test_a_copy_names_its_target_and_a_move_its_source_too(tmp_path):
     repo = mini.build(tmp_path)
     mission = "Move tests/a.py to engine/a.py, then copy engine/b.py to web/b.py."
