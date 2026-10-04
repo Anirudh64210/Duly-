@@ -574,3 +574,17 @@
 - Fix: for any new refusal keyed on files on disk, list every way the app itself can reach that disk state (each skip, each failed write, first use), and probe each across a relaunch.
 - Evidence: reviews/w2-p4.md finding 1, $TMPDIR/rv8/p/n.test.ts N1, N2.
 - Also: a vitest probe outside the repo needs node_modules linked to the same tree the source resolves, or vi.mock("electron") does not apply.
+
+## 2026-10-04, run l-review-c2d07ce106 (W2-P4 third review, after fix1)
+- Read my second review, plan-w2-p4-fix1, the contract change 444fa86, D96, SPEC-W2 16 to 18, and the diff 8637df1..39da940 (docstore.ts, reminders.ts, statefile.ts, casefile.ts, main.ts, api/case.py, build-python.sh, tests).
+- Ran: desktop vitest 348 passed (buildpython too, now); typecheck, tsc tests/desktop, eslint, prettier, copy lint, bash -n, ruff, mypy, pytest tests/unit/api all 0.
+- Probes $TMPDIR/rv9/p: N1, N2, N3, N4, P1 to P9 right; new r.test.ts N5 (state.clear and documents.clear empty the folder), S2 (nothing recovered from reminders-shown.bin), K1 to K6, S1 to S1f; c.test.ts two concurrent drops keep every document; d.test.ts N6d input is bad_replaces on HEAD.
+- Mutants $TMPDIR/mt9/mut.py (baseline 334): 29 of 33 caught; F3, N6d, R4, R5 survive.
+- Found: SPEC-W2 16 and D96 still state the old keys.bin rule the 444fa86 contract changed (should_fix, dispute).
+- Wrote reviews/w2-p4.md (APPROVE, mean 4.67), REVIEW.json and REPORT.json, both valid.
+
+## Lesson
+- Failure: cutting a duplicated guard to one copy left the kept copy's only distinguishing case (skipped drops counted toward "more than one file") untested.
+- Fix: when a guard is cut to one copy, mutate the kept copy to the weaker form of the removed one and check a test fails.
+- Evidence: reviews/w2-p4.md finding 2, N6d.
+- Also: vitest hides console.log here unless run with --silent=false.
