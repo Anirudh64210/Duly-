@@ -828,6 +828,17 @@
           ],
           "default": "ask",
           "description": "What this field left out or null means (SPEC-W2-UNKNOWN point 2). ask, the default: absence is unknown and is asked. not_yet: the event has happened on no day up to and including today (a job's end, a return from a trip, a filing); read as the known value not yet, never as none, and listed among an item's inputs as not yet. none: there is none (an outcome not yet given, a job that is not on campus); read as the known value none, listed as none. An object makes absence depend on this record (point 2a). The screen words the empty field from this declaration, so leaving it empty is the person's statement, not a guess. The values an unknown could take are, for ask and none, every readable value and none, and for not_yet, every readable value and not yet"
+        },
+        "document": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/document_kind"
+            },
+            {
+              "$ref": "#/$defs/document_by_record"
+            }
+          ],
+          "description": "K7 (SPEC-W2 point 44a, N7, D97(1)): the document this field is typed from. The engine asks one confirmation per record and document kind for the typed fields that name it, never one per date. A field with no document (a job's start) is asked once with its record."
         }
       }
     },
@@ -1372,6 +1383,66 @@
         }
       },
       "description": "One kind of record checked in on. Counts that read the record stop at the last confirmed day"
+    },
+    "document_kind": {
+      "enum": [
+        "i20",
+        "ead_card",
+        "i797",
+        "i94",
+        "passport",
+        "visa",
+        "i983",
+        "other"
+      ],
+      "description": "A document kind, the same list as contracts/desktop_documents_bridge.schema.json $defs.kind (a test keeps the two equal)."
+    },
+    "document_by_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases"
+      ],
+      "properties": {
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "when",
+              "document"
+            ],
+            "properties": {
+              "when": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/condition"
+                },
+                "minItems": 1,
+                "description": "Conditions over this record's own fields (this.<field>), all true."
+              },
+              "document": {
+                "$ref": "#/$defs/document_kind"
+              }
+            }
+          }
+        },
+        "else": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/document_kind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The kind when no case is true; null means the field is typed from no document there."
+        }
+      },
+      "description": "A document kind that depends on the record, read like absence_by_record: the cases in order, the first whose conditions are all true names the kind. For example an authorization's card_start is typed from the EAD card on OPT and from the Form I-20 for CPT."
     }
   }
 }

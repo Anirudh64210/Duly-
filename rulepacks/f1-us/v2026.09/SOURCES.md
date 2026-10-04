@@ -6,6 +6,10 @@ The copies in the first table were fetched on 2026-09-28; the fetch of 2026-10-0
 |---|---|---|---|
 | ecfr-8cfr214.2-2026-09-14.xml | 8 CFR 214.2, point-in-time text of 2026-09-14 | https://www.ecfr.gov/api/versioner/v1/full/2026-09-14/title-8.xml?part=214&section=214.2 | 920ad4ad54d7255bd313257ea29d1d16f235fae22ef4e5e5ff3c3a89aa3cb690 |
 | ecfr-8cfr214.2-2026-09-15.xml | 8 CFR 214.2, point-in-time text of 2026-09-15 | https://www.ecfr.gov/api/versioner/v1/full/2026-09-15/title-8.xml?part=214&section=214.2 | d65cc78343f2f41484b708487c4ada6669f10166857e7d884bbf64066caad947 |
+| ecfr-8cfr214.2-2022-12-12.xml | 8 CFR 214.2, point-in-time text of 2022-12-12, the earliest version from which the quotes of the D/S-regime rows hold unchanged | https://www.ecfr.gov/api/versioner/v1/full/2022-12-12/title-8.xml?part=214&section=214.2 | 008da2657b40f8f7e84a456383eedd43f706cb11a2937789097364dc91e90aa7 |
+| ecfr-8cfr214.2-2016-12-23.xml | 8 CFR 214.2, point-in-time text of 2016-12-23, the oldest eCFR version, from which the quote of oncampus.after_completion holds unchanged | https://www.ecfr.gov/api/versioner/v1/full/2016-12-23/title-8.xml?part=214&section=214.2 | a00f31e440ba379d7133bb111343b5960cf7d03319b1ea4c8a51577aa35652ca |
+| ecfr-8cfr214.1-2016-12-23.xml | 8 CFR 214.1, point-in-time text of 2016-12-23, the oldest eCFR version (passport validity, (a)(3)(i)) | https://www.ecfr.gov/api/versioner/v1/full/2016-12-23/title-8.xml?part=214&section=214.1 | b22c09dde32490d80394d6e0ba680de3e495f081988717edd2f938b8b202fe42 |
+| ecfr-22cfr41.112-2016-12-31.xml | 22 CFR 41.112, point-in-time text of 2016-12-31, the oldest eCFR version (validity of visa) | https://www.ecfr.gov/api/versioner/v1/full/2016-12-31/title-22.xml?part=41&section=41.112 | 4d6058f41f4e0a44c09ecb69a41e0143257037d4dff684e4e6ecb6084930ded4 |
 | fr-2026-14439.xml | 91 FR 44976, final rule, fixed period of admission, published 2026-07-17 | https://www.federalregister.gov/documents/full_text/xml/2026/07/17/2026-14439.xml | f9c196f7df36c005f0db288511077ef81229a303ff45cb2fb1061ba6c84befd5 |
 | fr-2024-29354.xml | 89 FR 103054, final rule, effective 2025-01-17 | https://www.federalregister.gov/documents/full_text/xml/2024/12/18/2024-29354.xml | df009a255f80233bbbae90037e1d1a81736559b7cdb21f1bd68439074893f865 |
 | fr-2016-04828.xml | 81 FR 13040, final rule, effective 2016-05-10 | https://www.federalregister.gov/documents/full_text/xml/2016/03/11/2016-04828.xml | 5e4bc844cac1e67b34626115a7ec94c9928f5ef3cb82219f436a4d85d68a5794 |
@@ -51,6 +55,25 @@ What came back:
 - 5 U.S.C. 6103 and 31 U.S.C. 1102: uscode.house.gov answered with status 200 and a page titled Under Maintenance, not the statute. Those copies are kept in sources/recheck-2026-10-02/ under the names of the originals, and they back nothing; that is why the rules leave uscode.house.gov. The same sections were saved from govinfo.gov, the Government Publishing Office, in the 2024 Edition of the United States Code, current through 2025-01-06 by its own header. Every quote of the three rules resting on these statutes is found in those copies, and the source credits and notes their notes cite (Pub. L. 97-258 of 1982-09-13; Pub. L. 117-17 of 2021-06-17; the 1983 amendment and its effective date note; Executive Order 11582) are in them. So those rules now name the govinfo.gov copies in sources/: url, citation naming the 2024 Edition, snapshot and sha256. The copies of 2026-09-28 from uscode.house.gov stay in sources/ and in the first table. The second fetch of 2026-10-02 fetched both govinfo.gov copies from the urls in the table above and they came back the same, so those three rules carry checked_on 2026-10-02. Any amendment after 2025-01-06 is not covered by those copies; the notes of the three rules say so.
 
 No number, quote or plain text changed in this fetch.
+
+## Fetch of 2026-10-04
+
+Every source in the first table was fetched again on 2026-10-04 by tools/sources/recheck.py, outside the agents' jail. The result is in recheck-2026-10-04.json, and each copy that changed is in sources/recheck-2026-10-04/ under the name of its original. One new copy, named by no rule, was saved for the appeal's update draft:
+
+| File in sources/ | What it is | Fetched from | sha256 |
+|---|---|---|---|
+| courtlistener-docket-74908049-entries-2026-10-04.json | CourtListener listing of the entries on the First Circuit docket of case 26-2112 (the appeal from ECF 50 of the D. Mass. case), as returned on 2026-10-04 | https://www.courtlistener.com/api/rest/v4/search/?q=docket_id%3A74908049&type=rd&order_by=entry_date_filed%20desc | 3d414f9c65a5bb42ed024e8726d8a951c1c59d6e53e50b506a8088177cbd687b |
+
+What came back:
+
+- Byte for byte the same: 19 of the 24 sources, among them every eCFR text, the Federal Register documents, the court PDFs and the SEVP guidance PDF.
+- eCFR's versions lists: the newest version of 8 CFR 214.2 is still 2026-09-30, the one read in the fetch of 2026-10-02; there is none after it. The newest of 8 CFR 214.1 is 2026-09-15 and of 22 CFR 41.112 is 2021-11-08, both older than the 2026-09-30 copies saved. The four copies of the continuity check below are older versions by design.
+- The Study in the States OPT page: the markup changed and the words are the same. With tags taken out and spaces made uniform the copies are equal, and all seven quotes resting on it are found in the new copy.
+- The D. Mass. docket listing: one new entry, ECF 56 of 2026-10-02, the clerk's notes of the status conference, with a proposed schedule and pathway forward due by 2026-10-09. No entry stays the order (ECF 51).
+- The First Circuit docket (the new listing above): one entry, the case docketed on 2026-10-01. No motion to stay.
+- 5 U.S.C. 6103 and 31 U.S.C. 1102 from uscode.house.gov: the Under Maintenance page again. Those copies back nothing, as on 2026-10-02.
+
+No number, quote or plain text changed in this fetch. Moving a rule's checked_on is L-content's step in plan-w2-r1 (D98), and for the litigated regime it needs the founder's sign-off on the docket (SPEC-FEED point 55).
 
 ## Claims about the blocked rule
 
@@ -117,3 +140,21 @@ The 15 rows whose ids begin stem.requires. rest on paragraph (f)(10)(ii)(C), fro
 No new source was fetched. The status of the court order was not checked again on 2026-09-29; none of these rows has a different value under the blocked rule.
 
 Not saved and not read, though named in the quoted words: 8 CFR 274a.12(c)(3)(i)(B), the STEM Designated Degree Program List, Form I-983 and its instructions.
+
+## Continuity check of 2026-10-04
+
+For each row whose effective_from rests on its earliest saved copy, every eCFR version of its section from the versions list (https://www.ecfr.gov/api/versioner/v1/versions/title-<title>.json?part=<part>&section=<section>) was fetched, from the copy the row quotes back to the oldest version, and the row's quote was looked for in each with tools/sources/verify.py's plain(). The first date below is the earliest version from which the quote holds in every later version up to the copy it quotes. Only the copies at those dates are saved above; the versions between them were read and not kept. The two fixed_admission_2026 rows hold only from 2026-09-15, the first version with that text. Moving a row's effective_from is L-content's step in plan-w2-r1, never this note's.
+
+- practical_training.one_academic_year: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- cpt.after_endorsed_i20: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- transfer.begin_within_months: its quote holds in every version from 2026-09-15 to the copy it quotes (ecfr-8cfr214.2-2026-09-15.xml).
+- transfer.contact_new_dso_within_days: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- change_of_level.transfer_procedure: its quote holds in every version from 2026-09-15 to the copy it quotes (ecfr-8cfr214.2-2026-09-15.xml).
+- oncampus.after_completion: its quote holds in every version from 2016-12-23 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- program.extension_new_i20: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- travel.absence_months: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- travel.updated_i20: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- address.report_change_within_days: its quote holds in every version from 2022-12-12 to the copy it quotes (ecfr-8cfr214.2-2026-09-14.xml).
+- passport.valid_beyond_stay_months: its quote holds in every version from 2016-12-23 to the copy it quotes (ecfr-8cfr214.1-2026-09-30.xml).
+- passport.maintain_validity_on_extension: its quote holds in every version from 2016-12-23 to the copy it quotes (ecfr-8cfr214.1-2026-09-30.xml).
+- visa.validity_is_for_admission: its quote holds in every version from 2016-12-31 to the copy it quotes (ecfr-22cfr41.112-2026-09-30.xml).

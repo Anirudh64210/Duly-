@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -495,7 +496,15 @@ def test_the_parts_d68_retired_are_gone():
         ".claude/lanes/L-factory.yaml",
         ".claude/hooks/lane_test.py",
     ):
-        assert not (mini.REAL / rel).exists(), rel
+        # What the repository tracks, not this disk: git keeps no empty folder, so a leftover
+        # empty one on a working machine is not a retired part coming back.
+        tracked = subprocess.run(
+            ["git", "-C", str(mini.REAL), "ls-files", "--", rel],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        assert tracked == "", rel
     # No Stop hook holds a turn: a factory run's done command is checked by the orchestrator.
     settings = json.loads((mini.REAL / ".claude" / "settings.json").read_text())
     assert "Stop" not in settings["hooks"]
