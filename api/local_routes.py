@@ -26,7 +26,9 @@ from engine.rulepack import Rulepack, load_all
 from engine.schedule import CalendarNotInForceError, schedule
 from engine.verdict import VerdictInputs, decide
 
-# The query lists of /v1/updates, comma separated (openapi: style form, explode false).
+# The query lists of /v1/updates, comma separated (openapi: style form, explode false). A
+# category is ^[a-z0-9]+$; a stage id also takes "_" and ".".
+CATEGORIES = r"^[a-z0-9]+(,[a-z0-9]+)*$"
 NAMES = r"^[a-z0-9_.]+(,[a-z0-9_.]+)*$"
 
 NO_CALENDAR = (
@@ -113,6 +115,13 @@ def schedule_dates(
     problem = records_case.schedule_problem(raw)
     if problem is not None:
         raise HTTPException(status_code=422, detail=problem)
+    ids = [r["id"] for r in raw["requests"]]
+    shared = next((i for i in ids if ids.count(i) > 1), None)
+    if shared is not None:
+        # schedule.schema.json: an id is unique within one request.
+        raise HTTPException(
+            status_code=422, detail=f"requests: more than one request has the id {shared}."
+        )
     _checked_case(raw["case"], clock)
     try:
         return schedule(raw, packs, clock)
@@ -128,7 +137,7 @@ def _names(sent: str | None) -> set[str]:
 
 @router.get("/v1/updates")
 def updates(
-    categories: Annotated[str | None, Query(pattern=NAMES)] = None,
+    categories: Annotated[str | None, Query(pattern=CATEGORIES)] = None,
     stages: Annotated[str | None, Query(pattern=NAMES)] = None,
 ) -> dict[str, Any]:
     """A2: the approved updates, each with the stage ids of the case it bears on. Matching

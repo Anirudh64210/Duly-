@@ -19,9 +19,11 @@ from api.case_f1 import first_problem_under, first_schema_problem, validator_for
 from engine import path
 from engine.clocks import Clock
 from engine.rulepack import REPO_ROOT, Rulepack
+from engine.updates import publish_blockers
 
 SCHEMA_PATH = REPO_ROOT / "contracts" / "case.schema.json"
 SCHEDULE_SCHEMA_PATH = REPO_ROOT / "contracts" / "schedule.schema.json"
+UPDATE_SCHEMA_PATH = REPO_ROOT / "contracts" / "update.schema.json"
 PUBLISHED = REPO_ROOT / "pipeline" / "published"
 
 # SPEC-W2-UNKNOWN point 39: the pack's structure, which no person typed and no question could
@@ -73,16 +75,14 @@ def schedule_problem(raw: Any) -> str | None:
     return first_schema_problem(_schedule_validator(), raw)
 
 
+@lru_cache
+def _update_validator() -> Draft202012Validator:
+    return validator_for(UPDATE_SCHEMA_PATH)
+
+
 def published_updates() -> list[dict[str, Any]]:
-    """The updates in pipeline/published/ for which publish_blockers returns nothing.
-
-    publish_blockers lives in pipeline.graph, which loads langgraph, so it is imported only
-    when a published file is there to check: with none, the desktop engine loads nothing
-    server-only (SPEC-W1 point 3). See the dispute in api/REPORT.json."""
-    files = sorted(PUBLISHED.glob("*.json"))
-    if not files:
-        return []
-    from pipeline.graph import publish_blockers
-
-    updates = [json.loads(p.read_text()) for p in files]
-    return [u for u in updates if publish_blockers(u) == ()]
+    """The updates in pipeline/published/ that follow update.schema.json and for which
+    publish_blockers returns nothing (openapi /v1/updates; DECISIONS.md D95 (2)). A file
+    outside the schema is never returned, whatever publish_blockers would say of it."""
+    updates = [json.loads(p.read_text()) for p in sorted(PUBLISHED.glob("*.json"))]
+    return [u for u in updates if _update_validator().is_valid(u) and publish_blockers(u) == ()]
