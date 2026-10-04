@@ -1,12 +1,18 @@
 # Step W2, unknown values: one rule for the whole engine
 
-Status: draft for the founder, 2026-10-01, revised the same day after two critiques
-(completeness and buildability; see "Review notes" at the end). Written by the founder lane from
-the three W2-P1 reviews (reviews/w2-p1.md at 3eb17d3, 88bc479 and 19890c7), four maps of the
-engine read at 07196cd on step-w (logic, counts, asking, boundary; committed under
-specs/step-w/maps/ in W2-U0, point 53), PRINCIPLES.md 2, CLAUDE.md's hard rules, contracts/ and
-the shipped pack rulepacks/f1-us/v2026.09. Builds on SPEC-W2 points 45, 46 and 49. W2-P1 is
-approved only after this plan's review. The plan runs only after the steps of point 62.
+Status: approved by the founder in D92 (2026-10-02), with the calls of section 12 decided as
+point 62 records; amended by D93 (point 11), D94 (point 61) and D97 (2026-10-03: D59 as one
+confirmation per document, and an unknown, an unanswered question, a stale rule or a litigated
+rule holds only the items it touches, points 33, 34 and 37; built in W2-R1, the revision build,
+plan-w2-r1, as SPEC-W2 N7 and N8, and for stale and litigated rules in FEED-P8, SPEC-FEED point
+64). Drafted 2026-10-01 and revised the same day after two critiques (completeness and
+buildability; see "Review notes" at the end). Written by the founder lane from the three W2-P1
+reviews (reviews/w2-p1.md at 3eb17d3, 88bc479 and 19890c7), four maps of the engine read at
+07196cd on step-w (logic, counts, asking, boundary; committed under specs/step-w/maps/ in W2-U0,
+point 53), PRINCIPLES.md 2, CLAUDE.md's hard rules, contracts/ and the shipped pack
+rulepacks/f1-us/v2026.09. Builds on SPEC-W2 points 45, 46 and 49. W2-P1 is approved only after
+this plan's review. The plan runs only after the steps of point 62 (done: the plan ran with its
+fix plans, and reviews/w2-unknown.md approves).
 
 ## The goal in one breath
 
@@ -34,7 +40,7 @@ inputs kept as regression examples.
 
 - No new rule and no changed number in any pack. The pack gains only declarations: what absence
   means per field (point 2), and a `complete_label` for a kind a history, a `first` or a count
-  reads that has none (point 14), with the founder's approval (point 61).
+  reads that has none (point 14), with the founder's approval (point 61, given in D92).
 - Not check-ins or stale facts (SPEC-W2 N3). An empty field declared `not_yet` is the person's
   statement as of the day the engine computes for. Whether that statement has gone stale (a job
   end left empty months ago) is N3's question, not this SPEC's; "never assumes" here covers
@@ -43,14 +49,23 @@ inputs kept as regression examples.
   at the same time, or `hours_changes` (rows 28, 30): readings to check against saved sources,
   not unknowns. Later.
 - Not `_answer` reading a confirmation that has no `about` (asking map, path.py:602). Later.
-- Not ranges ("between 30 and 121 days"). Point 60 asks.
+- Not ranges ("between 30 and 121 days"): no ranges yet (D92, point 60).
 
 ## Decisions and principles this serves
 
 PRINCIPLES 2 (confirm, never assume; until the person answers, Can't tell yet). CLAUDE.md: a
 verdict never falls back to the quiet state; missing, stale, conflicting or litigated means
 cannot_tell; a gap becomes a question. D41 (a list is whole only when the person says so). D59
-(a typed date is used only when checked). D04 (Can't tell yet never falls back to green).
+as D97(1) amends it (Duly asks once per document whether the fields typed from it match it, one
+confirmation per document, never one check per date; a typed date whose field names no
+document, such as a job's start, is asked once with its record, never once per date; built in
+W2-R1 as SPEC-W2 N7, on contracts/rulepack.schema.json with K7, whose optional `document` on a
+record field names the document kind the field is typed from). D04 (Can't tell yet never falls
+back to green). D92 (this SPEC's rule and the calls of section 12), D93 (point 11), D94 (point
+61). D97(3) (an unknown, an unanswered question, a stale rule or a litigated rule holds only the
+items it touches: every other item keeps its date, and nothing that waits is ever shown as
+settled; points 33, 34 and 37 here, built in W2-R1 as SPEC-W2 N8, and SPEC-FEED point 64,
+FEED-P8, for stale and litigated rules).
 specs/path-1/programs.md 161 ("Not sure" gives the judgement `<record>.<field>.not_sure`), kept and
 extended by point 35.
 
@@ -66,9 +81,9 @@ extended by point 35.
 2. **Absent.** The field is left out or null. What absence means is the pack's declaration, per
    field, in a new key `when_absent`:
    - `ask` (the default): absence is unknown and is asked.
-   - `not_yet`: the event has not happened (a job's end, a return from a trip, a filing). The
-     engine reads it as the known value NOT_YET, a day after today, never as NONE (point 7), and
-     lists it among the item's inputs as "not yet", so the working shows it.
+   - `not_yet`: the event has not happened (a job's end, a filing; a trip's return is asked,
+     D92). The engine reads it as the known value NOT_YET, a day after today, never as NONE
+     (point 7), and lists it among the item's inputs as "not yet", so the working shows it.
    - `none`: there is none (an outcome not yet given, a job that is not on campus). The known
      value NONE, listed as "none".
    - a condition (point 2a).
@@ -402,7 +417,12 @@ extended by point 35.
     apply", worked from known values. `upcoming` never holds a date that is U. A stage state is
     never `current`, `done` or `next` on a guess. A judgement, conflict or open item that rests
     on a U is not raised.
-    - Checked by: P2(c), P3, P4.
+    The verdict never withholds an output (D97): an output waits only on a gap it rests on (or,
+    from SPEC-FEED point 64, a stale, held, superseded or litigated rule it reads), and every
+    output no such gap or rule touches keeps its value, whatever the verdict. W2-R1 builds this
+    for gaps, unanswered questions, unconfirmed fields, and stale and litigated rules (SPEC-W2
+    N8); FEED-P8 builds it for rules the feed holds or supersedes.
+    - Checked by: P2(c), P3, P4; for D97, tests/unit/engine/test_w2_holds.py (W2-R1).
 
 ## 7. Asking
 
@@ -412,14 +432,19 @@ extended by point 35.
     conflict). For an unreadable value, `about` holds the value as entered, so the screen can show
     it back. The question's `withholds` lists the outputs it holds back. Each `waits_on` entry is
     a question id, a named lapse or conflict reason, or `pending:<record>.<field>` or
-    `future:<stage>.<field>` (never a question).
+    `future:<stage>.<field>` (never a question). From SPEC-FEED point 64 (D97), it may also be a
+    named rule reason (stale, on hold, superseded or in litigation, with the rule id) for a rule
+    the output reads.
     - Checked by: P2(b), P4; contract tests.
 35. **Reasons.** `missing:<id>` for absent, `unreadable:<id>` for unreadable (today it is asked as
     `missing:`), `undecided:<id>` for not sure, each a blocker, so the verdict is cannot_tell.
     `missing:` and `undecided:` are raised only for a gap an unsettled read rests on (point 8);
     `unreadable:` always (point 36). The judgement `<id>.not_sure` (talk_to_dso,
     specs/path-1/programs.md 161) is still raised for every `not_sure`, read or not, so the
-    reasons still point to the DSO. Point 57 asks the founder.
+    reasons still point to the DSO. Decided by D92 (point 57): a not-sure answer that could
+    change a date makes the verdict Can't tell yet with the DSO named, and opens the DSO-question
+    loop, which carries the DSO's answer back into the record and closes only when the student
+    confirms it (SPEC-W2 point 19).
     - Checked by: P4; regressions R5, R8, R40.
 36. **Every unreadable value in the case is asked, read or not** (mutant M18): ask_unreadable
     runs over every record field and fact of every kind, not only dates and choices.
@@ -427,8 +452,11 @@ extended by point 35.
 37. **One verdict function.** engine/path.py `compute` decides through `engine/verdict.decide`
     (today it decides on its own at path.py:1412-1436, and verdict.decide is used only by f1.py
     and local_routes). The new reason prefixes are blockers there. A verdict is never
-    no_open_items, needs_you or talk_to_dso while any question is open.
-    - Checked by: P4; tests/unit/engine/test_verdict.py extended for the three prefixes.
+    no_open_items, needs_you or talk_to_dso while any question is open. An open question holds
+    only the outputs it names in `withholds` (D97, point 33): the verdict's state is never a
+    reason to withhold any other date or count.
+    - Checked by: P4; tests/unit/engine/test_verdict.py extended for the three prefixes; for
+      D97, tests/unit/engine/test_w2_holds.py (W2-R1).
 38. **The words** (L-web, web/src/lib/labels.ts and the question line). Three new exports:
     `unreadableLine(label: string, asEntered: string): string` gives "Duly could not read what
     was entered for <label>: <value as entered>. Check it and enter it again."
@@ -578,9 +606,10 @@ before the engine exists and a missing name fails the test, never skips it.
 48. **P4, every unknown is named.** For any generated case, decided or not, with any mix of
     gaps: no reason starts with `engine_gap:`; every null output with `waits_on` names only
     question ids in `questions`, lapse and conflict reasons in the verdict, or `pending:` and
-    `future:` entries; every question with `withholds` names outputs that are absent or withheld;
-    the output validates against contracts/engine_output.schema.json; and the verdict is
-    cannot_tell whenever a gap question is open.
+    `future:` entries (and, from SPEC-FEED point 64, the rule reasons of point 34); every
+    question with `withholds` names outputs that are absent or withheld; the output validates
+    against contracts/engine_output.schema.json; and the verdict is cannot_tell whenever a gap
+    question is open.
 49. **P5, the boundary is total.** Any scalar or list the case schema takes in any declared field
     or fact of any record (hypothesis: strings of 1 to 120 characters, any finite number,
     booleans, null, lists of such scalars and periods): compute returns an output, never an
@@ -820,55 +849,71 @@ rounds:
 
 ## 12. For the founder
 
+Every call below was decided by D92 on 2026-10-02, as recommended, except that point 61 asks a
+trip's return date and point 57 also names the DSO and opens the DSO-question loop (SPEC-W2
+point 19). D94 amended point 61; D97(3) keeps what an unknown holds to the items it touches
+(points 33 and 37).
+
 55. **Approve the rule of point 6** (known only when every value the unknowns could take gives
-    the same output). It is the rule behind every review finding. Recommendation: yes.
+    the same output). It is the rule behind every review finding. Recommendation: yes. Decided:
+    D92.
 56. **More outputs wait for an answer.** The positioning note of 2026-09-30 found the preview
     over-cautious. This rule withholds more dates until a gap is answered, but only the outputs a
     gap could change, and only gaps that could change an output are asked (point 8): an unread
     empty field asks nothing. Recommendation: accept; the review reports how many journey
     outputs are withheld before and after, and onboarding (W2-P6) asks the list and absence
-    questions in its skeleton steps so few remain.
+    questions in its skeleton steps so few remain. Decided: D92; D97(3) keeps the reach narrow:
+    a gap holds only the items it touches, and every other item keeps its date (point 33).
 57. **Not sure: Can't tell yet, or Talk to your DSO?** Today a `not_sure` answer gives only the
     judgement `<field>.not_sure` (talk_to_dso) and no question. Point 35 adds `undecided:` as a
     blocker when the answer could change an output, so the verdict is cannot_tell with the DSO
     judgement kept among the reasons. Recommendation: yes; a date resting on a not-sure answer
-    cannot be shown, and the screen still says the DSO can tell them.
+    cannot be shown, and the screen still says the DSO can tell them. Decided: D92, with the DSO
+    named and the DSO-question loop opened (point 35, SPEC-W2 point 19).
 58. **A list not stated whole withholds "none found" and "the earliest found"** (point 14): with
     no move entered and the move list not stated whole, an OPT end that a move could cut is
     withheld; with one move entered, the earliest release is withheld too; a statement for one
     program's authorizations no longer counts for all of them; and a change of end date list must
     be stated whole before an end "as of" a filing day is shown. Recommendation: yes (D41);
-    onboarding asks each list in the step that adds it ("Any other school moves?").
+    onboarding asks each list in the step that adds it ("Any other school moves?"). Decided:
+    D92 (onboarding asks "any others?" in the step that adds them).
 59. **Refuse structure, take values** (section 8). Recommendation: yes, as the boundary map
     argues: the desktop would lose a saved case under a typed schema, a 422 withholds every date,
-    and a refusal cannot say what was wrong.
+    and a refusal cannot say what was wrong. Decided: D92.
 60. **Ranges.** A count withheld for one unknown hours figure could still say "at least 30
     days". Recommendation: not now; a range is a new output kind with its own words and its own
-    boundary review.
-61. **What absence means, field by field** (points 2 and 2a). Recommendation, for L-content to
-    confirm against the screen words:
-    - `not_yet`: work.end, trip.returned_on, authorization.filed_on, authorization.decision,
+    boundary review. Decided: D92 (no ranges yet).
+61. **What absence means, field by field** (points 2 and 2a). Decided by D92 as recommended,
+    except trip.returned_on, and by D94 for the petition starts; L-content confirmed each against
+    the screen words recorded in rulepacks/f1-us/v2026.09/CHANGELOG.md:
+    - `not_yet`: work.end, authorization.filed_on, authorization.decision,
       move.registered_on, move.release_date, move.contacted_new_dso_on, report.made_on;
       authorization.card_start and card_end only while no decision has come
       (`{not_yet: [{any_of: [{field: this.decision, present: false}, {field: this.decision, in: [pending]}]}], else: ask}`).
     - `none`: work.on_campus (an off-campus job), authorization.extends (an OPT that extends
       nothing), petition.outcome (validity_start and requested_start are asked, D94); authorization.employer and
       basis_program `none` on every type but stem_extension, else `ask`.
-    - `ask`: everything else, including work.under, program dates, levels, types and every other
-      link a count or a selection reads.
-    - Open for the founder: trip.returned_on as `not_yet` (a trip still under way) or `ask`.
+    - `ask`: everything else, including trip.returned_on (a trip with no return date is asked,
+      not assumed), work.under, program dates, levels, types and every other link a count or a
+      selection reads.
+    - Records added later carry their own declarations, recorded in the same CHANGELOG (W2-P2,
+      D74): address.reported_on `not_yet`; address.first_in_us `none`; address.previous `none`
+      when first_in_us is yes, else `ask`.
+    - Decided: D92 (trip.returned_on is `ask`, not `not_yet`).
 62. **Before the plan runs, in this order.** (1) The founder records the decisions on points 55
     to 61, 63 and 64 in DECISIONS.md, with the point 61 list as approved. (2) W2-U0 lands
     (point 53), alone. (3) The founder commits specs/step-w/plan-w2-p1-unknown.yaml and runs
     `uv run python -m tools.factory.preflight specs/step-w/plan-w2-p1-unknown.yaml` and
-    `make gate-7`. Merging step-w to main stays the founder's.
+    `make gate-7`. Merging step-w to main stays the founder's. Done: D92 recorded the
+    decisions on 2026-10-02, W2-U0 landed alone (c8dcfb2), and the plan ran with its fix plans.
 63. **Two kinds of unknown that never block** (point 5): `pending` (a not-yet event compared with
     a later day: the answer comes with time) and `future` (a field of a record the person has not
     entered, read by a next stage). Both withhold the output and say so, and neither asks nor
     turns the verdict to cannot_tell. Recommendation: yes; asking either would ask the person
-    about the future.
+    about the future. Decided: D92.
 64. **Numbers in the case contract lose their bounds** (point 42): a typed -1 or 200000 hours is
     read and asked, not refused with a 422 that withholds the whole case. Recommendation: yes.
+    Decided: D92.
 
 ## Covers
 
