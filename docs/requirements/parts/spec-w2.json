@@ -148,9 +148,9 @@
   "source": "specs/step-w/SPEC-W2.md point 47 (A2), as D95 amends it",
   "text": "GET /v1/updates in local_routes serves the published updates bundled with the app: each file in pipeline/published/ that follows update.schema.json and for which publish_blockers returns nothing, an empty list when none is published; a categories value outside ^[a-z0-9]+$ is a 422.",
   "kind": "updates",
-  "status": "partial",
-  "evidence": "api/case.py published_updates; api/local_routes.py updates; tests/unit/api/test_local_routes_w2.py::test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_served",
-  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, partial. Mutant M3 (filter removed) is killed, and so is my own (reading pipeline/drafts instead). Empty list today on both apps (no pipeline/published/). Partly built: one file in pipeline/published/ that is not JSON makes the route a 500 on both apps, so no valid update is served either (probe; review finding 2, open)."
+  "status": "met",
+  "evidence": "api/case.py published_updates (except OSError, ValueError); api/local_routes.py updates; tests/unit/api/test_local_routes_w2.py (test_review_w2p3_2_3, test_review_w2p3_2_a_file_that_is_not_json_is_skipped_and_the_rest_is_served, test_review_w2p4_8, test_review2_w2p4_6)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): partial to met. The open part is fixed: a file that is not JSON, not UTF-8, or a folder named x.json is skipped and the valid update is served. uv run pytest tests/unit/api passes. pipeline/published/*.json is now an optional bundle pattern (D96), test_review_w2p4_12 passes."
  },
  {
   "id": "W2-018",
@@ -194,7 +194,97 @@
   "text": "The scheduler: timers, reminders (lead days and the day itself), the weekly budget, the morning digest and the .ics file are planned by the Loop module and dated by engine.schedule; main shows local notifications with words from the scheduler's real state.",
   "kind": "product",
   "status": "partial",
-  "evidence": "engine/schedule.py; api/local_routes.py schedule_dates",
-  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, partial. Only the engine half is built (W2-014, W2-016). No web/src/loops module, no Notification, no .ics, no digest, no weekly budget: those are later W2 plans."
+  "evidence": "engine/schedule.py; api/local_routes.py schedule_dates; desktop/src/reminders.ts; desktop/src/main.ts (createReminders); tests/desktop/bridges.test.ts (reminders, review_w2p4_3, review2_w2p4_2)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): partial, unchanged. New: main shows a planned reminder as one Notification with the words it was given, once across relaunches, the record encrypted (tests pass). Still no web/src/loops module, no .ics, no digest, no weekly budget, and no 'Reminder set on this Mac' line. Two untested paths: a reminder moved to a new date shows again (mutant R4 survives) and the record is trimmed to the plan (R5 survives); I ran both."
+ },
+ {
+  "id": "W2-023",
+  "source": "specs/step-w/SPEC-W2.md point 5 (the bridge half, as point 52 splits it)",
+  "text": "The preload adds window.duly.engine (engine.compute, engine.schedule, engine.updates); main checks each call and reply against contracts/desktop_engine_bridge.schema.json and forwards it to the engine over the W1 socket with the token, refusing any frame but the main frame of duly://app.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/enginebridge.ts; desktop/src/preload.ts; contracts/desktop_engine_bridge.schema.json; tests/desktop/bridges.test.ts (engine bridge block)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. The engine bridge tests pass (the desktop vitest run here gives 348 passed, 0 failed), including a call outside the schema, a reply outside it, and the frame check."
+ },
+ {
+  "id": "W2-024",
+  "source": "specs/step-w/SPEC-W2.md point 5 (the CSP half), moved to W2-P5 by point 52",
+  "text": "The renderer no longer fetches api/...; the duly://app/api proxy is removed and the CSP's connect-src becomes 'none'; a web test checks that no source file calls fetch(.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, not started, by plan: point 52 moves it to W2-P5. desktop/src/protocol.ts still has connect-src 'self', and web/src/app/caseStore.tsx and Onboarding.tsx still fetch."
+ },
+ {
+  "id": "W2-025",
+  "source": "specs/step-w/SPEC-W2.md point 13",
+  "text": "window.duly.documents with contracts/desktop_documents_bridge.schema.json: add (main's own dialog, or a real drop read with webUtils.getPathForFile; a path string from the screen refused), list, open, versions, update, remove, restore, delete, export (decrypted copies to a folder or a .zip the student picks), every reply checked against the schema, each refusal tested.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docbridge.ts; desktop/src/preload.ts; tests/desktop/documents-bridge.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. Every call and each named refusal (not_dropped, not_a_file, inside_data_folder, too_large, duplicate, too_many_files, bad_replaces, reply outside the contract) has a passing test. Partly built: export as a .zip is tested only cancelled and refused; no test writes a zip. My probe wrote one with two files and unzip -t found no errors, but a probe is not a test. Untested edge: mutant N6d (a drop with one non-path entry and replaces) survives."
+ },
+ {
+  "id": "W2-026",
+  "source": "specs/step-w/SPEC-W2.md point 14",
+  "text": "A random 256-bit document key D, wrapped by safeStorage into <userData>/keys.bin at first use; each file's random 256-bit key F kept only inside the encrypted index.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts load; tests/desktop/documents-store.test.ts ('wraps D with the keychain into keys.bin and never writes D or any F unwrapped', 'refuses a keys.bin the keychain cannot open, and keeps it')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass (the desktop vitest run here gives 348 passed, 0 failed)."
+ },
+ {
+  "id": "W2-027",
+  "source": "specs/step-w/SPEC-W2.md point 15",
+  "text": "Each document is <userData>/files/<random id>, AES-256-GCM in 1 MiB chunks, nonce a random 64-bit prefix plus a 32-bit counter, additional data the document id, chunk index and last-chunk flag; add writes .part, syncs, renames, decrypts back and compares SHA-256 before the index row; a reordered, dropped or cut chunk fails and is reported; a crash leaves no row and no orphan.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts store, encryptFile, openFile; tests/desktop/documents-store.test.ts (round trip, chunk faults, 'a crash in any step of an add leaves no row and no file', review_w2p4_6, review_w2p4_7)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass. The review's mutants M1, M2, M3, M6 and M17 on this code are reported caught; I did not rerun those five."
+ },
+ {
+  "id": "W2-028",
+  "source": "specs/step-w/SPEC-W2.md point 16, as D96 and the contract as of 444fa86 amend it",
+  "text": "The index is one JSON file documents.bin, AES-256-GCM under D, written atomically; a bad index is refused and kept; a missing documents.bin with a file in files/ is index_missing and nothing is deleted; the newest 20000 history lines are kept; the original file is never moved or deleted, and Duly says so once.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts load, save; tests/desktop/documents-store.test.ts (atomic write, bad index kept, review_w2p4_1, review2_w2p4_4, review_w2p4_5, review2_w2p4_8, 'never moves or changes the student's own file')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. The store half passes its tests, and my mutant that removes index_missing is caught by 2 tests. Partly built: 'Duly says so once' is a screen line and no screen uses the store yet. Also the SPEC text and D96 say keys.bin alone is index_missing; the code and contract give an empty index (review finding 1). I record the code as following the contract and list the conflict as a dispute."
+ },
+ {
+  "id": "W2-029",
+  "source": "specs/step-w/SPEC-W2.md point 17, as D96 amends it",
+  "text": "Versions newest first through replaces; Remove, Put back, Delete for good (destroys F and the file, history keeps 'A document was deleted for good' without the name); Delete everything on this Mac after an inline confirm; a chain stays one line (second replacer, multi-file replaces, past 200 versions are bad_replaces); 50 files per add, 5000 documents; an empty file skipped; export never inside the data folder.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; desktop/src/docbridge.ts; desktop/src/statefile.ts; tests/desktop/documents-store.test.ts; tests/desktop/documents-bridge.test.ts ('deletes files/, documents.bin, keys.bin, case.bin and state.bin')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. Every rule of the store and bridge has a passing test. Partly built: the Settings screen with Delete everything and its inline confirm does not exist yet (web/src has no call to the bridges). Untested edges, run by me: mutant F3 (a duplicate inside one add counted at 4999) and N6d survive every test."
+ },
+ {
+  "id": "W2-030",
+  "source": "specs/step-w/SPEC-W2.md point 18",
+  "text": "window.duly.state (read, write, clear) saves <userData>/state.bin with safeStorage like case.bin, checked against $defs/state on every read and write, written atomically, a bad file refused and kept; a web test that no loop save writes a case fact into state.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/statefile.ts; contracts/desktop_state_bridge.schema.json; tests/desktop/bridges.test.ts (state bridge block)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. The desktop half passes every test named in the point. Partly built: there is no loop module, so the web test that no loop save writes a case fact does not exist."
+ },
+ {
+  "id": "W2-031",
+  "source": "specs/step-w/SPEC-W2.md point 52 (L-security)",
+  "text": "security/threat-model.md has rows for documents under the keychain key alone: what files/, documents.bin and keys.bin hold, who can read them, what AES-256-GCM in chunks protects against and what it does not, and that the Touch ID lock and recovery kit come with documents-1.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "security/threat-model.md lines 33 to 36",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. The four rows say each of these in plain words; the copy lint is clean."
+ },
+ {
+  "id": "W2-032",
+  "source": "specs/step-w/SPEC-W2.md point 22 (D96 part)",
+  "text": "Each planned reminder is shown once, across relaunches too; main keeps what it has shown in its own file under userData, never in state.bin, encrypted as state.bin is and removed with it.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/reminders.ts; desktop/src/statefile.ts SHOWN_FILE; tests/desktop/bridges.test.ts (review_w2p4_3, review2_w2p4_2 x3)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass; my mutant writing the record unencrypted is caught by 2 tests. Untested: R4 and R5 (see W2-022)."
  }
 ]

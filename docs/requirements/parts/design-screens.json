@@ -94,9 +94,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Stack",
     "text": "desktop/: contextIsolation on",
     "kind": "desktop",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "It is written in specs/desktop-1/SPEC.md only; no window is created in desktop/src."
+    "status": "met",
+    "evidence": "desktop/src/guard.ts (contextIsolation true, sandbox true, nodeIntegration false); desktop/src/guard.test.ts",
+    "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. Drift: the old note said no window is created; guard.ts makes it with contextIsolation on, and guard.test.ts passes (the desktop vitest run here gives 348 passed, 0 failed)."
   },
   {
     "id": "PLAN03-012",
@@ -121,9 +121,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Stack",
     "text": "desktop/: single preload exposing a typed, allowlisted bridge",
     "kind": "desktop",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "There is no preload file in desktop/src."
+    "status": "met",
+    "evidence": "desktop/src/preload.ts; desktop/src/preload.test.ts ('exposes the version, the platform and the case, engine and state bridges, and nothing else'; 'sends only the contract's calls')",
+    "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. One preload exposes window.duly with typed calls on the case, engine, state and documents bridges, each checked in main against its contract; the preload tests pass (the desktop vitest run here gives 348 passed, 0 failed)."
   },
   {
     "id": "PLAN03-015",
@@ -859,9 +859,9 @@
     "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
     "text": "Renderer never touches raw stores.",
     "kind": "security",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "There is no store and no renderer bridge yet."
+    "status": "met",
+    "evidence": "desktop/src/guard.ts (sandbox, no Node in the page); desktop/src/preload.ts; tests/desktop/documents-store.test.ts ('wraps D with the keychain into keys.bin and never writes D or any F unwrapped'); tests/desktop/bridges.test.ts (state bridge)",
+    "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. The page reaches case.bin, state.bin and the documents store only through the bridges; it has no Node and no file access. The only storage the page touches is a sessionStorage flag in web/src/app/launchFlash.ts, which is not a store of data."
   },
   {
     "id": "PLAN03-097",

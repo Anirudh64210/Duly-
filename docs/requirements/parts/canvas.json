@@ -1084,9 +1084,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, 3 Documents",
   "text": "Every version is kept; nothing is overwritten.",
   "kind": "product",
-  "status": "deferred",
-  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
-  "note": "No document store exists."
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts (replaces, versions); tests/desktop/documents-store.test.ts ('chains a reissued document to the one it replaces, newest first'); tests/desktop/documents-bridge.test.ts ('versions gives the chain newest first')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): deferred to partial. SPEC-W2 point 17 brings versions into Step W. The store keeps every version and overwrites none; tests pass. Partly built: no screen shows the versions yet."
  },
  {
   "id": "DOCS-014",

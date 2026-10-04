@@ -1204,9 +1204,9 @@
   "source": "design/canvas/DESIGN-SPEC.md, 3 Documents",
   "text": "Every version is kept; nothing is overwritten.",
   "kind": "product",
-  "status": "deferred",
-  "evidence": "specs/desktop-1/SPEC.md (document vault is Phase 8)",
-  "note": "No document store exists.",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts (replaces, versions); tests/desktop/documents-store.test.ts ('chains a reissued document to the one it replaces, newest first'); tests/desktop/documents-bridge.test.ts ('versions gives the chain newest first')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): deferred to partial. SPEC-W2 point 17 brings versions into Step W. The store keeps every version and overwrites none; tests pass. Partly built: no screen shows the versions yet.",
   "part": "canvas"
  },
  {
@@ -2294,9 +2294,9 @@
   "source": "duly-plan/03-frontend-and-design.md, Stack",
   "text": "desktop/: contextIsolation on",
   "kind": "desktop",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "It is written in specs/desktop-1/SPEC.md only; no window is created in desktop/src.",
+  "status": "met",
+  "evidence": "desktop/src/guard.ts (contextIsolation true, sandbox true, nodeIntegration false); desktop/src/guard.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. Drift: the old note said no window is created; guard.ts makes it with contextIsolation on, and guard.test.ts passes (the desktop vitest run here gives 348 passed, 0 failed).",
   "part": "design-screens"
  },
  {
@@ -2324,9 +2324,9 @@
   "source": "duly-plan/03-frontend-and-design.md, Stack",
   "text": "desktop/: single preload exposing a typed, allowlisted bridge",
   "kind": "desktop",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "There is no preload file in desktop/src.",
+  "status": "met",
+  "evidence": "desktop/src/preload.ts; desktop/src/preload.test.ts ('exposes the version, the platform and the case, engine and state bridges, and nothing else'; 'sends only the contract's calls')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. One preload exposes window.duly with typed calls on the case, engine, state and documents bridges, each checked in main against its contract; the preload tests pass (the desktop vitest run here gives 348 passed, 0 failed).",
   "part": "design-screens"
  },
  {
@@ -3144,9 +3144,9 @@
   "source": "duly-plan/03-frontend-and-design.md, Electron specifics for WorkBook",
   "text": "Renderer never touches raw stores.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "There is no store and no renderer bridge yet.",
+  "status": "met",
+  "evidence": "desktop/src/guard.ts (sandbox, no Node in the page); desktop/src/preload.ts; tests/desktop/documents-store.test.ts ('wraps D with the keychain into keys.bin and never writes D or any F unwrapped'); tests/desktop/bridges.test.ts (state bridge)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. The page reaches case.bin, state.bin and the documents store only through the bridges; it has no Node and no file access. The only storage the page touches is a sessionStorage flag in web/src/app/launchFlash.ts, which is not a store of data.",
   "part": "design-screens"
  },
  {
@@ -9004,9 +9004,9 @@
   "source": "law-liability-design-2026-09.md, Privacy obligations",
   "text": "Client-side encryption for documents.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "security/threat-model.md (Phase 1, Phase 8)",
-  "note": "Planned only.",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; security/threat-model.md (documents rows); tests/desktop/documents-store.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. Documents are encrypted on the Mac before they are kept, under keys the server never sees. Partly built: the screen does not call window.duly.documents yet (web/src has no use of it), so no student can add a document; that comes with W2-P5.",
   "part": "founder-decisions"
  },
  {
@@ -9134,9 +9134,9 @@
   "source": "DECISIONS.md, D54",
   "text": "Documents are kept in one place: an encrypted vault on the student's device.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Decided 2026-09-29; nothing built yet.",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; desktop/src/docbridge.ts; tests/desktop/documents-store.test.ts; tests/desktop/documents-bridge.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. The encrypted store on the device exists and is tested behind window.duly.documents. Partly built: no Documents screen uses it yet, and the Touch ID lock and recovery kit are documents-1.",
   "part": "founder-decisions"
  },
  {
@@ -9827,6 +9827,66 @@
   "status": "met",
   "evidence": "pipeline/drafts/ (three prototype articles, approval false); no pipeline/published/ folder",
   "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Read: approval approved false, approved_by null on all four drafts.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D96-001",
+  "source": "DECISIONS.md D96 (1)",
+  "text": "A missing documents index while keys or files remain is refused as index_missing and nothing is deleted: a missing index never means no documents.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts load; tests/desktop/documents-store.test.ts (review_w2p4_1, review2_w2p4_4)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. A file in files/ with no index is refused and kept (tests pass, my mutant caught). Not as written: keys.bin with no file gives a new empty index, by the contract as of 444fa86 and plan-w2-p4-fix1. D96 and SPEC-W2 point 16 still say keys alone is refused (review finding 1). Needs the founder's amendment.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D96-002",
+  "source": "DECISIONS.md D96 (2)",
+  "text": "A version chain stays one line: a second replacer, a multi-file add that replaces, or a chain past 200 versions is bad_replaces.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts badReplaces; desktop/src/docbridge.ts add; tests (review_w2p4_2 x3, review2_w2p4_4 update cap)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass. Edge N6d (a drop counted with its skipped entries) survives every test; behaviour on HEAD is right.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D96-003",
+  "source": "DECISIONS.md D96 (3)",
+  "text": "One add takes at most 50 files, the store at most 5000 documents, the index keeps the newest 20000 history lines.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts MAX_DOCUMENTS, MAX_HISTORY; desktop/src/docbridge.ts MAX_ADD; tests (review_w2p4_4, review_w2p4_5 x2, review2_w2p4_3 x2, review2_w2p4_8)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass; my mutants (cap 4999, no trim on load) are caught. F3 survives (see W2-029).",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D96-004",
+  "source": "DECISIONS.md D96 (4)",
+  "text": "An empty file is skipped; export never writes inside Duly's own data folder.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "tests/desktop/documents-store.test.ts (review_w2p4_10); tests/desktop/documents-bridge.test.ts (review_w2p4_9)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Both tests pass.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D96-005",
+  "source": "DECISIONS.md D96 (5)",
+  "text": "A planned reminder is shown once across relaunches, the shown ids kept in main's own file.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/reminders.ts; tests/desktop/bridges.test.ts (review_w2p4_3, review2_w2p4_2)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass. The file holds keys by id and date, encrypted (fix1), which D96 does not forbid.",
+  "part": "founder-decisions"
+ },
+ {
+  "id": "DEC-D96-006",
+  "source": "DECISIONS.md D96 (6)",
+  "text": "The bundle's pipeline/published/*.json is an optional pattern, since the folder is empty until the founder approves an update.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/python/bundle.json optional; desktop/scripts/build-python.sh; desktop/src/buildpython.test.ts; tests/unit/desktop_entry/test_bundle_inputs.py::test_review_w2p4_12_published_updates_are_optional_and_not_included",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. test_review_w2p4_12 passes and buildpython.test.ts passes inside the 348.",
   "part": "founder-decisions"
  },
  {
@@ -19574,9 +19634,9 @@
   "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
   "text": "Device: per-file AES-256-GCM blobs",
   "kind": "desktop",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No blob encryption code exists.",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts encryptFile/openFile; tests/desktop/documents-store.test.ts ('round trips files on both sides of every chunk edge', 'review_w2p4_6: each chunk has its own nonce and opens only as its own chunk')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. Each document is files/<random id>, AES-256-GCM in 1 MiB chunks under its own random 256-bit key. Tests pass (the desktop vitest run here gives 348 passed, 0 failed).",
   "part": "security-email-loops"
  },
  {
@@ -19584,9 +19644,9 @@
   "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
   "text": "Device: keys derived and held in OS keychain (Keychain, DPAPI, libsecret)",
   "kind": "desktop",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No keychain code exists in desktop/.",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts (D wrapped by safeStorage into keys.bin); tests/desktop/documents-store.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. On macOS the document key D is wrapped by safeStorage (Keychain item 'Duly Safe Storage') and tested with a fake cipher. Partly built: keys are wrapped, not derived, and DPAPI and libsecret are not built or tested (Windows and Linux are later).",
   "part": "security-email-loops"
  },
  {
@@ -21224,9 +21284,9 @@
   "source": "specs/step-w/SPEC-W2.md point 47 (A2), as D95 amends it",
   "text": "GET /v1/updates in local_routes serves the published updates bundled with the app: each file in pipeline/published/ that follows update.schema.json and for which publish_blockers returns nothing, an empty list when none is published; a categories value outside ^[a-z0-9]+$ is a 422.",
   "kind": "updates",
-  "status": "partial",
-  "evidence": "api/case.py published_updates; api/local_routes.py updates; tests/unit/api/test_local_routes_w2.py::test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_served",
-  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, partial. Mutant M3 (filter removed) is killed, and so is my own (reading pipeline/drafts instead). Empty list today on both apps (no pipeline/published/). Partly built: one file in pipeline/published/ that is not JSON makes the route a 500 on both apps, so no valid update is served either (probe; review finding 2, open).",
+  "status": "met",
+  "evidence": "api/case.py published_updates (except OSError, ValueError); api/local_routes.py updates; tests/unit/api/test_local_routes_w2.py (test_review_w2p3_2_3, test_review_w2p3_2_a_file_that_is_not_json_is_skipped_and_the_rest_is_served, test_review_w2p4_8, test_review2_w2p4_6)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): partial to met. The open part is fixed: a file that is not JSON, not UTF-8, or a folder named x.json is skipped and the valid update is served. uv run pytest tests/unit/api passes. pipeline/published/*.json is now an optional bundle pattern (D96), test_review_w2p4_12 passes.",
   "part": "spec-w2"
  },
  {
@@ -21275,8 +21335,108 @@
   "text": "The scheduler: timers, reminders (lead days and the day itself), the weekly budget, the morning digest and the .ics file are planned by the Loop module and dated by engine.schedule; main shows local notifications with words from the scheduler's real state.",
   "kind": "product",
   "status": "partial",
-  "evidence": "engine/schedule.py; api/local_routes.py schedule_dates",
-  "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, partial. Only the engine half is built (W2-014, W2-016). No web/src/loops module, no Notification, no .ics, no digest, no weekly budget: those are later W2 plans.",
+  "evidence": "engine/schedule.py; api/local_routes.py schedule_dates; desktop/src/reminders.ts; desktop/src/main.ts (createReminders); tests/desktop/bridges.test.ts (reminders, review_w2p4_3, review2_w2p4_2)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): partial, unchanged. New: main shows a planned reminder as one Notification with the words it was given, once across relaunches, the record encrypted (tests pass). Still no web/src/loops module, no .ics, no digest, no weekly budget, and no 'Reminder set on this Mac' line. Two untested paths: a reminder moved to a new date shows again (mutant R4 survives) and the record is trimmed to the plan (R5 survives); I ran both.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-023",
+  "source": "specs/step-w/SPEC-W2.md point 5 (the bridge half, as point 52 splits it)",
+  "text": "The preload adds window.duly.engine (engine.compute, engine.schedule, engine.updates); main checks each call and reply against contracts/desktop_engine_bridge.schema.json and forwards it to the engine over the W1 socket with the token, refusing any frame but the main frame of duly://app.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/enginebridge.ts; desktop/src/preload.ts; contracts/desktop_engine_bridge.schema.json; tests/desktop/bridges.test.ts (engine bridge block)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. The engine bridge tests pass (the desktop vitest run here gives 348 passed, 0 failed), including a call outside the schema, a reply outside it, and the frame check.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-024",
+  "source": "specs/step-w/SPEC-W2.md point 5 (the CSP half), moved to W2-P5 by point 52",
+  "text": "The renderer no longer fetches api/...; the duly://app/api proxy is removed and the CSP's connect-src becomes 'none'; a web test checks that no source file calls fetch(.",
+  "kind": "security",
+  "status": "not_started",
+  "evidence": "none",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, not started, by plan: point 52 moves it to W2-P5. desktop/src/protocol.ts still has connect-src 'self', and web/src/app/caseStore.tsx and Onboarding.tsx still fetch.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-025",
+  "source": "specs/step-w/SPEC-W2.md point 13",
+  "text": "window.duly.documents with contracts/desktop_documents_bridge.schema.json: add (main's own dialog, or a real drop read with webUtils.getPathForFile; a path string from the screen refused), list, open, versions, update, remove, restore, delete, export (decrypted copies to a folder or a .zip the student picks), every reply checked against the schema, each refusal tested.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docbridge.ts; desktop/src/preload.ts; tests/desktop/documents-bridge.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. Every call and each named refusal (not_dropped, not_a_file, inside_data_folder, too_large, duplicate, too_many_files, bad_replaces, reply outside the contract) has a passing test. Partly built: export as a .zip is tested only cancelled and refused; no test writes a zip. My probe wrote one with two files and unzip -t found no errors, but a probe is not a test. Untested edge: mutant N6d (a drop with one non-path entry and replaces) survives.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-026",
+  "source": "specs/step-w/SPEC-W2.md point 14",
+  "text": "A random 256-bit document key D, wrapped by safeStorage into <userData>/keys.bin at first use; each file's random 256-bit key F kept only inside the encrypted index.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts load; tests/desktop/documents-store.test.ts ('wraps D with the keychain into keys.bin and never writes D or any F unwrapped', 'refuses a keys.bin the keychain cannot open, and keeps it')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass (the desktop vitest run here gives 348 passed, 0 failed).",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-027",
+  "source": "specs/step-w/SPEC-W2.md point 15",
+  "text": "Each document is <userData>/files/<random id>, AES-256-GCM in 1 MiB chunks, nonce a random 64-bit prefix plus a 32-bit counter, additional data the document id, chunk index and last-chunk flag; add writes .part, syncs, renames, decrypts back and compares SHA-256 before the index row; a reordered, dropped or cut chunk fails and is reported; a crash leaves no row and no orphan.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts store, encryptFile, openFile; tests/desktop/documents-store.test.ts (round trip, chunk faults, 'a crash in any step of an add leaves no row and no file', review_w2p4_6, review_w2p4_7)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass. The review's mutants M1, M2, M3, M6 and M17 on this code are reported caught; I did not rerun those five.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-028",
+  "source": "specs/step-w/SPEC-W2.md point 16, as D96 and the contract as of 444fa86 amend it",
+  "text": "The index is one JSON file documents.bin, AES-256-GCM under D, written atomically; a bad index is refused and kept; a missing documents.bin with a file in files/ is index_missing and nothing is deleted; the newest 20000 history lines are kept; the original file is never moved or deleted, and Duly says so once.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts load, save; tests/desktop/documents-store.test.ts (atomic write, bad index kept, review_w2p4_1, review2_w2p4_4, review_w2p4_5, review2_w2p4_8, 'never moves or changes the student's own file')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. The store half passes its tests, and my mutant that removes index_missing is caught by 2 tests. Partly built: 'Duly says so once' is a screen line and no screen uses the store yet. Also the SPEC text and D96 say keys.bin alone is index_missing; the code and contract give an empty index (review finding 1). I record the code as following the contract and list the conflict as a dispute.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-029",
+  "source": "specs/step-w/SPEC-W2.md point 17, as D96 amends it",
+  "text": "Versions newest first through replaces; Remove, Put back, Delete for good (destroys F and the file, history keeps 'A document was deleted for good' without the name); Delete everything on this Mac after an inline confirm; a chain stays one line (second replacer, multi-file replaces, past 200 versions are bad_replaces); 50 files per add, 5000 documents; an empty file skipped; export never inside the data folder.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; desktop/src/docbridge.ts; desktop/src/statefile.ts; tests/desktop/documents-store.test.ts; tests/desktop/documents-bridge.test.ts ('deletes files/, documents.bin, keys.bin, case.bin and state.bin')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. Every rule of the store and bridge has a passing test. Partly built: the Settings screen with Delete everything and its inline confirm does not exist yet (web/src has no call to the bridges). Untested edges, run by me: mutant F3 (a duplicate inside one add counted at 4999) and N6d survive every test.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-030",
+  "source": "specs/step-w/SPEC-W2.md point 18",
+  "text": "window.duly.state (read, write, clear) saves <userData>/state.bin with safeStorage like case.bin, checked against $defs/state on every read and write, written atomically, a bad file refused and kept; a web test that no loop save writes a case fact into state.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/statefile.ts; contracts/desktop_state_bridge.schema.json; tests/desktop/bridges.test.ts (state bridge block)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. The desktop half passes every test named in the point. Partly built: there is no loop module, so the web test that no loop save writes a case fact does not exist.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-031",
+  "source": "specs/step-w/SPEC-W2.md point 52 (L-security)",
+  "text": "security/threat-model.md has rows for documents under the keychain key alone: what files/, documents.bin and keys.bin hold, who can read them, what AES-256-GCM in chunks protects against and what it does not, and that the Touch ID lock and recovery kit come with documents-1.",
+  "kind": "security",
+  "status": "met",
+  "evidence": "security/threat-model.md lines 33 to 36",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. The four rows say each of these in plain words; the copy lint is clean.",
+  "part": "spec-w2"
+ },
+ {
+  "id": "W2-032",
+  "source": "specs/step-w/SPEC-W2.md point 22 (D96 part)",
+  "text": "Each planned reminder is shown once, across relaunches too; main keeps what it has shown in its own file under userData, never in state.bin, encrypted as state.bin is and removed with it.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/reminders.ts; desktop/src/statefile.ts SHOWN_FILE; tests/desktop/bridges.test.ts (review_w2p4_3, review2_w2p4_2 x3)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass; my mutant writing the record unencrypted is caught by 2 tests. Untested: R4 and R5 (see W2-022).",
   "part": "spec-w2"
  },
  {
@@ -22914,9 +23074,9 @@
   "source": "docs/04-data-and-pipeline.md, Documents",
   "text": "Encrypted blobs on disk, one per file, with a sidecar index.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No document store.",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts (files/<id>, index documents.bin); tests/desktop/documents-store.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. One encrypted file per document in files/ and one encrypted index documents.bin beside them. Tests pass (the desktop vitest run here gives 348 passed, 0 failed).",
   "part": "workbook-handoff"
  },
  {
@@ -22934,9 +23094,9 @@
   "source": "docs/04-data-and-pipeline.md, Documents",
   "text": "Names are stored encrypted too so the locked list can only show blurred placeholders.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No document store.",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; tests/desktop/documents-store.test.ts ('holds no name or date in the clear')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. Names are only inside the encrypted index (test passes). Partly built: there is no lock and no locked list with blurred placeholders (documents-1).",
   "part": "workbook-handoff"
  },
  {
