@@ -11,6 +11,10 @@ MONDAY = 0
 THURSDAY = 3
 SATURDAY = 5
 MONTHS_IN_YEAR = 12
+# The item of 5 U.S.C. 6103(a) as the list in the saved words writes it. A row of
+# calendar.federal_holidays_law holds Juneteenth when its quote names this item
+# (SPEC-resolutions point 53).
+JUNETEENTH_ITEM = "Juneteenth National Independence Day, June 19"
 
 
 def add_months(d: date, n: int) -> date:
@@ -93,15 +97,17 @@ def is_business_day(d: date, is_holiday: Callable[[date], bool] | None = None) -
     return not is_holiday(d)
 
 
-def add_business_days(d: date, n: int, is_holiday: Callable[[date], bool] | None = None) -> date:
-    """The n-th business day after d. Counting starts on the day after d. is_holiday
-    decides the holidays, as in is_business_day."""
+def add_business_days(
+    d: date, n: int, is_holiday: Callable[[date], bool] | None = None, sign: int = 1
+) -> date:
+    """The n-th business day after d, or before it with sign -1. Counting starts on the day
+    next to d. is_holiday decides the holidays, as in is_business_day."""
     if n < 0:
         raise ValueError("add_business_days needs a count of zero or more")
     day = d
     left = n
     while left > 0:
-        day += timedelta(days=1)
+        day += timedelta(days=sign)
         if is_business_day(day, is_holiday):
             left -= 1
     return day

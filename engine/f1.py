@@ -15,7 +15,13 @@ from typing import Any
 
 from engine import path
 from engine.clocks import Clock, day_in_zone, zone_named
-from engine.dates import add_business_days, add_months, add_years, federal_holidays
+from engine.dates import (
+    JUNETEENTH_ITEM,
+    add_business_days,
+    add_months,
+    add_years,
+    federal_holidays,
+)
 from engine.rulepack import Rulepack, RulepackError
 from engine.settings import load_settings, whole_setting
 from engine.verdict import VerdictInputs, decide
@@ -35,9 +41,6 @@ OPT_START_LOOKBACK = "product.opt_start_earliest_years_before_program_end"
 
 # Rules that are law without being the value of one item.
 HOLIDAYS_LAW = "calendar.federal_holidays_law"
-# The item of 5 U.S.C. 6103(a) as the list in the saved words writes it. A row of
-# HOLIDAYS_LAW holds Juneteenth when its quote names this item (SPEC-resolutions point 53).
-JUNETEENTH_ITEM = "Juneteenth National Independence Day, June 19"
 CPT_BAR = "cpt.full_time_bar_days"
 FISCAL_YEAR_START = "capgap.fiscal_year_start_month_day"
 REPORT_EMPLOYER = "opt.report_employer_within_days"

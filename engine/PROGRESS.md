@@ -2283,3 +2283,26 @@ Status: done.
 - No code change in this attempt. Wrote engine/REPORT.json.
 
 Status: done.
+
+## l-engine-903e9791bf (W2-P3, SPEC-W2 point 46, N5: engine/schedule.py)
+
+### Attempt 1
+
+- New engine/schedule.py: `schedule(request, packs, clock)` answers contracts/schedule.schema.json.
+  Today is `day_in_zone(clock, case.time_zone)`; item and cap bases are the case's computed date
+  items from `engine.path.compute`; days, months (`dates.add_months`, clamped) and business days
+  (`dates.add_business_days` with a holiday test read from the case's packs' row of
+  calendar.federal_holidays_law in force on each day, Juneteenth by the row's quote). Missing
+  base, cap or setting gives date null with its reason; a later result is moved back to the cap
+  and marked capped; a setting amount is marked planning and never listed under rule_ids.
+- engine/dates.py: `add_business_days` takes `sign` (count back with -1); JUNETEENTH_ITEM moved
+  here from f1.py so the schedule reads nothing from the F-1 module. f1.py imports it.
+- A business-day count over a day with no holiday row in force raises CalendarNotInForceError:
+  the contract has no missing reason for it (request filed in REPORT.json).
+- Done command as written ($TMPDIR/done.log): exit 0. tests/unit/acceptance (journeys): pass,
+  one xfail already there.
+- Not built: no new holiday reader (federal_holidays reused), no new month or business-day code,
+  no settings reader (load_settings, whole_setting, DATING_UNITS reused), no years offset (the
+  contract names days, business_days and months only).
+
+Status: done.
