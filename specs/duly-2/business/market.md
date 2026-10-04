@@ -1,6 +1,6 @@
 # Duly business: market and willingness to pay
 
-Status: research section for the founder, 2026-10-01. Inputs: ARCHITECTURE.md sections 0, 8, 16, 18, 19; specs/ui-2/VALUE-2.md section 4 (free and paid); specs/ui-2/competitor/ANALYSIS.md; the founder's earlier notes in docs/research/founder/ ("Duly market and pricing validation", 2026-09-28). D8 still parks the price, so every price here is a **Proposal**.
+Status: research section for the founder, 2026-10-01. Inputs: ARCHITECTURE.md sections 0, 8, 16, 18, 19; specs/ui-2/VALUE-2.md section 4 (free and paid); specs/ui-2/competitor/ANALYSIS.md (removed from the repo on 2026-10-03, D100; in git history at 67bbc33); the founder's earlier notes in docs/research/founder/ ("Duly market and pricing validation", 2026-09-28). D8 still parks the price, so every price here is a **Proposal**.
 
 Markings: every external number has its source URL and the date it was read. **(estimate)** means arithmetic or judgement in this file, not a published figure. **(unverified)** means the source could not be fetched in this pass. "Read 2026-10-01" means fetched today; "read 2026-09-28" means taken from the founder's earlier notes, which fetched it then.
 
@@ -94,8 +94,8 @@ Gen Z subscription fatigue backs this up: in CivicScience data, 37% cancelled at
 
 **What the comparison shows:**
 - **Students pay for trackers in a narrow band:** $50 to $155 a year. Monthly plans cost $6.67 to $14.99. Lawfully's $14.99 serves anxious green-card applicants tracking one case, not students who need a tool for years.
-- **TrackMyOPT charges for what Duly gives free:** reminders, the document vault and STEM tracking (ANALYSIS.md W14). Duly can be cheaper and still give more.
-- **Bundling an attorney consult is how competitors justify a tier above $100.** BOUNDARY rules out bundled or referral consults for Duly (ANALYSIS.md section 8), so Duly has no tier above $100.
+- **TrackMyOPT charges for what Duly gives free:** reminders, the document vault and STEM tracking (ANALYSIS.md W14, removed from the repo on 2026-10-03, D100; in git history at 67bbc33). Duly can be cheaper and still give more.
+- **Bundling an attorney consult is how competitors justify a tier above $100.** BOUNDARY rules out bundled or referral consults for Duly (ANALYSIS.md section 8, removed from the repo on 2026-10-03, D100; in git history at 67bbc33), so Duly has no tier above $100.
 - **Transactional services price the filing, not the student.** They start at $159 for an EAD filing. Duly prepares no forms.
 
 ---
@@ -231,7 +231,7 @@ What the table says:
 **Billing rules that keep students coming back:**
 - **No dark patterns.** Remind 7 days before every renewal. Cancel in one tap on the web and in the app. Refund within 14 days, no questions. The founder's earlier notes cite California's automatic renewal law (amended 2025-07-01) as the floor.
 - **Allow a pass with no auto-renewal.** "Plus for 12 months, no auto-renewal" at the same $39. About 30% of annual subscribers turn renewal off in the first month anyway (RevenueCat 2025), so offering a pass gives up little and earns trust.
-- **No sales surfaces.** Plus is offered in one place, Settings, and at the moment a student reaches for a paid extra, for example the packet. Never on Home or on a date (ANALYSIS.md section 8).
+- **No sales surfaces.** Plus is offered in one place, Settings, and at the moment a student reaches for a paid extra, for example the packet. Never on Home or on a date (ANALYSIS.md section 8, removed from the repo on 2026-10-03, D100; in git history at 67bbc33).
 - **Sell on the web first,** so more of each payment reaches Duly. In-app purchase on iPhone and Android stays available, because some students will only pay there.
 - **Guarantee one price for the student's whole stay** (the price paid at signup holds through STEM OPT). It costs little, students will tell each other about it, and it answers the fear of rising prices.
 

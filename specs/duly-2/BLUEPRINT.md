@@ -88,7 +88,7 @@ Evidence behind this, honestly weighted: uncertainty about timing hurts more tha
 
 **C. STEM OPT filing**
 1. Open: runway from the card end date, or Ask "STEM extension". The STEM card on Today ("Decide on or before Oct 15") opens in place; "Yes" goes to planned, not to a strip that stops.
-2. Asking: whether the degree's CIP code is on the DHS list (read from the I-20 on the device; the list must be saved as a source first, ANALYSIS.md); employer E-Verify status as a fact the student enters; DSO recommendation date when it exists.
+2. Asking: whether the degree's CIP code is on the DHS list (read from the I-20 on the device; the list must be saved as a source first, ANALYSIS.md, removed from the repo on 2026-10-03, D100; in git history at 67bbc33); employer E-Verify status as a fact the student enters; DSO recommendation date when it exists.
 3. Answer: "File your I-765 on or before [engine date]", with the limit that sets it marked.
 4. Actions in order: complete the I-983 with the employer and add it; get the DSO recommendation; file the I-765; add the receipt number.
 5. Waiting: after the receipt, waiting(event) on the decision, with the USCIS line on Today.

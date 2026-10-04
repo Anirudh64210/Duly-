@@ -135,7 +135,7 @@ So a legal model looks like this:
 ### 4.2 Conflicts with current decisions (founder)
 
 - BOUNDARY.md, the step back, item 4: "a neutral pointer such as the AILA lawyer search, no paid referrals."
-- VALUE-2 section 3 "Still no" lists referrals. ANALYSIS section 8 will not copy "a bundled attorney consultation or paid referrals".
+- VALUE-2 section 3 "Still no" lists referrals. ANALYSIS section 8 (removed from the repo on 2026-10-03, D100; in git history at 67bbc33) will not copy "a bundled attorney consultation or paid referrals".
 - BOUNDARY "Words Duly never uses about itself" (lawyer, attorney) still allows naming other people's services, but the copy needs care.
 
 Recommendation if B10 goes ahead: build a separate "Find an immigration attorney" directory, reached from Your case and from the Share sheet, never from the step-back card. The step-back card keeps only the neutral AILA pointer. A paid listing is advertising, not a referral, but a worried student may read any listing inside Duly as an endorsement. The labels have to say plainly that it is not.

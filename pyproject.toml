@@ -2,6 +2,7 @@
 name = "duly"
 version = "0.0.0"
 description = "Duly: immigration record keeping. Code computes, sources are cited, nothing is advice."
+license = "AGPL-3.0-only"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi>=0.115",

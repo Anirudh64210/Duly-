@@ -3,6 +3,7 @@
   "productName": "Duly",
   "private": true,
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "description": "Duly for the desktop: the same app in its own window, with the engine running on this machine.",
   "main": "dist/main.js",
   "scripts": {

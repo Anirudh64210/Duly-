@@ -164,7 +164,8 @@ Read each row as: what loop they run, how it closes, what Duly takes, what Duly 
   thing, and for Duly, which of the student's own dates move.
 - **Refuses:** approval probability and RFE odds. These are predictions about the person from
   other people's cases. Processing times only as a figure quoted from USCIS with its date (already
-  an open decision in competitor/ANALYSIS.md).
+  an open decision in competitor/ANALYSIS.md, removed from the repo on 2026-10-03, D100; in git
+  history at 67bbc33).
 - **Note on wiring:** USCIS runs a Case Status API on its Torch developer portal; production
   access requires a demo and approval ([USCIS developer portal](https://developer.uscis.gov/)).
   This is the legitimate path for Duly's B8, rather than scraping.
@@ -490,8 +491,9 @@ Northwind) and are illustrative; in the product every date comes from the engine
 ### 6.3 STEM OPT filing
 1. **Open:** runway from the EAD end date, or typed "STEM extension".
 2. **Clarify:** whether the degree's CIP code is on the DHS list (read from the I-20 on device,
-   per competitor/ANALYSIS.md, not guessed from the major); employer E-Verify status as a
-   student-entered fact; DSO recommendation date when it exists.
+   not guessed from the major, per competitor/ANALYSIS.md, removed from the repo on 2026-10-03,
+   D100; in git history at 67bbc33); employer E-Verify status as a student-entered fact; DSO
+   recommendation date when it exists.
 3. **Answer:** File-by date (VALUE-2 feature 1): "File your I-765 by [engine date]", the limit
    that sets it marked.
 4. **Act:** (a) Complete the I-983 with your employer, upload it (b) Get the DSO recommendation
@@ -568,7 +570,8 @@ proposals, not sourced findings.
   helpfulness ([arXiv 2009.06103](https://arxiv.org/abs/2009.06103)).
 - **Notification opt-outs and unanswered check-ins:** rising numbers mean Duly is nagging.
 - **Disagreement checks:** a test fails if a Loop shows a date that differs from the engine item
-  it cites (extends ANALYSIS.md move 1).
+  it cites (extends ANALYSIS.md move 1, removed from the repo on 2026-10-03, D100; in git history
+  at 67bbc33).
 
 ## 9. Risks and how the design contains them
 
@@ -594,7 +597,8 @@ proposals, not sourced findings.
 5. Choose the name for the situations place.
 6. Approve back-off after three unanswered check-ins.
 7. Confirm the rule work these loops need first: 8 CFR 214.2(f)(17) (address), document
-   replacement sources, the DHS STEM list (already open in ANALYSIS.md).
+   replacement sources, the DHS STEM list (already open in ANALYSIS.md, removed from the repo on
+   2026-10-03, D100; in git history at 67bbc33).
 
 ## Sources
 

@@ -1,6 +1,6 @@
 # Duly pricing: what it costs to run, and a fair price that covers it
 
-Status: research for the founder, 2026-10-01, **reviewed adversarially the same day** (section 8 lists what the review changed). A Proposal, not a decision: D8 (pricing) is still parked. Builds on business/costs.md, business/market.md and business/channels.md (same date), ARCHITECTURE.md sections 0, 8, 16, 18 and 19, specs/ui-2/VALUE-2.md section 4 and specs/ui-2/competitor/ANALYSIS.md.
+Status: research for the founder, 2026-10-01, **reviewed adversarially the same day** (section 8 lists what the review changed). A Proposal, not a decision: D8 (pricing) is still parked. Builds on business/costs.md, business/market.md and business/channels.md (same date), ARCHITECTURE.md sections 0, 8, 16, 18 and 19, specs/ui-2/VALUE-2.md section 4 and specs/ui-2/competitor/ANALYSIS.md (removed from the repo on 2026-10-03, D100; in git history at 67bbc33).
 
 How to read it: every external number carries its source URL and the date it was read. **(est.)** marks arithmetic or judgement in this file. The model behind every table is business/pricing_model.py (run `python3 specs/duly-2/business/pricing_model.py`); the reviewed figures are its **v4** blocks, and the earlier v1 to v3 blocks are kept only for the option comparison in 4.1. Ask costs are shown two ways: **Opus 4.8** (the only model cleared today for Bedrock retention `none`) and **Sonnet 5.5 with caching** (cheaper, not yet cleared).
 
@@ -253,7 +253,7 @@ Ask up to the 20-a-day safety limit; 5 GB of encrypted backup for other files, w
 3. Pause instead of cancel between seasons.
 4. Hardship price on request, no proof asked.
 5. One price everywhere, no pricing by country (channels.md 5.3).
-6. Plus is offered only in Settings and when a student reaches for a paid extra; never on Home or next to a date (ANALYSIS.md 8).
+6. Plus is offered only in Settings and when a student reaches for a paid extra; never on Home or next to a date (ANALYSIS.md 8, removed from the repo on 2026-10-03, D100; in git history at 67bbc33).
 7. No trial bait, no fear in the sales copy, no bundled attorney consult (BOUNDARY).
 8. The four rules in 5.1: F-2 papers free, immigration papers always back up, nothing deleted on lapse, safety reports answered on the same clock.
 9. If Duly ever closes, Stay pass holders get a pro-rata refund and every student a full export (est. liability: at 100k in the base case about 750 open passes, under $30k).

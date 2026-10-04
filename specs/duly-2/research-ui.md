@@ -3,7 +3,7 @@
 2026-09-30. Research for the founder's critique that Duly feels static: a question is asked, answered, and then nothing happens. This file looks at how quiet but capable products build their home screens, inboxes, ask entry points and history views. It draws the patterns Duly should take, and proposes Duly's information architecture: what sits on Home (collapsed), where the assistant lives, and where the footprint lives.
 
 Basis:
-- Duly's side: specs/ui-2/BRIEF.md, specs/ui-2/VALUE-2.md, specs/ui-2/competitor/ANALYSIS.md, DECISIONS.md (D23, D27, D47, D54, D55, D60, D72, D73, D74), and the prototype code (specs/ui-2/prototype/screens/home.js, data.js, components/shell.js).
+- Duly's side: specs/ui-2/BRIEF.md, specs/ui-2/VALUE-2.md, specs/ui-2/competitor/ANALYSIS.md (removed from the repo on 2026-10-03, D100; in git history at 67bbc33), DECISIONS.md (D23, D27, D47, D54, D55, D60, D72, D73, D74), and the prototype code (specs/ui-2/prototype/screens/home.js, data.js, components/shell.js).
 - Outside: every external claim carries its URL. "Fetched" means the page itself was read. "Snippet" means only a search result summary was read because the page refused the fetch. "Unverified" means it could not be confirmed against a primary page. The full list is in section 12.
 
 ## 0. Summary
@@ -176,7 +176,7 @@ The founder's words: "do you still have this job? no. what to do? find a job. ho
 | Planned, step 1 (what to do) | "Report the end of Northwind by [date]", with where to report (the SEVP portal or the school's process) and "Done" | Pack rule; school step if the student pasted the school page (BRIEF round 3, note 4) |
 | Planned, step 2 (find a job: how) | "What a job needs to count on OPT", in plain words from the pack (related to your field, hours per week), with the source mark. No verdict on any particular offer | opt.* requires rows; BOUNDARY |
 | Planned, step 3 (where) | Your school's career office, from the school page the student pasted. Optional public employer lookups only where a rule makes them matter (for STEM OPT, employer E-Verify participation, if that pack row and source exist). No job board, no listings | VALUE-2 "Still no: job board"; D47. **Founder decision** (section 11) |
-| Planned, step 4 (when) | "Day 90 would be [date]." A reminder at the student's chosen lead | Engine; reminders (ANALYSIS 7.3) |
+| Planned, step 4 (when) | "Day 90 would be [date]." A reminder at the student's chosen lead | Engine; reminders (ANALYSIS 7.3, removed from the repo on 2026-10-03, D100; in git history at 67bbc33) |
 | Planned, step 5 (keep in mind) | Two or three lines that each move a date: "A trip abroad with no job adds days (try it in What if)"; "When you have an offer, add it here: it starts the report clock" | Pack rules; What if |
 | Waiting | The loop leaves Today. It wakes on the reminder date, at the check-in staleness, or when a new job is added | Linear's "time or new activity, whichever comes first" |
 | Closed | New job added: "Report the new job by [date]" opens as a child loop. When that is done: "Closed. Northwind ended Oct 31; Contoso started Nov 16; both reported." One line in Record | Record event log |
@@ -257,7 +257,7 @@ One chronological, dated ledger, newest first, grouped by phase (BRIEF Timeline:
 What Record can do:
 - **Filters:** Programs, Work, Travel, Papers, USCIS, Reports.
 - **Search,** matching content as in Raycast.
-- **Share and export** build from it (VALUE-2 feature 7; ANALYSIS 7.9).
+- **Share and export** build from it (VALUE-2 feature 7; ANALYSIS 7.9, removed from the repo on 2026-10-03, D100; in git history at 67bbc33).
 - **Reopen** any closed loop.
 
 ### 6.3 Technically
@@ -314,7 +314,7 @@ Today is ordered top to bottom as follows, with sample values from the prototype
 6. **Footer.** "Records and dates from your documents, not legal advice." Plus "Rules checked Sep 30" (BRIEF).
 
 What leaves Today:
-- the promise line, which moves to Welcome and Settings (said once, ANALYSIS 7.8);
+- the promise line, which moves to Welcome and Settings (said once; ANALYSIS 7.8, removed from the repo on 2026-10-03, D100; in git history at 67bbc33);
 - the News list, which moves to Record; only an item that touches the student comes to Today, as a loop;
 - the open check-in after it is answered.
 
