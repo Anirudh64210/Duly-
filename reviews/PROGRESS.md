@@ -509,3 +509,19 @@
 - Failure: a generic engine test added for one pack's checks (_answers_only) also took an older check of another shape, and no test covered it.
 - Fix: for each new structural predicate in the engine, run it over every check in the pack and read the list it selects.
 - Evidence: reviews/w2-p2.md finding 1, $TMPDIR/rvp4/ao.py.
+
+## 2026-10-03, run l-review-0a6ce14633 (W2-P3 review)
+- Read plan-w2-p3.yaml, SPEC-W2 points 22, 41, 46, 47, 51, schedule.schema.json, openapi /v1/schedule and /v1/updates, and the diff 06e61ad..647247a (engine/schedule.py, dates.py, local_routes.py, case.py, case_f1.py, three drafts, tests).
+- Ran: tests/unit + tests/holdout without tools and test_desktop_main.py, exit 0.
+- Probes $TMPDIR/rvp5/p1.py: 23 requests each worked by hand first, all right (Thanksgiving, observed July 3 counted as the pack's note says, Juneteenth by row, month clamps, cap, settings, missing reasons). days 1e9, months 1e6 and 0001-01-01 back give 500.
+- Bundle probe desk.py: a tree from bundle.json alone gives POST /v1/schedule 500 FileNotFoundError on contracts/schedule.schema.json (blocking, SPEC-W2 47). The repository tree gives 200.
+- Updates probe p3.py: a published file with string "false" flags passes publish_blockers and is served.
+- Drafts: all 15 quotes found in their saved copies by sha256.
+- Mutants: M4, M5, M9 caught; M1 (Juneteenth before 2021), M2 (cap + 1 day), M3 (no publish_blockers), M7 (no row counted) survive.
+- Wrote reviews/w2-p3.md (VETO, mean 3.5), REVIEW.json and REPORT.json (both valid).
+
+## Lesson
+- Failure: every route test passed while the packaged desktop engine could not answer at all, because the tests build the desktop app in the repository tree.
+- Fix: for any new file a local route reads at run time, build a tree from desktop/python/bundle.json alone and call the route there.
+- Evidence: reviews/w2-p3.md finding 1.
+- Also: in zsh, "$T" holding several test paths is not split; write the paths out.

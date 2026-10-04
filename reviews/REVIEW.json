@@ -1,21 +1,117 @@
 {
-  "run_id": "l-review-13e7b0ae80",
-  "reviewed_commit": "b3d04afb2107643711e337637f754671940bf629",
+  "run_id": "l-review-0a6ce14633",
+  "reviewed_commit": "647247a73cdef1097ed9cab7ecb293973a3ac7a7",
   "scores": {
-    "correct": {"score": 4, "evidence": "All eight second-review findings fixed on their inputs; hand-checked 2026-09-20 + 5 months = 2027-02-20 (141 days), 2026-09-25 + 10 = 2026-10-05, 72 days Jul 1 to Sep 10, check-in due 2026-10-10; all match. Beside them, a part-time pre-completion job over the hours loses its confirmed day (finding 1)."},
-    "sourced": {"score": 5, "evidence": "sources verify, recheck --check and plain --require f1 exit 0; fix 4 changes no number, quote or tag; the three address checks cite address.report_change_within_days."},
-    "never_assumes": {"score": 5, "evidence": "A trip with no return keeps 2026-09-20 to 2027-02-20, stays in upcoming and waits on t1.returned_on (asked); A9, A10 and A14 are conflicts asked by name with no report dated; empty passport and visa lists are asked whole; a confirmation before the start is asked. No quiet verdict found."},
-    "inside_the_boundary": {"score": 4, "evidence": "Check-in and ended-job words state facts and ask; no outcome words. The address conflicts show only 'Some facts entered do not fit together.' on Home and 'Are these the dates on your documents?' through conflictQuestionCopy (finding 3)."},
-    "secure": {"score": 5, "evidence": "Conflicting, empty, not_sure and ended records and a no to a check-in give no crash or stall; each becomes a question or a withheld value."},
-    "tested": {"score": 4, "evidence": "Suite exit 0, web 616 passed; mutants M1, M9, M12 and N1 to N4 caught. N5 (_confirmed ignores a clash) survives (finding 2); the opt_pre case of finding 1 is untested."}
+    "correct": {
+      "score": 2,
+      "evidence": "Every date I worked by hand matches: 2026-11-30, 2026-07-03, 2026-06-22, 2020-06-19, 2026-12-23, 2028-01-03, the month clamps, the cap to 2026-05-01, the lead-days 2026-04-28 and 2026-10-06. But on the packaged desktop, POST /v1/schedule is a 500 for every body (finding 1), so SPEC-W2 point 47's desktop serving fails."
+    },
+    "sourced": {
+      "score": 5,
+      "evidence": "Holidays are read from the pack's calendar.federal_holidays_law row in force on each day, Juneteenth from its quote, with no number written in engine/schedule.py. All 15 draft quotes are found in the saved copies matched by snapshot_sha256."
+    },
+    "never_assumes": {
+      "score": 4,
+      "evidence": "A missing base, cap or setting gives date null with its reason. A day with no holiday row gives 422, not a guess. A base taken from a planning item is not marked planning (finding 8), and a litigated base's status is not on the answer."
+    },
+    "inside_the_boundary": {
+      "score": 5,
+      "evidence": "The three drafts and the NO_CALENDAR words are information only. Nothing is addressed to the student or says what anyone should do."
+    },
+    "secure": {
+      "score": 3,
+      "evidence": "Both apps refuse the four token forms with 403. But a valid body crashes the packaged route (finding 1), days 1e9, months 1e6 or 0001-01-01 minus 1 day give a 500 OverflowError (finding 6), and an update outside update.schema.json is served (finding 2)."
+    },
+    "tested": {
+      "score": 2,
+      "evidence": "Mutants M1 (Juneteenth before 2021), M2 (cap + 1 day), M3 (publish_blockers filter removed) and M7 (a day with no holiday row counted) survive. No test runs the routes from the bundled tree, which is why finding 1 was missed."
+    }
   },
   "findings": [
-    {"severity": "should_fix", "kind": "regression", "spec_point": "SPEC-W2-UNKNOWN point 33", "title": "_answers_only reads a rule check as a clash, so a part-time job over the hours loses its confirmed day", "file": "engine/path.py:1797", "input": "p1 in progress, a2 opt_pre_completion part_time approved 2026-06-01 to 2027-05-31, w1 under a2 from 2026-06-01, 25 hours, confirmed_on 2026-10-01; today 2026-10-02", "what_happens": "opt_pre.part_time_hours fails and is a _clash on w1; the checkins row shows confirmed_on, due and due_days_away null with nothing naming why. With 20 hours, or with the branch off, it reads 2026-10-01, due 2026-10-31. Exclude nodes with rule in _answers_only."},
-    {"severity": "should_fix", "kind": "missing_test", "title": "No test sees the count read from a confirmed day that conflicts", "file": "engine/path.py:2143", "input": "mutant N5 (the clashed branch of _confirmed off); on_opt(job(confirmed_on=2026-06-10)), start 2026-07-01", "what_happens": "Under N5 the count shows 10 as of 2026-06-10 with no waits_on while w1.confirmed_on is asked as a conflict; every engine and holdout test passes."},
-    {"severity": "should_fix", "kind": "wording", "title": "The address conflicts reach the screen as a bare do-not-fit line, or as a question about dates", "file": "web/src/lib/labels.ts:863", "input": "A9 and A10 records; questionTitle and conflictQuestionCopy for address.one_first_in_us.ad2 with reason conflict:address.one_first_in_us.ad2", "what_happens": "Home: 'Address in the US 2: Some facts entered do not fit together.' Result.tsx: 'Are these the dates on your documents?'; a yes un-withholds the A10 report window (2026-10-05). The pack's plain words are YAML comments only."},
-    {"severity": "should_fix", "kind": "spec_gap", "title": "A withheld watch row has no waits_on", "file": "contracts/engine_output.schema.json:957", "input": "visa vi1 issued 2026-01-01, expires 2025-01-01", "what_happens": "watch.vi1.expires_on has date null and no waits_on, which point 33 reads as does not apply; the link exists only in span_order.vi1.withholds. Needs a contract change."},
-    {"severity": "note", "kind": "other", "title": "A not_sure return gives the absence window null dates", "file": "engine/path.py:1460", "input": "p1 in progress, home, t1 left 2026-09-20, returned_on not_sure", "what_happens": "Window dates null, nothing in upcoming, waits on t1.returned_on, from point 32a. Unchanged by fix 4."},
-    {"severity": "note", "kind": "other", "title": "A no to a check-in is stored and not read", "file": "web/src/app/caseStore.tsx:247", "input": "confirmations checkin.w1 answer false", "what_happens": "The engine reads nothing from it and the same question comes back; the edit screen is W2-P7's."}
+    {
+      "severity": "blocking",
+      "kind": "regression",
+      "spec_point": "SPEC-W2 point 47",
+      "title": "POST /v1/schedule is a 500 on the packaged desktop engine",
+      "file": "api/case.py:63",
+      "input": "create_app(token) from a tree built from desktop/python/bundle.json alone; POST /v1/schedule with the token and {case: tests' CASE, requests: [{id: a, from: {today: true}, add: {days: 1}, sign: 1}]}",
+      "what_happens": "500, FileNotFoundError on contracts/schedule.schema.json, which the bundle does not hold and test_bundle_inputs.py forbids. The repository tree gives 200 with 2026-10-04, so the server and the desktop differ."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "other",
+      "spec_point": "contracts/openapi.yaml /v1/updates",
+      "title": "An update that update.schema.json refuses is served",
+      "file": "api/case.py:76",
+      "input": "a published file with approval.approved \"false\", quote_found \"false\" and checks \"no\"",
+      "what_happens": "publish_blockers tests truthiness and returns nothing, so GET /v1/updates serves it. update.schema.json says 'false' is not of type 'boolean'."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "missing_negative_test",
+      "title": "No test fails when published_updates skips publish_blockers",
+      "file": "tests/unit/api/test_local_routes_w2.py:204",
+      "input": "mutant M3: published_updates returns every file",
+      "what_happens": "Every test passes, because pipeline/published/ does not exist and each test compares an empty list with an empty list."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "missing_test",
+      "title": "No test pins the cap's boundary day",
+      "file": "tests/unit/engine/test_schedule.py:493",
+      "input": "mutant M2 (found > cap_date + 1 day); from 2026-04-30, + 2 days, cap opt.file_by.closes.a1",
+      "what_happens": "The mutant answers 2026-05-02, past the 2026-05-01 obligation, with no capped flag, and the property test passed."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "missing_test",
+      "title": "Juneteenth before 2021-06-17 and days with no holiday row are untested",
+      "file": "tests/unit/engine/test_schedule.py:304",
+      "input": "mutant M1 (Juneteenth always listed): 2020-06-18 + 1 business day; mutant M7 (no row counts as a business day): 1985-12-30 + 3 business days",
+      "what_happens": "Both mutants survive. M1 would give 2020-06-22. M7 dates a count that correct code refuses with 422."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "other",
+      "title": "A body inside the contract overflows to a 500, and a long business-day count stalls",
+      "file": "engine/schedule.py:100",
+      "input": "{days: 1000000000} from today; {months: 1000000}; {date: 0001-01-01} - 1 day; 1000 requests of about 2,000,000 business days",
+      "what_happens": "500 OverflowError in place of 422. Business days run about 5 microseconds each, so the 1000-request body takes hours."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "spec_gap",
+      "spec_point": "SPEC-W2 point 47",
+      "title": "The desktop cannot serve a published update",
+      "file": "desktop/python/bundle.json",
+      "input": "any file in pipeline/published/",
+      "what_happens": "pipeline/ is not bundled (test_bundle_inputs forbids it), so the desktop returns an empty list while the server serves the file. api/case.py:85 imports pipeline.graph, which loads langgraph, a package forbidden in the desktop group."
+    },
+    {
+      "severity": "should_fix",
+      "kind": "spec_gap",
+      "spec_point": "SPEC-W2 point 41",
+      "title": "A date counted from a planning item is not marked planning",
+      "file": "engine/schedule.py:75",
+      "input": "{from: {item: opt.prepare.opens.a1}, add: {days: 0}, sign: 1}",
+      "what_happens": "Answer 2026-01-14 with no planning flag, although the base item is planning: true. The contract wording allows this; SPEC-W2 point 41 says only when a setting set it."
+    },
+    {
+      "severity": "note",
+      "kind": "spec_gap",
+      "title": "Duplicate ids are accepted; one uncountable request refuses the whole body",
+      "file": "engine/schedule.py:46",
+      "input": "two requests with id dup; or one 1985 business-day request among others",
+      "what_happens": "Both dup answers are returned. The 1985 request turns the whole body into a 422."
+    },
+    {
+      "severity": "note",
+      "kind": "wording",
+      "title": "The NAMES pattern differs from openapi's categories pattern",
+      "file": "api/local_routes.py:30",
+      "input": "GET /v1/updates?categories=f1.x",
+      "what_happens": "Accepted, where openapi's item pattern ^[a-z0-9]+$ would refuse it."
+    }
   ],
-  "decision": "APPROVE"
+  "decision": "VETO"
 }
