@@ -1,0 +1,46 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'Clear the second W2-P4 review veto (reviews/w2-p4.md): a first add that stores nothing never locks Documents; index_missing applies only when a file in files/ would lose its name; the shown-reminders record is encrypted like state.bin and removed with it; store_full counts only what an add would store; and the three untested paths of D96 get tests. SPEC-W2 points 13 to 18 and 22 as D96 amends them; contracts/desktop_documents_bridge.schema.json as of 444fa86.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Read reviews/w2-p4.md (the second review) and contracts/desktop_documents_bridge.schema.json as of 444fa86. Write tests named review2_w2p4_<N>, failing today, with the finding beside each. In tests/desktop/documents-store.test.ts: 1, a new student whose first add is one empty file, one folder, or one file over the size limit: each add answers with the file skipped, and after a relaunch list answers ok with no documents and a new add stores a file; the same when the first write of documents.bin fails once (the add skips cannot_store) and Duly relaunches; 4, index_missing when documents.bin is missing and files/ holds a file, with or without keys.bin; keys.bin with no file in files/ and no documents.bin gives an empty index and list answers; the 200-version cap holds through update on a document that already has newer versions; 3, with 4999 documents held, add([new.pdf, a duplicate of a held one]) stores new.pdf and the store holds 5000; with 5000 held, any add that would store a file is store_full. In tests/desktop/bridges.test.ts: 2, the record of shown reminders on disk holds no reminder id or date in a form that can be read or matched without the safeStorage key (no plain or unsalted hash), and state.clear and documents.clear both remove it. In tests/unit/api beside the earlier published-file tests: a folder named x.json in the published folder beside a valid update gives 200 with the valid one. Never loosen an assertion. They cannot pass yet.'
+    done: bash -c 'npx tsc --noEmit -p tests/desktop && npx eslint tests/desktop --max-warnings 0 && npx prettier --check "tests/desktop/**/*.{ts,json}" && uv run ruff check tests && uv run ruff format --check tests && uv run pytest tests/unit/api --co -q >/dev/null'
+- name: build
+  lanes:
+  - lane: L-desktop
+    agent: builder
+    mission: 'Read reviews/w2-p4.md (the second review), findings 1 to 5 and notes 7 and 8, against contracts/desktop_documents_bridge.schema.json as of 444fa86. desktop/src/docstore.ts: write the empty index in the same step that first writes keys.bin, and treat keys.bin with no file in files/ as a new empty index, so index_missing is only a missing documents.bin while files/ holds a file; store_full counts only the files the add would store; keep the multi-file replaces rule in one place with its test; trim an index already over 20000 history lines when it is loaded, so list answers at once. desktop/src/reminders.ts: keep the shown-reminder record encrypted with safeStorage as state.bin is, and remove it when the state is cleared and when Delete everything runs. desktop/scripts/build-python.sh: replace the here-string at line 121 with process substitution, as line 111 does. Make every desktop test pass.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}" && uv run python -m tools.copy_lint.lint && bash -n desktop/scripts/build-python.sh'
+  - lane: L-api
+    agent: builder
+    mission: 'reviews/w2-p4.md (the second review) note 6: api/case.py treats a published path that cannot be read (a folder named x.json, any OSError) like a file that does not follow update.schema.json, so the other files are still served. Make tests/unit/api pass.'
+    done: bash -c 'uv run pytest tests/unit/api -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  checks:
+  - name: hidden tests
+    run: uv run pytest tests/holdout -q
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/desktop, tests/unit and tests/web in line with plan-w2-p4-fix1.yaml (the second review of reviews/w2-p4.md); write the finding beside each change; never loosen an assertion; escalate any failure no finding explains.'
+    done: bash -c 'npm test -w desktop && npm test -w web -- tests/web && uv run pytest tests/unit tests/holdout -q -p no:cacheprovider --ignore=tests/unit/tools'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=origin/main
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Re-review W2-P4 (plan-w2-p4.yaml and its fixes 0 and 1) against SPEC-W2 points 5, 13 to 18, 22 and 52 as D96 amends them, the K4 contracts as of 444fa86, D85, security/threat-model.md, PRINCIPLES.md and BOUNDARY.md, and both sets of your findings in reviews/w2-p4.md. Rerun probes N1, N1b, N1c, N2, N4c, N5, S1 and S2 and every earlier probe. Write reviews/w2-p4.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p4.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P4 (plan-w2-p4.yaml and its fixes) as your role file describes. Write docs/requirements/audits/w2-p4.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p4.md && uv run python -m tools.requirements.register check'
