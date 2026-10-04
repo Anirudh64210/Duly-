@@ -1,117 +1,66 @@
 {
-  "run_id": "l-review-0a6ce14633",
-  "reviewed_commit": "647247a73cdef1097ed9cab7ecb293973a3ac7a7",
-  "scores": {
-    "correct": {
-      "score": 2,
-      "evidence": "Every date I worked by hand matches: 2026-11-30, 2026-07-03, 2026-06-22, 2020-06-19, 2026-12-23, 2028-01-03, the month clamps, the cap to 2026-05-01, the lead-days 2026-04-28 and 2026-10-06. But on the packaged desktop, POST /v1/schedule is a 500 for every body (finding 1), so SPEC-W2 point 47's desktop serving fails."
-    },
-    "sourced": {
-      "score": 5,
-      "evidence": "Holidays are read from the pack's calendar.federal_holidays_law row in force on each day, Juneteenth from its quote, with no number written in engine/schedule.py. All 15 draft quotes are found in the saved copies matched by snapshot_sha256."
-    },
-    "never_assumes": {
-      "score": 4,
-      "evidence": "A missing base, cap or setting gives date null with its reason. A day with no holiday row gives 422, not a guess. A base taken from a planning item is not marked planning (finding 8), and a litigated base's status is not on the answer."
-    },
-    "inside_the_boundary": {
-      "score": 5,
-      "evidence": "The three drafts and the NO_CALENDAR words are information only. Nothing is addressed to the student or says what anyone should do."
-    },
-    "secure": {
-      "score": 3,
-      "evidence": "Both apps refuse the four token forms with 403. But a valid body crashes the packaged route (finding 1), days 1e9, months 1e6 or 0001-01-01 minus 1 day give a 500 OverflowError (finding 6), and an update outside update.schema.json is served (finding 2)."
-    },
-    "tested": {
-      "score": 2,
-      "evidence": "Mutants M1 (Juneteenth before 2021), M2 (cap + 1 day), M3 (publish_blockers filter removed) and M7 (a day with no holiday row counted) survive. No test runs the routes from the bundled tree, which is why finding 1 was missed."
-    }
+ "run_id": "l-review-d0cf43d6f6",
+ "reviewed_commit": "4fd1ed93bb139da9f59590c0dce282267d5eef8a",
+ "scores": {
+  "correct": {
+   "score": 5,
+   "evidence": "All 36 requests match hand counts (2026-11-30, 2026-07-03, 2026-06-22, 2020-06-19, 2021-06-18, 2026-12-23, 2028-01-03, today + 260 business days 2027-10-12, cap boundary 2026-05-01 both ways). The allowlist-only tree answers both routes byte-identically to the server, with and without published files."
   },
-  "findings": [
-    {
-      "severity": "blocking",
-      "kind": "regression",
-      "spec_point": "SPEC-W2 point 47",
-      "title": "POST /v1/schedule is a 500 on the packaged desktop engine",
-      "file": "api/case.py:63",
-      "input": "create_app(token) from a tree built from desktop/python/bundle.json alone; POST /v1/schedule with the token and {case: tests' CASE, requests: [{id: a, from: {today: true}, add: {days: 1}, sign: 1}]}",
-      "what_happens": "500, FileNotFoundError on contracts/schedule.schema.json, which the bundle does not hold and test_bundle_inputs.py forbids. The repository tree gives 200 with 2026-10-04, so the server and the desktop differ."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "other",
-      "spec_point": "contracts/openapi.yaml /v1/updates",
-      "title": "An update that update.schema.json refuses is served",
-      "file": "api/case.py:76",
-      "input": "a published file with approval.approved \"false\", quote_found \"false\" and checks \"no\"",
-      "what_happens": "publish_blockers tests truthiness and returns nothing, so GET /v1/updates serves it. update.schema.json says 'false' is not of type 'boolean'."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "missing_negative_test",
-      "title": "No test fails when published_updates skips publish_blockers",
-      "file": "tests/unit/api/test_local_routes_w2.py:204",
-      "input": "mutant M3: published_updates returns every file",
-      "what_happens": "Every test passes, because pipeline/published/ does not exist and each test compares an empty list with an empty list."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "missing_test",
-      "title": "No test pins the cap's boundary day",
-      "file": "tests/unit/engine/test_schedule.py:493",
-      "input": "mutant M2 (found > cap_date + 1 day); from 2026-04-30, + 2 days, cap opt.file_by.closes.a1",
-      "what_happens": "The mutant answers 2026-05-02, past the 2026-05-01 obligation, with no capped flag, and the property test passed."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "missing_test",
-      "title": "Juneteenth before 2021-06-17 and days with no holiday row are untested",
-      "file": "tests/unit/engine/test_schedule.py:304",
-      "input": "mutant M1 (Juneteenth always listed): 2020-06-18 + 1 business day; mutant M7 (no row counts as a business day): 1985-12-30 + 3 business days",
-      "what_happens": "Both mutants survive. M1 would give 2020-06-22. M7 dates a count that correct code refuses with 422."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "other",
-      "title": "A body inside the contract overflows to a 500, and a long business-day count stalls",
-      "file": "engine/schedule.py:100",
-      "input": "{days: 1000000000} from today; {months: 1000000}; {date: 0001-01-01} - 1 day; 1000 requests of about 2,000,000 business days",
-      "what_happens": "500 OverflowError in place of 422. Business days run about 5 microseconds each, so the 1000-request body takes hours."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "spec_gap",
-      "spec_point": "SPEC-W2 point 47",
-      "title": "The desktop cannot serve a published update",
-      "file": "desktop/python/bundle.json",
-      "input": "any file in pipeline/published/",
-      "what_happens": "pipeline/ is not bundled (test_bundle_inputs forbids it), so the desktop returns an empty list while the server serves the file. api/case.py:85 imports pipeline.graph, which loads langgraph, a package forbidden in the desktop group."
-    },
-    {
-      "severity": "should_fix",
-      "kind": "spec_gap",
-      "spec_point": "SPEC-W2 point 41",
-      "title": "A date counted from a planning item is not marked planning",
-      "file": "engine/schedule.py:75",
-      "input": "{from: {item: opt.prepare.opens.a1}, add: {days: 0}, sign: 1}",
-      "what_happens": "Answer 2026-01-14 with no planning flag, although the base item is planning: true. The contract wording allows this; SPEC-W2 point 41 says only when a setting set it."
-    },
-    {
-      "severity": "note",
-      "kind": "spec_gap",
-      "title": "Duplicate ids are accepted; one uncountable request refuses the whole body",
-      "file": "engine/schedule.py:46",
-      "input": "two requests with id dup; or one 1985 business-day request among others",
-      "what_happens": "Both dup answers are returned. The 1985 request turns the whole body into a 422."
-    },
-    {
-      "severity": "note",
-      "kind": "wording",
-      "title": "The NAMES pattern differs from openapi's categories pattern",
-      "file": "api/local_routes.py:30",
-      "input": "GET /v1/updates?categories=f1.x",
-      "what_happens": "Accepted, where openapi's item pattern ^[a-z0-9]+$ would refuse it."
-    }
-  ],
-  "decision": "VETO"
+  "sourced": {
+   "score": 5,
+   "evidence": "Holidays come from the pack's calendar.federal_holidays_law row in force on each day, Juneteenth from its quote. The new offset limits are marked in the contract as Duly's own, never a rule. engine_literals passes."
+  },
+  "never_assumes": {
+   "score": 5,
+   "evidence": "A day with no holiday row gives holidays_not_known and the rest of the body is answered; a planning base or planning cap makes the answer planning; a base or result outside 1950-01-01..2099-12-31 gives outside_readable_dates."
+  },
+  "inside_the_boundary": {
+   "score": 5,
+   "evidence": "The new strings are missing reasons and contract descriptions; none addresses the student or says what to do. Copy lint is clean; drafts unchanged and still unapproved."
+  },
+  "secure": {
+   "score": 4,
+   "evidence": "days 1e9 and months 1e6 are 422 by the new maxima; 0001-01-01 and 9999-12-31 give a reason, no OverflowError. A file outside update.schema.json is never served. One unparsable file in pipeline/published/ still makes GET /v1/updates a 500 (finding 2)."
+  },
+  "tested": {
+   "score": 4,
+   "evidence": "Mutants M1, M2, M3, M7 caught, and own M3b, M3c, M8, M13, M14, M16 caught. The bundle test runs both routes from the allowlist alone. Only M17 survives, the dead route handler (finding 1); no test has an unparsable published file."
+  }
+ },
+ "findings": [
+  {
+   "severity": "should_fix",
+   "kind": "overbuilt",
+   "spec_point": "contracts/openapi.yaml /v1/schedule 422",
+   "title": "The route's CalendarNotInForceError handler and NO_CALENDAR can no longer run",
+   "file": "api/local_routes.py:130",
+   "input": "1985-12-30 + 3 business days; mutant M17 removing the except clause",
+   "what_happens": "engine/schedule.py:120 catches the error per request, so the answer is 200 with holidays_not_known and M17 passes every test. The dead handler and NO_CALENDAR (line 34) say the opposite of openapi's 'A request the engine cannot date is not a 422'. Delete both and the import."
+  },
+  {
+   "severity": "should_fix",
+   "kind": "missing_negative_test",
+   "title": "One unparsable published file makes GET /v1/updates a 500",
+   "file": "api/case.py:87",
+   "input": "pipeline/published/ holding one valid unblocked update and one file containing '{not json'",
+   "what_happens": "json.loads raises before the schema check, so the route is a 500 and the valid update is not served. Treat a file that does not parse as one outside update.schema.json, with a test."
+  },
+  {
+   "severity": "note",
+   "kind": "spec_gap",
+   "title": "A planning base capped to a rule item stays planning",
+   "file": "engine/schedule.py:94",
+   "input": "a base item with planning true, capped to a non-planning item",
+   "what_happens": "The answer is the cap's rule date marked planning. This follows the contract as of a3f7a7a; the founder may prefer the cap to decide."
+  },
+  {
+   "severity": "note",
+   "kind": "spec_gap",
+   "title": "A litigated base's status is not on the answer",
+   "file": "engine/schedule.py:72",
+   "input": "from opt.last_day.closes.a1",
+   "what_happens": "Only rule_ids are carried, as in the first review; a caller looks the status up."
+  }
+ ],
+ "decision": "APPROVE"
 }
