@@ -85,12 +85,13 @@ def published_updates() -> list[dict[str, Any]]:
     publish_blockers returns nothing (openapi /v1/updates; DECISIONS.md D95 (2)). A file
     outside the schema is never returned, whatever publish_blockers would say of it; a file
     that is not UTF-8 text or not JSON at all is one of those, and the other files are still
-    served (reviews/w2-p4.md finding 8). ValueError covers UnicodeDecodeError and
-    JSONDecodeError."""
+    served (reviews/w2-p4.md finding 8). So is a path that cannot be read, such as a folder
+    named x.json (second review, note 6). ValueError covers UnicodeDecodeError and
+    JSONDecodeError; OSError covers IsADirectoryError and PermissionError."""
     updates = []
     for file in sorted(PUBLISHED.glob("*.json")):
         try:
             updates.append(json.loads(file.read_text(encoding="utf-8")))
-        except ValueError:
+        except (OSError, ValueError):
             continue
     return [u for u in updates if _update_validator().is_valid(u) and publish_blockers(u) == ()]

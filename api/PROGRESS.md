@@ -395,3 +395,12 @@ files are still served and GET /v1/updates never gives a 500 for it.
 - Done command, run as written: exit 0. pytest tests/unit/api all passed, mypy "Success: no
   issues found in 74 source files", ruff "All checks passed!", "12 files already formatted".
   Copy lint on api: clean.
+
+## Run l-api-123de3d682 (review w2-p4 second review, note 6; D96, attempt 1)
+Goal: a published path that cannot be read (a folder named x.json, any OSError) is skipped like
+a file outside update.schema.json, so the other files are still served.
+- api/case.py: published_updates catches (OSError, ValueError) instead of ValueError alone.
+  Docstring names the second review's note 6. Nothing else changed.
+- Done command, run as written: exit 0. pytest tests/unit/api all passed, mypy "Success: no
+  issues found in 74 source files", ruff "All checks passed!", "12 files already formatted".
+  Copy lint on api: clean.
