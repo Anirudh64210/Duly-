@@ -617,3 +617,106 @@ def test_the_same_request_gives_the_same_answer() -> None:
     # depends on state kept between calls.
     request = req("t", {"date": "2026-11-24"}, {"business_days": 3})
     assert run(request) == run(request)
+
+
+# The W2-P3 review (reviews/w2-p3.md) and DECISIONS.md D95. Each test names its finding. Written
+# before the fixes: the ones on findings 5 (M7), 6 and 8 cannot pass yet.
+
+PLANNING_ITEM = "opt.prepare.opens.a1"  # 2026-01-14, set by plan.prepare_months: planning
+
+
+def test_review_w2p3_4_a_result_one_day_past_the_cap_is_moved_back_to_it() -> None:
+    # Finding 4, mutant M2 (the cap compared against the cap plus one day). Contract, cap: "a
+    # later result is moved back to it, and the answer says capped". Hand working: Thu
+    # 2026-04-30 plus 2 days is May 1 (1), May 2 (2): 2026-05-02, exactly the cap 2026-05-01
+    # plus one day, so the answer is 2026-05-01, capped. Fails on M2, which keeps 2026-05-02.
+    answer = one(req("t", {"date": "2026-04-30"}, {"days": 2}, 1, cap=CAP_ITEM))
+    assert (answer["date"], answer.get("capped")) == ("2026-05-01", True)
+    # And on the cap day itself, 2026-04-30 plus 1 day is 2026-05-01: kept, not capped.
+    same = one(req("t", {"date": "2026-04-30"}, {"days": 1}, 1, cap=CAP_ITEM))
+    assert same["date"] == "2026-05-01"
+    assert same.get("capped") is not True
+
+
+def test_review_w2p3_5_juneteenth_is_counted_out_only_from_2021_06_17() -> None:
+    # Finding 5, mutant M1. The pack's calendar.federal_holidays_law row in force from
+    # 1986-01-01 to 2021-06-16 has no Juneteenth; Pub. L. 117-17 added it from 2021-06-17.
+    # Hand working: Thu 2020-06-18 plus 1 business day is Fri 2020-06-19, a working day then.
+    # Fails on M1, which skips it and gives Mon 2020-06-22.
+    before, after = (F1.value(HOLIDAYS_LAW, day) for day in (date(2020, 6, 19), date(2021, 6, 18)))
+    assert before is not None
+    assert after is not None
+    assert "June 19" not in before["source"]["quote"]
+    assert "June 19" in after["source"]["quote"]
+    answer = one(req("t", {"date": "2020-06-18"}, {"business_days": 1}))
+    assert answer["date"] == "2020-06-19"
+    assert HOLIDAYS_LAW in answer.get("rule_ids", [])
+
+
+def test_review_w2p3_5_a_day_with_no_holiday_row_gives_no_date_and_the_rest_are_answered() -> None:
+    # Finding 5, mutant M7, and D95 (3): "a request the engine cannot date (a day with no
+    # holiday row ...) is answered with its reason, never a failed body"; contract, missing
+    # holidays_not_known. Hand working: Mon 1985-12-30 plus 3 business days first crosses Tue
+    # 1985-12-31, before the first row's 1986-01-01, so whether it is a holiday is not known:
+    # no date. The second request, 2026-10-14 plus 1 day, is 2026-10-15. Fails on M7 (a date
+    # is guessed) and on the body failing as a whole (CalendarNotInForceError today).
+    assert F1.value(HOLIDAYS_LAW, date(1985, 12, 31)) is None
+    out = run(
+        req("old", {"date": "1985-12-30"}, {"business_days": 3}),
+        req("new", {"date": "2026-10-14"}, {"days": 1}),
+    )
+    old, new = out["dates"]
+    assert (old["date"], old["days_away"], old.get("missing")) == (None, None, "holidays_not_known")
+    assert new["date"] == "2026-10-15"
+
+
+@pytest.mark.parametrize(
+    ("base", "add", "sign"),
+    [
+        # 2099-12-30 plus 5 days: Dec 31 (1), then 2100-01-01 to 01-04 (2 to 5): 2100-01-04,
+        # after dates.latest_readable 2099-12-31.
+        ("2099-12-30", {"days": 5}, 1),
+        # 0001-01-01 back 1 day is before date.min; the base is already before
+        # dates.earliest_readable 1950-01-01.
+        ("0001-01-01", {"days": 1}, -1),
+    ],
+    ids=["past_2099", "before_year_1"],
+)
+def test_review_w2p3_6_a_date_outside_the_readable_dates_gives_no_date(
+    base: str, add: dict[str, int], sign: int
+) -> None:
+    # Finding 6 and D95 (3); contract, missing outside_readable_dates: "the base date or the
+    # result falls before dates.earliest_readable or after dates.latest_readable". Fails if
+    # the engine dates past 2099-12-31 or raises OverflowError (today: 500 at the route).
+    answer = one(req("t", {"date": base}, add, sign))
+    assert (answer["date"], answer.get("missing")) == (None, "outside_readable_dates")
+
+
+def test_review_w2p3_6_the_last_readable_day_is_still_dated() -> None:
+    # Guards the boundary above: 2099-12-30 plus 1 day is 2099-12-31, dates.latest_readable
+    # itself, so it is dated. Fails if the limit is read as before the last day.
+    latest = next(s for s in SETTINGS if s["id"] == "dates.latest_readable")
+    assert latest["value"] == "2099-12-31"
+    assert one(req("t", {"date": "2099-12-30"}, {"days": 1}))["date"] == "2099-12-31"
+
+
+def test_review_w2p3_8_a_date_counted_from_a_planning_item_is_planning() -> None:
+    # Finding 8, D95 (4); contract, planning: "the base item ... is itself marked planning in
+    # the engine output". opt.prepare.opens.a1 is 2026-01-14 and planning in the engine
+    # output; plus 0 days is 2026-01-14. Fails if planning is left off (the answer today).
+    item = engine_items()[PLANNING_ITEM]
+    assert (item["value"], item.get("planning")) == ("2026-01-14", True)
+    answer = one(req("t", {"item": PLANNING_ITEM}, {"days": 0}))
+    assert (answer["date"], answer.get("planning")) == ("2026-01-14", True)
+
+
+def test_review_w2p3_8_a_date_moved_to_a_planning_cap_is_planning() -> None:
+    # Finding 8, D95 (4); contract, planning: "or the cap item when the answer is capped".
+    # 2026-01-10 plus 10 days is 2026-01-20, after the cap 2026-01-14: moved to 2026-01-14,
+    # capped and planning. 2026-01-10 plus 1 day is 2026-01-11, before the cap: not capped,
+    # and its amount is no setting, so not planning. Fails if a capped answer drops planning,
+    # or an uncapped one takes it from the cap.
+    late = one(req("late", {"date": "2026-01-10"}, {"days": 10}, 1, cap=PLANNING_ITEM))
+    assert (late["date"], late.get("capped"), late.get("planning")) == ("2026-01-14", True, True)
+    early = one(req("early", {"date": "2026-01-10"}, {"days": 1}, 1, cap=PLANNING_ITEM))
+    assert (early["date"], early.get("capped"), early.get("planning")) == ("2026-01-11", None, None)

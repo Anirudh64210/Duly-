@@ -26,7 +26,7 @@ from typing import Any
 import pytest
 import yaml
 from fastapi.testclient import TestClient
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 
 import api.main
 from pipeline.graph import publish_blockers
@@ -251,3 +251,213 @@ def test_without_a_query_nothing_is_matched(apps: tuple[TestClient, TestClient])
     body = server.get("/v1/updates", headers=WITH_TOKEN).json()
     assert body["matching"] == 0
     assert all(e["matched"] == {"stages": [], "fields": []} for e in body["updates"])
+
+
+# The W2-P3 review (reviews/w2-p3.md) and DECISIONS.md D95. Each test names its finding.
+# Written before the fixes: those on findings 2 and 6 and the notes cannot pass yet.
+
+UPDATE_SCHEMA = json.loads((REPO_ROOT / "contracts" / "update.schema.json").read_text())
+# One update that follows update.schema.json and that publish_blockers passes: every claim
+# primary, quoted, found and saved; both checks passed; approved by the founder with a time.
+PASSING: dict[str, Any] = {
+    "id": "review-w2p3-passing",
+    "headline": "A court order on the rule",
+    "legal_status": "enjoined",
+    "status_as_of": "2026-09-14",
+    "claims": [
+        {
+            "text": "A court blocked the rule nationwide.",
+            "quote": "is hereby enjoined",
+            "source_url": "https://www.courtlistener.com/docket/1/",
+            "source_kind": "primary",
+            "snapshot_sha256": "a" * 64,
+            "quote_found": True,
+        }
+    ],
+    "categories": ["f1"],
+    "stages": ["opt"],
+    "checks": {"independent_check_passed": True, "refutation_survived": True},
+    "approval": {"approved": True, "approved_by": "founder", "approved_at": "2026-09-15T10:00:00Z"},
+    "history": [],
+}
+
+
+def _refused(rid: str, path: tuple[Any, ...], value: Any) -> dict[str, Any]:
+    """PASSING under another id, with the value at path replaced, or removed for None."""
+    update: dict[str, Any] = json.loads(json.dumps(PASSING))
+    update["id"] = rid
+    node = update
+    for key in path[:-1]:
+        node = node[key]
+    if value is None:
+        del node[path[-1]]
+    else:
+        node[path[-1]] = value
+    return update
+
+
+def _update_problems(update: dict[str, Any]) -> list[str]:
+    validator = Draft202012Validator(UPDATE_SCHEMA, format_checker=FormatChecker())
+    return [e.message for e in validator.iter_errors(update)]
+
+
+# Finding 2: three that publish_blockers passes (it tests truthiness) but update.schema.json
+# refuses. Finding 3: one that follows the schema and that publish_blockers refuses.
+OUTSIDE_THE_SCHEMA = [
+    _refused("review-w2p3-approved-string", ("approval", "approved"), "false"),
+    _refused("review-w2p3-quote-found-string", ("claims", 0, "quote_found"), "false"),
+    _refused("review-w2p3-no-approved-at", ("approval", "approved_at"), None),
+]
+BLOCKED = _refused("review-w2p3-blocked", ("checks", "refutation_survived"), False)
+
+
+@pytest.fixture
+def published(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """api.case.PUBLISHED pointed at a folder holding PASSING and the four refused files."""
+    for update in (PASSING, *OUTSIDE_THE_SCHEMA, BLOCKED):
+        (tmp_path / f"{update['id']}.json").write_text(json.dumps(update))
+    monkeypatch.setattr(importlib.import_module("api.case"), "PUBLISHED", tmp_path)
+    return tmp_path
+
+
+def test_review_w2p3_2_the_planted_files_are_what_they_say() -> None:
+    # Guards the two tests below from passing on a wrong fixture: PASSING follows the schema
+    # and has no blockers; each of the three follows publish_blockers but not the schema
+    # (so only a schema check refuses it); BLOCKED follows the schema and has a blocker.
+    assert (_update_problems(PASSING), publish_blockers(PASSING)) == ([], ())
+    for update in OUTSIDE_THE_SCHEMA:
+        assert _update_problems(update) != [], update["id"]
+        assert publish_blockers(update) == (), update["id"]
+    assert _update_problems(BLOCKED) == []
+    assert publish_blockers(BLOCKED) == ("refutation_not_survived",)
+
+
+@pytest.mark.parametrize("query", ["", "?categories=f1"])
+def test_review_w2p3_2_3_only_a_file_that_follows_the_schema_and_passes_is_served(
+    apps: tuple[TestClient, TestClient], published: Path, query: str
+) -> None:
+    # Finding 2 (an update outside update.schema.json is served) and finding 3 (mutant M3,
+    # the publish_blockers filter removed). openapi /v1/updates: "a file that does not follow
+    # it is never returned; then publish_blockers must return nothing"; D95 (2). Of the five
+    # files, only PASSING is served, as its file holds it, by both apps alike. Fails today on
+    # the three string or missing values; fails on M3 by serving BLOCKED too.
+    assert len(list(published.glob("*.json"))) == 5
+    server, desktop = apps
+    a = server.get(f"/v1/updates{query}", headers=WITH_TOKEN)
+    b = desktop.get(f"/v1/updates{query}", headers=WITH_TOKEN)
+    assert a.status_code == 200, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+    assert _updates_problems(a.json()) == []
+    assert _shown(a.json()) == [PASSING]
+
+
+# Finding 6 and D95 (3): Duly's own limits in schedule.schema.json, days 36525, business days
+# 260, months 1200. One over each is outside the contract, so a 422 from both apps alike.
+
+
+@pytest.mark.parametrize(
+    "add", [{"days": 36526}, {"business_days": 261}, {"months": 1201}], ids=lambda a: str(a)
+)
+def test_review_w2p3_6_an_offset_over_duly_s_limit_is_a_422(
+    apps: tuple[TestClient, TestClient], add: dict[str, int]
+) -> None:
+    # Fails if a body past the limit is dated (today: days 36526 is dated, months 1201 is
+    # 2126-10-29) or the two apps refuse differently.
+    body = {"case": CASE, "requests": [req("t", {"today": True}, add)]}
+    assert _problems(body, "request") != []
+    server, desktop = apps
+    a = server.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    b = desktop.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    assert a.status_code == 422, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+
+
+@pytest.mark.parametrize(
+    ("base", "add", "sign"),
+    [
+        # Today 2026-09-29 plus 36525 days, the limit itself, is in 2126: after 2099-12-31.
+        ({"today": True}, {"days": 36525}, 1),
+        # Today plus 1200 months is 2126-09-29: after 2099-12-31.
+        ({"today": True}, {"months": 1200}, 1),
+        # The review's inputs: 0001-01-01 back 1 day is before date.min (500 today).
+        ({"date": "0001-01-01"}, {"days": 1}, -1),
+    ],
+    ids=["days_36525", "months_1200", "before_year_1"],
+)
+def test_review_w2p3_6_a_body_inside_the_limits_is_answered_never_a_500(
+    apps: tuple[TestClient, TestClient], base: dict[str, Any], add: dict[str, int], sign: int
+) -> None:
+    # Finding 6, D95 (3): "a request the engine cannot date ... is answered with its reason,
+    # never a failed body"; openapi: "A request the engine cannot date is not a 422". Each is
+    # inside the contract, so 200, a null date and outside_readable_dates, alike from both
+    # apps. Fails on the OverflowError (500) today.
+    body = {"case": CASE, "requests": [req("t", base, add, sign)]}
+    assert _problems(body, "request") == []
+    server, desktop = apps
+    a = server.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    b = desktop.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    assert a.status_code == 200, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+    assert _problems(a.json(), "response") == []
+    (answer,) = a.json()["dates"]
+    assert (answer["date"], answer.get("missing")) == (None, "outside_readable_dates")
+
+
+def test_review_w2p3_5_a_day_with_no_holiday_row_is_answered_not_a_422(
+    apps: tuple[TestClient, TestClient],
+) -> None:
+    # Finding 5 and the notes ("One business-day request that crosses a day with no holiday
+    # row turns the whole body into a 422"), D95 (3). Mon 1985-12-30 plus 3 business days
+    # crosses Tue 1985-12-31, before the first holiday row (1986-01-01): no date,
+    # holidays_not_known. Today 2026-09-29 plus 1 day is 2026-09-30, 1 day away. Fails on the
+    # 422 given today.
+    body = {
+        "case": CASE,
+        "requests": [
+            req("old", {"date": "1985-12-30"}, {"business_days": 3}),
+            req("new", {"today": True}, {"days": 1}),
+        ],
+    }
+    server, desktop = apps
+    a = server.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    b = desktop.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    assert a.status_code == 200, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+    old, new = a.json()["dates"]
+    assert (old["date"], old.get("missing")) == (None, "holidays_not_known")
+    assert (new["date"], new["days_away"]) == ("2026-09-30", 1)
+
+
+# The review's notes.
+
+
+def test_review_w2p3_note_two_requests_with_one_id_are_a_422(
+    apps: tuple[TestClient, TestClient],
+) -> None:
+    # schedule.schema.json id: "Unique within one request"; openapi /v1/schedule 422: "two
+    # requests share an id". Fails if both are answered (today).
+    body = {
+        "case": CASE,
+        "requests": [
+            req("dup", {"today": True}, {"days": 1}),
+            req("dup", {"today": True}, {"days": 2}),
+        ],
+    }
+    server, desktop = apps
+    a = server.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    b = desktop.post("/v1/schedule", json=body, headers=WITH_TOKEN)
+    assert a.status_code == 422, a.text
+    assert (b.status_code, b.content) == (a.status_code, a.content)
+
+
+@pytest.mark.parametrize("categories", ["f1_x", "f1.opt", "F1", "f1,o_1"])
+def test_review_w2p3_note_a_category_outside_the_pattern_is_a_422(
+    apps: tuple[TestClient, TestClient], categories: str
+) -> None:
+    # openapi /v1/updates, categories: items pattern ^[a-z0-9]+$. "_" and "." are outside it
+    # (the route takes them today); so is a capital. Fails if any is answered 200.
+    server, desktop = apps
+    a = server.get(f"/v1/updates?categories={categories}", headers=WITH_TOKEN)
+    b = desktop.get(f"/v1/updates?categories={categories}", headers=WITH_TOKEN)
+    assert a.status_code == 422, a.text
+    assert b.status_code == 422, b.text
