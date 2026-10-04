@@ -109,3 +109,20 @@ Ran and printed:
 Changed: W2-014 to W2-022 added (7 met, W2-017 and W2-022 partial); DEC-D95-001 to DEC-D95-005 added (met); UPD-017 not_started to partial; notes on DEC-D75-001 and DEC-D73-001.
 Not run: make test, make test-offline, prove-gates, desktop vitest, the socket tests.
 Next audit: use a seed other than 20261002, 20261003, 20261005 and 20261007.
+
+## 2026-10-04, run l-audit-9e7f33ed5c, attempt 1
+
+Tried: audit W2-P4 (plan-w2-p4.yaml, fix0, fix1; SPEC-W2 points 5, 13 to 18, 22, 52 as D96 amends them; contract as of 444fa86) at dda445a (docs/requirements/audits/w2-p4.md).
+
+Ran and printed:
+- desktop vitest without coverage: 22 files, 348 passed. npm test -w desktop: EPERM creating desktop/coverage (sandbox).
+- typecheck, tsc on tests/desktop, eslint, prettier, copy lint, bash -n build-python.sh, mypy, ruff check and format: all exit 0.
+- pytest tests/unit/api and test_bundle_inputs.py: passed. tests/holdout: passed.
+- Mutants on a scratch copy: F3, N6d, R4, R5 survive (review finding 2 confirmed); my A1 to A4 killed.
+- Probe: export as .zip writes a valid zip (unzip -t clean); no suite test writes one.
+- Drift: 20 met rows, seed 20261004, no change. PLAN03-011, 014, 096 found built: not_started to met.
+- register build and check: 2540 requirements, whole; 482 of 2178 met, 22%.
+
+Changed: W2-023 to W2-032 added (5 met, 4 partial, 1 not started); DEC-D96-001 to 006 added (5 met, 1 partial); W2-017 partial to met; 10 other rows moved (see the audit).
+Not run: make test, make test-offline, prove-gates, the socket tests, the reviewer's 33 mutants.
+Next audit: use a seed other than 20261002, 20261003, 20261004, 20261005 and 20261007.

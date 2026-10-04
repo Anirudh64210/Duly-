@@ -1471,9 +1471,9 @@
   "source": "docs/04-data-and-pipeline.md, Documents",
   "text": "Encrypted blobs on disk, one per file, with a sidecar index.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No document store."
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts (files/<id>, index documents.bin); tests/desktop/documents-store.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. One encrypted file per document in files/ and one encrypted index documents.bin beside them. Tests pass (the desktop vitest run here gives 348 passed, 0 failed)."
  },
  {
   "id": "WB04-037",
@@ -1489,9 +1489,9 @@
   "source": "docs/04-data-and-pipeline.md, Documents",
   "text": "Names are stored encrypted too so the locked list can only show blurred placeholders.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "No document store."
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; tests/desktop/documents-store.test.ts ('holds no name or date in the clear')",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. Names are only inside the encrypted index (test passes). Partly built: there is no lock and no locked list with blurred placeholders (documents-1)."
  },
  {
   "id": "WB04-039",

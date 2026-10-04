@@ -184,18 +184,18 @@
     "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
     "text": "Device: per-file AES-256-GCM blobs",
     "kind": "desktop",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No blob encryption code exists."
+    "status": "met",
+    "evidence": "desktop/src/docstore.ts encryptFile/openFile; tests/desktop/documents-store.test.ts ('round trips files on both sides of every chunk edge', 'review_w2p4_6: each chunk has its own nonce and opens only as its own chunk')",
+    "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to met. Each document is files/<random id>, AES-256-GCM in 1 MiB chunks under its own random 256-bit key. Tests pass (the desktop vitest run here gives 348 passed, 0 failed)."
   },
   {
     "id": "PLAN05-022",
     "source": "duly-plan/05-security-privacy-encryption.md, Encryption and decryption design",
     "text": "Device: keys derived and held in OS keychain (Keychain, DPAPI, libsecret)",
     "kind": "desktop",
-    "status": "not_started",
-    "evidence": "none",
-    "note": "No keychain code exists in desktop/."
+    "status": "partial",
+    "evidence": "desktop/src/docstore.ts (D wrapped by safeStorage into keys.bin); tests/desktop/documents-store.test.ts",
+    "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. On macOS the document key D is wrapped by safeStorage (Keychain item 'Duly Safe Storage') and tested with a fake cipher. Partly built: keys are wrapped, not derived, and DPAPI and libsecret are not built or tested (Windows and Linux are later)."
   },
   {
     "id": "PLAN05-023",

@@ -2515,9 +2515,9 @@
   "source": "law-liability-design-2026-09.md, Privacy obligations",
   "text": "Client-side encryption for documents.",
   "kind": "security",
-  "status": "not_started",
-  "evidence": "security/threat-model.md (Phase 1, Phase 8)",
-  "note": "Planned only."
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; security/threat-model.md (documents rows); tests/desktop/documents-store.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. Documents are encrypted on the Mac before they are kept, under keys the server never sees. Partly built: the screen does not call window.duly.documents yet (web/src has no use of it), so no student can add a document; that comes with W2-P5."
  },
  {
   "id": "IMPL-079",
@@ -2632,9 +2632,9 @@
   "source": "DECISIONS.md, D54",
   "text": "Documents are kept in one place: an encrypted vault on the student's device.",
   "kind": "product",
-  "status": "not_started",
-  "evidence": "none",
-  "note": "Decided 2026-09-29; nothing built yet."
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts; desktop/src/docbridge.ts; tests/desktop/documents-store.test.ts; tests/desktop/documents-bridge.test.ts",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): not_started to partial. The encrypted store on the device exists and is tested behind window.duly.documents. Partly built: no Documents screen uses it yet, and the Touch ID lock and recovery kit are documents-1."
  },
  {
   "id": "DEC-D54-002",
@@ -3256,5 +3256,59 @@
   "status": "met",
   "evidence": "pipeline/drafts/ (three prototype articles, approval false); no pipeline/published/ folder",
   "note": "Audit w2-p3 (l-audit-3167cec10b, 2026-10-03 UTC): new row, met. Read: approval approved false, approved_by null on all four drafts."
+ },
+ {
+  "id": "DEC-D96-001",
+  "source": "DECISIONS.md D96 (1)",
+  "text": "A missing documents index while keys or files remain is refused as index_missing and nothing is deleted: a missing index never means no documents.",
+  "kind": "desktop",
+  "status": "partial",
+  "evidence": "desktop/src/docstore.ts load; tests/desktop/documents-store.test.ts (review_w2p4_1, review2_w2p4_4)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, partial. A file in files/ with no index is refused and kept (tests pass, my mutant caught). Not as written: keys.bin with no file gives a new empty index, by the contract as of 444fa86 and plan-w2-p4-fix1. D96 and SPEC-W2 point 16 still say keys alone is refused (review finding 1). Needs the founder's amendment."
+ },
+ {
+  "id": "DEC-D96-002",
+  "source": "DECISIONS.md D96 (2)",
+  "text": "A version chain stays one line: a second replacer, a multi-file add that replaces, or a chain past 200 versions is bad_replaces.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts badReplaces; desktop/src/docbridge.ts add; tests (review_w2p4_2 x3, review2_w2p4_4 update cap)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass. Edge N6d (a drop counted with its skipped entries) survives every test; behaviour on HEAD is right."
+ },
+ {
+  "id": "DEC-D96-003",
+  "source": "DECISIONS.md D96 (3)",
+  "text": "One add takes at most 50 files, the store at most 5000 documents, the index keeps the newest 20000 history lines.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/docstore.ts MAX_DOCUMENTS, MAX_HISTORY; desktop/src/docbridge.ts MAX_ADD; tests (review_w2p4_4, review_w2p4_5 x2, review2_w2p4_3 x2, review2_w2p4_8)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass; my mutants (cap 4999, no trim on load) are caught. F3 survives (see W2-029)."
+ },
+ {
+  "id": "DEC-D96-004",
+  "source": "DECISIONS.md D96 (4)",
+  "text": "An empty file is skipped; export never writes inside Duly's own data folder.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "tests/desktop/documents-store.test.ts (review_w2p4_10); tests/desktop/documents-bridge.test.ts (review_w2p4_9)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Both tests pass."
+ },
+ {
+  "id": "DEC-D96-005",
+  "source": "DECISIONS.md D96 (5)",
+  "text": "A planned reminder is shown once across relaunches, the shown ids kept in main's own file.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/src/reminders.ts; tests/desktop/bridges.test.ts (review_w2p4_3, review2_w2p4_2)",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. Tests pass. The file holds keys by id and date, encrypted (fix1), which D96 does not forbid."
+ },
+ {
+  "id": "DEC-D96-006",
+  "source": "DECISIONS.md D96 (6)",
+  "text": "The bundle's pipeline/published/*.json is an optional pattern, since the folder is empty until the founder approves an update.",
+  "kind": "desktop",
+  "status": "met",
+  "evidence": "desktop/python/bundle.json optional; desktop/scripts/build-python.sh; desktop/src/buildpython.test.ts; tests/unit/desktop_entry/test_bundle_inputs.py::test_review_w2p4_12_published_updates_are_optional_and_not_included",
+  "note": "Audit w2-p4 (l-audit-9e7f33ed5c, 2026-10-04 UTC): new row, met. test_review_w2p4_12 passes and buildpython.test.ts passes inside the 348."
  }
 ]
