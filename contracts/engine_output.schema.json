@@ -950,6 +950,15 @@
             "type": "string",
             "pattern": "^[a-z0-9_.]+$",
             "description": "The id of the question that confirms this record's facts again. It is listed in questions while the check-in is due"
+          },
+          "waits_on": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Present only when this row is withheld: its date (a watch row) or its due day (a check-in) is null because a value the engine could not read, a question the person has not answered or a conflict could change it, so the screen shows it as waiting, never as a date and never as does not apply. A null with no waits_on means only that the row does not apply. Entries are read as on a computed item's waits_on (SPEC-W2 point 40, SPEC-W2-UNKNOWN point 33, D97(3))."
           }
         }
       }
@@ -1019,6 +1028,15 @@
               "school"
             ],
             "description": "The weakest status among the rules used."
+          },
+          "waits_on": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Present only when this row is withheld: its date (a watch row) or its due day (a check-in) is null because a value the engine could not read, a question the person has not answered or a conflict could change it, so the screen shows it as waiting, never as a date and never as does not apply. A null with no waits_on means only that the row does not apply. Entries are read as on a computed item's waits_on (SPEC-W2 point 40, SPEC-W2-UNKNOWN point 33, D97(3))."
           }
         }
       }
