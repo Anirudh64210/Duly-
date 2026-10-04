@@ -75,3 +75,14 @@
   those plain checks (842 characters, 10 sentences, numbers not in quotes); left unchanged.
 - Copy lint on pipeline/drafts: clean. Done command `uv run pytest tests/unit/pipeline -q`:
   20 passed, exit 0.
+
+## 2026-10-03, run l-pipeline-149a798c39, attempt 1 (DECISIONS.md D95 (2), SPEC-FEED point 35)
+
+- engine/updates.py already holds publish_blockers, copied unchanged from pipeline/graph.py
+  (read both side by side: same body). pipeline/graph.py now imports it from engine.updates,
+  lists it in __all__ as a re-export, and no longer defines it. _gate still calls it.
+  tests/unit/pipeline/test_graph.py imports it from pipeline.graph unchanged.
+- Not built: no shim module, no wrapper function, no change to the drafts or the stages.
+- Done command `uv run pytest tests/unit/pipeline -q && uv run mypy && uv run ruff check pipeline
+  && uv run ruff format --check pipeline`: 20 passed; mypy no issues in 74 files; ruff all checks
+  passed; 3 files already formatted. Exit 0.
