@@ -539,3 +539,24 @@
 - Failure: a fix moved an exception's handling into the engine and left the route's handler, which no test can reach.
 - Fix: after such a move, grep callers for the same except and run a mutant that removes it.
 - Evidence: reviews/w2-p3.md finding 1.
+
+## 2026-10-03, run l-review-222da33bfc (W2-P4 review)
+- Read plan-w2-p4.yaml, SPEC-W2 points 5, 13 to 18, 22, 42 and 52, the three K4 contracts, D85, the threat-model rows, and the diff af27b4f..0e48fd9 (docstore.ts, docbridge.ts, enginebridge.ts, statefile.ts, reminders.ts, preload.ts, main.ts, casefile.ts, api/case.py, local_routes.py, tests/desktop).
+- Ran: desktop vitest (coverage off) gave 316 passed and 1 failed (buildpython: pipeline/published absent on a clean checkout, from before W2-P4). Typecheck, tsc on tests/desktop, eslint and copy lint all exited 0. pytest tests/unit/api passed.
+- Probes in $TMPDIR/rv7 (probe.test.ts, probe2.test.ts):
+  - Every chunk fault gave file_damaged.
+  - Engine and state off-contract calls were all rejected.
+  - P3: documents.bin missing with keys.bin kept, and a relaunch deleted every file (blocking).
+  - P1: a 51-file add stored all 51 and then rejected the reply.
+  - P2: a fork in replaces dropped a version.
+  - P5: a relaunch showed the same reminder twice.
+  - P7: 20001 history lines and list rejected forever.
+  - Non-UTF-8 published file: UnicodeDecodeError.
+- Mutants in $TMPDIR/mt (a copy of desktop/src, tests/desktop and contracts): 14 caught. M3 (nonce reuse), M6 (no read-back), M13 and M17 survived. M1 and M2 survived alone because the whole-file SHA-256 catches the same faults; with that check off as well (M21, M22) they were caught.
+- Wrote reviews/w2-p4.md (VETO, mean 3.67), REVIEW.json (valid) and REPORT.json.
+
+## Lesson
+- Failure: the store's launch sweep deleted what no index row named, but no test asked what happens when the index itself is missing and the files are not.
+- Fix: for any clean-up that deletes "what the index does not name", run it with the index absent, damaged and present, and check the files survive the first two.
+- Evidence: reviews/w2-p4.md finding 1, $TMPDIR/rv7/probe.test.ts P3.
+- Also: two guards on the same fault (GCM per chunk and a whole-file SHA-256) hide each other from outcome tests; mutate each alone and both together.

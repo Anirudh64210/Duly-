@@ -1,66 +1,137 @@
 {
- "run_id": "l-review-d0cf43d6f6",
- "reviewed_commit": "4fd1ed93bb139da9f59590c0dce282267d5eef8a",
+ "run_id": "l-review-222da33bfc",
+ "reviewed_commit": "0e48fd916fad9c0bc01b986eb66fb4ab92a37d8a",
  "scores": {
   "correct": {
-   "score": 5,
-   "evidence": "All 36 requests match hand counts (2026-11-30, 2026-07-03, 2026-06-22, 2020-06-19, 2021-06-18, 2026-12-23, 2028-01-03, today + 260 business days 2027-10-12, cap boundary 2026-05-01 both ways). The allowlist-only tree answers both routes byte-identically to the server, with and without published files."
+   "score": 3,
+   "evidence": "Finding 1 (blocking): with keys.bin kept and documents.bin missing, relaunch deletes every file in files/ (probe P3: 2 files, then 0; the index put back gives file_damaged). Findings 2 to 5: a fork in replaces drops a version, a relaunch shows a reminder twice, a 51-file add changes the store and then gives no answer, and list is never answered again past 20000 history lines."
   },
   "sourced": {
-   "score": 5,
-   "evidence": "Holidays come from the pack's calendar.federal_holidays_law row in force on each day, Juneteenth from its quote. The new offset limits are marked in the contract as Duly's own, never a rule. engine_literals passes."
+   "score": 4,
+   "evidence": "50 MiB is vault.max_file_megabytes in specs/documents-1/SPEC.md line 92. The 1 MiB chunks and the 64-bit prefix plus 32-bit counter are on lines 142 and 175, and the code matches. The threat-model rows match the code. The limit is marked as Duly's own, not the law's."
   },
   "never_assumes": {
-   "score": 5,
-   "evidence": "A day with no holiday row gives holidays_not_known and the rest of the body is answered; a planning base or planning cap makes the answer planning; a base or result outside 1950-01-01..2099-12-31 gives outside_readable_dates."
+   "score": 3,
+   "evidence": "Finding 1: a missing index is taken to mean no documents, and the launch sweep deletes on that basis. The opposite case (keys.bin missing) is refused, as it should be."
   },
   "inside_the_boundary": {
    "score": 5,
-   "evidence": "The new strings are missing reasons and contract descriptions; none addresses the student or says what to do. Copy lint is clean; drafts unchanged and still unapproved."
+   "evidence": "Main writes no words of its own: a Notification carries the saved title and body exactly, and every refusal is a code from the contract. Copy lint is clean."
   },
   "secure": {
    "score": 4,
-   "evidence": "days 1e9 and months 1e6 are 422 by the new maxima; 0001-01-01 and 9999-12-31 give a reason, no OverflowError. A file outside update.schema.json is never served. One unparsable file in pipeline/published/ still makes GET /v1/updates a 500 (finding 2)."
+   "evidence": "Frame checks are on all four channels. Off-contract calls are rejected before any read (probes P8 and P9). Paths come only from the dialog or a webUtils drop. Inside_data_folder holds when the case of the path changes. D is only written wrapped and F only appears in the index. Every chunk fault is file_damaged. Findings 4 and 5 (the Documents page dies) and 9 (plaintext in the data folder) are the gaps."
   },
   "tested": {
-   "score": 4,
-   "evidence": "Mutants M1, M2, M3, M7 caught, and own M3b, M3c, M8, M13, M14, M16 caught. The bundle test runs both routes from the allowlist alone. Only M17 survives, the dead route handler (finding 1); no test has an unparsable published file."
+   "score": 3,
+   "evidence": "Finding 1 has no test. Mutants that survive: M3 (one nonce for every chunk), M6 (no read-back SHA-256 on add), M13 (the docs reply check removed) and M17 (no size check before the read). Fourteen other mutants are caught."
   }
  },
  "findings": [
   {
-   "severity": "should_fix",
-   "kind": "overbuilt",
-   "spec_point": "contracts/openapi.yaml /v1/schedule 422",
-   "title": "The route's CalendarNotInForceError handler and NO_CALENDAR can no longer run",
-   "file": "api/local_routes.py:130",
-   "input": "1985-12-30 + 3 business days; mutant M17 removing the except clause",
-   "what_happens": "engine/schedule.py:120 catches the error per request, so the answer is 200 with holidays_not_known and M17 passes every test. The dead handler and NO_CALENDAR (line 34) say the opposite of openapi's 'A request the engine cannot date is not a 422'. Delete both and the import."
+   "severity": "blocking",
+   "title": "A missing documents.bin makes the next launch delete every stored document",
+   "file": "desktop/src/docstore.ts:229",
+   "input": "Two documents added, then documents.bin moved out of the data folder with keys.bin kept, then openStore again",
+   "what_happens": "load() takes the index as empty, and the launch sweep removes both files in files/. With documents.bin put back, read gives file_damaged. No test covers it.",
+   "kind": "other",
+   "spec_point": "SPEC-W2 point 16"
   },
   {
    "severity": "should_fix",
-   "kind": "missing_negative_test",
-   "title": "One unparsable published file makes GET /v1/updates a 500",
-   "file": "api/case.py:87",
-   "input": "pipeline/published/ holding one valid unblocked update and one file containing '{not json'",
-   "what_happens": "json.loads raises before the schema check, so the route is a 500 and the valid update is not served. Treat a file that does not parse as one outside update.schema.json, with a test."
+   "title": "A fork in replaces drops a version from versions()",
+   "file": "desktop/src/docstore.ts:436",
+   "input": "add([a.pdf, b.pdf], old) from one dialog pick, or update(c, {replaces: old}) when b already replaces old",
+   "what_happens": "versions(old) = [b.pdf, i20.pdf], so a.pdf is missing. versions(b) = [b.pdf, old.pdf], so c is missing.",
+   "kind": "spec_gap",
+   "spec_point": "17"
+  },
+  {
+   "severity": "should_fix",
+   "title": "A reminder shows twice after a relaunch the same day",
+   "file": "desktop/src/reminders.ts:22",
+   "input": "A reminder on 2026-10-06 at 09:00, shown at 09:00, then Duly reopened at 09:40",
+   "what_happens": "A second Notification is shown, because the shown set is in memory only",
+   "kind": "other",
+   "spec_point": "22"
+  },
+  {
+   "severity": "should_fix",
+   "title": "add from the dialog with more than 50 files changes the store and then gives no answer",
+   "file": "desktop/src/docbridge.ts:178",
+   "input": "documents.add {from: dialog} with 51 files picked",
+   "what_happens": "The bridge rejects with 'not a documents bridge reply: /: anyOf', yet the index has 51 rows and files/ has 51 files",
+   "kind": "spec_gap",
+   "spec_point": "13"
+  },
+  {
+   "severity": "should_fix",
+   "title": "history past 20000 lines means list is never answered again",
+   "file": "desktop/src/docstore.ts:402",
+   "input": "An index with 20001 history lines",
+   "what_happens": "Every documents.list rejects with 'not a documents bridge reply', while update is still accepted. The same happens at 5001 documents or a chain of 201 versions.",
+   "kind": "spec_gap",
+   "spec_point": "13"
+  },
+  {
+   "severity": "should_fix",
+   "title": "The tests pass when every chunk reuses one nonce",
+   "file": "tests/desktop/documents-store.test.ts",
+   "input": "Mutant nonce.writeUInt32BE(0, PREFIX) in docstore.ts:139",
+   "what_happens": "All 66 desktop bridge tests pass. The whole-file SHA-256 hides every per-chunk fault, so the nonce layout and additional data of point 15 are not tested.",
+   "kind": "missing_test",
+   "spec_point": "15"
+  },
+  {
+   "severity": "should_fix",
+   "title": "The read-back SHA-256 comparison of add is untested",
+   "file": "desktop/src/docstore.ts:318",
+   "input": "Mutant that removes the decrypt-back comparison",
+   "what_happens": "All tests pass. M13 (the docs reply check removed) and M17 (the size check before the read removed) also survive.",
+   "kind": "missing_test",
+   "spec_point": "15"
+  },
+  {
+   "severity": "should_fix",
+   "title": "A published file that is not UTF-8 still gives a 500",
+   "file": "api/case.py:89",
+   "input": "pipeline/published/bad.json holding bytes ff fe 7b",
+   "what_happens": "read_text raises UnicodeDecodeError, which is not caught, so GET /v1/updates gives a 500",
+   "kind": "regression",
+   "spec_point": "reviews/w2-p3.md finding 2"
   },
   {
    "severity": "note",
-   "kind": "spec_gap",
-   "title": "A planning base capped to a rule item stays planning",
-   "file": "engine/schedule.py:94",
-   "input": "a base item with planning true, capped to a non-planning item",
-   "what_happens": "The answer is the cap's rule date marked planning. This follows the contract as of a3f7a7a; the founder may prefer the cap to decide."
+   "title": "Export can write plaintext into Duly's own data folder",
+   "file": "desktop/src/docbridge.ts:223",
+   "input": "The folder dialog pointed at the data folder",
+   "what_happens": "exported 1, and a.pdf sits in plaintext beside documents.bin. clear does not remove it.",
+   "kind": "other"
   },
   {
    "severity": "note",
-   "kind": "spec_gap",
-   "title": "A litigated base's status is not on the answer",
-   "file": "engine/schedule.py:72",
-   "input": "from opt.last_day.closes.a1",
-   "what_happens": "Only rule_ids are carried, as in the first review; a caller looks the status up."
+   "title": "An empty image cannot be opened",
+   "file": "desktop/src/docbridge.ts:208",
+   "input": "An empty .png added, then documents.open",
+   "what_happens": "data_url 'data:image/png;base64,' fails the contract pattern, so the call is rejected rather than refused",
+   "kind": "other"
+  },
+  {
+   "severity": "note",
+   "title": "Two helpers build the same numbered names",
+   "file": "desktop/src/docbridge.ts:79",
+   "input": "openFree and freeName",
+   "what_happens": "Each builds 'stem (n).ext'. One candidate-name generator could serve both.",
+   "kind": "overbuilt"
+  },
+  {
+   "severity": "note",
+   "title": "The buildpython test fails on a clean checkout",
+   "file": "desktop/src/buildpython.test.ts:77",
+   "input": "npx vitest run in desktop, with no pipeline/published/ folder",
+   "what_happens": "bundle.json names pipeline/published/*.json, which matches no file. This predates W2-P4.",
+   "kind": "other"
   }
  ],
- "decision": "APPROVE"
+ "decision": "VETO"
 }
