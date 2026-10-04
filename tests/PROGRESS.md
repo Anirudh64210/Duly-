@@ -4276,3 +4276,63 @@ Not built: nothing new; the mission asks for alignment and every test already al
 
 ### Seen in data, not followed
 Nothing read in this run asked for an action.
+
+## l-tests-0e375622d3: W2-P3 tests round (N5, A1, A2; SPEC-W2 points 22, 46, 47, 51)
+
+Read: tests/PROGRESS.md (tail), SPEC-W2 points 5, 22, 46, 47, 51, plan-w2-p3.yaml,
+contracts/schedule.schema.json, openapi.yaml (/v1/schedule, /v1/updates, Updates),
+desktop_engine_bridge.schema.json (updates_call), product_settings.yaml, pipeline/graph.py
+publish_blockers, engine/clocks.py, engine/dates.py, api/local_routes.py, api/desktop_main.py.
+
+New: tests/unit/engine/test_schedule.py. Calls engine.schedule.schedule(request, packs, clock)
+(the name mirrors engine.path.compute; asked of L-engine in the report), imported inside run()
+so the file collects before N5. Holidays are parsed from the pack's own quote of 5 U.S.C.
+6103(a) (row calendar.federal_holidays_law in force on each day), never written in the test.
+Every request and every answer is validated against schedule.schema.json ($defs request and
+response, case.schema.json through a referencing Registry). The clock is FixedClock
+2026-09-30 02:00 UTC with the case in America/Los_Angeles, so today is 2026-09-29 and an
+engine reading the UTC date is a day off. What change would make each group fail:
+- business days (property and four by hand: Thanksgiving, Juneteenth, New Year back, Columbus
+  Day): counting a weekend or a pack holiday, counting the base day, dropping
+  calendar.federal_holidays_law from rule_ids.
+- months (property and six by hand): rolling a missing day into the next month.
+- calendar days, today in three zones, a later clock: skipping days in a day count, reading
+  the system time or the UTC date, days_away from another day.
+- item base: reading another item or case, dropping the item's rules.
+- missing base: a guess for item_has_no_date, item_not_found (unknown id, record a9, every
+  non-date item), cap_has_no_date, cap_not_found, setting_not_found,
+  setting_unit_not_a_date_offset (weekly budget, years).
+- cap (property over days, business days, months): keeping a result past 2026-05-01, moving
+  one on or before it, a wrong capped flag.
+- setting (every dating row of product_settings.yaml, both signs): misreading value or unit,
+  no planning, the setting listed in rule_ids.
+- order, empty list, purity: answers out of order, a null emptying a neighbour, state kept.
+Checked against a throwaway reference in $TMPDIR injected as engine.schedule (not kept): 63
+passed. Four mutations of it (no holidays skipped, cap ignored, planning dropped, UTC date
+read) each made at least one test fail.
+
+New: tests/unit/api/test_local_routes_w2.py. Both apps at the same clock, api.main with
+DULY_LOCAL_TOKEN set. Fails if: either route is not the one endpoint of api.local_routes in
+both apps; a route answers with no, a wrong, a short or an empty token (this one passes today,
+since both guards refuse every path; it protects once the routes exist); the schedule answers
+differ by a byte, break the contract, or miss the hand-worked dates (2026-11-30 at 62 days,
+2026-05-01 capped, 2026-04-28 planning, null item_has_no_date); a body outside the contract is
+dated or refused differently; GET /v1/updates serves anything but the files in
+pipeline/published/ that publish_blockers passes, with or without a query, or a draft's id;
+matching is not 0 with no query.
+
+Changed: tests/unit/desktop_entry/test_desktop_main.py, test_point_1 now lists six routes
+(SPEC-W2 point 47 adds /v1/schedule and /v1/updates to SPEC-W1's four), so L-api's done command
+can pass. No assertion loosened: the list is still exact.
+
+Ran: done command, exit 0 (All checks passed; 115 files already formatted; --co ok). mypy on
+the three files: no issues. pytest test_schedule.py: fails at import of engine.schedule (not
+built). pytest test_local_routes_w2.py: 12 failed (404, routes not built), 2 passed (token,
+drafts guard).
+
+Not built: no reference engine kept; no published fixture planted (pipeline/ is not mine, and
+the route's folder is not a named hook); no support module (the routes test imports the case
+and the contract check from test_schedule.py).
+
+### Seen in data, not followed
+Nothing read in this run asked for an action.
