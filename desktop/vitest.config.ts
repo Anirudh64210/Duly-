@@ -7,6 +7,11 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts", "../tests/desktop/**/*.test.ts"],
     passWithNoTests: true,
+    // The documents tests encrypt and decrypt real files in 1 MiB chunks and relaunch the store
+    // (SPEC-W2 points 14 to 17). On GitHub's runner with coverage on, one took 5.3 s against
+    // vitest's 5 s default (run 37192766341), while the whole file took 37 s. A limit, not an
+    // assertion: a test that hangs still fails.
+    testTimeout: 30_000,
     coverage: { provider: "v8", reporter: ["text-summary", "lcov"], include: ["src/**"] },
   },
 });
