@@ -33,6 +33,11 @@ const KEY = 32;
 const INDEX_NONCE = 12;
 const INDEX_AAD = Buffer.from("duly documents.bin v1");
 
+/** D96: the most one contract answer carries (versions, list documents, list history). */
+const MAX_VERSIONS = 200;
+const MAX_DOCUMENTS = 5000;
+const MAX_HISTORY = 20000;
+
 const MEDIA_TYPES: Record<string, string> = {
   ".pdf": "application/pdf",
   ".jpg": "image/jpeg",
@@ -213,6 +218,10 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
 
   let loaded: { key: Buffer; index: Index } | null = null;
 
+  /** What is in files/, without the .part files a crash left. */
+  const stored = async (): Promise<string[]> =>
+    (await readdir(files).catch(() => [])).filter((name) => !name.endsWith(".part"));
+
   /** D and the index, read once. With create, D is made at first use. */
   const load = async (create = false): Promise<{ key: Buffer; index: Index } | StoreRefusal> => {
     if (loaded !== null) return loaded;
@@ -225,10 +234,14 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     } catch {
       return refuse("cannot_decrypt");
     }
+    // Without keys.bin an index that is there can never be read again: refuse, change nothing.
+    if (wrapped === null && encrypted !== null) return refuse("cannot_decrypt");
+    // D96: a missing index never means no documents while keys.bin or a stored file remains.
+    if (encrypted === null && (wrapped !== null || (await stored()).length > 0)) {
+      return refuse("index_missing");
+    }
     let key: Buffer;
     if (wrapped === null) {
-      // Without keys.bin an index that is there can never be read again: refuse, change nothing.
-      if (encrypted !== null) return refuse("cannot_decrypt");
       if (!create) return { key: Buffer.alloc(0), index: { rows: [], history: [] } };
       key = random(KEY);
       try {
@@ -268,7 +281,8 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
   };
 
   /** Writes the index in full or not at all; the one in memory changes only once it is written. */
-  const save = async (key: Buffer, index: Index): Promise<boolean> => {
+  const save = async (key: Buffer, whole: Index): Promise<boolean> => {
+    const index = { ...whole, history: whole.history.slice(0, MAX_HISTORY) };
     const nonce = random(INDEX_NONCE);
     const aes = createCipheriv("aes-256-gcm", key, nonce);
     aes.setAAD(INDEX_AAD);
@@ -327,9 +341,15 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
   const add = async (paths: readonly string[], replaces?: string): Promise<StoreReply> => {
     const ready = await load(true);
     if ("ok" in ready) return ready;
-    if (replaces !== undefined && find(ready.index, replaces) === undefined) {
+    // A chain stays one line, so only one file at a time replaces a document.
+    if (
+      replaces !== undefined &&
+      (paths.length > 1 || badReplaces(ready.index, undefined, replaces))
+    ) {
       return refuse("bad_replaces");
     }
+    // All or nothing: an add that would pass the most a list answer carries adds nothing.
+    if (ready.index.rows.length + paths.length > MAX_DOCUMENTS) return refuse("store_full");
     const added: Document[] = [];
     const skipped: Record<string, unknown>[] = [];
     for (const given of paths) {
@@ -358,6 +378,10 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
         skip("too_large");
         continue;
       }
+      if (size === 0) {
+        skip("empty");
+        continue;
+      }
       const { key, index } = loaded ?? ready;
       let plain: Buffer;
       try {
@@ -368,6 +392,10 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       }
       if (plain.length > MAX_FILE_BYTES) {
         skip("too_large");
+        continue;
+      }
+      if (plain.length === 0) {
+        skip("empty");
         continue;
       }
       const hash = sha256(plain);
@@ -459,16 +487,26 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
     return versions;
   };
 
-  const loops = (index: Index, id: string, replaces: string): boolean => {
+  /**
+   * D96: id (undefined for a new document) may not replace itself, an unknown document or one
+   * another document already replaces, nor make a loop or a chain past 200 versions.
+   */
+  function badReplaces(index: Index, id: string | undefined, replaces: string): boolean {
+    if (replaces === id || find(index, replaces) === undefined) return true;
+    if (index.rows.some((row) => row.document.replaces === replaces && row.document.id !== id)) {
+      return true;
+    }
+    // id and the versions above it, then replaces and the versions below it: one line.
+    const above = id === undefined ? 1 : chain(index, id).findIndex((one) => one.id === id) + 1;
     const seen = new Set<string>();
     for (let at: string | null | undefined = replaces; typeof at === "string";) {
       if (at === id) return true;
-      if (seen.has(at)) return false;
+      if (seen.has(at)) break;
       seen.add(at);
       at = find(index, at)?.document.replaces;
     }
-    return false;
-  };
+    return above + seen.size > MAX_VERSIONS;
+  }
 
   const UPDATABLE = ["kind", "label", "group", "labels", "typed", "replaces", "change"];
 
@@ -519,10 +557,7 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
             Object.entries({ ...row.document, ...changes }).filter(([, value]) => value !== null),
           );
           const replaces = changes.replaces;
-          if (
-            typeof replaces === "string" &&
-            (replaces === id || find(index, replaces) === undefined || loops(index, id, replaces))
-          ) {
+          if (typeof replaces === "string" && badReplaces(index, id, replaces)) {
             return refuse("bad_replaces");
           }
           const problem = checker.problem(`${DOCUMENTS_BRIDGE_ID}#/$defs/document`, document);
@@ -615,13 +650,18 @@ export async function openStore(deps: StoreDeps): Promise<Store> {
       return next;
     };
 
-  // At launch: with the index read, anything in files/ no row names is what a crash left.
+  // At launch: with the index read, anything in files/ no row names is what a crash left. With
+  // the index missing only .part files go, since the rest may be the student's documents.
   const ready = await load();
   if (!("ok" in ready)) {
     const named = new Set(ready.index.rows.map((row) => row.document.id));
     const found = ready.key.length === KEY ? await readdir(files).catch(() => []) : [];
     for (const name of found) {
       if (!named.has(name)) await rm(join(files, name), { force: true, recursive: true });
+    }
+  } else if (ready.refused === "index_missing") {
+    for (const name of await readdir(files).catch(() => [])) {
+      if (name.endsWith(".part")) await rm(join(files, name), { force: true });
     }
   }
 
