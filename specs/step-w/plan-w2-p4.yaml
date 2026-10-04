@@ -1,0 +1,59 @@
+branch: step-w
+spec: specs/step-w/SPEC-W2.md
+goal: 'The desktop bridges of W2-P4: window.duly.engine (compute, schedule, updates over the W1 socket with the token), window.duly.state (state.bin), window.duly.documents (encrypted documents under the keychain key, D85), and local notifications for planned reminders, each call and reply checked against its contract. SPEC-W2 points 5, 13 to 18, 22 and 52; contracts desktop_engine_bridge, desktop_state_bridge and desktop_documents_bridge (K4). The CSP change and the removal of the duly://app/api proxy land with W2-P5''s engine client, so the app keeps working between the two plans.'
+merge: local
+audited: false
+rounds:
+- name: tests
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'SPEC-W2 point 52, the L-tests line, from sections 2, 4, 5 and 6 (points 5, 13 to 18 and 22) and the K4 contracts. Write tests/desktop/tsconfig.json and three files, run by desktop''s vitest through its include of ../tests/desktop: tests/desktop/bridges.test.ts: the engine bridge forwards compute, schedule and updates to the engine over the socket with the token and checks every call and reply against contracts/desktop_engine_bridge.schema.json; a call outside the schema and a call from a frame that is not the main frame of duly://app are refused, as the case bridge does; the state bridge reads, writes and clears state.bin with safeStorage like case.bin, checks it against $defs/state on every read and write, writes atomically, and refuses and keeps a bad state file, never deleting it; a planned reminder becomes exactly one Notification with the words it was given. tests/desktop/documents-store.test.ts: with a fake cipher, the document key D is never written unwrapped and a file key F never leaves the index; AES-256-GCM in 1 MiB chunks round trips; a reordered, dropped or cut chunk fails and is reported, never opened; a crash between the steps of an add leaves no row and no orphan after relaunch; the index is written atomically and a bad index is refused and kept; versions newest first, remove, put back, delete for good (destroys F and the file, history keeps "A document was deleted for good" without the name). tests/desktop/documents-bridge.test.ts: each call of contracts/desktop_documents_bridge.schema.json and each refusal: a path string from the screen, a folder, a file inside the data folder, a file over the size limit, a duplicate; export decrypts to a folder the student picked; clear deletes files/, documents.bin, keys.bin, case.bin and state.bin. Also, beside test_review_w2p3_2_3 in tests/unit/api: a published folder holding one valid, unblocked update and one file that is not JSON: GET /v1/updates answers 200 with the valid update only (reviews/w2-p3.md finding 2). They cannot pass yet.'
+    done: bash -c 'npx tsc --noEmit -p tests/desktop && npx eslint tests/desktop --max-warnings 0 && npx prettier --check "tests/desktop/**/*.{ts,json}" && uv run ruff check tests && uv run ruff format --check tests'
+- name: bridges
+  lanes:
+  - lane: L-desktop
+    agent: builder
+    mission: 'SPEC-W2 points 5, 18 and 22: window.duly.engine in the preload and main (compute, schedule and updates forwarded to the bundled engine over the W1 socket with the token, each call and reply checked against contracts/desktop_engine_bridge.schema.json, refused from any frame but the main frame of duly://app); window.duly.state over <userData>/state.bin (safeStorage, atomic, checked against $defs/state on every read and write, a bad file refused and kept); main shows a planned reminder as one Electron Notification with the words it was given, while Duly runs. Keep the duly://app/api proxy and the CSP as they are: they change with W2-P5. Make tests/desktop/bridges.test.ts and every desktop test in src pass.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop -- src/ bridges && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}" && uv run python -m tools.copy_lint.lint'
+  - lane: L-api
+    agent: builder
+    mission: 'reviews/w2-p3.md findings 1 and 2, left by the W2-P3 approval. api/local_routes.py: delete NO_CALENDAR, the 422 handler for a missing holiday row and the import of CalendarNotInForceError, which can no longer run since engine/schedule.py answers that case per request with holidays_not_known (openapi: a request the engine cannot date is not a 422). api/case.py: a published file that does not parse as JSON is treated as one that does not follow update.schema.json, so the other files are still served. Make tests/unit/api and tests/unit/desktop_entry pass.'
+    done: bash -c 'uv run pytest tests/unit/api tests/unit/desktop_entry -q && uv run mypy && uv run ruff check api && uv run ruff format --check api'
+  - lane: L-security
+    agent: builder
+    mission: 'SPEC-W2 point 52, the L-security line, and D85: rows in security/threat-model.md for documents under the keychain key alone: what <userData>/files/, documents.bin and keys.bin hold, who can read them (anyone logged in as the student on that Mac, any process that can ask the Keychain for "Duly Safe Storage"), what AES-256-GCM in chunks with a random key per file protects against and what it does not, and that the Touch ID lock and the recovery kit come with documents-1. Plain words, no long dashes.'
+    done: bash -c 'grep -q "documents.bin" security/threat-model.md && grep -q "keys.bin" security/threat-model.md && uv run python -m tools.copy_lint.lint'
+- name: documents-store
+  lanes:
+  - lane: L-desktop
+    agent: builder
+    mission: 'SPEC-W2 points 14 to 17: the documents store in main, Node''s crypto only, no dependency and no database: a random 256-bit document key D wrapped by safeStorage into <userData>/keys.bin; a random 256-bit key F per file kept only in the encrypted index; each file <userData>/files/<random id>, AES-256-GCM in 1 MiB chunks, each nonce a random 64-bit file prefix plus a 32-bit counter, the document id, chunk index and a last-chunk flag as additional data; add writes .part, syncs, renames, decrypts back and compares the SHA-256 before the index row is written, and on any failure nothing half-added remains; the index one AES-256-GCM file documents.bin under D, written atomically like case.bin, a bad index refused and kept; versions, remove, put back and delete for good as point 17 says. The student''s original file is never moved or deleted. Make tests/desktop/documents-store.test.ts pass with every desktop test in src and bridges.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop -- src/ bridges documents-store && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}"'
+- name: documents-bridge
+  lanes:
+  - lane: L-desktop
+    agent: builder
+    mission: 'SPEC-W2 point 13: window.duly.documents in the preload and main over the documents store: add (only from main''s own file dialog, or a real drop whose path the preload reads with webUtils.getPathForFile; a path string from the screen is refused), list, open, versions, update, remove, restore, delete, export (decrypted copies to a folder or a .zip the student picks through the system dialog) and clear (point 17''s "Delete everything on this Mac": files/, documents.bin, keys.bin, case.bin and state.bin), each call and reply checked against contracts/desktop_documents_bridge.schema.json, each refusal as the contract names it. Make every desktop test pass.'
+    done: bash -c 'npm run typecheck -w desktop && npm test -w desktop && npx eslint desktop --max-warnings 0 && npx prettier --check "desktop/**/*.{ts,json}" && uv run python -m tools.copy_lint.lint'
+- name: reconcile
+  lanes:
+  - lane: L-tests
+    agent: test-author
+    mission: 'Bring every test in tests/desktop, tests/unit/desktop_entry and tests/web in line with W2-P4 (SPEC-W2 points 5, 13 to 18, 22 and 52); write the point beside each change; never loosen an assertion; escalate any failure no point explains.'
+    done: bash -c 'npm test -w desktop && npm test -w web -- tests/web && uv run pytest tests/unit/desktop_entry -q -p no:cacheprovider'
+  checks:
+  - name: offline gates
+    run: make test-offline BASE=work/product-2
+- name: review
+  lanes:
+  - lane: L-review
+    agent: reviewer
+    mission: 'Review W2-P4 against SPEC-W2 points 5, 13 to 18, 22 and 52, the K4 contracts, D85, security/threat-model.md, PRINCIPLES.md and BOUNDARY.md. Try hardest to find a call the bridges accept outside their contracts or from another frame, a path the screen can make main read, a document key or file key written unwrapped, a chunk that can be reordered, dropped or cut without being caught, an add that leaves half a document after a crash, a bad index or state file that is deleted instead of kept, and a reminder shown with words main made up. Write reviews/w2-p4.md and reviews/REVIEW.json.'
+    done: bash -c 'grep -Eq "^(APPROVE|VETO)$" reviews/w2-p4.md && test -f reviews/REVIEW.json'
+- name: audit
+  lanes:
+  - lane: L-audit
+    agent: auditor
+    mission: 'Audit W2-P4 as your role file describes. Write docs/requirements/audits/w2-p4.md.'
+    done: bash -c 'test -f docs/requirements/audits/w2-p4.md && uv run python -m tools.requirements.register check'

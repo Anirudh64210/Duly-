@@ -518,7 +518,10 @@ in order.
       primary source, quote found, two checks, the approval recorded). Done: `bash -c 'uv run
       pytest tests/unit/pipeline -q'`.
 52. **W2-P4, the desktop bridges** (may run beside P1 to P3). Engine bridge, state store,
-    documents store, notifications, the CSP change.
+    documents store, notifications. The CSP change of point 5 (`connect-src 'none'`, the
+    `duly://app/api` proxy removed) moves to W2-P5, which switches the screen to the engine
+    bridge, so the app the founder installs keeps working between the two plans (founder lane,
+    2026-10-03).
     - L-tests: `tests/desktop/bridges.test.ts`, `tests/desktop/documents.test.ts` (sections 4 and
       5, every refusal, the chunk faults, the crash between steps). Done: `bash -c 'npx tsc
       --noEmit -p tests/desktop && npx eslint tests/desktop --max-warnings 0'`.
@@ -528,7 +531,8 @@ in order.
     - L-security: the threat-model rows for documents under the keychain key alone.
 53. **W2-P5, the web foundation.** The new shell and router, tokens and motion from the
     prototype, format.ts, the engine client over the bridge, the case and state stores, the sample
-    student, the Loop module and every playbook. The old UI removed.
+    student, the Loop module and every playbook. The old UI removed. The CSP change of point 5
+    lands here, with the engine client (moved from W2-P4).
     - L-tests: `tests/web/loops/*.test.ts` (point 20), `tests/web/format.test.ts`,
       `tests/unit/tools/test_web_no_date_math.py`, and `tests/web/acceptance/` with the sample
       student and the twenty journeys' engine outputs (each shown number equals its named field).
