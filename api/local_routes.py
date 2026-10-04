@@ -23,18 +23,13 @@ from api.case_f1 import (
 from engine.clocks import Clock, SystemClock, day_in_zone
 from engine.path import CaseStructureError
 from engine.rulepack import Rulepack, load_all
-from engine.schedule import CalendarNotInForceError, schedule
+from engine.schedule import schedule
 from engine.verdict import VerdictInputs, decide
 
 # The query lists of /v1/updates, comma separated (openapi: style form, explode false). A
 # category is ^[a-z0-9]+$; a stage id also takes "_" and ".".
 CATEGORIES = r"^[a-z0-9]+(,[a-z0-9]+)*$"
 NAMES = r"^[a-z0-9_.]+(,[a-z0-9_.]+)*$"
-
-NO_CALENDAR = (
-    "requests: a business day count here crosses a day on which no rule pack of the case "
-    "holds the federal holiday list, so Duly cannot count it."
-)
 
 API_VERSION = "0.0.0"
 CONTRACTS_VERSION = "0.0.0"
@@ -127,8 +122,6 @@ def schedule_dates(
         return schedule(raw, packs, clock)
     except CaseStructureError:
         raise HTTPException(status_code=422, detail=records_case.CASE_STRUCTURE) from None
-    except CalendarNotInForceError:
-        raise HTTPException(status_code=422, detail=NO_CALENDAR) from None
 
 
 def _names(sent: str | None) -> set[str]:
